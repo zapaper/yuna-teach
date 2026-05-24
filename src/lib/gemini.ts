@@ -200,31 +200,25 @@ export async function transcribeMathMcqQuestion(
   diagram: DiagramBounds | null;
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
-  const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
-          { text: MATH_MCQ_TRANSCRIPTION_PROMPT },
-        ],
-      },
-    ],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  });
-
-  const text = response.text ?? "";
-  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
-  const d = parsed.diagram;
-  const ob = parsed.optionBounds;
+  // Route through the shared Gemini+Wavespeed wrapper so a JSON-only-
+  // fences response from Gemini doesn't throw SyntaxError straight to
+  // the caller — the wrapper logs it cleanly and falls through to
+  // Wavespeed. The Science MCQ variant already does this; the Math
+  // MCQ one was the last direct-call holdout.
+  const parsed = await transcribeViaGeminiOrWavespeed(
+    imageBase64, MATH_MCQ_TRANSCRIPTION_PROMPT, "math-mcq",
+    (raw) => Boolean(raw && raw.stem),
+  );
+  const d = parsed.diagram as Record<string, number> | null | undefined;
+  const ob = parsed.optionBounds as unknown;
+  const optsArr = (parsed.options as unknown[] | undefined) ?? [];
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
     options: [
-      String(parsed.options?.[0] ?? ""),
-      String(parsed.options?.[1] ?? ""),
-      String(parsed.options?.[2] ?? ""),
-      String(parsed.options?.[3] ?? ""),
+      String(optsArr[0] ?? ""),
+      String(optsArr[1] ?? ""),
+      String(optsArr[2] ?? ""),
+      String(optsArr[3] ?? ""),
     ],
     diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
     optionBounds: Array.isArray(ob)
