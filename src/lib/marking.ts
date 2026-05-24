@@ -529,11 +529,16 @@ function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
   return syllabusTopic === "Grammar Cloze" || syllabusTopic === "Comprehension Cloze";
 }
 
-/** Normalize MCQ answer for comparison: strip parens, uppercase.
+/** Normalize MCQ answer for comparison: strip parens, drop any explanation
+ *  trailing after a " | " separator, uppercase.
  *  Capital "I" is treated as "1" — they are visually identical in handwriting
  *  and "I" is never a valid MCQ option (options are 1–4 or A–D). */
 function normalizeMcq(val: string): string {
-  const upper = val.trim().replace(/[()]/g, "").toUpperCase();
+  // Answer-key extraction sometimes stores MCQ answers as "(4) | working
+  // explanation" — split off everything after the first separator before
+  // comparing against the student's letter/digit.
+  const head = val.split("|")[0] ?? val;
+  const upper = head.trim().replace(/[()]/g, "").toUpperCase();
   return upper === "I" ? "1" : upper;
 }
 
