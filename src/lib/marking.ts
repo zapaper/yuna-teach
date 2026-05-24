@@ -512,15 +512,6 @@ Return ONLY JSON: {"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | n
 
 /** Check if a question is MCQ based on its expected answer */
 function isMcqAnswer(answer: string | null): boolean {
-  const result = _isMcqAnswerInner(answer);
-  // TEMPORARY DIAGNOSTIC — trace why some MCQs are still being mis-
-  // classified as OEQ even after the "(N) | explanation" fix. Remove
-  // once the root cause is confirmed in prod logs.
-  console.log(`[isMcqAnswer] raw=${JSON.stringify(answer)} → ${result}`);
-  return result;
-}
-
-function _isMcqAnswerInner(answer: string | null): boolean {
   if (!answer) return false;
   // Answer-key extraction occasionally stores MCQ keys as
   // "(3) | working explanation". The "(3)" is the actual answer,
@@ -2936,8 +2927,15 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     const rescoreUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
     for (const q of paper.questions.filter(q2 => hasOpts(q2))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
-      const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-      const acceptableAnswers = correctAns.split(/\s+or\s+/).map(p => p.trim());
+      // Strip the "(N) | explanation" suffix BEFORE comparing — without
+      // this, an answer key like "(3) | working notes" normalises to
+      // "3 | working notes" which never matches the student's clean "3"
+      // and the re-score overrides marksAwarded=2 with 0. Same bug class
+      // we keep finding; the head split has to happen at every MCQ
+      // comparison site.
+      const correctHead = ((q.answer ?? "").split("|")[0] ?? "").trim();
+      const correctAns = correctHead.replace(/[().]/g, "").trim();
+      const acceptableAnswers = correctAns.split(/\s+or\s+/i).map(p => p.trim());
       const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
       const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
       const notes = q.studentAnswer == null || q.studentAnswer === "__SKIPPED__"
