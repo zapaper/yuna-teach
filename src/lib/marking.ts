@@ -4089,23 +4089,12 @@ The image is ONE combined canvas the student used for all sub-parts. There are N
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
 
-          // Self-reported markers: detect prompt requires the model to
-          // start its response with two lines:
-          //   HANDWRITING: PRESENT|ABSENT
-          //   TRANSCRIPTION: FOUND|EMPTY
-          // Plain string equality on the first two lines — no regex
-          // against unpredictable AI output. If flash claims ABSENT
-          // (no ink seen) OR EMPTY (sees ink but can't read it) and the
-          // pixel check confirmed ink, re-run with pro. Strip the marker
-          // lines before handing the transcription downstream.
-          const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
-          const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
-          const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
+          // Strip the OUTPUT FORMAT marker lines if flash emitted them
+          // (defensive — keeps downstream marking working whether or not
+          // the model complied with the prompt format).
           const lines = detectedAnswer.split("\n");
           const line1 = (lines[0] ?? "").trim();
           const line2 = (lines[1] ?? "").trim();
-          const flashSaysAbsent = line1 === "HANDWRITING: ABSENT";
-          const flashSaysEmpty = line2 === "TRANSCRIPTION: EMPTY";
           const isMarker1 = line1 === "HANDWRITING: PRESENT" || line1 === "HANDWRITING: ABSENT";
           const isMarker2 = line2 === "TRANSCRIPTION: FOUND" || line2 === "TRANSCRIPTION: EMPTY";
           if (isMarker1 && isMarker2) {
@@ -4113,9 +4102,51 @@ The image is ONE combined canvas the student used for all sub-parts. There are N
           } else if (isMarker1) {
             detectedAnswer = lines.slice(1).join("\n").trim();
           }
-          if (usedFlashOnly && inkPresentOverall && (flashSaysAbsent || flashSaysEmpty)) {
-            const reason = flashSaysAbsent ? "HANDWRITING: ABSENT" : "TRANSCRIPTION: EMPTY";
-            console.log(`[quiz-marking] Q${q.questionNum}: flash said ${reason} but ink present — retrying with gemini-3.1-pro-preview`);
+
+          // Cheap LLM-as-judge: ask flash to classify whether the
+          // transcription contains real student work or just various
+          // phrasings of "blank/empty/illegible/no answer". Replaces
+          // brittle string matching against AI output — the judge handles
+          // unlimited phrasing variations (blank, (no working shown),
+          // illegible, nothing visible, I cannot read this, etc.) with
+          // one cheap text-only call.
+          const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
+          const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
+          const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
+          let judgedEmpty = false;
+          if (usedFlashOnly && inkPresentOverall && detectedAnswer.length > 0) {
+            try {
+              const judgePrompt = `Below is an AI's transcription of a student's handwritten exam answer.
+
+Decide whether the transcription contains ACTUAL student work (numbers, letters, words, equations, descriptions of student-drawn marks) OR whether it is only phrases meaning the canvas was blank/illegible/empty.
+
+Transcription:
+"""
+${detectedAnswer}
+"""
+
+Answer with EXACTLY one word, nothing else: YES or NO.
+YES = real student work is present.
+NO = the transcription consists only of phrases like "blank", "(no working shown)", "(empty)", "illegible", "nothing visible", "I cannot read this", "no answer", or similar — NO actual student work.`;
+              const judgeResponse = await withTimeout(
+                ai.models.generateContent({
+                  model: "gemini-2.5-flash",
+                  contents: [{ role: "user", parts: [{ text: judgePrompt }] }],
+                  config: { temperature: 0, responseMimeType: "text/plain" },
+                }),
+                15_000,
+                `quiz-detect-q${q.questionNum}-judge`,
+              );
+              const judgeText = (judgeResponse.text ?? "").trim().toUpperCase();
+              judgedEmpty = judgeText.startsWith("NO");
+              console.log(`[quiz-marking] Q${q.questionNum} judge: "${judgeText.slice(0, 20)}" → ${judgedEmpty ? "empty (will escalate)" : "has content"}`);
+            } catch (err) {
+              console.warn(`[quiz-marking] Q${q.questionNum} judge failed, assuming has content:`, err instanceof Error ? err.message : err);
+            }
+          }
+
+          if (usedFlashOnly && inkPresentOverall && judgedEmpty) {
+            console.log(`[quiz-marking] Q${q.questionNum}: judge says flash transcription is empty but ink present — retrying with gemini-3.1-pro-preview`);
             try {
               const retry = await withTimeout(
                 ai.models.generateContent({
@@ -4128,8 +4159,19 @@ The image is ONE combined canvas the student used for all sub-parts. There are N
               );
               const retryAns = retry.text?.trim() ?? "";
               if (retryAns) {
-                console.log(`[quiz-marking] Q${q.questionNum} pro re-detect: "${retryAns.substring(0, 100)}"`);
-                detectedAnswer = retryAns;
+                // Strip pro's marker lines too if present
+                const retryLines = retryAns.split("\n");
+                const retryLine1 = (retryLines[0] ?? "").trim();
+                const retryLine2 = (retryLines[1] ?? "").trim();
+                const retryMarker1 = retryLine1 === "HANDWRITING: PRESENT" || retryLine1 === "HANDWRITING: ABSENT";
+                const retryMarker2 = retryLine2 === "TRANSCRIPTION: FOUND" || retryLine2 === "TRANSCRIPTION: EMPTY";
+                const stripped = retryMarker1 && retryMarker2
+                  ? retryLines.slice(2).join("\n").trim()
+                  : retryMarker1
+                    ? retryLines.slice(1).join("\n").trim()
+                    : retryAns;
+                console.log(`[quiz-marking] Q${q.questionNum} pro re-detect: "${stripped.substring(0, 100)}"`);
+                detectedAnswer = stripped;
               }
             } catch (err) {
               console.warn(`[quiz-marking] Q${q.questionNum} pro retry failed:`, err instanceof Error ? err.message : err);
