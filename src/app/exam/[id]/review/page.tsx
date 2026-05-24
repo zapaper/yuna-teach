@@ -3305,11 +3305,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  // Use objectFit:contain so the saved canvas
-                                                  // keeps its natural aspect ratio — neither
-                                                  // squished nor blurry from a forced resize.
-                                                  // The white background fills any letterbox gap.
-                                                  imgStyle={{ width: "100%", height: spVisible, objectFit: "contain" }}
+                                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
@@ -3448,11 +3444,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="block"
-                                  // objectFit:contain preserves the saved canvas's
-                                  // natural aspect — `fill` was stretching tall
-                                  // canvases horizontally / wide canvases vertically,
-                                  // hence the "blur + squished" complaint.
-                                  imgStyle={{ width: "100%", height: visibleH, objectFit: "contain" }}
+                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
                                 />
                                 <ReviewPenOverlay
                                   key={overlayKey}
