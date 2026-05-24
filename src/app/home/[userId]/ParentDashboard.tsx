@@ -1825,7 +1825,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+              {(paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "mastery") && (
                 <button onClick={(e) => handleDeletePaper(e, paper.id)}
                   className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                   <span className="material-symbols-outlined text-base">close</span>
@@ -2706,7 +2706,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            {(paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "diagnostic" || paper.sourceExamId) && (
+                            {(paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "diagnostic" || paper.paperType === "mastery" || paper.sourceExamId) && (
                               <button onClick={(e) => handleDeletePaper(e, paper.id)}
                                 className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                                 <span className="material-symbols-outlined text-base">close</span>
