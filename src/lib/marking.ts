@@ -512,6 +512,15 @@ Return ONLY JSON: {"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | n
 
 /** Check if a question is MCQ based on its expected answer */
 function isMcqAnswer(answer: string | null): boolean {
+  const result = _isMcqAnswerInner(answer);
+  // TEMPORARY DIAGNOSTIC — trace why some MCQs are still being mis-
+  // classified as OEQ even after the "(N) | explanation" fix. Remove
+  // once the root cause is confirmed in prod logs.
+  console.log(`[isMcqAnswer] raw=${JSON.stringify(answer)} → ${result}`);
+  return result;
+}
+
+function _isMcqAnswerInner(answer: string | null): boolean {
   if (!answer) return false;
   // Answer-key extraction occasionally stores MCQ keys as
   // "(3) | working explanation". The "(3)" is the actual answer,
@@ -2869,6 +2878,14 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     };
     const mcqQuestions = paper.questions.filter(q => hasOpts(q) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !hasOpts(q) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
+    // TEMPORARY classification trace — find why digital MCQs are
+    // landing in the OEQ bucket and getting overwritten.
+    for (const q of paper.questions) {
+      const bucket = mcqQuestions.includes(q) ? (typedSectionQIds.has(q.id) ? "TYPED" : "MCQ")
+        : oeqQuestions.includes(q) ? "OEQ"
+        : "SKIPPED";
+      console.log(`[quiz-marking] CLASSIFY Q${q.questionNum}: bucket=${bucket} hasOpts=${hasOpts(q)} typedSection=${typedSectionQIds.has(q.id)} studentAnswer=${JSON.stringify(q.studentAnswer)} marksAwarded=${q.marksAwarded} answerKey=${JSON.stringify((q.answer ?? "").slice(0, 50))}`);
+    }
 
     // English-only typed OEQ sections (synthesis, comprehension OEQ) — these store the
     // student's answer as typed text in studentAnswer. All other OEQ questions (math,

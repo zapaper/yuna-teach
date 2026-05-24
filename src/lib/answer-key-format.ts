@@ -78,13 +78,20 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     }
   }
 
-  // 6) Bare "(i)" / "(ii)" / etc. as a chunk → attach the most-recent
-  //    parent letter seen earlier in the answer. Walk chunks left-to-right
-  //    tracking the last (letter) we saw — simple or compound.
+  // 6) Bare "(i)" / "(ii)" / "ii)" / "ii." / etc. as a chunk → attach
+  //    the most-recent parent letter seen earlier in the answer. Walk
+  //    chunks left-to-right tracking the last (letter) we saw — simple
+  //    or compound. Accept the roman with EITHER both parens "(ii)" OR
+  //    just a trailing paren/dot "ii)" / "ii." — printed answer keys
+  //    use all three conventions.
   const parts = result.split(/(\s\|\s)/);
   let currentParent: string | null = null;
   const parentRe = /^\s*\(([a-h])\)/i;
-  const bareRomanRe = new RegExp(`^\\s*\\((${ROMAN_RE})\\)`, "i");
+  // Two shapes we'll attach the parent to:
+  //   (ii)   — both parens
+  //   ii)    — closing paren only
+  //   ii.    — dot terminator
+  const bareRomanRe = new RegExp(`^\\s*(?:\\((${ROMAN_RE})\\)|(${ROMAN_RE})[).])`, "i");
   for (let i = 0; i < parts.length; i += 2) {
     const chunk = parts[i];
     const parentMatch = chunk.match(parentRe);
@@ -94,7 +101,10 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     }
     const bareMatch = chunk.match(bareRomanRe);
     if (bareMatch && currentParent) {
-      parts[i] = chunk.replace(bareRomanRe, `(${currentParent})(${bareMatch[1].toLowerCase()})`);
+      const roman = (bareMatch[1] ?? bareMatch[2] ?? "").toLowerCase();
+      if (roman) {
+        parts[i] = chunk.replace(bareRomanRe, `(${currentParent})(${roman}) `).replace(/  +/g, " ");
+      }
     }
   }
   result = parts.join("");
