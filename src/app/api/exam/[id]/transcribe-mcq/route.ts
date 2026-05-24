@@ -35,12 +35,17 @@ async function cropDiagram(imageBase64: string, bounds: DiagramBounds): Promise<
   const width = Math.max(right - left, 1);
   const height = Math.max(bottom - top, 1);
 
+  // Drop sharpen — it amplified anti-aliasing into grey halos
+  // around dark text and made faint lines look fuzzy. Bump JPEG
+  // quality to 95 so the 8×8 DCT blocks become near-invisible
+  // around text edges. Keep grayscale + normalize (helps faded
+  // scans). Output stays JPEG so the 13+ <img src="data:image/jpeg;…">
+  // call sites don't need touching.
   const cropped = await sharp(buf)
     .extract({ left, top, width, height })
     .grayscale()
     .normalize()
-    .sharpen()
-    .jpeg({ quality: 90 })
+    .jpeg({ quality: 95, chromaSubsampling: "4:4:4" })
     .toBuffer();
 
   return cropped.toString("base64");

@@ -16,9 +16,10 @@ async function cropDiagram(imageBase64: string, bounds: DiagramBounds): Promise<
   const bottom = Math.min(h, Math.round(((bounds.bottom / 100) + PAD) * h));
   const width = Math.max(right - left, 1);
   const height = Math.max(bottom - top, 1);
+  // Drop sharpen + quality 95 (4:4:4) — see transcribe-mcq/route.ts.
   const out = await sharp(buf)
     .extract({ left, top, width, height })
-    .grayscale().normalize().sharpen().jpeg({ quality: 90 }).toBuffer();
+    .grayscale().normalize().jpeg({ quality: 95, chromaSubsampling: "4:4:4" }).toBuffer();
   return out.toString("base64");
 }
 
