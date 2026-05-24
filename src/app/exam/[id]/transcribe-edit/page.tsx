@@ -993,7 +993,11 @@ function QuestionCard({
                   (["diagram", ...(isMcq && imageOptionsMode ? [0, 1, 2, 3] : []),
                     ...(!isMcq && q.subparts && q.subparts.length > 0 ? [
                       ...q.subparts.map(sp => `sub-${sp.label}`),
-                      ...(isScience ? q.subparts.map(sp => `subref-${sp.label}`) : []),
+                      // Per-subpart reference diagram (e.g. Q27(b) shows
+                      // a different figure from Q27(a)). Previously
+                      // science-only; opened up to math too — PSLE math
+                      // commonly has per-subpart figures.
+                      ...q.subparts.map(sp => `subref-${sp.label}`),
                     ] : []),
                     ...(!isMcq && (!q.subparts || q.subparts.length === 0) ? ["drawable"] : []),
                   ]) as DrawTarget[]

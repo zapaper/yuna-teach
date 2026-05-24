@@ -132,10 +132,20 @@ function stripQuestionNumber(stem: string): string {
 }
 
 const DIAGRAM_BOUNDS_INSTRUCTION = `
-- diagram: If the question contains a figure, shape, number line, bar model, table, or any visual element that is NOT just text — return its bounding box as percentages of the full image height/width. Use null if there is no diagram.
-  { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 }
-  Be generous — include a small margin around the diagram so nothing is clipped.
-  If there is a diagram, do NOT write "[diagram]" in the stem — just reference it naturally (e.g. "In the figure,").`;
+- diagram: If the question contains ANY non-text visual element — return its tight bounding box as percentages of the full image height/width. Use null if there is no visual element.
+  What counts as a diagram (extract ALL of these):
+    * Figures, shapes, geometric drawings (triangles, squares, circles, polygons)
+    * Pictures, photos, illustrations of objects or scenes
+    * Tables (rows × columns of data, with or without borders)
+    * Graphs, charts, plots (bar / line / pie / scatter)
+    * Number lines, bar models, pictograms, fraction strips
+    * Diagrams of apparatus, food chains, flow charts, life cycles
+    * Maps, layouts, plans, nets of solids
+    * Any image with labels, arrows, or annotations
+  Bounding box format:
+    { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 }
+  TIGHT bounds — only ~1-2% padding around the visual content. Do NOT include surrounding question text, sub-part labels, or blank answer space inside the bounding box. The crop should contain the diagram and nothing else (it's rendered on its own next to the transcribed text, so any included text becomes duplicated noise).
+  If there is a diagram, do NOT write "[diagram]" / "[table]" / "[figure]" in the stem — just reference it naturally (e.g. "In the figure,", "Study the table below,").`;
 
 const MATH_MCQ_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Mathematics MCQ question from an exam paper image.
 
