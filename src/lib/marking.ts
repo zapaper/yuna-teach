@@ -4001,36 +4001,19 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
 
-          // Blank-but-ink-present retry: if flash returned "blank" but
-          // the pixel check already confirmed ink is present on at
-          // least one subpart (or the whole canvas for non-subpart
-          // questions), the model couldn't read the writing — retry
-          // once with the stronger pro model. Observed case: P6
-          // Focused Q7 with three subparts where the student wrote
-          // legible answers in pen but flash reported all three
-          // blank. Skip when flash didn't run (math drawable) or
-          // already used the pro chain.
+          // Ink-present pro re-detect: if pixel check confirmed ink and
+          // flash was the only model used, ALWAYS re-run with pro and use
+          // its answer. Earlier we tried to detect "blank-looking"
+          // responses via regex but flash kept finding new ways to slip
+          // past (e.g. "Working: (no working shown) / Final answer:
+          // (blank)" — structural keywords fooled the negative regex).
+          // Trading one extra pro call per ink-present OEQ for a
+          // guaranteed accurate read is the right call.
           const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
           const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
           const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
-          // Strip structural labels (Working:, Final answer:) and placeholder
-          // values like "(no working shown)", "(blank)", "(nothing)", "—",
-          // "N/A" so the negative regex only sees substantive content. The
-          // model often returns the structure with empty slots when it
-          // couldn't read the writing — that should still trigger the
-          // pro retry, even though the words "working" / "final answer"
-          // appear as labels.
-          const stripped = detectedAnswer
-            .replace(/\b(working|final answer)\s*:?/gi, "")
-            .replace(/\((?:no\s+\w+(?:\s+\w+)?(?:\s+shown)?|blank|nothing|empty|n\/?a)\)/gi, "")
-            .replace(/\b(?:n\/a|none|nothing)\b/gi, "")
-            .replace(/[—–\-]+/g, "")
-            .replace(/\([a-z]\)/gi, "") // subpart labels (a), (b), (c)
-            .trim();
-          const hasSubstantiveContent = /(drew|step\s*\d|=\s*\d|\d+\s*(?:cm|m|kg|g|ml|°|%)|[a-zA-Z]{3,})/i.test(stripped);
-          const looksAllBlank = inkPresentOverall && /\bblank\b/i.test(detectedAnswer) && !hasSubstantiveContent;
-          if (usedFlashOnly && looksAllBlank) {
-            console.log(`[quiz-marking] Q${q.questionNum}: flash said blank with ink present — retrying with gemini-3.1-pro-preview`);
+          if (usedFlashOnly && inkPresentOverall) {
+            console.log(`[quiz-marking] Q${q.questionNum}: ink present, re-detecting with gemini-3.1-pro-preview to verify flash result`);
             try {
               const retry = await withTimeout(
                 ai.models.generateContent({
