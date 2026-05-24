@@ -131,6 +131,15 @@ function stripQuestionNumber(stem: string): string {
   return stem.replace(/^\s*(?:Q\.?\s*)?(\d{1,3})\s*[.)]\s*/i, "").trim();
 }
 
+// Currency disambiguation. The renderer treats "$...$" as LaTeX math
+// when the content has =, \\, ^, _, { or }. To keep word-problem
+// currency from accidentally tripping that or breaking up sentences
+// like "Suyi bought $8 cushions and had $3 left" (where the renderer
+// would otherwise scan from the first $ to the second $), the
+// extractor emits "$$" for every literal dollar sign. The renderer
+// collapses "$$" back to a single "$" for display.
+const CURRENCY_ESCAPE_INSTRUCTION = `- CURRENCY (dollar sign): ALWAYS write a money symbol as two dollar signs "$$" — never one. So "He paid $5 for the book" becomes "He paid $$5 for the book", and "$25.50" becomes "$$25.50". Apply this to both stem and option text. This convention reserves a single "$...$" pair for LaTeX math only and keeps prose with money in it from breaking.`;
+
 const DIAGRAM_BOUNDS_INSTRUCTION = `
 - diagram: If the question contains ANY non-text visual element — return its tight bounding box as percentages of the full image height/width. Use null if there is no visual element.
   What counts as a diagram (extract ALL of these):
@@ -166,6 +175,7 @@ Rules:
     • Improper fraction "29/6"     →  "$\\frac{29}{6}$"
   Apply this in BOTH the stem and every option string. The student-facing UI renders these as proper stacked fractions, so accuracy here directly improves readability.
   Do NOT LaTeX-wrap whole numbers, decimals, percentages, or non-fraction expressions — only fractions/mixed numbers.
+${CURRENCY_ESCAPE_INSTRUCTION}
 - Preserve other mathematical notation (e.g. "3.5 cm²", "2 × 4", "∠ABC")
 - LABELLED STATEMENTS IN THE STEM: if the stem lists multiple labelled statements like "A. <text>  B. <text>  C. <text>" (these are NOT the answer options — answer options are labelled (1)/(2)/(3)/(4)), put EACH statement on its OWN LINE in the stem string using \\n as the line break. Don't run them together on one line. Example: stem = "Which of the following are even?\\nA. 4\\nB. 7\\nC. 12\\nD. 15".
 - Include units in options if present (e.g. "12 cm", "0.75")
@@ -853,6 +863,7 @@ Rules:
     • Improper fraction "29/6"     →  "$\\frac{29}{6}$"
   Apply this in the stem AND every sub-part text. The student-facing UI renders these as proper stacked fractions.
   Do NOT LaTeX-wrap whole numbers, decimals, percentages, ratios, or non-fraction expressions — only fractions/mixed numbers.
+${CURRENCY_ESCAPE_INSTRUCTION}
 - Preserve other mathematical notation exactly (e.g. "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
@@ -1046,6 +1057,7 @@ ${DIAGRAM_BOUNDS_INSTRUCTION}
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "Newton", "km/h")
+${CURRENCY_ESCAPE_INSTRUCTION}
 - Include units in options if present (e.g. "60 km/h", "200 g")
 - Do NOT include the "(1)" / "(2)" labels in the option text or in any table cell — just the content
 - Pick exactly ONE format. Mixed formats (e.g. half text + half image) are not supported — describe images as text inside cells if needed.
@@ -1135,6 +1147,7 @@ Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - ALWAYS include ALL preamble/context text before (a) in the stem — never skip introductory sentences, given information, experiment descriptions, or setup text
 - Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "food chain", "life cycle")
+${CURRENCY_ESCAPE_INSTRUCTION}
 - Include units (e.g. "g", "cm", "°C", "km/h")
 - Do NOT include blank answer lines or answer boxes in the text
 - SUB-PART LABELS — use these EXACT formats:
@@ -2649,6 +2662,12 @@ You are given ONLY the answer key pages. Each image is labeled with its original
   - Worked solution: "3/4 × 12 = 9 | 9 + 6 = 15 | Ans: 15 cm"
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
   - IMPORTANT: Do NOT use literal newlines — use " | " as separator
+  - CURRENCY: write money symbols as TWO dollar signs "$$" — "$$25.50", "$$8 each". Single "$" is reserved for LaTeX math delimiters on the rendering side; writing "$25" instead of "$$25" can cause downstream rendering to break the sentence.
+
+### CRITICAL — MCQ keys: do NOT append explanations
+- MCQ answers must be JUST the option label — "(3)" or "B" — NOTHING else.
+- Do NOT append the reasoning, the correct option's text, or any " | explanation" suffix. The marking pipeline compares the student's selected option against this string literally; a trailing "| explanation" causes the question to be mis-classified as OEQ and scored 0 even when the student picked correctly.
+- If you also want to capture the reasoning, that belongs on a separate worked-solution OEQ entry, not on the MCQ key.
 
 ### CRITICAL — Sub-part label format (Math / Science OEQ):
 Sub-part labels inside the "value" string MUST use the canonical

@@ -18,7 +18,10 @@ import "katex/dist/katex.min.css";
 // Math segment: `$...$` whose content has at least one math-y signal —
 //   - a LaTeX `\command`, OR
 //   - a superscript `^`, subscript `_`, or brace `{ }`, OR
-//   - an equals sign (algebra: "$x = 6$" / "$y = 2x + 3$").
+//   - an equals sign (algebra: "$x = 6$" / "$y = 2x + 3$"), OR
+//   - a digit-letter adjacency with NO space between (math variable
+//     pattern like "3x", "2y", "5n"). Picks up bare algebra like
+//     "$40 + 3x$" that has no equals sign.
 // Negative lookbehind/lookahead on both `$` chars: skip pairs where
 // either opening or closing `$` is adjacent to another `$`. That
 // rule handles the new currency escape convention `$$5` / `$$3`,
@@ -26,13 +29,14 @@ import "katex/dist/katex.min.css";
 // dollar". The doubled `$$` never matches a math pair; the post-
 // render step below collapses `$$` → `$` for display.
 //
-// We do NOT use "any letter" as a trigger because primary papers
-// say things like "Suyi bought cushions at $8 each and had $3 left"
-// — content between bare-$ currency markers is full of letters but
-// is NOT math; KaTeX would italicize it and drop spaces. `=` is the
-// cleanest discriminator: real equations almost always have it,
-// currency arithmetic almost never does.
-const MATH_SEGMENT_RE = /(?<!\$)\$(?!\$)([^$\n]*[\\^_{}=][^$\n]*)(?<!\$)\$(?!\$)/;
+// We do NOT use plain "any letter" as a trigger because primary
+// papers say things like "Suyi bought cushions at $8 each and had
+// $3 left" — content between bare-$ currency markers is full of
+// letters but is NOT math; KaTeX would italicize it and drop spaces.
+// The discriminators above (=, sub/super, digit-letter no-space)
+// almost never occur inside currency prose, where digits and letters
+// are always separated by a space ("8 each" not "8e").
+const MATH_SEGMENT_RE = /(?<!\$)\$(?!\$)([^$\n]*(?:[\\^_{}=]|\d[a-zA-Z]|[a-zA-Z]\d)[^$\n]*)(?<!\$)\$(?!\$)/;
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
