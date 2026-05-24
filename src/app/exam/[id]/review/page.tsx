@@ -2757,7 +2757,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   <div className="grid grid-cols-2 gap-1.5">
                                     {q.transcribedOptions.map((opt: string, oi: number) => {
                                       const optNum = String(oi + 1);
-                                      const isOptCorrect = correctAns.replace(/[().]/g, "").trim() === optNum;
+                                      const isOptCorrect = mcqAnswerHead(correctAns) === optNum;
                                       const isSelected = studentAns === optNum;
                                       return (
                                         <div key={oi} className={`flex items-center gap-2 p-2 rounded-lg text-xs ${
@@ -3075,7 +3075,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                 <div className="grid grid-cols-2 gap-3 mt-2">
                                   {[0, 1, 2, 3].map(i => {
                                     const optNum = String(i + 1);
-                                    const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                    const isOptCorrect = mcqAnswerHead(currentQ.answer) === optNum;
                                     const isSelected = currentQ.studentAnswer === optNum;
                                     const imgSrc = currentQ.transcribedOptionImages![i];
                                     return (
@@ -3102,7 +3102,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                                   {currentQ.transcribedOptions.map((opt, i) => {
                                     const optNum = String(i + 1);
-                                    const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                    const isOptCorrect = mcqAnswerHead(currentQ.answer) === optNum;
                                     const isSelected = currentQ.studentAnswer === optNum;
                                     return (
                                       <div key={i} className={`p-4 rounded-2xl flex items-center justify-between gap-3 ${
