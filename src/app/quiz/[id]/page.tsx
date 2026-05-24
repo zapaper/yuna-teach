@@ -88,6 +88,15 @@ const formatTime = (s: number) => {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 };
 
+// Strip MCQ answer-key noise so a stored value of "(3) | explanation..."
+// compares cleanly against the student's selected option ("3"). Mirrors
+// the backend `normalizeMcq` in src/lib/marking.ts — keep these in sync.
+function normalizeMcqKey(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const head = raw.split("|")[0] ?? raw;
+  return head.trim().replace(/[().]/g, "").trim();
+}
+
 /* ────────────── main page ────────────── */
 
 export default function QuizPage({ params }: { params: Promise<{ id: string }> }) {
@@ -486,7 +495,7 @@ function QuizContent({ id }: { id: string }) {
     // already shows the selection from local state.
     const q = paper?.questions.find(qq => qq.id === questionId);
     if (!q) return;
-    const correctLetter = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+    const correctLetter = normalizeMcqKey(q.answer);
     const marksAwarded = option === correctLetter ? (q.marksAvailable ?? 1) : 0;
     fetch(`/api/exam/questions/${questionId}`, {
       method: "PATCH",
@@ -617,7 +626,7 @@ function QuizContent({ id }: { id: string }) {
       const unskippedMcq = mcqQuestions.filter(q => !skippedIds.has(q.id));
       for (const q of unskippedMcq) {
         const selected = mcqAnswers[q.id];
-        const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+        const correctAns = normalizeMcqKey(q.answer);
         const qMarks = q.marksAvailable ?? 1;
         marksTotal += qMarks;
         if (selected === correctAns) { correct++; marksEarned += qMarks; }
@@ -644,7 +653,7 @@ function QuizContent({ id }: { id: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               studentAnswer: isSkipped ? "__SKIPPED__" : stateAnswer,
-              marksAwarded: isSkipped ? null : (stateAnswer === (q.answer ?? "").trim().replace(/[().]/g, "").trim() ? (q.marksAvailable ?? 1) : 0),
+              marksAwarded: isSkipped ? null : (stateAnswer === normalizeMcqKey(q.answer) ? (q.marksAvailable ?? 1) : 0),
             }),
           });
         })
