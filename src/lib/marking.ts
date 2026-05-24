@@ -3936,18 +3936,6 @@ ${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a pr
 - Be concrete: name the objects the student's marks touch/refer to, using labels from the printed diagram when possible.
 ` : "";
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
-
-REQUIRED FIRST TWO LINES — Begin your response with EXACTLY these two lines (no quotes, no extra characters, in this order):
-HANDWRITING: PRESENT|ABSENT
-TRANSCRIPTION: FOUND|EMPTY
-
-HANDWRITING: PRESENT means you can see any ink writing or marks on the canvas (even a single digit, letter, or stroke).
-HANDWRITING: ABSENT means the canvas is truly blank — no ink anywhere.
-
-TRANSCRIPTION: FOUND means you were able to read at least one digit, letter, word, or shape that the student wrote — even if hard to read or partially illegible.
-TRANSCRIPTION: EMPTY means you can see ink marks but cannot read or interpret what they say (illegible, too faint, smudged, or just scribbles that don't form characters). Use EMPTY whenever your transcription would otherwise be "(blank)", "(no working shown)", "(illegible)", or similar — even if HANDWRITING is PRESENT.
-
-Then on subsequent lines, transcribe what was written. If TRANSCRIPTION: EMPTY, you may stop after the two marker lines.
 ${drawableClause}
 ╔══════════════════════════════════════════════════════════════════╗
 ║  ANTI-HALLUCINATION — READ CAREFULLY                              ║
@@ -3999,7 +3987,41 @@ The image is ONE combined canvas the student used for all sub-parts. There are N
 - If only one block of working is visible and all sub-parts share it (e.g. shared fraction work yielding two answers on a "Final answer:" line), copy that working under EACH part with the appropriate final answer.
 - Only report a part as "blank" if you genuinely see nothing that could correspond to it after exhausting the above.
 ` : `If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".`}
-Report EXACTLY what the student wrote, including any unit symbols. Return ONLY the detected text, nothing else.` });
+
+╔══════════════════════════════════════════════════════════════════╗
+║  OUTPUT FORMAT — MANDATORY                                        ║
+║                                                                    ║
+║  Your response MUST start with EXACTLY these two lines (in this   ║
+║  order, no quotes, no markdown, no extra characters):             ║
+║                                                                    ║
+║    HANDWRITING: PRESENT|ABSENT                                    ║
+║    TRANSCRIPTION: FOUND|EMPTY                                     ║
+║                                                                    ║
+║  HANDWRITING: PRESENT — any ink/marks visible (even ONE stroke).  ║
+║  HANDWRITING: ABSENT  — canvas truly blank, no ink anywhere.      ║
+║                                                                    ║
+║  TRANSCRIPTION: FOUND — you read at least one digit/letter/word/  ║
+║                          shape. Transcribe it on lines below.     ║
+║  TRANSCRIPTION: EMPTY — you see ink but cannot interpret it       ║
+║                          (illegible/faint/scribbles). Use EMPTY   ║
+║                          whenever your transcription would        ║
+║                          otherwise be "(blank)", "(no working     ║
+║                          shown)", "(illegible)", or similar —     ║
+║                          EVEN IF HANDWRITING is PRESENT.          ║
+║                                                                    ║
+║  After the two markers, transcribe per the rules above. If        ║
+║  TRANSCRIPTION: EMPTY, you may stop after the markers.            ║
+║                                                                    ║
+║  Example output (PRESENT + FOUND):                                ║
+║    HANDWRITING: PRESENT                                           ║
+║    TRANSCRIPTION: FOUND                                           ║
+║    Working: 145 ÷ 2 = 72.5                                        ║
+║    Final answer: 72.5°                                            ║
+║                                                                    ║
+║  Example output (truly blank canvas):                             ║
+║    HANDWRITING: ABSENT                                            ║
+║    TRANSCRIPTION: EMPTY                                           ║
+╚══════════════════════════════════════════════════════════════════╝` });
 
         let detectedAnswer = "";
         const isMath = (paper.subject ?? "").toLowerCase().includes("math");
