@@ -3760,18 +3760,28 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               continue;
             }
             try {
-              // Prefer flattening the ink PNG onto white — the JPG render
-              // pipeline has been observed to drop strokes for quiz
-              // canvases (image is blank even though ink PNG is full).
-              // Fall back to the JPG only if the flatten fails.
+              // For non-drawable (clean canvas text OEQs): prefer the
+              // flattened ink PNG — the JPG render sometimes drops
+              // strokes on quiz canvases.
+              // For drawable (tick boxes / shade a printed diagram /
+              // arrows on a chart): MUST use the original JPG so the
+              // model sees the printed table/diagram alongside the
+              // ink. Flattening to white loses the context the model
+              // needs to say "row 2 column 3" — it would just see
+              // floating ticks on a blank page.
               let spBuffer: Buffer;
-              try {
-                const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
-                const spInkBuf = await fs.readFile(spInkPath);
-                spBuffer = await flattenInkOnWhite(spInkBuf, `Q${q.questionNum}(${sp.label})`);
-              } catch {
+              if (isSpDrawable) {
                 const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
                 spBuffer = await fs.readFile(spPath);
+              } else {
+                try {
+                  const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
+                  const spInkBuf = await fs.readFile(spInkPath);
+                  spBuffer = await flattenInkOnWhite(spInkBuf, `Q${q.questionNum}(${sp.label})`);
+                } catch {
+                  const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
+                  spBuffer = await fs.readFile(spPath);
+                }
               }
               const labelNote = isSpDrawable
                 ? `Student's handwritten answer for part (${sp.label}) — THIS IS A DRAWING TASK (shading/arrows/marks on a diagram). Ink is confirmed present:`
