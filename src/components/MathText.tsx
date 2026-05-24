@@ -15,12 +15,15 @@ import "katex/dist/katex.min.css";
 // nesting like "**The fraction $\frac{1}{2}$ is half**" where the
 // bold spans the math.
 
-// Math segment: `$...$` containing at least one math-only character —
-// a LaTeX `\command`, OR a superscript `^`, subscript `_`, or brace
-// `{ }`. The triggers exist to leave plain currency ("$5", "$27")
-// alone while still picking up cases like "cm$^2$" or "$x_n$" that
-// don't carry a backslash-command.
-const MATH_SEGMENT_RE = /\$([^$\n]*[\\^_{}][^$\n]*)\$/;
+// Math segment: `$...$` whose content has at least one math-y signal —
+//   - a LaTeX `\command`, OR
+//   - a superscript `^`, subscript `_`, or brace `{ }`, OR
+//   - a letter (variable like x / y / n, or unit like cm / km).
+// The letter trigger picks up plain algebra strings the AI emits as
+// "$x = 6$" / "$y = 2x + 3$" which have no \ or ^ / _ / {}.
+// Plain currency ("$5", "$27", "$5.50") still passes through untouched
+// because it has no letter and no LaTeX char inside the dollar pair.
+const MATH_SEGMENT_RE = /\$([^$\n]*(?:[\\^_{}]|[a-zA-Z])[^$\n]*)\$/;
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
