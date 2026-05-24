@@ -97,6 +97,26 @@ const VOLUME_PATH =
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 /**
+ * Flatten a transparent ink PNG onto a solid white background and return
+ * as a JPG buffer. Used for quiz OEQ canvases where the app saves both:
+ *   - page_X_ink.png (transparent, strokes only) — used by hasOpaquePixels
+ *   - page_X.jpg     (supposedly strokes flattened on white)
+ * Observed bug: the JPG sometimes renders as blank/empty even though the
+ * ink PNG clearly has strokes. Doing the flatten ourselves bypasses that
+ * pipeline so the AI always sees a guaranteed ink-on-white image.
+ */
+async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<Buffer> {
+  return await sharp(pngBuffer)
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .jpeg({ quality: 92 })
+    .toBuffer()
+    .then(buf => {
+      console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B PNG → ${buf.length}B JPG`);
+      return buf;
+    });
+}
+
+/**
  * Crop a scanned-page JPEG buffer to a question's writing-area
  * region using printableBounds. Bounds carry pageIndex +
  * yStartPct + yEndPct (top-down percentages). If the question
@@ -3734,8 +3754,19 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               continue;
             }
             try {
-              const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
-              const spBuffer = await fs.readFile(spPath);
+              // Prefer flattening the ink PNG onto white — the JPG render
+              // pipeline has been observed to drop strokes for quiz
+              // canvases (image is blank even though ink PNG is full).
+              // Fall back to the JPG only if the flatten fails.
+              let spBuffer: Buffer;
+              try {
+                const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
+                const spInkBuf = await fs.readFile(spInkPath);
+                spBuffer = await flattenInkOnWhite(spInkBuf, `Q${q.questionNum}(${sp.label})`);
+              } catch {
+                const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
+                spBuffer = await fs.readFile(spPath);
+              }
               const labelNote = isSpDrawable
                 ? `Student's handwritten answer for part (${sp.label}) — THIS IS A DRAWING TASK (shading/arrows/marks on a diagram). Ink is confirmed present:`
                 : `Student's handwritten answer for part (${sp.label}):`;
