@@ -4104,6 +4104,7 @@ Even when a sub-part is blank, write the label: "(b) blank". Without the (a) / (
           const line2 = (lines[1] ?? "").trim();
           const isMarker1 = line1 === "HANDWRITING: PRESENT" || line1 === "HANDWRITING: ABSENT";
           const isMarker2 = line2 === "TRANSCRIPTION: FOUND" || line2 === "TRANSCRIPTION: EMPTY";
+          const markerSaysEmpty = line1 === "HANDWRITING: ABSENT" || line2 === "TRANSCRIPTION: EMPTY";
           if (isMarker1 && isMarker2) {
             detectedAnswer = lines.slice(2).join("\n").trim();
           } else if (isMarker1) {
@@ -4121,7 +4122,10 @@ Even when a sub-part is blank, write the label: "(b) blank". Without the (a) / (
           const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
           const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
           let judgedEmpty = false;
-          if (usedFlashOnly && inkPresentOverall && detectedAnswer.length > 0) {
+          // Skip the judge when flash's compliant marker already says EMPTY
+          // (saves a call) and when transcription is genuinely empty after
+          // marker stripping (nothing to judge).
+          if (usedFlashOnly && inkPresentOverall && !markerSaysEmpty && detectedAnswer.length > 0) {
             try {
               const judgePrompt = `Below is an AI's transcription of a student's handwritten exam answer.
 
@@ -4152,8 +4156,13 @@ NO = the transcription consists only of phrases like "blank", "(no working shown
             }
           }
 
-          if (usedFlashOnly && inkPresentOverall && judgedEmpty) {
-            console.log(`[quiz-marking] Q${q.questionNum}: judge says flash transcription is empty but ink present — retrying with gemini-3.1-pro-preview`);
+          // Escalate to pro when ink is confirmed present AND either:
+          //   - flash's compliant marker said ABSENT/EMPTY, OR
+          //   - judge said the transcription is just blank-phrasing
+          const shouldEscalate = usedFlashOnly && inkPresentOverall && (markerSaysEmpty || judgedEmpty);
+          if (shouldEscalate) {
+            const reason = markerSaysEmpty ? "marker said ABSENT/EMPTY" : "judge said empty";
+            console.log(`[quiz-marking] Q${q.questionNum}: ${reason} but ink present — retrying with gemini-3.1-pro-preview`);
             try {
               const retry = await withTimeout(
                 ai.models.generateContent({
