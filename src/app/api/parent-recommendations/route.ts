@@ -123,13 +123,18 @@ export async function GET(req: NextRequest) {
     const gaps: SubjectGap[] = [];
     const strongTopics: string[] = [];
     const allWeakBySubject: SubjectGap[] = [];
+    // Track the % per weak topic so the AI prompt can include it
+    // when naming weak areas (e.g. "Ratio (78%)"). Keyed by topic name.
+    const weakPctByTopic: Record<string, number> = {};
     for (const [subject, topics] of Object.entries(topicPerf)) {
       // Aligned with front-end: weak = ≤ 75%, strong = > 75%. Weakest first.
-      const allWeak = Object.entries(topics)
+      const allWeakWithPct = Object.entries(topics)
         .filter(([, v]) => v.available > 0 && (v.earned / v.available) <= 0.75)
         .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
-        .map(([name]) => name)
-        .slice(0, 3);
+        .slice(0, 3)
+        .map(([name, v]) => ({ name, pct: Math.round((v.earned / v.available) * 100) }));
+      for (const w of allWeakWithPct) weakPctByTopic[w.name] = w.pct;
+      const allWeak = allWeakWithPct.map(w => w.name);
       if (allWeak.length > 0) allWeakBySubject.push({ subject, topics: allWeak });
 
       // Action gaps: exclude recently practiced topics (to avoid re-suggesting them)
@@ -146,7 +151,13 @@ export async function GET(req: NextRequest) {
     // Summary uses raw weak topics (not filtered by recent practice) so AI has accurate picture
     let summary = `${studentName} (${levelStr}): ${markedPapers.length} papers marked.`;
     if (strongTopics.length > 0) summary += ` Strong in: ${strongTopics.join(", ")}.`;
-    if (allWeakBySubject.length > 0) summary += ` Weak topics: ${allWeakBySubject.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
+    if (allWeakBySubject.length > 0) {
+      const weakWithPct = allWeakBySubject.map(g => {
+        const topicsWithPct = g.topics.map(t => weakPctByTopic[t] != null ? `${t} (${weakPctByTopic[t]}%)` : t);
+        return `${g.subject}: ${topicsWithPct.join(", ")}`;
+      }).join("; ");
+      summary += ` Weak topics: ${weakWithPct}.`;
+    }
     else summary += " No significant gaps.";
     summary += ` ${recentQuizCount} quizzes this week. ${pendingReviewCount} papers pending review.`;
     if (recentFocused.length > 0) {
@@ -226,7 +237,7 @@ BULLET 2 (include ONLY if any student has 3+ papers pending review):
 - Prompt parent to clear the backlog using the **Revise Work** function. Mention the number pending and the student name.
 
 BULLET 3 (always include — NEXT ACTION):
-- If there are weak topics not yet practised, name 1-2 and suggest **Focused Practice**.
+- If there are weak topics not yet practised, name 1-2 and suggest **Focused Practice**. ALWAYS include the topic's % from the diagnostic in bold immediately after the topic name, e.g. "Suggest **Focused Practice** on **Ratio** (**78%**) and **Fractions** (**62%**)".
 - Otherwise suggest a **Daily Quiz** to maintain momentum.
 
 Formatting rules:

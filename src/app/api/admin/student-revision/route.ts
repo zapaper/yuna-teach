@@ -392,6 +392,26 @@ export async function POST(request: NextRequest) {
     ? `/exam/${paper.id}/review?userId=${callerId}`
     : `/quiz/${paper.id}?userId=${callerId}`;
 
+  // Compiling a Revise Work paper IS the parent acknowledging the
+  // pending mistakes — flip the source clones from "complete" →
+  // "released" so they leave the Pending Review queue. Scoped to
+  // this student's own papers as a safety belt.
+  try {
+    const sourceCloneIds = [...new Set(ordered.map((m) => m.cloneExamPaperId))];
+    if (sourceCloneIds.length > 0) {
+      await prisma.examPaper.updateMany({
+        where: {
+          id: { in: sourceCloneIds },
+          assignedToId: studentId,
+          markingStatus: "complete",
+        },
+        data: { markingStatus: "released" },
+      });
+    }
+  } catch (err) {
+    console.warn(`[student-revision] pending-review release failed for ${paper.id}:`, err);
+  }
+
   return NextResponse.json({
     paperId: paper.id,
     title,
