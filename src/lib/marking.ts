@@ -97,9 +97,12 @@ const VOLUME_PATH =
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 /**
- * Flatten a transparent ink PNG onto a solid white background. Returns a
- * PNG buffer (lossless) so thin anti-aliased strokes survive compression
- * — JPG at any quality smooths thin strokes into invisibility.
+ * Flatten a transparent ink PNG onto a solid white background.
+ *
+ * Tried PNG output (lossless) but Gemini empirically struggled to detect
+ * strokes in our PNG format — possibly a colour-profile / bit-depth quirk
+ * with sharp's PNG encoder. JPG at quality 95 works reliably for the
+ * Q11 test case (72.5°). Keeping JPG.
  *
  * Used for quiz OEQ canvases where the app saves both:
  *   - page_X_ink.png (transparent, strokes only) — used by hasOpaquePixels
@@ -108,13 +111,13 @@ const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
  * though the ink PNG clearly has strokes. Doing the flatten ourselves
  * bypasses that pipeline.
  */
-async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<{ buffer: Buffer; mimeType: "image/png" }> {
+async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<{ buffer: Buffer; mimeType: "image/jpeg" }> {
   const buffer = await sharp(pngBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
-    .png({ compressionLevel: 6 })
+    .jpeg({ quality: 95 })
     .toBuffer();
-  console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B → ${buffer.length}B (PNG)`);
-  return { buffer, mimeType: "image/png" };
+  console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B → ${buffer.length}B (JPG)`);
+  return { buffer, mimeType: "image/jpeg" };
 }
 
 /**
