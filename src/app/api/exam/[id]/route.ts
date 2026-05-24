@@ -551,10 +551,17 @@ export async function DELETE(
     }
     const isOwner = paper.userId === requesterId || paper.assignedToId === requesterId;
 
-    if (paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "diagnostic") {
+    if (
+      paper.paperType === "quiz" ||
+      paper.paperType === "focused" ||
+      paper.paperType === "diagnostic" ||
+      paper.paperType === "mastery"
+    ) {
       // Owner, assigned student, or linked parent can delete.
       // Diagnostics are standalone (no sourceExamId) so they fall into
-      // this branch instead of the clone path.
+      // this branch instead of the clone path. Mastery quizzes are the
+      // master-class checkpoint papers — same lifecycle as quiz/focused,
+      // so the same delete permission applies.
       if (!isOwner && !isLinkedParent) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
