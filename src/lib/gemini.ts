@@ -2461,6 +2461,7 @@ Choose EXACTLY ONE topic from this list:
 - Volume of cube and cuboid
 - Geometry
 - Statistics
+- Basic Math Operations
 
 Rules:
 - Pick the BEST matching topic based on the main concept tested in the question
@@ -2472,7 +2473,7 @@ Rules:
 - If the question involves volume of cubes/cuboids, use "Volume of cube and cuboid"
 - If the question involves angles, shapes, quadrilaterals, triangles, or geometric properties, use "Geometry"
 - If the question involves data interpretation, graphs, tables, averages, use "Statistics"
-- If the question does not clearly fit any topic, set "syllabusTopic" to null
+- If the question does not clearly fit any of the topics above (e.g. plain arithmetic word problems, money/measurement/time conversions, whole-number operations), use "Basic Math Operations" as the catch-all — NEVER leave syllabusTopic as null
 - MCQ questions should also be tagged based on the concept being tested`;
 
 const SCIENCE_SYLLABUS_ADDENDUM = `

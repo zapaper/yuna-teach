@@ -1,0 +1,41 @@
+{
+  "description": "Marking regression corpus. Each entry is a paper that has been manually verified to be marked correctly. The eval runner clones each paper, re-runs marking, and compares per-question marks against the snapshot (eval/snapshot.json). AI feedback text differences are ignored; only marksAwarded numbers are compared.",
+  "papers": [
+    {
+      "id": "cmp1aebd00001ftsttx409h23",
+      "note": "Reference paper #1 — confirmed marked correctly"
+    },
+    {
+      "id": "cmoc9clzi0001gb2t256cysx9",
+      "note": "Reference paper #2 — confirmed marked correctly"
+    },
+    {
+      "id": "cmpgb1zq0001d10h27r3nsudm",
+      "note": "Reference paper #3 — confirmed marked correctly"
+    },
+    {
+      "id": "cmpffd3wu000i1032c8w0t5pm",
+      "note": "Reference paper #4 — confirmed marked correctly"
+    },
+    {
+      "id": "cmp0z7a390001ypkf6juin4qb",
+      "note": "Reference paper #5 — confirmed marked correctly"
+    },
+    {
+      "id": "cmozc5icr000d11l735uqp939",
+      "note": "Reference paper #6 — confirmed marked correctly"
+    },
+    {
+      "id": "cmozcbl4e001d11l7dro13hbp",
+      "note": "Reference paper #7 — confirmed marked correctly"
+    },
+    {
+      "id": "cmotr5qoz000ih6io0b4z2erx",
+      "note": "Reference paper #8 — confirmed marked correctly"
+    },
+    {
+      "id": "cmoqkmwxa000pwu99qiiwf74x",
+      "note": "Reference paper #9 — confirmed marked correctly"
+    }
+  ]
+}
