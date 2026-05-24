@@ -3305,7 +3305,19 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
+                                                  // Drawable subparts (student drew on a printed
+                                                  // diagram backdrop) were saved at ~900px tall
+                                                  // in the quiz player. Forcing into 600px stretch
+                                                  // squished the diagram + ink so the bottom half
+                                                  // looked compressed and the student's drawing
+                                                  // was hard to see. Match the wrapper height
+                                                  // (= spVisible, the quiz's visible canvas
+                                                  // height) so the image renders at the same
+                                                  // dimensions as the quiz view. Non-drawable
+                                                  // subparts (clean canvas writing) keep the
+                                                  // original 600px since their saved aspect
+                                                  // matches that well.
+                                                  imgStyle={{ width: "100%", height: sp.diagramBase64 ? spVisible : 600, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
