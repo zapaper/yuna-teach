@@ -90,5 +90,10 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
   // Tidy: collapse any double spaces introduced by the transforms.
   result = result.replace(/  +/g, " ").trim();
 
-  return { normalized: result, changed: result !== original };
+  // Compare against a whitespace-normalised original so pure
+  // whitespace cleanup (trailing newlines, double spaces) does NOT
+  // count as a "format issue". Only substantive label transforms
+  // (e.g. "7a)" → "(a)") should flag a row for admin review.
+  const tidiedOriginal = original.replace(/  +/g, " ").trim();
+  return { normalized: result, changed: result !== tidiedOriginal };
 }
