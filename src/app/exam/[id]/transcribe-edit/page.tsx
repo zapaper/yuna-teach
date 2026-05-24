@@ -1372,22 +1372,20 @@ function QuestionCard({
                   </div>
                   {/* Per-subpart actions */}
                   <div className="mt-1 flex flex-wrap items-center gap-2">
-                    {/* Static reference diagram (Science only) */}
-                    {isScience && (
+                    {/* Static reference diagram (per-subpart figure/table/etc).
+                        Opened up to math too — PSLE math papers commonly have
+                        a different figure per subpart. */}
+                    <button
+                      type="button"
+                      onClick={() => setDrawTarget(`subref-${sp.label}` as DrawTarget)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-sky-50 text-sky-600 hover:bg-sky-100"
+                    >
+                      {sp.refImageBase64 ? "Redraw diagram" : "Add diagram"}
+                    </button>
+                    {sp.refImageBase64 && (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => setDrawTarget(`subref-${sp.label}` as DrawTarget)}
-                          className="text-[10px] px-2 py-0.5 rounded-md bg-sky-50 text-sky-600 hover:bg-sky-100"
-                        >
-                          {sp.refImageBase64 ? "Redraw diagram" : "Add diagram"}
-                        </button>
-                        {sp.refImageBase64 && (
-                          <>
-                            <img src={`data:image/jpeg;base64,${sp.refImageBase64}`} alt={`(${sp.label}) ref`} className="h-12 rounded border border-sky-200" />
-                            <button type="button" onClick={() => { const n = q.subparts!.map((s,j) => j===i ? {...s, refImageBase64: null} : s); onUpdate({ subparts: n }); }} className="text-[10px] text-red-400 hover:text-red-600">Remove</button>
-                          </>
-                        )}
+                        <img src={`data:image/jpeg;base64,${sp.refImageBase64}`} alt={`(${sp.label}) ref`} className="h-12 rounded border border-sky-200" />
+                        <button type="button" onClick={() => { const n = q.subparts!.map((s,j) => j===i ? {...s, refImageBase64: null} : s); onUpdate({ subparts: n }); }} className="text-[10px] text-red-400 hover:text-red-600">Remove</button>
                       </>
                     )}
                     {/* Drawable diagram */}
