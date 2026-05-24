@@ -4551,7 +4551,15 @@ Return ONLY valid JSON:
                 model,
                 contents: [{ role: "user", parts: attemptParts }],
                 // Drawable comparison benefits from deterministic output.
-                config: { temperature: needsPro ? 0 : 0.1 },
+                // responseMimeType forces Gemini to return valid JSON
+                // instead of prose — eliminates the "no JSON, retrying"
+                // path that was burning 5-15s of latency per OEQ when
+                // flash got chatty. Other Gemini calls in this codebase
+                // already use this; the marking call was missing it.
+                config: {
+                  temperature: needsPro ? 0 : 0.1,
+                  responseMimeType: "application/json",
+                },
               }),
               GEMINI_TIMEOUT_MS,
               `quiz-oeq-q${q.questionNum}`
