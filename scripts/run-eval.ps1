@@ -53,7 +53,15 @@ Write-Host "Running eval against $RemoteBase ..."
 Write-Host ""
 Push-Location $RepoRoot
 try {
-    & npx tsx scripts/run-marking-eval.ts @args
+    # Build the npx argv as a single string array and splat it so each
+    # element is passed as a separate argument. Previous `& npx tsx
+    # script @args` form dropped "--cleanup" — PowerShell sometimes
+    # interprets `--` as the end-of-options marker inside @args
+    # expansion. Pre-building the array sidesteps that.
+    $argList = @("tsx", "scripts/run-marking-eval.ts")
+    foreach ($a in $args) { $argList += [string]$a }
+    Write-Host "Args forwarded: $($argList -join ' ')"
+    & npx @argList
     $exitCode = $LASTEXITCODE
 }
 finally {
