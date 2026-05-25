@@ -65,3 +65,6 @@ ios/**/*.xcuserstate
 ios/**/.DS_Store
 ios/App/Pods/
 ios/DerivedData/
+
+# eval workflow — cached prod-session cookie for the local eval runner
+eval/cookie.txt
