@@ -15,7 +15,52 @@
 // scanned Chinese is materially better on 3.1-pro vs 2.5-flash.
 
 import { GoogleGenAI } from "@google/genai";
+import sharp from "sharp";
 import { renderPdfToJpegs } from "./pdf-server";
+
+// Render a SINGLE PDF page and return the JPEG buffer. Used when
+// the admin UI wants the Option 2 page image on demand instead of
+// having to keep all page renders on disk. Internally renders the
+// whole PDF (pdfjs has no per-page entry point we expose) but only
+// returns the requested page.
+export async function renderSinglePage(
+  pdfBuffer: Buffer,
+  pageNumber: number,
+  maxDim = 1600,
+  quality = 85,
+): Promise<Buffer> {
+  const pages = await renderPdfToJpegs(pdfBuffer, maxDim, quality);
+  if (pageNumber < 1 || pageNumber > pages.length) {
+    throw new Error(`pageNumber ${pageNumber} out of range (1..${pages.length})`);
+  }
+  return pages[pageNumber - 1];
+}
+
+// Crop a JPEG to the given bounds. left/top/width/height are
+// expressed as fractions of the image dimensions (0-1) so the
+// crop survives the resize that renderPdfToJpegs may apply. The
+// browser sends crop bounds it computed on a possibly-resized
+// display image; using fractions lets us crop the source-resolution
+// page accurately without round-tripping image dimensions.
+export async function cropPageImage(
+  pageJpeg: Buffer,
+  fractions: { left: number; top: number; width: number; height: number },
+  outQuality = 90,
+): Promise<Buffer> {
+  const meta = await sharp(pageJpeg).metadata();
+  const W = meta.width ?? 0;
+  const H = meta.height ?? 0;
+  if (!W || !H) throw new Error("could not read source image dimensions");
+  const left = Math.max(0, Math.round(fractions.left * W));
+  const top = Math.max(0, Math.round(fractions.top * H));
+  const width = Math.min(W - left, Math.round(fractions.width * W));
+  const height = Math.min(H - top, Math.round(fractions.height * H));
+  if (width <= 0 || height <= 0) throw new Error("crop dimensions are zero");
+  return sharp(pageJpeg)
+    .extract({ left, top, width, height })
+    .jpeg({ quality: outQuality, chromaSubsampling: "4:4:4" })
+    .toBuffer();
+}
 
 const SECTION_MODEL = "gemini-3.1-pro-preview";
 const OCR_MODEL = "gemini-3.1-pro-preview";
