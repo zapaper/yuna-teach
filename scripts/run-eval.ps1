@@ -63,6 +63,6 @@ finally {
 if ($exitCode -ne 0) {
     Write-Host ""
     Write-Host "Eval exited with code $exitCode."
-    Write-Host "If you see 'fetched=0' everywhere, the cookie is stale — delete eval\cookie.txt and re-run."
+    Write-Host "If you see 'fetched=0' everywhere, the cookie is stale - delete eval\cookie.txt and re-run."
 }
 exit $exitCode
