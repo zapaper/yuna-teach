@@ -13,45 +13,16 @@
 
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import Apple from "next-auth/providers/apple";
-import { SignJWT, importPKCS8 } from "jose";
 import { prisma } from "./db";
 import { DEFAULT_TRIAL_DAYS } from "./subscription";
 
-// Apple Sign In: the OAuth "client secret" is actually a JWT
-// signed with the .p8 key downloaded from Apple Developer.
-// Auth.js v4 used to mint this for us; v5 does NOT — we have to
-// generate the JWT ourselves and hand it to the provider as a
-// plain string. We precompute via top-level await at module
-// load — the JWT is valid for up to 6 months, and module load
-// runs once per process. Long-running deploys redeploy via env
-// var rotation when needed.
-async function buildAppleClientSecret(): Promise<string> {
-  const teamId = process.env.APPLE_TEAM_ID;
-  const keyId = process.env.APPLE_KEY_ID;
-  const clientId = process.env.APPLE_CLIENT_ID;
-  // Railway / Vercel single-line env vars often arrive with literal
-  // \n instead of real newlines — normalize.
-  const privateKeyPem = (process.env.APPLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
-  if (!teamId || !keyId || !clientId || !privateKeyPem) {
-    // Don't throw — let the build succeed when Apple env vars are
-    // unset (e.g. local dev). The provider will fail at sign-in
-    // time with a clearer error than crashing the whole module.
-    return "";
-  }
-  const privateKey = await importPKCS8(privateKeyPem, "ES256");
-  const exp = Math.floor(Date.now() / 1000) + 180 * 24 * 60 * 60; // 180d
-  return await new SignJWT({})
-    .setProtectedHeader({ alg: "ES256", kid: keyId })
-    .setIssuer(teamId)
-    .setIssuedAt()
-    .setExpirationTime(exp)
-    .setAudience("https://appleid.apple.com")
-    .setSubject(clientId)
-    .sign(privateKey);
-}
-
-const appleClientSecret = await buildAppleClientSecret();
+// Apple web sign-in disabled. The Apple form_post callback needed
+// SameSite=None cookies for pkceCodeVerifier — that broke Google
+// sign-in on privacy-strict browsers (Chrome incognito, Brave,
+// Safari ITP) with InvalidCheck. Apple web traffic was tiny;
+// re-introduce later via a different flow that doesn't require
+// SameSite=None. iOS app users still get Apple via the native
+// Capacitor plugin → /api/auth/native-oauth, unaffected by this.
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true, // we serve under www.markforyou.com behind proxies
@@ -60,22 +31,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // mode keeps the lib happy without persisting Sessions in the DB.
   session: { strategy: "jwt", maxAge: 60 * 60 }, // short — only used during the OAuth handshake
 
-  // Apple's OAuth callback comes back as a cross-site POST
-  // (response_mode=form_post). SameSite=Lax cookies — the default —
-  // are NOT sent on cross-site POSTs, so without this override
-  // NextAuth loses the callbackUrl / pkceCodeVerifier / state
-  // cookies on the way back from Apple. Result: signIn succeeds
-  // (state is encoded inside the OAuth state param too), but the
-  // post-callback redirect falls back to baseUrl because the
-  // callbackUrl cookie is gone — landing the user on the marketing
-  // homepage instead of /post-login. SameSite=None + Secure makes
-  // the cookies survive the round-trip.
-  cookies: {
-    callbackUrl: { options: { sameSite: "none", secure: true } },
-    pkceCodeVerifier: { options: { sameSite: "none", secure: true } },
-    state: { options: { sameSite: "none", secure: true } },
-    nonce: { options: { sameSite: "none", secure: true } },
-  },
+  // Cookie defaults left at NextAuth's stock SameSite=Lax. We
+  // previously overrode pkceCodeVerifier / state / callbackUrl /
+  // nonce to SameSite=None so Apple's response_mode=form_post POST
+  // callback could carry them. That broke Google sign-in on
+  // privacy-strict browsers (Chrome incognito, Brave, Safari ITP)
+  // because those clients refuse to store / send SameSite=None
+  // cookies — every Google OAuth round-trip would fail PKCE check
+  // with "InvalidCheck: pkceCodeVerifier value could not be parsed".
+  // Apple web sign-in is the casualty (very low traffic; iOS native
+  // sign-in via /api/auth/native-oauth is unaffected and still
+  // works). Re-introducing Apple web later needs a different
+  // mechanism (e.g. response_mode=query) that doesn't lose Lax
+  // cookies on POST.
 
   providers: [
     Google({
@@ -84,11 +52,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Email scope is the default; explicit so anyone reading the
       // file knows what we ask for.
       authorization: { params: { scope: "openid email profile" } },
-    }),
-    Apple({
-      clientId: process.env.APPLE_CLIENT_ID,
-      // Pre-built JWT — see buildAppleClientSecret() above.
-      clientSecret: appleClientSecret,
     }),
   ],
 
