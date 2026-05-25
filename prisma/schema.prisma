@@ -415,3 +415,54 @@ model ChineseMcqDraft {
   @@index([status, priority])
   @@map("chinese_mcq_drafts")
 }
+
+// Holds PSLE Chinese Paper 1 (作文 composition) and Paper 3 (口试 oral /
+// 听力 listening) extractions for trend analysis. The combined PSLE
+// Chinese PDFs uploaded to /admin/chinese-oral-compo are auto-sectioned
+// by Gemini 3.1-pro (which pages are Paper 1 / 3 / answer keys) and
+// OCR'd to raw text. Schema starts as raw text per section — once the
+// trend-extraction prompts are designed, this gets extended with
+// structured topics/phrases columns.
+model ChineseSupplementaryPaper {
+  id                String   @id @default(cuid())
+  year              String   @unique  // "2019" — one entry per year
+
+  pdfPath           String?  // path under VOLUME_PATH/chinese-supplementary/
+  pageCount         Int?
+
+  // Auto-detected page ranges (1-indexed page numbers as int arrays).
+  paper1Pages       Json?
+  paper3Pages       Json?
+  paper1AnswerPages Json?
+  paper3AnswerPages Json?
+
+  // Raw OCR text per section — kept as ground-truth fallback even
+  // when structured extraction below succeeds.
+  paper1Text        String?  @db.Text
+  paper3Text        String?  @db.Text
+  paper1AnswerText  String?  @db.Text
+  paper3AnswerText  String?  @db.Text
+
+  // Structured extraction (Phase 2 — populated after raw OCR).
+  // Schema reflects the actual PSLE Chinese paper layout:
+  //   Paper 1: Option 1 (topic only) + Option 2 (picture + helping words).
+  //   Paper 3: 10 MCQs + ~7 listening passages, each passage tagged
+  //     with which question numbers it answers.
+  //   Answers: model essays for Option 1 / 2; 10 listening answers.
+  compoOption1Topic   String?  @db.Text   // e.g. "我最难忘的一天" — used for trend tracking
+  compoOption2        Json?               // { instructions, helpingWords: string[], picturePageNum }
+  listeningMcqs       Json?               // [{ num, text, options: [{ label, text|imageNote }] }]
+  listeningPassages   Json?               // [{ num, text, questionNumbers: [int] }]
+  compoOption1Model   String?  @db.Text   // model essay for Option 1
+  compoOption2Model   String?  @db.Text   // model essay for Option 2
+  listeningAnswers    Json?               // [{ num, answer }] for the 10 MCQs
+
+  status            String   @default("uploaded")  // uploaded | sectioning | ocr | structuring | ready | failed
+  errorMessage      String?  @db.Text
+
+  uploadedBy        String?  // User.id
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("chinese_supplementary_papers")
+}

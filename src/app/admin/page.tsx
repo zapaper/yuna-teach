@@ -147,6 +147,13 @@ function AdminContent() {
       href: `/admin/master-class?userId=${userId}`,
       color: "bg-emerald-50 text-emerald-600",
     },
+    {
+      icon: "edit_note",
+      label: "Chinese Oral / Compo",
+      description: "Upload PSLE Chinese PDFs for missing years. Gemini 3.1-pro auto-detects Paper 1 (作文) and Paper 3 (口试 / 听力) pages + answer keys and OCRs each section. Source for trend analysis.",
+      href: `/admin/chinese-oral-compo?userId=${userId}`,
+      color: "bg-fuchsia-50 text-fuchsia-600",
+    },
   ];
 
   return (
