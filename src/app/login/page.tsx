@@ -78,8 +78,30 @@ function LoginContent() {
   const [isNativeOauth, setIsNativeOauth] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
+  // iOS Safari/Chrome Private Mode discards the pkceCodeVerifier
+  // cookie across the Google OAuth round-trip, breaking sign-in
+  // with InvalidCheck. Detect best-effort (UA + storage probe) and
+  // warn before the user wastes a click. Detection runs only after
+  // mount to avoid SSR hydration mismatch.
+  const [iosPrivateMode, setIosPrivateMode] = useState(false);
   useEffect(() => {
     setIsNativeOauth(Capacitor.isNativePlatform());
+
+    // iOS WebKit detection: matches both iOS Safari and iOS Chrome
+    // (Chrome on iOS is forced to WebKit by Apple, so it inherits
+    // the same private-mode behaviour).
+    const ua = navigator.userAgent;
+    const isIOSWebKit = /iPad|iPhone|iPod/.test(ua) && !/CriOS\/.*Edg/.test(ua);
+    if (!isIOSWebKit) return;
+    // Storage quota probe — private mode reports a tiny quota
+    // (~100MB on modern iOS) vs. GBs in normal browsing. Wrapped in
+    // try/catch because navigator.storage isn't on every iOS version.
+    (async () => {
+      try {
+        const est = await navigator.storage?.estimate?.();
+        if (est?.quota && est.quota < 200_000_000) setIosPrivateMode(true);
+      } catch { /* probe failed — leave banner off */ }
+    })();
   }, []);
 
   async function handleOauthClick(provider: "google" | "apple") {
@@ -376,6 +398,11 @@ function LoginContent() {
               <span className="px-3 text-xs font-medium text-outline-variant">or continue with</span>
               <div className="flex-grow border-t border-surface-container" />
             </div>
+            {iosPrivateMode && (
+              <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                <span className="font-bold">Private browsing detected.</span> Google sign-in on iPhone needs a normal Safari tab — private mode discards the security cookie between you and Google. Use a regular tab for the first sign-in (session lasts 30 days), or download the iOS app.
+              </div>
+            )}
             {/* Apple web sign-in disabled — the SameSite=None
                 workaround it required was breaking Google sign-in
                 in privacy-strict browsers (Chrome incognito,
