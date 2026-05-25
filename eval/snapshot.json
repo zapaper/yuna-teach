@@ -1,0 +1,912 @@
+{
+  "generatedAt": "2026-05-25T00:54:48.053Z",
+  "papers": [
+    {
+      "id": "cmp1aebd00001ftsttx409h23",
+      "title": "P4 Focused: Cycles in matter",
+      "subject": "Science",
+      "level": "P4",
+      "paperType": "focused",
+      "totalMarks": "23",
+      "score": 20.5,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 3,
+          "marksAwarded": 2.5,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 4,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Cycles in matter"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.519Z",
+      "note": "Reference paper #1 — confirmed marked correctly"
+    },
+    {
+      "id": "cmoc9clzi0001gb2t256cysx9",
+      "title": "P4 Focused: Geometry",
+      "subject": "Mathematics",
+      "level": "P4",
+      "paperType": "focused",
+      "totalMarks": "20",
+      "score": 17,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 3,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.585Z",
+      "note": "Reference paper #2 — confirmed marked correctly"
+    },
+    {
+      "id": "cmpgb1zq0001d10h27r3nsudm",
+      "title": "Mastery: Interactions within the Environment Quiz 1",
+      "subject": "science",
+      "level": "P6",
+      "paperType": "mastery",
+      "totalMarks": "42",
+      "score": 37,
+      "questionCount": 16,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "11",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "12",
+          "marksAvailable": 3,
+          "marksAwarded": 3,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "13",
+          "marksAvailable": 3,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "14",
+          "marksAvailable": 4,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "15",
+          "marksAvailable": 4,
+          "marksAwarded": 3,
+          "syllabusTopic": "Interactions within the environment"
+        },
+        {
+          "questionNum": "16",
+          "marksAvailable": 4,
+          "marksAwarded": 3,
+          "syllabusTopic": "Interactions within the environment"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.652Z",
+      "note": "Reference paper #3 — confirmed marked correctly"
+    },
+    {
+      "id": "cmpffd3wu000i1032c8w0t5pm",
+      "title": "P6 Grammar MCQ+",
+      "subject": "English Language",
+      "level": "Primary 6",
+      "paperType": "quiz",
+      "totalMarks": "28",
+      "score": 25,
+      "questionCount": 27,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "11",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "12",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "13",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "14",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "15",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "16",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "17",
+          "marksAvailable": 1,
+          "marksAwarded": 0,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "18",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "19",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "20",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "21",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "22",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "23",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "24",
+          "marksAvailable": 1,
+          "marksAwarded": 0,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "25",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "26",
+          "marksAvailable": 1,
+          "marksAwarded": 0,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "27",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.723Z",
+      "note": "Reference paper #4 — confirmed marked correctly"
+    },
+    {
+      "id": "cmp0z7a390001ypkf6juin4qb",
+      "title": "P6 Editing+",
+      "subject": "English Language",
+      "level": "Primary 6",
+      "paperType": "quiz",
+      "totalMarks": "33",
+      "score": 32,
+      "questionCount": 27,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 1,
+          "marksAwarded": 0,
+          "syllabusTopic": "Grammar MCQ"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary MCQ"
+        },
+        {
+          "questionNum": "11",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "12",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "13",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "14",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "15",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Vocabulary Cloze MCQ"
+        },
+        {
+          "questionNum": "16",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "17",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "18",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "19",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "20",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "21",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "22",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "23",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "24",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "25",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "26",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        },
+        {
+          "questionNum": "27",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Editing (Spelling & Grammar)"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.798Z",
+      "note": "Reference paper #5 — confirmed marked correctly"
+    },
+    {
+      "id": "cmozc5icr000d11l735uqp939",
+      "title": "P6 Focused: Fractions",
+      "subject": "Mathematics",
+      "level": "P6",
+      "paperType": "focused",
+      "totalMarks": "25",
+      "score": 15,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 5,
+          "marksAwarded": 0,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 5,
+          "marksAwarded": 1,
+          "syllabusTopic": "Fractions"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Fractions"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.862Z",
+      "note": "Reference paper #6 — confirmed marked correctly (Q9 corrected from 2 → 1 after user review 2026-05-25)"
+    },
+    {
+      "id": "cmozcbl4e001d11l7dro13hbp",
+      "title": "P6 Focused: Geometry",
+      "subject": "Mathematics",
+      "level": "P6",
+      "paperType": "focused",
+      "totalMarks": "25",
+      "score": 19,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 5,
+          "marksAwarded": 3,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 4,
+          "marksAwarded": 0,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Geometry"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.928Z",
+      "note": "Reference paper #7 — confirmed marked correctly"
+    },
+    {
+      "id": "cmotr5qoz000ih6io0b4z2erx",
+      "title": "P6 Focused: Ratio",
+      "subject": "Mathematics",
+      "level": "P6",
+      "paperType": "focused",
+      "totalMarks": "23",
+      "score": 17,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 3,
+          "marksAwarded": 0,
+          "syllabusTopic": "Ratio"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 1,
+          "syllabusTopic": "Ratio"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:47.989Z",
+      "note": "Reference paper #8 — confirmed marked correctly"
+    },
+    {
+      "id": "cmoqkmwxa000pwu99qiiwf74x",
+      "title": "P6 Focused: Human respiratory and circulatory systems",
+      "subject": "Science",
+      "level": "P6",
+      "paperType": "focused",
+      "totalMarks": "27",
+      "score": 24,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 3,
+          "marksAwarded": 2,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 3,
+          "marksAwarded": 1,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 3,
+          "marksAwarded": 3,
+          "syllabusTopic": "Human respiratory and circulatory systems"
+        }
+      ],
+      "capturedAt": "2026-05-25T00:54:48.051Z",
+      "note": "Reference paper #9 — confirmed marked correctly"
+    }
+  ],
+  "errors": []
+}
