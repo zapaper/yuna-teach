@@ -768,7 +768,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   function goToPaper(p: ExamPaperSummary) {
     playClick();
-    if (p.paperType === "quiz" || p.paperType === "focused") {
+    if (p.paperType === "quiz" || p.paperType === "focused" || p.paperType === "mastery") {
       router.push(`/quiz/${p.id}?userId=${userId}`);
       return;
     }

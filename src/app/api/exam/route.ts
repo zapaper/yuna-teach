@@ -29,7 +29,18 @@ export async function GET(request: NextRequest) {
     const role = user?.role;
 
     if (role === "STUDENT") {
-      where = { assignedToId: userId };
+      // Exclude paperType="eval" clones (created by the regression
+      // eval harness) — they're assigned to the same student as the
+      // source paper but must not surface in the student's dashboard.
+      // Explicit OR because Prisma's `{ not: "eval" }` excludes nulls
+      // by default and most real papers have paperType=null.
+      where = {
+        assignedToId: userId,
+        OR: [
+          { paperType: null },
+          { paperType: { not: "eval" } },
+        ],
+      };
     } else {
       // Parents see master papers + focused tests (exclude clones)
       // Filter to only levels matching their linked students
