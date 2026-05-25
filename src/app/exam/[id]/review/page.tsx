@@ -1095,12 +1095,37 @@ function ExamReviewContent({ id }: { id: string }) {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
     // Drop a "blank" or "(blank)" line (or pipe-separated chunk) anywhere.
-    s = s
+    let lines = s
       .split(/\r?\n|\s*\|\s*/)
       .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !/^\(?blank\)?$/i.test(line) && !/^no\s+answer$/i.test(line))
-      .join("\n");
-    return s.trim() || "(no answer detected)";
+      .filter((line) => line.length > 0 && !/^\(?blank\)?$/i.test(line) && !/^no\s+answer$/i.test(line));
+    // Science OEQ: drop empty-working scaffold lines like
+    // "Working: (no working shown)" / "(a) Working: blank". For
+    // short-answer science the working line is pure noise — the
+    // AI emits it verbatim from its detection template. Math
+    // keeps it because parents use the "no working shown" signal
+    // when discussing method marks with the child.
+    const isScience = (paperSubject ?? "").toLowerCase().includes("science");
+    if (isScience) {
+      const emptyWorkingRe = /^(?:\([a-z0-9]+\)\s*)?working\s*:?\s*\(?\s*(?:no\s+working(?:\s+shown)?|blank|empty|no\s+answer|nothing|none)\s*\)?\s*$/i;
+      lines = lines.filter(l => !emptyWorkingRe.test(l));
+    }
+    // Dedup adjacent lines whose CONTENT (after stripping a
+    // "Working:" / "Final answer:" / "(a) Working:" label) is
+    // identical. Fixes the OEQ duplication where the AI emits
+    // "Working: X" immediately followed by "Final answer: X"
+    // with the same X — the detected answer card was showing
+    // the same sentence twice joined together.
+    const contentOnly = (l: string) =>
+      l.replace(/^\s*(?:\([a-z0-9]+\)\s*)?(?:working|final\s+answer)\s*:?\s*/i, "").trim().toLowerCase();
+    const deduped: string[] = [];
+    for (const l of lines) {
+      const key = contentOnly(l);
+      const lastKey = deduped.length ? contentOnly(deduped[deduped.length - 1]) : "";
+      if (key && key === lastKey) continue;
+      deduped.push(l);
+    }
+    return deduped.join("\n").trim() || "(no answer detected)";
   }
 
   // Renders marking notes: bolds verdict labels and **keyword**
