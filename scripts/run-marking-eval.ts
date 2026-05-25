@@ -66,10 +66,38 @@ type PaperResult = {
 function parseArgs() {
   const args = process.argv.slice(2);
   const cleanup = args.includes("--cleanup");
+  const verbose = args.includes("--verbose");
   const paper = args.find(a => a.startsWith("--paper="))?.split("=")[1];
   const tolArg = args.find(a => a.startsWith("--tolerance="))?.split("=")[1];
   const tolerance = tolArg !== undefined ? parseFloat(tolArg) : 0.5;
-  return { cleanup, paper, tolerance };
+  return { cleanup, paper, tolerance, verbose };
+}
+
+// Silence the marker's console.* spam during a run, so the only thing
+// printed is the per-paper progress line and the final summary block.
+// Pass --verbose to disable. Errors thrown by the marker still surface
+// via the try/catch in main().
+function withSilencedConsole<T>(fn: () => Promise<T>): Promise<T> {
+  const noop = () => {};
+  const orig = {
+    log: console.log,
+    warn: console.warn,
+    info: console.info,
+    error: console.error,
+    debug: console.debug,
+  };
+  console.log = noop;
+  console.warn = noop;
+  console.info = noop;
+  console.error = noop;
+  console.debug = noop;
+  return fn().finally(() => {
+    console.log = orig.log;
+    console.warn = orig.warn;
+    console.info = orig.info;
+    console.error = orig.error;
+    console.debug = orig.debug;
+  });
 }
 
 // Copy a directory tree (Node 20+ has fs.cp; falling back to manual copy keeps
@@ -259,11 +287,15 @@ async function markClone(cloneId: string, paperType: string | null) {
   }
 }
 
-async function evalPaper(snap: SnapshotPaper, tolerance: number, cleanup: boolean): Promise<PaperResult> {
+async function evalPaper(snap: SnapshotPaper, tolerance: number, cleanup: boolean, verbose: boolean): Promise<PaperResult> {
   process.stdout.write(`\n[${snap.id}] ${snap.title} ... `);
   const cloneId = await clonePaper(snap.id);
   process.stdout.write(`cloned=${cloneId.slice(0, 10)}… `);
-  await markClone(cloneId, snap.paperType);
+  if (verbose) {
+    await markClone(cloneId, snap.paperType);
+  } else {
+    await withSilencedConsole(() => markClone(cloneId, snap.paperType));
+  }
   process.stdout.write(`marked. `);
 
   const cloneQs = await prisma.examQuestion.findMany({
@@ -287,11 +319,9 @@ async function evalPaper(snap: SnapshotPaper, tolerance: number, cleanup: boolea
   const pass = matched === diffs.length;
   process.stdout.write(`${matched}/${diffs.length} ${pass ? "PASS" : "FAIL"} (total ${actualTotal} vs ${expectedTotal})\n`);
 
-  if (!pass) {
-    for (const d of diffs.filter(x => !x.pass)) {
-      console.log(`  Q${d.questionNum}: expected ${d.expected}, got ${d.actual} (Δ${d.delta > 0 ? "+" : ""}${d.delta})`);
-    }
-  }
+  // Per-question diffs are deferred to the final DIFFS block at the
+  // bottom so the user gets one paste-friendly summary instead of
+  // having to scroll through interleaved marker logs.
 
   if (cleanup) {
     await prisma.examPaper.delete({ where: { id: cloneId } });
@@ -302,7 +332,7 @@ async function evalPaper(snap: SnapshotPaper, tolerance: number, cleanup: boolea
 }
 
 async function main() {
-  const { cleanup, paper: paperFilter, tolerance } = parseArgs();
+  const { cleanup, paper: paperFilter, tolerance, verbose } = parseArgs();
   const raw = await fs.readFile(SNAPSHOT_PATH, "utf8");
   const snapshot: Snapshot = JSON.parse(raw);
   let papers = snapshot.papers;
@@ -312,11 +342,11 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Eval: ${papers.length} paper(s), tolerance ±${tolerance} mark per question, cleanup=${cleanup}`);
+  console.log(`Eval: ${papers.length} paper(s), tolerance ±${tolerance} mark per question, cleanup=${cleanup}${verbose ? ", verbose" : ""}`);
   const results: PaperResult[] = [];
   for (const snap of papers) {
     try {
-      results.push(await evalPaper(snap, tolerance, cleanup));
+      results.push(await evalPaper(snap, tolerance, cleanup, verbose));
     } catch (err) {
       console.error(`[${snap.id}] FAILED:`, err instanceof Error ? err.message : err);
     }
@@ -325,6 +355,25 @@ async function main() {
   const passed = results.filter(r => r.pass).length;
   const totalQ = results.reduce((s, r) => s + r.total, 0);
   const matchedQ = results.reduce((s, r) => s + r.matched, 0);
+
+  // Paste-friendly diff block. One section per failing paper, then a
+  // one-line summary at the very bottom — designed to be copied into
+  // a chat/issue without trimming.
+  console.log(`\n=== DIFFS ===`);
+  const failing = results.filter(r => !r.pass);
+  if (failing.length === 0) {
+    console.log(`(none — all papers within ±${tolerance})`);
+  } else {
+    for (const r of failing) {
+      console.log(`\n[${r.sourceId}] ${r.title}`);
+      console.log(`  ${r.matched}/${r.total} match, total ${r.actualTotal} vs ${r.expectedTotal} expected`);
+      for (const d of r.diffs.filter(x => !x.pass)) {
+        const sign = d.delta > 0 ? "+" : "";
+        console.log(`  Q${d.questionNum}: expected ${d.expected}, got ${d.actual} (Δ${sign}${d.delta})`);
+      }
+    }
+  }
+
   console.log(`\n=== SUMMARY ===`);
   console.log(`Papers: ${passed}/${results.length} pass`);
   console.log(`Questions: ${matchedQ}/${totalQ} match within ±${tolerance} (${((matchedQ / totalQ) * 100).toFixed(1)}%)`);
