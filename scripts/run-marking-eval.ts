@@ -85,6 +85,71 @@ async function copyDir(src: string, dst: string) {
   }
 }
 
+// Fetch all submission files for a source paper from the deployed app's
+// /api/exam/<id>/submission endpoint and write them to a local directory.
+// Used when running the eval locally against prod data — the marker reads
+// from local disk, so the canvases need to be on disk first.
+//
+// Requires:
+//   EVAL_REMOTE_BASE     — e.g. "https://www.markforyou.com"
+//   EVAL_SESSION_COOKIE  — value of the yuna_session cookie (copy from
+//                          browser dev tools while logged in as admin)
+//
+// Iterates each question's expected filenames and fetches; 404s are
+// silently skipped (question may have been blank / not yet submitted).
+async function fetchRemoteSubmissionFiles(
+  sourceId: string,
+  dstSubDir: string,
+): Promise<{ fetched: number; failed: number }> {
+  const base = process.env.EVAL_REMOTE_BASE;
+  const cookie = process.env.EVAL_SESSION_COOKIE;
+  if (!base || !cookie) return { fetched: 0, failed: 0 };
+
+  // Pull the question list to know which page indices + subparts to fetch.
+  const questions = await prisma.examQuestion.findMany({
+    where: { examPaperId: sourceId },
+    select: { orderIndex: true, transcribedSubparts: true },
+    orderBy: { orderIndex: "asc" },
+  });
+  if (questions.length === 0) return { fetched: 0, failed: 0 };
+
+  await fs.mkdir(dstSubDir, { recursive: true });
+  const headers = { cookie: `yuna_session=${cookie}` } as const;
+
+  let fetched = 0;
+  let failed = 0;
+  await Promise.all(questions.map(async (q) => {
+    const idx = q.orderIndex;
+    // Composite + ink at the question level
+    const wholeTargets = [
+      { qs: `?page=${idx}`, file: `page_${idx}.jpg` },
+      { qs: `?page=${idx}&type=ink`, file: `page_${idx}_ink.png` },
+    ];
+    // Per-subpart files (real subparts only — skip "_drawable" / "_subref-" sentinels)
+    const subs = (q.transcribedSubparts as { label?: string }[] | null) ?? [];
+    const subTargets = subs
+      .filter(sp => typeof sp?.label === "string" && !sp.label.startsWith("_"))
+      .flatMap(sp => [
+        { qs: `?page=${idx}&subpart=${sp.label!.toLowerCase()}`, file: `page_${idx}_${sp.label!.toLowerCase()}.jpg` },
+        { qs: `?page=${idx}&subpart=${sp.label!.toLowerCase()}&type=ink`, file: `page_${idx}_${sp.label!.toLowerCase()}_ink.png` },
+      ]);
+
+    for (const t of [...wholeTargets, ...subTargets]) {
+      try {
+        const res = await fetch(`${base}/api/exam/${sourceId}/submission${t.qs}`, { headers });
+        if (res.status === 404) continue; // genuinely missing — fine
+        if (!res.ok) { failed++; continue; }
+        const buf = Buffer.from(await res.arrayBuffer());
+        await fs.writeFile(path.join(dstSubDir, t.file), buf);
+        fetched++;
+      } catch {
+        failed++;
+      }
+    }
+  }));
+  return { fetched, failed };
+}
+
 async function clonePaper(sourceId: string): Promise<string> {
   const source = await prisma.examPaper.findUnique({
     where: { id: sourceId },
@@ -151,15 +216,25 @@ async function clonePaper(sourceId: string): Promise<string> {
     select: { id: true },
   });
 
-  // Copy submission files (canvases) so the marker can re-read them.
+  // Make canvas files available for the marker to read.
+  //   Local mode: copy from the local SUBMISSIONS_DIR if files exist.
+  //   Remote mode (EVAL_REMOTE_BASE set): fetch each file over HTTP from
+  //                                       the deployed app and write into
+  //                                       the clone's local sub-dir.
   const srcSubDir = path.join(SUBMISSIONS_DIR, sourceId);
   const dstSubDir = path.join(SUBMISSIONS_DIR, clone.id);
-  try {
-    await copyDir(srcSubDir, dstSubDir);
-  } catch (err) {
-    // Some papers (MCQ-only printed) have no submission files. Not fatal.
-    if ((err as { code?: string }).code !== "ENOENT") {
-      console.warn(`  warning: failed to copy ${srcSubDir}: ${(err as Error).message}`);
+  if (process.env.EVAL_REMOTE_BASE) {
+    const { fetched, failed } = await fetchRemoteSubmissionFiles(sourceId, dstSubDir);
+    if (failed > 0) console.warn(`  remote fetch: ${fetched} files OK, ${failed} failed`);
+    else process.stdout.write(`fetched=${fetched} `);
+  } else {
+    try {
+      await copyDir(srcSubDir, dstSubDir);
+    } catch (err) {
+      // Some papers (MCQ-only printed) have no submission files. Not fatal.
+      if ((err as { code?: string }).code !== "ENOENT") {
+        console.warn(`  warning: failed to copy ${srcSubDir}: ${(err as Error).message}`);
+      }
     }
   }
   return clone.id;

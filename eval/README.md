@@ -46,6 +46,35 @@ from scratch. Originals are never touched.
 lists. Pass `--cleanup` to delete them after the run, or leave them for
 manual inspection.
 
+## Running locally against prod data (without redeploying)
+
+By default the runner reads canvas files from the local
+`$VOLUME_PATH/submissions/` directory. When iterating on marking code,
+those files don't exist locally — they're on the Railway volume.
+
+Set two env vars to make the runner fetch each file over HTTP from
+the deployed app:
+
+```bash
+EVAL_REMOTE_BASE=https://www.markforyou.com \
+EVAL_SESSION_COOKIE=<your-yuna_session-cookie-value> \
+npx tsx scripts/run-marking-eval.ts --cleanup
+```
+
+The cookie comes from your logged-in browser: dev-tools → Application
+→ Cookies → `yuna_session`. Any admin/parent session works. The runner
+hits the existing `/api/exam/<id>/submission?page=N…` endpoint that's
+already authorised on a per-paper basis.
+
+Output prints `fetched=N` per cloned paper so you can confirm files
+came across. If you see `0 files` everywhere, the cookie is stale or
+the env var isn't set — the marker will then mark every OEQ as
+"no ink detected" and the eval will look like a regression.
+
+When `EVAL_REMOTE_BASE` is NOT set, the runner falls back to the
+local-disk copy behaviour (works inside a Railway shell where the
+volume is mounted).
+
 ## When to regenerate the snapshot
 
 - You added new papers to `corpus.json` → re-snapshot to capture them.
