@@ -71,6 +71,32 @@ function ai() {
   return _ai;
 }
 
+// Retry a Gemini call on transient 5xx / 429. Without this a single
+// 504 anywhere in the pipeline (especially the multi-page Paper 3
+// OCR call, which often takes 90-180s) kills the entire upload and
+// the admin has to re-upload the PDF.
+async function withGeminiRetry<T>(
+  label: string,
+  fn: () => Promise<T>,
+  attempts = 3,
+): Promise<T> {
+  let lastErr: unknown = null;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const status = (err as { status?: number }).status;
+      const retryable = status === 504 || status === 503 || status === 429 || status === 500;
+      if (!retryable || i === attempts) break;
+      const wait = 5000 * i; // 5s, 10s, 15s
+      console.warn(`[chinese-supplementary] ${label} ${status} on attempt ${i}/${attempts}, retrying in ${wait}ms`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
+}
+
 export type SectionPages = {
   paper1Pages: number[];        // 1-indexed inclusive list
   paper3Pages: number[];
@@ -168,11 +194,11 @@ async function detectSections(pages: Buffer[]): Promise<SectionPages> {
     })),
   ];
 
-  const res = await ai().models.generateContent({
+  const res = await withGeminiRetry("section-detect", () => ai().models.generateContent({
     model: SECTION_MODEL,
     contents: [{ role: "user", parts }],
     config: { temperature: 0, responseMimeType: "application/json" },
-  });
+  }));
   const text = res.text ?? "";
   const parsed = JSON.parse(text) as Partial<SectionPages>;
   return {
@@ -192,7 +218,7 @@ async function ocrSection(
   const imageParts = pagesToInline(pages, indices);
   if (imageParts.length === 0) return "";
 
-  const res = await ai().models.generateContent({
+  const res = await withGeminiRetry(`ocr-${label}`, () => ai().models.generateContent({
     model: OCR_MODEL,
     contents: [{
       role: "user",
@@ -215,7 +241,7 @@ async function ocrSection(
       ],
     }],
     config: { temperature: 0 },
-  });
+  }));
   return (res.text ?? "").trim();
 }
 
@@ -270,11 +296,11 @@ ${paper1Text}
     ...pagesToInline(pages, paper1Pages),
   ];
   try {
-    const res = await ai().models.generateContent({
+    const res = await withGeminiRetry("structure-compo", () => ai().models.generateContent({
       model: SECTION_MODEL,
       contents: [{ role: "user", parts }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const parsed = JSON.parse(res.text ?? "") as { compoOption1Topic?: string; compoOption2?: CompoOption2 };
     return {
       compoOption1Topic: typeof parsed.compoOption1Topic === "string" ? parsed.compoOption1Topic.trim() : null,
@@ -325,11 +351,11 @@ ${paper3Text}
     ...pagesToInline(pages, paper3Pages),
   ];
   try {
-    const res = await ai().models.generateContent({
+    const res = await withGeminiRetry("structure-listening", () => ai().models.generateContent({
       model: SECTION_MODEL,
       contents: [{ role: "user", parts }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const parsed = JSON.parse(res.text ?? "") as { listeningMcqs?: ListeningMcq[]; listeningPassages?: ListeningPassage[] };
     return {
       listeningMcqs: Array.isArray(parsed.listeningMcqs) ? parsed.listeningMcqs : [],
@@ -346,7 +372,7 @@ async function extractCompoAnswers(
 ): Promise<{ compoOption1Model: string | null; compoOption2Model: string | null }> {
   if (!paper1AnswerText) return { compoOption1Model: null, compoOption2Model: null };
   try {
-    const res = await ai().models.generateContent({
+    const res = await withGeminiRetry("structure-compo-answers", () => ai().models.generateContent({
       model: SECTION_MODEL,
       contents: [{ role: "user", parts: [{ text: `以下是 PSLE 华文试卷一作文部分的「答案 / 范文」OCR 文本。请从中分离出两篇范文：
 
@@ -362,7 +388,7 @@ async function extractCompoAnswers(
 OCR 文本：
 ${paper1AnswerText}` }] }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const parsed = JSON.parse(res.text ?? "") as { compoOption1Model?: string; compoOption2Model?: string };
     return {
       compoOption1Model: typeof parsed.compoOption1Model === "string" ? parsed.compoOption1Model.trim() : null,
@@ -377,7 +403,7 @@ ${paper1AnswerText}` }] }],
 async function extractListeningAnswers(paper3AnswerText: string): Promise<ListeningAnswer[]> {
   if (!paper3AnswerText) return [];
   try {
-    const res = await ai().models.generateContent({
+    const res = await withGeminiRetry("structure-listening-answers", () => ai().models.generateContent({
       model: SECTION_MODEL,
       contents: [{ role: "user", parts: [{ text: `以下是 PSLE 华文试卷三（听力）的答案 OCR 文本。请提取 10 道 MCQ 的标准答案。
 
@@ -390,7 +416,7 @@ answer 字段保留原文格式（带括号 "(2)" 或字母 "B" 都可以）。�
 OCR 文本：
 ${paper3AnswerText}` }] }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const parsed = JSON.parse(res.text ?? "") as { listeningAnswers?: ListeningAnswer[] };
     return Array.isArray(parsed.listeningAnswers) ? parsed.listeningAnswers : [];
   } catch (err) {
