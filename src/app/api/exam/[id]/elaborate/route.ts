@@ -171,7 +171,15 @@ export async function POST(
     }
   }
 
-  const isQuiz = question.examPaper?.paperType === "quiz" || question.examPaper?.paperType === "focused";
+  // Was gated on isQuiz (paperType in {quiz, focused}). That gate
+  // caused English Grammar MCQ master questions on library papers
+  // (paperType=null) to be elaborated with image-only context —
+  // Gemini had no question text, hallucinated a generic "Step 1:
+  // identify key values, Step 2: equation, Step 3: match" math
+  // template, and that bogus output got cached on the master and
+  // inherited by every mastery clone. Now: whenever a transcribed
+  // stem (or cloze/editing topic) is available, use the clean-text
+  // prompt regardless of paperType.
   const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
 
   // Subject-specific format for the "solution" string.
@@ -190,7 +198,7 @@ export async function POST(
   // For cloze/editing questions without stems, still use the quiz path for passage context
   const topicLower = (question.syllabusTopic ?? "").toLowerCase();
   const isClozeOrEditing = topicLower.includes("cloze") || topicLower.includes("editing");
-  if (isQuiz && (question.transcribedStem || isClozeOrEditing)) {
+  if (question.transcribedStem || isClozeOrEditing) {
     // For quiz questions, use clean transcribed text to avoid Gemini reading school/year from exam paper header
     const opts = question.transcribedOptions as string[] | null;
     const subs = question.transcribedSubparts as { label: string; text: string }[] | null;
