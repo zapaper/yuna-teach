@@ -4088,13 +4088,16 @@ Even when a sub-part is blank, write the label: "(b) blank". Without the (a) / (
           // Drawable questions (food web with multiple arrows, plot a
           // graph, shade regions) need vision quality flash can't
           // reliably deliver — observed case: a P6 Science food-web
-          // OEQ where flash mis-read several arrow directions.
-          // Upgrade those to 3.1-pro-preview with a 2.5-pro then
-          // flash fallback in case the preview tier is rate-limited.
+          // OEQ where flash mis-read several arrow directions, and a
+          // P6 math shaded-region question where flash described the
+          // wrong cell. Drawables are pinned to 3.1-pro with no
+          // fallback — degrading to flash silently swaps a correct
+          // mark for a wrong one. The per-model retry loop below
+          // still handles transient 5xx with 4s/8s backoff.
           // Plain handwritten paragraphs stay on flash — cheaper and
           // accurate enough at handwriting OCR.
           const detectModels = isDrawableAny
-            ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+            ? ["gemini-3.1-pro-preview"]
             : ["gemini-2.5-flash"];
           let detectErr: unknown = null;
           for (let i = 0; i < detectModels.length; i++) {
@@ -4646,21 +4649,13 @@ Return ONLY valid JSON:
         // the next attempt is much more likely to return parseable output.
         // Drawable questions with an answer image need stronger visual
         // reasoning than flash can reliably provide (flash was marking
-        // "7 shaded blocks vs 5 expected" as correct). Math-drawable-
-        // with-image questions run on 3.1-pro-preview — already in use
-        // by the elaborate/solver routes, has the best visual reasoning
-        // of the preview pro tier. Fall back to 2.5-pro then flash if
-        // 3.1 is rate-limited. Non-math drawable stays on 2.5-pro.
+        // "7 shaded blocks vs 5 expected" as correct). Pinned to
+        // 3.1-pro with no fallback — silently degrading to flash on
+        // a drawable swaps a correct mark for a wrong one. The
+        // per-attempt retry loop below still covers transient 5xx.
         const needsPro = isDrawableAny && !!q.answerImageData;
-        // Drawable + answer-image cases need the strongest vision model
-        // for both subjects — math gets 3.1-pro-preview already, and
-        // science (food webs, life cycle drawings, plot-on-grid) was
-        // observed mis-marking on 2.5-pro. Both now lead with 3.1
-        // and fall back to 2.5-pro / flash if the preview tier
-        // throttles. Non-drawable OEQ stays on flash — handwriting
-        // OCR + text marking doesn't justify pro pricing.
         const QUIZ_MODELS = needsPro
-          ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+          ? ["gemini-3.1-pro-preview"]
           // Non-drawable OEQ: start cheap, escalate on each retry.
           // The previous flash→flash→lite chain just hit the same
           // JSON-malformation bug three times in a row when 2.5-flash
@@ -4900,6 +4895,7 @@ Return ONLY valid JSON:
                   },
                 })
               );
+              console.log(`[quiz-marking] OEQ Q${q.questionNum} marked by ${model}: ${awarded}/${marksAvailable}`);
               lastErr = null;
               lastParseFailText = null;
               break;
