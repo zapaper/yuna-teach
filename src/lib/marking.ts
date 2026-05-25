@@ -4810,6 +4810,19 @@ Return ONLY valid JSON:
                     awarded = newAwarded;
                   }
                 }
+                // Reconcile UPWARD too. The AI sometimes sets the
+                // top-level marksAwarded to 0 but writes per-part
+                // marks > 0 in the notes (e.g. "Part (c): … Awarded
+                // 1.5 mark(s).") — the question then displayed 0/5
+                // even though the parent sees 1.5 against (c). When
+                // every subpart accounted for has a per-part award
+                // and the sum exceeds the AI's stated total, trust
+                // the sum (capped at marksAvailable).
+                if (usedAnyChunk && cappedSum > awarded) {
+                  const newAwarded = Math.min(marksAvailable, cappedSum);
+                  console.log(`[quiz-marking] Q${q.questionNum} per-part sum upgrade: AI total ${awarded} → ${newAwarded}/${marksAvailable} (sum of per-part marks)`);
+                  awarded = newAwarded;
+                }
               }
 
               // Blank-subpart clamp. blankSubparts came from a
