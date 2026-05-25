@@ -820,7 +820,7 @@
         {
           "questionNum": "9",
           "marksAvailable": 3,
-          "marksAwarded": 0,
+          "marksAwarded": 1.5,
           "syllabusTopic": "Ratio"
         },
         {
@@ -831,7 +831,7 @@
         }
       ],
       "capturedAt": "2026-05-25T00:54:47.989Z",
-      "note": "Reference paper #8 — confirmed marked correctly"
+      "note": "Reference paper #8 — confirmed marked correctly (Q9 baseline set to 1.5 on 2026-05-25 — debatable between 1 / 1.5 / 2, but certainly not 0; ±0.5 tolerance covers all three)"
     },
     {
       "id": "cmoqkmwxa000pwu99qiiwf74x",
