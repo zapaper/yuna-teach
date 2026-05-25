@@ -15,28 +15,36 @@ import "katex/dist/katex.min.css";
 // nesting like "**The fraction $\frac{1}{2}$ is half**" where the
 // bold spans the math.
 
-// Math segment: `$...$` whose content has at least one math-y signal —
-//   - a LaTeX `\command`, OR
-//   - a superscript `^`, subscript `_`, or brace `{ }`, OR
-//   - an equals sign (algebra: "$x = 6$" / "$y = 2x + 3$"), OR
-//   - a digit-letter adjacency with NO space between (math variable
-//     pattern like "3x", "2y", "5n"). Picks up bare algebra like
-//     "$40 + 3x$" that has no equals sign.
-// Negative lookbehind/lookahead on both `$` chars: skip pairs where
-// either opening or closing `$` is adjacent to another `$`. That
-// rule handles the new currency escape convention `$$5` / `$$3`,
-// where the extraction emits two dollar signs to mean "literal
-// dollar". The doubled `$$` never matches a math pair; the post-
-// render step below collapses `$$` → `$` for display.
-//
-// We do NOT use plain "any letter" as a trigger because primary
-// papers say things like "Suyi bought cushions at $8 each and had
-// $3 left" — content between bare-$ currency markers is full of
-// letters but is NOT math; KaTeX would italicize it and drop spaces.
-// The discriminators above (=, sub/super, digit-letter no-space)
-// almost never occur inside currency prose, where digits and letters
-// are always separated by a space ("8 each" not "8e").
-const MATH_SEGMENT_RE = /(?<!\$)\$(?!\$)([^$\n]*(?:[\\^_{}=]|\d[a-zA-Z]|[a-zA-Z]\d)[^$\n]*)(?<!\$)\$(?!\$)/;
+// Match any `$...$` pair that isn't adjacent to another `$` (the
+// `$$5` currency escape is rejected here and the post-render step
+// collapses it to a single `$` for display). Whether a captured
+// pair counts as MATH is then decided by isMathContent below.
+const DOLLAR_PAIR_RE = /(?<!\$)\$(?!\$)([^$\n]+?)(?<!\$)\$(?!\$)/g;
+
+// Decide whether the content inside `$...$` looks like LaTeX math.
+// Rule order matters — first match wins, fast paths first:
+//   1. Has a LaTeX backslash command, ^, _, { } or = → math
+//      ("$\frac{1}{2}$", "$cm^2$", "$x = 6$").
+//   2. Has at least one letter AND no whitespace at all → math
+//      ("$y$", "$xy$", "$f(x)$", "$3x$"). Bare variables and
+//      compact expressions never contain spaces.
+//   3. Has at least one letter AND at least one math operator
+//      (+ − * / < >) → math ("$x + y$", "$40 + 3x$"). The letter
+//      requirement keeps currency arithmetic like "$5 + $7"
+//      (content "5 + " — no letter) out.
+// Anything else is treated as plain text. The big rejection target
+// is currency prose like "Suyi bought cushions at $8 each and had
+// $3 left" — content "8 each and had " has letters but also
+// whitespace and no math operator, so it falls through.
+function isMathContent(content: string): boolean {
+  if (!content) return false;
+  if (/[\\^_{}=]/.test(content)) return true;
+  const hasLetter = /[a-zA-Z]/.test(content);
+  if (!hasLetter) return false;
+  if (!/\s/.test(content)) return true;
+  if (/[+\-*/<>]/.test(content)) return true;
+  return false;
+}
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
@@ -73,27 +81,46 @@ type MatchResult = {
   content: string;
 };
 
-// Find the earliest of the three patterns in `text`. Returns null
-// if no pattern matches at all.
+// Find the earliest match for math, bold, or underline. Math is
+// any `$...$` pair whose content passes isMathContent(); we scan
+// every dollar pair sequentially because the first one might fail
+// the math check (e.g. it's currency) but a later one is real math.
+function findMathMatch(text: string): { index: number; end: number; content: string } | null {
+  const re = new RegExp(DOLLAR_PAIR_RE.source, "g");
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (isMathContent(m[1])) {
+      return { index: m.index, end: m.index + m[0].length, content: m[1] };
+    }
+  }
+  return null;
+}
+
 function firstMatch(text: string): MatchResult | null {
-  const candidates: Array<{ kind: MatchResult["kind"]; m: RegExpExecArray | null }> = [
-    { kind: "math", m: MATH_SEGMENT_RE.exec(text) },
+  const mathMatch = findMathMatch(text);
+  const candidates: Array<{ kind: MatchResult["kind"]; index: number; end: number; content: string } | null> = [
+    mathMatch ? { kind: "math" as const, ...mathMatch } : null,
+  ];
+  const others: Array<{ kind: MatchResult["kind"]; m: RegExpExecArray | null }> = [
     { kind: "bold", m: BOLD_RE.exec(text) },
     { kind: "underline", m: UNDER_RE.exec(text) },
     { kind: "underline", m: UNDER_TAG_RE.exec(text) },
     { kind: "underline", m: UNDER_HTML_RE.exec(text) },
   ];
+  for (const c of others) {
+    if (!c.m) continue;
+    candidates.push({
+      kind: c.kind,
+      index: c.m.index,
+      end: c.m.index + c.m[0].length,
+      content: c.m[1],
+    });
+  }
   let best: MatchResult | null = null;
   for (const c of candidates) {
-    if (!c.m) continue;
-    const idx = c.m.index;
-    if (best === null || idx < best.index) {
-      best = {
-        index: idx,
-        end: idx + c.m[0].length,
-        kind: c.kind,
-        content: c.m[1],
-      };
+    if (!c) continue;
+    if (best === null || c.index < best.index) {
+      best = { index: c.index, end: c.end, kind: c.kind, content: c.content };
     }
   }
   return best;
@@ -152,7 +179,7 @@ export default function MathText({ text, className }: { text: string; className?
   ) {
     return <span className={className} style={style}>{repaired}</span>;
   }
-  if (repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__") && !repaired.includes("[underline]") && !repaired.includes("<u>") && !MATH_SEGMENT_RE.test(repaired)) {
+  if (repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__") && !repaired.includes("[underline]") && !repaired.includes("<u>") && !findMathMatch(repaired)) {
     // Has dollars but no math match anywhere → plain text with
     // currency escapes collapsed.
     return <span className={className} style={style}>{repaired.replace(/\$\$/g, "$")}</span>;
