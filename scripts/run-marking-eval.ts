@@ -95,8 +95,10 @@ async function copyDir(src: string, dst: string) {
 //   EVAL_SESSION_COOKIE  — value of the yuna_session cookie (copy from
 //                          browser dev tools while logged in as admin)
 //
-// Iterates each question's expected filenames and fetches; 404s are
-// silently skipped (question may have been blank / not yet submitted).
+// Approach: call ?list=1 once to get the directory listing, then fetch
+// each named file. Works for both quiz papers (per-question canvas
+// files) and printable / scanned papers (per-page scans), since we
+// stop guessing filenames and just mirror what the server has.
 async function fetchRemoteSubmissionFiles(
   sourceId: string,
   dstSubDir: string,
@@ -105,46 +107,53 @@ async function fetchRemoteSubmissionFiles(
   const cookie = process.env.EVAL_SESSION_COOKIE;
   if (!base || !cookie) return { fetched: 0, failed: 0 };
 
-  // Pull the question list to know which page indices + subparts to fetch.
-  const questions = await prisma.examQuestion.findMany({
-    where: { examPaperId: sourceId },
-    select: { orderIndex: true, transcribedSubparts: true },
-    orderBy: { orderIndex: "asc" },
-  });
-  if (questions.length === 0) return { fetched: 0, failed: 0 };
-
-  await fs.mkdir(dstSubDir, { recursive: true });
   const headers = { cookie: `yuna_session=${cookie}` } as const;
 
+  // Step 1: list the directory.
+  let files: string[] = [];
+  try {
+    const listRes = await fetch(`${base}/api/exam/${sourceId}/submission?list=1`, { headers });
+    if (!listRes.ok) {
+      console.warn(`  remote list failed (${listRes.status}) — falling back to empty`);
+      return { fetched: 0, failed: 1 };
+    }
+    const data = await listRes.json() as { files?: string[] };
+    files = data.files ?? [];
+  } catch (err) {
+    console.warn(`  remote list error: ${(err as Error).message}`);
+    return { fetched: 0, failed: 1 };
+  }
+  if (files.length === 0) return { fetched: 0, failed: 0 };
+
+  await fs.mkdir(dstSubDir, { recursive: true });
+
+  // Step 2: fetch each file via the existing per-file endpoint. Parse
+  // the filename back into (page, subpart, type) so we can hit the
+  // same handler that the marker eventually reads from on disk.
   let fetched = 0;
   let failed = 0;
-  await Promise.all(questions.map(async (q) => {
-    const idx = q.orderIndex;
-    // Composite + ink at the question level
-    const wholeTargets = [
-      { qs: `?page=${idx}`, file: `page_${idx}.jpg` },
-      { qs: `?page=${idx}&type=ink`, file: `page_${idx}_ink.png` },
-    ];
-    // Per-subpart files (real subparts only — skip "_drawable" / "_subref-" sentinels)
-    const subs = (q.transcribedSubparts as { label?: string }[] | null) ?? [];
-    const subTargets = subs
-      .filter(sp => typeof sp?.label === "string" && !sp.label.startsWith("_"))
-      .flatMap(sp => [
-        { qs: `?page=${idx}&subpart=${sp.label!.toLowerCase()}`, file: `page_${idx}_${sp.label!.toLowerCase()}.jpg` },
-        { qs: `?page=${idx}&subpart=${sp.label!.toLowerCase()}&type=ink`, file: `page_${idx}_${sp.label!.toLowerCase()}_ink.png` },
-      ]);
-
-    for (const t of [...wholeTargets, ...subTargets]) {
-      try {
-        const res = await fetch(`${base}/api/exam/${sourceId}/submission${t.qs}`, { headers });
-        if (res.status === 404) continue; // genuinely missing — fine
-        if (!res.ok) { failed++; continue; }
-        const buf = Buffer.from(await res.arrayBuffer());
-        await fs.writeFile(path.join(dstSubDir, t.file), buf);
-        fetched++;
-      } catch {
-        failed++;
-      }
+  await Promise.all(files.map(async (file) => {
+    // Filename shapes:
+    //   page_N.jpg
+    //   page_N_ink.png
+    //   page_N_<label>.jpg
+    //   page_N_<label>_ink.png
+    const m = file.match(/^page_(\d+)(?:_([a-z0-9-]+))?(_ink)?\.(jpg|png)$/i);
+    if (!m) return; // unknown shape — skip
+    const page = m[1];
+    const subpart = m[2] && m[2] !== "ink" ? m[2] : null;
+    const isInk = !!m[3];
+    const qs = new URLSearchParams({ page });
+    if (subpart) qs.set("subpart", subpart);
+    if (isInk) qs.set("type", "ink");
+    try {
+      const res = await fetch(`${base}/api/exam/${sourceId}/submission?${qs.toString()}`, { headers });
+      if (!res.ok) { failed++; return; }
+      const buf = Buffer.from(await res.arrayBuffer());
+      await fs.writeFile(path.join(dstSubDir, file), buf);
+      fetched++;
+    } catch {
+      failed++;
     }
   }));
   return { fetched, failed };

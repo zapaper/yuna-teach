@@ -94,6 +94,26 @@ export async function GET(
 
   const dir = submissionDir(id);
 
+  // List mode: enumerate every file in the paper's submission dir.
+  // Used by scripts/run-marking-eval.ts so a local eval against prod
+  // data can pull EVERY canvas / scan / ink PNG instead of guessing
+  // filenames per question. Skips debug crops (mcq_q*_pass*.jpg).
+  if (request.nextUrl.searchParams.get("list") === "1") {
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const files = entries
+        .filter(e => e.isFile())
+        .map(e => e.name)
+        .filter(name => !name.startsWith("mcq_q"));
+      return NextResponse.json({ files });
+    } catch (err) {
+      if ((err as { code?: string }).code === "ENOENT") {
+        return NextResponse.json({ files: [] });
+      }
+      return NextResponse.json({ error: "list failed" }, { status: 500 });
+    }
+  }
+
   // Debug crop viewer for scanned-back MCQ detection. The marker
   // writes the exact crops it sent to Gemini to
   // submissions/<cloneId>/mcq_q<questionNum>_pass1.jpg (and pass2
