@@ -12,7 +12,6 @@
 import { createCanvas, type SKRSContext2D, type Canvas } from "@napi-rs/canvas";
 import path from "path";
 import { pathToFileURL } from "url";
-import { createRequire } from "module";
 
 // Locate pdfjs-dist's bundled standard fonts + CMaps so we can pass
 // them as file:// URLs to getDocument(). Without these, every PDF
@@ -21,10 +20,23 @@ import { createRequire } from "module";
 // API parameter is provided" and falls back to a default font that
 // can corrupt text rendering. CMaps matter for CJK encoded PDFs
 // (PSLE Chinese papers, prelim papers from local schools).
-const _req = createRequire(import.meta.url);
-const _pdfjsPkgPath = path.dirname(_req.resolve("pdfjs-dist/package.json"));
-const STANDARD_FONT_DATA_URL = pathToFileURL(path.join(_pdfjsPkgPath, "standard_fonts") + "/").href;
-const C_MAP_URL = pathToFileURL(path.join(_pdfjsPkgPath, "cmaps") + "/").href;
+//
+// Computed lazily (not at module top level): Turbopack intercepts
+// createRequire / import.meta.url at build time and returns numeric
+// module IDs in place of file paths, which crashes path.dirname()
+// during `next build` page-data collection. process.cwd() resolves
+// to the runtime app root at request time and is bundler-safe.
+let _fontUrls: { standardFontDataUrl: string; cMapUrl: string } | null = null;
+function getPdfjsAssetUrls() {
+  if (!_fontUrls) {
+    const pkgRoot = path.join(process.cwd(), "node_modules", "pdfjs-dist");
+    _fontUrls = {
+      standardFontDataUrl: pathToFileURL(path.join(pkgRoot, "standard_fonts") + "/").href,
+      cMapUrl: pathToFileURL(path.join(pkgRoot, "cmaps") + "/").href,
+    };
+  }
+  return _fontUrls;
+}
 
 type CanvasAndContext = { canvas: Canvas; context: SKRSContext2D };
 
@@ -59,13 +71,14 @@ export async function renderPdfToJpegs(
 ): Promise<Buffer[]> {
   const pdfjs = await getPdfjs();
   const data = new Uint8Array(buf);
+  const { standardFontDataUrl, cMapUrl } = getPdfjsAssetUrls();
   const doc = await pdfjs.getDocument({
     data,
     useSystemFonts: false,
     disableFontFace: true,
     isEvalSupported: false,
-    standardFontDataUrl: STANDARD_FONT_DATA_URL,
-    cMapUrl: C_MAP_URL,
+    standardFontDataUrl,
+    cMapUrl,
     cMapPacked: true,
   }).promise;
 
