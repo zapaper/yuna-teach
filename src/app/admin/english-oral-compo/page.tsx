@@ -384,9 +384,12 @@ function EnglishOralCompoAdmin() {
                       below if the option text was captured (some PDFs
                       have text-only listening MCQs). */}
                   <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-indigo-800 mb-2">
-                      Paper 3 Listening — {detail.listeningMcqs?.length ?? 0} MCQs · {detail.listeningTexts?.length ?? 0} Texts
-                    </h3>
+                    <div className="flex items-start justify-between mb-2 gap-3">
+                      <h3 className="text-sm font-bold text-indigo-800">
+                        Paper 3 Listening — {detail.listeningMcqs?.length ?? 0} MCQs · {detail.listeningTexts?.length ?? 0} Texts
+                      </h3>
+                      <RecropListeningButton paperId={detail.id} onDone={() => loadDetail(detail.id)} />
+                    </div>
                     {detail.listeningMcqs?.length ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                         {detail.listeningMcqs.map(mcq => (
@@ -878,6 +881,48 @@ function ManualPictureCropper({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// One-click full re-extract of the Paper 3 (Listening) section.
+// Re-crops every MCQ from the paper3 pages as one image each, AND
+// re-OCRs + re-extracts the 7 text passages. Stub listeningMcqs
+// entries replace whatever was there (image-only display).
+function RecropListeningButton({ paperId, onDone }: { paperId: string; onDone: () => void }) {
+  const [working, setWorking] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  async function run() {
+    if (!confirm("This re-crops every listening MCQ and re-OCRs the text passages. Existing listening data will be replaced. Continue?")) return;
+    setWorking(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/english-oral-compo/${paperId}/recrop-listening`, { method: "POST" });
+      const data = await res.json() as { error?: string; details?: string; cropped?: number; questionNumbers?: number[]; textCount?: number; errors?: string[] };
+      if (!res.ok) {
+        setMsg({ type: "err", text: data.details || data.error || "Re-extract failed" });
+      } else {
+        setMsg({
+          type: "ok",
+          text: `Re-cropped ${data.cropped ?? 0} MCQs (Q${(data.questionNumbers ?? []).join(", Q")}), ${data.textCount ?? 0} text passages.`,
+        });
+        onDone();
+      }
+    } finally {
+      setWorking(false);
+    }
+  }
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={run}
+        disabled={working}
+        className="bg-indigo-700 text-white text-xs px-3 py-1.5 rounded hover:bg-indigo-800 disabled:opacity-50 whitespace-nowrap"
+      >
+        {working ? "Re-extracting… (1-2 min)" : "🔄 Re-extract listening"}
+      </button>
+      {msg && (
+        <p className={`text-[10px] max-w-[280px] text-right ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
+      )}
     </div>
   );
 }

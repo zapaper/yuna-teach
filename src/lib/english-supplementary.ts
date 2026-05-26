@@ -785,17 +785,17 @@ export async function autoCropListeningQuestions(
   paper3Pages: number[],
   outDir: string,
   yearLabel: string,
-): Promise<{ savedCount: number; errors: string[] }> {
+): Promise<{ savedCount: number; errors: string[]; questionNumbers: number[] }> {
   const fs = await import("fs/promises");
   const path = await import("path");
-  if (paper3Pages.length === 0) return { savedCount: 0, errors: [] };
+  if (paper3Pages.length === 0) return { savedCount: 0, errors: [], questionNumbers: [] };
   await fs.mkdir(outDir, { recursive: true });
 
   let allRendered: Buffer[];
   try {
     allRendered = await renderPdfToJpegs(pdfBuffer, 2400, 90);
   } catch (e) {
-    return { savedCount: 0, errors: [`PDF render failed: ${(e as Error).message}`] };
+    return { savedCount: 0, errors: [`PDF render failed: ${(e as Error).message}`], questionNumbers: [] };
   }
 
   let savedCount = 0;
@@ -829,7 +829,29 @@ export async function autoCropListeningQuestions(
       }
     }
   }
-  return { savedCount, errors };
+  return { savedCount, errors, questionNumbers: [...seenNums].sort((a, b) => a - b) };
+}
+
+// Helpers exported so the listening "re-extract all" endpoint can
+// re-OCR + re-structure without re-running the full pipeline.
+export async function ocrPaperSection(
+  pdfBuffer: Buffer,
+  paperPages: number[],
+  label: string,
+): Promise<string> {
+  if (paperPages.length === 0) return "";
+  const pages = await renderPdfToJpegs(pdfBuffer, 1600, 80);
+  return ocrSection(pages, paperPages, label);
+}
+
+export async function extractListeningStructureFromText(
+  pdfBuffer: Buffer,
+  paper3Pages: number[],
+  paper3Text: string,
+): Promise<{ listeningMcqs: ListeningMcq[]; listeningTexts: ListeningText[] }> {
+  if (paper3Pages.length === 0) return { listeningMcqs: [], listeningTexts: [] };
+  const pages = await renderPdfToJpegs(pdfBuffer, 1600, 80);
+  return extractListeningStructure(pages, paper3Pages, paper3Text);
 }
 
 // ── Per-section reextract (admin override) ──
