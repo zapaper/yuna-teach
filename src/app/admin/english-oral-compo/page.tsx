@@ -803,13 +803,12 @@ function ManualPictureCropper({
   }
   function onMouseUp() { setDragStart(null); }
 
-  async function save() {
-    if (!box || box.width < 0.02 || box.height < 0.02) { setError("Drag a larger box first."); return; }
+  async function saveBounds(bounds: { left: number; top: number; width: number; height: number }) {
     setSaving(true); setError(null);
     try {
       const res = await fetch(`/api/admin/english-oral-compo/${paperId}/picture`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, ...box }),
+        body: JSON.stringify({ kind, ...bounds }),
       });
       const data = await res.json() as { error?: string };
       if (!res.ok) { setError(data.error || "Save failed"); return; }
@@ -819,6 +818,13 @@ function ManualPictureCropper({
     } finally {
       setSaving(false);
     }
+  }
+  function save() {
+    if (!box || box.width < 0.02 || box.height < 0.02) { setError("Drag a larger box first, or click Save full page."); return; }
+    return saveBounds(box);
+  }
+  function saveFullPage() {
+    return saveBounds({ left: 0, top: 0, width: 1, height: 1 });
   }
 
   return (
@@ -866,6 +872,11 @@ function ManualPictureCropper({
             <button onClick={save} disabled={saving || pageLoading || !box || box.width < 0.02}
               className="bg-sky-700 text-white text-xs px-3 py-1 rounded hover:bg-sky-800 disabled:opacity-50">
               {saving ? "Saving…" : "Save crop"}
+            </button>
+            <button onClick={saveFullPage} disabled={saving || pageLoading}
+              className="bg-sky-500 text-white text-xs px-3 py-1 rounded hover:bg-sky-600 disabled:opacity-50"
+              title="Save the whole page as the picture (no crop)">
+              {saving ? "Saving…" : "Save full page"}
             </button>
             <button onClick={() => setBox(null)} disabled={!box || saving}
               className="text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50">Clear</button>

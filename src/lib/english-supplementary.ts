@@ -243,10 +243,10 @@ async function detectSections(pages: Buffer[]): Promise<SectionPages> {
 For each page, decide which section it belongs to:
 - "paper1"        → Paper 1: Writing (Section A Situational Writing + Section B Continuous Writing with picture prompts)
 - "paper2"        → Paper 2: Language Use & Comprehension (MCQs, cloze, comprehension OEQ — NOT this analysis)
-- "paper3"        → Paper 3: Listening Comprehension (MCQ-style listening questions)
+- "paper3"        → Paper 3: Listening Comprehension. **INCLUDES BOTH** (a) the MCQ questions section AND (b) the read-aloud "Texts" (Text 1, Text 2 … Text 7 — dialogues / monologues / announcements) which typically come AFTER the questions in the same booklet. Tag the whole listening section (questions + text passages) as paper3.
 - "paper4"        → Paper 4: Oral Communication (Reading aloud passage + Stimulus-based conversation picture)
 - "paper1Answer"  → Model essays, marking rubric, or grade descriptors for Paper 1
-- "paper3Answer"  → Answer key / listening transcripts for Paper 3
+- "paper3Answer"  → ONLY the listening answer key (letters/numbers like 1.(2), 2.(1), 3.(3)…). The read-aloud texts go to paper3, NOT here, even if they're printed at the back of the booklet.
 - "paper4Answer"  → Suggested responses / oral marking rubric for Paper 4
 
 IMPORTANT: a single section (especially Paper 1 model essays — situational + 3 continuous prompts can run 4-8 pages) usually spans MULTIPLE CONSECUTIVE pages. If page N is a model essay and page N+1 is the continuation of the same essay (no new header), TAG BOTH as paper1Answer. Same applies to listening transcripts and oral rubrics — include continuation pages too.
@@ -758,7 +758,13 @@ export async function autoCropPictures(
     const pageJpeg = pageBuffers.get(task.pageNum);
     if (!pageJpeg) { errors.push(`${task.kind}: no page render`); continue; }
     try {
-      const bounds = await detectPictureBounds(pageJpeg, task.hint);
+      // Situational stimulus is typically a full-page poster/flyer
+      // with diagrams, callouts, and context the auto-detect crops
+      // off too aggressively. Default to whole-page for that kind;
+      // admin can manual-crop later if they want a tighter region.
+      const bounds = task.kind === "situational"
+        ? { left: 0, top: 0, width: 1, height: 1 }
+        : await detectPictureBounds(pageJpeg, task.hint);
       const cropped = await cropPageImage(pageJpeg, bounds, 90, task.rotate);
       const path = await import("path");
       const out = path.join(outDir, `${yearLabel}_${task.kind}.jpg`);
