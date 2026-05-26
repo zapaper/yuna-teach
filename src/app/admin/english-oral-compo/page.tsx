@@ -246,6 +246,7 @@ function EnglishOralCompoAdmin() {
                   }}
                   onDone={() => loadDetail(detail.id)}
                 />
+                <PictureReextractPanel detail={detail} onDone={() => loadDetail(detail.id)} />
 
                 <div className="space-y-4 mb-6">
                   {/* Part 1 — Situational Writing (+ auto-cropped picture) */}
@@ -550,6 +551,98 @@ function ReextractPanel({
           </div>
         ))}
         {msg && <p className={`text-xs ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
+      </div>
+    </details>
+  );
+}
+
+// Per-picture re-extract panel. Each row: picture kind, current
+// page-number override, "Re-crop (auto)" + "Crop full page" buttons.
+// Calls POST /api/admin/english-oral-compo/[id]/recrop-picture which
+// updates the structured field's picturePageNum (if changed) and
+// regenerates the cropped JPG on disk.
+function PictureReextractPanel({ detail, onDone }: { detail: RowDetail; onDone: () => void }) {
+  const targets: Array<{ kind: string; label: string; defaultPage: number | null }> = [];
+  if (detail.situationalWriting) {
+    targets.push({ kind: "situational", label: "Situational stimulus picture", defaultPage: detail.situationalWriting.picturePageNum });
+  }
+  for (const cp of detail.continuousPrompts ?? []) {
+    targets.push({ kind: `continuous_${cp.optionNum}`, label: `Continuous option ${cp.optionNum}`, defaultPage: cp.picturePageNum });
+  }
+  for (const day of detail.oralDays ?? []) {
+    targets.push({ kind: `oral_day${day.day}_stimulus`, label: `Oral Day ${day.day} stimulus (rotated 90°)`, defaultPage: day.stimulusPicturePageNum });
+  }
+
+  const [inputs, setInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries(targets.map(t => [t.kind, t.defaultPage ? String(t.defaultPage) : ""])),
+  );
+  const [working, setWorking] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ kind: string; type: "ok" | "err"; text: string } | null>(null);
+
+  async function run(kind: string, useFullPage: boolean) {
+    const raw = inputs[kind].trim();
+    const pageNum = raw ? parseInt(raw, 10) : undefined;
+    if (raw && (!Number.isFinite(pageNum) || (pageNum as number) <= 0)) {
+      setMsg({ kind, type: "err", text: "Page number must be a positive integer" }); return;
+    }
+    setWorking(kind); setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/english-oral-compo/${detail.id}/recrop-picture`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, pageNum, useFullPage }),
+      });
+      const data = await res.json() as { error?: string; details?: string; pageNum?: number };
+      if (!res.ok) {
+        setMsg({ kind, type: "err", text: data.details || data.error || "Re-crop failed" });
+      } else {
+        setMsg({ kind, type: "ok", text: `Cropped from p.${data.pageNum}${useFullPage ? " (full page)" : ""}.` });
+        onDone();
+      }
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  if (targets.length === 0) return null;
+  return (
+    <details className="mb-4 border border-purple-300 rounded-lg bg-purple-50">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-purple-800">
+        🖼️ Re-extract / re-crop individual pictures
+      </summary>
+      <div className="p-3 space-y-2">
+        <p className="text-xs text-slate-600 mb-2">
+          Leave the page number unchanged to just re-crop. Change the page number to point at the right page first, then re-crop.
+          &ldquo;Auto&rdquo; uses Gemini to find the picture&apos;s bounding box; &ldquo;Full page&rdquo; uses the whole page (use this when auto cuts off part of the image).
+        </p>
+        {targets.map(t => (
+          <div key={t.kind} className="border border-purple-200 bg-white rounded p-2">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-semibold text-slate-700 flex-1">{t.label}</span>
+              <span className="text-[10px] text-slate-400">current p.{t.defaultPage ?? "?"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] text-slate-500">Page:</label>
+              <input
+                value={inputs[t.kind] ?? ""}
+                onChange={e => setInputs(prev => ({ ...prev, [t.kind]: e.target.value }))}
+                placeholder={t.defaultPage ? String(t.defaultPage) : "e.g. 3"}
+                className="w-16 border border-slate-300 rounded px-2 py-1 text-xs font-mono"
+                disabled={!!working}
+              />
+              <button onClick={() => run(t.kind, false)} disabled={!!working}
+                className="bg-purple-700 text-white text-xs px-2 py-1 rounded hover:bg-purple-800 disabled:opacity-50">
+                {working === t.kind ? "Cropping…" : "Re-crop (auto)"}
+              </button>
+              <button onClick={() => run(t.kind, true)} disabled={!!working}
+                className="bg-purple-500 text-white text-xs px-2 py-1 rounded hover:bg-purple-600 disabled:opacity-50">
+                Full page
+              </button>
+            </div>
+            {msg?.kind === t.kind && (
+              <p className={`text-[11px] mt-1 ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
+            )}
+          </div>
+        ))}
       </div>
     </details>
   );

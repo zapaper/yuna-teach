@@ -362,29 +362,36 @@ async function extractListeningStructure(
   if (paper3Pages.length === 0 || !paper3Text) return { listeningMcqs: [], listeningTexts: [] };
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     {
-      text: `Below is OCR text and page images for PSLE English Paper 3 (Listening Comprehension). Extract the FULL structure.
+      text: `Below is OCR text and page images for PSLE English Paper 3 (Listening Comprehension). Extract whatever structure you can find — extract aggressively, prefer partial output to nothing.
 
-Paper 3 has two parts:
-1. **20 MCQ questions** — each with 3 answer options (mostly images, sometimes text). Each question is tagged to one of 7 listening texts (look for "Text 1", "Text 2", … labels above question groups).
-2. **7 text passages** — Text 1 through Text 7 — each tagged to 1-4 question numbers (e.g. "Text 3 (for Questions 8 and 9)"). These are the dialogues/monologues read aloud during the exam.
+Paper 3 typically has up to **20 MCQ questions** in the questions section (usually 3 options each, often images). The texts (dialogues / monologues / announcements read aloud during the exam) may appear:
+- In a SEPARATE section labelled "Text 1" / "Text 2" / "Passage 1" / "Section 1" / "Transcript 1" or similar
+- INTERLEAVED with the questions (text → its questions → next text)
+- ONLY in the answer key / transcripts at the back (in which case the questions section won't have texts at all)
+
+**Be liberal in what you extract:**
+- If you can find ALL the questions, list them (textNum can be null if you can't determine which text they belong to).
+- If you can find some texts but not all 7, list what you have.
+- If you find ONLY questions (texts published elsewhere), return all MCQs and an empty listeningTexts: [].
+- If you find ONLY texts (questions on a separate page already processed elsewhere), return empty listeningMcqs: [].
 
 Return strict JSON:
 {
   "listeningMcqs": [
-    { "num": 1, "text": "question stem", "options": [{ "label": "(1)", "text": "..." }, ...], "isImageOptions": true, "textNum": 1 },
+    { "num": 1, "text": "question stem (or empty string if image-only)", "options": [{ "label": "(1)", "text": "..." }, ...], "isImageOptions": true, "textNum": 1 },
     ...
   ],
   "listeningTexts": [
-    { "textNum": 1, "content": "full verbatim text of the dialogue / monologue", "questionNumbers": [1, 2] },
-    { "textNum": 2, "content": "...", "questionNumbers": [3] },
+    { "textNum": 1, "content": "verbatim text of the dialogue / monologue", "questionNumbers": [1, 2] },
     ...
   ]
 }
 
 Rules:
-- For image options, set isImageOptions: true and put a 1-line description in each option's "text" prefixed with "[Picture] ".
-- textNum on each MCQ MUST match the textNum of one of the listeningTexts.
-- Don't translate or summarise — keep verbatim.
+- For image-only options, set isImageOptions: true and put a 1-line description in each option's "text" prefixed with "[Picture] " (e.g. "[Picture] A boy holding a kite").
+- Set textNum: null when a question's text grouping is unknown — don't invent a tag.
+- Don't translate or summarise — copy verbatim.
+- Do NOT use markdown code fences.
 
 OCR text:
 ${paper3Text}
