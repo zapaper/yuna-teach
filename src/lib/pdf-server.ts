@@ -84,36 +84,57 @@ export async function renderPdfToJpegs(
 
   const factory = new NodeCanvasFactory();
   const out: Buffer[] = [];
+  // Render a 1x1 white placeholder for any page pdfjs refuses (e.g.
+  // "Invalid page request" on a corrupt page object). Without this
+  // a single bad page aborts the whole upload — even though OCR /
+  // structuring could have succeeded on the readable pages around it.
+  const placeholder = (() => {
+    const cc = factory.create(1, 1);
+    cc.context.fillStyle = "white";
+    cc.context.fillRect(0, 0, 1, 1);
+    const buf = cc.canvas.toBuffer("image/jpeg", quality);
+    factory.destroy(cc);
+    return buf;
+  })();
+
   try {
     for (let i = 1; i <= doc.numPages; i++) {
-      const page = await doc.getPage(i);
-      const baseViewport = page.getViewport({ scale: 1 });
-      const scale = Math.min(maxDim / baseViewport.width, maxDim / baseViewport.height, 2);
-      const viewport = page.getViewport({ scale });
-      const w = Math.ceil(viewport.width);
-      const h = Math.ceil(viewport.height);
-      const cc = factory.create(w, h);
-      await page.render({
-        canvas: cc.canvas as unknown as HTMLCanvasElement,
-        canvasContext: cc.context as unknown as CanvasRenderingContext2D,
-        viewport,
-        canvasFactory: factory as unknown as object,
-        background: "white",
-        // ENABLE annotations (annotationMode = 1). Teachers / parents
-        // often mark up exam PDFs with digital annotations (highlights,
-        // free-text comments, ink drawings) using Adobe, GoodNotes,
-        // iPad markup, etc. These are stored as PDF annotation objects
-        // — distinct from the page content stream — and previously
-        // setting annotationMode: 0 meant we silently rendered the
-        // unmarked original. The diagnostic flow specifically needs
-        // those marks to read teacher's totals + per-question scores.
-        // (Trade-off: re-introduces the 'AnnotationBorderStyle ignoring
-        // width' warning on PDFs with fractional border widths. Cosmetic.)
-        annotationMode: 1,
-      } as Parameters<typeof page.render>[0]).promise;
-      out.push(cc.canvas.toBuffer("image/jpeg", quality));
-      factory.destroy(cc);
-      page.cleanup();
+      try {
+        const page = await doc.getPage(i);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = Math.min(maxDim / baseViewport.width, maxDim / baseViewport.height, 2);
+        const viewport = page.getViewport({ scale });
+        const w = Math.ceil(viewport.width);
+        const h = Math.ceil(viewport.height);
+        const cc = factory.create(w, h);
+        await page.render({
+          canvas: cc.canvas as unknown as HTMLCanvasElement,
+          canvasContext: cc.context as unknown as CanvasRenderingContext2D,
+          viewport,
+          canvasFactory: factory as unknown as object,
+          background: "white",
+          // ENABLE annotations (annotationMode = 1). Teachers / parents
+          // often mark up exam PDFs with digital annotations (highlights,
+          // free-text comments, ink drawings) using Adobe, GoodNotes,
+          // iPad markup, etc. These are stored as PDF annotation objects
+          // — distinct from the page content stream — and previously
+          // setting annotationMode: 0 meant we silently rendered the
+          // unmarked original. The diagnostic flow specifically needs
+          // those marks to read teacher's totals + per-question scores.
+          // (Trade-off: re-introduces the 'AnnotationBorderStyle ignoring
+          // width' warning on PDFs with fractional border widths. Cosmetic.)
+          annotationMode: 1,
+        } as Parameters<typeof page.render>[0]).promise;
+        out.push(cc.canvas.toBuffer("image/jpeg", quality));
+        factory.destroy(cc);
+        page.cleanup();
+      } catch (pageErr) {
+        // Don't let one corrupt page destroy the whole render. Push a
+        // placeholder so page-index alignment is preserved (downstream
+        // code references pages[N-1]).
+        console.warn(`[pdf-server] page ${i} failed to render — using placeholder:`, (pageErr as Error).message ?? pageErr);
+        out.push(placeholder);
+      }
     }
   } finally {
     await doc.destroy();

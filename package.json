@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/build-master-class.mjs && next dev",
     "build": "node scripts/build-master-class.mjs && prisma generate && next build",
-    "start": "prisma migrate deploy && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && HOSTNAME=0.0.0.0 node .next/standalone/server.js",
+    "start": "prisma migrate deploy && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && mkdir -p .next/standalone/node_modules/pdfjs-dist && cp -r node_modules/pdfjs-dist/standard_fonts .next/standalone/node_modules/pdfjs-dist/standard_fonts && cp -r node_modules/pdfjs-dist/cmaps .next/standalone/node_modules/pdfjs-dist/cmaps && HOSTNAME=0.0.0.0 node .next/standalone/server.js",
     "lint": "eslint",
     "postinstall": "node scripts/copy-opencv.mjs && node scripts/build-master-class.mjs"
   },
@@ -56,7 +56,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-katex": "^3.0.4",
-    "docx": "^9.6.1",
+    "docx": "^9.7.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prisma": "^5.22.0",
