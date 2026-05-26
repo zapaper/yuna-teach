@@ -4907,11 +4907,27 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
   // Priority: question-level marks from extraction > section-level marks from structure
   const marksPerQuestion: Record<string, number | null> = {};
 
+  // PSLE Science MCQ booklets are ALWAYS 2 marks per question. Gemini
+  // sometimes leaves marksPerQuestion null when the bracket marks aren't
+  // visible on every question. Apply a Science-MCQ default before we
+  // distribute section marks below.
+  const subjectStr = (structure.header?.subject ?? "").toLowerCase();
+  const isScience = subjectStr.includes("science");
+  function isMcqSection(s: { name: string; type: string }) {
+    const t = (s.type ?? "").toLowerCase();
+    const n = (s.name ?? "").toLowerCase();
+    return t === "mcq" || t.includes("multiple choice") || n.includes("mcq") || n.includes("booklet a");
+  }
+
   // 1. Start with section-level defaults
   for (const paper of structure.papers) {
     let qOffset = 0;
     for (const section of paper.sections) {
-      const mpq = section.marksPerQuestion ?? null;
+      let mpq = section.marksPerQuestion ?? null;
+      if (mpq == null && isScience && isMcqSection(section)) {
+        mpq = 2;
+        console.log(`[Exam Pipeline] Science MCQ default applied: section "${section.name}" (${section.questionCount} Qs) → 2 marks each`);
+      }
       for (let i = 0; i < section.questionCount; i++) {
         const qNum = paper.questionPrefix
           ? `${paper.questionPrefix}${qOffset + i + 1}`
