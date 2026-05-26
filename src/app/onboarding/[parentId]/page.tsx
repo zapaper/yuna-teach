@@ -558,6 +558,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             >
               {pickerLoading ? "Assigning quiz…" : "Assign Quiz"}
             </button>
+            <p className="text-xs text-[#43474f] mt-2.5 text-center leading-relaxed px-2">
+              💡 If your child is asleep, you can attempt this short quiz yourself
+              (from your parent dashboard after assigning) to see how the
+              questions, drawing canvas and AI marking work.
+            </p>
             <button
               type="button"
               onClick={goToHomeFromPicker}
