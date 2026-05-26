@@ -65,6 +65,11 @@ export async function cropPageImage(
 // (top-left + size) that can be fed straight to cropPageImage.
 // Adds 3% padding around the detected box so borders aren't cut
 // off. Fall back to the whole page on parse failure.
+// Centred 90% × 90% box — used when Gemini returns a degenerate
+// or missing bounding box. Better than a 1×1 full-page crop because
+// it strips PDF margins / headers / footers without losing the picture.
+const FALLBACK_BOUNDS = { left: 0.05, top: 0.05, width: 0.9, height: 0.9 };
+
 export async function detectPictureBounds(
   pageJpeg: Buffer,
   hint: string = "the main illustration / photograph",
@@ -87,10 +92,16 @@ If no obvious picture is present, return the full page: { "left": 0, "top": 0, "
   }));
   try {
     const parsed = JSON.parse(res.text ?? "") as { left?: number; top?: number; width?: number; height?: number };
-    let left = Math.max(0, parsed.left ?? 0);
-    let top = Math.max(0, parsed.top ?? 0);
-    let width = Math.max(0, parsed.width ?? 1);
-    let height = Math.max(0, parsed.height ?? 1);
+    let left = Math.max(0, Math.min(1, parsed.left ?? 0));
+    let top = Math.max(0, Math.min(1, parsed.top ?? 0));
+    let width = Math.max(0, Math.min(1, parsed.width ?? 1));
+    let height = Math.max(0, Math.min(1, parsed.height ?? 1));
+    // Reject degenerate / near-degenerate boxes — Gemini sometimes
+    // returns {0,0,0,0} or width<0.05 which fails sharp.extract.
+    if (width < 0.05 || height < 0.05) {
+      console.warn(`[detect-picture-bounds] degenerate box {l=${left}, t=${top}, w=${width}, h=${height}} — using 90% centred fallback`);
+      return FALLBACK_BOUNDS;
+    }
     // Pad 3% around the detected box.
     const padX = 0.03; const padY = 0.03;
     left = Math.max(0, left - padX);
@@ -99,7 +110,7 @@ If no obvious picture is present, return the full page: { "left": 0, "top": 0, "
     height = Math.min(1 - top, height + 2 * padY);
     return { left, top, width, height };
   } catch {
-    return { left: 0, top: 0, width: 1, height: 1 };
+    return FALLBACK_BOUNDS;
   }
 }
 
@@ -660,15 +671,25 @@ export async function autoCropPictures(
     }
   }
 
-  // Render once per unique page to amortise the pdfjs cost.
+  // Render the WHOLE PDF once (avoids pdfjs.getDocument() being
+  // called repeatedly — that intermittently throws "Invalid page
+  // request" on retries even when the first render succeeded).
+  // Then slice out the pages we need.
   const uniquePages = [...new Set(tasks.map(t => t.pageNum))];
   const pageBuffers = new Map<number, Buffer>();
+  let allRendered: Buffer[];
+  try {
+    allRendered = await renderPdfToJpegs(pdfBuffer, 2400, 90);
+  } catch (e) {
+    console.warn(`[auto-crop] PDF render failed entirely — skipping all picture crops:`, e);
+    return { savedCount: 0, errors: [`PDF render failed: ${(e as Error).message}`] };
+  }
   for (const p of uniquePages) {
-    try {
-      pageBuffers.set(p, await renderSinglePage(pdfBuffer, p, 2400, 90));
-    } catch (e) {
-      console.warn(`[auto-crop] failed to render page ${p}:`, e);
+    if (p < 1 || p > allRendered.length) {
+      console.warn(`[auto-crop] page ${p} out of range (PDF has ${allRendered.length} pages) — skipping`);
+      continue;
     }
+    pageBuffers.set(p, allRendered[p - 1]);
   }
 
   let savedCount = 0;
