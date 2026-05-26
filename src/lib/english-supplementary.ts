@@ -45,6 +45,7 @@ export async function cropPageImage(
   pageJpeg: Buffer,
   fractions: { left: number; top: number; width: number; height: number },
   outQuality = 90,
+  rotateDegrees = 0,
 ): Promise<Buffer> {
   const meta = await sharp(pageJpeg).metadata();
   const W = meta.width ?? 0; const H = meta.height ?? 0;
@@ -54,10 +55,52 @@ export async function cropPageImage(
   const width = Math.min(W - left, Math.round(fractions.width * W));
   const height = Math.min(H - top, Math.round(fractions.height * H));
   if (width <= 0 || height <= 0) throw new Error("crop dimensions are zero");
-  return sharp(pageJpeg)
-    .extract({ left, top, width, height })
-    .jpeg({ quality: outQuality, chromaSubsampling: "4:4:4" })
-    .toBuffer();
+  let pipe = sharp(pageJpeg).extract({ left, top, width, height });
+  if (rotateDegrees !== 0) pipe = pipe.rotate(rotateDegrees);
+  return pipe.jpeg({ quality: outQuality, chromaSubsampling: "4:4:4" }).toBuffer();
+}
+
+// Ask Gemini to identify the bounding box of the main picture /
+// illustration / photograph on a page. Returns fractions 0-1
+// (top-left + size) that can be fed straight to cropPageImage.
+// Adds 3% padding around the detected box so borders aren't cut
+// off. Fall back to the whole page on parse failure.
+export async function detectPictureBounds(
+  pageJpeg: Buffer,
+  hint: string = "the main illustration / photograph",
+): Promise<{ left: number; top: number; width: number; height: number }> {
+  const res = await withGeminiRetry("detect-picture-bounds", () => ai().models.generateContent({
+    model: SECTION_MODEL,
+    contents: [{
+      role: "user",
+      parts: [
+        { text: `Look at this page image and find ${hint}. Return its bounding box as fractions of the page (0 = top/left edge, 1 = bottom/right edge).
+
+Strict JSON only, no markdown:
+{ "left": <0-1>, "top": <0-1>, "width": <0-1>, "height": <0-1> }
+
+If no obvious picture is present, return the full page: { "left": 0, "top": 0, "width": 1, "height": 1 }.` },
+        { inlineData: { mimeType: "image/jpeg", data: pageJpeg.toString("base64") } },
+      ],
+    }],
+    config: { temperature: 0, responseMimeType: "application/json" },
+  }));
+  try {
+    const parsed = JSON.parse(res.text ?? "") as { left?: number; top?: number; width?: number; height?: number };
+    let left = Math.max(0, parsed.left ?? 0);
+    let top = Math.max(0, parsed.top ?? 0);
+    let width = Math.max(0, parsed.width ?? 1);
+    let height = Math.max(0, parsed.height ?? 1);
+    // Pad 3% around the detected box.
+    const padX = 0.03; const padY = 0.03;
+    left = Math.max(0, left - padX);
+    top = Math.max(0, top - padY);
+    width = Math.min(1 - left, width + 2 * padX);
+    height = Math.min(1 - top, height + 2 * padY);
+    return { left, top, width, height };
+  } catch {
+    return { left: 0, top: 0, width: 1, height: 1 };
+  }
 }
 
 // ── Types ──
@@ -71,16 +114,17 @@ export type SectionPages = {
 };
 
 export type SituationalWriting = {
-  scenario: string;            // e.g. "You are writing an email to your school principal..."
-  audience: string;            // recipient (Principal / teacher / friend / etc.)
-  purpose: string;             // e.g. "Suggest improvements to the canteen menu"
-  requirements: string[];      // bullet points the student MUST address (3-5 typically)
-  wordCount: string;           // e.g. "100-150 words"
+  picturePageNum: number | null;   // PSLE situational tasks usually have a stimulus picture above the task
+  scenario: string;
+  audience: string;
+  purpose: string;
+  requirements: string[];
+  wordCount: string;
 };
 export type ContinuousPrompt = {
   optionNum: number;            // 1..3
   picturePageNum: number | null;
-  brief: string;                // 1-line description of what the picture shows
+  brief: string;
 };
 export type ListeningMcqOption = { label: string; text: string };
 export type ListeningMcq = {
@@ -88,22 +132,37 @@ export type ListeningMcq = {
   text: string;
   options: ListeningMcqOption[];
   isImageOptions: boolean;
+  textNum: number | null;       // which Text 1-7 this question is tagged to
 };
-export type OralStimulusPicture = {
-  picturePageNum: number | null;
-  description: string;
-  conversationPrompts: string[];   // e.g. ["What do you think the boy is doing?", ...]
+export type ListeningText = {
+  textNum: number;              // 1..7
+  content: string;              // the passage / dialogue / monologue read aloud
+  questionNumbers: number[];    // which Q numbers reference this text
+};
+export type OralDay = {
+  day: 1 | 2;
+  readingPassage: string;
+  stimulusPicturePageNum: number | null;
+  stimulusDescription: string;
+  conversationPrompts: string[];
+};
+export type OralModelAnswer = {
+  day: 1 | 2;
+  q: string;                     // "a" | "b" | "c"
+  answer: string;
 };
 export type ListeningAnswer = { num: number; answer: string };
 export type StructuredExtraction = {
   situationalWriting: SituationalWriting | null;
+  continuousTheme: string | null;
   continuousPrompts: ContinuousPrompt[];
   listeningMcqs: ListeningMcq[];
-  oralReadingPassage: string | null;
-  oralStimulusPicture: OralStimulusPicture | null;
+  listeningTexts: ListeningText[];
+  oralDays: OralDay[];
   situationalModel: string | null;
   continuousModel: string | null;
   listeningAnswers: ListeningAnswer[];
+  oralModelAnswers: OralModelAnswer[];
 };
 export type SupplementaryExtraction = SectionPages & {
   pageCount: number;
@@ -208,44 +267,47 @@ async function extractWritingStructure(
   pages: Buffer[],
   paper1Pages: number[],
   paper1Text: string,
-): Promise<{ situationalWriting: SituationalWriting | null; continuousPrompts: ContinuousPrompt[] }> {
+): Promise<{ situationalWriting: SituationalWriting | null; continuousTheme: string | null; continuousPrompts: ContinuousPrompt[] }> {
   if (paper1Pages.length === 0 || !paper1Text) {
-    return { situationalWriting: null, continuousPrompts: [] };
+    return { situationalWriting: null, continuousTheme: null, continuousPrompts: [] };
   }
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     {
-      text: `Below is OCR text and page images for PSLE English Paper 1 (Writing). Extract the structured prompts.
+      text: `Below is OCR text and page images for PSLE English Paper 1 (Writing). Extract the structured prompts. The PDF page numbers you'll reference are: ${paper1Pages.join(", ")}.
 
-Paper 1 has two sections:
+**Section A — Situational Writing (Part 1)**
+Typical layout: a STIMULUS PICTURE (poster / flyer / photograph) sits above the task. Below it: scenario paragraph, audience, purpose, and bullet points the student must address. Word count usually 100 words.
+- "picturePageNum" — PDF page containing the stimulus picture (may be the same page as the task)
+- "scenario" — full text of the scenario paragraph
+- "audience" — recipient (Principal / teacher / friend / class / etc.)
+- "purpose" — what the student must achieve
+- "requirements" — bullets the student MUST address (usually 3-5)
+- "wordCount" — e.g. "About 100 words"
 
-**Section A — Situational Writing** (1 prompt, ~100-150 words):
-- A scenario (e.g. "You are the school's Eco Captain…")
-- An audience (recipient — principal, teacher, friend, etc.)
-- A purpose (what the student must persuade/inform/request)
-- A list of "must address" requirements / bullet points (typically 3-5)
-- Word count requirement
-
-**Section B — Continuous Writing** (3 picture prompts to choose from, ~150 words):
-- 3 numbered options, each with one picture + a 1-line theme/brief
-- Student picks ONE picture and writes a story / personal recount
+**Section B — Continuous Writing (Part 2)**
+Typical layout: a BOLD THEME heading (e.g. **A Surprise**, **Kindness**, **A Lost Item**) followed by 3 numbered picture options, then a brief task instruction.
+- "continuousTheme" — the bold theme heading (~1-4 words)
+- "continuousPrompts" — exactly 3 entries (optionNum 1, 2, 3) each with the PDF page where its picture lives + 1-line description of what the picture shows
 
 Return strict JSON:
 {
   "situationalWriting": {
-    "scenario": "Full text of the scenario paragraph",
-    "audience": "e.g. School Principal",
-    "purpose": "What the student must achieve in the writing",
-    "requirements": ["bullet 1", "bullet 2", "bullet 3"],
-    "wordCount": "e.g. 100-150 words"
+    "picturePageNum": <int> | null,
+    "scenario": "...",
+    "audience": "...",
+    "purpose": "...",
+    "requirements": ["...", "..."],
+    "wordCount": "..."
   } | null,
+  "continuousTheme": "Bold theme heading" | null,
   "continuousPrompts": [
-    { "optionNum": 1, "picturePageNum": <int>, "brief": "1-line description of what the picture shows" },
+    { "optionNum": 1, "picturePageNum": <int>, "brief": "..." },
     { "optionNum": 2, "picturePageNum": <int>, "brief": "..." },
     { "optionNum": 3, "picturePageNum": <int>, "brief": "..." }
   ]
 }
 
-If a field isn't found, return null (for situationalWriting) or [] (for continuousPrompts).
+If a field isn't found return null / [].
 
 OCR text:
 ${paper1Text}
@@ -260,10 +322,11 @@ Page images (in PDF page order):`,
       contents: [{ role: "user", parts }],
       config: { temperature: 0, responseMimeType: "application/json" },
     }));
-    const parsed = JSON.parse(res.text ?? "") as { situationalWriting?: SituationalWriting; continuousPrompts?: ContinuousPrompt[] };
+    const parsed = JSON.parse(res.text ?? "") as { situationalWriting?: SituationalWriting; continuousTheme?: string; continuousPrompts?: ContinuousPrompt[] };
     return {
       situationalWriting: parsed.situationalWriting && typeof parsed.situationalWriting === "object"
         ? {
+            picturePageNum: typeof parsed.situationalWriting.picturePageNum === "number" ? parsed.situationalWriting.picturePageNum : null,
             scenario: parsed.situationalWriting.scenario ?? "",
             audience: parsed.situationalWriting.audience ?? "",
             purpose: parsed.situationalWriting.purpose ?? "",
@@ -271,11 +334,12 @@ Page images (in PDF page order):`,
             wordCount: parsed.situationalWriting.wordCount ?? "",
           }
         : null,
+      continuousTheme: typeof parsed.continuousTheme === "string" ? parsed.continuousTheme.trim() : null,
       continuousPrompts: Array.isArray(parsed.continuousPrompts) ? parsed.continuousPrompts : [],
     };
   } catch (err) {
     console.warn(`[english-supplementary] writing structuring failed:`, err);
-    return { situationalWriting: null, continuousPrompts: [] };
+    return { situationalWriting: null, continuousTheme: null, continuousPrompts: [] };
   }
 }
 
@@ -283,21 +347,33 @@ async function extractListeningStructure(
   pages: Buffer[],
   paper3Pages: number[],
   paper3Text: string,
-): Promise<{ listeningMcqs: ListeningMcq[] }> {
-  if (paper3Pages.length === 0 || !paper3Text) return { listeningMcqs: [] };
+): Promise<{ listeningMcqs: ListeningMcq[]; listeningTexts: ListeningText[] }> {
+  if (paper3Pages.length === 0 || !paper3Text) return { listeningMcqs: [], listeningTexts: [] };
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     {
-      text: `Below is OCR text and page images for PSLE English Paper 3 (Listening Comprehension). Extract the MCQ structure.
+      text: `Below is OCR text and page images for PSLE English Paper 3 (Listening Comprehension). Extract the FULL structure.
 
-PSLE English Paper 3 is ~20 listening MCQs. Each question has 3-4 answer options. Options are usually short phrases; sometimes they're images (in which case describe each image briefly).
+Paper 3 has two parts:
+1. **20 MCQ questions** — each with 3 answer options (mostly images, sometimes text). Each question is tagged to one of 7 listening texts (look for "Text 1", "Text 2", … labels above question groups).
+2. **7 text passages** — Text 1 through Text 7 — each tagged to 1-4 question numbers (e.g. "Text 3 (for Questions 8 and 9)"). These are the dialogues/monologues read aloud during the exam.
 
 Return strict JSON:
 {
   "listeningMcqs": [
-    { "num": 1, "text": "the question stem", "options": [{ "label": "(1)", "text": "..." }, ...], "isImageOptions": false },
+    { "num": 1, "text": "question stem", "options": [{ "label": "(1)", "text": "..." }, ...], "isImageOptions": true, "textNum": 1 },
+    ...
+  ],
+  "listeningTexts": [
+    { "textNum": 1, "content": "full verbatim text of the dialogue / monologue", "questionNumbers": [1, 2] },
+    { "textNum": 2, "content": "...", "questionNumbers": [3] },
     ...
   ]
 }
+
+Rules:
+- For image options, set isImageOptions: true and put a 1-line description in each option's "text" prefixed with "[Picture] ".
+- textNum on each MCQ MUST match the textNum of one of the listeningTexts.
+- Don't translate or summarise — keep verbatim.
 
 OCR text:
 ${paper3Text}
@@ -312,11 +388,14 @@ Page images:`,
       contents: [{ role: "user", parts }],
       config: { temperature: 0, responseMimeType: "application/json" },
     }));
-    const parsed = JSON.parse(res.text ?? "") as { listeningMcqs?: ListeningMcq[] };
-    return { listeningMcqs: Array.isArray(parsed.listeningMcqs) ? parsed.listeningMcqs : [] };
+    const parsed = JSON.parse(res.text ?? "") as { listeningMcqs?: ListeningMcq[]; listeningTexts?: ListeningText[] };
+    return {
+      listeningMcqs: Array.isArray(parsed.listeningMcqs) ? parsed.listeningMcqs : [],
+      listeningTexts: Array.isArray(parsed.listeningTexts) ? parsed.listeningTexts : [],
+    };
   } catch (err) {
     console.warn(`[english-supplementary] listening structuring failed:`, err);
-    return { listeningMcqs: [] };
+    return { listeningMcqs: [], listeningTexts: [] };
   }
 }
 
@@ -324,25 +403,39 @@ async function extractOralStructure(
   pages: Buffer[],
   paper4Pages: number[],
   paper4Text: string,
-): Promise<{ oralReadingPassage: string | null; oralStimulusPicture: OralStimulusPicture | null }> {
-  if (paper4Pages.length === 0 || !paper4Text) return { oralReadingPassage: null, oralStimulusPicture: null };
+): Promise<{ oralDays: OralDay[] }> {
+  if (paper4Pages.length === 0 || !paper4Text) return { oralDays: [] };
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     {
-      text: `Below is OCR text and page images for PSLE English Paper 4 (Oral Communication). Extract the structured components.
+      text: `Below is OCR text and page images for PSLE English Paper 4 (Oral Communication). Extract the per-day structure.
 
-Paper 4 has two parts:
-- **Reading Aloud**: a short passage the student reads aloud (~150 words).
-- **Stimulus-based Conversation**: one picture/photo on a topic, followed by 2-3 conversation prompts/questions from the examiner.
+PSLE Oral splits into TWO test days. Each day has:
+1. **Reading Aloud** — a short passage (~150 words) the student reads aloud.
+2. **Stimulus-based Conversation** — a single picture / photograph on a topic, plus 3 conversation prompts (typically labelled a, b, c) the examiner asks.
+
+Look for "Day 1" / "Day 2" or "Set 1" / "Set 2" headings to split. The stimulus picture is often printed landscape (it may appear rotated 90° on the PDF page — that's fine, just identify the page number).
 
 Return strict JSON:
 {
-  "oralReadingPassage": "Full verbatim text of the reading passage" | null,
-  "oralStimulusPicture": {
-    "picturePageNum": <int>,
-    "description": "1-2 sentence description of what the picture shows",
-    "conversationPrompts": ["Prompt 1", "Prompt 2", "Prompt 3"]
-  } | null
+  "oralDays": [
+    {
+      "day": 1,
+      "readingPassage": "Full verbatim text of Day 1 reading-aloud passage",
+      "stimulusPicturePageNum": <int>,
+      "stimulusDescription": "1-2 sentence description of the stimulus picture",
+      "conversationPrompts": ["Prompt (a) text", "Prompt (b) text", "Prompt (c) text"]
+    },
+    {
+      "day": 2,
+      "readingPassage": "...",
+      "stimulusPicturePageNum": <int>,
+      "stimulusDescription": "...",
+      "conversationPrompts": ["...", "...", "..."]
+    }
+  ]
 }
+
+If only one day is present (rare) return just one entry. If no Paper 4 content, return { "oralDays": [] }.
 
 OCR text:
 ${paper4Text}
@@ -357,18 +450,18 @@ Page images:`,
       contents: [{ role: "user", parts }],
       config: { temperature: 0, responseMimeType: "application/json" },
     }));
-    const parsed = JSON.parse(res.text ?? "") as { oralReadingPassage?: string; oralStimulusPicture?: OralStimulusPicture };
-    return {
-      oralReadingPassage: typeof parsed.oralReadingPassage === "string" ? parsed.oralReadingPassage.trim() : null,
-      oralStimulusPicture: parsed.oralStimulusPicture && typeof parsed.oralStimulusPicture === "object" ? {
-        picturePageNum: typeof parsed.oralStimulusPicture.picturePageNum === "number" ? parsed.oralStimulusPicture.picturePageNum : null,
-        description: parsed.oralStimulusPicture.description ?? "",
-        conversationPrompts: Array.isArray(parsed.oralStimulusPicture.conversationPrompts) ? parsed.oralStimulusPicture.conversationPrompts : [],
-      } : null,
-    };
+    const parsed = JSON.parse(res.text ?? "") as { oralDays?: OralDay[] };
+    const oralDays = (Array.isArray(parsed.oralDays) ? parsed.oralDays : []).map(d => ({
+      day: (d.day === 2 ? 2 : 1) as 1 | 2,
+      readingPassage: d.readingPassage ?? "",
+      stimulusPicturePageNum: typeof d.stimulusPicturePageNum === "number" ? d.stimulusPicturePageNum : null,
+      stimulusDescription: d.stimulusDescription ?? "",
+      conversationPrompts: Array.isArray(d.conversationPrompts) ? d.conversationPrompts : [],
+    }));
+    return { oralDays };
   } catch (err) {
     console.warn(`[english-supplementary] oral structuring failed:`, err);
-    return { oralReadingPassage: null, oralStimulusPicture: null };
+    return { oralDays: [] };
   }
 }
 
@@ -399,6 +492,41 @@ ${paper1AnswerText}` }] }],
   } catch (err) {
     console.warn(`[english-supplementary] writing answers structuring failed:`, err);
     return { situationalModel: null, continuousModel: null };
+  }
+}
+
+async function extractOralAnswers(paper4AnswerText: string): Promise<OralModelAnswer[]> {
+  if (!paper4AnswerText) return [];
+  try {
+    const res = await withGeminiRetry("structure-oral-answers", () => ai().models.generateContent({
+      model: SECTION_MODEL,
+      contents: [{ role: "user", parts: [{ text: `Below is OCR text from the model-answer section for PSLE English Paper 4 (Oral, Stimulus-based Conversation). Extract one model answer per question per day.
+
+Typical layout: Day 1 (a) / Day 1 (b) / Day 1 (c) / Day 2 (a) / Day 2 (b) / Day 2 (c), each with a paragraph of sample student response.
+
+Return strict JSON:
+{
+  "oralModelAnswers": [
+    { "day": 1, "q": "a", "answer": "Full text of the model answer for Day 1 question (a)" },
+    { "day": 1, "q": "b", "answer": "..." },
+    { "day": 1, "q": "c", "answer": "..." },
+    { "day": 2, "q": "a", "answer": "..." },
+    { "day": 2, "q": "b", "answer": "..." },
+    { "day": 2, "q": "c", "answer": "..." }
+  ]
+}
+
+Preserve original phrasing. Skip entries that don't have a clear model answer.
+
+OCR text:
+${paper4AnswerText}` }] }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    }));
+    const parsed = JSON.parse(res.text ?? "") as { oralModelAnswers?: OralModelAnswer[] };
+    return Array.isArray(parsed.oralModelAnswers) ? parsed.oralModelAnswers : [];
+  } catch (err) {
+    console.warn(`[english-supplementary] oral answers structuring failed:`, err);
+    return [];
   }
 }
 
@@ -453,12 +581,13 @@ export async function extractSupplementaryFromPdf(
   const paper4AnswerText = await ocrSection(pages, sections.paper4AnswerPages, "Paper 4 Answers");
 
   onProgress?.("structuring");
-  const [writing, listening, oral, writingAns, listeningAns] = await Promise.all([
+  const [writing, listening, oral, writingAns, listeningAns, oralAns] = await Promise.all([
     extractWritingStructure(pages, sections.paper1Pages, paper1Text),
     extractListeningStructure(pages, sections.paper3Pages, paper3Text),
     extractOralStructure(pages, sections.paper4Pages, paper4Text),
     extractWritingAnswers(paper1AnswerText),
     extractListeningAnswers(paper3AnswerText),
+    extractOralAnswers(paper4AnswerText),
   ]);
 
   return {
@@ -468,15 +597,97 @@ export async function extractSupplementaryFromPdf(
     paper1AnswerText, paper3AnswerText, paper4AnswerText,
     structured: {
       situationalWriting: writing.situationalWriting,
+      continuousTheme: writing.continuousTheme,
       continuousPrompts: writing.continuousPrompts,
       listeningMcqs: listening.listeningMcqs,
-      oralReadingPassage: oral.oralReadingPassage,
-      oralStimulusPicture: oral.oralStimulusPicture,
+      listeningTexts: listening.listeningTexts,
+      oralDays: oral.oralDays,
       situationalModel: writingAns.situationalModel,
       continuousModel: writingAns.continuousModel,
       listeningAnswers: listeningAns,
+      oralModelAnswers: oralAns,
     },
   };
+}
+
+// ── Auto-crop pictures step ──
+// After the structured extraction lands, render the picture pages
+// and crop each into its own file on the volume. Files:
+//   {year}_situational_picture.jpg
+//   {year}_continuous_<1|2|3>.jpg
+//   {year}_oral_day<1|2>_stimulus.jpg   (rotated 90° CW since PSLE
+//                                         oral stimuli are printed
+//                                         landscape on a portrait page)
+//
+// Idempotent — overwrites existing files. Best-effort — a single
+// crop failure won't abort the others.
+export async function autoCropPictures(
+  pdfBuffer: Buffer,
+  structured: StructuredExtraction,
+  outDir: string,
+  yearLabel: string,
+): Promise<{ savedCount: number; errors: string[] }> {
+  const fs = await import("fs/promises");
+  await fs.mkdir(outDir, { recursive: true });
+  const tasks: Array<{ kind: string; pageNum: number; rotate: number; hint: string }> = [];
+
+  if (structured.situationalWriting?.picturePageNum) {
+    tasks.push({
+      kind: "situational",  // matches the picture route's croppedPath naming
+      pageNum: structured.situationalWriting.picturePageNum,
+      rotate: 0,
+      hint: "the main stimulus picture / poster / flyer at the top of the situational-writing task",
+    });
+  }
+  for (const cp of structured.continuousPrompts) {
+    if (cp.picturePageNum) {
+      tasks.push({
+        kind: `continuous_${cp.optionNum}`,
+        pageNum: cp.picturePageNum,
+        rotate: 0,
+        hint: `the picture labelled option ${cp.optionNum} of the continuous-writing prompts`,
+      });
+    }
+  }
+  for (const day of structured.oralDays) {
+    if (day.stimulusPicturePageNum) {
+      tasks.push({
+        kind: `oral_day${day.day}_stimulus`,
+        pageNum: day.stimulusPicturePageNum,
+        rotate: 90,
+        hint: "the stimulus-based conversation picture (often printed landscape — sideways on the page)",
+      });
+    }
+  }
+
+  // Render once per unique page to amortise the pdfjs cost.
+  const uniquePages = [...new Set(tasks.map(t => t.pageNum))];
+  const pageBuffers = new Map<number, Buffer>();
+  for (const p of uniquePages) {
+    try {
+      pageBuffers.set(p, await renderSinglePage(pdfBuffer, p, 2400, 90));
+    } catch (e) {
+      console.warn(`[auto-crop] failed to render page ${p}:`, e);
+    }
+  }
+
+  let savedCount = 0;
+  const errors: string[] = [];
+  for (const task of tasks) {
+    const pageJpeg = pageBuffers.get(task.pageNum);
+    if (!pageJpeg) { errors.push(`${task.kind}: no page render`); continue; }
+    try {
+      const bounds = await detectPictureBounds(pageJpeg, task.hint);
+      const cropped = await cropPageImage(pageJpeg, bounds, 90, task.rotate);
+      const path = await import("path");
+      const out = path.join(outDir, `${yearLabel}_${task.kind}.jpg`);
+      await fs.writeFile(out, cropped);
+      savedCount++;
+    } catch (e) {
+      errors.push(`${task.kind}: ${(e as Error).message}`);
+    }
+  }
+  return { savedCount, errors };
 }
 
 // ── Per-section reextract (admin override) ──
@@ -487,13 +698,15 @@ export type SectionReextract = {
   pages: number[];
   text: string;
   situationalWriting?: SituationalWriting | null;
+  continuousTheme?: string | null;
   continuousPrompts?: ContinuousPrompt[];
   listeningMcqs?: ListeningMcq[];
-  oralReadingPassage?: string | null;
-  oralStimulusPicture?: OralStimulusPicture | null;
+  listeningTexts?: ListeningText[];
+  oralDays?: OralDay[];
   situationalModel?: string | null;
   continuousModel?: string | null;
   listeningAnswers?: ListeningAnswer[];
+  oralModelAnswers?: OralModelAnswer[];
 };
 
 const SECTION_LABEL: Record<SectionKey, string> = {
@@ -521,21 +734,23 @@ export async function reextractSection(
   if (section === "paper1") {
     const s = await extractWritingStructure(allPages, pages, text);
     out.situationalWriting = s.situationalWriting;
+    out.continuousTheme = s.continuousTheme;
     out.continuousPrompts = s.continuousPrompts;
   } else if (section === "paper3") {
     const s = await extractListeningStructure(allPages, pages, text);
     out.listeningMcqs = s.listeningMcqs;
+    out.listeningTexts = s.listeningTexts;
   } else if (section === "paper4") {
     const s = await extractOralStructure(allPages, pages, text);
-    out.oralReadingPassage = s.oralReadingPassage;
-    out.oralStimulusPicture = s.oralStimulusPicture;
+    out.oralDays = s.oralDays;
   } else if (section === "paper1Answer") {
     const s = await extractWritingAnswers(text);
     out.situationalModel = s.situationalModel;
     out.continuousModel = s.continuousModel;
   } else if (section === "paper3Answer") {
     out.listeningAnswers = await extractListeningAnswers(text);
+  } else if (section === "paper4Answer") {
+    out.oralModelAnswers = await extractOralAnswers(text);
   }
-  // paper4Answer: no structured field today — just the raw OCR text.
   return out;
 }

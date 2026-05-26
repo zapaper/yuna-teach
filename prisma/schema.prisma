@@ -498,20 +498,27 @@ model EnglishSupplementaryPaper {
 
   // Structured extraction.
   // Section A — Situational Writing
-  situationalWriting   Json?  // { scenario, audience, purpose, requirements: [], wordCount }
-  // Section B — Continuous Writing (usually 3 picture prompts to choose from)
-  continuousPrompts    Json?  // [{ optionNum, picturePageNum, brief }]
-  // Paper 3 listening MCQs
-  listeningMcqs        Json?  // [{ num, text, options: [{ label, text }] }]
-  // Paper 4 oral materials
+  situationalWriting   Json?  // { picturePageNum, scenario, audience, purpose, requirements: [], wordCount }
+  // Section B — Continuous Writing
+  continuousTheme      String?  // the bold theme heading shown above the 3 picture options
+  continuousPrompts    Json?    // [{ optionNum, picturePageNum, brief }]
+  // Paper 3 listening — MCQs tagged to texts + the 7 text passages
+  listeningMcqs        Json?  // [{ num, text, options: [{ label, text }], isImageOptions, textNum }]
+  listeningTexts       Json?  // [{ textNum: 1-7, content, questionNumbers: [int] }]
+  // Paper 4 oral materials — split by Day 1 / Day 2
+  oralDays             Json?  // [{ day: 1|2, readingPassage, stimulusPicturePageNum, stimulusDescription, conversationPrompts: [] }]
+
+  // ── Legacy oral fields (kept temporarily for backward-compat with
+  // any pre-restructure rows). Once 2016-2025 are re-extracted these
+  // can be dropped via a follow-up migration.
   oralReadingPassage   String?  @db.Text
   oralStimulusPicture  Json?    // { picturePageNum, description, conversationPrompts: [] }
 
-  // Model answers (when publisher / tutor edition includes them — official
-  // PSLE answer keys generally don't ship model essays).
+  // Model answers
   situationalModel  String?  @db.Text
-  continuousModel   String?  @db.Text   // (sometimes 3 model essays — store all in one block)
+  continuousModel   String?  @db.Text   // all 3 model essays concatenated with \n\n--- separators
   listeningAnswers  Json?               // [{ num, answer }]
+  oralModelAnswers  Json?               // [{ day: 1|2, q: "a"|"b"|"c", answer }]
 
   status        String   @default("uploaded")
   errorMessage  String?  @db.Text

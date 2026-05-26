@@ -14,22 +14,26 @@ type Row = {
   paper1AnswerPages: number[] | null; paper3AnswerPages: number[] | null; paper4AnswerPages: number[] | null;
   createdAt: string; updatedAt: string;
 };
-type SituationalWriting = { scenario: string; audience: string; purpose: string; requirements: string[]; wordCount: string };
+type SituationalWriting = { picturePageNum: number | null; scenario: string; audience: string; purpose: string; requirements: string[]; wordCount: string };
 type ContinuousPrompt = { optionNum: number; picturePageNum: number | null; brief: string };
-type ListeningMcq = { num: number; text: string; options: Array<{ label: string; text: string }>; isImageOptions: boolean };
-type OralStimulusPicture = { picturePageNum: number | null; description: string; conversationPrompts: string[] };
+type ListeningMcq = { num: number; text: string; options: Array<{ label: string; text: string }>; isImageOptions: boolean; textNum: number | null };
+type ListeningText = { textNum: number; content: string; questionNumbers: number[] };
+type OralDay = { day: 1 | 2; readingPassage: string; stimulusPicturePageNum: number | null; stimulusDescription: string; conversationPrompts: string[] };
+type OralModelAnswer = { day: 1 | 2; q: string; answer: string };
 type ListeningAnswer = { num: number; answer: string };
 type RowDetail = Row & {
   paper1Text: string | null; paper3Text: string | null; paper4Text: string | null;
   paper1AnswerText: string | null; paper3AnswerText: string | null; paper4AnswerText: string | null;
   situationalWriting: SituationalWriting | null;
+  continuousTheme: string | null;
   continuousPrompts: ContinuousPrompt[] | null;
   listeningMcqs: ListeningMcq[] | null;
-  oralReadingPassage: string | null;
-  oralStimulusPicture: OralStimulusPicture | null;
+  listeningTexts: ListeningText[] | null;
+  oralDays: OralDay[] | null;
   situationalModel: string | null;
   continuousModel: string | null;
   listeningAnswers: ListeningAnswer[] | null;
+  oralModelAnswers: OralModelAnswer[] | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -42,6 +46,7 @@ const STATUS_LABEL: Record<string, string> = {
   "ocr-paper3-answer": "OCR: Paper 3 answers",
   "ocr-paper4-answer": "OCR: Paper 4 answers",
   structuring: "Structuring…",
+  cropping: "Cropping pictures…",
   ready: "Ready",
   failed: "Failed",
 };
@@ -243,11 +248,23 @@ function EnglishOralCompoAdmin() {
                 />
 
                 <div className="space-y-4 mb-6">
-                  {/* Section A — Situational Writing */}
+                  {/* Part 1 — Situational Writing (+ auto-cropped picture) */}
                   <div className="border border-sky-200 bg-sky-50 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-sky-800 mb-2">Section A — Situational Writing</h3>
+                    <h3 className="text-sm font-bold text-sky-800 mb-2">Part 1 — Situational Writing</h3>
                     {detail.situationalWriting ? (
                       <>
+                        {detail.situationalWriting.picturePageNum && (
+                          <div className="mb-3 max-w-md">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=situational`}
+                              alt="Situational stimulus"
+                              className="rounded border border-sky-300 max-w-full"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                            <p className="text-[10px] text-slate-400 mt-1">Auto-cropped from p.{detail.situationalWriting.picturePageNum}</p>
+                          </div>
+                        )}
                         <p className="text-xs text-slate-500 mb-1">Scenario</p>
                         <p className="text-sm text-slate-700 mb-3 whitespace-pre-wrap">{detail.situationalWriting.scenario || "—"}</p>
                         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -272,70 +289,111 @@ function EnglishOralCompoAdmin() {
                     )}
                   </div>
 
-                  {/* Section B — Continuous Writing prompts */}
+                  {/* Part 2 — Continuous Writing: theme + 3 picture prompts */}
                   <div className="border border-sky-200 bg-sky-50 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-sky-800 mb-2">
-                      Section B — Continuous Writing ({detail.continuousPrompts?.length ?? 0} picture prompts)
+                      Part 2 — Continuous Writing ({detail.continuousPrompts?.length ?? 0} picture prompts)
                     </h3>
+                    {detail.continuousTheme && (
+                      <div className="mb-3 px-3 py-2 bg-white rounded border border-sky-300">
+                        <span className="text-[10px] uppercase text-slate-500 tracking-wider mr-2">Theme</span>
+                        <span className="text-lg font-extrabold text-sky-900">{detail.continuousTheme}</span>
+                      </div>
+                    )}
                     {detail.continuousPrompts?.length ? (
-                      <ol className="space-y-2 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {detail.continuousPrompts.map(cp => (
-                          <li key={cp.optionNum} className="border-l-2 border-sky-300 pl-2">
-                            <span className="font-semibold text-sky-900">Option {cp.optionNum}</span>
-                            <span className="text-xs text-slate-500 ml-2">(p.{cp.picturePageNum ?? "?"})</span>
-                            <p className="text-slate-700 mt-1">{cp.brief}</p>
-                          </li>
+                          <div key={cp.optionNum} className="border border-sky-300 rounded bg-white p-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=continuous_${cp.optionNum}`}
+                              alt={`Option ${cp.optionNum}`}
+                              className="rounded max-w-full mb-2"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                            <p className="text-xs font-semibold text-sky-900">Option {cp.optionNum} <span className="text-slate-400 font-normal">(p.{cp.picturePageNum ?? "?"})</span></p>
+                            <p className="text-xs text-slate-700 mt-1">{cp.brief}</p>
+                          </div>
                         ))}
-                      </ol>
+                      </div>
                     ) : (
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
                   </div>
 
-                  {/* Listening MCQs */}
+                  {/* Listening MCQs + Texts */}
                   <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-indigo-800 mb-2">
-                      Listening MCQs ({detail.listeningMcqs?.length ?? 0})
+                      Paper 3 Listening — {detail.listeningMcqs?.length ?? 0} MCQs · {detail.listeningTexts?.length ?? 0} Texts
                     </h3>
-                    {detail.listeningMcqs?.length ? (
-                      <ol className="space-y-2 text-sm">
-                        {detail.listeningMcqs.map(mcq => (
-                          <li key={mcq.num} className="border-l-2 border-indigo-300 pl-2">
-                            <span className="font-semibold text-indigo-900">Q{mcq.num}</span>
-                            {mcq.text && <span className="text-slate-700 ml-1">{mcq.text}</span>}
-                            {mcq.isImageOptions && <span className="text-[10px] text-indigo-500 ml-1">(image options)</span>}
-                            <ul className="ml-4 mt-1 text-xs text-slate-600">
-                              {mcq.options.map((opt, i) => (
-                                <li key={i}><span className="font-mono">{opt.label}</span> {opt.text}</li>
-                              ))}
-                            </ul>
-                          </li>
+                    <details className="mb-3">
+                      <summary className="cursor-pointer text-xs font-semibold text-indigo-700">View MCQs (grouped by Text)</summary>
+                      {detail.listeningMcqs?.length ? (
+                        <ol className="space-y-1 text-xs mt-2">
+                          {detail.listeningMcqs.map(mcq => (
+                            <li key={mcq.num} className="border-l-2 border-indigo-300 pl-2">
+                              <span className="font-semibold text-indigo-900">Q{mcq.num}</span>
+                              {mcq.textNum && <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded">Text {mcq.textNum}</span>}
+                              {mcq.text && <span className="text-slate-700 ml-1">{mcq.text}</span>}
+                              {mcq.isImageOptions && <span className="text-[10px] text-indigo-500 ml-1">(image opts)</span>}
+                              <ul className="ml-4 mt-1 text-[11px] text-slate-600">
+                                {mcq.options.map((opt, i) => (
+                                  <li key={i}><span className="font-mono">{opt.label}</span> {opt.text}</li>
+                                ))}
+                              </ul>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : <p className="text-xs text-slate-400 italic mt-2">(no MCQs detected)</p>}
+                    </details>
+                    {detail.listeningTexts?.length ? (
+                      <div className="space-y-2">
+                        {detail.listeningTexts.map(t => (
+                          <details key={t.textNum} className="border border-indigo-200 rounded bg-white">
+                            <summary className="cursor-pointer px-3 py-1.5 text-xs font-semibold text-indigo-900">
+                              Text {t.textNum} <span className="text-slate-400 font-normal">→ Q{t.questionNumbers.join(", Q")}</span>
+                            </summary>
+                            <p className="px-3 pb-3 pt-1 text-xs text-slate-700 whitespace-pre-wrap">{t.content}</p>
+                          </details>
                         ))}
-                      </ol>
+                      </div>
+                    ) : <p className="text-xs text-slate-400 italic">(no texts detected)</p>}
+                  </div>
+
+                  {/* Paper 4 — Oral, per Day */}
+                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
+                    <h3 className="text-sm font-bold text-amber-800 mb-2">Paper 4 — Oral ({detail.oralDays?.length ?? 0} day{detail.oralDays?.length === 1 ? "" : "s"})</h3>
+                    {detail.oralDays?.length ? (
+                      <div className="space-y-4">
+                        {detail.oralDays.map(day => (
+                          <div key={day.day} className="border border-amber-300 rounded bg-white p-3">
+                            <h4 className="text-sm font-extrabold text-amber-900 mb-2">Day {day.day}</h4>
+                            <p className="text-xs text-slate-500 mb-1">Reading Aloud Passage</p>
+                            <p className="text-xs text-slate-700 whitespace-pre-wrap mb-3">{day.readingPassage || "—"}</p>
+                            {day.stimulusPicturePageNum && (
+                              <div className="mb-3 max-w-md">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=oral_day${day.day}_stimulus`}
+                                  alt={`Day ${day.day} stimulus`}
+                                  className="rounded border border-amber-300 max-w-full"
+                                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">Auto-cropped from p.{day.stimulusPicturePageNum} (rotated 90° CW)</p>
+                              </div>
+                            )}
+                            <p className="text-xs text-slate-500 mb-1">Stimulus description</p>
+                            <p className="text-xs text-slate-700 mb-3">{day.stimulusDescription || "—"}</p>
+                            <p className="text-xs text-slate-500 mb-1">Conversation prompts ({day.conversationPrompts.length})</p>
+                            <ol className="list-decimal pl-5 text-xs text-slate-700 space-y-1">
+                              {day.conversationPrompts.map((q, i) => <li key={i}>{q}</li>)}
+                            </ol>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
-                  </div>
-
-                  {/* Oral */}
-                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-amber-800 mb-2">Paper 4 — Oral</h3>
-                    {detail.oralReadingPassage && (
-                      <>
-                        <p className="text-xs text-slate-500 mb-1">Reading Aloud Passage</p>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap mb-4">{detail.oralReadingPassage}</p>
-                      </>
-                    )}
-                    {detail.oralStimulusPicture ? (
-                      <>
-                        <p className="text-xs text-slate-500 mb-1">Stimulus Picture (p.{detail.oralStimulusPicture.picturePageNum ?? "?"})</p>
-                        <p className="text-sm text-slate-700 mb-3">{detail.oralStimulusPicture.description}</p>
-                        <p className="text-xs text-slate-500 mb-1">Conversation Prompts ({detail.oralStimulusPicture.conversationPrompts.length})</p>
-                        <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
-                          {detail.oralStimulusPicture.conversationPrompts.map((q, i) => <li key={i}>{q}</li>)}
-                        </ul>
-                      </>
-                    ) : (!detail.oralReadingPassage && <p className="text-xs text-slate-400 italic">(not detected)</p>)}
                   </div>
 
                   {/* Listening answers */}
@@ -353,6 +411,30 @@ function EnglishOralCompoAdmin() {
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
                   </div>
+
+                  {/* Oral model answers (per day, per question a/b/c) */}
+                  {detail.oralModelAnswers?.length ? (
+                    <div className="border border-emerald-200 bg-emerald-50 rounded-lg p-4">
+                      <h3 className="text-sm font-bold text-emerald-800 mb-2">Oral — SBC Model Answers ({detail.oralModelAnswers.length})</h3>
+                      <div className="space-y-2">
+                        {[1, 2].map(day => {
+                          const items = detail.oralModelAnswers!.filter(a => a.day === day);
+                          if (items.length === 0) return null;
+                          return (
+                            <div key={day} className="border border-emerald-200 rounded bg-white p-2">
+                              <p className="text-xs font-extrabold text-emerald-900 mb-1">Day {day}</p>
+                              {items.map((it, i) => (
+                                <div key={i} className="mb-2">
+                                  <p className="text-xs font-semibold text-emerald-800">({it.q})</p>
+                                  <p className="text-xs text-slate-700 whitespace-pre-wrap">{it.answer}</p>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {/* Model essays */}
                   {(["situationalModel", "continuousModel"] as const).map(key => {

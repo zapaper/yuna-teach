@@ -29,14 +29,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (section === "paper1") {
       update.paper1Pages = pages; update.paper1Text = result.text || null;
       update.situationalWriting = result.situationalWriting ?? undefined;
+      update.continuousTheme = result.continuousTheme ?? null;
       update.continuousPrompts = result.continuousPrompts?.length ? result.continuousPrompts : undefined;
     } else if (section === "paper3") {
       update.paper3Pages = pages; update.paper3Text = result.text || null;
       update.listeningMcqs = result.listeningMcqs?.length ? result.listeningMcqs : undefined;
+      update.listeningTexts = result.listeningTexts?.length ? result.listeningTexts : undefined;
     } else if (section === "paper4") {
       update.paper4Pages = pages; update.paper4Text = result.text || null;
-      update.oralReadingPassage = result.oralReadingPassage ?? null;
-      update.oralStimulusPicture = result.oralStimulusPicture ?? undefined;
+      update.oralDays = result.oralDays?.length ? result.oralDays : undefined;
     } else if (section === "paper1Answer") {
       update.paper1AnswerPages = pages; update.paper1AnswerText = result.text || null;
       update.situationalModel = result.situationalModel ?? null;
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       update.listeningAnswers = result.listeningAnswers?.length ? result.listeningAnswers : undefined;
     } else if (section === "paper4Answer") {
       update.paper4AnswerPages = pages; update.paper4AnswerText = result.text || null;
+      update.oralModelAnswers = result.oralModelAnswers?.length ? result.oralModelAnswers : undefined;
     }
     await prisma.englishSupplementaryPaper.update({ where: { id }, data: update });
     return NextResponse.json({ ok: true, section, pages, textLength: result.text.length });

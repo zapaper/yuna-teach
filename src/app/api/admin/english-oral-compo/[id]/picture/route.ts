@@ -24,24 +24,33 @@ function croppedPath(year: string, kind: string) {
 async function loadRow(id: string) {
   return prisma.englishSupplementaryPaper.findUnique({
     where: { id },
-    select: { id: true, year: true, pdfPath: true, continuousPrompts: true, oralStimulusPicture: true },
+    select: { id: true, year: true, pdfPath: true,
+      situationalWriting: true, continuousPrompts: true, oralDays: true },
   });
 }
 
-function pageForKind(row: { continuousPrompts: unknown; oralStimulusPicture: unknown }, kind: string | null): number | null {
-  if (!kind) return null;
-  if (kind === "oral-stimulus") {
-    const osp = row.oralStimulusPicture as { picturePageNum?: number } | null;
-    return osp?.picturePageNum ?? null;
+function pageForKind(
+  row: { situationalWriting: unknown; continuousPrompts: unknown; oralDays: unknown },
+  kind: string | null,
+): { pageNum: number | null; rotate: number } {
+  if (!kind) return { pageNum: null, rotate: 0 };
+  if (kind === "situational" || kind === "situational_picture") {
+    const sw = row.situationalWriting as { picturePageNum?: number } | null;
+    return { pageNum: sw?.picturePageNum ?? null, rotate: 0 };
   }
-  const m = kind.match(/^continuous-(\d+)$/);
-  if (m) {
-    const n = parseInt(m[1], 10);
+  const cont = kind.match(/^continuous[-_](\d+)$/);
+  if (cont) {
+    const n = parseInt(cont[1], 10);
     const prompts = row.continuousPrompts as Array<{ optionNum: number; picturePageNum: number | null }> | null;
-    const hit = prompts?.find(p => p.optionNum === n);
-    return hit?.picturePageNum ?? null;
+    return { pageNum: prompts?.find(p => p.optionNum === n)?.picturePageNum ?? null, rotate: 0 };
   }
-  return null;
+  const oral = kind.match(/^oral[-_]day(\d+)[-_]stimulus$/);
+  if (oral) {
+    const d = parseInt(oral[1], 10);
+    const days = row.oralDays as Array<{ day: number; stimulusPicturePageNum: number | null }> | null;
+    return { pageNum: days?.find(x => x.day === d)?.stimulusPicturePageNum ?? null, rotate: 90 };
+  }
+  return { pageNum: null, rotate: 0 };
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -53,7 +62,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const type = request.nextUrl.searchParams.get("type");
 
   if (type === "page") {
-    const pageNum = pageForKind(row, kind);
+    const { pageNum } = pageForKind(row, kind);
     if (!pageNum) return NextResponse.json({ error: "No picture page detected for this kind" }, { status: 404 });
     if (!row.pdfPath) return NextResponse.json({ error: "Source PDF missing" }, { status: 404 });
     try {
@@ -90,14 +99,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       left < 0 || top < 0 || width <= 0 || height <= 0 || left + width > 1.001 || top + height > 1.001) {
     return NextResponse.json({ error: "Invalid bounds — fractions 0-1 required" }, { status: 400 });
   }
-  const pageNum = pageForKind(row, kind);
+  const { pageNum, rotate } = pageForKind(row, kind);
   if (!pageNum) return NextResponse.json({ error: "No picture page detected for this kind" }, { status: 404 });
   if (!row.pdfPath) return NextResponse.json({ error: "Source PDF missing" }, { status: 404 });
 
   try {
     const pdfBuffer = await fs.readFile(row.pdfPath);
     const pageJpeg = await renderSinglePage(pdfBuffer, pageNum, 2400, 90);
-    const cropped = await cropPageImage(pageJpeg, { left, top, width, height });
+    const cropped = await cropPageImage(pageJpeg, { left, top, width, height }, 90, rotate);
     await fs.mkdir(STORAGE_DIR, { recursive: true });
     const out = croppedPath(row.year, kind);
     await fs.writeFile(out, cropped);

@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { extractSupplementaryFromPdf } from "@/lib/english-supplementary";
+import { extractSupplementaryFromPdf, autoCropPictures } from "@/lib/english-supplementary";
 
 // GET  /api/admin/english-oral-compo
 //   List all extracted English supplementary papers.
@@ -58,9 +58,13 @@ export async function POST(request: NextRequest) {
       paper1AnswerPages: undefined, paper3AnswerPages: undefined, paper4AnswerPages: undefined,
       paper1Text: null, paper3Text: null, paper4Text: null,
       paper1AnswerText: null, paper3AnswerText: null, paper4AnswerText: null,
-      situationalWriting: undefined, continuousPrompts: undefined,
-      listeningMcqs: undefined, oralReadingPassage: null, oralStimulusPicture: undefined,
-      situationalModel: null, continuousModel: null, listeningAnswers: undefined,
+      situationalWriting: undefined,
+      continuousTheme: null, continuousPrompts: undefined,
+      listeningMcqs: undefined, listeningTexts: undefined,
+      oralDays: undefined,
+      oralReadingPassage: null, oralStimulusPicture: undefined,  // legacy clears
+      situationalModel: null, continuousModel: null,
+      listeningAnswers: undefined, oralModelAnswers: undefined,
       uploadedBy: userId ?? undefined,
     },
     create: { year, pdfPath, status: "sectioning", uploadedBy: userId ?? undefined },
@@ -100,16 +104,34 @@ async function runExtractionInBackground(rowId: string, year: string, pdfBuffer:
         paper3AnswerText: extraction.paper3AnswerText || null,
         paper4AnswerText: extraction.paper4AnswerText || null,
         situationalWriting: extraction.structured.situationalWriting ?? undefined,
+        continuousTheme: extraction.structured.continuousTheme,
         continuousPrompts: extraction.structured.continuousPrompts.length ? extraction.structured.continuousPrompts : undefined,
         listeningMcqs: extraction.structured.listeningMcqs.length ? extraction.structured.listeningMcqs : undefined,
-        oralReadingPassage: extraction.structured.oralReadingPassage,
-        oralStimulusPicture: extraction.structured.oralStimulusPicture ?? undefined,
+        listeningTexts: extraction.structured.listeningTexts.length ? extraction.structured.listeningTexts : undefined,
+        oralDays: extraction.structured.oralDays.length ? extraction.structured.oralDays : undefined,
         situationalModel: extraction.structured.situationalModel,
         continuousModel: extraction.structured.continuousModel,
         listeningAnswers: extraction.structured.listeningAnswers.length ? extraction.structured.listeningAnswers : undefined,
-        status: "ready",
+        oralModelAnswers: extraction.structured.oralModelAnswers.length ? extraction.structured.oralModelAnswers : undefined,
+        status: "cropping",
         errorMessage: null,
       },
+    });
+
+    // Auto-crop pictures (situational + 3 continuous + oral day1/day2 stimulus
+    // rotated 90 CW). Best-effort — single picture failure won't abort.
+    try {
+      const path = await import("path");
+      const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
+      const STORAGE_DIR = path.join(VOLUME_PATH, "english-supplementary");
+      const cropResult = await autoCropPictures(pdfBuffer, extraction.structured, STORAGE_DIR, year);
+      console.log(`[english-oral-compo] ${year} auto-cropped ${cropResult.savedCount} picture(s)${cropResult.errors.length ? `, errors: ${cropResult.errors.join("; ")}` : ""}`);
+    } catch (cropErr) {
+      console.warn(`[english-oral-compo] ${year} auto-crop step failed (non-fatal):`, cropErr);
+    }
+
+    await prisma.englishSupplementaryPaper.update({
+      where: { id: rowId }, data: { status: "ready" },
     });
     console.log(`[english-oral-compo] ${year} extraction complete`);
   } catch (err) {
