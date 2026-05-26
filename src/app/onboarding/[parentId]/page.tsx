@@ -25,7 +25,7 @@ type Question = {
 const QUESTIONS: Question[] = [
   {
     key: "questionDifficulty",
-    preamble: "Hi there! Two quick questions so we can tailor MarkForYou to your child.",
+    preamble: "Hi there! Help us tailor MarkForYou to your child.",
     prompt: "What kind of question difficulty best suits your child at this point?",
     options: [
       { value: "adaptive", label: "Start easy and progress as they gain mastery" },
@@ -393,7 +393,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       <main className="flex-1 px-6 max-w-md mx-auto w-full overflow-hidden flex flex-col justify-center pb-12 relative z-10">
         {studentStep ? (
           <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
-            <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Last step</p>
+            <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Almost done</p>
             <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Set up your child&apos;s login</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-3">
               Pick a username and password your child will use to log in to MarkForYou.
