@@ -1,0 +1,308 @@
+{
+  "peelOverview": "PSLE model answers use the PEEL structure to deliver clear, well-developed responses with a natural conversational rhythm. A typical distinction-level answer starts with a 1-sentence Point directly addressing the prompt, followed by 2-3 sentences of Explanation to provide logical reasons. This is supported by a 3-4 sentence Example, usually a vivid personal anecdote, and wraps up with a 1-sentence Link that confidently connects back to the main question.",
+  "peelByQuestionType": [
+    {
+      "questionType": "Would you be interested in / would you participate in <activity>?",
+      "pointPhrases": [
+        "Yes, I would definitely be interested in ...",
+        "Personally, I would jump at the chance to ...",
+        "I think I would be keen on signing up for ...",
+        "No, I would politely decline, mainly because ..."
+      ],
+      "explainPhrases": [
+        "The main reason is that ...",
+        "This is because I believe ...",
+        "What appeals to me most is ...",
+        "This activity will provide me with a chance to ..."
+      ],
+      "examplePhrases": [
+        "For instance, ...",
+        "Just last weekend, I ...",
+        "A perfect example of this is ...",
+        "If I were to join, I could ..."
+      ],
+      "linkPhrases": [
+        "For these reasons, I would ...",
+        "All in all, this is an opportunity I would not miss.",
+        "So yes, this is something I would love to take part in.",
+        "Thus, this is definitely appealing to me."
+      ]
+    },
+    {
+      "questionType": "Have you ever experienced / done something similar?",
+      "pointPhrases": [
+        "Yes, I have had a similar experience ...",
+        "Indeed, I remember a time when ...",
+        "There was a time when I ...",
+        "One experience that stood out to me was ..."
+      ],
+      "explainPhrases": [
+        "During that time, I felt ...",
+        "It was a memorable experience because ...",
+        "I learned a lot from this incident as ...",
+        "Although I was initially hesitant, ..."
+      ],
+      "examplePhrases": [
+        "For example, when I was ...",
+        "I remember clearly how ...",
+        "To illustrate, my friends and I ...",
+        "Once, I wanted to try out for ..."
+      ],
+      "linkPhrases": [
+        "Overall, it was an enriching experience ...",
+        "Even now, I can still remember ...",
+        "I was definitely relieved when ...",
+        "It truly was a memorable event which I will remember for a long time to come."
+      ]
+    },
+    {
+      "questionType": "Why is <topic> important?",
+      "pointPhrases": [
+        "I think taking care of this is very important.",
+        "Yes, I believe that this plays a crucial role.",
+        "In my opinion, this is essential because ...",
+        "I definitely think it is vital to ..."
+      ],
+      "explainPhrases": [
+        "If we do not ..., we will ...",
+        "This is because it helps us to ...",
+        "Furthermore, it allows people to ...",
+        "Otherwise, there will not be enough resources for us in the future."
+      ],
+      "examplePhrases": [
+        "For example, currently a major problem is ...",
+        "Take for instance ...",
+        "In my own life, I have noticed that ...",
+        "A good illustration of this would be ..."
+      ],
+      "linkPhrases": [
+        "Therefore, it is vital that we ...",
+        "Ultimately, this benefits everyone.",
+        "For these reasons, I strongly believe in the importance of ...",
+        "Consequently, we must always take care to ..."
+      ]
+    },
+    {
+      "questionType": "Do you agree that / what do you think about <claim>?",
+      "pointPhrases": [
+        "Yes, I generally agree that ...",
+        "I think that this is generally true.",
+        "I do not entirely agree with ...",
+        "While some might think so, I personally feel ..."
+      ],
+      "explainPhrases": [
+        "This is largely due to the fact that ...",
+        "On one hand ..., but on the other hand ...",
+        "It is important to consider that ...",
+        "Some people may be shy, however, I do not share their opinion."
+      ],
+      "examplePhrases": [
+        "For instance, when looking at ...",
+        "A good example of this is ...",
+        "I have seen this firsthand when ...",
+        "To give you an idea, ..."
+      ],
+      "linkPhrases": [
+        "Thus, I stand by the belief that ...",
+        "In conclusion, while there are exceptions, I think ...",
+        "Consequently, my view is that ...",
+        "Therefore, this reflects how important it is to ..."
+      ]
+    }
+  ],
+  "generalOpeners": [
+    {
+      "starter": "Well,",
+      "example": "Well, this is certainly a tricky question to answer.",
+      "whenToUse": "Buys a beat to think; signals you're considering the question."
+    },
+    {
+      "starter": "In my opinion,",
+      "example": "In my opinion, recycling should start at home.",
+      "whenToUse": "Signals a personal stance without being aggressive."
+    },
+    {
+      "starter": "Personally,",
+      "example": "Personally, I find this activity very meaningful.",
+      "whenToUse": "Softens an opinion as your own view."
+    },
+    {
+      "starter": "From my experience,",
+      "example": "From my experience, group projects always teach me more.",
+      "whenToUse": "Bridges into a real-life anecdote."
+    },
+    {
+      "starter": "Honestly speaking,",
+      "example": "Honestly speaking, I used to avoid such events.",
+      "whenToUse": "Adds candour; good for showing growth or change of mind."
+    },
+    {
+      "starter": "To be frank,",
+      "example": "To be frank, I am quite a heavy sleeper.",
+      "whenToUse": "Introduces a mild confession or honest personal trait."
+    },
+    {
+      "starter": "What's more,",
+      "example": "What's more, my poem may even be selected to be published.",
+      "whenToUse": "Adds a compelling secondary point to your explanation."
+    },
+    {
+      "starter": "Apart from that,",
+      "example": "Apart from that, I also love taking pictures with my friends.",
+      "whenToUse": "Transitions smoothly to another example or reason."
+    }
+  ],
+  "agreeStarters": [
+    {
+      "starter": "Yes, I would definitely ...",
+      "example": "Yes, I would definitely take part in this.",
+      "whenToUse": "Strong, confident agreement."
+    },
+    {
+      "starter": "Without a doubt, ...",
+      "example": "Without a doubt, this is a worthy cause.",
+      "whenToUse": "Even stronger; emphatic."
+    },
+    {
+      "starter": "Indeed, ...",
+      "example": "Indeed, every small action counts.",
+      "whenToUse": "Formal agreement; good after the examiner makes a statement."
+    },
+    {
+      "starter": "I completely agree that ...",
+      "example": "I completely agree that children should learn how to cook.",
+      "whenToUse": "Directly aligning with the premise of the prompt."
+    }
+  ],
+  "disagreeStarters": [
+    {
+      "starter": "I would respectfully disagree because ...",
+      "example": "I would respectfully disagree because the benefits are short-lived.",
+      "whenToUse": "Polite disagreement; never just 'no'."
+    },
+    {
+      "starter": "While I understand the appeal, ...",
+      "example": "While I understand the appeal, I think there are downsides too.",
+      "whenToUse": "Acknowledges the other side before objecting."
+    },
+    {
+      "starter": "I do not really think that ...",
+      "example": "I do not really think that giving a fruit basket will attract children.",
+      "whenToUse": "Softens a rejection of an idea presented in the stimulus."
+    },
+    {
+      "starter": "However, I do not share their opinion.",
+      "example": "Some people may be reluctant to show their work. However, I do not share their opinion.",
+      "whenToUse": "Contrasting your view with a common misconception or opposing view."
+    }
+  ],
+  "personalAnecdote": [
+    "Just last week, I ...",
+    "A few months ago, my family and I ...",
+    "I remember a time when ...",
+    "In fact, my own grandmother used to ...",
+    "This reminds me of an incident at my school ...",
+    "Once, I wanted to try out for ...",
+    "Before our lives were affected by Covid-19, I watched ...",
+    "When I was on the way to school last week, I happened to see ..."
+  ],
+  "hedgesAndQualifiers": [
+    {
+      "phrase": "perhaps",
+      "meaning": "Softens a strong claim — 'perhaps the most important factor is ...'"
+    },
+    {
+      "phrase": "to some extent",
+      "meaning": "Partial agreement / nuance — 'I agree, to some extent.'"
+    },
+    {
+      "phrase": "in most cases",
+      "meaning": "Avoids absolute claims — 'in most cases, this works well.'"
+    },
+    {
+      "phrase": "arguably",
+      "meaning": "Frames a claim as defensible — 'arguably the best way to ...'"
+    },
+    {
+      "phrase": "generally",
+      "meaning": "Indicates a broad truth rather than an absolute rule — 'people in Singapore are generally orderly.'"
+    }
+  ],
+  "closingMoves": [
+    {
+      "starter": "All in all, ...",
+      "example": "All in all, I would jump at the chance.",
+      "whenToUse": "Standard PEEL Link — recaps and lands the stance."
+    },
+    {
+      "starter": "For these reasons, ...",
+      "example": "For these reasons, I think this is a valuable initiative.",
+      "whenToUse": "Loops back to the original question after giving evidence."
+    },
+    {
+      "starter": "So yes, ...",
+      "example": "So yes, this is something I would love to be part of.",
+      "whenToUse": "Conversational, confident close to a 'would you...?' answer."
+    },
+    {
+      "starter": "Ultimately, ...",
+      "example": "Ultimately, learning to cook is not only useful but also helps children grow.",
+      "whenToUse": "Summarises the long-term benefit or final takeaway."
+    },
+    {
+      "starter": "Therefore, ...",
+      "example": "Therefore, the hawker centre is an attractive place for people.",
+      "whenToUse": "A formal, logical conclusion to wrap up an explanation."
+    }
+  ],
+  "upgradedExamples": [
+    {
+      "weak": "I think this is good because it helps the environment.",
+      "strong": "Personally, I see this as a step in the right direction — recycling our worn-out items keeps them out of landfills and gives them a second life.",
+      "technique": "Replace 'I think' with 'Personally,' + add a vivid 'second life' image",
+      "highlight": "Personally, I see this as a step in the right direction"
+    },
+    {
+      "weak": "I like making friends because it is fun.",
+      "strong": "I enjoy making new friends as it allows me to widen my social network and interact with people who share similar interests.",
+      "technique": "Upgrade basic vocabulary ('fun') to mature phrasing ('widen my social network')",
+      "highlight": "allows me to widen my social network"
+    },
+    {
+      "weak": "I don't like public speaking because I am shy.",
+      "strong": "Being an introverted person, I tend to shy away from public speaking as I often get nervous and stumble over my words.",
+      "technique": "Use character traits ('introverted person') and specific physical reactions ('stumble over my words')",
+      "highlight": "Being an introverted person, I tend to shy away from"
+    },
+    {
+      "weak": "I will tell my forgetful friend to write things down.",
+      "strong": "If a friend tends to be forgetful, I would advise him or her to jot down their tasks in a notebook to serve as a handy checklist.",
+      "technique": "Replace 'tell' with 'advise', and add a clear purpose ('serve as a handy checklist')",
+      "highlight": "advise him or her to jot down their tasks"
+    },
+    {
+      "weak": "I want school to start late so I can sleep more.",
+      "strong": "If I had a choice, I would prefer school to start slightly later, as it would give heavy sleepers like me ample time to rest and recharge.",
+      "technique": "Use a conditional opener ('If I had a choice') and idiomatic expressions ('heavy sleepers', 'rest and recharge')",
+      "highlight": "give heavy sleepers like me ample time to rest and recharge"
+    },
+    {
+      "weak": "I like reading books because they are interesting.",
+      "strong": "I am an avid reader because books have the power to transport me to different worlds and broaden my horizons.",
+      "technique": "Replace 'I like reading' with 'I am an avid reader' and use metaphorical language ('transport me to different worlds')",
+      "highlight": "transport me to different worlds and broaden my horizons"
+    },
+    {
+      "weak": "I think the poster is good to remind students.",
+      "strong": "Yes, I believe the poster serves as an effective visual reminder, acting as a checklist for students before they leave the room.",
+      "technique": "Upgrade 'is good to remind' to 'serves as an effective visual reminder'",
+      "highlight": "serves as an effective visual reminder"
+    },
+    {
+      "weak": "I like to go outdoors because the classroom is boring.",
+      "strong": "I love spending my free time outdoors because being cooped up in a classroom all day can feel monotonous and suffocating.",
+      "technique": "Replace 'boring' with stronger descriptive adjectives ('monotonous and suffocating') and idioms ('cooped up')",
+      "highlight": "being cooped up in a classroom all day can feel monotonous"
+    }
+  ]
+}

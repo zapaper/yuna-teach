@@ -1,0 +1,263 @@
+{
+  "overview": "Over the past 10 years (2016-2025), PSLE English Oral SBC topics heavily feature relatable, everyday student experiences, with \"School life / CCAs\", \"Hobbies / leisure activities\", and \"Time management / responsibility\" dominating the exams. The prompts consistently assess a student's ability to reflect on personal habits, interpersonal relationships, and civic duties. Recently, there has been a noticeable shift towards broader societal themes, such as \"Public conduct / civic-mindedness\" (2024, 2025) and \"Technology & Future-oriented topics\" (2022, 2023), reflecting Singapore's evolving landscape. Conversely, while \"Recycling / environmental responsibility\" is a major global issue, it has surprisingly only appeared once (2022). Topics like financial literacy or mental health have never been explicitly tested, as the focus remains firmly on actionable, age-appropriate moral and social values.",
+  "prediction": "\"Recycling / environmental responsibility\" is highly likely to appear in the next PSLE Oral exam, as it only appeared once in 2022 and sustainability is a growing national focus. Additionally, \"Reading / lifelong learning\" has not been tested since 2021, making it overdue for a return, possibly framed around digital literacy or new ways of learning.",
+  "themes": [
+    {
+      "name": "School life / CCAs",
+      "description": "Navigating school events, co-curricular activities, peer relationships, and school transitions.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "day": 1,
+          "note": "Supportive Friend Award and making friends"
+        },
+        {
+          "year": "2017",
+          "day": 1,
+          "note": "Teachers' Day poem and showing appreciation"
+        },
+        {
+          "year": "2017",
+          "day": 2,
+          "note": "Cleanest Classroom Contest"
+        },
+        {
+          "year": "2018",
+          "day": 1,
+          "note": "Victory Secondary School banner and choosing a school"
+        },
+        {
+          "year": "2018",
+          "day": 2,
+          "note": "Speech Contest and presentations"
+        },
+        {
+          "year": "2020",
+          "day": 2,
+          "note": "Graduation Concert and performing"
+        }
+      ],
+      "frequency": 6
+    },
+    {
+      "name": "Hobbies / leisure activities",
+      "description": "Engaging in personal interests, recreational activities, and spending free time meaningfully.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "day": 2,
+          "note": "Junior Baking Fun"
+        },
+        {
+          "year": "2018",
+          "day": 1,
+          "note": "Victory Secondary School banner and CCAs"
+        },
+        {
+          "year": "2020",
+          "day": 2,
+          "note": "Graduation Concert and performing"
+        },
+        {
+          "year": "2021",
+          "day": 2,
+          "note": "Vet talk on pets"
+        },
+        {
+          "year": "2023",
+          "day": 1,
+          "note": "Fantastic Future Exhibition and school holidays"
+        },
+        {
+          "year": "2023",
+          "day": 2,
+          "note": "Writing a diary and treasuring items"
+        }
+      ],
+      "frequency": 6
+    },
+    {
+      "name": "Time management / responsibility & life skills",
+      "description": "Managing personal routines, chores, sleep, screen time, and developing essential life skills like cooking.",
+      "yearsAppeared": [
+        {
+          "year": "2017",
+          "day": 2,
+          "note": "Cleanest Classroom Contest and chores"
+        },
+        {
+          "year": "2019",
+          "day": 2,
+          "note": "Computer Lab reminder and forgetfulness"
+        },
+        {
+          "year": "2021",
+          "day": 1,
+          "note": "Sleeping girl, school hours and sleep habits"
+        },
+        {
+          "year": "2022",
+          "day": 2,
+          "note": "Playing games instead of homework"
+        },
+        {
+          "year": "2025",
+          "day": 2,
+          "note": "Hawker centre stall and cooking skills"
+        }
+      ],
+      "frequency": 5
+    },
+    {
+      "name": "Food / hawker culture / nutrition",
+      "description": "Appreciating local hawker culture, making dietary choices, and understanding food preparation.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "day": 2,
+          "note": "Junior Baking Fun and recess food"
+        },
+        {
+          "year": "2025",
+          "day": 1,
+          "note": "Ice-cream cart queue"
+        },
+        {
+          "year": "2025",
+          "day": 2,
+          "note": "Hawker centre stall and home-cooked food"
+        }
+      ],
+      "frequency": 3
+    },
+    {
+      "name": "Helping others / kindness & appreciation",
+      "description": "Showing gratitude to teachers and school staff, and demonstrating kindness to peers and the elderly.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "day": 1,
+          "note": "Supportive Friend Award and buddy system"
+        },
+        {
+          "year": "2017",
+          "day": 1,
+          "note": "Teachers' Day poem and showing appreciation"
+        },
+        {
+          "year": "2024",
+          "day": 2,
+          "note": "School Attendants Appreciation Week and helping the elderly"
+        }
+      ],
+      "frequency": 3
+    },
+    {
+      "name": "Reading / lifelong learning",
+      "description": "Cultivating a reading habit, utilizing libraries, and exploring different avenues for learning such as talks and presentations.",
+      "yearsAppeared": [
+        {
+          "year": "2018",
+          "day": 2,
+          "note": "Speech Contest and presentations"
+        },
+        {
+          "year": "2019",
+          "day": 1,
+          "note": "Librarian's recommendations and reading habits"
+        },
+        {
+          "year": "2021",
+          "day": 2,
+          "note": "Vet talk on pets and learning methods"
+        }
+      ],
+      "frequency": 3
+    },
+    {
+      "name": "Family bonding / neighbours & community",
+      "description": "Building strong relationships with family members, neighbours, and participating in community events.",
+      "yearsAppeared": [
+        {
+          "year": "2020",
+          "day": 1,
+          "note": "Sunny Avenue's Party and being a good neighbour"
+        },
+        {
+          "year": "2023",
+          "day": 2,
+          "note": "Writing a diary, family photo and treasuring items"
+        },
+        {
+          "year": "2024",
+          "day": 2,
+          "note": "School Attendants Appreciation Week and spending time with the elderly"
+        }
+      ],
+      "frequency": 3
+    },
+    {
+      "name": "Public conduct / civic-mindedness",
+      "description": "Behaving appropriately in public spaces, queuing orderly, and sharing shared amenities.",
+      "yearsAppeared": [
+        {
+          "year": "2024",
+          "day": 1,
+          "note": "Cape Park map and public space behaviour"
+        },
+        {
+          "year": "2025",
+          "day": 1,
+          "note": "Ice-cream cart queue and orderly behaviour"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "name": "Healthy lifestyle / fitness",
+      "description": "Maintaining physical well-being through adequate sleep, outdoor activities, and exercise.",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "day": 1,
+          "note": "Sleeping girl and enough sleep"
+        },
+        {
+          "year": "2024",
+          "day": 1,
+          "note": "Cape Park map and outdoors"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "name": "Technology & Future-oriented topics",
+      "description": "Navigating the digital world, managing screen time, and exploring future innovations like AI.",
+      "yearsAppeared": [
+        {
+          "year": "2022",
+          "day": 2,
+          "note": "Playing games on tablet and screen time"
+        },
+        {
+          "year": "2023",
+          "day": 1,
+          "note": "Fantastic Future Exhibition, robots and flying cars"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "name": "Recycling / environmental responsibility",
+      "description": "Participating in recycling drives and taking actionable steps to protect the environment.",
+      "yearsAppeared": [
+        {
+          "year": "2022",
+          "day": 1,
+          "note": "Recycling old sports shoes"
+        }
+      ],
+      "frequency": 1
+    }
+  ]
+}

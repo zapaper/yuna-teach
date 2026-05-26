@@ -18,7 +18,7 @@ type SituationalWriting = { picturePageNum: number | null; scenario: string; aud
 type ContinuousPrompt = { optionNum: number; picturePageNum: number | null; brief: string };
 type ListeningMcq = { num: number; text: string; options: Array<{ label: string; text: string }>; isImageOptions: boolean; textNum: number | null };
 type ListeningText = { textNum: number; content: string; questionNumbers: number[] };
-type OralDay = { day: 1 | 2; readingPassage: string; stimulusPicturePageNum: number | null; stimulusDescription: string; conversationPrompts: string[] };
+type OralDay = { day: 1 | 2; readingPassage: string; stimulusPicturePageNum: number | null; stimulusDescription: string; richDescription?: string | null; conversationPrompts: string[] };
 type OralModelAnswer = { day: 1 | 2; q: string; answer: string };
 type ListeningAnswer = { num: number; answer: string };
 type RowDetail = Row & {
@@ -463,7 +463,10 @@ function EnglishOralCompoAdmin() {
 
                   {/* Paper 4 — Oral, per Day */}
                   <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-amber-800 mb-2">Paper 4 — Oral ({detail.oralDays?.length ?? 0} day{detail.oralDays?.length === 1 ? "" : "s"})</h3>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-sm font-bold text-amber-800">Paper 4 — Oral ({detail.oralDays?.length ?? 0} day{detail.oralDays?.length === 1 ? "" : "s"})</h3>
+                      <EnrichSbcButton paperId={detail.id} onDone={() => loadDetail(detail.id)} />
+                    </div>
                     {detail.oralDays?.length ? (
                       <div className="space-y-4">
                         {detail.oralDays.map(day => (
@@ -485,6 +488,12 @@ function EnglishOralCompoAdmin() {
                             )}
                             <p className="text-xs text-slate-500 mb-1">Stimulus description</p>
                             <p className="text-xs text-slate-700 mb-3">{day.stimulusDescription || "—"}</p>
+                            {day.richDescription && (
+                              <>
+                                <p className="text-xs text-violet-700 font-semibold mb-1">Gemini rich description ✨</p>
+                                <p className="text-xs text-slate-700 mb-3 italic">{day.richDescription}</p>
+                              </>
+                            )}
                             <p className="text-xs text-slate-500 mb-1">Conversation prompts ({day.conversationPrompts.length})</p>
                             <ol className="list-decimal pl-5 text-xs text-slate-700 space-y-1">
                               {day.conversationPrompts.map((q, i) => <li key={i}>{q}</li>)}
@@ -1002,6 +1011,49 @@ function RedetectButton({ paperId, onDone }: { paperId: string; onDone: () => vo
         title="Re-run section detection + full extraction against the stored PDF"
       >
         {working ? "Starting…" : "♻️ Re-run full extraction"}
+      </button>
+      {msg && (
+        <p className={`text-[10px] max-w-[280px] text-right ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
+      )}
+    </div>
+  );
+}
+
+// Runs Gemini vision over the cropped SBC pictures (Day 1 + Day 2)
+// and writes back a richer multi-sentence description to
+// oralDays[*].richDescription. Used as input for the oral analysis
+// report. Cheap to re-run; overwrites previous output each time.
+function EnrichSbcButton({ paperId, onDone }: { paperId: string; onDone: () => void }) {
+  const [working, setWorking] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  async function run() {
+    setWorking(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/english-oral-compo/${paperId}/enrich-sbc`, { method: "POST" });
+      const data = await res.json() as {
+        error?: string; details?: string;
+        results?: Array<{ day: number; status: string; chars?: number; error?: string }>;
+      };
+      if (!res.ok) {
+        setMsg({ type: "err", text: data.details || data.error || "Enrich failed" });
+      } else {
+        const summary = (data.results ?? []).map(r => `D${r.day}: ${r.status}${r.chars ? ` (${r.chars} chars)` : ""}${r.error ? ` — ${r.error.slice(0, 40)}` : ""}`).join(" · ");
+        setMsg({ type: "ok", text: summary });
+        onDone();
+      }
+    } finally {
+      setWorking(false);
+    }
+  }
+  return (
+    <div className="flex flex-col items-end gap-1 shrink-0">
+      <button
+        onClick={run}
+        disabled={working}
+        className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded hover:bg-violet-700 disabled:opacity-50 whitespace-nowrap"
+        title="Gemini reads each SBC picture and writes a richer description (for analysis)"
+      >
+        {working ? "Describing…" : "✨ Enrich SBC descriptions"}
       </button>
       {msg && (
         <p className={`text-[10px] max-w-[280px] text-right ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>

@@ -1,0 +1,349 @@
+{
+  "situationalOpenings": [
+    {
+      "name": "Friendly greeting + reason for writing",
+      "phrases": [
+        "How have you been? I hope you and your parents are in good health.",
+        "How are you? I hope you've been doing well since our last meeting.",
+        "I am writing this email to inform you of an incident which took place on...",
+        "I am writing you this email to invite you to...",
+        "I am writing to request permission to make an announcement about..."
+      ]
+    },
+    {
+      "name": "Persuasive hook",
+      "phrases": [
+        "This competition will be a piece of cake for you since you love...",
+        "I am sure you will do well in this competition if you take part.",
+        "I would love it if you could take part in this event with me.",
+        "It will be extremely meaningful if we can do our part in contributing to...",
+        "Now is the perfect chance to increase the number and variety of..."
+      ]
+    },
+    {
+      "name": "Polite request to authority",
+      "phrases": [
+        "I would like to ask you to consider my classmate for the award.",
+        "I am writing on behalf of my class to seek your permission to...",
+        "I would really appreciate it if you would keep the plan under wraps.",
+        "I would also like to ask for your help in rehearsing the...",
+        "May I respectfully request your approval for this project?"
+      ]
+    }
+  ],
+  "situationalConnectors": [
+    {
+      "name": "Adding a reason",
+      "phrases": [
+        "As participants are required to...",
+        "Hence, I am asking you to accompany me instead.",
+        "Furthermore, since you like action movies, I am sure you will enjoy it.",
+        "As we hope to give the teachers a pleasant surprise on that day...",
+        "It is important that we inform our fellow pupils about the event as..."
+      ]
+    },
+    {
+      "name": "Giving examples / Details",
+      "phrases": [
+        "Besides that, I saw him performing another good deed when...",
+        "First, they have to scan the QR code provided on the post...",
+        "Second, they have to check for the expiry date of their food item.",
+        "For every comment uploaded, the bookstore will donate a new book...",
+        "In the form of a food donation drive, the project welcomes pupils to..."
+      ]
+    },
+    {
+      "name": "Acknowledging objections / Conditions",
+      "phrases": [
+        "However, John refused and was unhappy as he was first in the queue.",
+        "Even if it seems difficult at the beginning, I can learn something new.",
+        "Although they had been to the beach several times before...",
+        "If you want to participate in the competition, you need to register by...",
+        "Before donating a food item at the booth, it is important to note..."
+      ]
+    }
+  ],
+  "situationalClosings": [
+    {
+      "name": "Polite call to action",
+      "phrases": [
+        "I hope you will consider him for the award.",
+        "Do let me know if you will be able to join me as soon as possible.",
+        "Do let us know before then if you would be keen to take part...",
+        "I hope to hear good news from you before then!",
+        "I look forward to hearing good news from you soon!"
+      ]
+    },
+    {
+      "name": "Warm sign-off",
+      "phrases": [
+        "Thank you for your kind attention.",
+        "We hope to receive your favourable response.",
+        "I would really appreciate your help in this matter and I look forward to your favourable reply!",
+        "Hope to hear from you soon!",
+        "Yours sincerely,"
+      ]
+    }
+  ],
+  "continuousOpenings": [
+    {
+      "name": "Weather / atmosphere",
+      "phrases": [
+        "The clear blue sky was a welcome sight which lifted their mood.",
+        "The scenic view of the sea unfolded before their eyes.",
+        "The cooling sea breeze blew in his face.",
+        "The weather was perfect when they stepped out of the car.",
+        "A thick blanket of clouds hung over the city, mirroring my gloomy mood."
+      ]
+    },
+    {
+      "name": "In-the-moment action",
+      "phrases": [
+        "Clara was on her way home from school when she heard someone calling her name.",
+        "I got home after school one day and was greeted by my brother at the door.",
+        "I eagerly opened the envelope, wondering what it could contain.",
+        "The girls sprung up from the sofa and squealed with delight.",
+        "I could hardly stay still in my seat the whole day."
+      ]
+    },
+    {
+      "name": "Dialogue opener",
+      "phrases": [
+        "\"What's the matter, Lisa?\" Clara asked, wondering if her classmate was all right.",
+        "\"What's this?\" I asked, waving an envelope I had found on the dining table.",
+        "\"Roger, go to the nearby shopping centre to help me get some groceries,\" Mother instructed.",
+        "\"Have you set up an appointment yet?\" I prodded my mother.",
+        "\"Look at what we have bought for you!\" their father exclaimed."
+      ]
+    },
+    {
+      "name": "Reflective flashback",
+      "phrases": [
+        "Being thankful does not always come from big surprises or expensive gifts.",
+        "Sometimes, simple moments in our daily lives remind us to appreciate what we have.",
+        "I experienced such a moment on the MRT train last month.",
+        "It had a special place in my heart for it was the first thing I had bought with my own money.",
+        "It all started when Tommy's teacher assigned a project that required researching local history."
+      ]
+    }
+  ],
+  "showDontTell": [
+    {
+      "name": "Fear / nervousness",
+      "phrases": [
+        "Her face was pale.",
+        "He resisted the urge to panic.",
+        "I stood at the starting line, a bundle of nerves.",
+        "My heart leapt into my throat.",
+        "I froze mid-step, unable to process what I had just seen."
+      ]
+    },
+    {
+      "name": "Anger / frustration",
+      "phrases": [
+        "I wanted to lash out at my brother for his carelessness.",
+        "My anger subsided only after seeing his pitiful expression.",
+        "He flatly denied the accusation and said that he was lying.",
+        "I threw in the towel and returned to my room.",
+        "My fists clenched and my jaw tightened."
+      ]
+    },
+    {
+      "name": "Sadness / regret",
+      "phrases": [
+        "His voice trailed off guiltily.",
+        "He had a pitiful expression on his face.",
+        "A heavy lump formed in my throat.",
+        "Tears welled up uncontrollably in my eyes.",
+        "I looked at him with beseeching eyes."
+      ]
+    },
+    {
+      "name": "Joy / excitement",
+      "phrases": [
+        "She gave a whoop of joy.",
+        "They squealed with delight when they saw the paper bag.",
+        "My head was still reeling from the exciting announcement.",
+        "I tailed my mother out of the house, a skip in my step.",
+        "My face broke into the widest, most radiant grin."
+      ]
+    },
+    {
+      "name": "Surprise / shock",
+      "phrases": [
+        "I could not believe my eyes when I saw the new figurine staring at me.",
+        "I was momentarily stunned, not knowing how to react.",
+        "My jaw dropped in sheer disbelief.",
+        "She looked around in surprise, not used to the attention.",
+        "I turned around and froze."
+      ]
+    },
+    {
+      "name": "Embarrassment / shame",
+      "phrases": [
+        "She smiled back sheepishly and patted her rumbling stomach.",
+        "He had a guilty expression on his face.",
+        "My cheeks burned crimson.",
+        "I wished the ground would swallow me whole.",
+        "I apologised profusely for the mess."
+      ]
+    },
+    {
+      "name": "Relief",
+      "phrases": [
+        "He sighed with relief.",
+        "He could feel his muscles relax as his fear and anxiety evaporated.",
+        "A wave of relief washed over me.",
+        "Her voice was gentle but filled with relief.",
+        "I exhaled the breath I had been holding."
+      ]
+    }
+  ],
+  "sensoryDescriptions": [
+    {
+      "name": "Sight",
+      "phrases": [
+        "a grease-stained paper bag",
+        "gaily decorated with colourful balloons and streamers",
+        "the scenic view of the sea unfolded before their eyes",
+        "the clear blue sky was a welcome sight",
+        "the glistening sea reflecting the orange sunset"
+      ]
+    },
+    {
+      "name": "Sound",
+      "phrases": [
+        "high-pitched barking, followed by the frantic running of a little black puppy",
+        "greeted by raucous laughter and loud chatter",
+        "incessant pen-clicking, foot tapping and intermittent sighs",
+        "the deafening cheers of the crowd",
+        "the familiar sound of the door being unlocked"
+      ]
+    },
+    {
+      "name": "Smell / taste",
+      "phrases": [
+        "the aroma of food wafted in the air",
+        "savour the juicy patties sandwiched between the soft sesame seed buns",
+        "the special house sauce oozed out from the burger",
+        "she smelt of baby powder and was a delight to carry",
+        "an array of mouthwatering dishes laden on the table"
+      ]
+    },
+    {
+      "name": "Touch / texture",
+      "phrases": [
+        "the cooling sea breeze blew in his face",
+        "it gave the sandwich a nice crunchy texture",
+        "the soft sesame seed buns",
+        "clammy palms and a hammering heart",
+        "the rough bark scraped against my palm"
+      ]
+    }
+  ],
+  "dialogueTags": [
+    "replied with a radiant smile",
+    "looked at her classmate with beseeching eyes",
+    "gushed excitedly",
+    "quipped playfully",
+    "urged impatiently",
+    "lamented sadly",
+    "prodded gently",
+    "exclaimed in delight",
+    "jokingly responded"
+  ],
+  "continuousClosings": [
+    {
+      "name": "Reflection / lesson learned",
+      "phrases": [
+        "That was something no amount of money in the world could buy.",
+        "He learnt valuable life lessons about responsibility, discipline and the joy of giving back.",
+        "That simple train ride taught me that kindness does not need to be grand.",
+        "Trying something new was not bad at all!",
+        "I realised that I, too, was thankful for the small actions that brighten someone's day."
+      ]
+    },
+    {
+      "name": "Resolution / change",
+      "phrases": [
+        "Tommy had changed for the better, and it all began with that simple history project.",
+        "His journey from a lazy, disorganised video gamer to an active, motivated young boy was an inspiration.",
+        "I now know that if I keep trying and practising, I can learn something new.",
+        "Basketball is no longer just my sister's sport. It is mine too.",
+        "I knew the puppy would be in good hands."
+      ]
+    },
+    {
+      "name": "Vivid final image",
+      "phrases": [
+        "I gave him a warm embrace, thanking him for the gift.",
+        "As the car drove off, Justin leaned against the window, admiring the view of the orange sunset.",
+        "The mishap which happened to my dress only served to make it more memorable!",
+        "Hand in hand, the boys went back to the supermarket to continue their shopping.",
+        "It was finally the moment I had been waiting for."
+      ]
+    }
+  ],
+  "sentenceVariety": [
+    {
+      "weak": "I was very happy when I won the prize.",
+      "strong": "As we proceeded up on stage to collect the prize and the trophy, I looked at my team members in appreciation, proud of the teamwork we had displayed.",
+      "technique": "Combine action with internal reflection",
+      "highlight": "As we proceeded up on stage"
+    },
+    {
+      "weak": "The burger was very delicious.",
+      "strong": "I closed my eyes to savour the juicy patties sandwiched between the soft sesame seed buns.",
+      "technique": "Use sensory details and specific nouns/adjectives",
+      "highlight": "savour the juicy patties"
+    },
+    {
+      "weak": "I was very excited to see the rabbit.",
+      "strong": "I could hardly stay still in my seat the whole day, my mind filled with thoughts about the rabbit.",
+      "technique": "Show excitement through restless physical actions",
+      "highlight": "hardly stay still in my seat"
+    },
+    {
+      "weak": "He was lazy and played games all day.",
+      "strong": "He had always been known for his love of video games, and it seemed like he spent every waking moment glued to his mobile phone.",
+      "technique": "Use hyperbole and strong verbs",
+      "highlight": "every waking moment glued to"
+    },
+    {
+      "weak": "The beach was very beautiful.",
+      "strong": "As the car turned the corner, the scenic view of the sea unfolded before their eyes, accompanied by the cooling sea breeze.",
+      "technique": "Reveal the setting dynamically through character movement",
+      "highlight": "scenic view of the sea unfolded"
+    },
+    {
+      "weak": "I was very scared when I lost my wallet.",
+      "strong": "To my horror, I was unable to find it, and I had to resist the urge to panic.",
+      "technique": "Name the emotion directly as an introductory phrase",
+      "highlight": "To my horror"
+    },
+    {
+      "weak": "The baby vomited on me.",
+      "strong": "Suddenly, my cousin coughed and before I knew it, she had thrown up milk all over me!",
+      "technique": "Build anticipation with a transition and sudden action",
+      "highlight": "before I knew it"
+    },
+    {
+      "weak": "I waited a long time for school to end.",
+      "strong": "Seconds stretched into minutes and minutes stretched into hours as my eyes remained fixated on the clock.",
+      "technique": "Use repetition and time distortion to show impatience",
+      "highlight": "Seconds stretched into minutes"
+    },
+    {
+      "weak": "I ran out of the school very fast.",
+      "strong": "Once the school bell rang, signalling the end of classes, I shot like a bullet out of the school building.",
+      "technique": "Use a simile and a clear trigger event",
+      "highlight": "shot like a bullet"
+    },
+    {
+      "weak": "I searched the store for the things I needed.",
+      "strong": "Quickly scouring the aisles to locate my targets, I speedily scooped up the goods.",
+      "technique": "Use strong action verbs and a participial phrase",
+      "highlight": "Quickly scouring the aisles"
+    }
+  ]
+}

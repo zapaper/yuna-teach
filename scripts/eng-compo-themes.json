@@ -1,0 +1,203 @@
+{
+  "overview": "Over the 10-year period (2016-2025), PSLE English Paper 1 writing tasks reveal a strong emphasis on peer-to-peer influence and personal growth. In Situational Writing, the dominant communicative move is persuading or encouraging a peer to participate in an activity, appearing four times. Asking for permission from authority figures is the second most common. Formal complaint or apology letters are notably absent. For Continuous Writing, the themes heavily lean towards character-building and emotional experiences, such as gratitude, patience, teamwork, and self-improvement. Action-driven themes like accidents or emergencies are rare, with the focus instead placed on reflective narratives.",
+  "prediction": "For the next year, a Situational task involving 'Inform / Report an incident to an authority figure' is highly likely, as it has not appeared since 2018. For Continuous Writing, a theme related to 'Teamwork' or 'Surprises and Revelations' is overdue, given they last appeared in 2018 and 2016 respectively.",
+  "situationalThemes": [
+    {
+      "name": "Persuade / Encourage a peer",
+      "description": "Convince a same-age classmate, friend, or relative to take part in an event or competition.",
+      "yearsAppeared": [
+        {
+          "year": "2017",
+          "note": "encourage cousin to participate in art competition"
+        },
+        {
+          "year": "2020",
+          "note": "encourage Devi to join your team"
+        },
+        {
+          "year": "2022",
+          "note": "persuade Aisha to join the event"
+        },
+        {
+          "year": "2023",
+          "note": "persuade Gary to join your group"
+        }
+      ],
+      "frequency": 4
+    },
+    {
+      "name": "Ask for permission from an authority figure",
+      "description": "Formally request approval from a principal or teacher to conduct an activity.",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "note": "ask principal for permission for a performance"
+        },
+        {
+          "year": "2024",
+          "note": "ask teacher for permission to make an announcement"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "name": "Recommend / Nominate someone",
+      "description": "Write to an official to suggest someone for an award or recognition based on their good deeds.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "note": "ask manager to consider Paul Tan for Caring Student Award"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Inform / Report an incident",
+      "description": "Provide a factual account of an event or conflict to a person in charge.",
+      "yearsAppeared": [
+        {
+          "year": "2018",
+          "note": "inform Discipline Master about an incident"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Invite a peer",
+      "description": "Ask a friend to attend a social outing or event with you.",
+      "yearsAppeared": [
+        {
+          "year": "2019",
+          "note": "invite best friend to watch a movie"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Recount / Share an experience",
+      "description": "Write an article or notice to share a personal learning journey with peers.",
+      "yearsAppeared": [
+        {
+          "year": "2025",
+          "note": "tell classmates about experience learning a new sport"
+        }
+      ],
+      "frequency": 1
+    }
+  ],
+  "continuousThemes": [
+    {
+      "name": "Gratitude / Appreciation",
+      "description": "Stories centered on giving, receiving, or feeling thankful for something or someone.",
+      "yearsAppeared": [
+        {
+          "year": "2017",
+          "pickedTheme": "a special gift",
+          "note": "gift box, best friends mug, sports jersey"
+        },
+        {
+          "year": "2025",
+          "pickedTheme": "being thankful",
+          "note": "thank you classroom, sunflower, priority seat sign"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "name": "Surprises and Revelations",
+      "description": "Narratives involving hidden information, mysteries, or unexpected discoveries.",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "pickedTheme": "a secret",
+          "note": "whispering, sealed envelope, padlock"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Teamwork / Collaboration",
+      "description": "Working together with others to achieve a common goal or overcome a challenge.",
+      "yearsAppeared": [
+        {
+          "year": "2018",
+          "pickedTheme": "teamwork",
+          "note": "students at computer, children cooking, large trophy"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Celebration / Milestones",
+      "description": "Joyous occasions, parties, or events marking a special achievement or date.",
+      "yearsAppeared": [
+        {
+          "year": "2019",
+          "pickedTheme": "a celebration",
+          "note": "children dancing, family photo, invitation card"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Loss / Something Missing",
+      "description": "Story centered on losing or recovering an item, pet, or person.",
+      "yearsAppeared": [
+        {
+          "year": "2020",
+          "pickedTheme": "something that was lost",
+          "note": "lost phone, information counter, missing cat poster"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Promises and Trust",
+      "description": "Making, keeping, or breaking a commitment to someone.",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "pickedTheme": "a promise",
+          "note": "girl writing, wristwatch, hamburger"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Endurance / Patience",
+      "description": "Experiencing a delay, anticipating an event, or waiting for a long time.",
+      "yearsAppeared": [
+        {
+          "year": "2022",
+          "pickedTheme": "a long wait",
+          "note": "bored girl, circled calendar date, long queue"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "Change / Self-Improvement",
+      "description": "A turning point where a character improves their habits, attitude, or situation.",
+      "yearsAppeared": [
+        {
+          "year": "2023",
+          "pickedTheme": "a change for the better",
+          "note": "boy jogging, messy bedroom, laptop"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "name": "First-time Experiences",
+      "description": "Stepping out of one's comfort zone to attempt an unfamiliar activity.",
+      "yearsAppeared": [
+        {
+          "year": "2024",
+          "pickedTheme": "trying something new",
+          "note": "CCA open house banner, making a sandwich, camping picnic"
+        }
+      ],
+      "frequency": 1
+    }
+  ]
+}
