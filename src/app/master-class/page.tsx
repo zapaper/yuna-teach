@@ -26,21 +26,22 @@ function MasterClassList() {
   );
 
   // Mastery state per master-class, keyed by slug. Populated by
-  // parallel fetches on mount. Map slug -> per-sub-topic mastery
-  // rows. Undefined while loading; empty array if student hasn't
-  // taken any quiz yet (all sub-topics will be "untested").
-  const [mastery, setMastery] = useState<Record<string, SubTopicMastery[]>>({});
+  // parallel fetches on mount. Stores per-sub-topic rows AND the
+  // overall latest-attempt score — both feed into the badge logic
+  // (overall ≥95% OR every sub-topic mastered).
+  type SlugMastery = { subTopics: SubTopicMastery[]; latestScorePct: number | null };
+  const [mastery, setMastery] = useState<Record<string, SlugMastery>>({});
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     Promise.all(allClasses.map(async (mc) => {
       try {
         const r = await fetch(`/api/master-class/${mc.slug}/mastery?studentId=${userId}`);
-        if (!r.ok) return [mc.slug, [] as SubTopicMastery[]] as const;
-        const d = await r.json() as { subTopics: SubTopicMastery[] };
-        return [mc.slug, d.subTopics] as const;
+        if (!r.ok) return [mc.slug, { subTopics: [], latestScorePct: null }] as const;
+        const d = await r.json() as { subTopics: SubTopicMastery[]; latestAttemptScorePct: number | null };
+        return [mc.slug, { subTopics: d.subTopics, latestScorePct: d.latestAttemptScorePct }] as const;
       } catch {
-        return [mc.slug, [] as SubTopicMastery[]] as const;
+        return [mc.slug, { subTopics: [], latestScorePct: null }] as const;
       }
     })).then(rows => {
       if (cancelled) return;
@@ -68,15 +69,19 @@ function MasterClassList() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 lg:px-8 pt-5 pb-24">
-        {/* Badges — one per Master Class the student has fully
-            mastered (every sub-topic at 100% on the most recent
-            attempt). The class's generated icon serves as the
-            badge. Hidden when nothing's been earned yet. */}
+        {/* Badges — earned when the student either scored ≥95% on
+            the most recent quiz overall, OR every sub-topic is at
+            ≥95% individually. The overall-score rule matters: with
+            the per-sub-topic threshold alone, a student can hit 96%
+            overall but still miss the badge because one sub-topic
+            with a single 1-mark question came in at 0%. Sub-topic
+            chips below still show diagnostic state. */}
         {(() => {
           const earned = allClasses.filter(mc => {
-            const rows = mastery[mc.slug];
-            if (!rows || rows.length === 0) return false;
-            return rows.every(r => r.state === "mastered");
+            const m = mastery[mc.slug];
+            if (!m || m.subTopics.length === 0) return false;
+            if ((m.latestScorePct ?? 0) >= 95) return true;
+            return m.subTopics.every(r => r.state === "mastered");
           });
           if (earned.length === 0) return null;
           return (
@@ -196,7 +201,7 @@ function MasterClassList() {
                     the master class actually has sub-topics defined. */}
                 {(mc.subTopics?.length ?? 0) > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
-                    {(mastery[mc.slug] ?? mc.subTopics!.map(s => ({ id: s.id, label: s.label, state: "untested" as const }))).map(st => (
+                    {(mastery[mc.slug]?.subTopics ?? mc.subTopics!.map(s => ({ id: s.id, label: s.label, state: "untested" as const }))).map(st => (
                       <SubTopicChip key={st.id} state={st.state} label={st.label} />
                     ))}
                   </div>
