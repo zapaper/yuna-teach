@@ -234,19 +234,10 @@ function EnglishOralCompoAdmin() {
                   P4 ans: {(detail.paper4AnswerPages ?? []).join(", ") || "—"}
                 </p>
 
-                <ReextractPanel
-                  paperId={detail.id}
-                  initial={{
-                    paper1: detail.paper1Pages ?? [],
-                    paper3: detail.paper3Pages ?? [],
-                    paper4: detail.paper4Pages ?? [],
-                    paper1Answer: detail.paper1AnswerPages ?? [],
-                    paper3Answer: detail.paper3AnswerPages ?? [],
-                    paper4Answer: detail.paper4AnswerPages ?? [],
-                  }}
-                  onDone={() => loadDetail(detail.id)}
-                />
-                <PictureReextractPanel detail={detail} onDone={() => loadDetail(detail.id)} />
+                {/* Re-extract panels moved inline below each section
+                    (Writing / Listening / Oral). Top of modal stays
+                    clean — admin scrolls to the section, hits its
+                    own re-extract controls. */}
 
                 <div className="space-y-4 mb-6">
                   {/* Part 1 — Situational Writing (+ auto-cropped picture) */}
@@ -360,6 +351,22 @@ function EnglishOralCompoAdmin() {
                     {detail.continuousModel && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{detail.continuousModel}</p>}
                   </details>
 
+                  {/* Writing-section re-extract controls (paper1 / paper1Answer text + writing pictures) */}
+                  <ReextractPanel
+                    paperId={detail.id}
+                    initial={{
+                      paper1: detail.paper1Pages ?? [],
+                      paper3: detail.paper3Pages ?? [],
+                      paper4: detail.paper4Pages ?? [],
+                      paper1Answer: detail.paper1AnswerPages ?? [],
+                      paper3Answer: detail.paper3AnswerPages ?? [],
+                      paper4Answer: detail.paper4AnswerPages ?? [],
+                    }}
+                    sections={["paper1", "paper1Answer"]}
+                    onDone={() => loadDetail(detail.id)}
+                  />
+                  <PictureReextractPanel detail={detail} onDone={() => loadDetail(detail.id)} only="writing" />
+
                   {/* Listening MCQs + Texts. MCQ options are usually
                       picture-based on PSLE Paper 3, so we show the
                       auto-cropped JPG of each question instead of
@@ -421,6 +428,22 @@ function EnglishOralCompoAdmin() {
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
                   </div>
+
+                  {/* Listening-section re-extract controls (paper3 / paper3Answer text + per-Q pictures) */}
+                  <ReextractPanel
+                    paperId={detail.id}
+                    initial={{
+                      paper1: detail.paper1Pages ?? [],
+                      paper3: detail.paper3Pages ?? [],
+                      paper4: detail.paper4Pages ?? [],
+                      paper1Answer: detail.paper1AnswerPages ?? [],
+                      paper3Answer: detail.paper3AnswerPages ?? [],
+                      paper4Answer: detail.paper4AnswerPages ?? [],
+                    }}
+                    sections={["paper3", "paper3Answer"]}
+                    onDone={() => loadDetail(detail.id)}
+                  />
+                  <PictureReextractPanel detail={detail} onDone={() => loadDetail(detail.id)} only="listening" />
 
                   {/* Paper 4 — Oral, per Day */}
                   <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
@@ -485,6 +508,22 @@ function EnglishOralCompoAdmin() {
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
                   </div>
+
+                  {/* Oral-section re-extract controls (paper4 / paper4Answer text + Day 1/2 stimulus pictures) */}
+                  <ReextractPanel
+                    paperId={detail.id}
+                    initial={{
+                      paper1: detail.paper1Pages ?? [],
+                      paper3: detail.paper3Pages ?? [],
+                      paper4: detail.paper4Pages ?? [],
+                      paper1Answer: detail.paper1AnswerPages ?? [],
+                      paper3Answer: detail.paper3AnswerPages ?? [],
+                      paper4Answer: detail.paper4AnswerPages ?? [],
+                    }}
+                    sections={["paper4", "paper4Answer"]}
+                    onDone={() => loadDetail(detail.id)}
+                  />
+                  <PictureReextractPanel detail={detail} onDone={() => loadDetail(detail.id)} only="oral" />
                 </div>
 
                 {/* Raw OCR (debug) */}
@@ -526,11 +565,15 @@ function EnglishOralCompoAdmin() {
 }
 
 function ReextractPanel({
-  paperId, initial, onDone,
+  paperId, initial, onDone, sections,
 }: {
   paperId: string;
   initial: Record<SectionKey, number[]>;
   onDone: () => void;
+  // When provided, only render rows for these section keys (used to
+  // inline a paper-section's re-extract under that section in the
+  // modal). Defaults to all 6.
+  sections?: SectionKey[];
 }) {
   const [inputs, setInputs] = useState<Record<SectionKey, string>>({
     paper1: initial.paper1.join(","),
@@ -569,7 +612,7 @@ function ReextractPanel({
           Type 1-indexed page numbers for the section (e.g. <code className="bg-white px-1 rounded">2, 3</code>) then click Re-extract.
           Only the OCR + structured fields for that section get overwritten.
         </p>
-        {(["paper1", "paper3", "paper4", "paper1Answer", "paper3Answer", "paper4Answer"] as SectionKey[]).map(key => (
+        {(sections ?? ["paper1", "paper3", "paper4", "paper1Answer", "paper3Answer", "paper4Answer"] as SectionKey[]).map(key => (
           <div key={key} className="flex items-center gap-2">
             <label className="text-xs font-semibold text-slate-700 w-44">{SECTION_LABELS[key]}</label>
             <input
@@ -596,22 +639,29 @@ function ReextractPanel({
 // Calls POST /api/admin/english-oral-compo/[id]/recrop-picture which
 // updates the structured field's picturePageNum (if changed) and
 // regenerates the cropped JPG on disk.
-function PictureReextractPanel({ detail, onDone }: { detail: RowDetail; onDone: () => void }) {
+function PictureReextractPanel({ detail, onDone, only }: { detail: RowDetail; onDone: () => void; only?: "writing" | "listening" | "oral" }) {
   const targets: Array<{ kind: string; label: string; defaultPage: number | null }> = [];
-  if (detail.situationalWriting) {
-    targets.push({ kind: "situational", label: "Situational stimulus picture", defaultPage: detail.situationalWriting.picturePageNum });
+  const want = (group: "writing" | "listening" | "oral") => !only || only === group;
+  if (want("writing")) {
+    if (detail.situationalWriting) {
+      targets.push({ kind: "situational", label: "Situational stimulus picture", defaultPage: detail.situationalWriting.picturePageNum });
+    }
+    for (const cp of detail.continuousPrompts ?? []) {
+      targets.push({ kind: `continuous_${cp.optionNum}`, label: `Continuous option ${cp.optionNum}`, defaultPage: cp.picturePageNum });
+    }
   }
-  for (const cp of detail.continuousPrompts ?? []) {
-    targets.push({ kind: `continuous_${cp.optionNum}`, label: `Continuous option ${cp.optionNum}`, defaultPage: cp.picturePageNum });
+  if (want("oral")) {
+    for (const day of detail.oralDays ?? []) {
+      targets.push({ kind: `oral_day${day.day}_stimulus`, label: `Oral Day ${day.day} stimulus (rotated 90°)`, defaultPage: day.stimulusPicturePageNum });
+    }
   }
-  for (const day of detail.oralDays ?? []) {
-    targets.push({ kind: `oral_day${day.day}_stimulus`, label: `Oral Day ${day.day} stimulus (rotated 90°)`, defaultPage: day.stimulusPicturePageNum });
-  }
-  // Listening MCQs — per-question re-extract. defaultPage is unknown
-  // (we don't store a per-Q page in the schema), so the admin must
-  // type the right page from the PDF.
-  for (const mcq of detail.listeningMcqs ?? []) {
-    targets.push({ kind: `listening_q${mcq.num}`, label: `Listening Q${mcq.num}`, defaultPage: null });
+  if (want("listening")) {
+    // Listening MCQs — per-question re-extract. defaultPage is unknown
+    // (we don't store a per-Q page in the schema), so the admin must
+    // type the right page from the PDF.
+    for (const mcq of detail.listeningMcqs ?? []) {
+      targets.push({ kind: `listening_q${mcq.num}`, label: `Listening Q${mcq.num}`, defaultPage: null });
+    }
   }
 
   const [inputs, setInputs] = useState<Record<string, string>>(() =>
