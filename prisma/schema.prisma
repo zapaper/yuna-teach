@@ -466,3 +466,59 @@ model ChineseSupplementaryPaper {
 
   @@map("chinese_supplementary_papers")
 }
+
+// Sibling of ChineseSupplementaryPaper, but for PSLE English. Paper
+// layout differs from Chinese — English splits writing into two
+// sub-sections (Situational + Continuous), and the oral materials
+// (reading passage + stimulus picture) typically live in a separate
+// Paper 4 booklet rather than the same PDF as Paper 1/3. Structured
+// fields reflect those differences.
+model EnglishSupplementaryPaper {
+  id   String   @id @default(cuid())
+  year String   @unique
+
+  pdfPath   String?
+  pageCount Int?
+
+  // Auto-detected page ranges.
+  paper1Pages       Json?   // Paper 1 — Writing (Situational + Continuous)
+  paper3Pages       Json?   // Paper 3 — Listening Comprehension (MCQs)
+  paper4Pages       Json?   // Paper 4 — Oral (reading passage + stimulus picture)
+  paper1AnswerPages Json?
+  paper3AnswerPages Json?
+  paper4AnswerPages Json?
+
+  // Raw OCR.
+  paper1Text       String?  @db.Text
+  paper3Text       String?  @db.Text
+  paper4Text       String?  @db.Text
+  paper1AnswerText String?  @db.Text
+  paper3AnswerText String?  @db.Text
+  paper4AnswerText String?  @db.Text
+
+  // Structured extraction.
+  // Section A — Situational Writing
+  situationalWriting   Json?  // { scenario, audience, purpose, requirements: [], wordCount }
+  // Section B — Continuous Writing (usually 3 picture prompts to choose from)
+  continuousPrompts    Json?  // [{ optionNum, picturePageNum, brief }]
+  // Paper 3 listening MCQs
+  listeningMcqs        Json?  // [{ num, text, options: [{ label, text }] }]
+  // Paper 4 oral materials
+  oralReadingPassage   String?  @db.Text
+  oralStimulusPicture  Json?    // { picturePageNum, description, conversationPrompts: [] }
+
+  // Model answers (when publisher / tutor edition includes them — official
+  // PSLE answer keys generally don't ship model essays).
+  situationalModel  String?  @db.Text
+  continuousModel   String?  @db.Text   // (sometimes 3 model essays — store all in one block)
+  listeningAnswers  Json?               // [{ num, answer }]
+
+  status        String   @default("uploaded")
+  errorMessage  String?  @db.Text
+
+  uploadedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("english_supplementary_papers")
+}

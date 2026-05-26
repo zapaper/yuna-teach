@@ -154,6 +154,13 @@ function AdminContent() {
       href: `/admin/chinese-oral-compo?userId=${userId}`,
       color: "bg-fuchsia-50 text-fuchsia-600",
     },
+    {
+      icon: "edit_note",
+      label: "English Oral / Compo",
+      description: "Same as Chinese but for PSLE English: Paper 1 Writing (Situational + Continuous with 3 picture prompts), Paper 3 Listening MCQs, Paper 4 Oral. Source for trend analysis.",
+      href: `/admin/english-oral-compo?userId=${userId}`,
+      color: "bg-sky-50 text-sky-600",
+    },
   ];
 
   return (
