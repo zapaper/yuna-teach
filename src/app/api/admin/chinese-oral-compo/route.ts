@@ -71,17 +71,35 @@ export async function POST(request: NextRequest) {
     select: { id: true },
   });
 
+  // Fire-and-forget the extraction so the HTTP response can return
+  // immediately. Railway's edge proxy kills requests longer than
+  // ~5 minutes; the full pipeline can easily exceed that with retries.
+  // The UI is already polling every 4s and reads status from the DB,
+  // so completion arrives through the same channel either way.
+  //
+  // The Node.js runtime keeps the promise alive after the response is
+  // sent, so this works on Railway. (Don't try this on edge/serverless
+  // without ctx.waitUntil.)
+  runExtractionInBackground(row.id, year, pdfBuffer);
+
+  return NextResponse.json({
+    row: { id: row.id, year, status: "sectioning" },
+    note: "Extraction running in background — poll the list endpoint or refresh the page; status will move through sectioning → ocr-* → structuring → ready.",
+  });
+}
+
+async function runExtractionInBackground(rowId: string, year: string, pdfBuffer: Buffer) {
   try {
     const extraction = await extractSupplementaryFromPdf(pdfBuffer, async (status) => {
       try {
         await prisma.chineseSupplementaryPaper.update({
-          where: { id: row.id },
+          where: { id: rowId },
           data: { status },
         });
       } catch { /* non-fatal */ }
     });
-    const updated = await prisma.chineseSupplementaryPaper.update({
-      where: { id: row.id },
+    await prisma.chineseSupplementaryPaper.update({
+      where: { id: rowId },
       data: {
         pageCount: extraction.pageCount,
         paper1Pages: extraction.paper1Pages,
@@ -92,8 +110,6 @@ export async function POST(request: NextRequest) {
         paper3Text: extraction.paper3Text || null,
         paper1AnswerText: extraction.paper1AnswerText || null,
         paper3AnswerText: extraction.paper3AnswerText || null,
-        // Structured (Phase 2). Stored as JSON; null when extraction
-        // failed for that section so the UI can render a fallback.
         compoOption1Topic: extraction.structured.compoOption1Topic,
         compoOption2: extraction.structured.compoOption2 ?? undefined,
         listeningMcqs: extraction.structured.listeningMcqs.length ? extraction.structured.listeningMcqs : undefined,
@@ -105,13 +121,14 @@ export async function POST(request: NextRequest) {
         errorMessage: null,
       },
     });
-    return NextResponse.json({ row: updated });
+    console.log(`[chinese-oral-compo] ${year} extraction complete`);
   } catch (err) {
     console.error(`[chinese-oral-compo] extraction failed for ${year}:`, err);
-    await prisma.chineseSupplementaryPaper.update({
-      where: { id: row.id },
-      data: { status: "failed", errorMessage: err instanceof Error ? err.message : String(err) },
-    });
-    return NextResponse.json({ error: "Extraction failed", details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    try {
+      await prisma.chineseSupplementaryPaper.update({
+        where: { id: rowId },
+        data: { status: "failed", errorMessage: err instanceof Error ? err.message : String(err) },
+      });
+    } catch { /* even logging the failure failed — give up */ }
   }
 }

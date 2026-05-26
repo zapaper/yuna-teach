@@ -172,7 +172,7 @@ function ChineseOralCompoAdmin() {
           </div>
           <button onClick={upload} disabled={uploading || !year || !file}
             className="bg-slate-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-slate-900 disabled:opacity-50">
-            {uploading ? "Extracting… (1-3 min)" : "Upload & extract"}
+            {uploading ? "Uploading…" : "Upload & start extraction"}
           </button>
         </div>
         {(!year || !file) && !uploading && (
@@ -182,6 +182,8 @@ function ChineseOralCompoAdmin() {
         )}
         {uploadErr && <p className="text-xs text-red-600 mt-2">{uploadErr}</p>}
         <p className="text-xs text-slate-400 mt-2">
+          Upload returns in a few seconds, then extraction runs in the background (1-3 min).
+          Watch the status column below — it walks through sectioning → ocr-* → structuring → ready.
           Re-uploading an existing year replaces the previous extraction.
         </p>
       </div>
