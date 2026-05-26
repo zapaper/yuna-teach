@@ -2921,17 +2921,28 @@ export async function analyzeExamStructure(
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
   console.log("[Exam Pipeline] Structure raw response (first 300 chars):", text.slice(0, 300));
-  let parsed: StructureResult;
+  let parsedRaw: unknown;
   try {
-    parsed = JSON.parse(sanitizeJsonString(text));
+    parsedRaw = JSON.parse(sanitizeJsonString(text));
   } catch (parseErr) {
     throw new Error(`Structure analysis: JSON parse failed (truncated response?). Raw snippet: ${text.slice(0, 300)}. Error: ${parseErr}`);
   }
+  // Gemini occasionally wraps the response in a single-element array
+  // (`[{...}]`) instead of returning the object directly — saw this on
+  // PSLE Science 2025. Unwrap defensively before validating.
+  if (Array.isArray(parsedRaw) && parsedRaw.length === 1) {
+    console.warn("[Exam Pipeline] Structure response was array-wrapped; unwrapping.");
+    parsedRaw = parsedRaw[0];
+  }
+  if (!parsedRaw || typeof parsedRaw !== "object" || Array.isArray(parsedRaw)) {
+    throw new Error(`Structure analysis: expected object, got ${Array.isArray(parsedRaw) ? `array of length ${parsedRaw.length}` : typeof parsedRaw}. Raw: ${text.slice(0, 600)}`);
+  }
+  const parsed = parsedRaw as StructureResult;
   if (!Array.isArray(parsed.pages)) {
-    throw new Error(`Structure analysis: missing pages array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
+    throw new Error(`Structure analysis: missing pages array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 600)}`);
   }
   if (!Array.isArray(parsed.papers)) {
-    throw new Error(`Structure analysis: missing papers array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
+    throw new Error(`Structure analysis: missing papers array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 600)}`);
   }
   // When there is only one paper (e.g. a standalone Chinese 华文 Paper 2
   // upload), strip any prefix the AI may have assigned from the label.
