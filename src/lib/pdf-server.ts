@@ -10,6 +10,21 @@
 // so it doesn't try to fetch CDN fonts at render time.
 
 import { createCanvas, type SKRSContext2D, type Canvas } from "@napi-rs/canvas";
+import path from "path";
+import { pathToFileURL } from "url";
+import { createRequire } from "module";
+
+// Locate pdfjs-dist's bundled standard fonts + CMaps so we can pass
+// them as file:// URLs to getDocument(). Without these, every PDF
+// that references Helvetica / Times / Arial (i.e. nearly every PDF)
+// logs "UnknownErrorException: Ensure that the standardFontDataUrl
+// API parameter is provided" and falls back to a default font that
+// can corrupt text rendering. CMaps matter for CJK encoded PDFs
+// (PSLE Chinese papers, prelim papers from local schools).
+const _req = createRequire(import.meta.url);
+const _pdfjsPkgPath = path.dirname(_req.resolve("pdfjs-dist/package.json"));
+const STANDARD_FONT_DATA_URL = pathToFileURL(path.join(_pdfjsPkgPath, "standard_fonts") + "/").href;
+const C_MAP_URL = pathToFileURL(path.join(_pdfjsPkgPath, "cmaps") + "/").href;
 
 type CanvasAndContext = { canvas: Canvas; context: SKRSContext2D };
 
@@ -49,6 +64,9 @@ export async function renderPdfToJpegs(
     useSystemFonts: false,
     disableFontFace: true,
     isEvalSupported: false,
+    standardFontDataUrl: STANDARD_FONT_DATA_URL,
+    cMapUrl: C_MAP_URL,
+    cMapPacked: true,
   }).promise;
 
   const factory = new NodeCanvasFactory();
