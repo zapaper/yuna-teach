@@ -296,7 +296,7 @@ function EnglishOralCompoAdmin() {
                     <summary className="cursor-pointer px-4 py-2 font-bold text-sm text-emerald-800">
                       📝 Situational Writing — Model Essay {detail.situationalModel ? `(${detail.situationalModel.length} chars)` : "(not detected)"}
                     </summary>
-                    {detail.situationalModel && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{detail.situationalModel}</p>}
+                    {detail.situationalModel && <FormattedModelText text={detail.situationalModel} className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap" />}
                   </details>
 
                   {/* Part 2 — Continuous Writing: theme + 3 picture prompts */}
@@ -358,7 +358,7 @@ function EnglishOralCompoAdmin() {
                     <summary className="cursor-pointer px-4 py-2 font-bold text-sm text-emerald-800">
                       📝 Continuous Writing — Model Essay {detail.continuousModel ? `(${detail.continuousModel.length} chars)` : "(not detected)"}
                     </summary>
-                    {detail.continuousModel && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{detail.continuousModel}</p>}
+                    {detail.continuousModel && <FormattedModelText text={detail.continuousModel} className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap" />}
                   </details>
 
                   {/* Writing-section re-extract controls (paper1 / paper1Answer text + writing pictures) */}
@@ -510,7 +510,7 @@ function EnglishOralCompoAdmin() {
                               {items.map((it, i) => (
                                 <div key={i} className="mb-2">
                                   <p className="text-xs font-semibold text-emerald-800">({it.q})</p>
-                                  <p className="text-xs text-slate-700 whitespace-pre-wrap">{it.answer}</p>
+                                  <FormattedModelText text={it.answer} className="text-xs text-slate-700 whitespace-pre-wrap" />
                                 </div>
                               ))}
                             </div>
@@ -883,6 +883,34 @@ function ManualPictureCropper({
       </div>
     </div>
   );
+}
+
+// Render model-essay text that may contain inline formatting tags
+// (`<u>underline</u>`, `<b>bold</b>`, `<i>italic</i>`, `<br>`, plus
+// their long forms <strong>/<em>) coming out of Gemini OCR. The
+// raw string was being displayed verbatim, so admins saw literal
+// "<u>" characters in the essay. Whitelist-sanitise then render
+// via dangerouslySetInnerHTML — the input is OCR'd content from
+// our own PSLE PDFs (admin-only flow), so XSS surface is minimal,
+// but we still strip anything outside the allowed tag set.
+function FormattedModelText({ text, className }: { text: string; className?: string }) {
+  // Step 1: HTML-escape everything.
+  let html = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+  // Step 2: Un-escape the small set of formatting tags we trust.
+  const allow = ["u", "b", "i", "strong", "em", "br"];
+  for (const tag of allow) {
+    const open = new RegExp(`&lt;${tag}&gt;`, "gi");
+    const close = new RegExp(`&lt;/${tag}&gt;`, "gi");
+    html = html.replace(open, `<${tag}>`).replace(close, `</${tag}>`);
+  }
+  // Self-closing <br/>
+  html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+  return <p className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 // One-click full re-extract of the Paper 3 (Listening) section.
