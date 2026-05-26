@@ -214,6 +214,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         studentId: sid,
         quizType: pickerType,
         subject: pickerSubject,
+        firstQuiz: true,  // cap MCQ count at 15 (instead of 20) for the onboarding quiz
       };
       if (pickerSubject === "english") {
         const sections = ["grammar-mcq", "vocab-mcq"];

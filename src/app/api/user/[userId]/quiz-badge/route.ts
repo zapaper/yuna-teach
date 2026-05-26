@@ -55,31 +55,31 @@ export async function GET(
       count: 1,
       badge: "Bronze Quizzer",
       image: "/bronzequizzer.png",
-      message: "Congratulations on completing your first daily quiz! You have earned the Bronze Quizzer badge.",
+      message: "Congratulations on attempting your first daily quiz! You have earned the Bronze Quizzer badge.",
     },
     {
       count: 3,
       badge: "Silver Quizzer",
       image: "/silverquizzer.png",
-      message: "Amazing effort! 3 daily quizzes completed! You have earned the Silver Quizzer badge.",
+      message: "Amazing effort! 3 daily quizzes attempted! You have earned the Silver Quizzer badge.",
     },
     {
       count: 10,
       badge: "Gold Quizzer",
       image: "/goldquizzer.png",
-      message: "Incredible dedication! 10 daily quizzes completed! You have earned the Gold Quizzer badge.",
+      message: "Incredible dedication! 10 daily quizzes attempted! You have earned the Gold Quizzer badge.",
     },
     {
       count: 50,
       badge: "Diamond Quizzer",
       image: "/diamondquizzer.png",
-      message: "Unstoppable! 50 daily quizzes completed! You have earned the Diamond Quizzer badge.",
+      message: "Unstoppable! 50 daily quizzes attempted! You have earned the Diamond Quizzer badge.",
     },
     {
       count: 100,
       badge: "Legendary Quizzer",
       image: "/legendaryquizzer.png",
-      message: "Legendary status unlocked! 100 daily quizzes completed! You have earned the Legendary Quizzer badge.",
+      message: "Legendary status unlocked! 100 daily quizzes attempted! You have earned the Legendary Quizzer badge.",
     },
   ];
 

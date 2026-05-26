@@ -271,7 +271,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // / avatar / habitats unlock.
   const earnedPoints = examPapers.filter(p => p.completedAt && !p.isRevision).reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   const hasAvatar = parentAllowedAvatar && earnedPoints >= 100;
-  const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
+  // (removed showFirstQuizPopup — merged with showAccountInfo into a
+  // single first-visit modal.)
   const [showPointsMilestone, setShowPointsMilestone] = useState(false);
   const [milestoneMessage, setMilestoneMessage] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -439,13 +440,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("popstate", onPopState); window.removeEventListener("focus", onFocus); clearInterval(poll); };
   }, [userId]);
 
-  // First-time student popup — only if student has no completed papers
-  useEffect(() => {
-    if (firstQuiz && examPapers.filter(p => p.completedAt).length === 0) {
-      const timer = setTimeout(() => setShowFirstQuizPopup(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [firstQuiz, examPapers]);
+  // (firstQuiz popup removed — accountInfo popup now covers both
+  // the welcome-with-first-quiz message and the parent-vs-student
+  // account reminder. accountInfo trigger remains below.)
 
   useEffect(() => {
     fetch(`/api/user/${userId}/quiz-badge`)
@@ -851,18 +848,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       )}
 
       {/* First-time student popup */}
-      {showFirstQuizPopup && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4" onClick={() => setShowFirstQuizPopup(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center" onClick={e => e.stopPropagation()}>
-            <div className="w-16 h-16 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-3xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>rocket_launch</span>
-            </div>
-            <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Welcome!</h2>
-            <p className="text-sm text-[#43474f] mb-6">Your first quiz is ready. Click on the quiz below to begin!</p>
-            <button onClick={() => setShowFirstQuizPopup(false)} className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors">Got it!</button>
-          </div>
-        </div>
-      )}
+      {/* showFirstQuizPopup removed — message merged into the
+          showAccountInfo modal below to prevent two welcome popups
+          firing back-to-back on first login. */}
 
       {/* Points milestone — avatar selection */}
       {showPointsMilestone && (
@@ -1038,7 +1026,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </div>
       )}
 
-      {/* First-visit reminder: parent vs student accounts are separate */}
+      {/* First-visit reminder: merged "first quiz ready" + "account
+          is separate from parent". Was previously two popups firing
+          back-to-back — same trigger window, jarring on first load. */}
       {showAccountInfo && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
@@ -1050,10 +1040,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </div>
             <div className="space-y-3">
               <p className="text-sm text-[#0b1c30] leading-relaxed">
-                <span className="font-extrabold">This is your own account — separate from your parent&apos;s.</span> The papers and quizzes here are just for you, and your scores stay private to you and your parent.
+                <span className="font-extrabold">Your first quiz is ready.</span> Click on the quiz below to begin.
               </p>
-              <p className="text-sm text-[#43474f] leading-relaxed">
-                Your parent has their own login to assign work and track your progress. Always log in with <span className="font-bold text-[#001e40]">your</span> username and password — not your parent&apos;s.
+              <p className="text-sm text-[#0b1c30] leading-relaxed">
+                Remember: this is <span className="font-extrabold">your own account</span> — separate from your parent&apos;s. Your scores stay private to you and your parent. Always log in with <span className="font-bold text-[#001e40]">your</span> username and password.
               </p>
             </div>
             <button
@@ -1133,7 +1123,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <span className="material-symbols-outlined">home</span>Home
             </button>
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
-              <span className="material-symbols-outlined">spellcheck</span>听写
+              <span className="material-symbols-outlined">spellcheck</span>
+              {/* Desktop has room for both labels; mobile sidebar
+                  is cramped so we keep just the CJK. */}
+              <span className="hidden lg:inline">听写 / Spelling</span>
+              <span className="inline lg:hidden">听写</span>
             </button>
             {canCreateQuiz && (
               <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
@@ -1534,7 +1528,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {canCreateQuiz && (
               <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
             )}
-            <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span><h3 className="text-sm font-extrabold text-white font-headline">听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Spelling lists</p></button>
+            <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end">
+              <span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span>
+              {/* Mobile-area tile — keep CJK only when space is tight,
+                  show both on sm+ since the tile is at least 2 columns wide. */}
+              <h3 className="text-sm font-extrabold text-white font-headline">
+                <span className="hidden sm:inline">听写 / Spelling</span>
+                <span className="inline sm:hidden">听写</span>
+              </h3>
+              <p className="text-[10px] text-[#a7c8ff]/80">Spelling lists</p>
+            </button>
           </section>
           {/* Spelling tests moved to /spelling page */}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}{completedPapers.length > pastWorkLimit && <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-2.5 text-xs font-bold text-[#003366] bg-[#eff4ff] rounded-xl hover:bg-[#dce9ff] transition-colors">See more ({completedPapers.length - pastWorkLimit} remaining)</button>}</div>}</section>}

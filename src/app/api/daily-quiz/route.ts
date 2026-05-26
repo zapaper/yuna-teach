@@ -27,7 +27,7 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections, chineseSections, sourcePaperId, scheduledFor, focused, revisionLevel } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, chineseSections, sourcePaperId, scheduledFor, focused, revisionLevel, firstQuiz } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     sourcePaperId?: string; // admin: generate test quiz from specific paper
     scheduledFor?: string; // ISO date; when the quiz should appear on the student's dashboard
     focused?: boolean; // when true + english + single section, take 2x questions for that section
+    firstQuiz?: boolean; // when true (onboarding flow) we cap MCQ count at 15 instead of 20 to soften the first impression
     // Revision mode: when set, draw from this lower level (e.g. 4 for
     // a P5 student) and relax filters — no WA1/2/3 time-of-year gate,
     // no difficulty cap, prefer EOY/Prelim papers, fall back to all
@@ -1340,7 +1341,11 @@ export async function POST(request: NextRequest) {
   shuffle(mcqFresh); shuffle(oeqFresh);
   shuffle(mcqUsed);  shuffle(oeqUsed);
 
-  const mcqTarget = quizType === "mcq" ? 20 : 10;
+  // First-time onboarding quiz: cap MCQ at 15 to ease the parent /
+  // child into the workflow without a 20-question wall. Other quiz
+  // creation paths (regular daily, focused, revision) keep 20/10.
+  const baseMcqTarget = quizType === "mcq" ? 20 : 10;
+  const mcqTarget = firstQuiz ? Math.min(15, baseMcqTarget) : baseMcqTarget;
   const oeqTarget = 5;
 
   // Top up from level-1 if current level doesn't have enough fresh questions
