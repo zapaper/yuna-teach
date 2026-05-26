@@ -235,14 +235,17 @@ function EnglishOralCompoAdmin() {
                   <h2 className="text-xl font-bold text-slate-800">PSLE English {detail.year}</h2>
                   <button onClick={() => { setOpenId(null); setDetail(null); }} className="text-slate-400 hover:text-slate-700">✕</button>
                 </div>
-                <p className="text-xs text-slate-500 mb-4">
-                  Pages — P1: {(detail.paper1Pages ?? []).join(", ") || "—"} ·
-                  P3: {(detail.paper3Pages ?? []).join(", ") || "—"} ·
-                  P4: {(detail.paper4Pages ?? []).join(", ") || "—"} ·
-                  P1 ans: {(detail.paper1AnswerPages ?? []).join(", ") || "—"} ·
-                  P3 ans: {(detail.paper3AnswerPages ?? []).join(", ") || "—"} ·
-                  P4 ans: {(detail.paper4AnswerPages ?? []).join(", ") || "—"}
-                </p>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <p className="text-xs text-slate-500">
+                    Pages — P1: {(detail.paper1Pages ?? []).join(", ") || "—"} ·
+                    P3: {(detail.paper3Pages ?? []).join(", ") || "—"} ·
+                    P4: {(detail.paper4Pages ?? []).join(", ") || "—"} ·
+                    P1 ans: {(detail.paper1AnswerPages ?? []).join(", ") || "—"} ·
+                    P3 ans: {(detail.paper3AnswerPages ?? []).join(", ") || "—"} ·
+                    P4 ans: {(detail.paper4AnswerPages ?? []).join(", ") || "—"}
+                  </p>
+                  <RedetectButton paperId={detail.id} onDone={() => loadDetail(detail.id)} />
+                </div>
 
                 {/* Re-extract panels moved inline below each section
                     (Writing / Listening / Oral). Top of modal stays
@@ -958,6 +961,47 @@ function RecropListeningButton({ paperId, onDone }: { paperId: string; onDone: (
         className="bg-indigo-700 text-white text-xs px-3 py-1.5 rounded hover:bg-indigo-800 disabled:opacity-50 whitespace-nowrap"
       >
         {working ? "Re-extracting… (1-2 min)" : "🔄 Re-extract listening"}
+      </button>
+      {msg && (
+        <p className={`text-[10px] max-w-[280px] text-right ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
+      )}
+    </div>
+  );
+}
+
+// Full re-extraction button — re-runs section-detect + OCR + structured
+// extract + auto-crops against the already-stored PDF. Use when the
+// section-detect prompt has changed and existing papers have wrong
+// page tags (no re-upload needed). Runs in background; admin refreshes
+// the modal to see status flip back to "ready".
+function RedetectButton({ paperId, onDone }: { paperId: string; onDone: () => void }) {
+  const [working, setWorking] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  async function run() {
+    if (!confirm("Re-run section detection and the FULL extraction pipeline against the stored PDF. ALL page lists, OCR text, structured fields, and auto-cropped pictures will be replaced. Continue?")) return;
+    setWorking(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/english-oral-compo/${paperId}/redetect`, { method: "POST" });
+      const data = await res.json() as { error?: string; details?: string; note?: string };
+      if (!res.ok) {
+        setMsg({ type: "err", text: data.details || data.error || "Re-extract failed" });
+      } else {
+        setMsg({ type: "ok", text: data.note || "Started — refresh in a couple of minutes." });
+        onDone();
+      }
+    } finally {
+      setWorking(false);
+    }
+  }
+  return (
+    <div className="flex flex-col items-end gap-1 shrink-0">
+      <button
+        onClick={run}
+        disabled={working}
+        className="bg-rose-600 text-white text-xs px-3 py-1.5 rounded hover:bg-rose-700 disabled:opacity-50 whitespace-nowrap"
+        title="Re-run section detection + full extraction against the stored PDF"
+      >
+        {working ? "Starting…" : "♻️ Re-run full extraction"}
       </button>
       {msg && (
         <p className={`text-[10px] max-w-[280px] text-right ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
