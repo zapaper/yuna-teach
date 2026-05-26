@@ -442,11 +442,18 @@ type StructuralPattern = {
   description: string;
   examples: Array<{ year: string; quote: string }>;
 };
-type CraftTip = { tip: string; example: string };
-type CraftCategory = { category: string; tips: CraftTip[] };
+// One weak→strong row per craft category — same red/green table shape
+// as the §5 sentence-variety upgrades. Single example per category by
+// design (more dilutes the takeaway).
+type CraftRow = {
+  category: string;        // e.g. "Vary your sentence openers"
+  weak: string;            // generic / flat phrasing
+  strong: string;          // upgraded version
+  highlight: string;       // substring of `strong` to bold
+};
 type ContinuousCraft = {
   structuralPatterns: StructuralPattern[];
-  craftCategories: CraftCategory[];
+  craftRows: CraftRow[];
 };
 
 async function analyzeContinuousCraft(rows: Row[]): Promise<ContinuousCraft> {
@@ -456,51 +463,62 @@ async function analyzeContinuousCraft(rows: Row[]): Promise<ContinuousCraft> {
     `=== ${r.year} — theme: "${r.continuousTheme}" ===\n${r.continuousModel}`
   ).join("\n\n");
 
-  console.log("[continuous-craft] analysing structural patterns + craft tips...");
+  console.log("[continuous-craft] analysing structural patterns + craft rows...");
   const res = await withRetry("continuous-craft", () => ai().models.generateContent({
     model: MODEL,
-    contents: [{ role: "user", parts: [{ text: `You are a PSLE English writing coach. Below are the marker-approved model essays for the PSLE Continuous Writing section (picture-based narrative) for 2016-2025. The themes change each year, but the CRAFT of writing a high-scoring narrative is consistent.
+    contents: [{ role: "user", parts: [{ text: `You are a PSLE English writing coach. Below are the marker-approved model essays for the PSLE Continuous Writing section (picture-based narrative) for 2016-2025. Theme varies year-on-year, but the CRAFT is consistent.
 
 ${bundle}
 
-P6 students tend to focus on plot / content and neglect craft. Your job:
+PART A — STRUCTURAL PATTERNS. Return EXACTLY these 5 patterns in this EXACT ORDER, each backed by evidence from the model essays. For each, report:
+  • the X/10 frequency (count how many model essays exhibit the pattern)
+  • a 1-2 sentence description
+  • 2-3 short quotes from real model essays (15-25 words each), tagged with the source year
 
-PART A — STRUCTURAL PATTERNS that appear consistently across model essays (e.g. "the conclusion restates or echoes the title/theme", "the opening uses a flash-forward or in-the-moment hook", "the climax is in paragraph 4 of 5"). For each pattern report frequency (X/10), description, and 2-3 actual quotes from real model essays (tag the year).
+The 5 patterns:
+  1. "Five-paragraph narrative arc (Setup → Rising Action → Climax → Falling Action → Resolution)" — the scaffolding underneath every model essay.
+  2. "Opening hook — in-the-moment dialogue, action, or sensory detail (NOT 'One sunny day…')" — examiners want to be pulled in immediately.
+  3. "Climax = a SHIFT OF EMOTION / inner turning point (not just a dramatic event)" — the heart of the story is the protagonist's emotional swing (excitement → panic, anger → remorse, doubt → resolve). Even when an external action happens, what moves the story is the internal change. Confirm this pattern and quote the emotion-shift sentence(s) from real essays.
+  4. "Conclusion echoes / restates the title or theme word(s)" — the final 1-2 sentences loop back to the year's theme so the examiner sees the topic landed.
+  5. "Lesson / reflection appears in the final paragraph (the takeaway)" — the protagonist reflects on what they learnt; often paired with the title-echo above.
 
-PART B — CRAFT TIPS grouped by category, each tip with a real before/after-style example. Categories:
-1. "Making sentences more interesting" — varied sentence openers, beats of action / dialogue / inner thought, avoiding "I + verb + object" repetition
-2. "Flow & transitions between paragraphs" — how the model essays move between scenes without jarring jumps
-3. "Showing emotion through body language" — the model essays rarely just say 'I was nervous'; they show it
-4. "Pacing — when to slow down and when to speed up" — how a climax slows down, how time-skips speed things up
-5. "Vivid setting / atmosphere" — using weather/light/sound to set mood
-6. "Conclusion craft" — how to land the ending so it feels resolved, not abrupt
+PART B — CRAFT ROWS. Produce 6-8 ROWS, each in the SAME shape as a §5 weak→strong upgrade. Each row covers a DIFFERENT craft category (not multiple tips per category, just one striking before→after per category). Categories to cover:
+  • Vary your sentence openers (avoid starting every sentence with "I")
+  • Replace flat statements of emotion with body-language / sensation (show-don't-tell)
+  • Use stronger verbs (replace "walked", "looked", "said" with specific alternatives)
+  • Add sensory detail to flat description (weather / sound / smell)
+  • Smooth a jarring paragraph transition (use a connector or echo)
+  • Slow down at the climax with short punchy sentences
+  • Replace a generic ending with a title-echoing reflective close
+  • Avoid repetitive "and then" sequencing
+
+Each row's "weak" sentence should sound like something a real P5 student would write. Each "strong" should be a credible PSLE-distinction-level rewrite. The "highlight" is the substring of "strong" that captures the key swap.
 
 Return strict JSON (NO markdown fences):
 {
   "structuralPatterns": [
     {
-      "pattern": "Conclusion echoes / restates the title or theme",
+      "pattern": "Five-paragraph narrative arc (Setup → Rising Action → Climax → Falling Action → Resolution)",
       "frequency": "9/10 essays",
-      "description": "The final 1-2 sentences loop back to the year's theme word(s), giving the essay a satisfying ring of completion.",
+      "description": "...",
       "examples": [
-        { "year": "2020", "quote": "It was a day I would forever remember as the day I rediscovered what I had lost." },
-        { "year": "2024", "quote": "From that day onwards, I learnt that trying something new can lead to the most rewarding experiences." }
+        { "year": "2020", "quote": "Setup: at the mall. Rising: bought ice cream. Climax: lost wallet. Falling: info counter. Resolution: found it." }
       ]
     },
     {
-      "pattern": "Opening uses an in-the-moment sensory hook",
+      "pattern": "Opening hook — in-the-moment dialogue, action, or sensory detail (NOT 'One sunny day…')",
       "frequency": "...",
       "description": "...",
       "examples": [...]
     },
     {
-      "pattern": "Five-paragraph arc: setup → rising tension → climax → falling action → resolution",
+      "pattern": "Climax = a SHIFT OF EMOTION / inner turning point (not just a dramatic event)",
       "frequency": "...",
       "description": "...",
       "examples": [...]
     },
     {
-      "pattern": "Climax is centered on dialogue or sudden realisation",
+      "pattern": "Conclusion echoes / restates the title or theme word(s)",
       "frequency": "...",
       "description": "...",
       "examples": [...]
@@ -512,43 +530,34 @@ Return strict JSON (NO markdown fences):
       "examples": [...]
     }
   ],
-  "craftCategories": [
+  "craftRows": [
     {
-      "category": "Making sentences more interesting (varied openers)",
-      "tips": [
-        { "tip": "Start sentences with a participial phrase, an adverb, or a subordinate clause — don't start every sentence with 'I'.", "example": "Boring: 'I walked to the door.' Better: 'Heart pounding, I walked to the door.'" },
-        { "tip": "Break up long stretches of narrative with a short, punchy sentence for emphasis.", "example": "Boring: 'I looked at the prize. I was very excited.' Better: 'I stared at the prize. My heart skipped. This was real.'" }
-      ]
+      "category": "Vary your sentence openers",
+      "weak": "I walked to the door. I felt nervous. I opened it slowly.",
+      "strong": "Heart pounding, I crept towards the door. Slowly — almost reluctantly — I turned the knob.",
+      "highlight": "Heart pounding"
     },
     {
-      "category": "Flow & transitions between paragraphs",
-      "tips": [...]
+      "category": "Show, don't tell (emotion → body language)",
+      "weak": "I was very angry when she said that.",
+      "strong": "Her words hit me like a slap. My fists clenched and my jaw tightened.",
+      "highlight": "My fists clenched and my jaw tightened"
     },
     {
-      "category": "Showing emotion through body language",
-      "tips": [...]
-    },
-    {
-      "category": "Pacing — when to slow down and when to speed up",
-      "tips": [...]
-    },
-    {
-      "category": "Vivid setting / atmosphere",
-      "tips": [...]
-    },
-    {
-      "category": "Conclusion craft",
-      "tips": [...]
+      "category": "Use stronger verbs",
+      "weak": "...",
+      "strong": "...",
+      "highlight": "..."
     }
   ]
 }
 
-Aim for AT LEAST 4-5 structural patterns and 2-3 tips per craft category. Each tip's "example" should be a clear before → better contrast OR a short quote from a model essay.` }] }],
+Aim for AT LEAST 6 craftRows. Each row must address a DIFFERENT category. The order matters — start with the most universally useful (sentence openers, show-don't-tell, stronger verbs) before moving to subtler ones (transitions, pacing).` }] }],
     config: { temperature: 0.3, responseMimeType: "application/json", maxOutputTokens: 32768 },
   }));
   const parsed = JSON.parse(res.text ?? "{}") as ContinuousCraft;
   await fs.writeFile(CONTINUOUS_CRAFT_CACHE, JSON.stringify(parsed, null, 2));
-  console.log(`[continuous-craft] done — ${parsed.structuralPatterns.length} patterns, ${parsed.craftCategories.length} craft categories`);
+  console.log(`[continuous-craft] done — ${parsed.structuralPatterns.length} patterns, ${parsed.craftRows.length} craft rows`);
   return parsed;
 }
 

@@ -94,9 +94,8 @@ type StructuralPattern = {
   pattern: string; frequency: string; description: string;
   examples: Array<{ year: string; quote: string }>;
 };
-type CraftTip = { tip: string; example: string };
-type CraftCategory = { category: string; tips: CraftTip[] };
-type ContinuousCraft = { structuralPatterns: StructuralPattern[]; craftCategories: CraftCategory[] };
+type CraftRow = { category: string; weak: string; strong: string; highlight: string };
+type ContinuousCraft = { structuralPatterns: StructuralPattern[]; craftRows: CraftRow[] };
 
 function t(text: string, opts?: { bold?: boolean; italics?: boolean; size?: number; color?: string }) {
   return new TextRun({
@@ -285,16 +284,32 @@ async function main() {
     }
   }
 
-  // 4b — craft tips by category
-  children.push(p("4b · Craft tips — by category", { heading: HeadingLevel.HEADING_2, before: 200, after: 40 }));
-  children.push(p("Students focus too much on content. These categories cover the craft side that lifts a 32-mark essay to a 40-mark one.", { italics: true, color: "6B7280", size: 20, after: 80 }));
-  for (const cat of contCraft.craftCategories) {
-    children.push(p(cat.category, { bold: true, size: 22, color: "5B21B6", before: 160, after: 40 }));
-    for (const tip of cat.tips) {
-      children.push(p(`• ${tip.tip}`, { size: 22, bold: true, after: 20 }));
-      children.push(p(tip.example, { italics: true, color: "4B5563", size: 20, after: 60 }));
-    }
-  }
+  // 4b — craft tips: weak → strong table (same red/green style as §5)
+  children.push(p("4b · Craft upgrades — weak ➜ stronger", { heading: HeadingLevel.HEADING_2, before: 200, after: 40 }));
+  children.push(p("One concrete upgrade per craft category. Each row shows the typical P5-level phrasing and the upgraded version with the key swap highlighted.", { italics: true, color: "6B7280", size: 20, after: 120 }));
+  const craftHeader = new TableRow({
+    tableHeader: true,
+    children: [
+      cell("Category", { bold: true, width: 18, bg: "EDE9FE" }),
+      cell("Weak", { bold: true, width: 32, bg: "FEE2E2" }),
+      cell("Stronger", { bold: true, width: 50, bg: "D1FAE5" }),
+    ],
+  });
+  const craftRows = contCraft.craftRows.map(row => new TableRow({
+    children: [
+      cell(row.category, { size: 20, color: "5B21B6", bold: true }),
+      cell(row.weak, { size: 22 }),
+      new TableCell({
+        margins: { top: 60, bottom: 60, left: 80, right: 80 },
+        children: [new Paragraph({ children: boldSubstringRun(row.strong, row.highlight) })],
+      }),
+    ],
+  }));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: tableBorder(),
+    rows: [craftHeader, ...craftRows],
+  }));
 
   // 4c — openings + closings phrase bank
   children.push(p("4c · Opening + closing phrase bank", { heading: HeadingLevel.HEADING_2, before: 200, after: 40 }));

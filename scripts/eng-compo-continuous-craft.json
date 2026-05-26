@@ -1,13 +1,66 @@
 {
   "structuralPatterns": [
     {
-      "pattern": "Conclusion echoes / restates the title or theme",
-      "frequency": "10/10 essays",
-      "description": "The final 1-2 sentences loop back to the year's theme word(s), giving the essay a satisfying ring of completion and ensuring the examiner knows the topic was addressed.",
+      "pattern": "Five-paragraph narrative arc (Setup → Rising Action → Climax → Falling Action → Resolution)",
+      "frequency": "10/10",
+      "description": "Every model essay is scaffolded on a clear narrative trajectory, moving from an established setting through escalating tension to a climax, followed by a resolution and reflection.",
+      "examples": [
+        {
+          "year": "2020",
+          "quote": "Setup: at the mall. Rising: bought ice cream. Climax: lost wallet. Falling: info counter. Resolution: found it."
+        },
+        {
+          "year": "2017",
+          "quote": "Setup: broken toy. Rising: anger subsides. Climax: birthday surprise. Falling: discovers brother's sacrifice. Resolution: warm embrace."
+        }
+      ]
+    },
+    {
+      "pattern": "Opening hook — in-the-moment dialogue, action, or sensory detail (NOT 'One sunny day…')",
+      "frequency": "10/10",
+      "description": "Examiners are immediately pulled into the scene through active dialogue, a specific physical action, or an intriguing sensory detail rather than generic weather reports.",
+      "examples": [
+        {
+          "year": "2019",
+          "quote": "\"What's this?\" I asked, waving an envelope I had found on the dining table."
+        },
+        {
+          "year": "2021",
+          "quote": "\"Grrr...\" Kim shot a knowing look at her sister Jolie. Jolie smiled back sheepishly and patted her rumbling stomach..."
+        },
+        {
+          "year": "2022",
+          "quote": "\"Have you set up an appointment yet?\" I prodded my mother again as she sipped her coffee, phone in one hand."
+        }
+      ]
+    },
+    {
+      "pattern": "Climax = a SHIFT OF EMOTION / inner turning point (not just a dramatic event)",
+      "frequency": "10/10",
+      "description": "The true climax of the story relies on the protagonist's internal emotional shift—such as moving from panic to resolve, or anger to empathy—rather than just the external action.",
+      "examples": [
+        {
+          "year": "2020",
+          "quote": "He resisted the urge to panic and remembered his mother's instructions to go to the information counter whenever he needed help."
+        },
+        {
+          "year": "2017",
+          "quote": "However, I did not have the heart to do so after seeing his pitiful expression. My anger subsided and I forgot about it..."
+        },
+        {
+          "year": "2023",
+          "quote": "His heart was touched by the stories of rescued dogs and cats finding forever homes, thanks to the run."
+        }
+      ]
+    },
+    {
+      "pattern": "Conclusion echoes / restates the title or theme word(s)",
+      "frequency": "10/10",
+      "description": "The final sentences explicitly loop back to the year's theme word or phrase, proving to the examiner that the essay stayed entirely on topic.",
       "examples": [
         {
           "year": "2018",
-          "quote": "...proud of the teamwork we had displayed in working together to win the competition."
+          "quote": "...I looked at my team members in appreciation, proud of the teamwork we had displayed in working together to win the competition."
         },
         {
           "year": "2023",
@@ -20,176 +73,69 @@
       ]
     },
     {
-      "pattern": "Opening uses an in-the-moment sensory hook or dialogue",
-      "frequency": "8/10 essays",
-      "description": "Instead of starting with 'One sunny day', the essays begin right in the middle of a conversation, an action, or a sensory detail to immediately grab the reader's attention.",
-      "examples": [
-        {
-          "year": "2019",
-          "quote": "\"What's this?\" I asked, waving an envelope I had found on the dining table."
-        },
-        {
-          "year": "2021",
-          "quote": "\"Grrr...\" Kim shot a knowing look at her sister Jolie."
-        },
-        {
-          "year": "2022",
-          "quote": "\"Have you set up an appointment yet?\" I prodded my mother again as she sipped her coffee..."
-        }
-      ]
-    },
-    {
-      "pattern": "Five-paragraph narrative arc (Setup → Rising Action → Climax → Falling Action → Resolution)",
-      "frequency": "9/10 essays",
-      "description": "The story builds logically. Paragraphs 1-2 set the scene and introduce the problem, paragraphs 3-4 contain the main event or climax, and the final paragraph resolves the issue.",
-      "examples": [
-        {
-          "year": "2020",
-          "quote": "Setup: going to mall. Rising: buying ice cream. Climax: wallet lost. Falling: info counter. Resolution: found it."
-        },
-        {
-          "year": "2023",
-          "quote": "Setup: lazy boy. Rising: project and training. Climax: charity run. Resolution: changed for the better."
-        }
-      ]
-    },
-    {
       "pattern": "Lesson / reflection appears in the final paragraph (the takeaway)",
-      "frequency": "8/10 essays",
-      "description": "The protagonist reflects on what they learned from the experience, adding emotional depth to the narrative rather than just ending the physical action.",
+      "frequency": "10/10",
+      "description": "The protagonist reflects on the moral of the story or what they learned from the experience, providing a mature, thoughtful takeaway to close the narrative.",
       "examples": [
-        {
-          "year": "2017",
-          "quote": "It had special significance, for it was a symbol of my brother's love for me."
-        },
         {
           "year": "2025",
           "quote": "That simple train ride taught me that kindness does not need to be grand. Even giving up a seat can make a big difference."
-        }
-      ]
-    },
-    {
-      "pattern": "Climax is centered on a sudden realisation, mishap, or reveal",
-      "frequency": "7/10 essays",
-      "description": "The peak of the story usually involves a sudden shift in emotion—a shock, a mistake, or a surprise—that forces the character to react quickly.",
-      "examples": [
-        {
-          "year": "2016",
-          "quote": "She turned around and froze. It was Lisa's mother."
         },
         {
-          "year": "2019",
-          "quote": "Suddenly, my cousin coughed and before I knew it, she had thrown up milk all over me!"
-        },
-        {
-          "year": "2020",
-          "quote": "Roger dug around his pocket for his wallet. To his horror, he was unable to find it."
+          "year": "2017",
+          "quote": "It had special significance, for it was a symbol of my brother's love for me. That was something no amount of money in the world could buy."
         }
       ]
     }
   ],
-  "craftCategories": [
+  "craftRows": [
     {
-      "category": "Making sentences more interesting (varied openers)",
-      "tips": [
-        {
-          "tip": "Start with an '-ing' (participial) phrase to combine actions and avoid starting with 'I'.",
-          "example": "Boring: 'I felt bored and looked around.' Better: 'Feeling bored, I looked around for my aunt...' (2019)"
-        },
-        {
-          "tip": "Start with an adverb to immediately set the tone of the action.",
-          "example": "Boring: 'I opened it and wondered what was inside.' Better: 'I eagerly opened it, wondering what it could contain.' (2019)"
-        },
-        {
-          "tip": "Use a subordinate clause (As / When / After) to establish timing and flow.",
-          "example": "Boring: 'The car turned the corner. The view unfolded.' Better: 'As the car turned the corner, the scenic view of the sea unfolded before their eyes.' (2024)"
-        }
-      ]
+      "category": "Vary your sentence openers",
+      "weak": "I walked to the door. I felt nervous. I opened it slowly.",
+      "strong": "Heart pounding, I crept towards the door. Slowly — almost reluctantly — I turned the knob.",
+      "highlight": "Heart pounding, I crept"
     },
     {
-      "category": "Flow & transitions between paragraphs",
-      "tips": [
-        {
-          "tip": "Use time-markers to skip boring parts and move directly to the next important scene.",
-          "example": "Boring: 'We waited for a few weeks. Then it was my birthday.' Better: 'It so happened that my birthday was a few weeks after that.' (2017)"
-        },
-        {
-          "tip": "Use a summary of the previous action to launch the next paragraph smoothly.",
-          "example": "Boring: 'We got the information. Then I wrote the articles.' Better: 'After we had gathered all the information required, I proceeded to write the articles...' (2018)"
-        },
-        {
-          "tip": "Transition using a change in location or arrival to signal a new scene.",
-          "example": "Boring: 'We went to my aunt's house. It was noisy.' Better: 'Upon arriving at my aunt's house, we were greeted by raucous laughter...' (2019)"
-        }
-      ]
+      "category": "Replace flat statements of emotion with body-language / sensation (show-don't-tell)",
+      "weak": "I was very angry when she said that.",
+      "strong": "Her words hit me like a slap. My fists clenched and my jaw tightened.",
+      "highlight": "My fists clenched and my jaw tightened"
     },
     {
-      "category": "Showing emotion through body language",
-      "tips": [
-        {
-          "tip": "Show guilt or worry through facial expressions and fading voice.",
-          "example": "Boring: 'He looked guilty and stopped talking.' Better: 'He had a guilty expression on his face... his voice trailed off.' (2017)"
-        },
-        {
-          "tip": "Show excitement or impatience through physical movement and fidgeting.",
-          "example": "Boring: 'I was very impatient.' Better: 'I could hardly stay still in my seat... incessant pen-clicking, foot tapping and intermittent sighs.' (2022)"
-        },
-        {
-          "tip": "Show fear or shock through physical freezing or loss of color in the face.",
-          "example": "Boring: 'She was shocked to see her mother.' Better: 'She turned around and froze... her face was pale.' (2016)"
-        }
-      ]
+      "category": "Use stronger verbs",
+      "weak": "I looked at the big burger and ate it quickly.",
+      "strong": "I stared at the humongous burger and eagerly sank my teeth into it.",
+      "highlight": "sank my teeth into it"
     },
     {
-      "category": "Pacing — when to slow down and when to speed up",
-      "tips": [
-        {
-          "tip": "Speed up (summarize) routine days or long waits using a single sentence.",
-          "example": "Boring: 'On Monday I waited. On Tuesday I waited.' Better: 'School on Wednesday and Thursday passed by with the same restless energy.' (2022)"
-        },
-        {
-          "tip": "Slow down during the climax by describing step-by-step actions and internal panic.",
-          "example": "Boring: 'I couldn't find my wallet.' Better: 'Roger dug around his pocket for his wallet. To his horror, he was unable to find it. He searched his other pockets and peered into the shopping cart.' (2020)"
-        },
-        {
-          "tip": "Stretch out a moment of anticipation by focusing on the passage of time.",
-          "example": "Boring: 'School felt long.' Better: 'Seconds stretched into minutes and minutes stretched into hours.' (2022)"
-        }
-      ]
+      "category": "Add sensory detail to flat description",
+      "weak": "The beach was nice and we had good food.",
+      "strong": "The cooling sea breeze blew in my face as the mouth-watering aroma of food wafted through the air.",
+      "highlight": "cooling sea breeze blew in my face"
     },
     {
-      "category": "Vivid setting / atmosphere",
-      "tips": [
-        {
-          "tip": "Use weather and sky descriptions to reflect the mood of the characters.",
-          "example": "Boring: 'It was a nice day.' Better: 'The clear blue sky was a welcome sight which lifted their mood even more.' (2024)"
-        },
-        {
-          "tip": "Engage the sense of smell and sound to make a location feel three-dimensional.",
-          "example": "Boring: 'The house was noisy and had food.' Better: '...greeted by raucous laughter and loud chatter... The aroma of food wafted in the air...' (2019 & 2024)"
-        },
-        {
-          "tip": "Describe the physical environment to show, not just tell, the state of a place.",
-          "example": "Boring: 'His room was messy.' Better: 'His room was a chaotic mess...' (2023)"
-        }
-      ]
+      "category": "Smooth a jarring paragraph transition",
+      "weak": "We went home. The next day was my birthday.",
+      "strong": "My anger subsided and I forgot about it after a few days. It so happened that my birthday was a few weeks after that.",
+      "highlight": "It so happened that"
     },
     {
-      "category": "Conclusion craft",
-      "tips": [
-        {
-          "tip": "End with a philosophical realization or lesson learned that applies to real life.",
-          "example": "Boring: 'I liked the train ride.' Better: 'That simple train ride taught me that kindness does not need to be grand.' (2025)"
-        },
-        {
-          "tip": "Revisit an object or action from the beginning of the story to create a 'full circle' ending.",
-          "example": "Boring: 'We went home.' Better: 'As the car drove off, Justin leaned against the window... He was also glad that he added lettuce into his sandwich...' (2024)"
-        },
-        {
-          "tip": "Explicitly state the theme word to leave no doubt for the examiner that you answered the prompt.",
-          "example": "Boring: 'He was a better person now.' Better: 'Tommy had changed for the better, and it all began with that simple history project.' (2023)"
-        }
-      ]
+      "category": "Slow down at the climax with short punchy sentences",
+      "weak": "I looked in my pocket and the shopping cart but my wallet was gone so I panicked.",
+      "strong": "I dug around my pocket. Nothing. I peered into the shopping cart. It was nowhere to be found!",
+      "highlight": "Nothing. I peered into the shopping cart."
+    },
+    {
+      "category": "Replace a generic ending with a title-echoing reflective close",
+      "weak": "We went home happily. It was a fun day.",
+      "strong": "As the car drove off, I smiled in contentment. Trying something new was not bad at all!",
+      "highlight": "Trying something new was not bad at all!"
+    },
+    {
+      "category": "Avoid repetitive \"and then\" sequencing",
+      "weak": "And then we printed it out and then we checked for errors.",
+      "strong": "After we were satisfied, we printed a copy out and read it carefully to check if there were any errors.",
+      "highlight": "After we were satisfied,"
     }
   ]
 }
