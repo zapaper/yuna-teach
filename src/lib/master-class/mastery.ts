@@ -121,7 +121,10 @@ export async function getMasteryReport(
     const t = tally.get(st.id);
     if (!t || t.available === 0) continue;
     const pct = t.awarded / t.available;
-    if (pct >= 0.9999) {
+    // 95% threshold. Was 100% (0.9999 float-safe) but that was too
+    // strict — one careless mistake on a 5-mark sub-topic dropped the
+    // student from "mastered" to "weak", which felt punishing.
+    if (pct >= 0.95) {
       st.state = "mastered";
     } else {
       st.state = "weak";
