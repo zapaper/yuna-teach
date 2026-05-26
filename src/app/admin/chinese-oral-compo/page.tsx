@@ -244,9 +244,15 @@ function ChineseOralCompoAdmin() {
                   <h2 className="text-xl font-bold text-slate-800">PSLE Chinese {detail.year}</h2>
                   <button onClick={() => { setOpenId(null); setDetail(null); }} className="text-slate-400 hover:text-slate-700">✕</button>
                 </div>
-                <p className="text-xs text-slate-500 mb-4">
+                <p className="text-xs text-slate-500 mb-2">
                   Pages detected — Paper 1: {(detail.paper1Pages ?? []).join(", ") || "—"} · Paper 3: {(detail.paper3Pages ?? []).join(", ") || "—"} · P1 ans: {(detail.paper1AnswerPages ?? []).join(", ") || "—"} · P3 ans: {(detail.paper3AnswerPages ?? []).join(", ") || "—"}
                 </p>
+                <ReextractPanel paperId={detail.id} initial={{
+                  paper1: detail.paper1Pages ?? [],
+                  paper3: detail.paper3Pages ?? [],
+                  paper1Answer: detail.paper1AnswerPages ?? [],
+                  paper3Answer: detail.paper3AnswerPages ?? [],
+                }} onDone={() => loadDetail(detail.id)} />
 
                 {/* === Structured extraction (Phase 2) === */}
                 <div className="space-y-4 mb-6">
@@ -403,6 +409,97 @@ function ChineseOralCompoAdmin() {
         </div>
       )}
     </div>
+  );
+}
+
+// Per-section re-extract panel — admin types the correct page
+// numbers for any section (1-indexed, comma-separated) and hits
+// re-extract. Used when Gemini's auto-detect picked the wrong
+// pages and the OCR / structured fields for that section came out
+// empty or wrong.
+type SectionKey = "paper1" | "paper3" | "paper1Answer" | "paper3Answer";
+const SECTION_LABELS: Record<SectionKey, string> = {
+  paper1: "Paper 1 (作文)",
+  paper3: "Paper 3 (听力)",
+  paper1Answer: "Paper 1 answers / 范文",
+  paper3Answer: "Paper 3 answers / 录音稿",
+};
+function ReextractPanel({
+  paperId,
+  initial,
+  onDone,
+}: {
+  paperId: string;
+  initial: Record<SectionKey, number[]>;
+  onDone: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [inputs, setInputs] = useState<Record<SectionKey, string>>({
+    paper1: initial.paper1.join(","),
+    paper3: initial.paper3.join(","),
+    paper1Answer: initial.paper1Answer.join(","),
+    paper3Answer: initial.paper3Answer.join(","),
+  });
+  const [working, setWorking] = useState<SectionKey | null>(null);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  async function run(section: SectionKey) {
+    const pages = inputs[section]
+      .split(/[,\s]+/)
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => Number.isFinite(n) && n > 0);
+    if (pages.length === 0) { setMsg({ type: "err", text: "Enter at least one page number" }); return; }
+    setWorking(section); setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/chinese-oral-compo/${paperId}/reextract`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section, pages }),
+      });
+      const data = await res.json() as { error?: string; details?: string; textLength?: number };
+      if (!res.ok) {
+        setMsg({ type: "err", text: data.details || data.error || "Re-extract failed" });
+      } else {
+        setMsg({ type: "ok", text: `${SECTION_LABELS[section]} re-extracted (${data.textLength} chars). Reloading…` });
+        onDone();
+      }
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  return (
+    <details className="mb-4 border border-amber-300 rounded-lg bg-amber-50" open={open} onToggle={e => setOpen((e.target as HTMLDetailsElement).open)}>
+      <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-amber-800">
+        🛠️ Re-extract section from specific pages (override auto-detect)
+      </summary>
+      <div className="p-3 space-y-2">
+        <p className="text-xs text-slate-600 mb-2">
+          Type the 1-indexed page numbers for the section (e.g. <code className="bg-white px-1 rounded">2, 3</code>), then click Re-extract.
+          Only the OCR + structured fields for that section are overwritten; other sections stay as-is.
+        </p>
+        {(["paper1", "paper3", "paper1Answer", "paper3Answer"] as SectionKey[]).map(key => (
+          <div key={key} className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-700 w-44">{SECTION_LABELS[key]}</label>
+            <input
+              value={inputs[key]}
+              onChange={e => setInputs({ ...inputs, [key]: e.target.value })}
+              placeholder="e.g. 2, 3"
+              className="flex-1 border border-slate-300 rounded px-2 py-1 text-xs font-mono"
+              disabled={!!working}
+            />
+            <button
+              onClick={() => run(key)}
+              disabled={!!working}
+              className="bg-amber-700 text-white text-xs px-3 py-1 rounded hover:bg-amber-800 disabled:opacity-50">
+              {working === key ? "Working…" : "Re-extract"}
+            </button>
+          </div>
+        ))}
+        {msg && (
+          <p className={`text-xs ${msg.type === "ok" ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>
+        )}
+      </div>
+    </details>
   );
 }
 

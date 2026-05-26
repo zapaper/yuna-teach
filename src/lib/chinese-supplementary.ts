@@ -473,3 +473,74 @@ export async function extractSupplementaryFromPdf(
     },
   };
 }
+
+// ───────────────────────────────────────────────────────────────
+// Per-section re-extraction
+// ───────────────────────────────────────────────────────────────
+// Used by the admin "Re-extract this section" button when Gemini's
+// initial page detection got the wrong range — admin manually
+// specifies the pages and we re-run just OCR + structured extract
+// for that one section, leaving the other sections untouched.
+
+export type SectionKey = "paper1" | "paper3" | "paper1Answer" | "paper3Answer";
+
+export type SectionReextract = {
+  section: SectionKey;
+  pages: number[];                        // 1-indexed pages used
+  text: string;                           // raw OCR
+  // Structured fields populated for the relevant section only.
+  compoOption1Topic?: string | null;
+  compoOption2?: CompoOption2 | null;
+  listeningMcqs?: ListeningMcq[];
+  listeningPassages?: ListeningPassage[];
+  compoOption1Model?: string | null;
+  compoOption2Model?: string | null;
+  listeningAnswers?: ListeningAnswer[];
+};
+
+const SECTION_LABEL: Record<SectionKey, string> = {
+  paper1: "Paper 1 作文",
+  paper3: "Paper 3 口试 / 听力",
+  paper1Answer: "Paper 1 答案 / 评分标准",
+  paper3Answer: "Paper 3 答案 / 录音稿",
+};
+
+export async function reextractSection(
+  pdfBuffer: Buffer,
+  section: SectionKey,
+  pages: number[],
+): Promise<SectionReextract> {
+  if (pages.length === 0) {
+    throw new Error("pages array is empty");
+  }
+  // Render the FULL PDF once — ocrSection then picks the indices it
+  // needs. The render is cached implicitly in memory for this single
+  // call so it's still cheap.
+  const allPages = await renderPdfToJpegs(pdfBuffer, 1600, 80);
+  const bad = pages.filter(p => p < 1 || p > allPages.length);
+  if (bad.length) throw new Error(`pages out of range (PDF has ${allPages.length}): ${bad.join(", ")}`);
+
+  const text = await ocrSection(allPages, pages, SECTION_LABEL[section]);
+
+  const out: SectionReextract = { section, pages, text };
+
+  // Re-run the matching structured-extraction pass for this section
+  // only. Each is best-effort; failures leave the structured field
+  // undefined so the caller can fall back to raw text.
+  if (section === "paper1") {
+    const s = await extractCompoStructure(allPages, pages, text);
+    out.compoOption1Topic = s.compoOption1Topic;
+    out.compoOption2 = s.compoOption2;
+  } else if (section === "paper3") {
+    const s = await extractListeningStructure(allPages, pages, text);
+    out.listeningMcqs = s.listeningMcqs;
+    out.listeningPassages = s.listeningPassages;
+  } else if (section === "paper1Answer") {
+    const s = await extractCompoAnswers(text);
+    out.compoOption1Model = s.compoOption1Model;
+    out.compoOption2Model = s.compoOption2Model;
+  } else if (section === "paper3Answer") {
+    out.listeningAnswers = await extractListeningAnswers(text);
+  }
+  return out;
+}
