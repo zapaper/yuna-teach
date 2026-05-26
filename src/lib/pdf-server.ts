@@ -141,3 +141,54 @@ export async function renderPdfToJpegs(
   }
   return out;
 }
+
+// Render a SINGLE page from a PDF. Much faster than renderPdfToJpegs
+// when the caller only needs one page (e.g. the cropper UI re-loading
+// the source page on demand). A 30-page PSLE PDF goes from ~10-30s
+// down to ~1-2s for one page.
+export async function renderPdfPage(
+  buf: Buffer,
+  pageNumber: number,
+  maxDim = 2048,
+  quality = 85,
+): Promise<Buffer> {
+  const pdfjs = await getPdfjs();
+  const data = new Uint8Array(buf);
+  const { standardFontDataUrl, cMapUrl } = getPdfjsAssetUrls();
+  const doc = await pdfjs.getDocument({
+    data,
+    useSystemFonts: false,
+    disableFontFace: true,
+    isEvalSupported: false,
+    standardFontDataUrl,
+    cMapUrl,
+    cMapPacked: true,
+  }).promise;
+  try {
+    if (pageNumber < 1 || pageNumber > doc.numPages) {
+      throw new Error(`pageNumber ${pageNumber} out of range (1..${doc.numPages})`);
+    }
+    const factory = new NodeCanvasFactory();
+    const page = await doc.getPage(pageNumber);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(maxDim / baseViewport.width, maxDim / baseViewport.height, 2);
+    const viewport = page.getViewport({ scale });
+    const w = Math.ceil(viewport.width);
+    const h = Math.ceil(viewport.height);
+    const cc = factory.create(w, h);
+    await page.render({
+      canvas: cc.canvas as unknown as HTMLCanvasElement,
+      canvasContext: cc.context as unknown as CanvasRenderingContext2D,
+      viewport,
+      canvasFactory: factory as unknown as object,
+      background: "white",
+      annotationMode: 1,
+    } as Parameters<typeof page.render>[0]).promise;
+    const out = cc.canvas.toBuffer("image/jpeg", quality);
+    factory.destroy(cc);
+    page.cleanup();
+    return out;
+  } finally {
+    await doc.destroy();
+  }
+}

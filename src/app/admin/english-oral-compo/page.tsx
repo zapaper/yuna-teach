@@ -748,12 +748,20 @@ function ManualPictureCropper({
   paperId, year, kind, label, onSaved,
 }: { paperId: string; year: string; kind: string; label: string; onSaved: () => void }) {
   const imgRef = useRef<HTMLImageElement>(null);
-  const [pageUrl, setPageUrl] = useState<string>(`/api/admin/english-oral-compo/${paperId}/picture?kind=${kind}&type=page`);
+  const [pageOverride, setPageOverride] = useState("");
+  const buildPageUrl = (cacheBust = false) => {
+    const params = new URLSearchParams({ kind, type: "page" });
+    if (pageOverride.trim()) params.set("page", pageOverride.trim());
+    if (cacheBust) params.set("_", String(Date.now()));
+    return `/api/admin/english-oral-compo/${paperId}/picture?${params.toString()}`;
+  };
+  const [pageUrl, setPageUrl] = useState<string>(() => buildPageUrl());
   const [box, setBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
 
   function fracFromEvent(e: React.MouseEvent): { x: number; y: number } | null {
     const img = imgRef.current;
@@ -803,21 +811,27 @@ function ManualPictureCropper({
     <div className="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
       <p className="text-xs font-semibold text-slate-800 mb-1">{label}</p>
       <p className="text-[10px] text-slate-500 mb-2">
-        Drag a rectangle around the picture, then click Save. Saved as
+        Drag a rectangle around the picture, then click Save. Loading a page can take a few seconds while the PDF renders. Saved as
         <code className="ml-1 px-1 bg-slate-100 rounded">{year}_{kind}.jpg</code>.
       </p>
       <div className="flex gap-3 items-start">
         <div className="flex-1 max-w-md">
           <div
-            className="relative inline-block select-none cursor-crosshair border border-slate-300 rounded bg-white"
+            className="relative inline-block select-none cursor-crosshair border border-slate-300 rounded bg-white min-h-[120px]"
             onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
           >
+            {pageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-50 text-xs text-slate-500 pointer-events-none">
+                <span className="animate-pulse">Loading page…</span>
+              </div>
+            )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={imgRef} src={pageUrl} alt={label}
               className="block max-w-full pointer-events-none"
               draggable={false}
-              onError={() => setError("Couldn't load page image — picturePageNum may be missing or wrong.")}
+              onLoad={() => { setPageLoading(false); setError(null); }}
+              onError={() => { setPageLoading(false); setError("Couldn't load page image. Type a page number above and click Load."); }}
             />
             {box && (
               <div className="absolute border-2 border-sky-600 bg-sky-600/20 pointer-events-none"
@@ -827,15 +841,20 @@ function ManualPictureCropper({
                 }} />
             )}
           </div>
-          <div className="flex gap-2 mt-1">
-            <button onClick={save} disabled={saving || !box || box.width < 0.02}
+          <div className="flex gap-2 mt-1 items-center flex-wrap">
+            <span className="text-[10px] text-slate-500">Page:</span>
+            <input value={pageOverride} onChange={e => setPageOverride(e.target.value)} placeholder="auto"
+              className="w-16 border border-slate-300 rounded px-1 py-0.5 text-xs font-mono" disabled={pageLoading || saving} />
+            <button onClick={() => { setPageLoading(true); setPageUrl(buildPageUrl(true)); }} disabled={pageLoading || saving}
+              className="text-xs text-slate-600 hover:text-slate-800 border border-slate-300 rounded px-2 py-0.5 disabled:opacity-50">
+              {pageLoading ? "Loading…" : "Load"}
+            </button>
+            <button onClick={save} disabled={saving || pageLoading || !box || box.width < 0.02}
               className="bg-sky-700 text-white text-xs px-3 py-1 rounded hover:bg-sky-800 disabled:opacity-50">
               {saving ? "Saving…" : "Save crop"}
             </button>
             <button onClick={() => setBox(null)} disabled={!box || saving}
               className="text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50">Clear</button>
-            <button onClick={() => setPageUrl(`/api/admin/english-oral-compo/${paperId}/picture?kind=${kind}&type=page&_=${Date.now()}`)}
-              className="text-xs text-slate-500 hover:text-slate-700">Reload page</button>
           </div>
           {error && <p className="text-[10px] text-red-600 mt-1">{error}</p>}
         </div>

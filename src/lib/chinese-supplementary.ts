@@ -16,24 +16,20 @@
 
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
-import { renderPdfToJpegs } from "./pdf-server";
+import { renderPdfToJpegs, renderPdfPage } from "./pdf-server";
 
 // Render a SINGLE PDF page and return the JPEG buffer. Used when
-// the admin UI wants the Option 2 page image on demand instead of
-// having to keep all page renders on disk. Internally renders the
-// whole PDF (pdfjs has no per-page entry point we expose) but only
-// returns the requested page.
+// the admin UI wants the Option 2 page image on demand. Delegates
+// to renderPdfPage in pdf-server.ts which renders ONLY the
+// requested page — much faster than rendering the whole PDF and
+// slicing for the cropper UI (10-30s → 1-2s for a 30-page PDF).
 export async function renderSinglePage(
   pdfBuffer: Buffer,
   pageNumber: number,
   maxDim = 1600,
   quality = 85,
 ): Promise<Buffer> {
-  const pages = await renderPdfToJpegs(pdfBuffer, maxDim, quality);
-  if (pageNumber < 1 || pageNumber > pages.length) {
-    throw new Error(`pageNumber ${pageNumber} out of range (1..${pages.length})`);
-  }
-  return pages[pageNumber - 1];
+  return renderPdfPage(pdfBuffer, pageNumber, maxDim, quality);
 }
 
 // Crop a JPEG to the given bounds. left/top/width/height are

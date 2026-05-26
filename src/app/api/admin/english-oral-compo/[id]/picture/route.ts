@@ -66,8 +66,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const type = request.nextUrl.searchParams.get("type");
 
   if (type === "page") {
-    const { pageNum } = pageForKind(row, kind);
-    if (!pageNum) return NextResponse.json({ error: "No picture page detected for this kind" }, { status: 404 });
+    // Explicit ?page=N override — used by the manual cropper when
+    // the structured field's picturePageNum is missing or wrong and
+    // the admin wants to view a specific page to drag-crop from.
+    const explicitPage = parseInt(request.nextUrl.searchParams.get("page") ?? "", 10);
+    let pageNum: number | null = Number.isFinite(explicitPage) && explicitPage > 0 ? explicitPage : null;
+    if (!pageNum) {
+      pageNum = pageForKind(row, kind).pageNum;
+    }
+    if (!pageNum) return NextResponse.json({ error: "No picture page detected for this kind (pass ?page=N to override)" }, { status: 404 });
     if (!row.pdfPath) return NextResponse.json({ error: "Source PDF missing" }, { status: 404 });
     try {
       const pdfBuffer = await fs.readFile(row.pdfPath);

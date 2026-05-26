@@ -7,7 +7,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
-import { renderPdfToJpegs } from "./pdf-server";
+import { renderPdfToJpegs, renderPdfPage } from "./pdf-server";
 
 const SECTION_MODEL = "gemini-3.1-pro-preview";
 const OCR_MODEL = "gemini-3.1-pro-preview";
@@ -34,11 +34,11 @@ async function withGeminiRetry<T>(label: string, fn: () => Promise<T>, attempts 
 }
 
 export async function renderSinglePage(pdfBuffer: Buffer, pageNumber: number, maxDim = 1600, quality = 85): Promise<Buffer> {
-  const pages = await renderPdfToJpegs(pdfBuffer, maxDim, quality);
-  if (pageNumber < 1 || pageNumber > pages.length) {
-    throw new Error(`pageNumber ${pageNumber} out of range (1..${pages.length})`);
-  }
-  return pages[pageNumber - 1];
+  // Use the dedicated single-page renderer in pdf-server.ts. Much
+  // faster than rendering the whole PDF and slicing one page —
+  // matters a lot for the cropper UI, which fetches the page image
+  // on demand and was taking 10-30s per click before.
+  return renderPdfPage(pdfBuffer, pageNumber, maxDim, quality);
 }
 
 export async function cropPageImage(
@@ -248,6 +248,8 @@ For each page, decide which section it belongs to:
 - "paper1Answer"  → Model essays, marking rubric, or grade descriptors for Paper 1
 - "paper3Answer"  → Answer key / listening transcripts for Paper 3
 - "paper4Answer"  → Suggested responses / oral marking rubric for Paper 4
+
+IMPORTANT: a single section (especially Paper 1 model essays — situational + 3 continuous prompts can run 4-8 pages) usually spans MULTIPLE CONSECUTIVE pages. If page N is a model essay and page N+1 is the continuation of the same essay (no new header), TAG BOTH as paper1Answer. Same applies to listening transcripts and oral rubrics — include continuation pages too.
 - "cover"         → cover, instructions, blank pages, table of contents
 - "other"         → anything else (Paper 2 content, irrelevant pages)
 
@@ -532,17 +534,26 @@ async function extractWritingAnswers(paper1AnswerText: string): Promise<{ situat
       model: SECTION_MODEL,
       contents: [{ role: "user", parts: [{ text: `Below is OCR text from the model-answer / marking-rubric section for PSLE English Paper 1 (Writing). Extract the model essays for Section A (Situational Writing) and Section B (Continuous Writing).
 
+CRITICAL — DO NOT TRUNCATE:
+- Output the COMPLETE verbatim text of every model essay you find.
+- Each essay is typically 150-300 words. If there are 3 continuous-writing model essays (one per picture prompt), include ALL THREE, separated by "\\n\\n--- ESSAY 2 ---\\n\\n" and "\\n\\n--- ESSAY 3 ---\\n\\n" — never collapse them.
+- Preserve original paragraph breaks and punctuation. No summarising, no paraphrasing.
+
 Return strict JSON:
 {
-  "situationalModel": "Full text of the situational-writing model essay" | null,
-  "continuousModel": "Full text(s) of the continuous-writing model essay(s) — if there are multiple, concatenate with \\n\\n--- separators" | null
+  "situationalModel": "<complete situational essay verbatim>" | null,
+  "continuousModel": "<complete continuous essay/essays verbatim, with separators between multiples>" | null
 }
-
-Preserve original paragraphs and punctuation. Do not summarise.
 
 OCR text:
 ${paper1AnswerText}` }] }],
-      config: { temperature: 0, responseMimeType: "application/json" },
+      config: {
+        temperature: 0,
+        responseMimeType: "application/json",
+        // Bump from the default ~8k so 3 full continuous essays
+        // (~150-300 words each) fit comfortably without truncation.
+        maxOutputTokens: 32768,
+      },
     }));
     const parsed = JSON.parse(res.text ?? "") as { situationalModel?: string; continuousModel?: string };
     return {
