@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function Page() {
@@ -290,6 +290,14 @@ function EnglishOralCompoAdmin() {
                     )}
                   </div>
 
+                  {/* Situational model essay — paired with Part 1 above */}
+                  <details className="border border-emerald-200 bg-emerald-50 rounded-lg" open>
+                    <summary className="cursor-pointer px-4 py-2 font-bold text-sm text-emerald-800">
+                      📝 Situational Writing — Model Essay {detail.situationalModel ? `(${detail.situationalModel.length} chars)` : "(not detected)"}
+                    </summary>
+                    {detail.situationalModel && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{detail.situationalModel}</p>}
+                  </details>
+
                   {/* Part 2 — Continuous Writing: theme + 3 picture prompts */}
                   <div className="border border-sky-200 bg-sky-50 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-sky-800 mb-2">
@@ -302,25 +310,55 @@ function EnglishOralCompoAdmin() {
                       </div>
                     )}
                     {detail.continuousPrompts?.length ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {detail.continuousPrompts.map(cp => (
-                          <div key={cp.optionNum} className="border border-sky-300 rounded bg-white p-2">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=continuous_${cp.optionNum}`}
-                              alt={`Option ${cp.optionNum}`}
-                              className="rounded max-w-full mb-2"
-                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                            />
-                            <p className="text-xs font-semibold text-sky-900">Option {cp.optionNum} <span className="text-slate-400 font-normal">(p.{cp.picturePageNum ?? "?"})</span></p>
-                            <p className="text-xs text-slate-700 mt-1">{cp.brief}</p>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {detail.continuousPrompts.map(cp => (
+                            <div key={cp.optionNum} className="border border-sky-300 rounded bg-white p-2">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=continuous_${cp.optionNum}`}
+                                alt={`Option ${cp.optionNum}`}
+                                className="rounded max-w-full mb-2"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                              />
+                              <p className="text-xs font-semibold text-sky-900">Option {cp.optionNum} <span className="text-slate-400 font-normal">(p.{cp.picturePageNum ?? "?"})</span></p>
+                              <p className="text-xs text-slate-700 mt-1">{cp.brief}</p>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Manual crop overlay — click a prompt below
+                            to drag-select the exact crop region from
+                            its page image. */}
+                        <details className="border border-sky-300 rounded bg-white">
+                          <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-sky-800">
+                            ✂️ Manually crop a continuous-writing picture
+                          </summary>
+                          <div className="p-3 space-y-4">
+                            {detail.continuousPrompts.map(cp => (
+                              <ManualPictureCropper
+                                key={cp.optionNum}
+                                paperId={detail.id}
+                                year={detail.year}
+                                kind={`continuous_${cp.optionNum}`}
+                                label={`Option ${cp.optionNum} (p.${cp.picturePageNum ?? "?"})`}
+                                onSaved={() => loadDetail(detail.id)}
+                              />
+                            ))}
                           </div>
-                        ))}
+                        </details>
                       </div>
                     ) : (
                       <p className="text-xs text-slate-400 italic">(not detected)</p>
                     )}
                   </div>
+
+                  {/* Continuous model essay — paired with Part 2 above */}
+                  <details className="border border-emerald-200 bg-emerald-50 rounded-lg" open>
+                    <summary className="cursor-pointer px-4 py-2 font-bold text-sm text-emerald-800">
+                      📝 Continuous Writing — Model Essay {detail.continuousModel ? `(${detail.continuousModel.length} chars)` : "(not detected)"}
+                    </summary>
+                    {detail.continuousModel && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{detail.continuousModel}</p>}
+                  </details>
 
                   {/* Listening MCQs + Texts. MCQ options are usually
                       picture-based on PSLE Paper 3, so we show the
@@ -368,6 +406,22 @@ function EnglishOralCompoAdmin() {
                     ) : <p className="text-xs text-slate-400 italic">(no texts detected)</p>}
                   </div>
 
+                  {/* Listening answers — paired with Paper 3 above */}
+                  <div className="border border-emerald-200 bg-emerald-50 rounded-lg p-4">
+                    <h3 className="text-sm font-bold text-emerald-800 mb-2">✅ Listening Answer Key</h3>
+                    {detail.listeningAnswers?.length ? (
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        {detail.listeningAnswers.map(a => (
+                          <span key={a.num} className="px-2 py-0.5 bg-white border border-emerald-200 rounded font-mono text-xs">
+                            Q{a.num}: {a.answer}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">(not detected)</p>
+                    )}
+                  </div>
+
                   {/* Paper 4 — Oral, per Day */}
                   <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-amber-800 mb-2">Paper 4 — Oral ({detail.oralDays?.length ?? 0} day{detail.oralDays?.length === 1 ? "" : "s"})</h3>
@@ -404,26 +458,12 @@ function EnglishOralCompoAdmin() {
                     )}
                   </div>
 
-                  {/* Listening answers */}
+                  {/* Oral SBC model answers — paired with Paper 4 above */}
                   <div className="border border-emerald-200 bg-emerald-50 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-emerald-800 mb-2">Listening Answers</h3>
-                    {detail.listeningAnswers?.length ? (
-                      <div className="flex flex-wrap gap-2 text-sm">
-                        {detail.listeningAnswers.map(a => (
-                          <span key={a.num} className="px-2 py-0.5 bg-white border border-emerald-200 rounded font-mono text-xs">
-                            Q{a.num}: {a.answer}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-400 italic">(not detected)</p>
-                    )}
-                  </div>
-
-                  {/* Oral model answers (per day, per question a/b/c) */}
-                  {detail.oralModelAnswers?.length ? (
-                    <div className="border border-emerald-200 bg-emerald-50 rounded-lg p-4">
-                      <h3 className="text-sm font-bold text-emerald-800 mb-2">Oral — SBC Model Answers ({detail.oralModelAnswers.length})</h3>
+                    <h3 className="text-sm font-bold text-emerald-800 mb-2">
+                      ✅ Oral — SBC Model Answers ({detail.oralModelAnswers?.length ?? 0})
+                    </h3>
+                    {detail.oralModelAnswers?.length ? (
                       <div className="space-y-2">
                         {[1, 2].map(day => {
                           const items = detail.oralModelAnswers!.filter(a => a.day === day);
@@ -441,22 +481,10 @@ function EnglishOralCompoAdmin() {
                           );
                         })}
                       </div>
-                    </div>
-                  ) : null}
-
-                  {/* Model essays */}
-                  {(["situationalModel", "continuousModel"] as const).map(key => {
-                    const label = key === "situationalModel" ? "Situational Writing — Model Essay" : "Continuous Writing — Model Essay";
-                    const text = detail[key];
-                    return (
-                      <details key={key} className="border border-emerald-200 bg-emerald-50 rounded-lg" open>
-                        <summary className="cursor-pointer px-4 py-2 font-bold text-sm text-emerald-800">
-                          {label} {text ? `(${text.length} chars)` : "(not detected)"}
-                        </summary>
-                        {text && <p className="px-4 pb-4 text-sm text-slate-700 whitespace-pre-wrap">{text}</p>}
-                      </details>
-                    );
-                  })}
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">(not detected)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Raw OCR (debug) */}
@@ -658,5 +686,118 @@ function PictureReextractPanel({ detail, onDone }: { detail: RowDetail; onDone: 
         ))}
       </div>
     </details>
+  );
+}
+
+// Drag-to-crop overlay for a single picture (used by continuous-
+// writing prompts). Fetches the page image via
+// /api/admin/english-oral-compo/[id]/picture?kind=<kind>&type=page,
+// lets the admin drag a rectangle, then POSTs the bounds (fractions
+// 0-1) to the same endpoint to save the crop.
+function ManualPictureCropper({
+  paperId, year, kind, label, onSaved,
+}: { paperId: string; year: string; kind: string; label: string; onSaved: () => void }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [pageUrl, setPageUrl] = useState<string>(`/api/admin/english-oral-compo/${paperId}/picture?kind=${kind}&type=page`);
+  const [box, setBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  function fracFromEvent(e: React.MouseEvent): { x: number; y: number } | null {
+    const img = imgRef.current;
+    if (!img) return null;
+    const rect = img.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+    };
+  }
+  function onMouseDown(e: React.MouseEvent) {
+    const p = fracFromEvent(e); if (!p) return;
+    setDragStart(p);
+    setBox({ left: p.x, top: p.y, width: 0, height: 0 });
+  }
+  function onMouseMove(e: React.MouseEvent) {
+    if (!dragStart) return;
+    const p = fracFromEvent(e); if (!p) return;
+    setBox({
+      left: Math.min(dragStart.x, p.x),
+      top: Math.min(dragStart.y, p.y),
+      width: Math.abs(p.x - dragStart.x),
+      height: Math.abs(p.y - dragStart.y),
+    });
+  }
+  function onMouseUp() { setDragStart(null); }
+
+  async function save() {
+    if (!box || box.width < 0.02 || box.height < 0.02) { setError("Drag a larger box first."); return; }
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch(`/api/admin/english-oral-compo/${paperId}/picture`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, ...box }),
+      });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) { setError(data.error || "Save failed"); return; }
+      setSavedAt(Date.now());
+      setBox(null);
+      onSaved();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="border-t border-slate-200 pt-3 first:border-t-0 first:pt-0">
+      <p className="text-xs font-semibold text-slate-800 mb-1">{label}</p>
+      <p className="text-[10px] text-slate-500 mb-2">
+        Drag a rectangle around the picture, then click Save. Saved as
+        <code className="ml-1 px-1 bg-slate-100 rounded">{year}_{kind}.jpg</code>.
+      </p>
+      <div className="flex gap-3 items-start">
+        <div className="flex-1 max-w-md">
+          <div
+            className="relative inline-block select-none cursor-crosshair border border-slate-300 rounded bg-white"
+            onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef} src={pageUrl} alt={label}
+              className="block max-w-full pointer-events-none"
+              draggable={false}
+              onError={() => setError("Couldn't load page image — picturePageNum may be missing or wrong.")}
+            />
+            {box && (
+              <div className="absolute border-2 border-sky-600 bg-sky-600/20 pointer-events-none"
+                style={{
+                  left: `${box.left * 100}%`, top: `${box.top * 100}%`,
+                  width: `${box.width * 100}%`, height: `${box.height * 100}%`,
+                }} />
+            )}
+          </div>
+          <div className="flex gap-2 mt-1">
+            <button onClick={save} disabled={saving || !box || box.width < 0.02}
+              className="bg-sky-700 text-white text-xs px-3 py-1 rounded hover:bg-sky-800 disabled:opacity-50">
+              {saving ? "Saving…" : "Save crop"}
+            </button>
+            <button onClick={() => setBox(null)} disabled={!box || saving}
+              className="text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50">Clear</button>
+            <button onClick={() => setPageUrl(`/api/admin/english-oral-compo/${paperId}/picture?kind=${kind}&type=page&_=${Date.now()}`)}
+              className="text-xs text-slate-500 hover:text-slate-700">Reload page</button>
+          </div>
+          {error && <p className="text-[10px] text-red-600 mt-1">{error}</p>}
+        </div>
+        {savedAt > 0 && (
+          <div className="flex-shrink-0 max-w-[180px]">
+            <p className="text-[10px] text-slate-500 mb-1">Saved crop</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/admin/english-oral-compo/${paperId}/picture?kind=${kind}&_=${savedAt}`}
+              alt="Saved" className="block max-w-full rounded border border-sky-200" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
