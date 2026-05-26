@@ -71,6 +71,12 @@ function EnglishOralCompoAdmin() {
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<RowDetail | null>(null);
+  // Cache-bust query param used on every cropped-picture <img> in the
+  // modal. Bumped each time loadDetail succeeds so a freshly saved
+  // crop visibly refreshes without the admin having to F5 the page.
+  // Browsers otherwise reuse the cached image even when the file on
+  // disk has changed (the URL string is identical).
+  const [picVer, setPicVer] = useState(() => Date.now());
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -94,7 +100,11 @@ function EnglishOralCompoAdmin() {
   async function loadDetail(id: string) {
     setOpenId(id); setDetail(null);
     const res = await fetch(`/api/admin/english-oral-compo/${id}`);
-    if (res.ok) { const data = await res.json() as { row: RowDetail }; setDetail(data.row); }
+    if (res.ok) {
+      const data = await res.json() as { row: RowDetail };
+      setDetail(data.row);
+      setPicVer(Date.now());
+    }
   }
 
   async function upload() {
@@ -249,7 +259,7 @@ function EnglishOralCompoAdmin() {
                           <div className="mb-3 max-w-md">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=situational`}
+                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=situational&v=${picVer}`}
                               alt="Situational stimulus"
                               className="rounded border border-sky-300 max-w-full"
                               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -307,7 +317,7 @@ function EnglishOralCompoAdmin() {
                             <div key={cp.optionNum} className="border border-sky-300 rounded bg-white p-2">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=continuous_${cp.optionNum}`}
+                                src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=continuous_${cp.optionNum}&v=${picVer}`}
                                 alt={`Option ${cp.optionNum}`}
                                 className="rounded max-w-full mb-2"
                                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -387,7 +397,7 @@ function EnglishOralCompoAdmin() {
                             </div>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=listening_q${mcq.num}`}
+                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=listening_q${mcq.num}&v=${picVer}`}
                               alt={`Listening Q${mcq.num}`}
                               className="rounded max-w-full"
                               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -459,7 +469,7 @@ function EnglishOralCompoAdmin() {
                               <div className="mb-3 max-w-md">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                  src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=oral_day${day.day}_stimulus`}
+                                  src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=oral_day${day.day}_stimulus&v=${picVer}`}
                                   alt={`Day ${day.day} stimulus`}
                                   className="rounded border border-amber-300 max-w-full"
                                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -698,12 +708,13 @@ function PictureReextractPanel({ detail, onDone, only }: { detail: RowDetail; on
   return (
     <details className="mb-4 border border-purple-300 rounded-lg bg-purple-50">
       <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-purple-800">
-        🖼️ Re-extract / re-crop individual pictures
+        🖼️ Fix picture page + auto-crop
       </summary>
       <div className="p-3 space-y-2">
         <p className="text-xs text-slate-600 mb-2">
-          Leave the page number unchanged to just re-crop. Change the page number to point at the right page first, then re-crop.
-          &ldquo;Auto&rdquo; uses Gemini to find the picture&apos;s bounding box; &ldquo;Full page&rdquo; uses the whole page (use this when auto cuts off part of the image).
+          Use this when the auto-detect grabbed the WRONG page for a picture. Enter the correct page number, then click
+          &ldquo;Re-crop (auto)&rdquo; — Gemini detects the picture&apos;s bounding box on that page and saves the crop. Or &ldquo;Full page&rdquo; uses the whole page (helpful when auto cuts off part of the image).
+          For precise drag-to-select cropping, use the ✂️ Manual crop panel under Part 2 instead.
         </p>
         {targets.map(t => (
           <div key={t.kind} className="border border-purple-200 bg-white rounded p-2">
