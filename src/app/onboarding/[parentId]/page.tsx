@@ -556,7 +556,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
               style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
             >
-              {pickerLoading ? "Creating quiz…" : "Start Quiz"}
+              {pickerLoading ? "Assigning quiz…" : "Assign Quiz"}
             </button>
             <button
               type="button"

@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, displayName, role, level, email, password, parentId, promoCode } = body as {
+  // eslint-disable-next-line prefer-const
+  let { name, displayName, role, level, email, password, parentId, promoCode } = body as {
     name?: string; displayName?: string | null; role?: string; level?: number;
     email?: string; password?: string; parentId?: string; promoCode?: string;
   };
@@ -123,6 +124,25 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
+
+    // Username auto-disambiguation. The signup form no longer asks
+    // for a username — frontend derives it from the email local part
+    // (e.g. "alice@gmail.com" → "alice"). Collisions are common
+    // (multiple parents on gmail with first-name handles) so we
+    // append _2, _3, … until we find a free slot. Parents can rename
+    // themselves later in /account.
+    let candidate = name;
+    let suffix = 2;
+    while (true) {
+      const clash = await prisma.user.findFirst({
+        where: { name: { equals: candidate, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (!clash) break;
+      candidate = `${name}_${suffix++}`;
+      if (suffix > 99) break; // give up after 99 — extremely unlikely
+    }
+    name = candidate;
   }
 
   // ── Free-trial setup ───────────────────────────────────────────

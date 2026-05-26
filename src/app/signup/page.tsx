@@ -159,12 +159,16 @@ function SignupFlow() {
     setParentError("");
     if (!parentFullName.trim()) { setParentError("Full name is required."); return; }
     if (parentFullName.trim().length < 2) { setParentError("Full name is too short."); return; }
-    if (!parentName.trim()) { setParentError("Username is required."); return; }
-    if (parentNameAvail === false) { setParentError("This username is already taken."); return; }
     if (!parentEmail.trim()) { setParentError("Email is required."); return; }
     if (!EMAIL_RE.test(parentEmail.trim())) { setParentError("Please enter a valid email address."); return; }
     if (parentEmailAvail === false) { setParentError("This email is already registered."); return; }
     if (!parentPassword) { setParentError("Password is required."); return; }
+
+    // Derive a default username from the email local part. Strip
+    // anything past + (gmail aliases) and any non-alphanumeric.
+    // Backend appends _2 / _3 etc. if it's taken.
+    const localPart = parentEmail.trim().split("@")[0].split("+")[0].toLowerCase();
+    const derivedName = localPart.replace(/[^a-z0-9_]/g, "").slice(0, 30) || "user";
 
     setParentLoading(true);
     try {
@@ -172,7 +176,7 @@ function SignupFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: parentName.trim(),
+          name: derivedName,
           displayName: parentFullName.trim(),
           role: "PARENT",
           email: parentEmail.trim(),
@@ -386,33 +390,9 @@ function SignupFlow() {
                     />
                   </div>
 
-                  {/* Username */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold px-1" style={{ color: "rgba(11,28,48,0.8)" }}>
-                      Username
-                      <span className="font-normal text-xs ml-2" style={{ color: "rgba(11,28,48,0.35)" }}>What you&apos;ll log in with. Cannot be changed later.</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={parentName}
-                      onChange={e => { setParentName(e.target.value); checkParentName(e.target.value); }}
-                      placeholder="User name"
-                      name="mfy-new-username"
-                      autoComplete="off"
-                      spellCheck={false}
-                      className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
-                      style={{
-                        background: "#eff4ff",
-                        color: "#0b1c30",
-                        outline: "none",
-                      }}
-                    />
-                    {parentName.trim() && (
-                      <p className={`text-xs mt-1 ml-1 ${checkingParentName ? "text-gray-400" : parentNameAvail === true ? "text-green-600" : parentNameAvail === false ? "text-red-500" : "text-gray-400"}`}>
-                        {checkingParentName ? "Checking..." : parentNameAvail === true ? "Name available" : parentNameAvail === false ? "Name is already taken" : ""}
-                      </p>
-                    )}
-                  </div>
+                  {/* Username dropped from signup — derived from
+                      email (local part) on submit; backend appends _2,
+                      _3 on collision. Parent can edit later in /account. */}
 
                   {/* Email */}
                   <div className="space-y-2">
@@ -482,7 +462,7 @@ function SignupFlow() {
 
                 <button
                   type="submit"
-                  disabled={parentLoading || !parentFullName.trim() || parentNameAvail === false || parentEmailAvail === false || parentEmailInvalid}
+                  disabled={parentLoading || !parentFullName.trim() || parentEmailAvail === false || parentEmailInvalid || !parentEmail.trim() || !parentPassword}
                   className="w-full py-5 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                   style={{ background: "linear-gradient(to bottom right, #001e40, #003366)", color: "#ffffff" }}
                 >
