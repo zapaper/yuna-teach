@@ -18,6 +18,36 @@ import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const CACHE_DIR = path.join(VOLUME_PATH, "master-class");
 
+// ElevenLabs subscription caps us at 3 concurrent requests. The
+// previous behaviour (each request processes its segments serially,
+// but multiple requests can fire in parallel) blows past that when
+// the admin generates audio for several slides at once. Result:
+// every call gets 429 "concurrent_limit_exceeded" and the retry
+// budget runs out before slots free up.
+//
+// Process-wide semaphore caps active ElevenLabs calls at 2 (leaves
+// one slot of headroom for other endpoints that also call EL).
+// Module-level state is fine — Node serves the Next.js app from a
+// single process, so this is a real cross-request lock.
+const MAX_CONCURRENT_TTS = 2;
+let _ttsInFlight = 0;
+const _ttsWaiters: Array<() => void> = [];
+function acquireTtsSlot(): Promise<void> {
+  if (_ttsInFlight < MAX_CONCURRENT_TTS) {
+    _ttsInFlight++;
+    return Promise.resolve();
+  }
+  return new Promise<void>(resolve => _ttsWaiters.push(() => {
+    _ttsInFlight++;
+    resolve();
+  }));
+}
+function releaseTtsSlot() {
+  _ttsInFlight--;
+  const next = _ttsWaiters.shift();
+  if (next) next();
+}
+
 // Active voice ID. Swap freely — the cache key includes the voice ID
 // below, so changing this invalidates old cached audio automatically.
 const VOICE_ID = "WZlYpi1yf6zJhNWXih74";
@@ -190,18 +220,27 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
 
     if (!audioBuf) {
       // Prefer eleven_v3 (supports audio tags); fall back to v2 if
-      // the account doesn't have v3 access.
+      // the account doesn't have v3 access. The semaphore is held
+      // for the duration of the actual API call only.
       async function tryGenerate(): Promise<Response> {
-        let r = await callElevenLabs(seg.text, "eleven_v3");
-        if (!r.ok && (r.status === 400 || r.status === 403 || r.status === 404)) {
-          console.warn(`[tts] eleven_v3 returned ${r.status} for seg ${i}, falling back to multilingual_v2`);
-          r = await callElevenLabs(seg.text, "eleven_multilingual_v2");
+        await acquireTtsSlot();
+        try {
+          let r = await callElevenLabs(seg.text, "eleven_v3");
+          if (!r.ok && (r.status === 400 || r.status === 403 || r.status === 404)) {
+            console.warn(`[tts] eleven_v3 returned ${r.status} for seg ${i}, falling back to multilingual_v2`);
+            r = await callElevenLabs(seg.text, "eleven_multilingual_v2");
+          }
+          return r;
+        } finally {
+          releaseTtsSlot();
         }
-        return r;
       }
 
       // Retry on 429 with exponential backoff (1.5s → 3s → 6s).
-      // Concurrency limits and per-second caps both surface as 429.
+      // With the semaphore in place a 429 from concurrent_limit_exceeded
+      // should be impossible — but per-second / per-character caps
+      // can still 429, and ElevenLabs sometimes returns 429 from
+      // transient capacity. Backoff still helps for those.
       const RETRY_DELAYS_MS = [1500, 3000, 6000];
       let res = await tryGenerate();
       for (let attempt = 0; attempt < RETRY_DELAYS_MS.length && res.status === 429; attempt++) {
