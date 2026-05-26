@@ -1,0 +1,121 @@
+{
+  "typicalStructure": [
+    {
+      "paragraphLabel": "1. Greeting + statement of purpose",
+      "whatItDoes": "Address the recipient and state in 1 sentence why you're writing.",
+      "sampleOpeners": [
+        "Dear Mr Lim, I am writing to request permission to make an announcement...",
+        "Hi Aisha, How are you? I hope you are doing well!"
+      ]
+    },
+    {
+      "paragraphLabel": "2. The required facts (audience info, what / when / where)",
+      "whatItDoes": "Deliver the must-include facts crisply and clearly.",
+      "sampleOpeners": [
+        "The event will be held on 11 October 2023, in the school hall, at 2 p.m.",
+        "It is on Saturday, 25 November 2017 at the Singapore Zoo from 8 a.m. to 11 a.m."
+      ]
+    },
+    {
+      "paragraphLabel": "3. The 'reason' paragraph — WHY the audience should agree / care",
+      "whatItDoes": "This is where the writing earns its marks — go beyond facts to give compelling reasons, explain the 'why', and persuade the audience.",
+      "sampleOpeners": [
+        "I originally planned to watch the movie with my Uncle Tim but...",
+        "As my classmates and I will be posted to our secondary schools in just three months, we would like to..."
+      ]
+    },
+    {
+      "paragraphLabel": "4. Polite call to action + sign-off",
+      "whatItDoes": "Ask politely for what you want, state deadlines if any, thank them, and sign off appropriately based on the register.",
+      "sampleOpeners": [
+        "I would really appreciate your help in this matter and I look forward to your favourable reply!",
+        "Do let us know before then if you would be keen to take part... Yours sincerely,"
+      ]
+    }
+  ],
+  "keyInfoChecklist": [
+    "Address the audience by name with appropriate formality (Dear Mr/Mrs vs Hi)",
+    "State your purpose in the opening line — don't bury it",
+    "Cover EVERY required fact from the prompt (typically 3 — what / when / where, or who / why / how)",
+    "Match register to audience (formal for principal/teacher, friendly for peer)",
+    "Stay within the word count (usually 100-150 words)",
+    "End with a polite call to action AND a sign-off"
+  ],
+  "reasonParagraphOverview": "The 'reason' paragraph is the heart of situational writing. It transforms a robotic checklist of facts into a genuinely persuasive or informative piece. A 4-mark answer merely lists the required points, while a 6-mark answer seamlessly weaves these facts into a compelling narrative that directly addresses the audience's needs, emotions, or interests.",
+  "reasonParagraphMoves": [
+    {
+      "move": "Show the benefit to the audience, not just to yourself",
+      "why": "Persuasion lands when the AUDIENCE sees what's in it for them.",
+      "examples": [
+        "From 2022: 'Running is a great way to decompress, and this would be a good chance for us to relax after the PSLE.'",
+        "From 2017: '...this competition will be a piece of cake for you since you love painting animals. Also, there are attractive prizes...'"
+      ]
+    },
+    {
+      "move": "Connect the action to a meaningful cause or shared history",
+      "why": "Appealing to shared values or past experiences makes the request highly personal and harder to refuse.",
+      "examples": [
+        "From 2021: '...we would like to do something special for all our teachers to show our appreciation for what they have done...'",
+        "From 2023: 'Remember when you complained about the school library needing more books? Now is the perfect chance to increase the number...'"
+      ]
+    },
+    {
+      "move": "Highlight the audience's specific skills or traits",
+      "why": "Flattery and recognition of competence build confidence and make the audience feel uniquely qualified.",
+      "examples": [
+        "From 2020: 'Your cake at our last baking class was the best. We think you are a fantastic baker and would be a valuable asset...'",
+        "From 2024: 'We heard that you helped her to rehearse and I would love to receive your help too, as I believe that it would give me the confidence...'"
+      ]
+    },
+    {
+      "move": "Explain the 'why' behind a change of plans or a specific need",
+      "why": "Providing context for a sudden request or change builds trust and clarifies the situation.",
+      "examples": [
+        "From 2019: 'I originally planned to watch the movie with my Uncle Tim but his company needs him to travel overseas next week...'",
+        "From 2018: 'Gina asked John to let her purchase her food first as she was really hungry. However, John refused...'"
+      ]
+    },
+    {
+      "move": "End the paragraph with the emotional payoff",
+      "why": "Leave the reader feeling something before the call to action, cementing their desire to agree.",
+      "examples": [
+        "From 2023: 'It is truly a meaningful event that I do not want us to miss out on...'",
+        "From 2025: 'One big way I have benefitted from basketball is that it has made me more confident.'"
+      ]
+    }
+  ],
+  "reasonParagraphPhrases": [
+    {
+      "name": "Open the reason paragraph",
+      "phrases": [
+        "I am writing to ask you because ...",
+        "The main reason I'm asking is that ...",
+        "What makes this special is that ..."
+      ]
+    },
+    {
+      "name": "Acknowledge / pre-empt objections",
+      "phrases": [
+        "I understand you might be worried that ...",
+        "I know this might seem like a big ask, however ...",
+        "Although ..., I assure you that ..."
+      ]
+    },
+    {
+      "name": "Show benefit / 'what's in it for them'",
+      "phrases": [
+        "This would mean a lot to ...",
+        "Your support would directly help ...",
+        "You would be giving ... a chance to ..."
+      ]
+    },
+    {
+      "name": "Land the emotional payoff",
+      "phrases": [
+        "I genuinely believe ...",
+        "It would mean the world to ...",
+        "I cannot think of anyone better suited than ..."
+      ]
+    }
+  ]
+}

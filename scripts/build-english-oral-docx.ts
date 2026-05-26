@@ -26,6 +26,16 @@ const FINAL_DOC = path.join(SCRIPT_DIR, "..", "..", "PSLE-English-Oral-Analysis.
 
 const YEARS = ["2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
 
+// Hand-picked override per Peter — auto-prediction was OK but he wanted
+// the doc to lead with these three topics (each backed by past-year
+// evidence in the heatmap below).
+const ORAL_PREDICTION_OVERRIDE =
+  "Three hot topics most likely for the next PSLE oral:\n" +
+  "  1.  School life / hobbies — perennial favourite, easy for any student to draw on.\n" +
+  "  2.  Technology, especially AI / digital tools — covered in 2023 ('Fantastic Future' AI exhibition); examiners are returning to this as the topic matures.\n" +
+  "  3.  Responsibility / time management — closely matches the Day 1 reading themes (Hakim's pacing, Jim's punctuality) and gives the student room to bring in personal anecdotes.\n" +
+  "Prep these three with full PEEL drills before the exam.";
+
 type OralTheme = {
   name: string; description: string;
   yearsAppeared: Array<{ year: string; day: 1 | 2; note: string }>;
@@ -181,12 +191,14 @@ async function main() {
   children.push(p("§2  Overview & Likely Next Topic", { heading: HeadingLevel.HEADING_1, before: 300, after: 120 }));
   children.push(p("Overview", { heading: HeadingLevel.HEADING_2, before: 100, after: 40 }));
   children.push(p(themes.overview, { size: 22, after: 120 }));
-  children.push(p("Most likely SBC topic for next PSLE", { heading: HeadingLevel.HEADING_2, before: 100, after: 40 }));
+  children.push(p("Most likely SBC topics for next PSLE", { heading: HeadingLevel.HEADING_2, before: 100, after: 40 }));
   children.push(new Paragraph({
     spacing: { after: 120 },
     shading: { type: ShadingType.CLEAR, fill: "FEF3C7", color: "auto" },
-    children: [t(themes.prediction, { size: 22, bold: true, color: "92400E" })],
+    children: [t(ORAL_PREDICTION_OVERRIDE, { size: 22, bold: true, color: "92400E" })],
   }));
+  children.push(p("(For reference — the auto-generated prediction said:)", { italics: true, color: "9CA3AF", size: 18, before: 20, after: 20 }));
+  children.push(p(themes.prediction, { italics: true, color: "9CA3AF", size: 18, after: 120 }));
 
   // §3 Per-theme detail
   children.push(p("§3  Per-Theme Detail", { heading: HeadingLevel.HEADING_1, before: 300, after: 120 }));
