@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
-import { renderSinglePage, cropPageImage, detectPictureBounds } from "@/lib/english-supplementary";
+import { renderSinglePage, cropPageImage, detectPictureBounds, detectListeningQuestionsOnPage } from "@/lib/english-supplementary";
 
 // POST /api/admin/english-oral-compo/[id]/recrop-picture
 //   Body: { kind: string, pageNum?: number, useFullPage?: boolean }
@@ -128,6 +128,45 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       continuousPrompts: (update.continuousPrompts ?? typed.continuousPrompts) as Picturable["continuousPrompts"],
       oralDays: (update.oralDays ?? typed.oralDays) as Picturable["oralDays"],
     });
+  }
+
+  // Listening MCQ branch — different cropping path (one page may
+  // contain multiple numbered Qs, so we run Gemini's per-question
+  // detection and pick the box matching the requested Q number).
+  const listenMatch = kind.match(/^listening_q(\d+)$/);
+  if (listenMatch) {
+    const targetNum = parseInt(listenMatch[1], 10);
+    const reqPage = typeof body.pageNum === "number" ? body.pageNum : null;
+    if (!reqPage) return NextResponse.json({ error: "listening_q<N> requires a pageNum (which page is the question on?)" }, { status: 400 });
+    try {
+      const pdfBuffer = await fs.readFile(row.pdfPath);
+      const pageJpeg = await renderSinglePage(pdfBuffer, reqPage, 2400, 90);
+      let bounds: { left: number; top: number; width: number; height: number };
+      if (body.useFullPage) {
+        bounds = { left: 0, top: 0, width: 1, height: 1 };
+      } else {
+        const qs = await detectListeningQuestionsOnPage(pageJpeg);
+        const hit = qs.find(q => q.num === targetNum);
+        if (!hit) {
+          return NextResponse.json({ error: `Gemini didn't find Q${targetNum} on page ${reqPage}. Try the "Full page" option, or pick the correct page.` }, { status: 404 });
+        }
+        const pad = 0.02;
+        bounds = {
+          left: Math.max(0, hit.left - pad),
+          top: Math.max(0, hit.top - pad),
+          width: Math.min(1 - Math.max(0, hit.left - pad), hit.width + 2 * pad),
+          height: Math.min(1 - Math.max(0, hit.top - pad), hit.height + 2 * pad),
+        };
+      }
+      const cropped = await cropPageImage(pageJpeg, bounds, 90, 0);
+      await fs.mkdir(STORAGE_DIR, { recursive: true });
+      const outPath = path.join(STORAGE_DIR, `${row.year}_${kind}.jpg`);
+      await fs.writeFile(outPath, cropped);
+      return NextResponse.json({ ok: true, kind, pageNum: reqPage, useFullPage: !!body.useFullPage, size: cropped.length });
+    } catch (err) {
+      console.error(`[english-oral-compo] recrop ${kind} for ${row.year} failed:`, err);
+      return NextResponse.json({ error: "Re-crop failed", details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    }
   }
 
   const { pageNum, rotate, hint } = locateKind(typed, kind);

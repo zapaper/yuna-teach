@@ -50,6 +50,10 @@ function pageForKind(
     const days = row.oralDays as Array<{ day: number; stimulusPicturePageNum: number | null }> | null;
     return { pageNum: days?.find(x => x.day === d)?.stimulusPicturePageNum ?? null, rotate: 90 };
   }
+  // Listening MCQ crops — pageNum not tracked per-Q in the schema
+  // (crops are saved by Gemini's per-page question detection step).
+  // The page-render fallback isn't useful for these; only the saved
+  // crop is served.
   return { pageNum: null, rotate: 0 };
 }
 

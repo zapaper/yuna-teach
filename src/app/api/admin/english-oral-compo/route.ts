@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { extractSupplementaryFromPdf, autoCropPictures } from "@/lib/english-supplementary";
+import { extractSupplementaryFromPdf, autoCropPictures, autoCropListeningQuestions } from "@/lib/english-supplementary";
 
 // GET  /api/admin/english-oral-compo
 //   List all extracted English supplementary papers.
@@ -119,7 +119,8 @@ async function runExtractionInBackground(rowId: string, year: string, pdfBuffer:
     });
 
     // Auto-crop pictures (situational + 3 continuous + oral day1/day2 stimulus
-    // rotated 90 CW). Best-effort — single picture failure won't abort.
+    // rotated 90 CW + per-question listening MCQ blocks). Best-effort —
+    // single picture failure won't abort the whole pipeline.
     try {
       const path = await import("path");
       const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -128,6 +129,15 @@ async function runExtractionInBackground(rowId: string, year: string, pdfBuffer:
       console.log(`[english-oral-compo] ${year} auto-cropped ${cropResult.savedCount} picture(s)${cropResult.errors.length ? `, errors: ${cropResult.errors.join("; ")}` : ""}`);
     } catch (cropErr) {
       console.warn(`[english-oral-compo] ${year} auto-crop step failed (non-fatal):`, cropErr);
+    }
+    try {
+      const path = await import("path");
+      const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
+      const STORAGE_DIR = path.join(VOLUME_PATH, "english-supplementary");
+      const listenResult = await autoCropListeningQuestions(pdfBuffer, extraction.paper3Pages, STORAGE_DIR, year);
+      console.log(`[english-oral-compo] ${year} auto-cropped ${listenResult.savedCount} listening question(s)${listenResult.errors.length ? `, errors: ${listenResult.errors.join("; ")}` : ""}`);
+    } catch (cropErr) {
+      console.warn(`[english-oral-compo] ${year} listening auto-crop step failed (non-fatal):`, cropErr);
     }
 
     await prisma.englishSupplementaryPaper.update({

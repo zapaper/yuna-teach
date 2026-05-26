@@ -60,6 +60,48 @@ export async function cropPageImage(
   return pipe.jpeg({ quality: outQuality, chromaSubsampling: "4:4:4" }).toBuffer();
 }
 
+// Identify each numbered MCQ question block on a listening page.
+// Returns the page-relative bounding box (fractions 0-1) per
+// question, plus its question number. The "block" includes the
+// question stem AND its 3 picture options so the admin can read
+// the whole thing as one image without us having to OCR / describe
+// each option icon. Returns empty array on detection failure —
+// no fallback because the page may genuinely have no MCQs.
+export async function detectListeningQuestionsOnPage(
+  pageJpeg: Buffer,
+): Promise<Array<{ num: number; left: number; top: number; width: number; height: number }>> {
+  try {
+    const res = await withGeminiRetry("detect-listening-qs", () => ai().models.generateContent({
+      model: SECTION_MODEL,
+      contents: [{
+        role: "user",
+        parts: [
+          { text: `This is one page from a PSLE English Paper 3 (Listening Comprehension) booklet. Find every numbered MCQ question on the page.
+
+For each question, return the bounding box of the WHOLE question block — the question number / stem PLUS the 3 picture options below or beside it (option labels are usually (1) (2) (3)). Don't crop the options off.
+
+Box coordinates are fractions of the page (0 = top/left edge, 1 = bottom/right edge).
+
+Strict JSON only, no markdown:
+{ "questions": [ { "num": 1, "left": 0.05, "top": 0.10, "width": 0.9, "height": 0.18 }, ... ] }
+
+If the page has no MCQs (cover, transcripts, blank), return: { "questions": [] }.` },
+          { inlineData: { mimeType: "image/jpeg", data: pageJpeg.toString("base64") } },
+        ],
+      }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    }));
+    const parsed = JSON.parse(res.text ?? "{}") as { questions?: Array<{ num: number; left: number; top: number; width: number; height: number }> };
+    if (!Array.isArray(parsed.questions)) return [];
+    return parsed.questions
+      .filter(q => typeof q.num === "number" && typeof q.left === "number" && typeof q.top === "number" && typeof q.width === "number" && typeof q.height === "number")
+      .filter(q => q.width >= 0.05 && q.height >= 0.05);
+  } catch (err) {
+    console.warn(`[english-supplementary] detectListeningQuestionsOnPage failed:`, err);
+    return [];
+  }
+}
+
 // Ask Gemini to identify the bounding box of the main picture /
 // illustration / photograph on a page. Returns fractions 0-1
 // (top-left + size) that can be fed straight to cropPageImage.
@@ -713,6 +755,67 @@ export async function autoCropPictures(
       savedCount++;
     } catch (e) {
       errors.push(`${task.kind}: ${(e as Error).message}`);
+    }
+  }
+  return { savedCount, errors };
+}
+
+// Listening MCQs have picture-based answer options (3 small images
+// per question), so we crop each MCQ as one image — stem + 3 options
+// together — instead of trying to describe the options as text.
+// Files: <year>_listening_q<N>.jpg.
+//
+// Caller supplies the rendered pages array (reused from extraction
+// or auto-crop) and the paper3Pages page numbers. Iterates each
+// listening page, asks Gemini to locate each numbered question
+// block on that page, crops, saves.
+export async function autoCropListeningQuestions(
+  pdfBuffer: Buffer,
+  paper3Pages: number[],
+  outDir: string,
+  yearLabel: string,
+): Promise<{ savedCount: number; errors: string[] }> {
+  const fs = await import("fs/promises");
+  const path = await import("path");
+  if (paper3Pages.length === 0) return { savedCount: 0, errors: [] };
+  await fs.mkdir(outDir, { recursive: true });
+
+  let allRendered: Buffer[];
+  try {
+    allRendered = await renderPdfToJpegs(pdfBuffer, 2400, 90);
+  } catch (e) {
+    return { savedCount: 0, errors: [`PDF render failed: ${(e as Error).message}`] };
+  }
+
+  let savedCount = 0;
+  const errors: string[] = [];
+  const seenNums = new Set<number>();
+  for (const p of paper3Pages) {
+    if (p < 1 || p > allRendered.length) continue;
+    const pageJpeg = allRendered[p - 1];
+    const questions = await detectListeningQuestionsOnPage(pageJpeg);
+    if (questions.length === 0) continue;
+    for (const q of questions) {
+      if (seenNums.has(q.num)) continue; // de-dupe in case adjacent pages overlap
+      seenNums.add(q.num);
+      try {
+        // Pad 2% around the detected block — listening MCQ blocks
+        // are tight, picture-heavy regions; a bigger pad than usual
+        // risks merging adjacent questions.
+        const pad = 0.02;
+        const bounds = {
+          left: Math.max(0, q.left - pad),
+          top: Math.max(0, q.top - pad),
+          width: Math.min(1 - Math.max(0, q.left - pad), q.width + 2 * pad),
+          height: Math.min(1 - Math.max(0, q.top - pad), q.height + 2 * pad),
+        };
+        const cropped = await cropPageImage(pageJpeg, bounds, 90, 0);
+        const out = path.join(outDir, `${yearLabel}_listening_q${q.num}.jpg`);
+        await fs.writeFile(out, cropped);
+        savedCount++;
+      } catch (e) {
+        errors.push(`listening_q${q.num}: ${(e as Error).message}`);
+      }
     }
   }
   return { savedCount, errors };

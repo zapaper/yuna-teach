@@ -322,31 +322,38 @@ function EnglishOralCompoAdmin() {
                     )}
                   </div>
 
-                  {/* Listening MCQs + Texts */}
+                  {/* Listening MCQs + Texts. MCQ options are usually
+                      picture-based on PSLE Paper 3, so we show the
+                      auto-cropped JPG of each question instead of
+                      OCR'd option text. Falls back to text rendering
+                      below if the option text was captured (some PDFs
+                      have text-only listening MCQs). */}
                   <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-indigo-800 mb-2">
                       Paper 3 Listening — {detail.listeningMcqs?.length ?? 0} MCQs · {detail.listeningTexts?.length ?? 0} Texts
                     </h3>
-                    <details className="mb-3">
-                      <summary className="cursor-pointer text-xs font-semibold text-indigo-700">View MCQs (grouped by Text)</summary>
-                      {detail.listeningMcqs?.length ? (
-                        <ol className="space-y-1 text-xs mt-2">
-                          {detail.listeningMcqs.map(mcq => (
-                            <li key={mcq.num} className="border-l-2 border-indigo-300 pl-2">
-                              <span className="font-semibold text-indigo-900">Q{mcq.num}</span>
-                              {mcq.textNum && <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded">Text {mcq.textNum}</span>}
-                              {mcq.text && <span className="text-slate-700 ml-1">{mcq.text}</span>}
-                              {mcq.isImageOptions && <span className="text-[10px] text-indigo-500 ml-1">(image opts)</span>}
-                              <ul className="ml-4 mt-1 text-[11px] text-slate-600">
-                                {mcq.options.map((opt, i) => (
-                                  <li key={i}><span className="font-mono">{opt.label}</span> {opt.text}</li>
-                                ))}
-                              </ul>
-                            </li>
-                          ))}
-                        </ol>
-                      ) : <p className="text-xs text-slate-400 italic mt-2">(no MCQs detected)</p>}
-                    </details>
+                    {detail.listeningMcqs?.length ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                        {detail.listeningMcqs.map(mcq => (
+                          <div key={mcq.num} className="border border-indigo-200 bg-white rounded p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-indigo-900 text-sm">Q{mcq.num}</span>
+                              {mcq.textNum && <span className="text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded">Text {mcq.textNum}</span>}
+                            </div>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/api/admin/english-oral-compo/${detail.id}/picture?kind=listening_q${mcq.num}`}
+                              alt={`Listening Q${mcq.num}`}
+                              className="rounded max-w-full"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                            {mcq.text && !mcq.isImageOptions && (
+                              <p className="text-xs text-slate-700 mt-1">{mcq.text}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="text-xs text-slate-400 italic mb-3">(no MCQs detected)</p>}
                     {detail.listeningTexts?.length ? (
                       <div className="space-y-2">
                         {detail.listeningTexts.map(t => (
@@ -571,6 +578,12 @@ function PictureReextractPanel({ detail, onDone }: { detail: RowDetail; onDone: 
   }
   for (const day of detail.oralDays ?? []) {
     targets.push({ kind: `oral_day${day.day}_stimulus`, label: `Oral Day ${day.day} stimulus (rotated 90°)`, defaultPage: day.stimulusPicturePageNum });
+  }
+  // Listening MCQs — per-question re-extract. defaultPage is unknown
+  // (we don't store a per-Q page in the schema), so the admin must
+  // type the right page from the PDF.
+  for (const mcq of detail.listeningMcqs ?? []) {
+    targets.push({ kind: `listening_q${mcq.num}`, label: `Listening Q${mcq.num}`, defaultPage: null });
   }
 
   const [inputs, setInputs] = useState<Record<string, string>>(() =>
