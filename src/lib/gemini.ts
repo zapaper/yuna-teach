@@ -4907,12 +4907,18 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
   // Priority: question-level marks from extraction > section-level marks from structure
   const marksPerQuestion: Record<string, number | null> = {};
 
-  // PSLE Science MCQ booklets are ALWAYS 2 marks per question. Gemini
-  // sometimes leaves marksPerQuestion null when the bracket marks aren't
-  // visible on every question. Apply a Science-MCQ default before we
-  // distribute section marks below.
+  // PSLE Science Booklet A is ALWAYS 28 MCQs at 2 marks each. Gemini's
+  // structure analysis doesn't reliably tag section.type as "MCQ" for
+  // Science (it usually leaves type as "" or "structured" and emits
+  // marksPerQuestion as null). What it DOES set reliably is the PAPER
+  // LABEL = "Booklet A". So we key the default off the paper label
+  // instead of section type.
   const subjectStr = (structure.header?.subject ?? "").toLowerCase();
   const isScience = subjectStr.includes("science");
+  function isScienceMcqPaper(label: string): boolean {
+    const l = (label ?? "").toLowerCase();
+    return isScience && (l.includes("booklet a") || l.includes("section a"));
+  }
   function isMcqSection(s: { name: string; type: string }) {
     const t = (s.type ?? "").toLowerCase();
     const n = (s.name ?? "").toLowerCase();
@@ -4921,12 +4927,13 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
 
   // 1. Start with section-level defaults
   for (const paper of structure.papers) {
+    const paperIsScienceMcq = isScienceMcqPaper(paper.label);
     let qOffset = 0;
     for (const section of paper.sections) {
       let mpq = section.marksPerQuestion ?? null;
-      if (mpq == null && isScience && isMcqSection(section)) {
+      if (mpq == null && (paperIsScienceMcq || (isScience && isMcqSection(section)))) {
         mpq = 2;
-        console.log(`[Exam Pipeline] Science MCQ default applied: section "${section.name}" (${section.questionCount} Qs) → 2 marks each`);
+        console.log(`[Exam Pipeline] Science MCQ default applied: paper "${paper.label}" / section "${section.name}" (${section.questionCount} Qs) → 2 marks each`);
       }
       for (let i = 0; i < section.questionCount; i++) {
         const qNum = paper.questionPrefix
