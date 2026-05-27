@@ -11,45 +11,42 @@
     {
       "title": "Welcome — Synthesis & Transformation (10 marks)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-welcome.png",
-      "body": "Synthesis asks you to REWRITE a sentence using a given keyword, keeping the meaning. 5 patterns cover ~90% of past PSLE questions. The hardest part isn't grammar — it's not changing meaning or adding info.",
+      "body": "Synthesis asks you to REWRITE a sentence using a given keyword, keeping the meaning. 4 patterns cover the bulk of past PSLE questions. The hardest part isn't grammar — it's not changing meaning, tense, or adding info.",
       "bullets": [
-        "**Pattern A: Concession** — Although / Despite / In spite of",
-        "**Pattern B: Cause/Effect** — Because / Due to / Owing to / Since",
-        "**Pattern C: Condition** — If / Unless / Provided that",
-        "**Pattern D: Word transformation** — noun ↔ verb / active ↔ passive",
-        "**Pattern E: Reported Speech** — direct ↔ indirect (with backshift)",
+        "**A: Concession** — Although / Despite / In spite of",
+        "**B: Cause** — Because / Due to / Owing to / Since",
+        "**C: Condition** — If / Unless / Provided that",
+        "**D: Reported Speech** — direct ↔ indirect, with backshift",
         "**The 3 rules of synthesis:**\n① Don't change the meaning. ② Don't change the tense. ③ Don't add info."
       ],
       "narration": {
         "bullets": [
-          "First, **Pattern A: Concession** — using Although / Despite / In spite of.",
-          "Next is **Pattern B: Cause/Effect** — such as Because / Due to / Owing to / Since.",
-          "Then, **Pattern C: Condition** — using If / Unless / Provided that.",
-          "Fourth is **Pattern D: Word transformation** — like noun ↔ verb / or active ↔ passive.",
-          "Finally, **Pattern E: Reported Speech** — going from direct ↔ indirect (with backshift).",
+          "Pattern **A: Concession** — Although / Despite / In spite of.",
+          "Pattern **B: Cause** — Because / Due to / Owing to / Since.",
+          "Pattern **C: Condition** — If / Unless / Provided that.",
+          "Pattern **D: Reported Speech** — direct ↔ indirect, with backshift.",
           null
         ]
       }
     },
     {
-      "title": "Pattern A — Concession (Although / Despite / In spite of)",
+      "title": "Pattern A — Concession (Although / Despite)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "\"Concession\" = two ideas that contrast (one positive, one negative). The most common PSLE trap: students mix up the grammar after Although vs Despite/In spite of.",
+      "body": "Two contrasting ideas. The PSLE trap: students mix up the grammar after Although vs Despite.",
       "bullets": [
-        "**Although + CLAUSE** (subject + verb)\n✓ Although **he was tired**, he kept working.\n✗ Although **his tiredness**, he kept working.",
-        "**Despite / In spite of + NOUN PHRASE** (no subject + verb!)\n✓ Despite **his tiredness**, he kept working.\n✓ Despite **being tired**, he kept working.   (-ing form OK)\n✗ Despite **he was tired**, he kept working.",
-        "**Conversion trick** (Although → Despite):\n-- Change the verb to a noun OR an -ing form\n-- Drop the subject (or change to \"his/her/their + noun\")\n-- E.g. \"Although it was raining\" → \"Despite the rain\" / \"Despite the fact that it was raining\""
+        "**Although + CLAUSE** (subject + verb)\n✓ Although **he was tired**, he kept working.",
+        "**Despite / In spite of + NOUN PHRASE**\n✓ Despite **his tiredness**, he kept working.\n✗ Despite **he was tired**, he kept working.",
+        "**Conversion** (Although → Despite): verb → noun/-ing, drop the subject.\n\"Although it was raining\" → \"Despite the rain.\""
       ]
     },
     {
-      "title": "Pattern B — Cause (Because / Due to / Owing to / Since)",
+      "title": "Pattern B — Cause (Because / Due to)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Same grammar split as concession. Because takes a clause; Due to and Owing to take a noun phrase.",
+      "body": "Same clause-vs-noun split as Concession. PSLE drills both because they share the conversion trick.",
       "bullets": [
-        "**Because / Since / As + CLAUSE** (subject + verb)\n✓ Because **the bus broke down**, we were late.",
-        "**Due to / Owing to + NOUN PHRASE**\n✓ Due to **the bus breakdown**, we were late.\n✓ Owing to **his illness**, he missed school.\n✗ Due to **the bus broke down**, we were late.",
-        "**Conversion trick** (Because → Due to): same as Pattern A\nVerb → noun/-ing, drop the subject.\nExample: \"Because she was sick\" → \"Due to her illness\" / \"Due to being sick\"",
-        "**Pattern A + B share the same grammar trick.** That's why PSLE drills both."
+        "**Because / Since / As + CLAUSE**\n✓ Because **the bus broke down**, we were late.",
+        "**Due to / Owing to + NOUN PHRASE**\n✓ Due to **the bus breakdown**, we were late.\n✗ Due to **the bus broke down**, we were late.",
+        "**Conversion** (Because → Due to): same trick — verb → noun, drop subject.\n\"Because she was sick\" → \"Due to her illness.\""
       ]
     },
     {
@@ -66,7 +63,7 @@
             "Despite of the bad weather, the football match continued."
           ],
           "correctAnswer": 2,
-          "explanation": "Despite takes a NOUN PHRASE. \"The weather was bad\" (clause) becomes \"the bad weather\" (noun phrase). Note: \"Despite of\" is always wrong — just \"Despite,\" not \"Despite of.\"",
+          "explanation": "Despite takes a NOUN PHRASE. \"The weather was bad\" (clause) becomes \"the bad weather\". Note: \"Despite of\" is always wrong — just \"Despite\".",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
@@ -80,82 +77,36 @@
             "Due to flooding the road, the bus could not pass."
           ],
           "correctAnswer": 2,
-          "explanation": "Due to + noun phrase. \"The road was flooded\" → \"the flooded road\" (adjective + noun). Option 4 changes the meaning (\"flooding the road\" implies someone is doing the flooding).",
+          "explanation": "Due to + noun phrase. \"The road was flooded\" → \"the flooded road\". Option 4 changes the meaning (\"flooding the road\" implies someone is doing the flooding).",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
       ]
     },
     {
-      "title": "Pattern C — Condition (If / Unless / Provided that)",
+      "title": "Pattern C — Condition (If / Unless)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Conditional sentences. The Unless trap catches most students: \"Unless\" already means \"if not\", so you must NEGATE the if-clause when converting.",
+      "body": "Unless = \"if not\". When converting If → Unless, you must NEGATE the if-clause. Double negatives = the #1 trap.",
       "bullets": [
-        "**If + present, will + verb** (standard conditional)\n✓ If you hurry, you will catch the bus.",
-        "**Unless = If...not** — flip the negation!\n✓ Unless you hurry, you will miss the bus.   (= If you don't hurry...)\n✗ Unless you don't hurry, you will catch the bus.   (double negative — wrong)",
-        "**Provided that = If (more formal)**\n✓ You will catch the bus provided that you hurry.   (same meaning as \"if\")",
-        "**Conversion trick** (If → Unless):\n-- Negate the if-clause (drop \"not\" if there is one; add \"not\" if there isn't)\n-- Keep the main clause the same\nExample: \"If you don't study, you will fail\" → \"Unless you study, you will fail\""
+        "**If + present, will + verb**\n✓ If you hurry, you will catch the bus.",
+        "**Unless = If…not** — flip the negation!\n✓ Unless you hurry, you will miss the bus.   (= If you don't hurry…)\n✗ Unless you don't hurry, you will catch the bus.   (double negative)",
+        "**Conversion** (If → Unless): drop \"not\" if there is one, add \"not\" if there isn't.\n\"If you don't study, you will fail\" → \"Unless you study, you will fail.\""
       ]
     },
     {
-      "title": "Pattern D — Word transformation (noun ↔ verb, active ↔ passive)",
+      "title": "Pattern D — Reported Speech (Direct ↔ Indirect)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "PSLE often gives a sentence and asks you to rewrite using a different WORD CLASS — usually noun ↔ verb. The trick: keep the meaning identical, change only the grammar.",
+      "body": "Convert direct speech (with quotes) to indirect (no quotes). Headline rule: BACKSHIFT — when the reporting verb is past (said / told / asked), every tense moves one step further back. The biggest trap: past → **past perfect (had + past participle)**.",
       "bullets": [
-        "**Noun ↔ Verb pairs** (common in PSLE):\n-- decide → decision     -- arrive → arrival\n-- explain → explanation -- succeed → success\n-- behave → behaviour    -- agree → agreement\n-- discover → discovery  -- choose → choice",
-        "**Active ↔ Passive — keep the doer if asked, drop it if not**\nActive: The boy broke the window.\nPassive: The window **was broken** by the boy.   (was/were + past participle)\nActive: They build a school every year.\nPassive: A school **is built** every year.   (drop \"by them\" — generic)",
-        "**Comparative ↔ Superlative transformation:**\n\"No one runs faster than him.\" → \"He runs the fastest.\"\n\"Nothing is more delicious than mum's cooking.\" → \"Mum's cooking is the most delicious.\"",
-        "**Trap**: don't change the TENSE. If original is past, the rewrite must also be past."
+        "**Tense backshift table** (when reporting verb is past)\n-- present (am/is/are) → past (was/were)\n-- present continuous (am eating) → past continuous (was eating)\n-- **past (broke / went) → past perfect (had broken / had gone)**  ⚠️ the past-past trap\n-- present perfect (has done) → past perfect (had done)\n-- will → would   ·   can → could   ·   may → might",
+        "**⚠️ The past-past trap** (most-missed)\nDirect: \"I **broke** the window,\" John said.\n✗ John said that he **broke** the window.\n✓ John said that he **had broken** the window.\nPast + past = ambiguous time order. Use past perfect for the earlier event.",
+        "**Pronoun & time/place shifts**\n-- I → he/she   ·   you → I/me   ·   we → they   ·   my → his/her\n-- today → that day   ·   **yesterday → the day before**\n-- tomorrow → the next day   ·   now → then\n-- here → there   ·   this → that   ·   these → those",
+        "**Questions** — use `asked if / whether`; drop \"do/did\"; statement order; no question mark.\n-- \"Where do you live?\" he asked. → He asked where I **lived**.\n-- \"Are you coming?\" she asked. → She asked **if** I **was** coming.",
+        "**Commands** — use `told [person] to + verb`.\n-- \"Sit down!\" the teacher said. → The teacher **told** us **to sit down**."
       ]
     },
     {
-      "title": "Pattern E — Reported Speech (Direct ↔ Indirect) + the past-past trap",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Convert direct speech (with quotes) to indirect (no quotes). The KEY rule is BACKSHIFT — tenses shift one step into the past when the reporting verb (said / told / asked) is in past tense.",
-      "bullets": [
-        "**Backshift table** (reporting verb is past):\n-- present → past:        \"I am happy\" → he said he **was** happy\n-- present continuous → past continuous: \"I am eating\" → he said he **was eating**\n-- past → past perfect:   \"I went home\" → he said he **had gone** home\n-- will → would:          \"I will help\" → he said he **would help**\n-- can → could:           \"I can swim\" → he said he **could swim**",
-        "**⚠️ THE PAST-PAST TRAP** (most common mistake)\nWhen the event happened **BEFORE** the speech, AND the speech was\nin past tense → the event must be **past perfect** (had + past\nparticiple). Not just simple past.\nDirect: \"I **broke** the window,\" John said.\n✗ John said that he **broke** the window. (loses time-ordering)\n✓ John said that he **had broken** the window. (past perfect = before \"said\")",
-        "**Pronoun + time/place shifts:**\n-- I → he/she · you → I/me · we → they\n-- today → that day · tomorrow → the next day · here → there · this → that",
-        "**Questions in reported speech** — use `asked if / whether`:\n-- Direct: \"Are you coming?\" she asked.\n-- Reported: She asked **if/whether** I **was** coming.\n-- Direct: \"Where do you live?\" he asked.\n-- Reported: He asked **where** I **lived**.   (NO question mark)",
-        "**Commands** — use `told [person] to + verb`:\n-- Direct: \"Sit down!\" the teacher said.\n-- Reported: The teacher **told** us **to sit down**."
-      ]
-    },
-    {
-      "title": "Try it — Reported Speech",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
-      "interactiveQuiz": [
-        {
-          "label": "The past-past trap",
-          "stem": "Direct speech: \"I lost my wallet,\" Tom said.\nConvert to reported speech. Which is correct?",
-          "options": [
-            "Tom said that he lost his wallet.",
-            "Tom said that he loses his wallet.",
-            "Tom said that he had lost his wallet.",
-            "Tom said that he has lost his wallet."
-          ],
-          "correctAnswer": 3,
-          "explanation": "The reporting verb \"said\" is past tense, AND the losing happened BEFORE the saying — so the event must move further back, to past perfect (\"had lost\"). Option 1 keeps it as simple past, which loses the time ordering. Option 2 shifts to present (wrong direction). Option 4 uses present perfect, which doesn't backshift correctly from past.",
-          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
-          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
-        },
-        {
-          "label": "Question backshift + word order",
-          "stem": "Direct: \"Where do you live?\" the policeman asked Mei.\nConvert to reported speech. Which is correct?",
-          "options": [
-            "The policeman asked Mei where did she live.",
-            "The policeman asked Mei where she lived.",
-            "The policeman asked Mei where she lives?",
-            "The policeman asked Mei where does she live."
-          ],
-          "correctAnswer": 2,
-          "explanation": "Three things must happen at once: (1) tense backshifts present → past (\"do you live\" → \"lived\"); (2) the question-word order drops the auxiliary \"do/did\" — it becomes a statement, not a question (\"where she lived\", NOT \"where did she live\"); (3) no question mark in reported speech. Only option 2 gets all three right.",
-          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
-          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
-        }
-      ]
-    },
-    {
-      "title": "Try it — Conditional & Transformation",
+      "title": "Try it — Condition & Reported Speech",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
@@ -168,21 +119,21 @@
             "Unless you wear a raincoat, you will be wet."
           ],
           "correctAnswer": 3,
-          "explanation": "\"Unless\" already means \"if not\", so DROP the \"don't\" when converting. \"If you don't wear\" → \"Unless you wear\". The main clause stays the same. Don't add a second negative or you flip the meaning.",
+          "explanation": "\"Unless\" already means \"if not\", so DROP the \"don't\" when converting. \"If you don't wear\" → \"Unless you wear\". The main clause stays the same — don't add a second negative.",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
         {
-          "label": "Noun ↔ verb transformation",
-          "stem": "Original: The principal decided that the trip would be cancelled.\nRewrite using the word \"decision\". Which is correct?",
+          "label": "Past-past trap",
+          "stem": "Direct: \"I lost my wallet yesterday,\" Tom said.\nConvert to reported speech. Which is correct?",
           "options": [
-            "The principal's decision was to cancel the trip.",
-            "The principal made a decision the trip would be cancelled.",
-            "The decision of the principal was the cancellation.",
-            "The principal had a decision to cancel the trip."
+            "Tom said that he lost his wallet yesterday.",
+            "Tom said that he had lost his wallet the day before.",
+            "Tom said that he has lost his wallet yesterday.",
+            "Tom said that he had lost his wallet yesterday."
           ],
-          "correctAnswer": 1,
-          "explanation": "\"Decided that\" → \"decision was to + verb\". Option 2 is missing \"that\" and reads ungrammatically. Option 3 changes the meaning (the decision IS the cancellation, vs. the principal decided to cancel). Option 4 is colloquial English, not PSLE-acceptable.",
+          "correctAnswer": 2,
+          "explanation": "Two backshifts must happen together: the verb \"lost\" (simple past) → \"had lost\" (past perfect), AND the time word \"yesterday\" → \"the day before\". Option 1 misses both. Options 3 and 4 catch one but not the other.",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
@@ -193,7 +144,7 @@
       "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
       "body": "Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation. Covers all 4 patterns from the slides. Trains the reflex of checking \"same tense, same info, same meaning\" on every rewrite.",
       "bullets": [
-        "**15 questions** — Concession (4) + Cause (3) + Condition (3) + Transform (5)",
+        "**15 questions** — Concession, Cause, Condition, Reported Speech",
         "Wrong answers auto-saved, reviewed in 1 week",
         "AI marks word-for-word — partial credit if you almost got it but missed tense/info"
       ],
@@ -207,7 +158,7 @@
       },
       "narration": {
         "bullets": [
-          "You'll tackle **15 questions** — comprising Concession (4) + Cause (3) + Condition (3) + Transform (5).",
+          "You'll tackle **15 questions** — a mix across Concession, Cause, Condition, and Reported Speech.",
           "Any Wrong answers are auto-saved, and reviewed in 1 week.",
           "The AI marks your answers word-for-word — giving partial credit if you almost got it but missed the tense/info."
         ]
@@ -229,8 +180,8 @@
       "definition": "Means 'if...not'. When converting If → Unless, NEGATE the if-clause (drop 'not' or add 'not'). Double negatives are the #1 trap."
     },
     {
-      "word": "active vs passive",
-      "definition": "Active: subject DOES the action ('the boy broke the window'). Passive: subject RECEIVES the action ('the window was broken by the boy'). Use was/were + past participle. Drop 'by X' if X is generic."
+      "word": "backshift",
+      "definition": "In reported speech, when the reporting verb is past, every tense shifts one step further back: present → past, past → past perfect (had + past participle). Pronouns and time/place words shift too: yesterday → the day before, here → there."
     },
     {
       "word": "3 rules of synthesis",
@@ -257,9 +208,9 @@
       "slideIdx": 4
     },
     {
-      "id": "transformation",
-      "label": "Word transformation",
-      "description": "Noun ↔ verb (decide → decision), active ↔ passive (broke → was broken), comparative ↔ superlative. Most common pair set drilled in PSLE.",
+      "id": "reported-speech",
+      "label": "Reported Speech (backshift)",
+      "description": "Direct ↔ indirect. Backshift tenses one step (present → past, past → past perfect). Also shift pronouns and time words (yesterday → the day before). Past-past trap is the headline mistake.",
       "slideIdx": 5
     }
   ]
