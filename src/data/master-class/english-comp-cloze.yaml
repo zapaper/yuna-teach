@@ -205,13 +205,21 @@ keyConcepts:
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
 
-  # ─── Slide 6: Common traps ───────────────────────────────────
-  - title: "Top 4 traps that lose easy marks"
+  # ─── Slide 6: The golden check + common traps ───────────────
+  - title: "The golden check — read it in context"
     mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
     body: >-
-      Even strong readers lose 2-3 marks on these every paper.
-      Scan your answers for them before you hand in.
+      Before you move on to the next blank, do THIS one thing — it
+      catches more mistakes than anything else. Then watch out for
+      the 4 traps below.
     bullets:
+      - |-
+        **⭐ THE most important check** (do this on EVERY blank):
+        After you write your answer, READ THREE SENTENCES out loud (in your head if it's exam time):
+        ① the sentence **before** the blank
+        ② the sentence **with** the blank (your answer slotted in)
+        ③ the sentence **after** the blank
+        If the three sentences read smoothly together — meaning makes sense, ideas connect, tenses match — your answer is right. If anything sounds awkward or breaks the flow, change it.
       - |-
         **Trap 1 — Spelling.**
         "occured" (wrong) vs **"occurred"** (right). "definately" vs **"definitely"**.
