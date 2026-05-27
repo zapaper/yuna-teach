@@ -92,11 +92,25 @@ export async function getMasteryReport(
     },
   });
 
+  // paper.score is the RAW SUM of marksAwarded (matches the marker
+  // pipeline at src/lib/marking.ts where score = totalAwarded). Convert
+  // to a percentage so the field name actually matches the field —
+  // the badge logic on /master-class compares this against 95, and the
+  // detail page renders it with a "%" suffix. With raw marks a student
+  // who scored 23/24 (96%) would fail both the threshold AND show "23%"
+  // in the UI.
+  const latestAvailable = (latestPaper?.questions ?? []).reduce(
+    (s, q) => s + (q.marksAvailable ?? 0), 0,
+  );
+  const latestPct = (latestPaper && latestAvailable > 0)
+    ? ((latestPaper.score ?? 0) / latestAvailable) * 100
+    : null;
+
   const report: MasteryReport = {
     slug,
     totalAttempts,
     latestAttemptAt: latestPaper?.completedAt ?? null,
-    latestAttemptScorePct: latestPaper?.score ?? null,
+    latestAttemptScorePct: latestPct,
     subTopics: subTopics.map(st => ({ id: st.id, label: st.label, state: "untested" as SubTopicState })),
     weakSubTopicIds: [],
     hasAnyWrongQuestions: wrongAggCount > 0,
