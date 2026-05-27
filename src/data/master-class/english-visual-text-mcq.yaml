@@ -5,9 +5,9 @@
 # 8 MCQs. The answer is ALWAYS in the text — but students miss
 # marks by reading the text first instead of the QUESTION first.
 #
-# Slide flow:
+# Slide flow (11 slides total):
 #   0  Welcome — 8 marks, the 5 question types
-#   1  4-step method — read the QUESTION first, then hunt for it
+#   1  4-step method — read the QUESTION first, then hunt
 #   2  Question-type cheat sheet — colour-coded triggers
 #   3  Pattern A — Scenario / "what should X do?" (most common, most missed)
 #   4  Pattern B — NOT / EXCEPT (the question-word trap)
@@ -18,13 +18,10 @@
 #   9  Try it — Pattern C (2 MCQs)
 #   10 Start practising! (CTA → 8-Q mastery quiz)
 #
-# Question-type frequencies from 6 years of PSLE (2019-2024, 48 master Qs):
-#   - Scenario-application: ~3 per paper (Alex/Rahul/Mindy wants X…)
-#   - NOT true / EXCEPT:    ~1 per paper (every paper has one)
-#   - Punctuation / style:  ~1 per paper (why "..." / "!" / ":" / "—" used)
-#   - Inference (quote/tone): ~1 per paper (what speaker shows)
-#   - Main purpose:         ~1 per paper (Q28 is always this)
-#   - "True of both X & Y": ~1 per paper
+# Bullets use {curly-brace filler words} that get spoken in TTS
+# narration but hidden from the rendered slide. Mirrors the pattern
+# in grammar-mcq-1.yaml so narration reads as full sentences instead
+# of bulletted fragments.
 
 slug: english-visual-text-mcq
 subject: english
@@ -50,16 +47,14 @@ keyConcepts:
       ANSWER IS ALWAYS IN THE TEXT — you just need to find it.
     bullets:
       - |-
-        **The 5 question types PSLE rotates** (in a typical paper):
-        -- **Scenario** — "Alex wants to join…" / "Mindy plans to visit…" → ~3 questions
-        -- **NOT true / EXCEPT** → 1 question (every paper has one)
-        -- **Punctuation / style** — why "..." or "!" or ":" used → 1 question
-        -- **Quote / tone** — what a speaker "shows" → 1 question
-        -- **Main purpose** of the whole text → 1 question (always Q28)
+        **The 5 question types PSLE rotates** {in a typical paper:}
+        -- {Most common is the }**Scenario** type — {like }"Alex wants to join…" / "Mindy plans to visit…" {— about }~3 questions
+        -- {Every paper has at least one }**NOT true / EXCEPT** {question.}
+        -- {You'll also see a }**Punctuation / style** {one — like }why "..." or "!" or ":" {is used.}
+        -- {Then a }**Quote / tone** {question — } what a speaker "shows" {about their feelings.}
+        -- {And finally, }**Main purpose** of the whole text — {always the last question, Q28.}
       - |-
-        **The biggest mistake:** reading the whole poster slowly first,
-        THEN looking at the questions. By Q3 you've forgotten where
-        anything is. Always READ THE QUESTION FIRST.
+        **The biggest mistake:** {students often start by }reading the whole poster slowly first, {and only THEN looking at the questions. By Q3 you've forgotten where anything is.} Always READ THE QUESTION FIRST.
 
   # ─── Slide 1: The 4-step method ─────────────────────────────
   - title: "The 4-step method — Question first, then hunt"
@@ -70,17 +65,17 @@ keyConcepts:
       every question.
     bullets:
       - |-
-        **Step 1 — Read the QUESTION first, not the text.**
-        Underline the question word (**NOT / EXCEPT / not true / most / best / both / first / cannot**) — these change what you're hunting for. Half of all wrong answers come from missing one of these words.
+        {First, }**Step 1 — Read the QUESTION first, not the text.**
+        {Underline the question word — }**NOT / EXCEPT / not true / most / best / both / first / cannot**. {These change what you're hunting for. Half of all wrong answers come from missing one of these words.}
       - |-
-        **Step 2 — Spot the KEYWORDS** in the question.
-        A person's name (Alex / Rahul / Mei Bing), a date, a section heading, a number. These are your search terms — find them in the text.
+        {Second, }**Step 2 — Spot the KEYWORDS** {in the question.}
+        {Look out for } a person's name (Alex / Rahul / Mei Bing), a date, a section heading, {or }a number. {These are your search terms — find them in the text.}
       - |-
-        **Step 3 — Find the matching SECTION in the text.**
-        Posters / websites have headings like "Be transformed", "Your safety matters", "How to play". The right answer almost always sits inside the section that matches your keyword.
+        {Third, }**Step 3 — Find the matching SECTION in the text.**
+        {Posters and websites usually have headings like }"Be transformed", "Your safety matters", "How to play". {The right answer almost always sits inside the section that matches your keyword.}
       - |-
-        **Step 4 — Check each option against the text.**
-        For ONE option to be right, the OTHER THREE must be wrong. If the text doesn't SAY an option's claim, that option is wrong — don't pick it just because it "sounds nice."
+        {Finally, }**Step 4 — Check each option against the text.**
+        {Remember — } for ONE option to be right, the OTHER THREE must be wrong. {If the text doesn't SAY an option's claim, that option is wrong — don't pick it just because it "sounds nice."}
 
   # ─── Slide 2: Question-type cheat sheet ─────────────────────
   - title: "Spot the question type before you answer"
@@ -90,32 +85,32 @@ keyConcepts:
       then apply the right approach.
     bullets:
       - |-
-        **🔴 SCENARIO — "X wants to / plans to / is thinking about…"**
-        -- Hunt for: the specific NEED the person mentioned (a hobby, a date, "first visit", "biggest savings")
-        -- Trap: a benefit listed somewhere else in the poster that ISN'T what they asked for
-        -- Examples: "Rahul plans to make his first visit. Which gives him the biggest savings?" / "Mei Bing takes Bus 26 — which is the most direct way?"
+        🔴 **SCENARIO** — {looks like }"X wants to / plans to / is thinking about…"
+        -- {Hunt for } the specific NEED the person mentioned, {like }a hobby, a date, "first visit", "biggest savings".
+        -- ⚠️ **Trap:** {a benefit listed }somewhere else in the poster that ISN'T what they asked for.
+        -- {Examples include }"Rahul plans to make his first visit. Which gives him the biggest savings?" {or }"Mei Bing takes Bus 26 — which is the most direct way?"
       - |-
-        **🟡 NOT / EXCEPT — "Which is NOT true?" / "…except"**
-        -- Hunt for: the THREE options that ARE true in the text. The ODD ONE OUT is your answer.
-        -- Trap: students forget the "NOT" and pick a true statement.
-        -- 🧠 Underline NOT / EXCEPT in your question booklet before you even read the options.
+        🟡 **NOT / EXCEPT** — {looks like }"Which is NOT true?" / "…except"
+        -- {Hunt for the } THREE options that ARE true in the text. {The ODD ONE OUT is your answer.}
+        -- ⚠️ **Trap:** {students forget the "NOT" and pick a true statement.}
+        -- 🧠 {Always } underline NOT / EXCEPT in your question booklet {before you even read the options.}
       - |-
-        **🟣 PUNCTUATION / STYLE — "Why is '...' used?" / "Why is the heading written this way?"**
-        -- Hunt for: the PURPOSE of the punctuation in CONTEXT. Most common purposes:
-            • "..." → makes the reader curious / want to read on
-            • "!" → excitement / urgency / surprise
-            • ":" → introduces a list that follows
-            • "—" (dash) → adds an explanation of the first part
-            • acronym (R.O.O.T.S.) → makes it easy to remember
-        -- Trap: "looks fancy" / "sounds nice" → both wrong.
+        🟣 **PUNCTUATION / STYLE** — {looks like }"Why is '...' used?" / "Why is the heading written this way?"
+        -- {Hunt for the } PURPOSE of the punctuation in CONTEXT. {Most common purposes are:}
+            • "..." → {makes the reader curious / want to read on}
+            • "!" → {excitement / urgency / surprise}
+            • ":" → {introduces a list that follows}
+            • "—" (dash) → {adds an explanation of the first part}
+            • acronym (like R.O.O.T.S.) → {makes it easy to remember}
+        -- ⚠️ **Trap:** {options like }"looks fancy" / "sounds nice" — {both wrong.}
       - |-
-        **🔵 QUOTE / TONE — "When X said '...', it shows that X is / expected ___."**
-        -- Hunt for: what the quote IMPLIES, not what it directly says.
-        -- Trap: an option that just repeats the surface words of the quote — usually wrong.
+        🔵 **QUOTE / TONE** — {looks like }"When X said '...', it shows that X is / expected ___."
+        -- {Hunt for } what the quote IMPLIES, not what it directly says.
+        -- ⚠️ **Trap:** {an option that just } repeats the surface words of the quote — {usually wrong.}
       - |-
-        **🟢 MAIN PURPOSE — "What is the main purpose of this text?" (always Q28)**
-        -- Hunt for: the BIG action the writer wants from the reader — promote / encourage / inform / persuade.
-        -- Trap: an option that's only one section's purpose, not the whole text's.
+        🟢 **MAIN PURPOSE** — {always } Q28.
+        -- {Hunt for } the BIG action the writer wants from the reader — {like }promote / encourage / inform / persuade.
+        -- ⚠️ **Trap:** {an option that's } only one section's purpose, not the whole text's.
 
   # ─── Slide 3: Pattern A — Scenario ──────────────────────────
   - title: "Pattern A — Scenario questions (the most-tested type)"
@@ -127,23 +122,23 @@ keyConcepts:
     bullets:
       - |-
         **The classic stem:**
-        -- "Rahul plans to make his **first visit** to VR-Rocks. Which will allow him to enjoy the **biggest savings**?"
-        -- "Mei Bing takes Bus 26. Which is the **most direct way** to the park?"
-        -- "Hafiz is at the car park facing the Central Pond. Which is **not** true?"
+        -- {Like }"Rahul plans to make his **first visit** to VR-Rocks. Which will allow him to enjoy the **biggest savings**?"
+        -- {Or }"Mei Bing takes Bus 26. Which is the **most direct way** to the park?"
+        -- {Or }"Hafiz is at the car park facing the Central Pond. Which is **not** true?"
       - |-
         **How to crack it — 3 steps:**
-        ① **Highlight the SPECIFIC condition** in the question. "First visit", "biggest savings", "most direct", "Bus 26" — these are the filters.
-        ② **List every option that's mentioned in the text.** Don't reject anything yet.
-        ③ **Filter by the condition.** A "member-only discount" is wrong if the person is a FIRST visitor. A walk via "Side Gate" is wrong if Bus 26 stops at Main Gate.
+        ① {First, }**Highlight the SPECIFIC condition** in the question. {Words like }"first visit", "biggest savings", "most direct", "Bus 26" — {these are the filters.}
+        ② {Second, }**List every option that's mentioned in the text.** {Don't reject anything yet.}
+        ③ {Third, }**Filter by the condition.** {For example: }a "member-only discount" is wrong if the person is a FIRST visitor. {A walk via "Side Gate" is wrong if Bus 26 stops at Main Gate.}
       - |-
-        **⚠️ Real mistake from David/Mark's quiz:**
-        Question: "Alex is thinking about joining The Explorers Club. According to the poster, he should join the club if he wants to ___."
-        ✗ Wrong: "be a member of Singa Service Club" — that's a separate club, not a reason to join Explorers.
-        ✓ Right: "pay less to be part of Step Out and Be Active" — joining Explorers GETS you the discount.
-        🧠 The answer is what JOINING gives you. Not what's mentioned elsewhere on the poster.
+        ⚠️ **Real mistake from David and Mark's quiz:**
+        {The question was: }"Alex is thinking about joining The Explorers Club. According to the poster, he should join the club if he wants to ___."
+        ✗ {Their wrong pick was }"be a member of Singa Service Club" — {but that's a separate club, not a reason to join Explorers.}
+        ✓ {The right answer was }"pay less to be part of Step Out and Be Active" — {because } joining Explorers GETS you the discount.
+        🧠 {The lesson: } the answer is what JOINING gives you. {Not what's mentioned elsewhere on the poster.}
       - |-
-        **⚠️ Another real mistake — "biggest savings":**
-        Students pick a "10% off" option without checking — but if there's also a "free with friend group" or "early-bird discount that stacks", that's bigger. **Read EVERY discount mentioned** before answering.
+        ⚠️ **Another real mistake — "biggest savings":**
+        {Students often } pick a "10% off" option without checking — {but if there's also a "free with friend group" or "early-bird discount that stacks", that's bigger.} **Read EVERY discount mentioned** before answering.
 
   # ─── Slide 4: Pattern B — NOT true / EXCEPT ─────────────────
   - title: "Pattern B — NOT true / EXCEPT (the careful-reading trap)"
@@ -153,24 +148,24 @@ keyConcepts:
       marks if you slow down — and silly mistakes if you don't.
     bullets:
       - |-
-        **The trick: 3 of the 4 options ARE true. Your answer is the ONE that isn't.**
-        -- Read every option. Tick (✓) the ones you can FIND in the text.
-        -- The option you can't find — or the one that CONTRADICTS the text — is your answer.
+        **The trick:** {remember that } 3 of the 4 options ARE true. Your answer is the ONE that isn't.
+        -- {First, } Read every option. Tick (✓) the ones you can FIND in the text.
+        -- {Then } the option you can't find — or the one that CONTRADICTS the text — is your answer.
       - |-
-        **Watch for these question words** — circle them BEFORE reading options:
+        **Watch for these question words** — {circle them BEFORE reading options:}
         -- "Which is **NOT** true…"
         -- "…**except**…"
         -- "Which **cannot** / does **not**…"
         -- "All of the following are mentioned **except**…"
       - |-
-        **⚠️ Real mistake — Shadow Demon got Q19 wrong this way:**
-        Question: "According to 'Your safety matters to us', which statement is **not** true?"
-        Options were 3 statements TRUE in the text + 1 made-up one ("All players will receive a full refund").
-        Student picked option 2 (a TRUE statement) — forgot the "not".
-        🧠 Always tick (✓) the true options first. The untcicked one is your answer.
+        ⚠️ **Real mistake — Shadow Demon got Q19 wrong this way:**
+        {The question was: }"According to 'Your safety matters to us', which statement is **not** true?"
+        {The options were }3 statements TRUE in the text + 1 made-up one ("All players will receive a full refund").
+        {The student } picked option 2 (a TRUE statement) — {they forgot the "not".}
+        🧠 {The fix: }always tick (✓) the true options first. The unticked one is your answer.
       - |-
         **Trap variant — "Which is **not** highlighted as part of the experience?"**
-        Look at the bullet list of features in the text. Check each option against the bullet list. The option that ISN'T in the bullets is your answer.
+        {Here, } look at the bullet list of features in the text. {Check each option against the bullet list. The option that ISN'T in the bullets is your answer.}
 
   # ─── Slide 5: Pattern C — Punctuation, tone, main purpose ───
   - title: "Pattern C — Punctuation, tone, and main purpose"
@@ -181,28 +176,29 @@ keyConcepts:
       follow predictable rules.
     bullets:
       - |-
-        **🟣 Punctuation — why is THIS mark used here?**
-        Match the mark to its job:
-        -- **"..."** → drops a build-up so reader is curious / wants to read on
-        -- **"!"** → excitement / urgency / surprise / strong feeling
-        -- **":"** → introduces what comes after (a list / explanation)
-        -- **"—" (dash)** → adds extra info that explains the first part
-        -- **"( )"** → adds extra info that's nice to have but not essential
-        -- **Question marks at start of article** → hooks reader, makes them want to know the answer
+        🟣 **Punctuation — why is THIS mark used here?**
+        {Match the mark to its job:}
+        -- "..." → {drops a build-up so reader is curious / wants to read on}
+        -- "!" → {excitement / urgency / surprise / strong feeling}
+        -- ":" → {introduces what comes after — a list or explanation}
+        -- "—" (dash) → {adds extra info that explains the first part}
+        -- "( )" → {adds extra info that's nice to have but not essential}
+        -- {And } question marks at the start of an article → {hook reader, make them want to know the answer}
       - |-
-        **🟣 Acronym / initial-letter trick — "R.O.O.T.S.", "S.M.A.R.T."**
-        Why is it written this way? → **makes it easy to remember** / aids recall. PSLE 2024 tested this exactly.
+        🟣 **Acronym / initial-letter trick — like "R.O.O.T.S."**
+        {The acronym takes the FIRST letter of each of several tips to form a memorable word. For example, in PSLE 2024 the article on time management used }R.O.O.T.S. — {each letter started a different tip, like "Recognise your deadlines" and so on.}
+        {Why is it written this way? → } **makes it easy to remember** / aids recall. {PSLE 2024 tested this exact pattern.}
       - |-
-        **🔵 Quote / tone — "When X said '___', it shows that X ___."**
-        -- Ask: what FEELING or VIEW does the quote suggest?
-        -- Example from 2024: Mr Chen says "I can imagine my students' jaws dropping now!" → it shows he expects them to be **shocked** (not the literal "jaws dropping" — what jaw-dropping IMPLIES).
-        -- Trap: a wrong option just repeats words from the quote without giving the feeling behind it.
+        🔵 **Quote / tone — "When X said '___', it shows that X ___."**
+        -- {Ask: } what FEELING or VIEW does the quote suggest?
+        -- {Example from PSLE 2024: }Mr Chen says "I can imagine my students' jaws dropping now!" → {it shows he expects them to be }**shocked** {— not the literal "jaws dropping", but what jaw-dropping IMPLIES.}
+        -- ⚠️ **Trap:** {a wrong option just } repeats words from the quote without giving the feeling behind it.
       - |-
-        **🟢 Main purpose — always Q28**
-        Posters / ads → usually "to **promote** / **encourage** / **persuade** people to ___"
-        Newsletters → usually "to **share** / **inform**"
-        Two-text spreads → look at what BOTH texts together accomplish.
-        Trap: an option that's only the purpose of ONE section, not the whole text.
+        🟢 **Main purpose — always Q28**
+        -- {Posters and ads → } usually "to **promote** / **encourage** / **persuade** people to ___"
+        -- {Newsletters → } usually "to **share** / **inform**"
+        -- {Two-text spreads → } look at what BOTH texts together accomplish.
+        -- ⚠️ **Trap:** {an option that's } only the purpose of ONE section, not the whole text.
 
   # ─── Slide 6: Worked example — clue-by-clue ─────────────────
   - title: "Worked example — how the 4 steps actually work"
@@ -213,27 +209,27 @@ keyConcepts:
       matters to us". Now look at this question.
     bullets:
       - |-
-        **The question (a real PSLE 2023 stem):**
+        **The question** {(a real PSLE 2023 stem):}
         "Rahul plans to make his **first visit** to VR-Rocks. Which of the following will allow him to enjoy the **biggest savings**?"
-        Options:
+        {The options are:}
         (1) He signs up as a VR-Rocks member.
         (2) He signs up before 31 October 2023.
         (3) He plays with at least three other friends.
         (4) He plays with as many friends as possible.
       - |-
-        **Step 1 — Read the question.** Underline keywords: 🔴 **first visit** · 🔴 **biggest savings**.
+        {Now, }**Step 1 — Read the question.** {Underline keywords: } 🔴 **first visit** · 🔴 **biggest savings**.
       - |-
-        **Step 2 — Spot the question type.** "Plans to / which will allow" → 🟥 **Scenario** question. Filter the options by the conditions.
+        {Next, }**Step 2 — Spot the question type.** {"Plans to / which will allow" → } 🟥 **Scenario** question. {Filter the options by the conditions.}
       - |-
-        **Step 3 — Find the matching section.** Pricing & Promotions section. Scan for every discount mentioned in the poster.
+        {Then, }**Step 3 — Find the matching section.** {That's the } Pricing & Promotions section. {Scan for every discount mentioned in the poster.}
       - |-
-        **Step 4 — Check each option against the text:**
-        -- (1) Member discount → ✗ Rahul is on his FIRST visit, he's not a member yet.
-        -- (2) Sign up before 31 Oct → check the date — was it expired? Or is it a different type of discount? Compare its % to the others.
-        -- (3) Play with **at least 3** other friends → check what discount the poster gives for groups of 4+.
-        -- (4) Play with as many friends as possible → sounds tempting BUT if the poster's discount caps at "4 or more", going 10-strong gives no extra savings.
-        ✓ **Answer: (3)** — "at least three other friends" matches the poster's "group of 4 gets X% off". (4) doesn't give a bigger discount than (3).
-        🧠 Beware "sounds-better" options like (4). The text controls what counts as "biggest", not common sense.
+        {Finally, }**Step 4 — Check each option against the text:**
+        -- (1) Member discount → ✗ {Rahul is on his FIRST visit, so he's not a member yet.}
+        -- (2) Sign up before 31 Oct → {check the date — has it expired? Or is it a different type of discount? Compare its % to the others.}
+        -- (3) Play with **at least 3** other friends → {check what discount the poster gives for groups of 4+.}
+        -- (4) Play with as many friends as possible → {sounds tempting, BUT if the poster's discount caps at "4 or more", going 10-strong gives no extra savings.}
+        ✓ **Answer: (3)** — {"at least three other friends" matches the poster's "group of 4 gets X% off". Option (4) doesn't give a bigger discount than (3).}
+        🧠 {Lesson: } beware "sounds-better" options like (4). The text controls what counts as "biggest", not common sense.
 
   # ─── Slide 7: Try it — Patterns A & B ───────────────────────
   - title: "Try it — Patterns A & B"
@@ -254,7 +250,7 @@ keyConcepts:
           - Free welcome gift for new members in June
         correctAnswer: 2
         explanation: >-
-          Filter the options by the conditions in the question. Wei Ming is signing up in JULY (so early-bird is gone — option 1 is out), is NOT a member (so option 3 is out), and the welcome gift isn't a discount anyway (option 4 — even if it applied). He IS in a group of 6 (5 friends + himself), which qualifies as "4 or more" → 30% off. That's the only one that applies AND it's the biggest.
+          Filter the options by the conditions in the question. Wei Ming is signing up in JULY (so early-bird is gone — option 1 is out), is NOT a member (so option 3 is out), and the welcome gift isn't a discount anyway (option 4). He IS in a group of 6 (5 friends + himself), which qualifies as "4 or more" → 30% off. That's the only one that applies AND it's the biggest.
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
       - label: "NOT true — the question word trap"
@@ -285,23 +281,24 @@ keyConcepts:
     bullets:
       - |-
         **Trap 1 — Forgot the "NOT" in the question.**
-        Student picks a TRUE statement when the question asked for the UNtrue one.
-        🧠 Underline NOT / EXCEPT / cannot before you even read options.
+        {Student picks a TRUE statement when the question asked for the UNtrue one.}
+        🧠 {The fix: } underline NOT / EXCEPT / cannot before you even read options.
       - |-
         **Trap 2 — "Sounds better" wins over "what the text says".**
-        "He plays with as MANY friends as possible" sounds like more = bigger savings. But the poster caps the discount at "4 or more". The text controls — not common sense.
+        {For example: }"He plays with as MANY friends as possible" sounds like more = bigger savings. {But the poster caps the discount at "4 or more". The text controls — not common sense.}
       - |-
         **Trap 3 — Picking an option from a DIFFERENT section.**
-        Question is about The Explorers Club; student picks an option that's actually a benefit of the Service Club. 🧠 Always check the option fits the section the question is about.
+        {The question is about The Explorers Club; student picks an option that's actually a benefit of the Service Club.}
+        🧠 {The fix: } always check the option fits the section the question is about.
       - |-
         **Trap 4 — Repeating the quote instead of explaining what it shows.**
-        Question: "When she said 'I'm over the moon', it shows she felt ___."
-        ✗ "She was looking at the moon." (just repeats words)
-        ✓ "extremely happy" (what the phrase IMPLIES)
-        🧠 Quote questions ask for the FEELING / VIEW behind the words, not the words themselves.
+        {The question might be: }"When she said 'I'm over the moon', it shows she felt ___."
+        ✗ "She was looking at the moon." {(just repeats words)}
+        ✓ "extremely happy" {(what the phrase IMPLIES)}
+        🧠 {Lesson: } quote questions ask for the FEELING / VIEW behind the words, not the words themselves.
       - |-
         **Trap 5 — "Main purpose" answer is too narrow.**
-        Q28 asks about the WHOLE text. An option about just one section (e.g. "to teach how to make a pinhole projector") is wrong if the whole text is broader (e.g. "to encourage readers to view the eclipse"). Pick the BIG picture purpose.
+        {Q28 asks about the WHOLE text. An option about just one section — like "to teach how to make a pinhole projector" — is wrong if the whole text is broader, like "to encourage readers to view the eclipse". Pick the BIG picture purpose.}
 
   # ─── Slide 9: Try it — Pattern C ────────────────────────────
   - title: "Try it — Pattern C (punctuation, tone, main purpose)"
@@ -320,7 +317,7 @@ keyConcepts:
           - readers already know which two teachers will be featured
         correctAnswer: 3
         explanation: >-
-          "..." is a "build-up dropper" — it hides information to make you curious. The whole point is to make readers WANT to keep reading. Option 1 (not important) — wrong, the names ARE the point of the article. Option 2 (no space) — wrong, this isn't about layout. Option 4 (readers know) — wrong, readers don't know yet. Option 3 captures the actual purpose: make readers curious enough to keep reading. This is the EXACT PSLE 2024 Q21 answer.
+          "..." is a "build-up dropper" — it hides information to make you curious. The whole point is to make readers WANT to keep reading. Option 1 (not important) — wrong, the names ARE the point of the article. Option 2 (no space) — wrong, this isn't about layout. Option 4 (readers know) — wrong, readers don't know yet. Option 3 captures the actual purpose: make readers curious enough to keep reading. This is the exact PSLE 2024 Q21 answer.
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
       - label: "Quote — what does it show?"
