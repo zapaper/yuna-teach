@@ -4946,6 +4946,25 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
   // 1. Start with section-level defaults
   for (const paper of structure.papers) {
     const paperIsScienceMcq = isScienceMcqPaper(paper.label);
+
+    // Section-less fallback: PSLE 2017 (and others) came back with
+    // empty paper.sections from Gemini's structure call, so the
+    // section loop below produced no entries and the Science-MCQ
+    // default never fired — Q1-12 stayed null when the per-question
+    // bracket marks were faint. When this is a Science Booklet A
+    // and we have NO sections to iterate, seed all expected
+    // questions to 2 directly off the paper.
+    if (paperIsScienceMcq && (!paper.sections || paper.sections.length === 0) && paper.expectedQuestionCount > 0) {
+      console.log(`[Exam Pipeline] Science MCQ paper-level default: "${paper.label}" has no sections; seeding ${paper.expectedQuestionCount} Qs at 2 marks each`);
+      for (let i = 0; i < paper.expectedQuestionCount; i++) {
+        const qNum = paper.questionPrefix
+          ? `${paper.questionPrefix}${i + 1}`
+          : `${i + 1}`;
+        marksPerQuestion[qNum] = 2;
+      }
+      continue;
+    }
+
     let qOffset = 0;
     for (const section of paper.sections) {
       let mpq = section.marksPerQuestion ?? null;
