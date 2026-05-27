@@ -1,0 +1,247 @@
+{
+  "slug": "english-visual-text-mcq",
+  "subject": "english",
+  "level": "P5-P6",
+  "topicLabel": "Visual Text Comprehension MCQ",
+  "title": "PSLE English — Visual Text Comprehension MCQ (8 marks)",
+  "stats": {
+    "headline": "Visual Text Comprehension = 8 marks. The text could be a poster, newsletter, website or two-text spread. The answer is always in the text — but only if you READ THE QUESTION FIRST and HUNT for the answer, instead of reading the whole text first."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Visual Text Comprehension MCQ (8 marks)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-welcome.png",
+      "body": "Visual Text is the section with a poster / website / newsletter and 8 MCQ questions about it. Each question = 1 mark. The ANSWER IS ALWAYS IN THE TEXT — you just need to find it.",
+      "bullets": [
+        "**The 5 question types PSLE rotates** (in a typical paper):\n-- **Scenario** — \"Alex wants to join…\" / \"Mindy plans to visit…\" → ~3 questions\n-- **NOT true / EXCEPT** → 1 question (every paper has one)\n-- **Punctuation / style** — why \"...\" or \"!\" or \":\" used → 1 question\n-- **Quote / tone** — what a speaker \"shows\" → 1 question\n-- **Main purpose** of the whole text → 1 question (always Q28)",
+        "**The biggest mistake:** reading the whole poster slowly first,\nTHEN looking at the questions. By Q3 you've forgotten where\nanything is. Always READ THE QUESTION FIRST."
+      ]
+    },
+    {
+      "title": "The 4-step method — Question first, then hunt",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Visual Text is a HUNTING game. The text is the map; the question tells you what to look for. Run THIS routine on every question.",
+      "bullets": [
+        "**Step 1 — Read the QUESTION first, not the text.**\nUnderline the question word (**NOT / EXCEPT / not true / most / best / both / first / cannot**) — these change what you're hunting for. Half of all wrong answers come from missing one of these words.",
+        "**Step 2 — Spot the KEYWORDS** in the question.\nA person's name (Alex / Rahul / Mei Bing), a date, a section heading, a number. These are your search terms — find them in the text.",
+        "**Step 3 — Find the matching SECTION in the text.**\nPosters / websites have headings like \"Be transformed\", \"Your safety matters\", \"How to play\". The right answer almost always sits inside the section that matches your keyword.",
+        "**Step 4 — Check each option against the text.**\nFor ONE option to be right, the OTHER THREE must be wrong. If the text doesn't SAY an option's claim, that option is wrong — don't pick it just because it \"sounds nice.\""
+      ]
+    },
+    {
+      "title": "Spot the question type before you answer",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Each question type has its own trap. Spot the type first, then apply the right approach.",
+      "bullets": [
+        "**🔴 SCENARIO — \"X wants to / plans to / is thinking about…\"**\n-- Hunt for: the specific NEED the person mentioned (a hobby, a date, \"first visit\", \"biggest savings\")\n-- Trap: a benefit listed somewhere else in the poster that ISN'T what they asked for\n-- Examples: \"Rahul plans to make his first visit. Which gives him the biggest savings?\" / \"Mei Bing takes Bus 26 — which is the most direct way?\"",
+        "**🟡 NOT / EXCEPT — \"Which is NOT true?\" / \"…except\"**\n-- Hunt for: the THREE options that ARE true in the text. The ODD ONE OUT is your answer.\n-- Trap: students forget the \"NOT\" and pick a true statement.\n-- 🧠 Underline NOT / EXCEPT in your question booklet before you even read the options.",
+        "**🟣 PUNCTUATION / STYLE — \"Why is '...' used?\" / \"Why is the heading written this way?\"**\n-- Hunt for: the PURPOSE of the punctuation in CONTEXT. Most common purposes:\n    • \"...\" → makes the reader curious / want to read on\n    • \"!\" → excitement / urgency / surprise\n    • \":\" → introduces a list that follows\n    • \"—\" (dash) → adds an explanation of the first part\n    • acronym (R.O.O.T.S.) → makes it easy to remember\n-- Trap: \"looks fancy\" / \"sounds nice\" → both wrong.",
+        "**🔵 QUOTE / TONE — \"When X said '...', it shows that X is / expected ___.\"**\n-- Hunt for: what the quote IMPLIES, not what it directly says.\n-- Trap: an option that just repeats the surface words of the quote — usually wrong.",
+        "**🟢 MAIN PURPOSE — \"What is the main purpose of this text?\" (always Q28)**\n-- Hunt for: the BIG action the writer wants from the reader — promote / encourage / inform / persuade.\n-- Trap: an option that's only one section's purpose, not the whole text's."
+      ]
+    },
+    {
+      "title": "Pattern A — Scenario questions (the most-tested type)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "About 3 out of 8 questions per paper are scenario-application: \"X wants to do Y, what should X do?\" These look easy but they have a sneaky trap.",
+      "bullets": [
+        "**The classic stem:**\n-- \"Rahul plans to make his **first visit** to VR-Rocks. Which will allow him to enjoy the **biggest savings**?\"\n-- \"Mei Bing takes Bus 26. Which is the **most direct way** to the park?\"\n-- \"Hafiz is at the car park facing the Central Pond. Which is **not** true?\"",
+        "**How to crack it — 3 steps:**\n① **Highlight the SPECIFIC condition** in the question. \"First visit\", \"biggest savings\", \"most direct\", \"Bus 26\" — these are the filters.\n② **List every option that's mentioned in the text.** Don't reject anything yet.\n③ **Filter by the condition.** A \"member-only discount\" is wrong if the person is a FIRST visitor. A walk via \"Side Gate\" is wrong if Bus 26 stops at Main Gate.",
+        "**⚠️ Real mistake from David/Mark's quiz:**\nQuestion: \"Alex is thinking about joining The Explorers Club. According to the poster, he should join the club if he wants to ___.\"\n✗ Wrong: \"be a member of Singa Service Club\" — that's a separate club, not a reason to join Explorers.\n✓ Right: \"pay less to be part of Step Out and Be Active\" — joining Explorers GETS you the discount.\n🧠 The answer is what JOINING gives you. Not what's mentioned elsewhere on the poster.",
+        "**⚠️ Another real mistake — \"biggest savings\":**\nStudents pick a \"10% off\" option without checking — but if there's also a \"free with friend group\" or \"early-bird discount that stacks\", that's bigger. **Read EVERY discount mentioned** before answering."
+      ]
+    },
+    {
+      "title": "Pattern B — NOT true / EXCEPT (the careful-reading trap)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Every PSLE paper has at least ONE of these. They're worth easy marks if you slow down — and silly mistakes if you don't.",
+      "bullets": [
+        "**The trick: 3 of the 4 options ARE true. Your answer is the ONE that isn't.**\n-- Read every option. Tick (✓) the ones you can FIND in the text.\n-- The option you can't find — or the one that CONTRADICTS the text — is your answer.",
+        "**Watch for these question words** — circle them BEFORE reading options:\n-- \"Which is **NOT** true…\"\n-- \"…**except**…\"\n-- \"Which **cannot** / does **not**…\"\n-- \"All of the following are mentioned **except**…\"",
+        "**⚠️ Real mistake — Shadow Demon got Q19 wrong this way:**\nQuestion: \"According to 'Your safety matters to us', which statement is **not** true?\"\nOptions were 3 statements TRUE in the text + 1 made-up one (\"All players will receive a full refund\").\nStudent picked option 2 (a TRUE statement) — forgot the \"not\".\n🧠 Always tick (✓) the true options first. The untcicked one is your answer.",
+        "**Trap variant — \"Which is **not** highlighted as part of the experience?\"**\nLook at the bullet list of features in the text. Check each option against the bullet list. The option that ISN'T in the bullets is your answer."
+      ]
+    },
+    {
+      "title": "Pattern C — Punctuation, tone, and main purpose",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "These ask about HOW the text is written, not just what it says. Each paper has 2-3 of these — they look hard but they follow predictable rules.",
+      "bullets": [
+        "**🟣 Punctuation — why is THIS mark used here?**\nMatch the mark to its job:\n-- **\"...\"** → drops a build-up so reader is curious / wants to read on\n-- **\"!\"** → excitement / urgency / surprise / strong feeling\n-- **\":\"** → introduces what comes after (a list / explanation)\n-- **\"—\" (dash)** → adds extra info that explains the first part\n-- **\"( )\"** → adds extra info that's nice to have but not essential\n-- **Question marks at start of article** → hooks reader, makes them want to know the answer",
+        "**🟣 Acronym / initial-letter trick — \"R.O.O.T.S.\", \"S.M.A.R.T.\"**\nWhy is it written this way? → **makes it easy to remember** / aids recall. PSLE 2024 tested this exactly.",
+        "**🔵 Quote / tone — \"When X said '___', it shows that X ___.\"**\n-- Ask: what FEELING or VIEW does the quote suggest?\n-- Example from 2024: Mr Chen says \"I can imagine my students' jaws dropping now!\" → it shows he expects them to be **shocked** (not the literal \"jaws dropping\" — what jaw-dropping IMPLIES).\n-- Trap: a wrong option just repeats words from the quote without giving the feeling behind it.",
+        "**🟢 Main purpose — always Q28**\nPosters / ads → usually \"to **promote** / **encourage** / **persuade** people to ___\"\nNewsletters → usually \"to **share** / **inform**\"\nTwo-text spreads → look at what BOTH texts together accomplish.\nTrap: an option that's only the purpose of ONE section, not the whole text."
+      ]
+    },
+    {
+      "title": "Worked example — how the 4 steps actually work",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Imagine the text is a poster for \"VR-Rocks\" with sections: \"Be Transformed\", \"Pricing & Promotions\", \"Your safety matters to us\". Now look at this question.",
+      "bullets": [
+        "**The question (a real PSLE 2023 stem):**\n\"Rahul plans to make his **first visit** to VR-Rocks. Which of the following will allow him to enjoy the **biggest savings**?\"\nOptions:\n(1) He signs up as a VR-Rocks member.\n(2) He signs up before 31 October 2023.\n(3) He plays with at least three other friends.\n(4) He plays with as many friends as possible.",
+        "**Step 1 — Read the question.** Underline keywords: 🔴 **first visit** · 🔴 **biggest savings**.",
+        "**Step 2 — Spot the question type.** \"Plans to / which will allow\" → 🟥 **Scenario** question. Filter the options by the conditions.",
+        "**Step 3 — Find the matching section.** Pricing & Promotions section. Scan for every discount mentioned in the poster.",
+        "**Step 4 — Check each option against the text:**\n-- (1) Member discount → ✗ Rahul is on his FIRST visit, he's not a member yet.\n-- (2) Sign up before 31 Oct → check the date — was it expired? Or is it a different type of discount? Compare its % to the others.\n-- (3) Play with **at least 3** other friends → check what discount the poster gives for groups of 4+.\n-- (4) Play with as many friends as possible → sounds tempting BUT if the poster's discount caps at \"4 or more\", going 10-strong gives no extra savings.\n✓ **Answer: (3)** — \"at least three other friends\" matches the poster's \"group of 4 gets X% off\". (4) doesn't give a bigger discount than (3).\n🧠 Beware \"sounds-better\" options like (4). The text controls what counts as \"biggest\", not common sense."
+      ]
+    },
+    {
+      "title": "Try it — Patterns A & B",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Scenario — match the specific need",
+          "stem": "A poster for \"FunWorks Holiday Camp\" says:\n• Sign up before 1 June → 20% early-bird discount\n• Group of 4 or more → 30% off\n• Members → 10% off any time\n• New members in June → free welcome gift (not a discount)\nQuestion: Wei Ming is NOT a member and is signing up in July with 5 friends. Which gives him the biggest savings?",
+          "options": [
+            "20% early-bird discount (sign up before 1 June)",
+            "30% off for group of 4 or more",
+            "10% members' discount",
+            "Free welcome gift for new members in June"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Filter the options by the conditions in the question. Wei Ming is signing up in JULY (so early-bird is gone — option 1 is out), is NOT a member (so option 3 is out), and the welcome gift isn't a discount anyway (option 4 — even if it applied). He IS in a group of 6 (5 friends + himself), which qualifies as \"4 or more\" → 30% off. That's the only one that applies AND it's the biggest.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "NOT true — the question word trap",
+          "stem": "A \"Safety Rules at the Water Park\" notice says:\n① All visitors must wear a wristband.\n② Children under 6 must be supervised by an adult.\n③ Floats are provided free; no need to bring your own.\n④ Lifeguards are on duty from 9 am to 7 pm daily.\nQuestion: According to the notice, which statement is **not** true?",
+          "options": [
+            "All visitors must wear a wristband.",
+            "Children under 6 need adult supervision.",
+            "Visitors must bring their own floats.",
+            "Lifeguards are on duty until 7 pm."
+          ],
+          "correctAnswer": 3,
+          "explanation": "Tick each option against the text. (1) Wristband — ✓ in rule ①. (2) Adult supervision under 6 — ✓ in rule ②. (4) Lifeguards until 7 pm — ✓ in rule ④. Option (3) CONTRADICTS the notice — the rule says floats are PROVIDED FREE, you do NOT need to bring your own. So (3) is \"not true\" → it's the answer. The trap: forgetting the \"not\" and picking a true statement.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Top 5 traps (from real student quizzes)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Mistakes David, Mark, and Shadow Demon made on recent Visual Text quizzes — every one of these costs 1 mark. Watch for them.",
+      "bullets": [
+        "**Trap 1 — Forgot the \"NOT\" in the question.**\nStudent picks a TRUE statement when the question asked for the UNtrue one.\n🧠 Underline NOT / EXCEPT / cannot before you even read options.",
+        "**Trap 2 — \"Sounds better\" wins over \"what the text says\".**\n\"He plays with as MANY friends as possible\" sounds like more = bigger savings. But the poster caps the discount at \"4 or more\". The text controls — not common sense.",
+        "**Trap 3 — Picking an option from a DIFFERENT section.**\nQuestion is about The Explorers Club; student picks an option that's actually a benefit of the Service Club. 🧠 Always check the option fits the section the question is about.",
+        "**Trap 4 — Repeating the quote instead of explaining what it shows.**\nQuestion: \"When she said 'I'm over the moon', it shows she felt ___.\"\n✗ \"She was looking at the moon.\" (just repeats words)\n✓ \"extremely happy\" (what the phrase IMPLIES)\n🧠 Quote questions ask for the FEELING / VIEW behind the words, not the words themselves.",
+        "**Trap 5 — \"Main purpose\" answer is too narrow.**\nQ28 asks about the WHOLE text. An option about just one section (e.g. \"to teach how to make a pinhole projector\") is wrong if the whole text is broader (e.g. \"to encourage readers to view the eclipse\"). Pick the BIG picture purpose."
+      ]
+    },
+    {
+      "title": "Try it — Pattern C (punctuation, tone, main purpose)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Punctuation — why three dots?",
+          "stem": "A newsletter heading reads:\n\"Let's hear from...\"\n(Followed by an article featuring interviews with two teachers.)\nQuestion: The heading ends with three dots (...) because __________.",
+          "options": [
+            "it signals that the missing details are not important",
+            "there is no space to add the names of the two teachers",
+            "it makes readers read on to find out who will be featured",
+            "readers already know which two teachers will be featured"
+          ],
+          "correctAnswer": 3,
+          "explanation": "\"...\" is a \"build-up dropper\" — it hides information to make you curious. The whole point is to make readers WANT to keep reading. Option 1 (not important) — wrong, the names ARE the point of the article. Option 2 (no space) — wrong, this isn't about layout. Option 4 (readers know) — wrong, readers don't know yet. Option 3 captures the actual purpose: make readers curious enough to keep reading. This is the EXACT PSLE 2024 Q21 answer.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "Quote — what does it show?",
+          "stem": "In an interview, Mr Lim says: \"I can still picture my parents' faces when they saw my report card!\" The article goes on to describe how he had been a mischievous student who finally improved at the end of P6.\nQuestion: When Mr Lim said this, it shows he expected his parents to be __________.",
+          "options": [
+            "confused by how he could improve so quickly",
+            "amazed by his sudden improvement in his studies",
+            "disappointed that he had not improved any earlier",
+            "upset because he had not informed them in advance"
+          ],
+          "correctAnswer": 2,
+          "explanation": "The context says Mr Lim was MISCHIEVOUS and IMPROVED at the end. So when his parents saw the report card, they would have been pleasantly SURPRISED / AMAZED — they wouldn't expect a previously mischievous student to do well. Option 1 (confused by speed) — possible but not the strongest fit. Option 3 (disappointed) — wrong tone, the report card is good news. Option 4 (upset he didn't inform them) — totally unrelated. The clue is the contrast between \"mischievous\" past and \"improved\" present → amazement.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Start practising!",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
+      "body": "Mixed practice pulled from PSLE 2019-2024 Visual Text MCQ. Trains the question-first hunting routine until it's automatic.",
+      "bullets": [
+        "**8 questions** — scenarios, NOT-true, punctuation, quote, main purpose",
+        "Wrong answers auto-saved, reviewed in 1 week",
+        "⭐ golden rule: read the QUESTION first, hunt for keywords in the text, then check ALL options before picking."
+      ],
+      "cta": {
+        "label": "Click here to start practice",
+        "quizSpec": {
+          "title": "Mastery: Visual Text Comprehension MCQ",
+          "mcq": 8,
+          "oeq": 0
+        }
+      },
+      "narration": {
+        "bullets": [
+          "You'll tackle **8 questions** — a mix of scenarios, NOT-true, punctuation, quote, and main purpose.",
+          "Any Wrong answers are auto-saved, and reviewed in 1 week.",
+          "Remember the ⭐ golden rule: read the QUESTION first, hunt for keywords in the text, then check ALL options before picking."
+        ]
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "visual text comprehension MCQ",
+      "definition": "Booklet A Q21-28 of PSLE English. 8 MCQs about a poster, newsletter, website or two-text spread. 1 mark each = 8 marks. Read the question FIRST, then hunt for the answer in the text."
+    },
+    {
+      "word": "scenario question",
+      "definition": "Most common type. 'X wants to do Y, what should X do?' Filter the options by the specific condition in the question (first visit / biggest savings / Bus 26). The answer is the option that matches all the conditions."
+    },
+    {
+      "word": "NOT true / EXCEPT",
+      "definition": "Every paper has at least one. 3 of the 4 options are TRUE in the text — your answer is the odd one out. Underline NOT/EXCEPT before you read the options or you'll forget."
+    },
+    {
+      "word": "punctuation purpose",
+      "definition": "PSLE asks why '...' / '!' / ':' / '—' / acronyms are used. Quick rules: '...' = make reader curious, '!' = excitement, ':' = introduces a list/explanation, dash = adds info that explains, acronym = easy to remember."
+    },
+    {
+      "word": "quote inference",
+      "definition": "When the question asks 'When X said Y, it shows X is ___', look for the FEELING or VIEW behind the words. Wrong answers usually just repeat words from the quote without giving the feeling."
+    },
+    {
+      "word": "main purpose",
+      "definition": "Always Q28. Asks about the WHOLE text's intent — promote / encourage / inform / persuade. Wrong answers are usually only the purpose of one section, not the whole text."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "scenario",
+      "label": "Scenario / \"what should X do?\"",
+      "description": "Most-tested type (~3 per paper). Filter the options by the SPECIFIC condition (first visit / biggest savings / most direct). Trap: picking an option that's mentioned somewhere else in the text but doesn't match the condition.",
+      "slideIdx": 3
+    },
+    {
+      "id": "not-true",
+      "label": "NOT true / EXCEPT",
+      "description": "Every paper has one. 3 options are true, 1 is false. Underline NOT/EXCEPT/cannot before reading options or you'll pick a true statement by accident.",
+      "slideIdx": 4
+    },
+    {
+      "id": "punctuation-tone",
+      "label": "Punctuation, tone, main purpose",
+      "description": "Why is '...' or '!' or ':' used? What does a quote 'show'? Main purpose of the whole text? Style questions follow predictable rules — memorise the punctuation→purpose mapping.",
+      "slideIdx": 5
+    },
+    {
+      "id": "traps",
+      "label": "Common traps",
+      "description": "Forgot the NOT; picked 'sounds-better' over 'what the text says'; picked an option from a different section; repeated the quote instead of explaining; main purpose too narrow.",
+      "slideIdx": 8
+    }
+  ]
+}
