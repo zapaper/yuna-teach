@@ -1,7 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUserId, clearSession } from "@/lib/session";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 import { getStripe } from "@/lib/stripe";
+
+// GET /api/users/me
+//
+// Minimal identity for the signed-in caller. Lets client pages branch
+// on admin / role without trusting the URL ?userId= parameter (which
+// is spoofable and ALSO matches the assigned student when admin opens
+// /exam/{id}/review?userId={studentId} — that flipped the review page
+// into 'student-mode' and hid the Re-mark + Mark-as-Reviewed buttons
+// for admins viewing a test quiz).
+export async function GET() {
+  const sessionId = await getSessionUserId();
+  if (!sessionId) return NextResponse.json({ user: null }, { status: 401 });
+  const u = await prisma.user.findUnique({
+    where: { id: sessionId },
+    select: { id: true, name: true, role: true, settings: true },
+  });
+  if (!u) return NextResponse.json({ user: null }, { status: 404 });
+  return NextResponse.json({
+    user: {
+      id: u.id,
+      name: u.name,
+      role: u.role,
+      isAdmin: isAdminUser({ name: u.name, settings: u.settings }),
+    },
+  });
+}
 
 // DELETE /api/users/me
 //

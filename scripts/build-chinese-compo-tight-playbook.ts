@@ -23,7 +23,7 @@ import { prisma } from "../src/lib/db";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle,
-  ShadingType,
+  ShadingType, PageBreak,
 } from "docx";
 
 const SCRIPT_DIR = __dirname;
@@ -61,6 +61,11 @@ type FeaturedEssay = {
   titleEn: string;
   body: string;           // full Chinese text of the model essay
   bodySummaryEn: string;  // 2-3 sentence English summary so non-Chinese parents can follow
+  // 3-5 OTHER Option 1 titles this essay could be adapted to fit, with a
+  // 1-line note on why each works. Lets the student see this isn't a
+  // one-trick essay — same story can answer several prompts with small
+  // tweaks (proper noun swaps, opening/closing rewording).
+  alsoFitsTitles: Array<{ titleCn: string; titleEn: string; whyItFits: string }>;
   highlights: FeaturedHighlight[];
 };
 type Output = {
@@ -276,14 +281,26 @@ async function deriveFeaturedEssays(): Promise<FeaturedEssay[]> {
 范文：
 ${body}
 
-请挑出**5-10 段最值得借鉴**的句子（必须**逐字**从范文里照抄）。每段标注 bucket：
+请完成三件事：
+
+**(1) bodySummaryEn** — 30-60 字英文总结情节，让不懂中文的家长能跟。
+
+**(2) alsoFitsTitles** — 列 3-5 个**其他 Option 1 题目**，说明同一篇范文怎么改一改就能套用。常见 Option 1 题型：
+- 这件事让我明白了 XX 的重要（XX = 合作 / 耐心 / 诚实 / 守信 / 关怀 / 助人为乐 / 团结…）
+- 一件让我难忘的事 / 一次难忘的经历
+- 一件让我感动的事 / 让我后悔的事 / 让我成长的事
+- 一件让我变得 XX 的事（勇敢 / 成熟 / 坚强 / 谦虚…）
+- 一份我珍惜的礼物 / 一份难忘的友谊
+- 一件让别人为我感到骄傲的事
+- 我做了一个正确的决定 / 一个错误的决定
+每个 alsoFitsTitles 条目要给一行中文 whyItFits 说明（例如「这篇范文的事故 + 反思情节直接对应『让我后悔』」）。
+
+**(3) highlights** — 挑出 5-10 段最值得借鉴的句子（必须**逐字**从范文里照抄）。每段标注 bucket：
 - "opening" 通用开头（铺垫、回忆切入）
 - "closing" 通用结尾 / 反思
 - "accident" 事故 / 惊吓 / 慌乱描写
 - "careless" 承认粗心 / 自责描写
 - "transition" 转折 / 高潮转换的金句
-
-外加一段 30-60 字的英文 bodySummaryEn 总结这篇范文的情节，让不懂中文的家长也能跟读。
 
 返回严格 JSON（不带 markdown）：
 {
@@ -291,13 +308,17 @@ ${body}
   "titleCn": "${titleCn}",
   "titleEn": "1 句话英文翻译这个题目",
   "bodySummaryEn": "...",
+  "alsoFitsTitles": [
+    { "titleCn": "...", "titleEn": "...", "whyItFits": "..." },
+    ...
+  ],
   "highlights": [
     { "span": "...一字不差从范文摘出...", "bucket": "opening", "why": "1 行中文说明为什么这段可重用" },
     ...
   ]
 }
 
-**关键：每个 span 必须是范文里的逐字片段，不要改字、不要换标点、不要加省略号。** 因为渲染器会用 indexOf 在范文里搜索，找不到就高亮不上。`;
+**关键：每个 highlights[].span 必须是范文里的逐字片段，不要改字、不要换标点、不要加省略号。** 因为渲染器会用 indexOf 在范文里搜索，找不到就高亮不上。`;
     const res = await ai().models.generateContent({
       model: MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -389,20 +410,47 @@ function renderEssayWithHighlights(essay: FeaturedEssay): Paragraph[] {
   return paragraphs;
 }
 
-function featuredEssaySection(essay: FeaturedEssay): (Paragraph | Table)[] {
+function featuredEssaySection(essay: FeaturedEssay, isFirst: boolean): (Paragraph | Table)[] {
   const out: (Paragraph | Table)[] = [];
+  // Page-break before each essay (except the first — it follows the
+  // Part C intro paragraphs and gets its own page naturally).
+  if (!isFirst) {
+    out.push(new Paragraph({ children: [new PageBreak()] }));
+  }
   out.push(new Paragraph({
-    spacing: { before: 320, after: 60 },
+    spacing: { before: 0, after: 60 },
     children: [
-      t(`📜 ${essay.year} · ${essay.titleCn}`, { bold: true, size: 28, color: "1E40AF" }),
+      t(`📜 ${essay.year} 原题: ${essay.titleCn}`, { bold: true, size: 28, color: "1E40AF" }),
       t(`  —  ${essay.titleEn}`, { italics: true, color: "6B7280", size: 20 }),
     ],
   }));
-  out.push(p(essay.bodySummaryEn, { italics: true, color: "4B5563", size: 20, after: 100 }));
+  out.push(p(essay.bodySummaryEn, { italics: true, color: "4B5563", size: 20, after: 60 }));
+
+  // alsoFitsTitles — show right under the title so the reader knows up
+  // front this essay can answer multiple prompts.
+  if (essay.alsoFitsTitles && essay.alsoFitsTitles.length > 0) {
+    out.push(new Paragraph({
+      spacing: { before: 100, after: 30 },
+      shading: { type: ShadingType.CLEAR, fill: "ECFDF5", color: "auto" },
+      children: [
+        t("✅ 这篇范文还可以改编成以下题目  ·  Also fits these titles", { bold: true, size: 22, color: "047857" }),
+      ],
+    }));
+    for (const a of essay.alsoFitsTitles) {
+      out.push(new Paragraph({
+        bullet: { level: 0 }, spacing: { before: 40, after: 40 },
+        children: [
+          t(a.titleCn, { bold: true, size: 22 }),
+          t(`  (${a.titleEn})`, { italics: true, color: "6B7280", size: 20 }),
+          t(`  ——  ${a.whyItFits}`, { color: "4B5563", size: 20 }),
+        ],
+      }));
+    }
+  }
 
   // Legend
   out.push(new Paragraph({
-    spacing: { before: 60, after: 80 },
+    spacing: { before: 120, after: 80 },
     children: [
       t("可借鉴句标记: ", { bold: true, size: 18, color: "4B5563" }),
       t("开头 ", { highlight: "yellow", color: "92400E", size: 18 }),
@@ -418,32 +466,6 @@ function featuredEssaySection(essay: FeaturedEssay): (Paragraph | Table)[] {
   }));
 
   out.push(...renderEssayWithHighlights(essay));
-
-  if (essay.highlights.length > 0) {
-    out.push(p("被标记的句子 — 为什么可以借鉴", { bold: true, size: 22, color: "1E40AF", before: 120, after: 40 }));
-    const rows: TableRow[] = [];
-    rows.push(new TableRow({
-      tableHeader: true,
-      children: [
-        cell("类别", { bold: true, width: 12, bg: "F3F4F6", size: 18 }),
-        cell("句子", { bold: true, width: 50, bg: "F3F4F6", size: 18 }),
-        cell("为什么可重用", { bold: true, width: 38, bg: "F3F4F6", size: 18 }),
-      ],
-    }));
-    for (const h of essay.highlights) {
-      rows.push(new TableRow({
-        children: [
-          cell(BUCKET_LABEL_CN[h.bucket], {
-            bold: true, size: 20, bg: BUCKET_COLOUR[h.bucket],
-            color: h.bucket === "accident" ? "991B1B" : h.bucket === "careless" ? "5B21B6" : h.bucket === "opening" ? "92400E" : h.bucket === "closing" ? "047857" : "1E40AF",
-          }),
-          cell(h.span, { size: 20 }),
-          cell(h.why, { size: 20, color: "4B5563" }),
-        ],
-      }));
-    }
-    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: tableBorder(), rows }));
-  }
   return out;
 }
 
@@ -483,7 +505,7 @@ async function main() {
       { heading: HeadingLevel.HEADING_1, before: 400, after: 80 }));
     children.push(p("以下是 2016、2019、2020、2022 年范文全文。被颜色标注的句子是可以「直接背、跨题套用」的金句，颜色对应 Part A 的 4 个桶。",
       { italics: true, color: "4B5563", size: 22, after: 120 }));
-    for (const e of data.featuredEssays) children.push(...featuredEssaySection(e));
+    data.featuredEssays.forEach((e, i) => children.push(...featuredEssaySection(e, i === 0)));
   }
 
   const doc = new Document({ sections: [{ children }] });

@@ -247,6 +247,26 @@ function ExamReviewContent({ id }: { id: string }) {
   const [sticker, setSticker] = useState<string | null>(null);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const isDiagnostic = searchParams?.get("diagnostic") === "1";
+  // Session-derived role flag. Defaults to false until /api/users/me
+  // resolves; the URL ?userId= comparison falls back during that
+  // window, which is safe (admin briefly sees student-view, then UI
+  // flips to admin-view on hydrate).
+  const [sessionIsAdminOrParent, setSessionIsAdminOrParent] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/users/me")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (cancelled || !d?.user) return;
+        // Admin always passes. Parents are detected via role=PARENT —
+        // they should see Re-mark on their kids' quizzes too. Students
+        // are the only role that should be locked into student-view.
+        const u = d.user as { role?: string; isAdmin?: boolean };
+        if (u.isAdmin || u.role === "PARENT") setSessionIsAdminOrParent(true);
+      })
+      .catch(() => { /* non-fatal — falls back to URL-based detection */ });
+    return () => { cancelled = true; };
+  }, []);
   const diagnosticParentId = searchParams?.get("parentId") ?? "";
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   // Show a one-time congratulations popup when the student lands on the review page from
@@ -702,7 +722,13 @@ function ExamReviewContent({ id }: { id: string }) {
     }
   }
 
-  const isStudent = userId === assignedToId;
+  // isStudent looks at URL ?userId= vs the paper's assignedToId — when
+  // an admin/parent opens /exam/{id}/review?userId={studentId} the URL
+  // matches and the page would otherwise treat them as the student
+  // (hiding Re-mark / Mark-as-Reviewed). Override with the SESSION
+  // user's role: admin always gets the controls; parents linked to the
+  // student do too.
+  const isStudent = userId === assignedToId && !sessionIsAdminOrParent;
   // Hoisted toolbar state for the passage overlay — rendered next to
   // the section header instead of floating inside the passage box.
   // Resets on section change so each section starts with pen off.
