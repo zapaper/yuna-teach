@@ -1132,7 +1132,35 @@ function ExamReviewContent({ id }: { id: string }) {
   // markers, and runs plain-text segments through MathText so
   // inline LaTeX (e.g. "$\frac{7}{27}$") renders as a proper
   // stacked fraction instead of leaking the dollar-sign syntax.
+  // Science papers (especially circuit / shading / drawable diagram
+  // questions) often have "Working: (no working shown)" lines inside
+  // markingNotes that aren't useful — the answer IS the drawing.
+  // Strip them before any display path. Pipes are the section
+  // separator the marker uses (Detected: ... | Evidence ... |
+  // Part (a) ...), so we clean per-pipe-segment and per-newline.
+  function stripScienceNoise(text: string): string {
+    const isScience = (paperSubject ?? "").toLowerCase().includes("science");
+    if (!isScience) return text;
+    const emptyWorkingLineRe = /(?:^|\n)\s*(?:\([a-z0-9]+\)\s*)?working\s*:?\s*\(?\s*(?:no\s+working(?:\s+shown)?|blank|empty|no\s+answer|nothing|none)\s*\)?\s*(?=\n|$)/gi;
+    // Also strip the inline form "(a) Working: (no working shown)\n"
+    // where the line starts with a subpart label and the working
+    // scaffold is glued onto it.
+    const inlineWorkingRe = /\((?:[a-z0-9]+)\)\s*working\s*:?\s*\(?\s*no\s+working(?:\s+shown)?\s*\)?\s*\n?/gi;
+    let out = text
+      .replace(emptyWorkingLineRe, "")
+      .replace(inlineWorkingRe, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/\s*\|\s*\|/g, " | ")
+      .trim();
+    // Detected: prefix on a science drawable question is redundant —
+    // the per-subpart detected-answer card already shows what the
+    // student drew. Strip the leading "Detected: …" up to the first
+    // " | " if there is one.
+    out = out.replace(/^Detected:\s*[\s\S]*?\s\|\s*/i, "");
+    return out;
+  }
   function renderMarkingNotes(text: string) {
+    text = stripScienceNoise(text);
     // Drop the 'Detected: …' segment — the student's detected answer
     // already gets its own 'Detected Answer' card above the marking
     // notes. Repeating it here is just noise.
@@ -2834,7 +2862,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               )}
                               {/* Marking notes/reason for wrong/partial */}
                               {q.markingNotes && !q.markingNotes.startsWith("Wrong.") && q.markingNotes !== "Correct" && q.markingNotes !== "No answer" && (
-                                <p className="text-xs text-[#43474f] italic mt-1">{q.markingNotes}</p>
+                                <p className="text-xs text-[#43474f] italic mt-1">{stripScienceNoise(q.markingNotes)}</p>
                               )}
                             </div>
                           </div>

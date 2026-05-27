@@ -1,0 +1,854 @@
+{
+  "topics": [
+    {
+      "topicCn": "安全意识",
+      "topicEn": "Safety awareness",
+      "whenToUse": "当题目涉及受伤、意外、交通事故、危险玩耍、无视警告牌等情节时使用。",
+      "whenToUseEn": "Use when the prompt involves injuries, accidents, traffic incidents, dangerous play, or ignoring warning signs.",
+      "signalsFromPrompt": [
+        {
+          "cn": "图中有红绿灯 / 斑马线 / 公路",
+          "en": "Picture shows traffic lights / zebra crossing / road"
+        },
+        {
+          "cn": "图中有“地滑” / “禁止奔跑”等警告牌",
+          "en": "Picture shows 'wet floor' / 'no running' warning signs"
+        },
+        {
+          "cn": "图中有人在走廊奔跑追逐 / 玩火 / 玩电",
+          "en": "Picture shows someone running in corridors / playing with fire / playing with electricity"
+        },
+        {
+          "cn": "图中有人边走边看手机 / 听耳机",
+          "en": "Picture shows someone looking at a phone or listening to earphones while walking"
+        }
+      ],
+      "recommendedOpenings": [
+        {
+          "nameCn": "天气铺垫不祥",
+          "nameEn": "Foreboding weather",
+          "phrases": [
+            {
+              "cn": "下起了滂沱大雨",
+              "en": "A heavy downpour started"
+            },
+            {
+              "cn": "天空中乌云密布",
+              "en": "The sky was densely covered with dark clouds"
+            },
+            {
+              "cn": "黑压压的一片",
+              "en": "A dark and oppressive mass (of clouds)"
+            },
+            {
+              "cn": "眼看一场大雨将至",
+              "en": "Seeing that a heavy rain was imminent"
+            },
+            {
+              "cn": "豆大的雨点像断了线的珍珠",
+              "en": "Pea-sized raindrops fell like pearls from a broken string"
+            }
+          ]
+        },
+        {
+          "nameCn": "倒叙 / 感慨",
+          "nameEn": "Reflective / Flashback",
+          "phrases": [
+            {
+              "cn": "那是一个令人难忘的教训",
+              "en": "That was an unforgettable lesson"
+            },
+            {
+              "cn": "至今我还记得",
+              "en": "To this day, I still remember"
+            },
+            {
+              "cn": "那一幕至今历历在目",
+              "en": "That scene is still vivid in my mind"
+            },
+            {
+              "cn": "提起那件事，我至今记忆犹新",
+              "en": "Mentioning that incident, my memory is still fresh"
+            },
+            {
+              "cn": "在我的脑海里，犹如发生在昨天",
+              "en": "In my mind, it feels as if it happened yesterday"
+            }
+          ]
+        },
+        {
+          "nameCn": "晴天反衬",
+          "nameEn": "Sunny contrast",
+          "phrases": [
+            {
+              "cn": "阳光明媚的早晨",
+              "en": "A bright and sunny morning"
+            },
+            {
+              "cn": "外面阳光明媚，晴空万里",
+              "en": "Outside it was bright and sunny, with a clear and boundless sky"
+            },
+            {
+              "cn": "天气晴朗，凉风阵阵",
+              "en": "The weather was clear, with gentle cool breezes"
+            },
+            {
+              "cn": "窗外阳光灿烂",
+              "en": "The sun was shining brightly outside the window"
+            },
+            {
+              "cn": "阳光明媚的周末",
+              "en": "A bright and sunny weekend"
+            }
+          ]
+        }
+      ],
+      "recommendedSetting": [
+        {
+          "nameCn": "阴雨 / 风暴",
+          "nameEn": "Rainy / stormy",
+          "phrases": [
+            {
+              "cn": "下起了滂沱大雨",
+              "en": "A heavy downpour started"
+            },
+            {
+              "cn": "天空中乌云密布",
+              "en": "The sky was densely covered with dark clouds"
+            },
+            {
+              "cn": "黑压压的一片",
+              "en": "A dark and oppressive mass"
+            },
+            {
+              "cn": "豆大的雨点像断了线的珍珠",
+              "en": "Pea-sized raindrops fell like pearls from a broken string"
+            },
+            {
+              "cn": "雨淅淅沥沥地下着",
+              "en": "The rain was falling continuously"
+            }
+          ]
+        },
+        {
+          "nameCn": "晴朗 / 阳光",
+          "nameEn": "Sunny / bright",
+          "phrases": [
+            {
+              "cn": "阳光明媚，晴空万里",
+              "en": "Bright and sunny, with a clear and boundless sky"
+            },
+            {
+              "cn": "天气晴朗，凉风阵阵",
+              "en": "The weather was clear, with gentle cool breezes"
+            },
+            {
+              "cn": "窗外阳光灿烂",
+              "en": "The sun was shining brightly outside the window"
+            },
+            {
+              "cn": "云淡风轻",
+              "en": "Light clouds and gentle breeze"
+            },
+            {
+              "cn": "一缕温暖的阳光直射我的心田",
+              "en": "A ray of warm sunlight shone straight into my heart"
+            }
+          ]
+        }
+      ],
+      "recommendedEmotions": [
+        {
+          "nameCn": "紧张 / 害怕",
+          "nameEn": "Panic / Fear",
+          "phrases": [
+            {
+              "cn": "急得像热锅上的蚂蚁",
+              "en": "Anxious like an ant on a hot pan"
+            },
+            {
+              "cn": "吓得大叫起来",
+              "en": "Screamed in fear"
+            },
+            {
+              "cn": "吓出了一身冷汗",
+              "en": "Broke out in a cold sweat from fear"
+            },
+            {
+              "cn": "急得手忙脚乱",
+              "en": "In a frantic rush"
+            },
+            {
+              "cn": "惊得目瞪口呆",
+              "en": "Stunned and dumbfounded"
+            },
+            {
+              "cn": "吓得惊慌失措",
+              "en": "Frightened into a panic"
+            },
+            {
+              "cn": "心七上八下的，十分不安",
+              "en": "Heart going up and down, feeling very uneasy"
+            }
+          ]
+        },
+        {
+          "nameCn": "惭愧 / 后悔",
+          "nameEn": "Regret / Shame",
+          "phrases": [
+            {
+              "cn": "后悔不已，后悔莫及",
+              "en": "Endlessly regretful, too late for regrets"
+            },
+            {
+              "cn": "感到一阵愧疚",
+              "en": "Felt a wave of guilt"
+            },
+            {
+              "cn": "满脸羞愧",
+              "en": "Face full of shame"
+            },
+            {
+              "cn": "满脸歉意地对我说",
+              "en": "Said to me with a face full of apology"
+            },
+            {
+              "cn": "低下头向同学道歉",
+              "en": "Lowered head to apologize to the classmate"
+            },
+            {
+              "cn": "恨不得地上有个洞让我马上钻进去",
+              "en": "Wished there was a hole in the ground to hide in immediately"
+            }
+          ]
+        },
+        {
+          "nameCn": "惊讶 / 突发",
+          "nameEn": "Shock / Sudden event",
+          "phrases": [
+            {
+              "cn": "不禁大吃一惊",
+              "en": "Could not help but be greatly startled"
+            },
+            {
+              "cn": "诧异得瞪大了眼睛",
+              "en": "Eyes widened in astonishment"
+            },
+            {
+              "cn": "惊奇地说",
+              "en": "Said in surprise"
+            },
+            {
+              "cn": "顿时感到晴天霹雳",
+              "en": "Suddenly felt like a bolt from the blue"
+            },
+            {
+              "cn": "眼睛立刻瞪得像铜铃一样大",
+              "en": "Eyes immediately widened as big as brass bells"
+            },
+            {
+              "cn": "突如其来的一幕",
+              "en": "A sudden and unexpected scene"
+            }
+          ]
+        }
+      ],
+      "recommendedActions": [
+        {
+          "nameCn": "奔跑 / 移动",
+          "nameEn": "Run / Move",
+          "phrases": [
+            {
+              "cn": "飞快地跑过去",
+              "en": "Ran over swiftly"
+            },
+            {
+              "cn": "飞一般地冲出校门",
+              "en": "Rushed out of the school gate like flying"
+            },
+            {
+              "cn": "三步并作两步冲向",
+              "en": "Rushed towards in quick strides"
+            },
+            {
+              "cn": "以闪电般的速度跳了出来",
+              "en": "Jumped out with lightning speed"
+            },
+            {
+              "cn": "摇摇晃晃地走向",
+              "en": "Walked unsteadily towards"
+            }
+          ]
+        },
+        {
+          "nameCn": "手部动作",
+          "nameEn": "Hand actions",
+          "phrases": [
+            {
+              "cn": "猛地推开门",
+              "en": "Pushed the door open fiercely"
+            },
+            {
+              "cn": "紧紧抓住扶杆",
+              "en": "Tightly gripped the handrail"
+            },
+            {
+              "cn": "小心翼翼地把她扶去",
+              "en": "Carefully supported her to go"
+            },
+            {
+              "cn": "硬生生地停住了",
+              "en": "Stopped abruptly and forcefully"
+            },
+            {
+              "cn": "掏出手机来接听电话",
+              "en": "Took out the phone to answer a call"
+            }
+          ]
+        },
+        {
+          "nameCn": "说话 / 喊叫",
+          "nameEn": "Speak / Shout",
+          "phrases": [
+            {
+              "cn": "气喘吁吁地说",
+              "en": "Said while panting"
+            },
+            {
+              "cn": "声嘶力竭地喊",
+              "en": "Shouted at the top of one's lungs"
+            },
+            {
+              "cn": "语重心长地对我说",
+              "en": "Said to me earnestly and meaningfully"
+            },
+            {
+              "cn": "哭着对弟弟说",
+              "en": "Said to the younger brother while crying"
+            },
+            {
+              "cn": "哇哇大哭起来",
+              "en": "Started crying loudly"
+            }
+          ]
+        }
+      ],
+      "recommendedClosings": [
+        {
+          "cn": "经过这次教训，我再也不敢做危险的事了。",
+          "en": "After this lesson, I will never dare to do dangerous things again."
+        },
+        {
+          "cn": "碰到紧急情况时不要慌乱，要冷静处理问题。",
+          "en": "When encountering an emergency, do not panic; handle the problem calmly."
+        },
+        {
+          "cn": "做任何事之前要想后果，千万不要像我一样。",
+          "en": "Think about the consequences before acting, and never make the same mistake as I did."
+        },
+        {
+          "cn": "如果不注意安全，后果将不堪设想。",
+          "en": "If one does not pay attention to safety, the consequences will be unimaginable."
+        },
+        {
+          "cn": "为自己的顽皮和自作主张付出了惨重的代价。",
+          "en": "I paid a heavy price for my naughtiness and acting on my own."
+        },
+        {
+          "cn": "走在路上千万不能玩手机，一定要注意安全。",
+          "en": "Never play with your phone while walking on the road; always pay attention to safety."
+        },
+        {
+          "cn": "以后我们都要小心点才是。",
+          "en": "We must be more careful in the future."
+        }
+      ],
+      "storyArcs": [
+        {
+          "nameCn": "过马路被车撞 / 交通意外",
+          "nameEn": "Traffic accident / Hit by vehicle",
+          "paragraphs": [
+            {
+              "labelCn": "起",
+              "labelEn": "Setup",
+              "cn": "那是一个阳光明媚的下午，我正走在回家的路上。为了快点到家，我决定一边走路一边掏出手机来玩游戏。",
+              "en": "It was a bright and sunny afternoon, and I was walking home. To make the time pass faster, I decided to take out my phone and play games while walking."
+            },
+            {
+              "labelCn": "承",
+              "labelEn": "Rising action",
+              "cn": "我目不转睛地盯着屏幕，完全没有注意到前方的红绿灯已经变成了红灯。我迈着轻盈的步子，直接走上了斑马线。",
+              "en": "I stared intently at the screen, completely unaware that the traffic light ahead had turned red. With light steps, I walked straight onto the zebra crossing."
+            },
+            {
+              "labelCn": "转",
+              "labelEn": "Climax",
+              "cn": "突然，一阵刺耳的刹车声响起，一辆汽车硬生生地停在了我面前。我吓出了一身冷汗，惊得目瞪口呆，手机也掉在了地上。",
+              "en": "Suddenly, a piercing screech of brakes sounded, and a car stopped abruptly right in front of me. I broke out in a cold sweat, stunned and dumbfounded, and my phone dropped to the ground."
+            },
+            {
+              "labelCn": "合",
+              "labelEn": "Resolution",
+              "cn": "司机摇下车窗，气呼呼地把我骂得狗血淋头。我满脸羞愧，恨不得地上有个洞让我马上钻进去，连声道歉后飞快地跑回了家。",
+              "en": "The driver rolled down the window and angrily scolded me severely. My face was full of shame, wishing there was a hole in the ground to hide in, and after apologizing repeatedly, I ran home swiftly."
+            },
+            {
+              "labelCn": "悟",
+              "labelEn": "Reflection",
+              "cn": "经过这次教训，我再也不敢做危险的事了。走在路上千万不能玩手机，如果不注意安全，后果将不堪设想。",
+              "en": "After this lesson, I will never dare to do dangerous things again. One must never play with a phone while walking on the road; if one does not pay attention to safety, the consequences will be unimaginable."
+            }
+          ]
+        },
+        {
+          "nameCn": "无视警告牌 / 危险玩耍",
+          "nameEn": "Ignoring warning signs / Dangerous play",
+          "paragraphs": [
+            {
+              "labelCn": "起",
+              "labelEn": "Setup",
+              "cn": "提起那件事，我至今记忆犹新。那天休息节，我和几个朋友在走廊上玩抓人游戏，完全把校规抛到了九霄云外。",
+              "en": "Mentioning that incident, my memory is still fresh. During recess that day, my friends and I were playing catching in the corridor, completely throwing the school rules out of our minds."
+            },
+            {
+              "labelCn": "承",
+              "labelEn": "Rising action",
+              "cn": "我们兴奋得手舞足蹈，你追我赶。虽然旁边放着一个“地滑”的警告牌，但我们玩得太开心了，根本没有理会。",
+              "en": "We were so excited that we danced with joy, chasing each other. Although there was a 'wet floor' warning sign nearby, we were having too much fun and completely ignored it."
+            },
+            {
+              "labelCn": "转",
+              "labelEn": "Climax",
+              "cn": "就在我飞一般地冲向前方时，脚下一滑，整个人重重地摔在了地上。我痛得哇哇大哭起来，朋友们也吓得惊慌失措。",
+              "en": "Just as I rushed forward like flying, my foot slipped, and I fell heavily to the ground. I started crying loudly from the pain, and my friends were frightened into a panic."
+            },
+            {
+              "labelCn": "合",
+              "labelEn": "Resolution",
+              "cn": "老师闻声赶来，小心翼翼地把我扶去医务室。看着包扎好的伤口，我感到一阵愧疚，低着头吞吞吐吐地向老师自首。",
+              "en": "Hearing the noise, the teacher rushed over and carefully supported me to the sickbay. Looking at my bandaged wound, I felt a wave of guilt and, with my head lowered, hesitantly confessed to the teacher."
+            },
+            {
+              "labelCn": "悟",
+              "labelEn": "Reflection",
+              "cn": "那是一个令人难忘的教训。我为自己的顽皮和自作主张付出了惨重的代价，以后我一定要注意安全，不再乱跑了。",
+              "en": "That was an unforgettable lesson. I paid a heavy price for my naughtiness and acting on my own. In the future, I must pay attention to safety and stop running around recklessly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "topicCn": "不可粗心大意",
+      "topicEn": "Carelessness",
+      "whenToUse": "当题目涉及遗失物品、忘记带重要东西、考试粗心看错题、因为大意搞砸事情时使用。",
+      "whenToUseEn": "Use when the prompt involves losing items, forgetting important things, making careless mistakes in exams, or messing things up due to negligence.",
+      "signalsFromPrompt": [
+        {
+          "cn": "图中有人在翻找书包 / 满头大汗找东西",
+          "en": "Picture shows someone rummaging through a bag / sweating while looking for something"
+        },
+        {
+          "cn": "图中有遗落的钱包 / 手机 / 钥匙",
+          "en": "Picture shows a left-behind wallet / phone / keys"
+        },
+        {
+          "cn": "图中有人拿着不及格的考卷愁眉苦脸",
+          "en": "Picture shows someone looking miserable holding a failed exam paper"
+        },
+        {
+          "cn": "图中有人急匆匆地离开某个地方",
+          "en": "Picture shows someone leaving a place in a hurry"
+        }
+      ],
+      "recommendedOpenings": [
+        {
+          "nameCn": "倒叙 / 时光飞逝",
+          "nameEn": "Reflective / Time flies",
+          "phrases": [
+            {
+              "cn": "时间如流水，流去不复回",
+              "en": "Time is like flowing water, once gone it never returns"
+            },
+            {
+              "cn": "光阴似箭，日月如梭",
+              "en": "Time flies like an arrow, days and months pass like a shuttle"
+            },
+            {
+              "cn": "至今我还记得",
+              "en": "To this day, I still remember"
+            },
+            {
+              "cn": "那是一个令人难忘的教训",
+              "en": "That was an unforgettable lesson"
+            },
+            {
+              "cn": "在生活中，我们经常会答应别人要做到某些事",
+              "en": "In life, we often promise others to accomplish certain things"
+            }
+          ]
+        },
+        {
+          "nameCn": "晴天铺垫 (反衬大意)",
+          "nameEn": "Sunny setup (contrast to carelessness)",
+          "phrases": [
+            {
+              "cn": "阳光明媚的早晨",
+              "en": "A bright and sunny morning"
+            },
+            {
+              "cn": "天气晴朗，凉风阵阵",
+              "en": "The weather was clear, with gentle cool breezes"
+            },
+            {
+              "cn": "窗外阳光灿烂",
+              "en": "The sun was shining brightly outside the window"
+            },
+            {
+              "cn": "令人期待的一天终于到来了",
+              "en": "The highly anticipated day had finally arrived"
+            },
+            {
+              "cn": "那是假期里的一天",
+              "en": "That was a day during the holidays"
+            }
+          ]
+        }
+      ],
+      "recommendedSetting": [
+        {
+          "nameCn": "晴朗 / 阳光",
+          "nameEn": "Sunny / bright",
+          "phrases": [
+            {
+              "cn": "阳光明媚，晴空万里",
+              "en": "Bright and sunny, with a clear and boundless sky"
+            },
+            {
+              "cn": "天气晴朗，凉风阵阵",
+              "en": "The weather was clear, with gentle cool breezes"
+            },
+            {
+              "cn": "窗外阳光灿烂",
+              "en": "The sun was shining brightly outside the window"
+            },
+            {
+              "cn": "云淡风轻",
+              "en": "Light clouds and gentle breeze"
+            },
+            {
+              "cn": "百花盛开，欣欣向荣",
+              "en": "Flowers blooming, thriving and prosperous"
+            }
+          ]
+        },
+        {
+          "nameCn": "清凉 / 舒适",
+          "nameEn": "Cool / comfortable",
+          "phrases": [
+            {
+              "cn": "凉风阵阵",
+              "en": "Gentle cool breezes"
+            },
+            {
+              "cn": "呼吸新鲜空气",
+              "en": "Breathing fresh air"
+            },
+            {
+              "cn": "抛到了九霄云外",
+              "en": "Thrown out of one's mind (to the ninth heaven)"
+            },
+            {
+              "cn": "树下乘凉休息",
+              "en": "Resting and enjoying the cool shade under a tree"
+            },
+            {
+              "cn": "阵阵微风吹过",
+              "en": "Gusts of gentle breeze blew past"
+            }
+          ]
+        }
+      ],
+      "recommendedEmotions": [
+        {
+          "nameCn": "紧张 / 慌乱",
+          "nameEn": "Panic / Nervous",
+          "phrases": [
+            {
+              "cn": "急得像热锅上的蚂蚁",
+              "en": "Anxious like an ant on a hot pan"
+            },
+            {
+              "cn": "吓出了一身冷汗",
+              "en": "Broke out in a cold sweat from fear"
+            },
+            {
+              "cn": "急得手忙脚乱",
+              "en": "In a frantic rush"
+            },
+            {
+              "cn": "吓得惊慌失措",
+              "en": "Frightened into a panic"
+            },
+            {
+              "cn": "急得团团转",
+              "en": "Pacing around anxiously"
+            },
+            {
+              "cn": "心七上八下的，十分不安",
+              "en": "Heart going up and down, feeling very uneasy"
+            }
+          ]
+        },
+        {
+          "nameCn": "惭愧 / 尴尬",
+          "nameEn": "Regret / Embarrassment",
+          "phrases": [
+            {
+              "cn": "恨不得地上有个洞让我马上钻进去",
+              "en": "Wished there was a hole in the ground to hide in immediately"
+            },
+            {
+              "cn": "闹出那么大的笑话，无地自容",
+              "en": "Made such a big joke of myself, feeling extremely ashamed"
+            },
+            {
+              "cn": "后悔不已，后悔莫及",
+              "en": "Endlessly regretful, too late for regrets"
+            },
+            {
+              "cn": "感到一阵愧疚",
+              "en": "Felt a wave of guilt"
+            },
+            {
+              "cn": "满脸羞愧",
+              "en": "Face full of shame"
+            },
+            {
+              "cn": "耳根感到火辣辣的，十分难为情",
+              "en": "Ears felt burning hot, extremely embarrassed"
+            }
+          ]
+        },
+        {
+          "nameCn": "悲伤 / 懊恼",
+          "nameEn": "Sadness / Frustration",
+          "phrases": [
+            {
+              "cn": "愁眉苦脸地说",
+              "en": "Said with a sad and worried expression"
+            },
+            {
+              "cn": "心里挺难过的",
+              "en": "Felt quite sad inside"
+            },
+            {
+              "cn": "眼泪泉涌而出",
+              "en": "Tears gushed out like a spring"
+            },
+            {
+              "cn": "泪眼汪汪地看着",
+              "en": "Looked with teary eyes"
+            },
+            {
+              "cn": "心里像打翻了五味瓶",
+              "en": "Heart felt like an overturned bottle of five flavors (mixed feelings)"
+            },
+            {
+              "cn": "既心痛又懊恼",
+              "en": "Both heartbroken and frustrated"
+            }
+          ]
+        }
+      ],
+      "recommendedActions": [
+        {
+          "nameCn": "看 / 寻找",
+          "nameEn": "Look / Search",
+          "phrases": [
+            {
+              "cn": "目不转睛地盯着",
+              "en": "Stared intently without blinking"
+            },
+            {
+              "cn": "仔仔细细地看了几遍",
+              "en": "Looked carefully several times"
+            },
+            {
+              "cn": "悄悄地瞄了那个青年一眼",
+              "en": "Secretly glanced at that young man"
+            },
+            {
+              "cn": "眼睛闪闪发亮地问",
+              "en": "Asked with sparkling eyes"
+            },
+            {
+              "cn": "露出羡慕的目光",
+              "en": "Revealed an envious gaze"
+            }
+          ]
+        },
+        {
+          "nameCn": "手部动作",
+          "nameEn": "Hand actions",
+          "phrases": [
+            {
+              "cn": "猛地推开门",
+              "en": "Pushed the door open fiercely"
+            },
+            {
+              "cn": "顺手拎起其中一个",
+              "en": "Conveniently picked up one of them"
+            },
+            {
+              "cn": "紧紧抱住故事书",
+              "en": "Tightly hugged the storybook"
+            },
+            {
+              "cn": "小心翼翼地翻开第一页",
+              "en": "Carefully turned to the first page"
+            },
+            {
+              "cn": "掏出手机来接听电话",
+              "en": "Took out the phone to answer a call"
+            }
+          ]
+        },
+        {
+          "nameCn": "说话 / 承认",
+          "nameEn": "Speak / Confess",
+          "phrases": [
+            {
+              "cn": "气喘吁吁地说",
+              "en": "Said while panting"
+            },
+            {
+              "cn": "支支吾吾地说",
+              "en": "Said hesitantly and evasively"
+            },
+            {
+              "cn": "语重心长地对我说",
+              "en": "Said to me earnestly and meaningfully"
+            },
+            {
+              "cn": "连声对青年说谢谢",
+              "en": "Said thank you to the youth repeatedly"
+            },
+            {
+              "cn": "吞吞吐吐地向老师自首",
+              "en": "Hesitantly confessed to the teacher"
+            }
+          ]
+        }
+      ],
+      "recommendedClosings": [
+        {
+          "cn": "经过这次教训，我再也不敢粗心大意了",
+          "en": "After this lesson, I will never dare to be careless again"
+        },
+        {
+          "cn": "提醒自己做事要小心，以免类似事件再次发生",
+          "en": "I remind myself to be careful to prevent similar incidents from happening again"
+        },
+        {
+          "cn": "做事绝对不能粗心大意，否则后果不堪设想",
+          "en": "One must never be careless, otherwise the consequences would be unimaginable"
+        },
+        {
+          "cn": "我明白了做事必须仔细，绝对不能马虎",
+          "en": "I have learned that one must be careful and absolutely not sloppy"
+        },
+        {
+          "cn": "粗心大意只会给自己带来不必要的麻烦",
+          "en": "Carelessness will only bring unnecessary trouble to oneself"
+        },
+        {
+          "cn": "我下定决心，一定要改掉粗心大意的坏毛病",
+          "en": "I am determined to get rid of the bad habit of being careless"
+        },
+        {
+          "cn": "千万不能因为一时的疏忽而酿成大错",
+          "en": "One must never make a huge mistake due to a moment of negligence"
+        },
+        {
+          "cn": "这件事给我敲响警钟，提醒我做事要谨慎",
+          "en": "This incident sounded an alarm for me, reminding me to be cautious"
+        }
+      ],
+      "storyArcs": [
+        {
+          "nameCn": "遗失贵重物品",
+          "nameEn": "Lost valuable item",
+          "paragraphs": [
+            {
+              "labelCn": "起",
+              "labelEn": "Setup",
+              "cn": "那是假期里的一天，天气晴朗，凉风阵阵。我带着刚买的新手机去小贩中心吃午餐，心情乐滋滋的。",
+              "en": "That was a day during the holidays, the weather was clear with gentle cool breezes. I brought my newly bought phone to the hawker centre for lunch, feeling very joyful."
+            },
+            {
+              "labelCn": "承",
+              "labelEn": "Rising action",
+              "cn": "吃完饭后，我急匆匆地站起来，顺手拎起书包就走，完全没有注意到手机被我遗留在了桌子上。",
+              "en": "After finishing my meal, I stood up in a hurry, conveniently picked up my bag and left, completely unaware that my phone was left behind on the table."
+            },
+            {
+              "labelCn": "转",
+              "labelEn": "Climax",
+              "cn": "到了家，我正想拿手机出来玩，却发现口袋空空的。我急得像热锅上的蚂蚁，吓出了一身冷汗，赶紧跑回小贩中心寻找。",
+              "en": "When I reached home, I wanted to take out my phone to play, but found my pockets empty. I was as anxious as an ant on a hot pan, broke out in a cold sweat, and quickly ran back to the hawker centre to search."
+            },
+            {
+              "labelCn": "合",
+              "labelEn": "Resolution",
+              "cn": "幸好，一位好心的清洁工人捡到了我的手机并还给了我。我满脸羞愧，连声对他说谢谢，耳根感到火辣辣的。",
+              "en": "Fortunately, a kind-hearted cleaner had found my phone and returned it to me. My face was full of shame, I thanked him repeatedly, and my ears felt burning hot."
+            },
+            {
+              "labelCn": "悟",
+              "labelEn": "Reflection",
+              "cn": "这件事给我敲响警钟，提醒我做事要谨慎。粗心大意只会给自己带来不必要的麻烦，我下定决心一定要改掉这个坏毛病。",
+              "en": "This incident sounded an alarm for me, reminding me to be cautious. Carelessness will only bring unnecessary trouble to oneself, and I am determined to get rid of this bad habit."
+            }
+          ]
+        },
+        {
+          "nameCn": "忘记带重要物品 / 考试粗心",
+          "nameEn": "Forgot important item / Careless in exam",
+          "paragraphs": [
+            {
+              "labelCn": "起",
+              "labelEn": "Setup",
+              "cn": "阳光明媚的早晨，我飞一般地冲出家门去上学。因为起得晚，我随便抓起桌上的几本书塞进书包，根本没有仔细检查。",
+              "en": "On a bright and sunny morning, I rushed out of the house like flying to go to school. Because I woke up late, I casually grabbed a few books from the table and stuffed them into my bag without checking carefully."
+            },
+            {
+              "labelCn": "承",
+              "labelEn": "Rising action",
+              "cn": "到了学校，老师要求我们交上昨天布置的重要作业。我自信满满地打开书包，却怎么也找不到那份作业。",
+              "en": "When I arrived at school, the teacher asked us to hand in the important homework assigned yesterday. I opened my bag confidently, but could not find that piece of homework no matter how hard I looked."
+            },
+            {
+              "labelCn": "转",
+              "labelEn": "Climax",
+              "cn": "我急得手忙脚乱，把书包翻了个底朝天。这时我才恍然大悟，原来我把它遗忘在了家里的书桌上。我顿时大吃一惊，惊得目瞪口呆。",
+              "en": "I was in a frantic rush, turning my bag upside down. Then it suddenly dawned on me that I had left it on my study desk at home. I was immediately startled and dumbfounded."
+            },
+            {
+              "labelCn": "合",
+              "labelEn": "Resolution",
+              "cn": "我只好吞吞吐吐地向老师自首。老师语重心长地批评了我，我感到一阵愧疚，愁眉苦脸地低下了头，心里挺难过的。",
+              "en": "I had no choice but to hesitantly confess to the teacher. The teacher criticized me earnestly, and I felt a wave of guilt, lowering my head with a sad expression, feeling quite sad inside."
+            },
+            {
+              "labelCn": "悟",
+              "labelEn": "Reflection",
+              "cn": "经过这次教训，我再也不敢粗心大意了。我明白了做事必须仔细，绝对不能马虎，以免类似事件再次发生。",
+              "en": "After this lesson, I will never dare to be careless again. I have learned that one must be careful and absolutely not sloppy, to prevent similar incidents from happening again."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

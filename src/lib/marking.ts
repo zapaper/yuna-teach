@@ -4773,7 +4773,14 @@ Return ONLY valid JSON:
               // clamped 3/5. Parses per-part awards from the notes
               // field (the marker is already prompted to write
               // them), clamps each to its cap, and re-sums.
-              if (parsed.notes && hasFullPartMaxes && awarded > 0) {
+              //
+              // Guard intentionally does NOT include `awarded > 0`:
+              // the upward-reconcile branch below has to fire when
+              // AI returns top-level 0 but writes "Awarded 1 mark"
+              // in a part chunk — saw this on a Science circuit-
+              // drawing Q where part (a) = 0 and part (b) = 1 but
+              // marksAwarded stayed at 0.
+              if (parsed.notes && hasFullPartMaxes) {
                 const notesStr = String(parsed.notes);
                 // Match "Part (a): … Awarded N mark(s)" or "(a) … Awarded N mark(s)"
                 // — split notes into per-part chunks first, then read each chunk's
