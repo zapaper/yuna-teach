@@ -1,11 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import sharp from "sharp";
 import { prisma } from "@/lib/db";
 import { markExamPaper, markFocusedTest } from "@/lib/marking";
 import { bumpUserActivity } from "@/lib/track-activity";
 import { getSessionUserId } from "@/lib/session";
 import { isAdmin as isAdminUser } from "@/lib/admin";
+
+// Trim the white margins off a saved canvas JPEG so review doesn't show
+// a tall blank rectangle when the student wrote in only the top portion
+// of the canvas. Cached to <orig>_trim.jpg; regenerates if the source
+// file has been resaved more recently than the cache.
+async function trimmedCanvasBuffer(origPath: string): Promise<Buffer> {
+  const trimPath = origPath.replace(/\.jpg$/, "_trim.jpg");
+  try {
+    const [origStat, trimStat] = await Promise.all([
+      fs.stat(origPath),
+      fs.stat(trimPath),
+    ]);
+    if (trimStat.mtimeMs >= origStat.mtimeMs) {
+      return await fs.readFile(trimPath);
+    }
+  } catch { /* cache miss or original missing — fall through */ }
+
+  const orig = await fs.readFile(origPath);
+  try {
+    // threshold=12 → near-white pixels still count as background, so
+    // faint JPEG noise around ink doesn't keep the bounding box huge.
+    // extend → 10 px breathing room around the ink so descenders /
+    // strokes touching the edge don't look clipped.
+    const trimmed = await sharp(orig)
+      .trim({ threshold: 12, background: { r: 255, g: 255, b: 255 } })
+      .extend({ top: 10, bottom: 14, left: 10, right: 10, background: { r: 255, g: 255, b: 255 } })
+      .jpeg({ quality: 88, chromaSubsampling: "4:4:4" })
+      .toBuffer();
+    await fs.writeFile(trimPath, trimmed);
+    return trimmed;
+  } catch {
+    // sharp.trim throws when the image is entirely background — return
+    // original so caller still gets *something*.
+    return orig;
+  }
+}
 
 // Authorise a request against a paper's submission files.
 //
@@ -142,12 +179,20 @@ export async function GET(
     const type = request.nextUrl.searchParams.get("type");
     const subpart = request.nextUrl.searchParams.get("subpart");
     const isInk = type === "ink";
+    // Default: composite JPEGs are auto-trimmed to ink bounds so the
+    // review wrapper doesn't show large blank areas under the writing.
+    // Opt-out: ?trim=0 for the raw saved canvas (used by the marker
+    // pipeline which needs the original coordinates intact).
+    const trimParam = request.nextUrl.searchParams.get("trim");
+    const trimEnabled = !isInk && trimParam !== "0";
     const filePath = isInk
       ? path.join(dir, subpart ? `page_${n}_${subpart}_ink.png` : `page_${n}_ink.png`)
       : path.join(dir, subpart ? `page_${n}_${subpart}.jpg` : `page_${n}.jpg`);
     try {
-      const buffer = await fs.readFile(filePath);
-      return new NextResponse(buffer, {
+      const buffer = trimEnabled
+        ? await trimmedCanvasBuffer(filePath)
+        : await fs.readFile(filePath);
+      return new NextResponse(new Uint8Array(buffer), {
         headers: {
           "Content-Type": isInk ? "image/png" : "image/jpeg",
           "Cache-Control": "private, no-cache",

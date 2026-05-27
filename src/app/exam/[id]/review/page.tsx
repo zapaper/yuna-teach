@@ -3344,32 +3344,25 @@ function ExamReviewContent({ id }: { id: string }) {
                                               || sa === "no answer detected"
                                               || sa.startsWith("no answer");
                                             if (isBlankAnswer && !sp.diagramBase64 && !sp.refImageBase64) return null;
-                                            const spCanvasId = `${currentQ.id}_${sp.label}`;
-                                            // Drawable subparts looked squished vertically — bumped
-                                            // 100 % so the canvas isn't compressed against the
-                                            // student's actual writing aspect. Matches the
-                                            // whole-question drawable bump just below.
-                                            const spDefault = sp.diagramBase64 ? Math.round(390 * 2) : 390;
-                                            const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 900);
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
+                                            // Both drawable AND non-drawable subparts now use
+                                            // natural image aspect. The submission endpoint
+                                            // auto-trims white margins for non-drawable canvases
+                                            // (writing scratchpad with no background diagram),
+                                            // so a tall canvas where the student only wrote a
+                                            // few lines no longer renders as a half-blank
+                                            // rectangle. Drawable subparts (background diagram
+                                            // present) skip trim since we want to preserve
+                                            // the printed diagram intact.
                                             return (
                                               <div
                                                 className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative"
-                                                // Drawable subparts: let the image dictate size
-                                                // — width:100% of device, height:auto from the
-                                                // saved canvas aspect. Avoids the previous fixed-
-                                                // height squash. Non-drawable subparts keep the
-                                                // fixed-height behaviour (clean writing reads
-                                                // better at a stable wrapper size).
-                                                style={sp.diagramBase64 ? undefined : { height: spVisible }}
                                               >
                                                 <SubmissionImage
-                                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
+                                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}${sp.diagramBase64 ? "&trim=0" : ""}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  imgStyle={sp.diagramBase64
-                                                    ? { width: "100%", height: "auto", display: "block" }
-                                                    : { width: "100%", height: 600, objectFit: "fill" }}
+                                                  imgStyle={{ width: "100%", height: "auto", display: "block" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
@@ -3485,30 +3478,23 @@ function ExamReviewContent({ id }: { id: string }) {
                             || sa === "no answer detected"
                             || sa.startsWith("no answer");
                           if (isBlankAnswer && !hasDrawable) return null;
-                          // +100 % bump when a drawable diagram is the canvas
-                          // background — without it, the canvas reads squished
-                          // because the drawing was originally captured at a
-                          // taller aspect. 900 cap so a really tall drawable
-                          // doesn't get clipped after being drawn.
-                          const defaultH = hasDrawable ? Math.round(450 * 2) : 450;
-                          const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 900);
                           const overlayKey = `question:${currentQ.id}`;
+                          // Wrapper height comes from the trimmed image's
+                          // natural aspect (height: auto). Drawable
+                          // (background diagram) answers skip server-side
+                          // trim so the printed diagram stays whole;
+                          // non-drawable writing canvases trim to ink
+                          // bounds + 10 px padding, killing the trailing
+                          // blank space the student didn't write into.
                           return (
                             <div>
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
-                              {/* Match the quiz player exactly: in the quiz the
-                                  canvas DOM is rendered at width:100% / height:600px
-                                  and the wrapper crops it to visibleHeight CSS px.
-                                  We stretch the saved 800x1200 image the same way
-                                  and crop with overflow-hidden, otherwise the
-                                  aspect-ratio approach blows up the canvas to ~2x
-                                  on wider screens. */}
-                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative" style={{ height: visibleH }}>
+                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative">
                                 <SubmissionImage
-                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
+                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}${hasDrawable ? "&trim=0" : ""}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="block"
-                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
+                                  imgStyle={{ width: "100%", height: "auto", display: "block" }}
                                 />
                                 <ReviewPenOverlay
                                   key={overlayKey}
