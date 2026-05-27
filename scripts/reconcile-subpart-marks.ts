@@ -42,14 +42,32 @@ async function main() {
       chunkSum += partAwarded;
       chunkCount++;
     }
-    if (chunkCount < 1) continue;
-    const cap = q.marksAvailable ?? chunkSum;
-    const newTotal = Math.min(cap, chunkSum);
     const cur = q.marksAwarded ?? 0;
-    if (newTotal > cur) {
-      console.log(`  Q${q.questionNum.padEnd(6)} chunks=${chunkCount} sum=${chunkSum} → ${newTotal} (was ${cur})`);
-      updates.push({ id: q.id, qNum: q.questionNum, from: q.marksAwarded, to: newTotal });
-      totalDelta += newTotal - cur;
+    const cap = q.marksAvailable ?? Infinity;
+    // Multi-part case (existing behaviour)
+    if (chunkCount >= 1) {
+      const newTotal = Math.min(cap, chunkSum);
+      if (newTotal > cur) {
+        console.log(`  Q${q.questionNum.padEnd(6)} chunks=${chunkCount} sum=${chunkSum} → ${newTotal} (was ${cur})`);
+        updates.push({ id: q.id, qNum: q.questionNum, from: q.marksAwarded, to: newTotal });
+        totalDelta += newTotal - cur;
+        continue;
+      }
+    }
+    // Single-part / drawable case: look for a trailing "Awarded N mark(s)"
+    // at the very end of the notes. Catches drawable subparts where the
+    // AI returns marksAwarded:0.5 but the notes summary says "Awarded
+    // 2 mark(s)." The mark(s) form (with literal parens) is what the
+    // marker prompt emits — must be in the regex or the upgrade misses.
+    const trailing = notes.trim().match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\s*\.?\s*$/i);
+    if (trailing) {
+      const fromNotes = parseFloat(trailing[1]);
+      const newTotal = Math.min(cap, Math.max(0, fromNotes));
+      if (newTotal > cur) {
+        console.log(`  Q${q.questionNum.padEnd(6)} trailing-award → ${newTotal} (was ${cur})`);
+        updates.push({ id: q.id, qNum: q.questionNum, from: q.marksAwarded, to: newTotal });
+        totalDelta += newTotal - cur;
+      }
     }
   }
 

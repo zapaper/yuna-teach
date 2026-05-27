@@ -4827,6 +4827,32 @@ Return ONLY valid JSON:
                 }
               }
 
+              // Single-part / drawable trailing-award upgrade.
+              //
+              // Per-part chunking above only fires when the notes carry
+              // "(a):" / "(b):" headers — multi-part questions. Drawable
+              // single-subpart Qs ("_drawable" sentinel) and other
+              // headerless OEQs return ONE narrative block ending in
+              // "... Awarded N mark(s)." We've seen drawables where AI
+              // says marksAwarded:0.5 at the JSON top but writes
+              // "Awarded 2 mark(s)" in the trailing notes summary —
+              // trust the trailing total. Capped at marksAvailable.
+              if (parsed.notes) {
+                const notesStr = String(parsed.notes).trim();
+                // Match "Awarded N mark(s)." or "Awarded N marks." at end.
+                // The (s) literal-paren form is what the marker prompt
+                // emits — easy to forget when writing the regex.
+                const trailing = notesStr.match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\s*\.?\s*$/i);
+                if (trailing) {
+                  const fromNotes = parseFloat(trailing[1]);
+                  const clamped = Math.min(marksAvailable, Math.max(0, fromNotes));
+                  if (clamped > awarded + 0.0001) {
+                    console.log(`[quiz-marking] Q${q.questionNum} trailing-award upgrade: AI total ${awarded} → ${clamped}/${marksAvailable} (from "Awarded N mark(s)" trailing summary)`);
+                    awarded = clamped;
+                  }
+                }
+              }
+
               // Blank-subpart clamp. blankSubparts came from a
               // pixel-level inspection of the ink layer — it's a hard
               // physical fact that those parts had zero pen strokes.
