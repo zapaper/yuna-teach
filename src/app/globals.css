@@ -152,6 +152,20 @@ body {
 /* Experience bar glow pulse while points are flowing in. Capped iterations
  * so the glow can never run forever even if the JS that turns it off is
  * interrupted. */
+/* Highlight tool in the quiz: when data-tool="highlight" is set on
+ * the page wrapper, paint text-selection yellow so the student sees a
+ * proper highlighter effect (instead of the default blue selection).
+ * Scoped to the wrapper so other selections (e.g. dictionary lookup
+ * in Chinese quiz) keep the default colour. */
+[data-tool="highlight"] ::selection {
+  background: #fde68a; /* tailwind amber-200 */
+  color: inherit;
+}
+[data-tool="highlight"] ::-moz-selection {
+  background: #fde68a;
+  color: inherit;
+}
+
 @keyframes xpBarPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(108, 248, 187, 0); }
   50%      { box-shadow: 0 0 20px 4px rgba(108, 248, 187, 0.55); }

@@ -50,7 +50,14 @@ interface QuizPaper {
   assignedTo?: { id: string; name: string | null; settings?: unknown } | null;
 }
 
-type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
+// `highlight` is a TEXT-only tool — it doesn't draw on a canvas; it
+// enables the browser's native text-selection on clean MCQ stems +
+// options + tables so a student can mark phrases. ::selection in
+// globals.css colours the selection yellow when this tool is active
+// (the html element gets data-tool="highlight"). Pen tool tap toggles
+// pen ↔ highlight; tap-on-pen-while-pen-is-on flips to highlight,
+// tap again flips back, etc.
+type DrawTool = "type" | "pen" | "highlight" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
@@ -992,21 +999,24 @@ function QuizContent({ id }: { id: string }) {
   // ─── Quiz taking view — single scrollable paper ───
   const answeredCount = Object.keys(mcqAnswers).length;
 
+  // Allow text selection when:
+  //   - Chinese quiz in "type" mode (dictionary lookup)
+  //   - ANY quiz in "highlight" mode (yellow-highlight tool)
+  // Drawing tools (pen / eraser) lock selection off so canvas-pointer
+  // events don't fight with text-drag-to-select.
+  const selectionEnabled = (isChineseQuiz && tool === "type") || tool === "highlight";
+  // Some sub-components (Chinese / English quiz sections) accept the
+  // legacy 4-state DrawTool. They have no canvas of their own and
+  // already treat "type" as "no drawing", so we collapse "highlight"
+  // to "type" at the boundary — text-selection styling in highlight
+  // mode comes from globals.css ([data-tool="highlight"] ::selection).
+  const toolForChild: "type" | "pen" | "eraser" | "eraser-large" =
+    tool === "highlight" ? "type" : tool;
   return (
     <div
-      // Chinese quizzes need text selection enabled so the dictionary
-      // can pick up the student's highlight on stems / options /
-      // passages — UNLESS the pen/eraser tool is active. With the pen
-      // active, every pointer-move was triggering the browser's text-
-      // selection machinery (drag-to-select), which competed with the
-      // canvas's own pointer events and made the pen feel laggy.
-      // While drawing tools are active, lock the page back into the
-      // same select-none state used for English quizzes; switch to
-      // "type" (or null) to re-enable dictionary lookups.
-      className={`min-h-screen bg-[#f8f9ff] pb-24 ${
-        isChineseQuiz && tool === "type" ? "" : "select-none"
-      }`}
-      style={isChineseQuiz && tool === "type"
+      data-tool={tool}
+      className={`min-h-screen bg-[#f8f9ff] pb-24 ${selectionEnabled ? "" : "select-none"}`}
+      style={selectionEnabled
         ? undefined
         : { WebkitTouchCallout: "none", WebkitUserSelect: "none" }}
     >
@@ -1026,11 +1036,17 @@ function QuizContent({ id }: { id: string }) {
             <span className="material-symbols-outlined text-xl">home</span>
           </button>
           <button
-            onClick={() => setTool("pen")}
-            className={`p-2.5 rounded-full transition-all ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
-            title="Draw"
+            onClick={() => setTool(tool === "pen" ? "highlight" : "pen")}
+            className={`p-2.5 rounded-full transition-all ${
+              tool === "pen" ? "bg-[#eff4ff] text-[#001e40]"
+                : tool === "highlight" ? "bg-yellow-100 text-yellow-700"
+                : "text-[#43474f]"
+            }`}
+            title={tool === "highlight" ? "Highlight text (tap to switch to pen)" : "Draw on diagrams (tap to switch to highlighter)"}
           >
-            <span className="material-symbols-outlined text-xl">edit</span>
+            <span className="material-symbols-outlined text-xl">
+              {tool === "highlight" ? "ink_highlighter" : "edit"}
+            </span>
           </button>
           {isChineseQuiz && (
             <button
@@ -1104,11 +1120,18 @@ function QuizContent({ id }: { id: string }) {
           {/* Drawing tools */}
           <div className="flex items-center bg-[#eff4ff] rounded-lg p-1 border border-[#c3c6d1]/10">
             <button
-              onClick={() => setTool("pen")}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+              onClick={() => setTool(tool === "pen" ? "highlight" : "pen")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${
+                tool === "pen" ? "bg-[#003366]/20 text-[#001e40]"
+                  : tool === "highlight" ? "bg-yellow-100 text-yellow-700"
+                  : "text-[#737780]"
+              }`}
+              title={tool === "highlight" ? "Highlight text — tap to switch to pen" : "Draw on diagrams — tap to switch to highlighter"}
             >
-              <span className="material-symbols-outlined text-xl">edit</span>
-              Pen
+              <span className="material-symbols-outlined text-xl">
+                {tool === "highlight" ? "ink_highlighter" : "edit"}
+              </span>
+              {tool === "highlight" ? "Highlight" : "Pen"}
             </button>
             {isChineseQuiz && (
               <button
@@ -1259,7 +1282,7 @@ function QuizContent({ id }: { id: string }) {
                             sectionType={isGrammarCloze ? "grammar-cloze" : isEditing ? "editing" : isCompCloze ? "comprehension-cloze" : "visual-text-mcq"}
                             answers={mcqAnswers}
                             onAnswer={selectMcqAnswer}
-                            tool={tool}
+                            tool={toolForChild}
                             onToolChange={(t) => setTool(t)}
                             emptyFieldIds={emptyFieldIds}
                             flaggedIds={flaggedIds}
@@ -1285,7 +1308,7 @@ function QuizContent({ id }: { id: string }) {
                             sectionType={isSynthesis ? "synthesis" : "comprehension-oeq"}
                             answers={mcqAnswers}
                             onAnswer={selectMcqAnswer}
-                            tool={tool}
+                            tool={toolForChild}
                             onToolChange={(t) => setTool(t)}
                             emptyFieldIds={emptyFieldIds}
                             flaggedIds={flaggedIds}
@@ -1526,7 +1549,7 @@ function QuizContent({ id }: { id: string }) {
                           sectionType={sectionType}
                           answers={mcqAnswers}
                           onAnswer={selectMcqAnswer}
-                          tool={tool}
+                          tool={toolForChild}
                           onToolChange={(t) => setTool(t)}
                           emptyFieldIds={emptyFieldIds}
                           flaggedIds={flaggedIds}
@@ -2066,7 +2089,7 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   function onCanvasDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
     const t = toolRef.current;
-    if (t === "type") return;
+    if (t === "type" || t === "highlight") return;
     snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
@@ -2381,6 +2404,9 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     return () => obs.disconnect();
   }, []);
 
+  // Highlight is text-only — leave the overlay canvas pointer-events-none
+  // so clicks fall through to the page text underneath (where the browser
+  // can pick up the user's drag-selection).
   const isActive = tool === "pen" || tool === "eraser" || tool === "eraser-large";
   return (
     <>
@@ -2979,7 +3005,7 @@ const BlankCanvas = forwardRef<
     const lastMid = { x: 0, y: 0 };
 
     function handlePointerDown(e: PointerEvent) {
-      if (toolRef.current === "type") return;
+      if (toolRef.current === "type" || toolRef.current === "highlight") return;
       e.preventDefault();
       // Route subsequent move/up events here even if the finger slides off
       // the canvas, so strokes don't end prematurely at the edge.
