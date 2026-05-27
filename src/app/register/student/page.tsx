@@ -22,7 +22,11 @@ function RegisterStudentContent() {
   const [level, setLevel] = useState(4);
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
-  const [createdStudent, setCreatedStudent] = useState<{ id: string; name: string } | null>(null);
+  // Carry the password into the success screen so we can auto-sign-in
+  // as the student when the parent picks "Open student's account" —
+  // /api/users POST doesn't establish a session.
+  const [createdStudent, setCreatedStudent] = useState<{ id: string; name: string; password: string } | null>(null);
+  const [openingAccount, setOpeningAccount] = useState(false);
 
   // Username availability
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
@@ -70,9 +74,13 @@ function RegisterStudentContent() {
       }
       const user = await res.json();
       if (parentId) {
-        // Show success screen with option to open student tab
-        setCreatedStudent({ id: user.id, name: name.trim() });
+        // Show success screen with option to open student tab.
+        // Password is held so 'Open student account' can swap the
+        // session from parent → student before navigating.
+        setCreatedStudent({ id: user.id, name: name.trim(), password: pw });
       } else {
+        // Self-signup — /api/users already set the student's session
+        // (POST with no parentId auto-signs them in). Just navigate.
         router.push(`/home/${user.id}`);
       }
     } catch {
@@ -116,13 +124,36 @@ function RegisterStudentContent() {
               Assign Quiz to {createdStudent.name}
             </button>
             <button
-              onClick={() => {
-                window.open(`/home/${createdStudent.id}`, "_blank");
+              disabled={openingAccount}
+              onClick={async () => {
+                setOpeningAccount(true);
+                try {
+                  // Swap THIS tab's session cookie from parent → newly-
+                  // created student, then navigate to the student's
+                  // home. Without the auth POST the page 401s because
+                  // the parent's session isn't authorised to read the
+                  // student's full /api/users payload — that was the
+                  // 'goes to login page' bug.
+                  const res = await fetch("/api/auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: createdStudent.name, password: createdStudent.password }),
+                  });
+                  if (!res.ok) {
+                    setError("Auto sign-in failed — please log in manually as the student.");
+                    setOpeningAccount(false);
+                    return;
+                  }
+                  router.push(`/home/${createdStudent.id}`);
+                } catch {
+                  setError("Auto sign-in failed — please log in manually as the student.");
+                  setOpeningAccount(false);
+                }
               }}
-              className="px-6 py-3.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
+              className="px-6 py-3.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-base">open_in_new</span>
-              Open {createdStudent.name}&apos;s Account
+              <span className="material-symbols-outlined text-base">login</span>
+              {openingAccount ? "Signing in…" : `Open ${createdStudent.name}'s Account`}
             </button>
           </div>
         </div>

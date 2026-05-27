@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { DEFAULT_TRIAL_DAYS } from "@/lib/subscription";
 import { requireSelfOrAdmin, requireAdmin, requireSession } from "@/lib/auth-guard";
+import { setSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -206,6 +207,18 @@ export async function POST(request: NextRequest) {
   // each new parent appear as the creator of papers they didn't upload,
   // dragged along focused tests and random 'Math practice' uploads the
   // admin had, and ignored the student's level entirely. Removed.
+
+  // Auto-sign-in the newly-created user when there's no existing
+  // session being preserved:
+  //   - PARENT signup: log them in so the next page can call /api/*.
+  //   - STUDENT self-signup (no parentId): same.
+  // When a parent creates a STUDENT (parentId set), DON'T swap the
+  // session — the parent must stay signed in to continue managing.
+  // The 'Open Student Account' button on /register/student handles
+  // the parent → student swap explicitly when the parent wants it.
+  if (role === "PARENT" || (role === "STUDENT" && !parentId)) {
+    try { await setSession(user.id); } catch { /* non-fatal */ }
+  }
 
   return NextResponse.json(
     {
