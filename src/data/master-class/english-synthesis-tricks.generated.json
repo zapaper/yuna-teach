@@ -121,6 +121,40 @@
       ]
     },
     {
+      "title": "Try it — Reported Speech",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "The past-past trap",
+          "stem": "Direct speech: \"I lost my wallet,\" Tom said.\nConvert to reported speech. Which is correct?",
+          "options": [
+            "Tom said that he lost his wallet.",
+            "Tom said that he loses his wallet.",
+            "Tom said that he had lost his wallet.",
+            "Tom said that he has lost his wallet."
+          ],
+          "correctAnswer": 3,
+          "explanation": "The reporting verb \"said\" is past tense, AND the losing happened BEFORE the saying — so the event must move further back, to past perfect (\"had lost\"). Option 1 keeps it as simple past, which loses the time ordering. Option 2 shifts to present (wrong direction). Option 4 uses present perfect, which doesn't backshift correctly from past.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "Question backshift + word order",
+          "stem": "Direct: \"Where do you live?\" the policeman asked Mei.\nConvert to reported speech. Which is correct?",
+          "options": [
+            "The policeman asked Mei where did she live.",
+            "The policeman asked Mei where she lived.",
+            "The policeman asked Mei where she lives?",
+            "The policeman asked Mei where does she live."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Three things must happen at once: (1) tense backshifts present → past (\"do you live\" → \"lived\"); (2) the question-word order drops the auxiliary \"do/did\" — it becomes a statement, not a question (\"where she lived\", NOT \"where did she live\"); (3) no question mark in reported speech. Only option 2 gets all three right.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
       "title": "Try it — Conditional & Transformation",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
@@ -155,40 +189,9 @@
       ]
     },
     {
-      "title": "The 3 most common synthesis mistakes (don't lose easy marks)",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Even students who know the grammar lose marks on these 3 things. Read each rewrite TWICE before submitting and check for them.",
-      "bullets": [
-        "**Mistake 1: Changing the tense**\nOriginal: He **completed** his homework.\n✗ He **completes** his homework.\n✓ His homework **was completed**.\nRule: the rewrite's tense MUST match the original.",
-        "**Mistake 2: Adding information not in the original**\nOriginal: She was late because of the traffic.\n✗ She was late because of the heavy traffic this morning.\nRule: don't add adjectives, time, or details the original didn't have.",
-        "**Mistake 3: Changing the meaning subtly**\nOriginal: Unless you hurry, you will miss the train.\n✗ If you hurry, you will not miss the train.   (positive vs negative emphasis differs!)\n✓ If you don't hurry, you will miss the train.\nRule: when in doubt, mentally check \"does the rewrite say EXACTLY the same thing?\"",
-        "**Check before submitting**:\n① Same tense? ② Same info (no additions)? ③ Same meaning?"
-      ]
-    },
-    {
-      "title": "Try it — Spot the mistake",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
-      "interactiveQuiz": [
-        {
-          "label": "Tense + info trap",
-          "stem": "Original: The teacher praised the student because she scored full marks.\nRewrite starting with \"Due to\". Which is correct AND keeps tense + info?",
-          "options": [
-            "Due to her perfect score, the teacher praised the student.",
-            "Due to scoring full marks, the student was praised by the teacher.",
-            "Due to her excellent performance, the teacher praised the bright student.",
-            "Due to the student scoring well, the teacher praised her."
-          ],
-          "correctAnswer": 2,
-          "explanation": "(1) changes \"full marks\" to \"perfect score\" — meaning shift. (3) adds \"excellent\" and \"bright\" — extra info. (4) waters down \"full marks\" to \"well\" — meaning shift. (2) preserves tense (past), keeps info (\"full marks\" / \"scoring full marks\"), and matches grammar.",
-          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
-          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
-        }
-      ]
-    },
-    {
       "title": "Start practising!",
       "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
-      "body": "Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation. All 4 patterns + the 3 common mistakes. Trains the reflex of checking \"same tense, same info, same meaning.\"",
+      "body": "Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation. Covers all 4 patterns from the slides. Trains the reflex of checking \"same tense, same info, same meaning\" on every rewrite.",
       "bullets": [
         "**15 questions** — Concession (4) + Cause (3) + Condition (3) + Transform (5)",
         "Wrong answers auto-saved, reviewed in 1 week",
@@ -258,12 +261,6 @@
       "label": "Word transformation",
       "description": "Noun ↔ verb (decide → decision), active ↔ passive (broke → was broken), comparative ↔ superlative. Most common pair set drilled in PSLE.",
       "slideIdx": 5
-    },
-    {
-      "id": "common-mistakes",
-      "label": "3 common mistakes",
-      "description": "Even students who know the grammar lose marks here: ① changing tense ② adding info ③ subtle meaning shift. Always check all three before submitting.",
-      "slideIdx": 7
     }
   ]
 }
