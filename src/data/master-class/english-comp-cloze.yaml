@@ -3,23 +3,21 @@
 # 15 blanks. 15 marks. No word bank — you read the passage and
 # pick the EXACT word that fits.
 #
-# Slide flow:
+# Slide flow (10 slides total):
 #   0  Welcome              — what cloze is + 5 word types
 #   1  The 4-step method    — same routine for every blank
-#   2  Cheat sheet          — triggers per word type (linker / prep / colloc / verb)
+#   2  Cheat sheet          — triggers per word type
 #   3  Pattern A: Verbs     — deep dive on tense + agreement
-#   4  Pattern B: Linkers   — deep dive by relationship (contrast/cause/add/time)
+#   4  Pattern B: Linkers   — deep dive by relationship
 #   5  Pattern C: Collocs   — fixed phrases to memorise
-#   6  Worked example       — 3 blanks, clue-by-clue walkthrough
-#   7  Try it — Verbs & Linkers (2 MCQs)
-#   8  Golden check + 5 traps (incl. preposition-fight)
-#   9  Try it — Collocations & Traps (2 MCQs)
-#   10 Start practising! (CTA → 15-Q mastery quiz)
+#   6  Try it — Verbs & Linkers (2 MCQs)
+#   7  Golden check + 5 traps
+#   8  Try it — Collocations & Traps (2 MCQs)
+#   9  Start practising! (CTA → 15-Q mastery quiz)
 #
-# Tone: pitched at 10-12 yr olds. Short sentences, concrete examples,
-# no linguistic jargon. Headlines from 6 years of PSLE Comp Cloze
-# (2019-2024): ~5-6 verbs, ~2-3 linkers, ~2-3 collocations, ~2-3
-# prepositions, ~1-2 specific nouns per paper.
+# Bullets use {curly-brace filler words} that get spoken in the TTS
+# narration but hidden from the rendered slide. Pattern from
+# grammar-mcq-1.yaml.
 
 slug: english-comp-cloze
 subject: english
@@ -45,14 +43,14 @@ keyConcepts:
       WORD, the right FORM (tense/plural/capital), the right SPELLING.
     bullets:
       - |-
-        **The 5 types of word PSLE tests** (in a typical paper):
-        -- **Verbs** — ~5-6 blanks (most common)
-        -- **Linking words** (but / so / although / despite) — ~2-3 blanks
-        -- **Collocations** ("always-together" phrases) — ~2-3 blanks
-        -- **Prepositions** (with / among / before / off / up) — ~2-3 blanks
-        -- **Specific nouns** (the vocabulary blanks) — ~1-2 blanks
+        **The 5 types of word PSLE tests** {in a typical paper:}
+        -- {Most common are }**Verbs** — {about }~5-6 blanks{.}
+        -- {Next are }**Linking words** {like }(but / so / although / despite) — {around }~2-3 blanks{.}
+        -- {Then there are }**Collocations** — {also called }"always-together" phrases — {about }~2-3 blanks{.}
+        -- {Watch out for }**Prepositions** {like }(with / among / before / off / up) — {around }~2-3 blanks{.}
+        -- {Finally, }**Specific nouns** — {the vocabulary blanks, only }~1-2 blanks{.}
       - |-
-        The next slide gives you the **4-step routine** to run on every blank — then we drill the 3 most spottable types.
+        {Now, }The next slide gives you the **4-step routine** {to run on every blank — then we drill the 3 most spottable types.}
 
   # ─── Slide 1: The 4-step method ─────────────────────────────
   - title: "The 4-step method — every blank, same routine"
@@ -62,52 +60,52 @@ keyConcepts:
       Feels slow at first; gets fast after 10 blanks.
     bullets:
       - |-
-        **Step 1 — Read THREE sentences:** the sentence before the blank, the sentence WITH the blank, the sentence after. Most blanks need context that's NOT in the same sentence.
+        {First, }**Step 1 — Read THREE sentences:** {namely }the sentence before the blank, the sentence WITH the blank, {and }the sentence after. {Why? Because }Most blanks need context that's NOT in the same sentence.
       - |-
-        **Step 2 — Decide WHAT TYPE of word the blank wants.**
-        (Next slide is a cheat sheet showing which neighbours trigger each type — linking word / preposition / collocation / verb.)
+        {Second, }**Step 2 — Decide WHAT TYPE of word the blank wants.**
+        {The next slide is a cheat sheet showing which neighbours trigger each type — }linking word / preposition / collocation / verb.
       - |-
-        **Step 3 — Match the FORM.**
-        Past or present? Singular or plural? Capital letter (first word of the sentence)?
+        {Third, }**Step 3 — Match the FORM.**
+        {Ask yourself: }Past or present? Singular or plural? {And, }Capital letter (first word of the sentence)?
       - |-
-        **Step 4 — Read the 3 sentences aloud with your answer in.**
-        If anything sounds off — flow breaks, prepositions clash, tenses jar — change your word. This catches more mistakes than anything else.
+        {Finally, }**Step 4 — Read the 3 sentences aloud with your answer in.**
+        {If anything sounds off — }flow breaks, prepositions clash, tenses jar — {change your word. This catches more mistakes than anything else.}
 
   # ─── Slide 2: Cheat sheet — what type of word? ──────────────
   - title: "Which type of word does the blank want?"
     mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
     body: >-
       Look at the words RIGHT NEXT TO the blank — they tell you the
-      TYPE. The 3 most spottable types in PSLE are **linking words**,
-      **prepositions**, and **collocations** — learn their triggers
-      first and you bank quick marks.
+      TYPE. The 3 most spottable types in PSLE are linking words,
+      prepositions, and collocations — learn their triggers first
+      and you bank quick marks.
     bullets:
       - |-
-        **🔴 LINKING WORD — easiest to spot:**
-        -- **Start of sentence + comma + a full sentence** → "**However**, she tried again." / "**Despite** the rain, ..."
-        -- **Middle of sentence joining two ideas** that contrast / cause / add up → "She tried, **but** failed."
-        -- Common words: **but / so / however / although / despite / because / and / besides / yet**.
-        🧠 Ask: do the two ideas CONTRAST? Then pick a contrast word (but / although / despite / however).
+        🔴 **LINKING WORD — easiest to spot:**
+        -- {You'll see a }Start of sentence + comma + a full sentence → {like }"**However**, she tried again." / "**Despite** the rain, ..."
+        -- {Or the }Middle of sentence joining two ideas that contrast / cause / add up → "She tried, **but** failed."
+        -- {Common words include }**but / so / however / although / despite / because / and / besides / yet**{.}
+        🧠 {Ask yourself: }do the two ideas CONTRAST? {Then pick a contrast word like }but / although / despite / however{.}
       - |-
-        **🟡 PREPOSITION — small word, big trap:**
-        -- **___ + noun phrase** → "**with** my friends" / "**on** the table" / "**in** the morning"
-        -- **verb + ___** (phrasal verb — the blank is the small word that completes the verb) → "look **after**" / "give **up**" / "pay **off**" / "cut **down**"
-        -- Candidate pool is small: **at / on / in / by / with / for / about / from / of / off / up / down / out / over**.
+        🟡 **PREPOSITION — small word, big trap:**
+        -- {You'll see a blank }+ noun phrase → {like }"**with** my friends" / "**on** the table" / "**in** the morning"
+        -- {Or a }verb + blank — {a phrasal verb where }the blank is the small word that completes the verb → {like }"look **after**" / "give **up**" / "pay **off**" / "cut **down**"{.}
+        -- {The }Candidate pool is small: **at / on / in / by / with / for / about / from / of / off / up / down / out / over**{.}
       - |-
-        **🟣 COLLOCATION (fixed phrase) — must memorise from reading:**
-        -- **make / do / take / have / pay / give + ___** → "**make** a decision", "**do** homework", "**pay** attention"
-        -- **a sense of ___** → "a sense of **belonging**", "a sense of **direction**"
-        -- **in / on / for + ___ + of/the** → "**in** front of", "**on** purpose", "**for** a change"
-        🧠 Can't be reasoned from grammar. If the phrase sounds familiar from books you've read, trust it.
+        🟣 **COLLOCATION — must memorise from reading:**
+        -- {Look for the pattern }**make / do / take / have / pay / give + ___** → {like }"**make** a decision", "**do** homework", "**pay** attention"
+        -- {Or }**a sense of ___** → {like }"a sense of **belonging**", "a sense of **direction**"
+        -- {Or }**in / on / for + ___ + of/the** → {like }"**in** front of", "**on** purpose", "**for** a change"
+        🧠 {This one }Can't be reasoned from grammar. {If the phrase sounds familiar from books you've read, trust it.}
       - |-
-        **🔵 VERB — most common; signal-rich, easy to spot:**
-        -- **to ___** (base form) → "She forgot to **lock** the door."
-        -- **subject + ___** → "The boy **kicks** the ball." (singular → +s)
-        -- **is / was / are / were + ___** (-ing or -ed) → "She was **running**." / "It was **broken**."
-        -- **have / has / had + ___** (past participle) → "I have **finished**."
-        -- **can / could / would / should / must + ___** (base) → "He could **swim**."
+        🔵 **VERB — most common; signal-rich, easy to spot:**
+        -- {After }**to ___** {use the }(base form) → "She forgot to **lock** the door."
+        -- {After }**subject + ___** {the verb agrees — }"The boy **kicks** the ball." {Remember, }(singular → +s)
+        -- {After }**is / was / are / were + ___** {use either }(-ing or -ed) → "She was **running**." / "It was **broken**."
+        -- {After }**have / has / had + ___** {use the }(past participle) → "I have **finished**."
+        -- {After }**can / could / would / should / must + ___** {use the }(base) → "He could **swim**."
       - |-
-        **🟢 NOUN — RARE in PSLE cloze.** Only ~1-2 blanks per paper. Signal: blank right after **the / a / an / adjective / "a sense of"**. The answer is usually a specific word the passage hinted at earlier (memories, consequences, appreciation). Re-scan the nearby sentences for the clue.
+        🟢 **NOUN — RARE in PSLE cloze.** {Only }~1-2 blanks per paper{ are nouns}. {Signal: }blank right after **the / a / an / adjective / "a sense of"**. {The answer is usually a specific word the passage hinted at earlier, like }memories, consequences, appreciation{. Re-scan the nearby sentences for the clue.}
 
   # ─── Slide 3: Pattern A — Verbs (deep dive) ─────────────────
   - title: "Pattern A — Verbs (tense is the trap)"
@@ -118,42 +116,41 @@ keyConcepts:
     bullets:
       - |-
         **Tense clues come from the OTHER verbs in the passage:**
-        -- Passage in PAST (walked, said, was, were) → blank verb is past too.
-        -- Passage in PRESENT (walks, says, is, are) → use present.
-        Don't switch tense just for the blank.
+        -- {If the }Passage is in PAST {like }(walked, said, was, were) → {then the }blank verb is past too.
+        -- {If the }Passage is in PRESENT {like }(walks, says, is, are) → {then }use present.
+        {Important — }Don't switch tense just for the blank.
       - |-
-        **Singular vs plural** matters in present tense:
+        **Singular vs plural** {matters in present tense:}
         ✓ The boys **walk** to school. (plural → base verb)
         ✓ The boy **walks** to school. (singular → +s)
         ✗ The boy **walk** to school.
       - |-
         **-ed vs -ing — easy to mix up. Look at the SAME verb in both forms:**
 
-        🅰️  **Passive: "is/was ___ed by ___"**  (the subject RECEIVES the action)
-        -- "The cake **was baked** **by** Mum." → who did it? Mum. The cake is what GOT baked.
+        🅰️  {First, }**Passive: "is/was ___ed by ___"** — {the subject RECEIVES the action.}
+        -- "The cake **was baked** **by** Mum." → {Ask, }who did it? Mum. The cake is what GOT baked.
         -- "The window **was broken** **by** the boy."
         -- "The story **was written** **by** a famous author."
-        🧠 **Trigger word:** "**by**" right after the blank. That's the dead giveaway it's passive — the doer is named.
+        🧠 {The dead giveaway is the }**trigger word: "by"** right after the blank{. That tells you it's passive — the doer is named.}
 
-        🅱️  **Progressive: "is/was ___ing ___"**  (the subject is DOING the action right now)
-        -- "Mum **was baking** the cake."  (Mum is the doer; she's doing it now/then)
+        🅱️  {Second, }**Progressive: "is/was ___ing ___"** — {the subject is DOING the action right now.}
+        -- "Mum **was baking** the cake." {Here, }(Mum is the doer; she's doing it now or then)
         -- "The boy **was breaking** the window."
         -- "The author **is writing** a story."
-        🧠 **Trigger word:** the blank comes RIGHT AFTER "is / was / are / were" with NO "by" coming after — and the subject is the one doing the action.
+        🧠 {The }**trigger word** {is: }the blank comes RIGHT AFTER "is / was / are / were" with NO "by" coming after — {and the subject is the one doing the action.}
 
-        💡  **Same verb, both forms — pick by who's the subject:**
-        Subject = the person DOING it → **-ing** (active, progressive).
-        Subject = the thing GETTING done to → **-ed** + "by" (passive).
+        💡 {So — }**Same verb, both forms — pick by who's the subject:**
+        {If the }Subject = the person DOING it → {use }**-ing** (active, progressive).
+        {If the }Subject = the thing GETTING done to → {use }**-ed** + "by" (passive).
 
-        Example you'll see in PSLE:
-        ✗ "The letter was **writing** by John." (wrong — letter can't be doing the writing)
-        ✓ "The letter was **written** by John." (passive — letter is being acted on)
-        ✓ "John was **writing** the letter." (progressive — John is the doer)
+        {Here's an example you'll see in PSLE:}
+        ✗ "The letter was **writing** by John." {Why's that wrong? }The letter can't be doing the writing.
+        ✓ "The letter was **written** by John." {That's }passive — the letter is being acted on.
+        ✓ "John was **writing** the letter." {That's }progressive — John is the doer.
       - |-
         **Irregular past forms — the spelling trap:**
-        bring → **brought** · catch → **caught** · think → **thought** · grow → **grew**
-        teach → **taught** · seek → **sought** · fight → **fought** · feel → **felt**
-        Writing "bringed" instead of "brought" → 0 marks.
+        {Here's a list to memorise: }bring → **brought** · catch → **caught** · think → **thought** · grow → **grew** · teach → **taught** · seek → **sought** · fight → **fought** · feel → **felt**
+        {Warning — }Writing "bringed" instead of "brought" {will get you }0 marks.
 
   # ─── Slide 4: Pattern B — Linking words (deep dive) ─────────
   - title: "Pattern B — Linking words (by relationship)"
@@ -164,23 +161,23 @@ keyConcepts:
     bullets:
       - |-
         **Contrast — two ideas in opposite directions:**
-        -- **but / yet** (joins two clauses): "She studied, **but** failed."
-        -- **although / though / even though** (start of clause): "**Although** she studied, she failed."
-        -- **despite / in spite of** (+ noun phrase): "**Despite** her hard work, she failed."
-        -- **however / nevertheless** (start of new sentence, with comma).
+        -- **but / yet** {join two clauses, like }"She studied, **but** failed."
+        -- **although / though / even though** {start a clause, like }"**Although** she studied, she failed."
+        -- **despite / in spite of** {take a noun phrase, like }"**Despite** her hard work, she failed."
+        -- **however / nevertheless** {go at the start of a new sentence with a comma.}
       - |-
         **Reason / result — one idea causes the other:**
-        -- **because / since / as** (+ clause): "He missed the bus **because** he overslept."
-        -- **due to / owing to** (+ noun phrase): "**Due to** the rain, the match was cancelled."
-        -- **so / therefore / hence**: "It rained, **so** the match was cancelled."
+        -- **because / since / as** {take a clause, like }"He missed the bus **because** he overslept."
+        -- **due to / owing to** {take a noun phrase, like }"**Due to** the rain, the match was cancelled."
+        -- **so / therefore / hence** {connect cause to result, like }"It rained, **so** the match was cancelled."
       - |-
         **Addition — ideas add up:**
-        -- **and / also / besides / in addition / moreover** → "She likes maths. **Besides**, she likes science."
+        -- {Use }**and / also / besides / in addition / moreover** → {like }"She likes maths. **Besides**, she likes science."
       - |-
         **Time / sequence:**
-        -- **before / after / once / when / while / until** → "**Once** you finish, you can leave."
+        -- {Use }**before / after / once / when / while / until** → {like }"**Once** you finish, you can leave."
       - |-
-        **PSLE trap:** capital letter at the start of a sentence. "despite" → "**Despite**". Easy to forget — always reread.
+        ⚠️ **PSLE trap:** {watch the }capital letter at the start of a sentence. {For example, }"despite" → "**Despite**". {Easy to forget — always reread.}
 
   # ─── Slide 5: Pattern C — Collocations (deep dive) ──────────
   - title: "Pattern C — Collocations (words that 'travel together')"
@@ -192,59 +189,28 @@ keyConcepts:
       who don't.
     bullets:
       - |-
-        **Verb + noun pairs** (must memorise):
-        -- **make** a decision · **make** sure · **make** sense · **make** an effort
-        -- **take** a chance · **take** action · **take** part · **take** turns
-        -- **pay** attention · **pay** a visit · **pay** the price
-        -- **have** fun · **have** a chance · **have** an effect
-        -- **do** homework · **do** your best · **do** harm
-        Common trap: students write "**make** homework" — not English. It's "**do** homework".
+        **Verb + noun pairs — must memorise:**
+        -- {With }**make**: a decision · make sure · make sense · make an effort
+        -- {With }**take**: a chance · take action · take part · take turns
+        -- {With }**pay**: attention · pay a visit · pay the price
+        -- {With }**have**: fun · have a chance · have an effect
+        -- {With }**do**: homework · do your best · do harm
+        ⚠️ {Common trap: }students write "**make** homework" — {but that's not English. It's }"**do** homework".
       - |-
-        **"A sense of ____"** — fixed phrase:
-        a sense of **belonging** · a sense of **achievement** · a sense of **direction** · a sense of **humour** · a sense of **responsibility** · a sense of **purpose**
+        **"A sense of ___"** — {fixed phrase pattern:}
+        {Examples include: }a sense of **belonging** · a sense of **achievement** · a sense of **direction** · a sense of **humour** · a sense of **responsibility** · a sense of **purpose**
       - |-
-        **"For a ___" / "In ___ of" / "On the ___" patterns:**
-        -- for a **change** / for a **while** / for a **moment**
-        -- in **front** of / in **favour** of / in **terms** of / in **search** of
-        -- on the **way** / on the **other** hand / on **purpose**
+        **Patterns: "For a ___" / "In ___ of" / "On the ___"** {to memorise:}
+        -- {For example: }for a **change** · for a **while** · for a **moment**
+        -- {Or: }in **front** of · in **favour** of · in **terms** of · in **search** of
+        -- {Also: }on the **way** · on the **other** hand · on **purpose**
       - |-
-        **Phrasal verbs in PSLE:**
-        -- **meet** up · **cut** down · **look** after · **give** up · **put** off
-        -- **come** across · **bring** up · **carry** out · **figure** out
-        🧠 When you READ stories, note any 2-word verb you see — build a list over the months.
+        **Phrasal verbs you'll see in PSLE:**
+        -- {Like: }**meet** up · **cut** down · **look** after · **give** up · **put** off
+        -- {Also: }**come** across · **bring** up · **carry** out · **figure** out
+        🧠 {Build the habit — when you READ stories, note any 2-word verb you see. Build a list over the months.}
 
-  # ─── Slide 6: Worked example — spotting the clues ───────────
-  - title: "Worked example — spotting the clues"
-    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
-    body: >-
-      Here's a short passage with 3 blanks. Cover the answers below,
-      try first, then read how each clue points to the answer.
-    bullets:
-      - |-
-        **The passage**
-        Mei Lin **had been training** for the school marathon for three months. Every morning, before the sun **___(1)___**, she **would jog** around the park near her house. **___(2)___** the long hours of practice, she **did not feel** tired. Her hard work finally **paid ___(3)___** when she **crossed** the finish line first.
-      - |-
-        **Blank (1)  →  "rose"**
-        🟡 **"had been training"** + **"would jog"** in the same paragraph → passage is PAST tense, so the missing verb is past too.
-        🟡 The blank comes right after **"the sun ___"** → must be a VERB describing what the sun does.
-        🟡 Sun + morning + "before…she would jog" → meaning is "the sun came up" → **"rose"**.
-        ⚠️ Irregular form: rise → **rose** → risen.  NOT "rised".
-      - |-
-        **Blank (2)  →  "Despite"**
-        🟡 Comma after the blank phrase + a full sentence follows → LINKING WORD slot at the start of the sentence.
-        🟡 "long hours of practice" **vs** "did not feel tired" → these ideas CONTRAST → pick a contrast word (despite / although / however).
-        🟡 The blank is followed by **"the long hours of practice"** — a NOUN PHRASE.
-            • "Although" needs a clause → ✗ wrong.
-            • "Despite" + noun phrase → ✓ right.
-        ⚠️ Capital letter — it's the FIRST word of the sentence.
-      - |-
-        **Blank (3)  →  "off"**
-        🟡 The blank sits between **"paid ___"** and **"when…"** → second half of a PHRASAL VERB.
-        🟡 Meaning: "her training was rewarded — she finished first" → fixed phrase **"pay off"**.
-        🟡 Re-read in context: "Her hard work finally paid **off** when she crossed the finish line first." → flows ✓.
-        ⚠️ Can't be reasoned from grammar — a collocation you know from reading.
-
-  # ─── Slide 7: Try it — Verbs & Linkers ──────────────────────
+  # ─── Slide 6: Try it — Verbs & Linkers ──────────────────────
   - title: "Try it — Verbs & Linkers"
     mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
     interactiveQuiz:
@@ -279,7 +245,7 @@ keyConcepts:
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
 
-  # ─── Slide 8: The golden check + 5 traps ────────────────────
+  # ─── Slide 7: The golden check + 5 traps ────────────────────
   - title: "The golden check — and the 5 traps it catches"
     mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
     body: >-
@@ -288,16 +254,16 @@ keyConcepts:
       preposition-fight trap that loses real marks every paper.
     bullets:
       - |-
-        **⭐ THE most important check (do this on EVERY blank):**
-        After you write your answer, read THREE SENTENCES out loud (or in your head if it's exam time):
-        ① the sentence **before** the blank
-        ② the sentence **with** the blank — your answer slotted in
-        ③ the sentence **after** the blank
-        If the three read smoothly together — meaning, flow, tense — your answer is right. If anything sounds awkward, change it.
+        ⭐ **THE most important check — do this on EVERY blank:**
+        {After you write your answer, }read THREE SENTENCES out loud (or in your head if it's exam time):
+        ① {Read }the sentence **before** the blank
+        ② {Then }the sentence **with** the blank — your answer slotted in
+        ③ {Then }the sentence **after** the blank
+        {If the three read smoothly together — meaning, flow, tense — your answer is right. If anything sounds awkward, change it.}
       - |-
         **Trap 1 — Your word FIGHTS with the next preposition.**
         (David, Mark, and Shadow Demon all hit this in recent quizzes!)
-        Many verbs and adjectives need a SPECIFIC preposition after them. If you pick a word that wants a different preposition than the one already in the passage, the sentence breaks — but the read-aloud catches it.
+        {Many verbs and adjectives need a SPECIFIC preposition after them. If you pick a word that wants a different preposition than the one already in the passage, the sentence breaks — but the read-aloud catches it.}
 
         ✗ Passage: "She ___ from a serious injury for two months."
         Student writes: "**had**" → "She had FROM a serious injury…" sounds wrong (had doesn't go with from).
@@ -307,26 +273,26 @@ keyConcepts:
         Student writes: "**of**" → "interested OF" is broken.
         ✓ Correct: "**in**" → interested IN is the fixed pair.
 
-        🧠 **Pairs to memorise:** good **at** · afraid **of** · suffer **from** · depend **on** · consist **of** · interested **in** · belong **to** · agree **with** (a person) / **to** (a plan) · participate **in** · look **for** · pay attention **to**.
+        🧠 **Pairs to memorise:** {Here are common ones — }good **at** · afraid **of** · suffer **from** · depend **on** · consist **of** · interested **in** · belong **to** · agree **with** (a person) / **to** (a plan) · participate **in** · look **for** · pay attention **to**{.}
       - |-
         **Trap 2 — Spelling.**
-        "occured" ✗ vs **"occurred"** ✓ · "definately" ✗ vs **"definitely"** ✓
-        "alot" is NEVER a word — it's always **"a lot"** (two words).
-        Right word + wrong spelling = 0 marks.
+        {Watch these: }"occured" ✗ vs **"occurred"** ✓ · "definately" ✗ vs **"definitely"** ✓
+        {And, }"alot" is NEVER a word — it's always **"a lot"** (two words).
+        {Important — }Right word + wrong spelling = 0 marks.
       - |-
         **Trap 3 — Capital letter at the start of a sentence.**
-        First word of the sentence? Capitalise it.
+        {If it's the }First word of the sentence? {Then }Capitalise it.
         ✗ "despite the rain…"   ✓ "Despite the rain…"
       - |-
         **Trap 4 — Wrong tense even when the word is right.**
-        "grow / grew / grown / growing" — read the OTHER verbs to decide. Don't just pick whichever sounds nicest.
+        {For example: }"grow / grew / grown / growing" — {read the OTHER verbs to decide. Don't just pick whichever sounds nicest.}
       - |-
         **Trap 5 — Plurality / -s on the verb.**
-        Singular subject → +s on the present-tense verb. PSLE loves slipping a plural noun BETWEEN the subject and the verb to confuse you.
+        {Singular subject → +s on the present-tense verb. PSLE loves slipping a plural noun BETWEEN the subject and the verb to confuse you.}
         ✓ "She **walks**." · ✗ "She **walk**."
         ✓ "The list of names **is** long." (subject = list, not names)
 
-  # ─── Slide 9: Try it — Collocations & Traps ─────────────────
+  # ─── Slide 8: Try it — Collocations & Traps ─────────────────
   - title: "Try it — Collocations & Traps"
     mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
     interactiveQuiz:
@@ -361,7 +327,7 @@ keyConcepts:
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
 
-  # ─── Slide 10: Start practising! ────────────────────────────
+  # ─── Slide 9: Start practising! ─────────────────────────────
   - title: "Start practising!"
     mascotImage: /master-class/grammar-mcq-1/panda-cta.png
     body: >-
@@ -407,4 +373,4 @@ subTopics:
   - id: traps
     label: Golden check + 5 traps
     description: "Read three sentences aloud with your answer slotted in — catches preposition fights, spelling slips, missing capitals, wrong tense, plural/singular mismatch."
-    slideIdx: 8
+    slideIdx: 7
