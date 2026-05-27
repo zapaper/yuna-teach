@@ -2798,7 +2798,11 @@ async function stitchBlobs(blobs: Blob[]): Promise<Blob> {
   }
 
   return new Promise<Blob>((resolve) => {
-    canvas.toBlob(b => resolve(b!), "image/jpeg", 0.9);
+    // Quality 0.95 — was 0.9, which produced visible 8×8 DCT block
+    // artifacts around faint blue ink on drawable diagrams (Q39 of
+    // the cmpnxptml003pt6qwe4g91fwq quiz was the report). Higher
+    // quality costs ~30% more bytes but kills the boxy fringing.
+    canvas.toBlob(b => resolve(b!), "image/jpeg", 0.95);
   });
 }
 
@@ -2988,7 +2992,10 @@ const BlankCanvas = forwardRef<
         const canvas = canvasRef.current;
         if (!canvas) { reject(new Error("Not ready")); return; }
         redrawComposite();
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Export failed")), "image/jpeg", 0.88);
+        // Bumped 0.88 → 0.95 so faint blue ink over a printed diagram
+        // (drawable canvases) doesn't show JPEG block fringing in
+        // review. See companion bump in the stitch path above.
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Export failed")), "image/jpeg", 0.95);
       });
     },
     exportInk(): Promise<Blob> {

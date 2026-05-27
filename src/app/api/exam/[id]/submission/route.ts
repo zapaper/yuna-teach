@@ -10,10 +10,14 @@ import { isAdmin as isAdminUser } from "@/lib/admin";
 
 // Trim the white margins off a saved canvas JPEG so review doesn't show
 // a tall blank rectangle when the student wrote in only the top portion
-// of the canvas. Cached to <orig>_trim.jpg; regenerates if the source
-// file has been resaved more recently than the cache.
+// of the canvas. Cached to <orig>_trim<version>.jpg; regenerates if
+// the source file has been resaved more recently than the cache OR if
+// the trim params have changed (bump the version when changing the
+// pipeline below — old caches just get ignored, harmless extra files
+// on disk that a future janitor can clean up).
+const TRIM_VERSION = 2; // v1 = threshold 12 + quality 88. v2 = threshold 30 + quality 92 + blank placeholder.
 async function trimmedCanvasBuffer(origPath: string): Promise<Buffer> {
-  const trimPath = origPath.replace(/\.jpg$/, "_trim.jpg");
+  const trimPath = origPath.replace(/\.jpg$/, `_trim${TRIM_VERSION}.jpg`);
   try {
     const [origStat, trimStat] = await Promise.all([
       fs.stat(origPath),
@@ -26,21 +30,36 @@ async function trimmedCanvasBuffer(origPath: string): Promise<Buffer> {
 
   const orig = await fs.readFile(origPath);
   try {
-    // threshold=12 → near-white pixels still count as background, so
-    // faint JPEG noise around ink doesn't keep the bounding box huge.
+    // threshold bumped 12 → 30: tighter cropping when faint pen ink
+    // sits on a JPEG-noisy white margin. 12 was leaving lots of
+    // 'almost-white' speckle outside the actual writing → tall
+    // wrappers in review. 30 keeps any pixel within ~12% of pure
+    // white as background — still well below ink intensity.
     // extend → 10 px breathing room around the ink so descenders /
     // strokes touching the edge don't look clipped.
     const trimmed = await sharp(orig)
-      .trim({ threshold: 12, background: { r: 255, g: 255, b: 255 } })
+      .trim({ threshold: 30, background: { r: 255, g: 255, b: 255 } })
       .extend({ top: 10, bottom: 14, left: 10, right: 10, background: { r: 255, g: 255, b: 255 } })
-      .jpeg({ quality: 88, chromaSubsampling: "4:4:4" })
+      .jpeg({ quality: 92, chromaSubsampling: "4:4:4" })
       .toBuffer();
     await fs.writeFile(trimPath, trimmed);
     return trimmed;
   } catch {
-    // sharp.trim throws when the image is entirely background — return
-    // original so caller still gets *something*.
-    return orig;
+    // sharp.trim throws when the image is entirely background —
+    // blank/unanswered canvas. Return a tiny placeholder strip so
+    // the review wrapper collapses to ~30 px instead of rendering
+    // the full original blank rectangle.
+    try {
+      const meta = await sharp(orig).metadata();
+      const w = meta.width ?? 200;
+      const placeholder = await sharp({
+        create: { width: Math.min(w, 800), height: 30, channels: 3, background: { r: 255, g: 255, b: 255 } },
+      }).jpeg({ quality: 80 }).toBuffer();
+      await fs.writeFile(trimPath, placeholder);
+      return placeholder;
+    } catch {
+      return orig;
+    }
   }
 }
 
