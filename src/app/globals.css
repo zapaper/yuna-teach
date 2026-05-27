@@ -166,13 +166,15 @@ body {
 
 /* Persistent quiz highlights via the CSS Custom Highlight API. JS
  * registers Range objects with CSS.highlights.set("quiz-yellow", …);
- * this pseudo-element paints them. The DOM is NEVER mutated so React
- * re-renders (tool toggles, navigating quiz questions) can't wipe
- * the highlights. Tap a highlighted span in highlight mode to remove
- * it; the CSS rule auto-reflects the change. */
-::highlight(quiz-yellow) {
-  background-color: #fde68a; /* tailwind amber-200 */
-  color: inherit;
+ * the ::highlight(quiz-yellow) pseudo-element paints them. Wrapped
+ * in @supports because Tailwind v4's Lightning CSS bundler rejects
+ * the unknown ::highlight() pseudo at compile time without it; the
+ * @supports gate also doubles as a runtime feature check. */
+@supports selector(::highlight(x)) {
+  ::highlight(quiz-yellow) {
+    background-color: #fde68a; /* tailwind amber-200 */
+    color: inherit;
+  }
 }
 
 @keyframes xpBarPulse {
