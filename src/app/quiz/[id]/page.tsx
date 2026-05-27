@@ -168,6 +168,97 @@ function QuizContent({ id }: { id: string }) {
     document.addEventListener("selectionchange", onChange);
     return () => document.removeEventListener("selectionchange", onChange);
   }, [isChineseQuiz]);
+
+  // Persistent highlighter via CSS Custom Highlight API.
+  //
+  // Approach:
+  //   - Each finished selection in "highlight" mode is cloned to a
+  //     persistent Range and pushed into highlightRangesRef.
+  //   - CSS.highlights.set("quiz-yellow", new Highlight(...ranges))
+  //     paints the Ranges yellow via the ::highlight(quiz-yellow)
+  //     pseudo-element (globals.css).
+  //   - The DOM is NEVER mutated, so React re-renders (triggered by
+  //     tool toggle, prop changes, etc.) don't wipe the highlights.
+  //     Ranges stay valid as long as the underlying text nodes do.
+  //   - Tap an existing highlight while back in highlight mode to
+  //     remove it (no separate eraser button).
+  //
+  // Browser support: Chrome 105+, Safari 17.4+, Firefox 140+. Older
+  // browsers silently get the drag-time ::selection yellow only.
+  const highlightRangesRef = useRef<Range[]>([]);
+  function applyCssHighlights() {
+    const cssAny = CSS as unknown as { highlights?: Map<string, unknown>; Highlight?: unknown };
+    const HighlightCtor = (typeof window !== "undefined" ? (window as unknown as { Highlight?: new (...r: Range[]) => unknown }).Highlight : undefined);
+    if (!cssAny.highlights || !HighlightCtor) return;
+    // Drop invalidated ranges (collapsed because their text node was
+    // removed) before publishing — Highlight() with a dead Range
+    // throws in some engines.
+    const live = highlightRangesRef.current.filter(r => !r.collapsed);
+    highlightRangesRef.current = live;
+    try {
+      cssAny.highlights.set("quiz-yellow", new HighlightCtor(...live));
+    } catch { /* ignore — highlight set best-effort */ }
+  }
+  useEffect(() => {
+    if (tool !== "highlight") return;
+    function persist() {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+      const range = sel.getRangeAt(0);
+      if (range.collapsed) return;
+      // Only highlight inside the question card — bail if range spans
+      // a button / canvas / input / header.
+      let node: Node | null = range.commonAncestorContainer;
+      while (node && node.nodeType !== 1) node = node.parentNode;
+      let el = node as HTMLElement | null;
+      while (el) {
+        const tag = el.tagName?.toLowerCase();
+        if (tag === "button" || tag === "input" || tag === "canvas" || tag === "header") return;
+        el = el.parentElement;
+      }
+      highlightRangesRef.current.push(range.cloneRange());
+      applyCssHighlights();
+      sel.removeAllRanges();
+    }
+    function maybeErase(e: MouseEvent) {
+      // Already-existing selection drag? Don't treat as erase.
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed && sel.toString().length > 0) return;
+      const winAny = window as unknown as { document: Document & { caretRangeFromPoint?: (x: number, y: number) => Range | null; caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null } };
+      const doc = winAny.document;
+      // Find the caret position at the click. Standard API
+      // (caretPositionFromPoint, Firefox/spec) and the WebKit-prefixed
+      // older one (caretRangeFromPoint).
+      let clickNode: Node | null = null;
+      let clickOffset = 0;
+      if (doc.caretPositionFromPoint) {
+        const pos = doc.caretPositionFromPoint(e.clientX, e.clientY);
+        if (pos) { clickNode = pos.offsetNode; clickOffset = pos.offset; }
+      } else if (doc.caretRangeFromPoint) {
+        const r = doc.caretRangeFromPoint(e.clientX, e.clientY);
+        if (r) { clickNode = r.startContainer; clickOffset = r.startOffset; }
+      }
+      if (!clickNode) return;
+      const idx = highlightRangesRef.current.findIndex(r => {
+        try { return r.comparePoint(clickNode!, clickOffset) === 0; }
+        catch { return false; }
+      });
+      if (idx >= 0) {
+        highlightRangesRef.current.splice(idx, 1);
+        applyCssHighlights();
+        e.preventDefault();
+      }
+    }
+    document.addEventListener("mouseup", persist);
+    document.addEventListener("touchend", persist);
+    document.addEventListener("click", maybeErase);
+    return () => {
+      document.removeEventListener("mouseup", persist);
+      document.removeEventListener("touchend", persist);
+      document.removeEventListener("click", maybeErase);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool]);
   async function lookupSelection() {
     if (!dictSelection || dictLoading) return;
     // Check if the selection is the TESTED phrase in any visible
