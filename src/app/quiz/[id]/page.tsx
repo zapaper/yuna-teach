@@ -2811,11 +2811,12 @@ async function stitchBlobs(blobs: Blob[]): Promise<Blob> {
   }
 
   return new Promise<Blob>((resolve) => {
-    // Quality 0.95 — was 0.9, which produced visible 8×8 DCT block
-    // artifacts around faint blue ink on drawable diagrams (Q39 of
-    // the cmpnxptml003pt6qwe4g91fwq quiz was the report). Higher
-    // quality costs ~30% more bytes but kills the boxy fringing.
-    canvas.toBlob(b => resolve(b!), "image/jpeg", 0.95);
+    // Quality 0.99 — bumped from 0.95 (which still showed faint block
+    // fringes around 1-2px blue ink lines on drawable diagrams).
+    // File size ~2× quality-0.9 but approaches PNG quality; the
+    // remaining 1% headroom keeps the encoder from going to true-
+    // lossless (which loses chroma subsampling benefits entirely).
+    canvas.toBlob(b => resolve(b!), "image/jpeg", 0.99);
   });
 }
 
@@ -3005,10 +3006,10 @@ const BlankCanvas = forwardRef<
         const canvas = canvasRef.current;
         if (!canvas) { reject(new Error("Not ready")); return; }
         redrawComposite();
-        // Bumped 0.88 → 0.95 so faint blue ink over a printed diagram
-        // (drawable canvases) doesn't show JPEG block fringing in
-        // review. See companion bump in the stitch path above.
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Export failed")), "image/jpeg", 0.95);
+        // 0.99 — near-lossless. Earlier bumps (0.88 → 0.95) still left
+        // faint block fringing on 1-2px blue ink over white. Pairs
+        // with the stitch-path bump in the helper above.
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Export failed")), "image/jpeg", 0.99);
       });
     },
     exportInk(): Promise<Blob> {
