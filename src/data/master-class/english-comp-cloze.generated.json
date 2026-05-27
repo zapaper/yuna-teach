@@ -29,6 +29,18 @@
       ]
     },
     {
+      "title": "What type of word does the blank want?",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Before you write anything, look at the words RIGHT NEXT TO the blank. They give you the type. Use this cheat sheet:",
+      "bullets": [
+        "**🔵 VERB — when the blank is right after one of these:**\n-- **to ___**  (base form) → \"She forgot to **lock** the door.\"\n-- **subject + ___** → \"The boy **kicks** the ball.\"\n-- **is / was / are / were + ___**  (-ing or -ed) → \"She was **running**.\" / \"It was **broken**.\"\n-- **have / has / had + ___**  (past participle) → \"I have **finished**.\"\n-- **can / could / would / should / must + ___**  (base) → \"He could **swim**.\"",
+        "**🟢 NOUN — when the blank is right after one of these:**\n-- **a / an / the + ___** → \"the **answer**\"\n-- **adjective + ___** → \"a happy **family**\"\n-- **preposition + ___** → \"with **patience**\" / \"in **spite** of\"\n-- **of + ___** → \"a sense of **belonging**\" / \"a piece of **advice**\"",
+        "**🟡 PREPOSITION — when the blank fits one of these:**\n-- **___ + noun phrase** → \"**with** my friends\" / \"**on** the table\"\n-- **verb + ___**  (phrasal verb) → \"look **after**\" / \"give **up**\" / \"pay **off**\"\n-- common slots: **at / on / in / by / with / for / about / from / of**",
+        "**🔴 LINKING WORD — when you see these signals:**\n-- **Start of sentence + comma + a full sentence**: \"**However**, she tried again.\" / \"**Despite** the rain, …\"\n-- **A clear contrast / cause / addition** between two ideas in the passage.\n-- Common: **but / so / however / although / despite / because / and / besides**.",
+        "**🟣 COLLOCATION (fixed phrase) — when you see one of these patterns:**\n-- **make / do / take / have / pay / give + ___** → \"**make** a decision\", \"**do** homework\", \"**pay** attention\"\n-- **a sense of ___** → \"a sense of **belonging**\", \"a sense of **direction**\"\n-- **in / on / for / by + ___ + of/the** → \"**in** front of\", \"**on** purpose\", \"**for** a change\"\n🧠 Can't be guessed — it's a phrase the writer assumes you've SEEN before. Build a list from your reading."
+      ]
+    },
+    {
       "title": "Pattern A — Verbs (tense is the trap)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
       "body": "About 1 in 3 blanks is a VERB. Picking the right WORD is step 1; picking the right TENSE is step 2 — and step 2 is where most marks are lost.",
@@ -207,25 +219,25 @@
       "id": "verbs",
       "label": "Verbs (tense, agreement)",
       "description": "Most common cloze type. Match the tense to other verbs in the passage. Watch singular vs plural agreement and irregular past forms (brought, caught, grew).",
-      "slideIdx": 2
+      "slideIdx": 3
     },
     {
       "id": "linkers",
       "label": "Linking words",
       "description": "But / so / although / despite / however. Decide which relationship the blank shows (contrast / reason / addition / time) before guessing the word.",
-      "slideIdx": 3
+      "slideIdx": 4
     },
     {
       "id": "collocations",
       "label": "Collocations",
       "description": "Fixed phrases — 'do homework', 'make sense', 'a sense of belonging'. Can't be reasoned out; must be memorised from reading. Highest-leverage thing to drill.",
-      "slideIdx": 4
+      "slideIdx": 5
     },
     {
       "id": "traps",
       "label": "Common traps",
       "description": "Spelling, missing capital letter at sentence start, wrong tense even with right word, singular/plural verb agreement.",
-      "slideIdx": 6
+      "slideIdx": 8
     }
   ]
 }
