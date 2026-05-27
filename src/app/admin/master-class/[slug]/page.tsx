@@ -428,6 +428,12 @@ function SlideDeck({
   // closure staleness inside onended.
   const segIdxRef = useRef(0);
   segIdxRef.current = segIdx;
+  // Admin authoring view should NOT autoplay narration when slides
+  // change or when audio is fetched — too noisy when the admin is
+  // editing scripts. Once the admin presses Play on this slide we
+  // flip this to true; subsequent segments on the SAME slide
+  // continue auto-advancing as expected. Reset on slide change.
+  const userStartedRef = useRef(false);
   // Pause inserted between bullet segments for breathing room. Stored
   // as a ref so pause/mute/slide-change can cancel a pending advance.
   const INTER_SEGMENT_PAUSE_MS = 1600;
@@ -455,6 +461,10 @@ function SlideDeck({
     setSegIdx(0);
     setPlaying(false);
     setTtsError(null);
+    // Reset the "user has pressed play" flag on every slide change
+    // so we don't continue autoplaying narration as the admin clicks
+    // through slides.
+    userStartedRef.current = false;
 
     let cancelled = false;
     (async () => {
@@ -545,11 +555,14 @@ function SlideDeck({
       setTtsError("Audio playback failed");
     };
     audioRef.current = audio;
-    audio.play().then(() => setPlaying(true)).catch(() => {
-      // Browser blocked autoplay — common on first slide before any
-      // user interaction. Stay paused; user can press Play.
-      setPlaying(false);
-    });
+    // Only autoplay once the admin has pressed Play on this slide.
+    // For mid-slide segment advances userStartedRef is already true,
+    // so segment-to-segment continuity is preserved.
+    if (userStartedRef.current) {
+      audio.play().then(() => setPlaying(true)).catch(() => {
+        setPlaying(false);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments, segIdx]);
 
@@ -569,6 +582,11 @@ function SlideDeck({
       a.pause();
       setPlaying(false);
     } else {
+      // Mark that the admin has explicitly started playback on this
+      // slide. Segment advances within the slide will continue to
+      // autoplay; navigating to another slide resets this back to
+      // false (see the slide-change effect).
+      userStartedRef.current = true;
       a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     }
   }

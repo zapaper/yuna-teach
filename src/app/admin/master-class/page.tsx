@@ -17,6 +17,7 @@ function MasterClassList() {
   const userId = useSearchParams().get("userId") ?? "";
   const router = useRouter();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -30,7 +31,14 @@ function MasterClassList() {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="text-slate-500 text-sm">Access denied.</p></div>;
   }
 
-  const classes = listMasterClasses();
+  const allClasses = listMasterClasses();
+  // Build the subject list dynamically from the registered classes
+  // so a new subject (e.g. "Math") shows up the moment a YAML for it
+  // is registered. Sorted for predictable button order.
+  const subjects = Array.from(new Set(allClasses.map(c => c.subject))).sort();
+  const classes = subjectFilter === "all"
+    ? allClasses
+    : allClasses.filter(c => c.subject.toLowerCase() === subjectFilter.toLowerCase());
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -42,6 +50,26 @@ function MasterClassList() {
         </div>
 
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-3">
+          {/* Subject filter — pill row, "All" + each unique subject */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+            {[{ value: "all", label: "All" }, ...subjects.map(s => ({ value: s, label: s }))].map(opt => {
+              const isActive = subjectFilter === opt.value;
+              const count = opt.value === "all" ? allClasses.length : allClasses.filter(c => c.subject === opt.value).length;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setSubjectFilter(opt.value)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+                    isActive
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {opt.label} <span className={isActive ? "text-slate-300" : "text-slate-400"}>({count})</span>
+                </button>
+              );
+            })}
+          </div>
           {classes.map(mc => (
             <button
               key={mc.slug}
@@ -54,7 +82,12 @@ function MasterClassList() {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-slate-800 text-sm">{mc.title}</p>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {mc.subject} · {mc.level} · {mc.stats.psleSubjectPercent}% of PSLE Life-Science · {mc.stats.totalPracticePool} practice questions
+                  {[
+                    mc.subject,
+                    mc.level,
+                    typeof mc.stats.psleSubjectPercent === "number" ? `${mc.stats.psleSubjectPercent}% of PSLE ${mc.subject}` : null,
+                    typeof mc.stats.totalPracticePool === "number" ? `${mc.stats.totalPracticePool} practice questions` : null,
+                  ].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 flex-shrink-0">
