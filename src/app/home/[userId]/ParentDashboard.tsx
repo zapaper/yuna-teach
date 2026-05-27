@@ -18,19 +18,64 @@ import { printPdf } from "@/lib/print-pdf";
 // "switch to child account" flow has to log out the parent and
 // redirect to the login screen instead. The parent re-authenticates
 // as the child (they set the child's password at signup, so they
-// have it). Web keeps the multi-tab flow because it's friendlier.
-async function switchToStudentAccount(studentId: string, nextSearch = "") {
-  if (!isNative()) {
-    window.open(`/home/${studentId}${nextSearch}`, "_blank");
+// have it). Web swaps the session cookie via /api/auth/switch
+// (parent-link verified server-side) and then opens a new tab —
+// without the swap the new tab would 401 on /home/{studentId} and
+// dump the user on /login?next=… .
+//
+// Note: cookies are domain-scoped, so the swap affects the parent's
+// other tabs too — they'll need to log in as parent again to manage
+// the family from the dashboard.
+async function switchToStudentAccount(studentId: string, nextPath = "") {
+  if (isNative()) {
+    try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
+    const next = encodeURIComponent(`/home/${studentId}${nextPath}`);
+    window.location.href = `/login?next=${next}`;
     return;
   }
   try {
-    await fetch("/api/auth", { method: "DELETE" });
+    const res = await fetch("/api/auth/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId }),
+    });
+    if (!res.ok) {
+      // Fall back to login screen so the parent can sign in manually.
+      const next = encodeURIComponent(`/home/${studentId}${nextPath}`);
+      window.location.href = `/login?next=${next}`;
+      return;
+    }
   } catch {
-    /* non-fatal — login page will overwrite cookie anyway */
+    const next = encodeURIComponent(`/home/${studentId}${nextPath}`);
+    window.location.href = `/login?next=${next}`;
+    return;
   }
-  const next = encodeURIComponent(`/home/${studentId}${nextSearch}`);
-  window.location.href = `/login?next=${next}`;
+  window.open(`/home/${studentId}${nextPath}`, "_blank", "noopener");
+}
+
+// Same swap as switchToStudentAccount, but for opening a per-paper
+// path like /quiz/{id} or /exam/{id} in the child's session.
+async function switchToStudentPath(studentId: string, childPath: string) {
+  if (isNative()) {
+    try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
+    window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
+    return;
+  }
+  try {
+    const res = await fetch("/api/auth/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId }),
+    });
+    if (!res.ok) {
+      window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
+      return;
+    }
+  } catch {
+    window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
+    return;
+  }
+  window.open(childPath, "_blank", "noopener");
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -2782,15 +2827,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   Hidden when no student is selected. */}
               {selectedStudent && (
                 <button
-                  onClick={async () => {
-                    if (isNative()) {
-                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
-                      const next = encodeURIComponent(`/home/${selectedStudent.id}`);
-                      window.location.href = `/login?next=${next}`;
-                      return;
-                    }
-                    window.open(`/home/${selectedStudent.id}`, "_blank", "noopener");
-                  }}
+                  onClick={() => void switchToStudentAccount(selectedStudent.id)}
                   className="w-full mt-2 py-4 rounded-2xl bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white font-headline font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined">{isNative() ? "login" : "open_in_new"}</span>
@@ -3223,15 +3260,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   so parents can hand the device over in one click. */}
               {selectedStudent && (
                 <button
-                  onClick={async () => {
-                    if (isNative()) {
-                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
-                      const next = encodeURIComponent(`/home/${selectedStudent.id}`);
-                      window.location.href = `/login?next=${next}`;
-                      return;
-                    }
-                    window.open(`/home/${selectedStudent.id}`, "_blank", "noopener");
-                  }}
+                  onClick={() => void switchToStudentAccount(selectedStudent.id)}
                   className="w-full mb-10 py-5 rounded-2xl bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white font-headline font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-2xl">{isNative() ? "login" : "open_in_new"}</span>
@@ -3575,12 +3604,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       rawSubj.includes("华文") || rawSubj.includes("中文") || rawSubj.includes("华语");
                     const useQuiz = isQuizOrFocused || (isTextBasedSubject && popup.cleanExtracted);
                     const childPath = useQuiz ? `/quiz/${popup.id}` : `/exam/${popup.id}`;
-                    if (isNative()) {
-                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
-                      window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
-                      return;
-                    }
-                    window.open(`${childPath}?userId=${selectedStudentId}`, "_blank", "noopener");
+                    if (!selectedStudentId) return;
+                    await switchToStudentPath(selectedStudentId, `${childPath}?userId=${selectedStudentId}`);
                   }}
                   className="py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5"
                 >
