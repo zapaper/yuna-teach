@@ -164,18 +164,11 @@ body {
   color: inherit;
 }
 
-/* Persistent quiz highlights via the CSS Custom Highlight API. JS
- * registers Range objects with CSS.highlights.set("quiz-yellow", …);
- * the ::highlight(quiz-yellow) pseudo-element paints them. Wrapped
- * in @supports because Tailwind v4's Lightning CSS bundler rejects
- * the unknown ::highlight() pseudo at compile time without it; the
- * @supports gate also doubles as a runtime feature check. */
-@supports selector(::highlight(x)) {
-  ::highlight(quiz-yellow) {
-    background-color: #fde68a; /* tailwind amber-200 */
-    color: inherit;
-  }
-}
+/* Note: the ::highlight(quiz-yellow) pseudo-element is injected at
+ * runtime by the quiz page (search for HIGHLIGHT_CSS in
+ * src/app/quiz/[id]/page.tsx). Tailwind v4's Lightning CSS bundler
+ * strips the rule even when wrapped in @supports — it doesn't
+ * recognise the selector. Runtime injection sidesteps the bundler. */
 
 @keyframes xpBarPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(108, 248, 187, 0); }

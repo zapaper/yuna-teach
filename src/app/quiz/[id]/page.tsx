@@ -185,6 +185,19 @@ function QuizContent({ id }: { id: string }) {
   //
   // Browser support: Chrome 105+, Safari 17.4+, Firefox 140+. Older
   // browsers silently get the drag-time ::selection yellow only.
+  // The ::highlight(quiz-yellow) CSS rule is injected at runtime
+  // (instead of via globals.css) because Tailwind v4 / Lightning CSS
+  // strips ::highlight() pseudo-element rules at compile time —
+  // bundler doesn't recognise the selector. Inject once on mount.
+  useEffect(() => {
+    const id = "quiz-highlight-style";
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = "::highlight(quiz-yellow){background-color:#fde68a;color:inherit;}";
+    document.head.appendChild(style);
+  }, []);
+
   const highlightRangesRef = useRef<Range[]>([]);
   function applyCssHighlights() {
     const cssAny = CSS as unknown as { highlights?: Map<string, unknown>; Highlight?: unknown };
