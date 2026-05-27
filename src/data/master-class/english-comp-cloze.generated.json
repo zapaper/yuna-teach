@@ -63,6 +63,17 @@
       ]
     },
     {
+      "title": "Worked example — spotting the clues",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Here's a short passage with 3 blanks. Cover the answers below, try first, then read how each clue points to the answer.",
+      "bullets": [
+        "**The passage**\nMei Lin **had been training** for the school marathon for three months. Every morning, before the sun **___(1)___**, she **would jog** around the park near her house. **___(2)___** the long hours of practice, she **did not feel** tired. Her hard work finally **paid ___(3)___** when she **crossed** the finish line first.",
+        "**Blank (1)  →  \"rose\"**\n🟡 **\"had been training\"** + **\"would jog\"** in the same paragraph  →  passage is PAST tense. So the missing verb is past too.\n🟡 The blank comes right after **\"the sun ___\"**  →  must be a VERB describing what the sun does.\n🟡 \"The sun ___\" before someone goes jogging in the morning  →  meaning is \"the sun came up\" → **\"rose\"**.\n⚠️ Irregular form: rise → **rose** → risen.  NOT \"rised\".",
+        "**Blank (2)  →  \"Despite\"**\n🟡 Comma after the blank phrase + a FULL SENTENCE follows  →  LINKING WORD slot at the start of the sentence.\n🟡 \"long hours of practice\" **vs** **\"did not feel tired\"**  →  these two ideas CONTRAST  →  pick a contrast word (despite / although / however).\n🟡 The blank is followed by **\"the long hours of practice\"** — a NOUN PHRASE (no subject + verb).\n    • \"Although\" needs a clause → ✗ wrong.\n    • \"Despite\" + noun phrase → ✓ right.\n⚠️ Capital letter — it's the FIRST word of the sentence.",
+        "**Blank (3)  →  \"off\"**\n🟡 The blank sits between **\"paid ___\"** and **\"when…\"**  →  it's the second half of a PHRASAL VERB.\n🟡 Meaning of the sentence: \"Her training was rewarded — she finished first.\"  →  the fixed phrase that means \"effort rewarded\" is **\"pay OFF\"**.\n🟡 Re-read in context: \"Her hard work finally paid **off** when she crossed the finish line first.\"  →  flows naturally. ✓\n⚠️ This one can't be reasoned out from grammar — it's a collocation you have to know from reading."
+      ]
+    },
+    {
       "title": "Try it — Verbs & Linkers",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
