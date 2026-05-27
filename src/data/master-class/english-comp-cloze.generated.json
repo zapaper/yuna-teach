@@ -1,0 +1,219 @@
+{
+  "slug": "english-comp-cloze",
+  "subject": "english",
+  "level": "P5-P6",
+  "topicLabel": "Comprehension Cloze",
+  "title": "PSLE English — Comprehension Cloze (15 marks)",
+  "stats": {
+    "headline": "Comprehension Cloze = 15 marks. 15 blanks. No word bank. Most blanks are VERBS, LINKING WORDS, or COLLOCATIONS — once you know the patterns, half the marks become easy."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Comprehension Cloze (15 marks)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-welcome.png",
+      "body": "Comp Cloze is the section with the long passage and 15 blanks. You write ONE word in each blank — no word bank given. Each blank = 1 mark. Spelling counts. Tense counts. Plural/singular counts.",
+      "bullets": [
+        "**What blanks usually test** (across 6 years of PSLE):\n-- **Verbs** (most common — ~5-6 blanks)\n-- **Linking words** (but / so / although / despite — ~2-3 blanks)\n-- **Collocations** — \"always-together\" phrases (~2-3 blanks)\n-- **Prepositions** (with / among / before — ~2-3 blanks)\n-- **Specific nouns / adjectives** (the vocab ones — ~1-2 blanks)",
+        "**The 3 rules to win:**\n① Read the WHOLE sentence first (and the one before + after).\n② Match the form — tense, plural, capital letter at start.\n③ Spell it right. A correct word wrongly spelt = 0 marks."
+      ]
+    },
+    {
+      "title": "The 4-step method — every blank, same routine",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Don't just stare at the blank. Run THESE 4 steps every time. It feels slow at first — gets fast after 10 blanks.",
+      "bullets": [
+        "**Step 1 — Read the whole sentence + 1 before + 1 after.**\nMost blanks need context that's NOT in the same sentence.",
+        "**Step 2 — Decide what KIND of word the blank wants.**\nLook at the word right before and right after.\n- \"to ____\" → verb (base form)\n- \"is/was ____\" → verb (-ing or -ed) OR adjective\n- \"a/an/the ____\" → noun\n- \"____ the rain, …\" → linking word (despite/in spite of)\n- \"____ this, …\" → linking word at the start of a sentence",
+        "**Step 3 — Match the FORM.**\n- Past or present? (Check verbs around the blank.)\n- Singular or plural? (Check the subject.)\n- Capital letter? (Is it the first word of the sentence?)",
+        "**Step 4 — Spell it right and re-read aloud.**\nRead the full sentence with your answer slotted in.\nIf it sounds wrong, change it."
+      ]
+    },
+    {
+      "title": "Pattern A — Verbs (tense is the trap)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "About 1 in 3 blanks is a VERB. Picking the right WORD is step 1; picking the right TENSE is step 2 — and step 2 is where most marks are lost.",
+      "bullets": [
+        "**Tense clues come from the OTHER verbs in the passage:**\n-- If the passage is in PAST (walked, said, was, were) → the blank verb is past too.\n-- If it's in PRESENT (walks, says, is, are) → use present.\nDon't switch tense just for the blank.",
+        "**Singular vs plural** matters when the verb is present:\n✓ The boys **walk** to school.   (plural subject → base verb)\n✓ The boy **walks** to school.   (singular subject → +s)\n✗ The boy **walk** to school.",
+        "**-ed vs -ing** — easy to mix up:\n-- **-ed** = passive / past (\"the door was opened\" / \"she opened it\")\n-- **-ing** = active in progress / noun-like (\"she was opening\" / \"opening the door is hard\")\nCommon PSLE testing: \"is _____ed by\" (passive) vs \"is _____ing\" (progressive).",
+        "**Irregular past forms** — the spelling trap:\nbring → **brought** · catch → **caught** · think → **thought** · grow → **grew**\nteach → **taught** · seek → **sought** · fight → **fought** · feel → **felt**\nIf you write \"bringed\" instead of \"brought\" → 0 marks."
+      ]
+    },
+    {
+      "title": "Pattern B — Linking words (but / so / although / despite)",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Linking words show the RELATIONSHIP between two ideas. The trick is to spot which relationship before guessing the word.",
+      "bullets": [
+        "**Contrast — when the two ideas go in opposite directions:**\n-- **but / yet** (joins two clauses): \"She studied, **but** failed.\"\n-- **although / though / even though** (start of clause): \"**Although** she studied, she failed.\"\n-- **despite / in spite of** (+ noun phrase): \"**Despite** her hard work, she failed.\"\n-- **however / nevertheless** (start of new sentence, with comma).",
+        "**Reason / result — when one idea causes the other:**\n-- **because / since / as** (+ clause): \"He missed the bus **because** he overslept.\"\n-- **due to / owing to** (+ noun phrase): \"**Due to** the rain, the match was cancelled.\"\n-- **so / therefore / hence**: \"It rained, **so** the match was cancelled.\"",
+        "**Addition — when ideas add up:**\n-- **and / also / besides / in addition / moreover** (\"She likes maths. **Besides**, she likes science.\")",
+        "**Time / sequence:**\n-- **before / after / once / when / while / until**: \"**Once** you finish, you can leave.\"",
+        "**PSLE trap:** the blank at the START of a sentence\nneeds a CAPITAL letter. \"despite\" → \"Despite\". Easy\nto forget. Always reread your final answer."
+      ]
+    },
+    {
+      "title": "Pattern C — Collocations (words that 'travel together')",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Collocations = words English speakers always use TOGETHER. You can't guess these from grammar — you've just got to know them. PSLE picks them because they tell adults apart from kids who read widely.",
+      "bullets": [
+        "**Verb + noun pairs** (must memorise):\n-- **make** a decision · **make** sure · **make** sense · **make** an effort\n-- **take** a chance · **take** action · **take** part · **take** turns\n-- **pay** attention · **pay** a visit · **pay** the price\n-- **have** fun · **have** a chance · **have** an effect\n-- **do** homework · **do** your best · **do** harm\nCommon trap: students write \"**make** homework\" — that's not English. It's \"**do** homework\".",
+        "**\"A sense of ____\"** — fixed phrase:\na sense of **belonging** · a sense of **achievement** · a sense of **direction**\na sense of **humour** · a sense of **responsibility** · a sense of **purpose**",
+        "**\"For a ____\"** / **\"In ____ of\"** / **\"On the ____\"** patterns:\n-- for a **change** / for a **while** / for a **moment**\n-- in **front** of / in **favour** of / in **terms** of / in **search** of\n-- on the **way** / on the **other** hand / on **purpose**",
+        "**Phrasal verbs you SEE in PSLE:**\n-- **meet** up · **cut** down · **look** after · **give** up · **put** off\n-- **come** across · **bring** up · **carry** out · **figure** out\nBuild the habit: when you READ stories, note any 2-word verb you see."
+      ]
+    },
+    {
+      "title": "Try it — Verbs & Linkers",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Verb tense match",
+          "stem": "Read the sentence:\n\"Last night, Mary walked to the park, sat on a bench, and ____ the children playing.\"\nWhich word fits the blank?",
+          "options": [
+            "watches",
+            "watch",
+            "watched",
+            "watching"
+          ],
+          "correctAnswer": 3,
+          "explanation": "The verbs around the blank are in past tense (walked, sat). The blank should match — \"watched\" (past). Option 1 is present tense; option 2 is base form; option 4 is the -ing form, which would need \"was\" in front. Always scan the other verbs in the same sentence first.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "Linking word — contrast",
+          "stem": "Read the sentence:\n\"____ the heavy rain, the children continued their football match.\"\nWhich word fits the blank?",
+          "options": [
+            "Because",
+            "Although",
+            "Despite",
+            "However"
+          ],
+          "correctAnswer": 3,
+          "explanation": "Two clues. (1) The two ideas contrast (heavy rain vs continuing the match). So it's a contrast word, not \"Because\". (2) The blank is followed by \"the heavy rain\" — a NOUN PHRASE, not a clause. \"Although\" needs a clause (subject + verb): \"Although it rained heavily.\" \"Despite\" takes a noun phrase: \"Despite the heavy rain.\" \"However\" needs a comma + a full sentence after, not just a noun phrase.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Top 4 traps that lose easy marks",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
+      "body": "Even strong readers lose 2-3 marks on these every paper. Scan your answers for them before you hand in.",
+      "bullets": [
+        "**Trap 1 — Spelling.**\n\"occured\" (wrong) vs **\"occurred\"** (right). \"definately\" vs **\"definitely\"**.\n\"alot\" is NEVER a word — it's always **\"a lot\"** (two words).\nRight word + wrong spelling = 0 marks. Re-read every answer.",
+        "**Trap 2 — Capital letter at the start of a sentence.**\nIf the blank is the FIRST word of a sentence, capitalise it.\n✗ \"despite the rain…\"   ✓ \"Despite the rain…\"",
+        "**Trap 3 — Wrong tense even when you picked the right word.**\n\"grow\" vs \"grew\" vs \"grown\" vs \"growing\" — read the OTHER verbs to decide. Don't just pick whichever sounds nicest.",
+        "**Trap 4 — Plurality / -s on the verb.**\nSingular subject → +s on the present-tense verb.\n✓ \"She walks.\" · ✗ \"She walk.\"\n✓ \"The boys walk.\" · ✗ \"The boys walks.\""
+      ]
+    },
+    {
+      "title": "Try it — Collocations & Traps",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Collocation — verb + noun",
+          "stem": "Read the sentence:\n\"The teacher asked the class to ____ their best in the exam tomorrow.\"\nWhich word fits the blank?",
+          "options": [
+            "make",
+            "have",
+            "take",
+            "do"
+          ],
+          "correctAnswer": 4,
+          "explanation": "\"**Do** your best\" is the fixed phrase — like \"do your homework\". English uses \"do\" with these effort/duty words, not \"make\". \"Make\" goes with decisions / mistakes / effort (\"make an effort\"). \"Take\" goes with chances / actions. \"Have\" goes with feelings or experiences. The trick is just memorising these from reading.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "Singular vs plural verb",
+          "stem": "Read the sentence:\n\"The list of names ____ very long, which makes it hard to read.\"\nWhich word fits the blank?",
+          "options": [
+            "are",
+            "is",
+            "were",
+            "be"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Tricky one. The SUBJECT of the verb is \"the list\" (singular), NOT \"names\". \"Of names\" just describes what kind of list. Singular subject + present tense → \"is\". The rest of the sentence is in present (\"makes it hard\"), so we stay in present. PSLE loves this trap — they put a plural noun in between a singular subject and its verb to confuse you.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Start practising!",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
+      "body": "Mixed practice pulled from PSLE 2019-2024 Comprehension Cloze. Trains the 4-step routine until it becomes automatic.",
+      "bullets": [
+        "**15 questions** — verbs, linking words, collocations, prepositions",
+        "Wrong answers auto-saved, reviewed in 1 week",
+        "AI accepts reasonable synonym —"
+      ],
+      "cta": {
+        "label": "Click here to start practice",
+        "quizSpec": {
+          "title": "Mastery: Comprehension Cloze",
+          "mcq": 15,
+          "oeq": 0
+        }
+      },
+      "narration": {
+        "bullets": [
+          "You'll tackle **15 questions** — a mix of verbs, linking words, collocations, and prepositions.",
+          "Any Wrong answers are auto-saved, and reviewed in 1 week.",
+          "The AI accepts any reasonable synonym — if the meaning fits AND the tense/spelling matches, you get the mark."
+        ]
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "comprehension cloze",
+      "definition": "The fill-in-the-blank passage with 15 blanks and NO word bank. Each blank = 1 mark = 15 marks total. Spelling, tense, plural-singular all count."
+    },
+    {
+      "word": "linking word",
+      "definition": "Words that connect ideas: but, so, although, because, despite, however. The blank's neighbours tell you which RELATIONSHIP is needed — contrast, reason, addition, time."
+    },
+    {
+      "word": "collocation",
+      "definition": "Words that always travel together — 'do homework' (not 'make homework'), 'a sense of belonging', 'pay attention', 'in spite of'. Can't be guessed from grammar; must be memorised from wide reading."
+    },
+    {
+      "word": "tense match",
+      "definition": "When the passage is in past tense, the blank verb is past too. Scan the verbs around the blank — they tell you which tense to use. Mixing tenses = 0 marks even if the word is right."
+    },
+    {
+      "word": "phrasal verb",
+      "definition": "Two-word verbs like 'meet up', 'cut down', 'give up', 'look after'. The second word changes the meaning of the first. PSLE tests these when the small word goes missing — fill in 'up', 'down', 'after' etc."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "verbs",
+      "label": "Verbs (tense, agreement)",
+      "description": "Most common cloze type. Match the tense to other verbs in the passage. Watch singular vs plural agreement and irregular past forms (brought, caught, grew).",
+      "slideIdx": 2
+    },
+    {
+      "id": "linkers",
+      "label": "Linking words",
+      "description": "But / so / although / despite / however. Decide which relationship the blank shows (contrast / reason / addition / time) before guessing the word.",
+      "slideIdx": 3
+    },
+    {
+      "id": "collocations",
+      "label": "Collocations",
+      "description": "Fixed phrases — 'do homework', 'make sense', 'a sense of belonging'. Can't be reasoned out; must be memorised from reading. Highest-leverage thing to drill.",
+      "slideIdx": 4
+    },
+    {
+      "id": "traps",
+      "label": "Common traps",
+      "description": "Spelling, missing capital letter at sentence start, wrong tense even with right word, singular/plural verb agreement.",
+      "slideIdx": 6
+    }
+  ]
+}
