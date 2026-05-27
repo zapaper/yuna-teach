@@ -1179,10 +1179,28 @@ Return ONLY valid JSON, no markdown fences:
 (set "diagram" to null if no diagram; if no sub-parts use "subparts": [])`;
 
 export async function transcribeScienceOpenEndedQuestion(
-  imageBase64: string
+  imageBase64: string,
+  opts?: { focusSubparts?: string[] },
 ): Promise<TranscribedOpenEnded> {
+  // When the caller knows this is a SPLIT-SEGMENT image (sibling
+  // preamble stitched on top of the focused subpart), tell Gemini
+  // explicitly so it doesn't pull (a)/(b) labels into the subparts
+  // list. Stem still gets the shared preamble — that's wanted.
+  let prompt = SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT;
+  if (opts?.focusSubparts && opts.focusSubparts.length > 0) {
+    const focus = opts.focusSubparts.map(l => `(${l})`).join(", ");
+    prompt = `IMPORTANT — STITCHED CONTEXT IMAGE:
+This image was assembled from TWO pieces. The TOP portion contains the original question preamble and earlier sub-parts that you should READ FOR CONTEXT but NOT include as sub-parts in your output. Only the BOTTOM portion contains THIS segment's sub-parts.
+
+For "subparts" in your output, INCLUDE ONLY: ${focus}
+For "stem", use the shared preamble (the lead-in text that applies to the whole question — typically from the TOP portion).
+
+---
+
+${SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT}`;
+  }
   const parsed = await transcribeViaGeminiOrWavespeed(
-    imageBase64, SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT, "science-oeq",
+    imageBase64, prompt, "science-oeq",
     (raw) => Boolean(raw && (raw.stem || (Array.isArray(raw.subparts) && raw.subparts.length > 0))),
   );
   const d = parsed.diagram as Record<string, number> | null | undefined;

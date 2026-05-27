@@ -242,10 +242,29 @@ export async function POST(
             error: null,
           };
         } else {
-          const transcribed = await (isScience ? transcribeScienceOpenEndedQuestion(base64) : transcribeMathOpenEndedQuestion(base64));
+          // Derive the segment letters BEFORE the call so we can hint
+          // Gemini up-front (preferred) and also defensively filter
+          // afterwards (belt-and-braces in case the hint isn't honoured).
+          const segLetterMatch = q.questionNum.match(/^\d+([a-zA-Z]+)$/);
+          const focusSubparts = segLetterMatch ? segLetterMatch[1].toLowerCase().split("") : undefined;
+          const transcribed = await (isScience
+            ? transcribeScienceOpenEndedQuestion(base64, focusSubparts && focusSubparts.length > 0 ? { focusSubparts } : undefined)
+            : transcribeMathOpenEndedQuestion(base64));
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
+          // Defensive post-filter — even with the prompt hint above,
+          // trim subparts to this segment's own letters in case Gemini
+          // still emits sibling labels. Tracks the dropped count for
+          // log visibility.
+          if (focusSubparts && transcribed.subparts.length > 0) {
+            const segLetters = new Set(focusSubparts);
+            const before = transcribed.subparts.length;
+            transcribed.subparts = transcribed.subparts.filter(sp => segLetters.has(sp.label.toLowerCase()));
+            if (transcribed.subparts.length < before) {
+              console.log(`[transcribe] Q${q.questionNum} split-segment filter: trimmed ${before - transcribed.subparts.length} sibling subparts (kept ${[...segLetters].join(",")})`);
+            }
+          }
           // Even-distribution default for per-subpart marks: if the
           // model didn't pull "[Nmarks]" suffixes off any subpart but
           // the total marksAvailable divides cleanly across the
