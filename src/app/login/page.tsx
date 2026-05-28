@@ -67,6 +67,32 @@ function LoginContent() {
   const [loginShowPw, setLoginShowPw] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  // Ref to the password input so we can auto-focus it after the
+  // username has been pre-filled from the next= redirect lookup.
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+
+  // When the user arrived here via /login?next=/home/<userId>, look
+  // up the user's name and pre-fill the identity field. Saves them
+  // typing it. On any failure (network, 404, unparseable next), leave
+  // the field empty. Auto-focus the password input once filled so the
+  // cursor lands ready to type.
+  useEffect(() => {
+    if (!nextParam) return;
+    const match = nextParam.match(/^\/home\/([^/?#]+)/);
+    if (!match) return;
+    const userId = match[1];
+    let cancelled = false;
+    fetch(`/api/users/lookup?id=${encodeURIComponent(userId)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { name: string | null } | null) => {
+        if (cancelled || !data?.name) return;
+        setLoginIdentity(data.name);
+        // Defer focus so React has painted the populated input.
+        setTimeout(() => passwordInputRef.current?.focus(), 0);
+      })
+      .catch(() => { /* leave identity empty on any error */ });
+    return () => { cancelled = true; };
+  }, [nextParam]);
 
   // OAuth provider mode:
   //   - Web: Auth.js OAuth dance via signIn() (cookies, pkce, etc.)
@@ -310,6 +336,7 @@ function LoginContent() {
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock</span>
                 <input
+                  ref={passwordInputRef}
                   id="login-password"
                   type={loginShowPw ? "text" : "password"}
                   value={loginPassword}
