@@ -65,6 +65,16 @@ model User {
   googleId String? @unique
   appleId  String? @unique
 
+  // Password-reset link flow (separate from login/signup, doesn't
+  // touch how passwords themselves are stored). When a user requests
+  // a reset, /api/auth/forgot-password generates a random token,
+  // stores it here with a 1-hour expiry, and emails the link
+  // /reset-password?token=…. The /api/auth/reset-password endpoint
+  // verifies the token + expiry, updates `password`, then clears
+  // both fields (single-use). NULL = no active reset request.
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   tests              SpellingTest[]
   examPapers         ExamPaper[]    @relation("UploadedPapers")
   assignedExamPapers ExamPaper[]    @relation("AssignedPapers")
