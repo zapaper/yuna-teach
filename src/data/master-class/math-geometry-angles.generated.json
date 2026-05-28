@@ -33,6 +33,7 @@
     {
       "title": "Pattern A — Angle basics (the bread-and-butter 1-2 markers)",
       "mascotImage": "/master-class/patterns/panda-teaching-action.png",
+      "diagramImage": "/master-class/math-geometry-angles/pattern-a.jpeg",
       "body": "15 one-mark + 28 two-mark angle basics across PSLE 2016-2025 — about 70 marks total. These are \"free marks\" IF your child can tell the 4 rules apart at a glance.",
       "bullets": [
         "**Rule 1 — Angles on a straight line = 180°**. Look for two lines meeting where one continues straight through.",
@@ -57,6 +58,7 @@
     {
       "title": "Pattern B — Parallel lines (alternate vs co-interior)",
       "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
+      "diagramImage": "/master-class/math-geometry-angles/pattern-b.jpeg",
       "body": "Whenever the question says \"AB is parallel to CD\", two angle rules unlock. They look similar. They're DIFFERENT. Pick the wrong one and you lose the method mark — even with the right number.",
       "bullets": [
         "**Alternate angles (Z-pattern) are EQUAL.** The two angles are on OPPOSITE sides of the transversal. Look for a Z-shape between the parallel lines.",
@@ -81,6 +83,7 @@
     {
       "title": "Pattern C — Quadrilateral hides an Isosceles triangle (most common)",
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "diagramImage": "/master-class/math-geometry-angles/pattern-c.jpeg",
       "body": "This is THE most-tested heavy geometry pattern — 12 out of 19 four-mark+ questions across 2016-2025. The figure shows a named quadrilateral (rhombus / parallelogram / trapezium / square) AND says \"AB = BC\" or marks two equal sides INSIDE it. Spot the isosceles triangle to unlock everything.",
       "bullets": [
         "**Step 1 — Use the quadrilateral property to find ONE angle.** Rhombus: opposite angles equal. Parallelogram: opposite angles equal, adjacent sum to 180°. Trapezium: parallel sides → co-interior 180°.",
@@ -105,6 +108,7 @@
     {
       "title": "Pattern D — Two shapes glued together (angle-chase)",
       "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
+      "diagramImage": "/master-class/math-geometry-angles/pattern-d.jpeg",
       "body": "Two named figures share a side. You walk angles across the shared vertex using straight-line / 360° / equilateral / rhombus properties. Almost every PSLE Paper 2 has one of these.",
       "bullets": [
         "**Equilateral as the anchor (60° free):** wherever an equilateral triangle appears, ALL 3 angles are 60°. Use this immediately — it's a free starting point.",
@@ -129,6 +133,7 @@
     {
       "title": "Pattern E — Folded paper (reflection equality)",
       "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
+      "diagramImage": "/master-class/math-geometry-angles/pattern-e.jpeg",
       "body": "A square / rectangle / triangle is folded along a line so a corner meets another point. The folded part is now a mirror image of where it came from. Trending up — PSLE 2022 Q13 and 2025 Q14 both tested this.",
       "bullets": [
         "**Rule 1 — When paper is folded, the folded-edge length = the original-edge length.** If P folds onto E, then PG = EG and PH = EH.",

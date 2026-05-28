@@ -78,6 +78,7 @@ keyConcepts:
   # ─── Slide 1: Pattern A — Angle basics ───────────────────────
   - title: "Pattern A — Angle basics (the bread-and-butter 1-2 markers)"
     mascotImage: /master-class/patterns/panda-teaching-action.png
+    diagramImage: /master-class/math-geometry-angles/pattern-a.jpeg
     body: >-
       15 one-mark + 28 two-mark angle basics across PSLE 2016-2025 —
       about 70 marks total. These are "free marks" IF your child can
@@ -110,6 +111,7 @@ keyConcepts:
   # ─── Slide 2: Pattern B — Parallel lines ─────────────────────
   - title: "Pattern B — Parallel lines (alternate vs co-interior)"
     mascotImage: /master-class/patterns/panda-teaching-differences.png
+    diagramImage: /master-class/math-geometry-angles/pattern-b.jpeg
     body: >-
       Whenever the question says "AB is parallel to CD", two angle
       rules unlock. They look similar. They're DIFFERENT. Pick the
@@ -143,6 +145,7 @@ keyConcepts:
   # ─── Slide 3: Pattern C — Quadrilateral hides an Isosceles ──
   - title: "Pattern C — Quadrilateral hides an Isosceles triangle (most common)"
     mascotImage: /master-class/patterns/panda-teaching-figures.png
+    diagramImage: /master-class/math-geometry-angles/pattern-c.jpeg
     body: >-
       This is THE most-tested heavy geometry pattern — 12 out of 19
       four-mark+ questions across 2016-2025. The figure shows a named
@@ -179,6 +182,7 @@ keyConcepts:
   # ─── Slide 4: Pattern D — Two-shape glue ─────────────────────
   - title: "Pattern D — Two shapes glued together (angle-chase)"
     mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
+    diagramImage: /master-class/math-geometry-angles/pattern-d.jpeg
     body: >-
       Two named figures share a side. You walk angles across the
       shared vertex using straight-line / 360° / equilateral / rhombus
@@ -213,6 +217,7 @@ keyConcepts:
   # ─── Slide 5: Pattern E — Folded paper ──────────────────────
   - title: "Pattern E — Folded paper (reflection equality)"
     mascotImage: /master-class/patterns/panda-teaching-nth-term.png
+    diagramImage: /master-class/math-geometry-angles/pattern-e.jpeg
     body: >-
       A square / rectangle / triangle is folded along a line so a
       corner meets another point. The folded part is now a mirror image
