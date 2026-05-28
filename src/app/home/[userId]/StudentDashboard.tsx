@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 import { playClick, playExp } from "@/lib/sfx";
+import { canSeeMasterClass } from "@/lib/master-class-access";
 import TrialReminder from "@/components/TrialReminder";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
@@ -1135,9 +1136,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               </button>
             )}
             {/* Master Class — gated to a small allow-list for now
-                (admin + student666 test account) until we ship to all
-                students. */}
-            {(["admin", "student666", "mark lim", "david lim"].includes(user.name?.toLowerCase() ?? "")) && (
+                until we ship to all students. Allow-list lives in
+                @/lib/master-class-access — add a name there to grant. */}
+            {canSeeMasterClass(user.name) && (
               <button onClick={() => router.push(`/master-class?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
                 <span className="material-symbols-outlined">school</span>Master Class
               </button>
@@ -1858,9 +1859,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <span className="text-[10px] font-medium">Quiz</span>
           </button>
         )}
-        {/* Master Class — admin + student666 only for now. Mirrors
-            the desktop nav gate. */}
-        {(["admin", "student666", "mark lim", "david lim"].includes(user.name?.toLowerCase() ?? "")) && (
+        {/* Master Class — mirrors the desktop nav gate. */}
+        {canSeeMasterClass(user.name) && (
           <button
             onClick={() => { setActiveNav("master"); router.push(`/master-class?userId=${userId}`); }}
             className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "master" ? "text-[#006c49]" : "text-slate-400"}`}
