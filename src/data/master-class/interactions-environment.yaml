@@ -152,7 +152,9 @@ keyConcepts:
           also decreases.
     callout: >-
       Writing 'bird population decreases' alone = 1 mark. Writing the
-      full chain = 3-4 marks.
+      full chain = 3-4 marks. **PSLE 2022-2024 Q16 (pond fertiliser)
+      runs the same pattern across 3 organisms** — make sure your chain
+      reaches the LAST organism named in the question.
 
   - title: "4: Mutual benefits"
     mascotImage: /master-class/interactions-environment/panda-teaching-mutual-benefits.png
@@ -199,7 +201,12 @@ keyConcepts:
         text: >-
           Polar bear has thick fur which traps a layer of air to keep
           it warm in the cold Arctic environment.
-    callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'"
+    callout: >-
+      Answer template: 'Feature: ____. How it helps: ____. This helps
+      the organism survive in ____.' **Real PSLE 2016 Q34** (moths on
+      tree bark) runs the camouflage variant — the marker wants
+      "light-coloured moths blend in with the light bark, reducing
+      predation by birds."
 
   - title: "6: Decomposer: easy to miss points"
     mascotImage: /master-class/interactions-environment/panda-teaching-decomposer.png
@@ -222,6 +229,10 @@ keyConcepts:
         text: >-
           Bacteria decompose dead organisms and waste, **releasing
           nutrients** back to the soil for **plants to absorb**.
+    callout: >-
+      **Real PSLE 2018 Q10**: "Why are decomposers important?" The
+      marker accepts "**to make the soil fertile when the plants
+      decompose**" — same shape as the full-mark answer above.
 
   - title: "7: Human Impact"
     mascotImage: /master-class/interactions-environment/panda-teaching-human-impact.png
@@ -248,6 +259,45 @@ keyConcepts:
           into the atmosphere and increases the **carbon dioxide**.
           It also destroys **habitats** for many species, causing
           their populations to decrease.
+    callout: >-
+      **Real PSLE 2022-2024 Q1** runs this exact chain. The marker
+      wants the **photosynthesis ↓ → CO₂ ↑** link AND the **habitat
+      loss → population decrease** link. Two separate marking points.
+
+  - title: "8: Fair-test experiments in ecology"
+    mascotImage: /master-class/interactions-environment/panda-teaching-causal-chain.png
+    body: >-
+      Every recent PSLE Booklet B has at least one "Susan/Mei Ling/Aaron
+      set up the following experiment…" question on an ecological topic.
+      Marker wants 3 things named: what was **changed**, what was kept
+      the **same**, and what was **measured**.
+    bullets:
+      - "**Changed (independent variable)** — the ONE thing the student varied (e.g. amount of fertiliser, light level, type of soil). Only one. If two things change, the experiment isn't fair."
+      - "**Kept the same (controlled variables)** — every other thing that COULD affect the result. List the obvious ones the question gives you (temperature, amount of water, container size, time of day, species of plant)."
+      - "**Measured (dependent variable)** — the outcome the student observed (number of seedlings, height of plant, time taken, mass change)."
+      - "**Common PSLE shapes**: Q33 2019 (effect of leaf litter on soil moisture), Q9 2022-2024 (Secchi disc transparency vs algae), Q32 2021 (water type vs mosquito hatching), Q33 2020 (light vs plant growth)."
+      - "**Why fair-test matters in ecology** — the marker is testing whether you understand that the cascade chain you're explaining only holds if NOTHING ELSE changed. State 'all other conditions kept the same' to lock in the marking point."
+    scoringExample:
+      scenario: >-
+        Aaron wanted to find out if fertiliser helps water plants grow
+        faster. He filled 3 identical tanks with the same volume of
+        water, added 0g, 5g, and 10g of fertiliser respectively, and
+        measured plant height after 7 days. Identify the variable he
+        CHANGED, kept the SAME, and MEASURED.
+      oneMark:
+        label: 1 mark (incomplete)
+        text: He changed the fertiliser and measured the plant height.
+      fullMarks:
+        label: 3 marks
+        text: >-
+          **Changed**: amount of fertiliser (0g, 5g, 10g). **Kept the
+          same**: volume of water, type of tank, type of plant, light,
+          temperature, time period. **Measured**: height of the plant
+          after 7 days.
+    callout: >-
+      One mark per variable named correctly. List ALL the
+      kept-the-same variables the question mentions — markers count
+      them, and missing one is a deduction.
 
   - title: "Let's get some practice!"
     mascotImage: /master-class/interactions-environment/panda-cta.png
@@ -316,3 +366,7 @@ subTopics:
     label: Human Impact
     description: "Tests effects of human actions on the environment — deforestation, pollution, pest control, pesticides. Answers must trace the cascade (e.g. cut trees → less photosynthesis → more carbon dioxide / fewer habitats)."
     slideIdx: 7
+  - id: fair-test
+    label: Fair-test experiments in ecology
+    description: "Tests setting up or analysing fair-test experiments on ecological topics (fertiliser vs plant growth, water turbidity vs algae, light vs seed germination). Marker wants the variable CHANGED, kept the SAME (list every controlled variable mentioned), and MEASURED. One mark per variable. Recurring shape in recent PSLE Booklet B."
+    slideIdx: 8

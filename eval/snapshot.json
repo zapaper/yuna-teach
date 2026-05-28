@@ -840,7 +840,7 @@
       "level": "P6",
       "paperType": "focused",
       "totalMarks": "27",
-      "score": 24,
+      "score": 13,
       "questionCount": 10,
       "questions": [
         {
@@ -876,7 +876,7 @@
         {
           "questionNum": "6",
           "marksAvailable": 4,
-          "marksAwarded": 2.5,
+          "marksAwarded": 3,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
@@ -905,7 +905,7 @@
         }
       ],
       "capturedAt": "2026-05-25T00:54:48.051Z",
-      "note": "Reference paper #9 — confirmed marked correctly (Q1-Q5 set to null on 2026-05-25: student didn't answer those MCQs; Q6 corrected from 4 → 2.5)"
+      "note": "Reference paper #9 — confirmed marked correctly (Q1-Q5 set to null on 2026-05-25: student didn't answer those MCQs; Q6 corrected from 4 → 2.5; then 2.5 → 3 on 2026-05-28: missing key vocab nose/lungs in part (c) is a deduction)"
     }
   ],
   "errors": []

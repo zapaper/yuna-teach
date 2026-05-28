@@ -901,6 +901,11 @@ STEP B: For each marking point, decide PRESENT or MISSING in the student's answe
   - "water carrying tubes" PRESENT for the structure point but is NOT a function statement → the function point is MISSING.
   - "fruit grows" PRESENT for the "develops into a fruit" point.
   - "breathing" ≠ "respiration" (named term lost) → MISSING.
+  - **Anatomical / organ names are SCIENTIFIC TERMS even though they look like everyday English words.** When the answer key in a body-system question names a specific organ (nose, mouth, windpipe / trachea, lungs, heart, stomach, intestines, liver, kidneys, bladder, brain, eye, ear, skin, blood vessels, arteries, veins, etc.) and the student substitutes a vague paraphrase that drops the organ:
+      - "takes in oxygen through the **nose**" vs student writing "inhales air" → "nose" MISSING.
+      - "oxygen travels to the **lungs**" vs student writing "into the body" → "lungs" MISSING.
+      - "pumped by the **heart**" vs student writing "pumped around" → "heart" MISSING.
+    Each missing organ name is its own MISSING marking point even if the rest of the sentence's mechanism is right.
 
 EQUIVALENCE / IMPLICATION RULE (IMPORTANT — applies before deduction):
 Many answer keys split a single concept across two clauses where one CAUSES or IMPLIES the other. If the student writes either clause, treat BOTH as PRESENT. Do not double-count one concept just because the key wrote two clauses about it.
@@ -4052,6 +4057,13 @@ ${drawableClause}
 IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.
 
 CRITICAL — PRESERVE UNITS AND SYMBOLS: Copy the final answer EXACTLY as written, including every unit and symbol the student put next to the number. Do NOT strip ° / cm / m / kg / g / ml / $ / % / ² / ³ / fractions — if the student wrote "21°" report "21°", if they wrote "5 cm" report "5 cm". If the unit was printed next to the Ans: line by the paper (not written by the student), still include it in the reported final answer so marking can compare against the expected answer with units.
+
+GEOMETRIC SYMBOLS — DON'T SPLIT INTO LETTERS: Handwritten geometric symbols are ONE token each — never break their strokes into adjacent letters. The most-confused ones:
+- ⊥ (perpendicular) has a vertical stroke + a horizontal stroke at the bottom. Read this as the single symbol "⊥". Do NOT report it as "⊥ L" (mistaking the horizontal stroke for a separate "L" before the next label) or as "L" alone. If the student wrote "VW ⊥ WX", transcribe "VW ⊥ WX" — NOT "VW ⊥ LWX".
+- ∥ (parallel) is two vertical strokes. Don't read it as "||" or "ll".
+- ∠ (angle) is one symbol, not "<" + a letter.
+- ≅ / ≡ (congruent / identical) are single tokens, not "=" + something.
+When the symbol is followed immediately by a label like "WX" or "AB", the symbol's own strokes can blur into the first letter — be careful to keep the symbol whole and the label clean.
 
 FORMAT: Put each line of working on a SEPARATE line. Do NOT merge numbers from different lines into one.
 For example, if the student wrote:
