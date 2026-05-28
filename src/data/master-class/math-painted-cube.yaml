@@ -1,0 +1,356 @@
+# Master Class: PSLE Math — Painted Cubes & Cube Nets
+# -----------------------------------------------------
+# 3D solids painted on the outside then cut into 1-cm cubes —
+# count cubes with 0/1/2/3 painted faces. Also covers surface area
+# of irregular cube stacks, cube nets, and cut-cube volume.
+#
+# Tested almost every year (2017, 2019, 2020, 2021, 2022, 2023, 2025).
+#
+# Four patterns:
+#   A. Painted cube counting     (the big one — 0/1/2/3 painted faces)
+#   B. Surface area of stacks    (irregular glued cubes — count all 6 views)
+#   C. Cube nets                  (which net folds into a cube)
+#   D. Cut/added cube volume      (big cube with a smaller cube removed)
+#
+# Slide flow (10 slides):
+#   0  Welcome           — cube anatomy + 4 patterns
+#   1  Pattern A formulas + the 4 cube "locations"
+#   2  Pattern A: Painted cube worked (5x5x5)
+#   3  Pattern A bonus: Cuboid version (a x b x c)
+#   4  Pattern B: Surface area of irregular stack (count 6 views)
+#   5  Try it — A & B (2 MCQs)
+#   6  Pattern C: Cube nets (which fold into a cube?)
+#   7  Pattern D: Cut cube volume + Top 5 traps
+#   8  Try it — C & D (2 MCQs)
+#   9  Start practising! (CTA)
+#
+# Filler words in {curly-braces} are SPOKEN in the TTS narration but
+# hidden from the rendered slide — same convention as grammar-mcq-1.
+
+slug: math-painted-cube
+subject: math
+level: P5-P6
+topicLabel: Painted Cubes & Nets
+title: "PSLE Math — Painted Cubes & Cube Nets"
+
+stats:
+  headline: >-
+    Painted-cube and cube-net questions appear on almost every PSLE
+    paper — usually as a 2-mark MCQ plus a 3-4 mark Paper 2 question.
+    Once you learn the 4 "locations" a small cube can be in (corner,
+    edge, face, centre), the counting becomes mechanical.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Painted Cubes & Nets"
+    mascotImage: /master-class/patterns/panda-welcome.png
+    body: >-
+      A big cube is painted red on the outside, then cut into 1-cm
+      cubes. How many small cubes have 3 painted faces? 2? 1? 0?
+      That's the canonical PSLE problem — and it appears with small
+      tweaks every year.
+    bullets:
+      - |-
+        **The 4 patterns {covered}:**
+        -- 🔵 **Pattern A** — {painted cube }counting {(0/1/2/3 faces) — the big one.}
+        -- 🟢 **Pattern B** — {irregular cube }stack surface area {(count the 6 views).}
+        -- 🟠 **Pattern C** — {which }net folds into a cube{.}
+        -- 🟣 **Pattern D** — {cut/added }cube volume {problems.}
+      - |-
+        **Cube anatomy {— learn these locations}:**
+        -- **Corners** = 8 {(always — even for any cube or cuboid).}
+        -- **Edges** = 12 {(connecting the corners).}
+        -- **Faces** = 6 {(top, bottom, 4 sides).}
+        -- **Centre {interior}** = the cubes you can't see from any face.
+      - |-
+        💡 **{The big insight:}** {where a small cube SITS inside the big cube tells you how many faces are painted.}
+        -- {Corner cube → 3 painted faces.}
+        -- {Edge cube (not corner) → 2 painted faces.}
+        -- {Face cube (not edge or corner) → 1 painted face.}
+        -- {Centre cube → 0 painted faces.}
+
+  # ─── Slide 1: Pattern A formulas ─────────────────────────────
+  - title: "Pattern A formulas — the n×n×n cube"
+    mascotImage: /master-class/patterns/panda-teaching-action.png
+    body: >-
+      For an n × n × n cube painted on all 6 faces then cut into
+      1-cm cubes, here are the 4 counts. These come from "peel off
+      the outer layer" — what's left is the (n−2) cube of centres.
+    bullets:
+      - |-
+        **🟥 3 painted faces {(corners)} = always 8.**
+        {Every cube has 8 corners no matter how big.}
+      - |-
+        **🟧 2 painted faces {(edges, excluding corners)} = 12 × (n − 2).**
+        {12 edges, and each edge has (n − 2) cubes in the middle (the 2 endpoints are corners).}
+      - |-
+        **🟨 1 painted face {(faces, excluding edges)} = 6 × (n − 2)².**
+        {6 faces; each face has (n − 2) × (n − 2) cubes in its interior — the cubes around the edge of the face are already counted as edge/corner.}
+      - |-
+        **🟩 0 painted faces {(centre)} = (n − 2)³.**
+        {Peel off the outer layer (1 cube thick on each of 6 sides), and what's left is a (n−2) × (n−2) × (n−2) cube of hidden centres.}
+      - |-
+        💡 **{Check your work:}** {Add up all 4 counts — should equal n³ (total cubes). For a 5×5×5: 8 + 36 + 54 + 27 = 125 ✓.}
+
+  # ─── Slide 2: Pattern A worked example ───────────────────────
+  - title: "Pattern A worked — 5 × 5 × 5 painted cube"
+    mascotImage: /master-class/patterns/panda-teaching-differences.png
+    body: >-
+      Plug n = 5 into the formulas. This is the most-tested cube
+      size at PSLE (small enough to verify by counting, big enough to
+      have a non-trivial centre).
+    bullets:
+      - |-
+        **📝 Worked example:**
+        A **5 cm × 5 cm × 5 cm** cube is painted red on all 6 outside
+        faces, then cut into **125 unit cubes (1 cm³ each)**.
+        {Find the number of cubes with 0, 1, 2, and 3 painted faces.}
+      - |-
+        **{n = 5, so n − 2 = 3.}**
+        🟥 **3 faces (corners)** = 8 {(always).}
+        🟧 **2 faces (edges)** = 12 × 3 = **36**{.}
+        🟨 **1 face** = 6 × 3² = 6 × 9 = **54**{.}
+        🟩 **0 faces (centre)** = 3³ = **27**{.}
+      - |-
+        **{Total check:}** 8 + 36 + 54 + 27 = **125** ✓ {matches 5³.}
+      - |-
+        💡 **{Watch out:}** {students often answer the "1 face" question with 6 × n² = 150. That's wrong — it counts the EDGE cubes too. The correct formula peels off the outer ring of each face: 6 × (n − 2)².}
+
+  # ─── Slide 3: Pattern A bonus — cuboid ───────────────────────
+  - title: "Pattern A bonus — Cuboid (a × b × c)"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      When the block is NOT a cube — like 10 × 5 × 4 (a PSLE classic)
+      — the edges have DIFFERENT lengths, so you can't use 12(n−2)
+      blindly. The 12 edges split into 3 groups of 4.
+    bullets:
+      - |-
+        **Cuboid formulas {a × b × c}:**
+        -- 🟥 3 faces = **8 corners** {(same as cube).}
+        -- 🟧 2 faces = **4(a−2) + 4(b−2) + 4(c−2)** {— 4 edges of each length.}
+        -- 🟨 1 face = **2[(a−2)(b−2) + (b−2)(c−2) + (a−2)(c−2)]** {— 2 faces of each dimension pair.}
+        -- 🟩 0 faces = **(a−2)(b−2)(c−2)** {— interior cuboid.}
+      - |-
+        **📝 Worked example {from PSLE 2019, Ravi}:**
+        A **10 × 5 × 4** block is painted on all faces and cut into 1-cm cubes.
+        {Find: (i) cubes with 0 painted faces, (ii) cubes with 2 painted faces.}
+      - |-
+        **{(i) 0 faces:}** (10−2)(5−2)(4−2) = 8 × 3 × 2 = **48 cubes**{.}
+      - |-
+        **{(ii) 2 faces:}** 4×(10−2) + 4×(5−2) + 4×(4−2) = 32 + 12 + 8 = **52 cubes**{.}
+      - |-
+        ⚠️ **{Common wrong move:}** {students apply 12 × (n−2) to a cuboid, using n = 10 (or average of dimensions). Wrong — only 4 of the 12 edges are length 10. Split the 12 edges by their actual lengths.}
+
+  # ─── Slide 4: Pattern B — Surface area of stack ──────────────
+  - title: "Pattern B — Surface area of irregular cube stack"
+    mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
+    body: >-
+      Cubes glued together into an irregular L-shape, staircase, or
+      cross. The trick is the **6-views method**: count the squares
+      visible from top, bottom, front, back, left, and right. Sum
+      them — that's the total surface area.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2023, Mohan}:**
+        Mohan glued **15 unit cubes** to form an irregular solid.
+        Viewed from each direction, the shape covers different numbers
+        of unit squares.
+        {Find the total surface area of the solid.}
+      - |-
+        **{Step 1 — Count squares visible from each of the 6 views.}**
+        {(For the 2023 Mohan shape:)}
+        Top = 9, Bottom = 9{ (often equal — both look at the footprint).}
+        Front = 3, Back = 6.
+        Left = 6, Right = 3.
+        Top/bottom + front/back + left/right side views.
+      - |-
+        **{Step 2 — Add ALL 6 views.}**
+        Surface area = 9 + 9 + 3 + 6 + 6 + 3 + 5 + 5 = **46 cm²**{.}
+        (Each visible unit square = 1 cm².)
+      - |-
+        💡 **{Why this works:}** {every face of every cube either faces OUTWARD (visible from one of the 6 views) or is }glued to another cube{ (invisible inside). The 6 views capture every outward-facing square exactly once.}
+      - |-
+        ⚠️ **{Common wrong move:}** {students multiply 15 cubes × 6 faces = 90 cm² and forget that }glued faces are hidden{. Each glue contact loses 2 faces from the count.}
+
+  # ─── Slide 5: Try it — Patterns A & B ────────────────────────
+  - title: "Try it — Painted cube & Surface stack"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern A — 1 painted face count"
+        stem: |-
+          A 5 × 5 × 5 cube is painted red on all faces and cut into
+          125 unit cubes. How many cubes have exactly ONE red face?
+        options:
+          - "8"
+          - "36"
+          - "54"
+          - "150"
+        correctAnswer: 3
+        explanation: >-
+          1-face cubes sit on each FACE (excluding edges and corners).
+          Formula: 6 × (n − 2)² = 6 × 3² = 6 × 9 = 54.
+          (Distractor 8 = corners = 3-face cubes. 36 = edges = 2-face.
+          150 = mistake of doing 6 × n² which counts the edges too.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern B — Surface area"
+        stem: |-
+          Five unit cubes are glued in a straight line to form a 1 × 1 × 5
+          rod. What is the total surface area of the rod?
+        options:
+          - "22 cm²"
+          - "26 cm²"
+          - "30 cm²"
+          - "24 cm²"
+        correctAnswer: 1
+        explanation: >-
+          6 views: top = 5, bottom = 5, front = 1, back = 1, left = 5,
+          right = 5. Total = 5+5+1+1+5+5 = 22 cm².
+          (Or: 5 cubes × 6 faces = 30, minus 2 hidden faces × 4 glue
+          contacts = 30 − 8 = 22 cm². Same answer either method.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 6: Pattern C — Cube nets ──────────────────────────
+  - title: "Pattern C — Cube nets (which fold into a cube?)"
+    mascotImage: /master-class/patterns/panda-teaching-nth-term.png
+    body: >-
+      Tested almost every year as a Paper 1 MCQ. "Which of these
+      shapes is a net of a cube?" or "Which net does NOT fold into
+      a cube?" 11 valid hexomino nets exist. Spot them by 2 rules.
+    bullets:
+      - |-
+        **Rule {1} — A cube net always has exactly 6 squares.**
+        {No more, no less. If you count 5 or 7 — it's NOT a cube net.}
+      - |-
+        **Rule {2} — Faces 2 apart in a STRAIGHT ROW of 4 are opposite.**
+        {When you fold up, the 1st and 4th squares in a row of 4 land facing each other. So no square in a "T" can have another square directly on top of it on both the up AND down sides.}
+      - |-
+        **The {3} families of valid cube nets:**
+        -- **"1-4-1" family**: 1 square + row of 4 + 1 square {— most common pattern.}
+        -- **"2-3-1" family**: a column of 2 + row of 3 + 1 square attached.
+        -- **"3-3 staircase"**: 3 squares stacked + offset 3 squares.
+      - |-
+        💡 **{Quick test:}** {if you can see }4 squares all sharing one corner{ (a 2×2 block) — it's NOT a cube net. Two of those faces would have to overlap when folded.}
+      - |-
+        ⚠️ **{The classic trap:}** {a }cross of 6 squares (a "+" shape){ IS a cube net. A 6-square shape that looks like a }staircase or stairstep{ might or might not be — apply the 2-apart rule to check.}
+
+  # ─── Slide 7: Pattern D + Top 5 traps ───────────────────────
+  - title: "Pattern D — Cut cube volume + Top 5 traps"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      A big cube has a smaller cube cut out (or added). The trick is
+      simple: full cube volume minus removed cube volume. Plus the
+      top 5 traps across all painted-cube and net problems.
+    bullets:
+      - |-
+        **📝 Pattern D worked example:**
+        A **4 cm × 4 cm × 4 cm** cube has a **2 cm × 2 cm × 2 cm** cube
+        removed from one corner.
+        {Find the remaining volume.}
+        Big = 4³ = 64 cm³. Small = 2³ = 8 cm³.
+        Remaining = 64 − 8 = **56 cm³**{.}
+      - |-
+        ⚠️ **{Trap }1 — Confusing edge cubes with corner cubes.**
+        {Corners = 3 faces, edges (not corners) = 2 faces. Don't count corner cubes in the edge count.}
+      - |-
+        ⚠️ **{Trap }2 — Using n³ instead of (n−2)³ for centre.**
+        {Centre cubes are HIDDEN inside — peel 1 cube layer off each of 6 sides → what's left is (n−2)³.}
+      - |-
+        ⚠️ **{Trap }3 — Counting glued faces in surface area.**
+        {Each glue between 2 cubes hides 2 faces (one from each cube). Subtract 2 × number of contacts from the cube-by-cube count.}
+      - |-
+        ⚠️ **{Trap }4 — Applying cube formulas to cuboids.**
+        {12(n−2) only works when all edges are equal. For a × b × c, split into 4 of each length: 4(a−2) + 4(b−2) + 4(c−2).}
+      - |-
+        ⚠️ **{Trap }5 — Mis-counting the cube net "2×2 block" test.**
+        {Any net with 4 squares meeting at a single corner is NOT a cube net. Always check before answering "which folds into a cube?"}
+
+  # ─── Slide 8: Try it — Patterns C & D ────────────────────────
+  - title: "Try it — Cube net & Cut volume"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern C — Cube net"
+        stem: |-
+          Which of the following hexominos (6-square shapes) is NOT a
+          net of a cube?
+        options:
+          - "1-4-1 cross: one square + row of 4 + one square (T-shape)"
+          - "2×2 square block of 4 with 2 extra squares attached on top"
+          - "Row of 3 + row of 3 offset by one square (zig-zag staircase)"
+          - "Plus sign: one centre square with 4 around it, plus 1 extra below"
+        correctAnswer: 2
+        explanation: >-
+          A 2×2 block has 4 squares meeting at one corner. When folded,
+          two of those faces would have to overlap — impossible.
+          The other three are all valid cube nets (1-4-1, 3-3 staircase,
+          and the plus-with-extra are standard families).
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern D — Cut cube volume"
+        stem: |-
+          A 6 cm cube has a 3 cm cube removed from one of its corners.
+          What is the volume of the remaining solid?
+        options:
+          - "189 cm³"
+          - "216 cm³"
+          - "27 cm³"
+          - "243 cm³"
+        correctAnswer: 1
+        explanation: >-
+          Big cube = 6³ = 216 cm³. Small cube = 3³ = 27 cm³.
+          Remaining = 216 − 27 = 189 cm³.
+          (Distractor 216 = forgot to subtract. 27 = gave only the
+          removed cube. 243 = added instead of subtracted.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 9: Wrap-up CTA ───────────────────────────────────
+  - title: "Start practising!"
+    mascotImage: /master-class/patterns/panda-cta.png
+    body: >-
+      Mixed practice drawn from real PSLE-style cube problems —
+      painted-cube counting, surface area of stacks, cube nets, and
+      cut-cube volume. Trains the reflex of locating each small cube
+      (corner, edge, face, centre) BEFORE counting.
+    bullets:
+      - |-
+        {You'll tackle a }**mix of 10 questions** {across all four patterns —} painted-cube counting, surface stacks, nets, {and }cut-volume{.}
+      - |-
+        {Any }Wrong answers {are }auto-saved {and }reviewed in 1 week{.}
+      - |-
+        {The }AI marks {your working step-by-step — } partial credit {if you used the right formula but slipped on arithmetic.}
+    cta:
+      label: Click here to start practice
+      quizSpec:
+        title: "Mastery: Painted Cubes & Nets"
+        mcq: 6
+        oeq: 4
+
+commonMistakes: []
+
+keyWords:
+  - { word: "cube location rule", definition: "Where a small cube sits inside a painted big cube tells you how many faces are painted. Corner → 3 faces. Edge (not corner) → 2 faces. Face (not edge) → 1 face. Centre (interior) → 0 faces." }
+  - { word: "n−2 trick", definition: "Subtract 2 from each dimension when counting interior cubes — one cube of outer layer comes off each of 6 sides. Centre cubes = (n−2)³ for a cube, (a−2)(b−2)(c−2) for a cuboid." }
+  - { word: "6-views method", definition: "For an irregular cube stack, count the unit squares visible from each of the 6 views (top, bottom, front, back, left, right). Sum = total surface area. Captures every outward face exactly once." }
+  - { word: "cube net rule", definition: "A valid cube net has exactly 6 squares with NO 2×2 block (4 squares sharing one corner). 11 valid hexominos exist. The 1-4-1, 2-3-1, and 3-3 staircase families cover most cases." }
+  - { word: "glue-hides-2-faces", definition: "When two unit cubes are glued together, 2 faces become hidden (one from each cube). For irregular stacks, total visible = (cubes × 6) − (2 × glue contacts). The 6-views method is usually faster though." }
+
+subTopics:
+  - id: painted-cube-counting
+    label: Pattern A — Painted cube (0/1/2/3 faces)
+    description: "Big cube painted, cut into unit cubes. Count by location: corners = 8 (3 faces), edges = 12(n−2) (2 faces), faces = 6(n−2)² (1 face), centre = (n−2)³ (0 faces)."
+    slideIdx: 1
+  - id: surface-area-stack
+    label: Pattern B — Surface area of stack
+    description: "Irregular cubes glued together. Use the 6-views method: count unit squares visible from top, bottom, front, back, left, right. Sum = surface area."
+    slideIdx: 4
+  - id: cube-nets
+    label: Pattern C — Cube nets
+    description: "Which 6-square shape folds into a cube? Rule: 6 squares with no 2×2 block. 11 valid nets exist in 3 families: 1-4-1, 2-3-1, 3-3 staircase."
+    slideIdx: 6
+  - id: cut-cube-volume
+    label: Pattern D — Cut cube volume
+    description: "Big cube with a smaller cube removed (or added). Remaining volume = big cube volume − removed cube volume. Volume scales by k³ when dimensions scale by k."
+    slideIdx: 7

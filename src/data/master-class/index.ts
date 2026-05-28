@@ -17,6 +17,7 @@ import { mathHiddenConstantTotal } from "./math-hidden-constant-total";
 import { mathSpeedMultiStage } from "./math-speed-multi-stage";
 import { mathNestedFractions } from "./math-nested-fractions";
 import { mathCombinedFigureArea } from "./math-combined-figure-area";
+import { mathPaintedCube } from "./math-painted-cube";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
@@ -40,6 +41,7 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "math-speed-multi-stage": mathSpeedMultiStage,
   "math-nested-fractions": mathNestedFractions,
   "math-combined-figure-area": mathCombinedFigureArea,
+  "math-painted-cube": mathPaintedCube,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
