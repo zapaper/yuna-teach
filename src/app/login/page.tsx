@@ -375,12 +375,18 @@ function LoginContent() {
             {forgotOpen && (
               <div className="bg-surface-container-low rounded-2xl p-5 space-y-3">
                 {forgotDone ? (
-                  <p className="text-sm text-secondary font-medium text-center">
-                    If that email is registered, we&apos;ve sent the password to it.
-                  </p>
+                  <div className="flex flex-col items-center text-center gap-3 py-2">
+                    <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+                      <span className="material-symbols-outlined text-on-secondary-container text-3xl">mark_email_read</span>
+                    </div>
+                    <p className="text-base text-on-surface font-headline font-bold">Check your email</p>
+                    <p className="text-sm text-on-surface-variant">
+                      If <span className="font-semibold">{forgotEmail}</span> is registered, we&apos;ve sent you a link to reset your password. The link is valid for 1 hour.
+                    </p>
+                  </div>
                 ) : (
                   <form onSubmit={handleForgot} className="space-y-3">
-                    <p className="text-xs text-on-surface-variant font-medium">Enter your registered email and we&apos;ll send your password.</p>
+                    <p className="text-xs text-on-surface-variant font-medium">Enter your registered email and we&apos;ll send you a reset link.</p>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant text-sm">mail</span>
                       <input
@@ -397,7 +403,7 @@ function LoginContent() {
                       disabled={forgotLoading}
                       className="w-full py-3 bg-primary text-on-primary font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-60"
                     >
-                      {forgotLoading ? "Sending…" : "Send Password"}
+                      {forgotLoading ? "Sending…" : "Send reset link"}
                     </button>
                   </form>
                 )}
