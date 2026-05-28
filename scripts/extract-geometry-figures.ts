@@ -62,7 +62,7 @@ async function main() {
           { questionNum: { contains: `Q${t.questionNum}` } },
         ],
       },
-      select: { id: true, questionNum: true, imageData: true, marksAvailable: true, syllabusTopic: true },
+      select: { id: true, questionNum: true, imageData: true, diagramImageData: true, marksAvailable: true, syllabusTopic: true },
     });
     if (candidates.length === 0) { console.log(`❌ ${t.slide} (${t.year} Q${t.questionNum}): no match`); continue; }
 
@@ -72,19 +72,30 @@ async function main() {
       console.log(`⚠ ${t.slide} (${t.year} Q${t.questionNum}): ${candidates.length} matches, using questionNum="${pick.questionNum}" (topic="${pick.syllabusTopic}")`);
     }
 
-    if (!pick.imageData) { console.log(`❌ ${t.slide}: ${pick.questionNum} has no imageData`); continue; }
+    // Prefer the diagram-only crop (no stem text); fall back to full question.
+    const source = pick.diagramImageData ?? pick.imageData;
+    const sourceLabel = pick.diagramImageData ? "diagram-only" : "full-question";
+    if (!source) { console.log(`❌ ${t.slide}: ${pick.questionNum} has no image`); continue; }
 
-    // imageData is a data URL like "data:image/png;base64,iVBORw0..." —
-    // strip the prefix.
-    const dataUrl = pick.imageData;
-    const m = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-    if (!m) { console.log(`❌ ${t.slide}: imageData isn't a data URL`); continue; }
-    const ext = m[1];
-    const b64 = m[2];
+    // Two possible shapes: full data URL ("data:image/png;base64,...") or
+    // raw base64. The diagramImageData field stores raw base64.
+    let ext: string, b64: string;
+    const dataUrlMatch = source.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (dataUrlMatch) {
+      ext = dataUrlMatch[1];
+      b64 = dataUrlMatch[2];
+    } else {
+      // Raw base64 — sniff format from the first decoded bytes.
+      b64 = source.trim();
+      const head = Buffer.from(b64.slice(0, 16), "base64");
+      if (head[0] === 0xff && head[1] === 0xd8) ext = "jpeg";
+      else if (head[0] === 0x89 && head[1] === 0x50) ext = "png";
+      else ext = "jpeg"; // best guess
+    }
     const outPath = path.join(OUT_DIR, `${t.slide}.${ext}`);
     await fs.writeFile(outPath, Buffer.from(b64, "base64"));
     const bytes = Buffer.byteLength(b64, "base64");
-    console.log(`✅ ${t.slide}: ${t.year} Q${pick.questionNum} → ${path.basename(outPath)} (${bytes} bytes, ${pick.marksAvailable}m)`);
+    console.log(`✅ ${t.slide}: ${t.year} Q${pick.questionNum} → ${path.basename(outPath)} (${bytes} bytes, ${pick.marksAvailable}m, ${sourceLabel})`);
   }
 
   await prisma.$disconnect();
