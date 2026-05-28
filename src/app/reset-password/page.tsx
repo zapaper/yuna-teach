@@ -47,9 +47,13 @@ function ResetPasswordContent() {
         setError(data.error ?? "Couldn't reset your password. Please try again.");
         return;
       }
-      // Success — send to login with a banner flag so the page can
-      // show "Password updated — please log in."
-      router.push("/login?reset=ok");
+      // Success — send to login with the identity (email preferred,
+      // username fallback) so the login page pre-fills the field for
+      // the account we JUST reset, overriding any leftover state from
+      // a /home/<other-user> pre-fill earlier in this session.
+      const identity = typeof data.identity === "string" ? data.identity : "";
+      const idQs = identity ? `&identity=${encodeURIComponent(identity)}` : "";
+      router.push(`/login?reset=ok${idQs}`);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

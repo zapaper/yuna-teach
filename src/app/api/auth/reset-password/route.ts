@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { passwordResetToken: token },
-    select: { id: true, email: true, passwordResetExpires: true },
+    select: { id: true, email: true, name: true, passwordResetExpires: true },
   });
   if (!user) {
     console.error(`[reset-password] no user for token=${token.slice(0, 8)}…`);
@@ -60,5 +60,10 @@ export async function POST(request: NextRequest) {
     },
   });
   console.error(`[reset-password] password updated for user=${user.email}`);
-  return NextResponse.json({ ok: true });
+  // Return the identity (email preferred, fallback to username) so the
+  // /reset-password client can pass it to /login and pre-fill the
+  // identity field for the correct account. Prevents leftover state
+  // from /login?next=/home/<other-user> pre-fills showing the wrong
+  // username after the reset round-trip.
+  return NextResponse.json({ ok: true, identity: user.email ?? user.name });
 }

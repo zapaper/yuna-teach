@@ -71,12 +71,22 @@ function LoginContent() {
   // username has been pre-filled from the next= redirect lookup.
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
-  // When the user arrived here via /login?next=/home/<userId>, look
-  // up the user's name and pre-fill the identity field. Saves them
-  // typing it. On any failure (network, 404, unparseable next), leave
-  // the field empty. Auto-focus the password input once filled so the
-  // cursor lands ready to type.
+  // Pre-fill priority (highest first):
+  //   1. ?identity=…  — set by /reset-password after a successful
+  //      reset, so the just-reset account's email/username is shown
+  //      regardless of any leftover state.
+  //   2. ?next=/home/<userId>  — set by the home-layout redirect when
+  //      a logged-out user clicks a shared link. Looks up the name.
+  // On any failure (network, 404, unparseable), leave the field empty.
+  // Auto-focus the password input once filled so the cursor lands
+  // ready to type.
+  const identityParam = searchParams.get("identity");
   useEffect(() => {
+    if (identityParam) {
+      setLoginIdentity(identityParam);
+      setTimeout(() => passwordInputRef.current?.focus(), 0);
+      return;
+    }
     if (!nextParam) return;
     const match = nextParam.match(/^\/home\/([^/?#]+)/);
     if (!match) return;
@@ -87,12 +97,11 @@ function LoginContent() {
       .then((data: { name: string | null } | null) => {
         if (cancelled || !data?.name) return;
         setLoginIdentity(data.name);
-        // Defer focus so React has painted the populated input.
         setTimeout(() => passwordInputRef.current?.focus(), 0);
       })
       .catch(() => { /* leave identity empty on any error */ });
     return () => { cancelled = true; };
-  }, [nextParam]);
+  }, [nextParam, identityParam]);
 
   // OAuth provider mode:
   //   - Web: Auth.js OAuth dance via signIn() (cookies, pkce, etc.)
