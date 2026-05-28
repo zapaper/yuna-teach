@@ -2,38 +2,50 @@
 
 Source data: [`scripts/psle-science-dump.json`](../scripts/psle-science-dump.json) — 11 papers, 417 questions across 2016-2025 (2022-2024 bundled into Life/Physical × MCQ/OEQ).
 
-## 1. Year-over-year trends (Pre-2021 vs 2022-2025, per-year-equivalent)
+## 1. Year-over-year trends (Pre-2021 vs 2022-2025, by AVERAGE MARKS per year)
 
-The 2022-2024 bundle pools 3 years of questions (122 across 4 sub-papers — Life MCQ/OEQ + Physical MCQ/OEQ). Divided by 3 to get a per-year rate, then combined with 2025 to give the "recent" column. Pre-2021 = simple average of 2016-2020 (5 papers, ~42 q/yr). 2021 sits between as a transition year.
+This table measures by **marks**, not by question count — so topics with high-mark OEQs (Electrical, Interactions, Heat) get the weight they deserve relative to MCQ-heavy topics. Pre-2021 = avg of 2016-2020 (5 papers); 2022-2025 = (2022-2024 bundle ÷ 3) + 2025, normalised to 4 years. Both periods sum to ~100 marks/year (PSLE total), so direct comparison is fair.
 
-| Topic | Pre-2021 avg/yr | 2021 | 2022-2025 avg/yr | Δ |
+Sorted by recent marks/year (priority order):
+
+| Topic | Pre-2021 marks/yr | 2021 | 2022-2025 marks/yr | Δ |
 |---|---|---|---|---|
-| Interactions within the environment | **7.0** | **1** | **4.8** | **−2.3** |
-| Life cycles in plants and animals | 1.8 | 3 | 2.8 | +0.9 |
-| Diversity of living and non-living things | 3.0 | 4 | 3.8 | +0.8 |
-| Water cycle, evaporation, condensation | 2.0 | 1 | 1.3 | −0.8 |
-| Photosynthesis | 2.2 | 3 | 1.5 | −0.7 |
-| Heat energy and uses | 2.6 | 2 | 3.3 | +0.6 |
-| Electrical system and circuits | 2.8 | 4 | 3.3 | +0.5 |
-| Reproduction in plants and animals | 2.4 | 3 | 2.8 | +0.4 |
-| Interaction of forces (Magnets) | 2.4 | 2 | 2.0 | −0.4 |
-| Diversity of materials | 1.8 | 2 | 1.5 | −0.3 |
-| Cycles in matter | 2.2 | 4 | 2.5 | +0.3 |
-| Energy conversion | 2.2 | 1 | 2.5 | +0.3 |
-| Interaction of forces (Friction/Gravity/Elastic) | 3.8 | 3 | 3.5 | −0.3 |
-| Plant parts and functions | 2.2 | 3 | 2.0 | −0.2 |
-| Human digestive system | 0.8 | 2 | 1.0 | +0.2 |
-| Human respiratory/circulatory systems | 1.6 | 1 | 1.8 | +0.1 |
-| Light energy and uses | 1.0 | 2 | 1.0 | 0.0 |
-| Plant respiratory/circulatory systems | 0.2 | 0 | 0.0 | −0.2 |
+| Interactions within the environment | **17.4** | 4 | **11.5** | **−5.9** |
+| Electrical system and circuits | 7.4 | 9 | 9.0 | +1.6 |
+| Heat energy and uses | **6.4** | 6 | **8.5** | **+2.1** |
+| Interaction of forces (Friction/Gravity/Elastic) | 8.6 | 10 | 8.3 | −0.3 |
+| Diversity of living and non-living things | 6.4 | 8 | 7.8 | +1.3 |
+| Energy conversion | 5.8 | 2 | 6.5 | +0.7 |
+| Reproduction in plants and animals | 6.0 | 6 | 6.5 | +0.5 |
+| Life cycles in plants and animals | 4.2 | 8 | 6.0 | +1.8 |
+| Cycles in matter | 4.6 | 8 | 5.8 | +1.2 |
+| Interaction of forces (Magnets) | 6.0 | 4 | 5.0 | −1.0 |
+| Plant parts and functions | 4.6 | 7 | 5.0 | +0.4 |
+| Photosynthesis | 5.6 | 6 | 4.5 | −1.1 |
+| Human respiratory and circulatory systems | 3.8 | 4 | 4.3 | +0.5 |
+| Diversity of materials | 3.8 | 5 | 3.0 | −0.8 |
+| Water cycle, evaporation, condensation | **5.0** | 2 | **3.0** | **−2.0** |
+| Human digestive system | 1.6 | 5 | 2.8 | +1.1 |
+| Light energy and uses | 2.0 | 4 | 2.0 | 0.0 |
+| Plant respiratory and circulatory systems | 0.4 | 0 | 0.0 | −0.4 |
 
 **Interpretation:**
 
-- **Interactions still dominates** at 4.8 q/yr in 2022-2025 — more than any other topic. But its share has dropped from ~7/yr to ~5/yr; the slack went to Life cycles, Diversity, Heat, and Electrical.
-- **Life cycles (+0.9) and Diversity (+0.8) are the real risers.** Together they add ~1.7 q/yr — a clean 2-mark uplift for any student strong on these. (Earlier "Plant parts is rising fast" claim was an artefact of dropping the 2022-2024 bundle from the comparison; with the bundle included, Plant parts is roughly stable at 2.0 q/yr.)
-- **Photosynthesis is FALLING (−0.7)** — surprising. Earlier reports that called it "OEQ-heavy and rising" were misled by the 14/20 OEQ split inside its total, not the year trend. **De-prioritise this for master class building.**
-- **Heat (+0.6) and Electrical (+0.5)** continue their slow climb — confirms the "physics is gaining" intuition.
-- **2021 was a one-off outlier on Interactions** (just 1 question vs typical 7-8/yr). 2022-2025 returned to high frequency.
+- **Interactions still dominates** at 11.5 marks/yr in 2022-2025 — more than any other topic by a wide margin. The −5.9 drop is real but the topic is still #1 priority by far.
+- **Heat is the biggest riser (+2.1 marks/yr)** — 6.4 → 8.5. The 4-mark OEQs on differential expansion / temperature-vs-heat / heat-transfer rate are pulling significant weight in recent papers.
+- **Life cycles (+1.8) and Electrical (+1.6)** are the next biggest gainers.
+- **Water cycle has dropped sharply (−2.0)** — 5.0 → 3.0 marks/yr. Looks like the OEQ block on water cycle is being absorbed into other topics (energy conversion, evaporation).
+- **Photosynthesis is falling (−1.1)** — confirmed by marks-based view. **De-prioritise for master class building.**
+- **Magnets falls (−1.0)** — slight decline. Still worth covering inside the existing Forces master class but no longer a standalone priority.
+
+**Top-6 priority order by 2022-2025 marks/yr** (the topics a focused student should drill first):
+
+1. **Interactions within the environment** — 11.5 marks/yr ✓ master class shipped
+2. **Electrical system and circuits** — 9.0 marks/yr
+3. **Heat energy and uses** — 8.5 marks/yr (biggest riser)
+4. **Forces (Friction/Gravity/Elastic)** — 8.3 marks/yr ✓ master class shipped
+5. **Diversity of living and non-living things** — 7.8 marks/yr
+6. **Energy conversion / Reproduction** — both 6.5 marks/yr
 
 ## 2. Per-topic deep dive — top 7
 
@@ -161,18 +173,22 @@ Practising this 4-step skeleton lifts a student from 2-mark partial credit to 4-
 
 **Shape:** (a) read graph/diagram → 1 mark, (b) explain mechanism in 3-4 sentence chain → 2-3 marks, (c) prediction OR improvement with reason → 1-2 marks. **Electrical + photosynthesis dominate (5 of 10).**
 
-## 5. Master class hit-list (priority order)
+## 5. Master class hit-list (priority order by 2022-2025 marks/yr)
 
-1. **Electrical circuits: the on/off cycle** — bulb contact, battery direction, series-vs-parallel, electromagnet cycle, louder/stronger.
-2. **Forces & energy: the launch problem** — name all forces (incl. friction on stationary), energy chain w/ heat from friction, comparison sentences, fair-test signals, improvements.
-3. **Heat: things expand differently** — differential expansion, temp vs heat vocab, rate ∝ ΔT, trapped-air insulator, cooking/cooling graphs.
-4. **Interactions: cascades & adaptations** — already shipped; needs fair-test slide and graph-reading enhancement.
-5. **Plant systems (stable, MCQ-heavy block)** — water vs food tubes, cell parts shared with animals, stomata, photosynthesis sentence, day-night gas swap + variegated-leaf. (Note: corrected from "rising fast" — including the 2022-2024 bundle, Plant parts is roughly stable at 2.0 q/yr, not rising.)
+1. **Interactions (11.5 marks/yr)** — ✓ already shipped, with fair-test slide added.
+2. **Electrical circuits: the on/off cycle (9.0 marks/yr)** — bulb contact, battery direction, series-vs-parallel, electromagnet cycle, louder/stronger. **Top priority for next build.**
+3. **Heat: things expand differently (8.5 marks/yr, biggest riser)** — differential expansion, temp vs heat vocab, rate ∝ ΔT, trapped-air insulator, cooking/cooling graphs.
+4. **Forces (8.3 marks/yr)** — ✓ already shipped (Friction/Gravity/Elastic/Magnets combined).
+5. **Diversity of living and non-living things (7.8 marks/yr, MCQ-dominant)** — classification rules, characteristics of living things, plant/animal grouping, the 32 MCQs make this almost pure pattern-recognition drill.
+6. **Energy conversion (6.5 marks/yr)** — chemical/electrical/kinetic/heat/light/sound chains, toy launchers, mandatory "heat/sound from friction" extra mark.
+7. **Reproduction (6.5 marks/yr)** — pollination vs fertilisation, seed dispersal agent matching, continuity-of-kind sentence template.
+8. **Life cycles (6.0 marks/yr, +1.8 rising)** — metamorphosis (butterflies/frogs/mosquitoes), comparing stages, dengue-style graph-reading.
 
 ### Topics to DE-PRIORITISE
 
-- **Photosynthesis** — actually falling (−0.7 q/yr). The 14 OEQs in the corpus are spread across 10 years and the topic is shrinking. Build only if you have spare capacity after the top 4.
-- **Light energy** — flat at 1.0 q/yr, low yield.
+- **Photosynthesis (4.5 marks/yr, −1.1 falling)** — earlier claim "OEQ-heavy and rising" was wrong. Topic is shrinking. Build only after the top 8.
+- **Light energy (2.0 marks/yr, flat)** — low yield.
+- **Plant respiratory/circulatory (0 marks/yr in 2022-2025)** — no longer tested separately.
 
 ## Notes
 

@@ -18,6 +18,11 @@ function topicCount(qs: Q[], topic: string): number {
   return qs.filter(q => (q.syllabusTopic ?? "") === topic).length;
 }
 
+function topicMarks(qs: Q[], topic: string): number {
+  return qs.filter(q => (q.syllabusTopic ?? "") === topic)
+           .reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+}
+
 const allTopics = new Set<string>();
 for (const p of papers) for (const q of p.questions ?? []) if (q.syllabusTopic) allTopics.add(q.syllabusTopic);
 
@@ -40,29 +45,32 @@ console.log(`2021 transition:      ${y2021.length} paper(s), ${y2021Q.length} qu
 console.log(`2022-2025 (bundle+25): ${bundle.length + y2025.length} papers, ${bundleQ.length + y2025Q.length} questions = ${((bundleQ.length + y2025Q.length) / recentYears).toFixed(1)} q/yr`);
 console.log();
 
-type Row = { topic: string; preAvg: number; y2021: number; recentAvg: number; delta: number };
-const rows: Row[] = [];
+// ─── Table by AVERAGE MARKS per year ──────────────────────────────
+type MarksRow = { topic: string; preAvg: number; y2021: number; recentAvg: number; delta: number };
+const marksRows: MarksRow[] = [];
 for (const topic of [...allTopics].sort()) {
-  const preTotal = topicCount(pre2021Q, topic);
-  const preAvg = preTotal / pre2021Years;
-  const yr2021 = topicCount(y2021Q, topic);
-  const recentTotal = topicCount(bundleQ, topic) + topicCount(y2025Q, topic);
-  const recentAvg = recentTotal / recentYears;
+  const preAvg = topicMarks(pre2021Q, topic) / pre2021Years;
+  const yr2021 = topicMarks(y2021Q, topic);
+  const recentAvg = (topicMarks(bundleQ, topic) + topicMarks(y2025Q, topic)) / recentYears;
   const delta = recentAvg - preAvg;
-  rows.push({ topic, preAvg, y2021: yr2021, recentAvg, delta });
+  marksRows.push({ topic, preAvg, y2021: yr2021, recentAvg, delta });
 }
+// Sort by recent marks (descending) to show priority order
+marksRows.sort((a, b) => b.recentAvg - a.recentAvg);
 
-// Sort by absolute delta — biggest movers first
-rows.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-
-console.log("| Topic | Pre-2021 avg/yr | 2021 | 2022-2025 avg/yr | Δ |");
+console.log("\n=== TABLE BY AVERAGE MARKS PER YEAR (recent first) ===\n");
+console.log("| Topic | Pre-2021 marks/yr | 2021 | 2022-2025 marks/yr | Δ |");
 console.log("|---|---|---|---|---|");
-for (const r of rows) {
-  const sign = r.delta > 0.05 ? "+" : "";
-  const star = Math.abs(r.delta) >= 1 ? " **" : "";
-  const close = star ? "**" : "";
-  console.log(`| ${r.topic} |${star} ${r.preAvg.toFixed(1)} |${star} ${r.y2021} |${star} ${r.recentAvg.toFixed(1)} |${star} ${sign}${r.delta.toFixed(1)}${close} |`);
+for (const r of marksRows) {
+  const sign = r.delta > 0.05 ? "+" : r.delta < -0.05 ? "" : " ";
+  const bold = Math.abs(r.delta) >= 2 ? "**" : "";
+  console.log(`| ${r.topic} | ${bold}${r.preAvg.toFixed(1)}${bold} | ${r.y2021} | ${bold}${r.recentAvg.toFixed(1)}${bold} | ${bold}${sign}${r.delta.toFixed(1)}${bold} |`);
 }
+
+// Totals
+const preTotalMarks = pre2021Q.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+const recentTotalMarks = [...bundleQ, ...y2025Q].reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+console.log(`\nTotals: pre-2021 = ${(preTotalMarks / pre2021Years).toFixed(1)} marks/yr; 2022-2025 = ${(recentTotalMarks / recentYears).toFixed(1)} marks/yr.`);
 
 console.log();
 console.log("Note: 2022-2024 bundle pools 3 years (122 questions across 4 papers — Life MCQ/OEQ + Physical MCQ/OEQ). Divided by 3 to get per-year-equivalent rate before combining with 2025.");
