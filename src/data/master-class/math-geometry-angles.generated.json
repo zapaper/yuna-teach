@@ -56,16 +56,13 @@
       "callout": "First question to ask: \"Is this angle inside the shape or outside? Is it across an X-cross? On a straight line?\" Pick the right rule BEFORE you do any arithmetic."
     },
     {
-      "title": "Pattern B — Parallel lines (alternate vs co-interior)",
+      "title": "Pattern B — Parallel lines: name the rule",
       "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-b.jpeg",
-      "body": "Whenever the question says \"AB is parallel to CD\", two angle rules unlock. They look similar. They're DIFFERENT. Pick the wrong one and you lose the method mark — even with the right number.",
+      "body": "You already know the 3 parallel-line rules. The PSLE-specific trap: students get the right number but skip naming the rule in the working — and lose the method mark.",
       "bullets": [
-        "**Alternate angles (Z-pattern) are EQUAL.** The two angles are on OPPOSITE sides of the transversal. Look for a Z-shape between the parallel lines.",
-        "**Co-interior angles (C-pattern) SUM TO 180°.** The two angles are on the SAME side of the transversal. Look for a C-shape between the parallel lines.",
-        "**Corresponding angles (F-pattern) are EQUAL.** Two angles in the same position relative to where each parallel line meets the transversal. Look for an F-shape.",
-        "**The marker wants the rule NAMED.** PSLE marking schemes always cite the rule. A correct number without a named rule still loses the method mark.",
-        "**The shortcut to tell them apart**: trace the Z, C, or F shape with your finger between the two parallel lines."
+        "**Alternate (Z) = equal**  ·  **Co-interior (C) = 180°**  ·  **Corresponding (F) = equal**",
+        "**The marking-point keyword is the rule name in brackets.** E.g. \"= 72° (co-interior angles, DE // CF)\". Without the bracket, the marker awards the answer mark only — never the method mark."
       ],
       "scoringExample": {
         "scenario": "ABCD is a parallelogram. AED and BFC are straight lines. ∠DEF = 108° and ∠BFA = 90°. Find ∠AFE. (Real PSLE 2017 Q27, 2 marks.)",
@@ -75,22 +72,18 @@
         },
         "fullMarks": {
           "label": "2 marks",
-          "text": "∠CFE = 180° − 108° = 72° (co-interior angles, DE // CF) ∠AFE = 90° − 72° = 18°"
+          "text": "∠CFE = 180° − 108° = 72° (co-interior angles, DE // CF) ∠AFE = 180° − 90° − 72° = 18° (angles on a straight line)"
         }
-      },
-      "callout": "The rule-name \"(co-interior angles, DE // CF)\" is what makes this answer full marks. Without it, the marker can't tell whether the student understood the parallel-line property or just guessed."
+      }
     },
     {
-      "title": "Pattern C — Quadrilateral hides an Isosceles triangle (most common)",
+      "title": "Pattern C — Quadrilateral hides an Isosceles (most-tested pattern)",
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-c.jpeg",
-      "body": "This is THE most-tested heavy geometry pattern — 12 out of 19 four-mark+ questions across 2016-2025. The figure shows a named quadrilateral (rhombus / parallelogram / trapezium / square) AND says \"AB = BC\" or marks two equal sides INSIDE it. Spot the isosceles triangle to unlock everything.",
+      "body": "The most common heavy geometry pattern (12 of 19 four-mark+ questions in 2016-2025). Equal-side marks INSIDE a named quadrilateral → spot the isosceles triangle → solve via base angles + triangle sum 180°.",
       "bullets": [
-        "**Step 1 — Use the quadrilateral property to find ONE angle.** Rhombus: opposite angles equal. Parallelogram: opposite angles equal, adjacent sum to 180°. Trapezium: parallel sides → co-interior 180°.",
-        "**Step 2 — Spot the isosceles triangle.** Equal sides marked with strokes or stated 'AB = BC' → the two BASE angles (across from the equal sides) are EQUAL.",
-        "**Step 3 — Triangle sum 180°.** The 3 angles in any triangle add to 180°. Solve for the unknown.",
-        "**The trap (PSLE 2024 Q15):** students see 'AB = AC = CD' and assume the whole shape is equilateral. It isn't — only the named pairs are equal.",
-        "**Another trap:** trapeziums in PSLE are USUALLY NOT isosceles. Don't assume base angles equal unless the equal-side condition is stated."
+        "**The trap:** trapeziums in PSLE are USUALLY NOT isosceles. Only claim base angles equal when the equal-side mark is stated.",
+        "**The other trap:** \"AB = AC = CD\" doesn't make ABC equilateral — only the named pairs are equal."
       ],
       "scoringExample": {
         "scenario": "ABCD is a trapezium with AB parallel to DC. AFB and EFC are straight lines, AE = EB, and ∠EBC = 94°. Find ∠AEF. (Real PSLE 2021 QP2-13, 4 marks.)",
@@ -102,84 +95,41 @@
           "label": "4 marks",
           "text": "∠EAB = 180° − 94° = 86° (co-interior, AE // BC, since trapezium has AB // DC and EF is the transversal) ∠EBA = ∠EAB = 86° (isosceles triangle, AE = EB → base angles equal) ∠AEB = 180° − 86° − 86° = 8° (triangle sum 180°) ∠AEF = 180° − 8° = 172° (angles on a straight line, AFB)"
         }
-      },
-      "callout": "4 marking points = 4 marks. Each one is a sentence ending with a rule in brackets. Drill the format until it's automatic."
+      }
     },
     {
-      "title": "Pattern D — Two shapes glued together (angle-chase)",
+      "title": "Pattern D — Two shapes glued together (rhombus + parallelogram)",
       "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-d.jpeg",
-      "body": "Two named figures share a side. You walk angles across the shared vertex using straight-line / 360° / equilateral / rhombus properties. Almost every PSLE Paper 2 has one of these.",
-      "bullets": [
-        "**Equilateral as the anchor (60° free):** wherever an equilateral triangle appears, ALL 3 angles are 60°. Use this immediately — it's a free starting point.",
-        "**Square as the anchor (90° free):** every angle in a square is 90°, plus the diagonals create 45-45-90 triangles.",
-        "**Rhombus rules:** all 4 sides equal. Opposite angles equal. Adjacent angles sum to 180°. The diagonals are perpendicular and bisect each other.",
-        "**Angles at the shared vertex:** add to 360° (full turn) or 180° (straight line). Read the diagram carefully — is the line continuing straight through?",
-        "**Real PSLE 2018 QP2-8 (3 marks):** 'ABE is an equilateral triangle and BCDE is a rhombus. ∠EAC = 38°.' → equilateral gives 60° at B, rhombus property gives ∠EBC = 120°, isosceles triangle EBC inside rhombus."
-      ],
+      "body": "Look out for the hidden isosceles triangle. Then chain the rhombus + parallelogram interior-angle rules — opposite angles equal, adjacent angles sum to 180°.",
       "scoringExample": {
-        "scenario": "ABCD is a parallelogram and DEFG is a rhombus. CDE is a straight line. ∠ABC = 51°, ∠GAD = 25°, and ∠FGE = 35°. Find ∠AFE. (Real PSLE 2016 QP2-7, 4 marks.)",
+        "scenario": "ABCD is a parallelogram and DEFG is a rhombus. CDE is a straight line. ∠ABC = 51°, ∠GAD = 25°, ∠FGE = 35°. Find ∠AGF. (Real PSLE 2016 QP2-7, 4 marks — part (b).)",
         "oneMark": {
           "label": "1 mark (only one step)",
-          "text": "∠ADC = 180° − 51° = 129°"
+          "text": "∠CDA = 51° (opposite angles of a parallelogram)"
         },
         "fullMarks": {
-          "label": "4 marks",
-          "text": "∠ADC = 180° − 51° = 129° (co-interior, AB // DC) ∠GDE = 180° − 129° = 51° (angles on straight line CDE) ∠DGE = 51° (rhombus, opposite angles equal) ∠DGF = 35° + 51° = 86° → ∠AFE = 360° − 25° − 86° − 129° = ... (Continue chasing through the figure, citing the rule at each step.)"
+          "label": "4 marks (the actual answer key)",
+          "text": "∠GEF = ∠FGE = 35° (base angles of an isosceles triangle — rhombus side EF = side GF) ∠GFE = 180° − 35° − 35° = 110° (sum of angles in a triangle) ∠GDE = ∠GFE = 110° (opposite angles of a rhombus) ∠CDA = ∠CBA = 51° (opposite angles of a parallelogram) ∠ADG = 180° − 51° − 110° = 19° (angles on a straight line CDE) ∠AGD = 180° − 25° − 19° = 136° (sum of angles in triangle ADG) ∠DGE = (180° − 110°) ÷ 2 = 35° (base angles of isosceles triangle DEG) ∠AGF = 360° − 136° − 35° − 35° = 154° (angles at a point G)"
         }
-      },
-      "callout": "Worth memorising: equilateral = 60°, square = 90°, rhombus opposite-angles-equal. These are the unlock points. Without anchoring on one of these, the angle chase has no starting place."
+      }
     },
     {
-      "title": "Pattern E — Folded paper (reflection equality)",
+      "title": "Pattern E — Folded paper (same trick, but equilateral)",
       "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-e.jpeg",
-      "body": "A square / rectangle / triangle is folded along a line so a corner meets another point. The folded part is now a mirror image of where it came from. Trending up — PSLE 2022 Q13 and 2025 Q14 both tested this.",
-      "bullets": [
-        "**Rule 1 — When paper is folded, the folded-edge length = the original-edge length.** If P folds onto E, then PG = EG and PH = EH.",
-        "**Rule 2 — Angles are mirrored across the fold line.** The angle made by the folded edge with the fold line = the angle made by the original edge.",
-        "**Rule 3 — The shape created by folding can be IDENTIFIED.** If 3 sides are equal, it's equilateral (and so all angles are 60°). If 2 sides are equal, it's isosceles.",
-        "**Real PSLE 2025 Q14 unlock:** 'Square PQRS is folded so corners P and Q meet at point E on GH.' → PR = ER (corner P went to E, distance preserved). ES = RS (Q went to E). Combined with the original square sides ER = ES = RS → triangle RSE is equilateral → all angles 60°.",
-        "**Common student mistake:** trying to measure the folded shape visually instead of pairing the matching sides and angles."
-      ],
+      "body": "Folding preserves side lengths — the folded side equals the original side. Look for a hidden EQUILATERAL triangle this time (3 sides equal → all 60°), then use the original shape's 90° corners to finish.",
       "scoringExample": {
-        "scenario": "A rectangular piece of paper is folded as shown to form a trapezium PQRS. The two shaded triangles are identical. (Real PSLE 2022 Q13, 2 marks.)",
+        "scenario": "Square PQRS. The line GH divides the paper into two equal parts. The paper is folded so corners P and Q meet at point E on GH. Which of these are true? A. ∠MRE = 30°.   B. ∠RMG = 105°.   C. RSE is an equilateral triangle. (Real PSLE 2025 Q14, 2 marks.)",
         "oneMark": {
-          "label": "1 mark",
-          "text": "Identified the two triangles as identical."
+          "label": "1 mark (spotted equilateral but no follow-through)",
+          "text": "C is true — RSE is equilateral."
         },
         "fullMarks": {
-          "label": "2 marks",
-          "text": "The two triangles are mirror images across the fold line. Each triangle has one 90° angle (from the original rectangle corner), and the fold creates equal sides. The angles in the shaded triangles can be paired equal → match-up gives the unknown angle in the trapezium."
+          "label": "2 marks (the actual answer key)",
+          "text": "ER = ES = RS  (folding preserves side length — P went to E, so ER = PR = RS; similarly ES = QS = RS) → RSE is an equilateral triangle. So statement C is true. ∠ERH = 60° (angle of an equilateral triangle, since ∠ERS = 60° within the square's right angle ∠SRH) ∠MRE = (90° − 60°) ÷ 2 = 15°  (NOT 30°, so A is false) In triangle MRH: 180° − 90° − 15° = 75° ∠RMG = 180° − 75° = 105°  (angles on a straight line) → B is true Answer: B and C only."
         }
-      },
-      "callout": "The first thing to do after seeing \"folded paper\" is to LABEL the matched-up sides as equal. The matched sides then unlock isosceles or equilateral reasoning."
-    },
-    {
-      "title": "The 5-mark killer skeleton — stack 3+ angle facts",
-      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
-      "body": "Only 5 five-mark pure-angle questions exist across PSLE 2016-2025. Every one of them stacks 3+ angle facts in a chain. The structure is mechanical once you know it.",
-      "bullets": [
-        "**Step 1 — Anchor on a free angle.** Equilateral (60°), square (90°), or a right angle marked on the diagram.",
-        "**Step 2 — Walk the angle to an unknown using ONE rule per step.** Straight line, co-interior, rhombus opposite-angle, isosceles base-angle, triangle sum.",
-        "**Step 3 — Cite the rule next to each step.** No rule = no method mark.",
-        "**Step 4 — Final step lands on the unknown.** This is the answer mark.",
-        "**Real PSLE 2024 QP2-13 (5 marks):** 'ABC is an equilateral triangle and ACDE is a square. FB is parallel to ED.' → equilateral 60° at C → square 90° at C → ∠BCA + ∠ACD = 60° + 90° = 150° → angles around point C → use FB // ED for co-interior → walk through to ∠CBF.",
-        "**The bonus mark hidden inside 5-mark killers:** the final part often asks 'What kind of shape is figure XYZ? Justify.' Single-line answer earns the bonus mark. Memorise the 'definition + property' template: 'XYZ is a rhombus because all 4 sides are equal.'"
-      ]
-    },
-    {
-      "title": "Top 6 traps to avoid",
-      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
-      "body": "The most common geometry mistakes from PSLE marking schemes 2016-2025. Each one costs 1-2 marks per paper.",
-      "bullets": [
-        "**Trap 1 — Assuming isosceles when only one side is named.** Trapeziums in PSLE are USUALLY NOT isosceles. Don't write 'base angles equal' unless the equal-side condition is stated.",
-        "**Trap 2 — 180° vs 360° confusion at a junction.** When the angle asked is the BIG (reflex) one going around, use 360°. When it's on a straight line, use 180°.",
-        "**Trap 3 — Citing the wrong parallel-line rule.** Alternate = equal (Z-shape). Co-interior = sum to 180° (C-shape). Corresponding = equal (F-shape). Mixing these up loses the method mark.",
-        "**Trap 4 — 'AB = BC' does NOT mean ABC is equilateral.** It's isosceles (only 2 sides equal). Equilateral needs THREE sides equal.",
-        "**Trap 5 — Folded paper: measuring the diagram instead of pairing matched sides.** Always label the matched-up sides as equal FIRST.",
-        "**Trap 6 — Misreading which angle the question is asking.** When 3 letters name an angle (e.g. ∠PQR vs ∠RQS), highlight the middle letter on the diagram before computing. Wrong angle = wrong answer even with right reasoning."
-      ]
+      }
     },
     {
       "title": "Let's get some practice!",

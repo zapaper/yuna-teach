@@ -17,7 +17,7 @@ const TARGETS = [
   { slide: "pattern-b", year: "2017", questionNum: "27",   note: "PSLE 2017 Q27 — parallelogram + transversal (co-interior)" },
   { slide: "pattern-c", year: "2021", questionNum: "P2-13", note: "PSLE 2021 QP2-13 — trapezium with isosceles, 4-mark" },
   { slide: "pattern-d", year: "2016", questionNum: "P2-7",  note: "PSLE 2016 QP2-7 — parallelogram + rhombus glued, 4-mark" },
-  { slide: "pattern-e", year: "2022", questionNum: "13",   note: "PSLE 2022 Q13 — folded rectangle to trapezium" },
+  { slide: "pattern-e", year: "2025", questionNum: "14",   note: "PSLE 2025 Q14 — folded square; equilateral triangle unlock" },
 ];
 
 async function main() {
@@ -66,8 +66,12 @@ async function main() {
     });
     if (candidates.length === 0) { console.log(`❌ ${t.slide} (${t.year} Q${t.questionNum}): no match`); continue; }
 
-    // Prefer one tagged as Geometry if multiple.
-    const pick = candidates.find(q => (q.syllabusTopic ?? "").toLowerCase().includes("geomet")) ?? candidates[0];
+    // Prefer EXACT questionNum match first (so "14" doesn't pick "P2-14"),
+    // then fall back to any geometry-tagged candidate.
+    const exact = candidates.find(q => q.questionNum === t.questionNum);
+    const pick = exact
+      ?? candidates.find(q => (q.syllabusTopic ?? "").toLowerCase().includes("geomet"))
+      ?? candidates[0];
     if (candidates.length > 1) {
       console.log(`⚠ ${t.slide} (${t.year} Q${t.questionNum}): ${candidates.length} matches, using questionNum="${pick.questionNum}" (topic="${pick.syllabusTopic}")`);
     }
