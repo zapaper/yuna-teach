@@ -20,6 +20,7 @@ import { mathCombinedFigureArea } from "./math-combined-figure-area";
 import { mathPaintedCube } from "./math-painted-cube";
 import { mathPercentageTraps } from "./math-percentage-traps";
 import { forces } from "./forces";
+import { mathGeometryAngles } from "./math-geometry-angles";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
@@ -46,6 +47,7 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "math-painted-cube": mathPaintedCube,
   "math-percentage-traps": mathPercentageTraps,
   "forces": forces,
+  "math-geometry-angles": mathGeometryAngles,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
