@@ -1059,7 +1059,7 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - For each written (non-MCQ) question, FIRST locate the "Ans:" or "Answer:" line at the BOTTOM-RIGHT of the question's answer region.
     This is a printed line followed by a blank — the student writes their final answer on or above this line in blue ink.
   - Read the blue ink written on/above the "Ans:" line as the student's FINAL ANSWER.
-  - If the final answer matches the expected answer → award FULL MARKS immediately. Do NOT penalise for missing or incomplete working.
+  - If the final answer matches the expected answer → award FULL MARKS immediately. Do NOT check or penalise working steps. Working is NOT required when the final answer is right — a student who writes only the correct final answer with no working at all still gets full marks.
   - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
     Award partial marks if some steps or methods are correct, proportional to marksAvailable.
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.

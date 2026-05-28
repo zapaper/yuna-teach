@@ -11,130 +11,101 @@
     "psleQuestionsInPool": 68,
     "schoolQuestionsInPool": 0,
     "pctOeq": 38,
-    "headline": "Roughly **7-8 marks per Paper 2** come from heavy angle questions — plus another 5-7 marks from the bread-and-butter 1-2 mark angle basics. Geometry is one of the highest-yield PSLE Math topics. The trick: PSLE marks not just the answer but the REASON — citing the rule by name is half the mark in most cases."
+    "headline": "Roughly **7-8 marks per Paper 2** come from heavy angle questions — plus another 5-7 marks from the bread-and-butter 1-2 mark basics. Geometry is one of the highest-yield PSLE Math topics. The trick: each pattern has a standard sequence of rules — once you know them, the angle-chase becomes mechanical."
   },
   "keyConcepts": [
     {
       "title": "Welcome — Geometry: Angles & Shape Properties",
       "mascotImage": "/master-class/patterns/panda-welcome.png",
-      "body": "Geometry questions look harmless at first glance — find the missing angle. But PSLE markers grade the WORKING, not just the number. A student who writes \"55°\" with no reason caps at 1 mark. The same student who writes \"55° (angles on a straight line)\" scores full marks.",
+      "body": "Geometry questions test the same 5 patterns over and over. Each one has a standard sequence of rules to apply. Learn the sequence per pattern, and the angle-chase becomes mechanical.",
       "bullets": [
-        "**The 5 patterns this class drills:**",
-        "• **Pattern A** — Angle basics: straight line, vertically opposite, angles at a point. 180° vs 360° trap.",
-        "• **Pattern B** — Parallel lines: alternate (equal) vs co-interior (sum to 180°). Naming the right rule = the mark.",
-        "• **Pattern C** — Quadrilateral hides an isosceles triangle (the most common shape PSLE tests, 12 of 19 heavy Qs).",
-        "• **Pattern D** — Two-shape glue: equilateral + rhombus / square + parallelogram. Angle-chase across the shared vertex.",
-        "• **Pattern E** — Folded paper: reflection creates equal sides AND equal angles.",
-        "**The one habit that adds 3-5 marks**: write the rule next to every step.",
-        "Example: \"∠ABC = 180° − 110° = 70° (angles on a straight line)\"\nNOT just: \"∠ABC = 70°\""
-      ],
-      "callout": "Every 4-5 mark geometry question stacks 3 or more angle facts. Naming each rule as you go is what separates 2/5 (right answer, no reasons) from 5/5 (right answer, all reasons cited)."
+        "**Pattern A** — Angle basics: straight line, vertically opposite, angles at a point. Watch for the 180° vs 360° reflex-angle trap.",
+        "**Pattern B** — Parallel lines: alternate (Z, equal), co-interior (C, sum to 180°), corresponding (F, equal).",
+        "**Pattern C** — Quadrilateral hides an isosceles triangle (the most common heavy-mark shape, 12 of 19 heavy Qs in PSLE 2016-2025).",
+        "**Pattern D** — Two shapes glued together: spot the hidden isosceles + use rhombus / parallelogram opposite-angle rules to angle-chase across the shared vertex.",
+        "**Pattern E** — Folded paper: same trick as Pattern D, except the hidden triangle is equilateral (folding preserves side length)."
+      ]
     },
     {
-      "title": "Pattern A — Angle basics (the bread-and-butter 1-2 markers)",
+      "title": "Pattern A — Angle basics (the 1-2 mark bread-and-butter)",
       "mascotImage": "/master-class/patterns/panda-teaching-action.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-a.jpeg",
-      "body": "15 one-mark + 28 two-mark angle basics across PSLE 2016-2025 — about 70 marks total. These are \"free marks\" IF your child can tell the 4 rules apart at a glance.",
+      "body": "15 one-mark + 28 two-mark angle basics across PSLE 2016-2025 — about 70 marks total. Pick the right rule for the shape configuration you're looking at, do the arithmetic, done.",
       "bullets": [
-        "**Rule 1 — Angles on a straight line = 180°**. Look for two lines meeting where one continues straight through.",
-        "**Rule 2 — Vertically opposite angles are EQUAL**. Look for an X-cross of two lines. The angles across from each other are equal.",
-        "**Rule 3 — Angles at a point = 360°**. Look for 3+ lines all meeting at the same vertex.",
-        "**Rule 4 — Right angles = 90°**. The small square in the diagram is the giveaway.",
-        "**The 180° vs 360° trap (PSLE 2020 Q23):** when the angle asked is the BIG one (the reflex angle around the outside of a triangle/shape), the rule is 360°, not 180°. Students automatically subtract from 180° and lose 2 marks."
-      ],
-      "scoringExample": {
-        "scenario": "ABC is an equilateral triangle. A line is drawn from A at an angle of 65° to side AB. The angle ∠x is the BIG angle measured around point A, outside the triangle. Find ∠x.",
-        "oneMark": {
-          "label": "1 mark (using wrong rule)",
-          "text": "∠x = 180° − 60° − 65° = 55°"
-        },
-        "fullMarks": {
-          "label": "2 marks",
-          "text": "∠x = 360° − 60° − 65° = 235° (angles at a point) Because x is the BIG angle going around point A, the rule is 360° not 180°."
-        }
-      },
-      "callout": "First question to ask: \"Is this angle inside the shape or outside? Is it across an X-cross? On a straight line?\" Pick the right rule BEFORE you do any arithmetic."
+        "**Angles on a straight line = 180°.** Two lines meeting where one continues straight through.",
+        "**Vertically opposite angles are EQUAL.** Two lines cross forming an X — angles across from each other are equal.",
+        "**Angles at a point = 360°.** Three or more lines meeting at the same vertex.",
+        "**Right angles = 90°.** The small square in the diagram is the giveaway.",
+        "**The 180° vs 360° reflex-angle trap (real PSLE 2020 Q23):** ABC is equilateral, ∠x is the BIG (reflex) angle around point A. Students automatically subtract from 180° and get 55°. The correct rule is 360° (angles at a point): ∠x = 360° − 60° − 65° = 235°.",
+        "First question to ask: *is this angle on a straight line, across an X-cross, around a point, or inside a shape?* Pick the rule BEFORE the arithmetic."
+      ]
     },
     {
-      "title": "Pattern B — Parallel lines: name the rule",
+      "title": "Pattern B — Parallel lines (3 rules)",
       "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-b.jpeg",
-      "body": "You already know the 3 parallel-line rules. The PSLE-specific trap: students get the right number but skip naming the rule in the working — and lose the method mark.",
+      "body": "Whenever the question says \"AB is parallel to CD\", three angle rules unlock. Pick the right one for the Z / C / F shape you see between the parallel lines.",
       "bullets": [
-        "**Alternate (Z) = equal**  ·  **Co-interior (C) = 180°**  ·  **Corresponding (F) = equal**",
-        "**The marking-point keyword is the rule name in brackets.** E.g. \"= 72° (co-interior angles, DE // CF)\". Without the bracket, the marker awards the answer mark only — never the method mark."
-      ],
-      "scoringExample": {
-        "scenario": "ABCD is a parallelogram. AED and BFC are straight lines. ∠DEF = 108° and ∠BFA = 90°. Find ∠AFE. (Real PSLE 2017 Q27, 2 marks.)",
-        "oneMark": {
-          "label": "1 mark (no rule cited)",
-          "text": "∠CFE = 72°. ∠AFE = 90° − 72° = 18°."
-        },
-        "fullMarks": {
-          "label": "2 marks",
-          "text": "∠CFE = 180° − 108° = 72° (co-interior angles, DE // CF) ∠AFE = 180° − 90° − 72° = 18° (angles on a straight line)"
-        }
-      }
+        "**Alternate angles (Z-shape) are EQUAL.** Look for a Z-shape between the parallel lines — angles on OPPOSITE sides of the transversal.",
+        "**Co-interior angles (C-shape) SUM TO 180°.** Look for a C-shape — angles on the SAME side of the transversal.",
+        "**Corresponding angles (F-shape) are EQUAL.** Two angles in the same position relative to where each parallel line meets the transversal.",
+        "**Worked example (real PSLE 2017 Q27, 2 marks):** ABCD is a parallelogram. AED and BFC are straight lines. ∠DEF = 108°, ∠BFA = 90°. Find ∠AFE.",
+        "Step 1: ∠CFE = 180° − 108° = 72° (co-interior, DE // CF — they're parallel sides of the parallelogram).",
+        "Step 2: ∠AFE = 180° − 90° − 72° = **18°** (angles on a straight line BFC, where ∠BFA = 90°)."
+      ]
     },
     {
-      "title": "Pattern C — Quadrilateral hides an Isosceles (most-tested pattern)",
+      "title": "Pattern C — Quadrilateral hides an Isosceles (most-tested)",
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-c.jpeg",
-      "body": "The most common heavy geometry pattern (12 of 19 four-mark+ questions in 2016-2025). Equal-side marks INSIDE a named quadrilateral → spot the isosceles triangle → solve via base angles + triangle sum 180°.",
+      "body": "The most common heavy geometry pattern (12 of 19 four-mark+ questions in PSLE 2016-2025). Equal-side marks INSIDE a named quadrilateral → spot the isosceles triangle → use base angles + triangle sum 180°.",
       "bullets": [
-        "**The trap:** trapeziums in PSLE are USUALLY NOT isosceles. Only claim base angles equal when the equal-side mark is stated.",
-        "**The other trap:** \"AB = AC = CD\" doesn't make ABC equilateral — only the named pairs are equal."
-      ],
-      "scoringExample": {
-        "scenario": "ABCD is a trapezium with AB parallel to DC. AFB and EFC are straight lines, AE = EB, and ∠EBC = 94°. Find ∠AEF. (Real PSLE 2021 QP2-13, 4 marks.)",
-        "oneMark": {
-          "label": "1 mark (right idea, missing reasons)",
-          "text": "∠AEF = 86°"
-        },
-        "fullMarks": {
-          "label": "4 marks",
-          "text": "∠EAB = 180° − 94° = 86° (co-interior, AE // BC, since trapezium has AB // DC and EF is the transversal) ∠EBA = ∠EAB = 86° (isosceles triangle, AE = EB → base angles equal) ∠AEB = 180° − 86° − 86° = 8° (triangle sum 180°) ∠AEF = 180° − 8° = 172° (angles on a straight line, AFB)"
-        }
-      }
+        "**Trap 1:** trapeziums in PSLE are USUALLY NOT isosceles. Only claim base angles equal when the equal-side mark is stated.",
+        "**Trap 2:** \"AB = AC = CD\" doesn't make ABC equilateral — only the named pairs are equal.",
+        "**Worked example (real PSLE 2021 QP2-13, 4 marks):** ABCD is a trapezium with AB // DC. AFB and EFC are straight lines, AE = EB, ∠EBC = 94°. Find ∠AEF.",
+        "Step 1: ∠EAB = 180° − 94° = 86° (co-interior, AE // BC — using parallel sides AB // DC, with EF as transversal).",
+        "Step 2: ∠EBA = ∠EAB = 86° (isosceles triangle, AE = EB → base angles equal).",
+        "Step 3: ∠AEB = 180° − 86° − 86° = 8° (sum of angles in triangle AEB).",
+        "Step 4: ∠AEF = 180° − 8° = **172°** (angles on a straight line AFB)."
+      ]
     },
     {
       "title": "Pattern D — Two shapes glued together (rhombus + parallelogram)",
       "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-d.jpeg",
-      "body": "Look out for the hidden isosceles triangle. Then chain the rhombus + parallelogram interior-angle rules — opposite angles equal, adjacent angles sum to 180°.",
-      "scoringExample": {
-        "scenario": "ABCD is a parallelogram and DEFG is a rhombus. CDE is a straight line. ∠ABC = 51°, ∠GAD = 25°, ∠FGE = 35°. Find ∠AGF. (Real PSLE 2016 QP2-7, 4 marks — part (b).)",
-        "oneMark": {
-          "label": "1 mark (only one step)",
-          "text": "∠CDA = 51° (opposite angles of a parallelogram)"
-        },
-        "fullMarks": {
-          "label": "4 marks (the actual answer key)",
-          "text": "∠GEF = ∠FGE = 35° (base angles of an isosceles triangle — rhombus side EF = side GF) ∠GFE = 180° − 35° − 35° = 110° (sum of angles in a triangle) ∠GDE = ∠GFE = 110° (opposite angles of a rhombus) ∠CDA = ∠CBA = 51° (opposite angles of a parallelogram) ∠ADG = 180° − 51° − 110° = 19° (angles on a straight line CDE) ∠AGD = 180° − 25° − 19° = 136° (sum of angles in triangle ADG) ∠DGE = (180° − 110°) ÷ 2 = 35° (base angles of isosceles triangle DEG) ∠AGF = 360° − 136° − 35° − 35° = 154° (angles at a point G)"
-        }
-      }
+      "body": "Look out for the hidden isosceles triangle. Then chain the rhombus + parallelogram opposite-angle rules (opposite angles equal; adjacent angles sum to 180°).",
+      "bullets": [
+        "**Worked example (real PSLE 2016 QP2-7, 4 marks — part (b)):** ABCD is a parallelogram, DEFG is a rhombus, CDE is a straight line. ∠ABC = 51°, ∠GAD = 25°, ∠FGE = 35°. Find ∠AGF.",
+        "Step 1: ∠GEF = ∠FGE = 35° (base angles of an isosceles triangle — rhombus side EF = side GF).",
+        "Step 2: ∠GFE = 180° − 35° − 35° = 110° (sum of angles in triangle EGF).",
+        "Step 3: ∠GDE = ∠GFE = 110° (opposite angles of a rhombus).",
+        "Step 4: ∠CDA = ∠CBA = 51° (opposite angles of a parallelogram).",
+        "Step 5: ∠ADG = 180° − 51° − 110° = 19° (angles on a straight line CDE).",
+        "Step 6: ∠AGD = 180° − 25° − 19° = 136° (sum of angles in triangle ADG).",
+        "Step 7: ∠DGE = (180° − 110°) ÷ 2 = 35° (base angles of isosceles triangle DEG — diagonal of rhombus splits it into two equal halves).",
+        "Step 8: ∠AGF = 360° − 136° − 35° − 35° = **154°** (angles at a point G)."
+      ]
     },
     {
       "title": "Pattern E — Folded paper (same trick, but equilateral)",
       "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
       "diagramImage": "/master-class/math-geometry-angles/pattern-e.jpeg",
-      "body": "Folding preserves side lengths — the folded side equals the original side. Look for a hidden EQUILATERAL triangle this time (3 sides equal → all 60°), then use the original shape's 90° corners to finish.",
-      "scoringExample": {
-        "scenario": "Square PQRS. The line GH divides the paper into two equal parts. The paper is folded so corners P and Q meet at point E on GH. Which of these are true? A. ∠MRE = 30°.   B. ∠RMG = 105°.   C. RSE is an equilateral triangle. (Real PSLE 2025 Q14, 2 marks.)",
-        "oneMark": {
-          "label": "1 mark (spotted equilateral but no follow-through)",
-          "text": "C is true — RSE is equilateral."
-        },
-        "fullMarks": {
-          "label": "2 marks (the actual answer key)",
-          "text": "ER = ES = RS  (folding preserves side length — P went to E, so ER = PR = RS; similarly ES = QS = RS) → RSE is an equilateral triangle. So statement C is true. ∠ERH = 60° (angle of an equilateral triangle, since ∠ERS = 60° within the square's right angle ∠SRH) ∠MRE = (90° − 60°) ÷ 2 = 15°  (NOT 30°, so A is false) In triangle MRH: 180° − 90° − 15° = 75° ∠RMG = 180° − 75° = 105°  (angles on a straight line) → B is true Answer: B and C only."
-        }
-      }
+      "body": "Folding preserves side lengths — the folded side equals the original side. This often creates a hidden EQUILATERAL triangle (3 sides equal → all 60°). Then use the original shape's 90° corners to finish.",
+      "bullets": [
+        "**Worked example (real PSLE 2025 Q14, 2 marks):** Square PQRS. Line GH divides the paper into two equal parts. Paper is folded so corners P and Q meet at point E on GH. Which statements are true: A. ∠MRE = 30°, B. ∠RMG = 105°, C. RSE is equilateral?",
+        "Step 1: ER = ES = RS (folding preserves side length — P went to E, so ER = PR = RS; similarly ES = QS = RS).",
+        "→ RSE is an equilateral triangle, so **statement C is true**.",
+        "Step 2: ∠ERH = 60° (angle of an equilateral triangle, since ∠ERS = 60° within the square's right angle ∠SRH).",
+        "Step 3: ∠MRE = (90° − 60°) ÷ 2 = **15°** (NOT 30°, so statement A is false).",
+        "Step 4: In triangle MRH: 180° − 90° − 15° = 75°.",
+        "Step 5: ∠RMG = 180° − 75° = **105°** (angles on a straight line), so **statement B is true**.",
+        "**Answer: B and C only.**"
+      ]
     },
     {
       "title": "Let's get some practice!",
       "mascotImage": "/master-class/patterns/panda-cta.png",
-      "body": "Time to put it together. This quiz pulls real PSLE-style geometry questions across all 5 patterns plus the 5-mark killer structure.",
+      "body": "Time to put it together. This quiz pulls real PSLE-style geometry questions across all 5 patterns.",
       "bullets": [
         "**10 MCQ + 5 OEQ** — a mix across angle basics, parallel lines, quadrilateral-isosceles, two-shape glue, and folded paper.",
         "After you submit, the AI looks at where you went wrong and suggests a follow-up focused quiz on just those patterns.",
@@ -166,15 +137,15 @@
     },
     {
       "word": "alternate angles",
-      "definition": "Z-shape between two parallel lines. The two angles on OPPOSITE sides of the transversal are EQUAL. Cite 'alternate angles, [parallel pair]' to earn the method mark."
+      "definition": "Z-shape between two parallel lines. The two angles on OPPOSITE sides of the transversal are EQUAL."
     },
     {
       "word": "co-interior angles",
-      "definition": "C-shape between two parallel lines. The two angles on the SAME side of the transversal SUM TO 180°. Cite 'co-interior angles, [parallel pair]'."
+      "definition": "C-shape between two parallel lines. The two angles on the SAME side of the transversal SUM TO 180°."
     },
     {
       "word": "isosceles triangle",
-      "definition": "A triangle with TWO sides equal. The two BASE angles (across from the equal sides) are EQUAL. PSLE marks this property explicitly — name the equal sides as the justification."
+      "definition": "A triangle with TWO sides equal. The two BASE angles (across from the equal sides) are EQUAL."
     },
     {
       "word": "equilateral triangle",
@@ -183,37 +154,41 @@
     {
       "word": "rhombus",
       "definition": "A 4-sided shape with all 4 sides equal. Opposite angles are equal. Adjacent angles sum to 180°. Diagonals bisect at 90°."
+    },
+    {
+      "word": "parallelogram",
+      "definition": "A 4-sided shape with both pairs of opposite sides parallel. Opposite sides equal, opposite angles equal, adjacent angles sum to 180°."
     }
   ],
   "subTopics": [
     {
       "id": "angle-basics",
       "label": "Pattern A — Angle basics (straight line, vertically opp, 360°)",
-      "description": "Tests 1-2 mark basics: angles on a straight line (180°), vertically opposite (equal), angles at a point (360°), right angles (90°). The 180° vs 360° trap is the most-missed.",
+      "description": "Tests 1-2 mark basics: angles on a straight line (180°), vertically opposite (equal), angles at a point (360°), right angles (90°). The 180° vs 360° reflex-angle trap is the most-missed.",
       "slideIdx": 1
     },
     {
       "id": "parallel-lines",
       "label": "Pattern B — Parallel lines (alternate vs co-interior)",
-      "description": "When the question says 'AB parallel to CD', test the student's ability to pick the correct rule. Alternate (Z) = equal. Co-interior (C) = 180°. Corresponding (F) = equal. Rule-naming is the method mark.",
+      "description": "When the question says 'AB parallel to CD', three rules unlock. Alternate (Z) = equal. Co-interior (C) = sum to 180°. Corresponding (F) = equal.",
       "slideIdx": 2
     },
     {
       "id": "quadrilateral-isosceles",
       "label": "Pattern C — Quadrilateral hides an Isosceles triangle",
-      "description": "The most-tested heavy pattern. Named quadrilateral + equal-side mark inside → isosceles triangle. 3-step chain: quad property → spot isosceles → triangle sum 180°. 4-mark structure.",
+      "description": "The most-tested heavy pattern. Named quadrilateral + equal-side mark inside → isosceles triangle. Chain: quadrilateral property → spot isosceles → triangle sum 180° → straight line. 4-mark structure.",
       "slideIdx": 3
     },
     {
       "id": "two-shape-glue",
-      "label": "Pattern D — Two shapes glued together (angle-chase)",
-      "description": "Two named figures share a side (equilateral + rhombus, square + trapezium, etc.). Anchor on the equilateral 60° or square 90°, walk angles through the shared vertex using straight-line / 360° / rhombus properties.",
+      "label": "Pattern D — Two shapes glued together (rhombus + parallelogram)",
+      "description": "Two named figures share a side. Spot the hidden isosceles, then chain the rhombus and parallelogram opposite-angle rules. Often ends with angles at a point = 360°.",
       "slideIdx": 4
     },
     {
       "id": "folded-paper",
       "label": "Pattern E — Folded paper geometry",
-      "description": "Trending up. A shape is folded along a line so a corner meets another point. Folded sides = original sides (length preserved). Angles mirror across the fold. Use to identify equilateral/isosceles in the new shape.",
+      "description": "Trending up. A shape is folded along a line so a corner meets another point. Folded sides = original sides (length preserved). Often creates a hidden equilateral triangle. Use the original shape's 90° corners to finish.",
       "slideIdx": 5
     }
   ]
