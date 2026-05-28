@@ -1,0 +1,236 @@
+{
+  "slug": "forces",
+  "subject": "science",
+  "level": "P5-P6",
+  "topicLabel": "Forces (Friction, Gravity, Elastic, Magnets)",
+  "title": "Forces in PSLE Science",
+  "stats": {
+    "psleQuestions": 58,
+    "psleSubjectPercent": 14,
+    "totalPracticePool": 58,
+    "psleQuestionsInPool": 58,
+    "schoolQuestionsInPool": 0,
+    "pctOeq": 50,
+    "headline": "**Forces are the #2 most-tested PSLE Science topic across 2016-2025** — 58 questions in our archive, with 6 four-mark OEQs and one 5-mark killer. The trap isn't the concept — it's that students forget to NAME all the forces acting at the same time, or skip the energy chain in non-energy questions."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Forces in PSLE Science",
+      "mascotImage": "/master-class/interactions-environment/panda-welcome.png",
+      "body": "Forces show up in almost every Booklet B paper. The questions look easy in P5 (\"which way does the ball move?\"), but P6 PSLE raises the bar — you need to NAME every force acting, COMPARE their sizes, and trace the ENERGY chain. Miss any one of those and you cap at half marks.",
+      "bullets": [
+        "**Gravity** — pulls everything down towards the Earth. Always present whenever an object has weight.",
+        "**Friction** — opposes motion between two surfaces in contact. **Still acts on a stationary object** — most students miss this.",
+        "**Elastic / Spring force** — stored when a spring is compressed or stretched. Released as kinetic energy.",
+        "**Magnetic force** — between magnets and magnetic materials. Can attract OR repel; can act without contact.",
+        "**The 4 trap patterns this class drills:**\n  • Pattern A — Naming ALL forces (incl. friction on stationary objects)\n  • Pattern B — Comparing two forces (which is greater?)\n  • Pattern C — Spring energy chain + stiffness comparison\n  • Pattern D — Magnets attraction, repulsion, and the balance trick"
+      ],
+      "callout": "**Mark-yield insight**: forces questions are short to read but heavy on marking points. A 4-mark answer typically wants 4 separate facts — name the force, state its effect, state the energy conversion, link to the outcome."
+    },
+    {
+      "title": "Pattern A — Name ALL the forces acting",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-causal.png",
+      "body": "When a question shows a single object — at rest OR moving — you must list EVERY force on it. The most-missed force: friction on a stationary object. If two surfaces are in contact, friction is there even when nothing is moving.",
+      "bullets": [
+        "**Rule 1** — Anything with weight has GRAVITY pulling it down.",
+        "**Rule 2** — Anything resting on or sliding across a surface has FRICTION (parallel to the surface, opposing motion or potential motion).",
+        "**Rule 3** — Anything attached to a spring/rubber band has ELASTIC force from the spring.",
+        "**Rule 4** — Anything near a magnet (and made of magnetic material) has MAGNETIC force.",
+        "**The \"stopped on a slope\" trap** — PSLE 2021 Q20 (block on slope with magnet, did NOT move) and PSLE 2022-24 Q17 (magnet B stopped halfway down the slope). The object isn't moving — so students write \"no friction.\" WRONG. Friction is what's HOLDING it still against gravity. Without friction it would slide."
+      ],
+      "scoringExample": {
+        "scenario": "A wooden block rests on a flat table without moving. Name all the forces acting on the block.",
+        "oneMark": {
+          "label": "1 mark (incomplete)",
+          "text": "Gravity acts on the block."
+        },
+        "fullMarks": {
+          "label": "2 marks",
+          "text": "**Gravity** pulls the block down towards the Earth. **Friction** between the table and the block holds it in place (preventing it from being pushed). The **normal** push of the table supports the block against gravity."
+        }
+      },
+      "callout": "Stationary ≠ no forces. Stationary = forces are **balanced**. Always at LEAST gravity + friction. Add elastic/magnetic if the setup includes a spring or magnet."
+    },
+    {
+      "title": "Pattern B — Comparing two forces (greater / equal / less)",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-decomposer.png",
+      "body": "When an object MOVES or STOPS, the marker wants you to explain WHY in terms of comparing two forces. The verbal template is fixed: \"**The [force X] is greater than the [force Y], so the object [outcome]**.\"",
+      "bullets": [
+        "**If forces are BALANCED (equal)** — object stays still OR moves at constant speed.",
+        "**If one force is GREATER than the opposing one** — object accelerates in the direction of the greater force.",
+        "**If gravity > friction** on a slope → object slides down.",
+        "**If friction > push** → object doesn't move when you push it.",
+        "**If elastic spring force > weight** → object is launched up.",
+        "**Real PSLE 2018 Q37** (phone slipping from charger): the marker accepts answers using the comparison template — \"The **weight** of the phone is **greater than** the **friction** between the plug and the phone, so the phone slips out.\" Without the comparison, students wrote \"gravity pulls phone down\" and lost 1 mark."
+      ],
+      "scoringExample": {
+        "scenario": "A book on a table doesn't slide when pushed gently with a small force. Explain why, comparing the forces.",
+        "oneMark": {
+          "label": "1 mark (incomplete)",
+          "text": "There is friction between the book and the table."
+        },
+        "fullMarks": {
+          "label": "2 marks",
+          "text": "The **friction** between the book and the table is **greater than** the gentle pushing force. Since friction is the greater force, the book stays still."
+        }
+      },
+      "callout": "Don't just name the forces — STATE which is GREATER. The phrase \"greater than\" is a marking-point keyword in this topic."
+    },
+    {
+      "title": "Pattern C — Spring energy chain (PE → KE → GPE)",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-mutual.png",
+      "body": "Spring problems ALWAYS chain energies. Compressed/stretched spring stores **elastic PE**. Released → object gains **kinetic energy**. Object rises → kinetic converts to **gravitational PE**. The marker hunts for ALL three steps named explicitly.",
+      "bullets": [
+        "**Compressed/stretched spring** = stores ELASTIC potential energy.",
+        "**Spring releases** → object speeds up → ELASTIC PE → **KINETIC energy**.",
+        "**Object rises** → slows down → KINETIC → **GRAVITATIONAL PE**.",
+        "**Object falls** → reverse: GPE → KINETIC.",
+        "**Stiffer spring** = more elastic PE for the SAME compression. Compares as: 'Spring Q extends less than spring P for the same mass → spring Q is stiffer → spring Q stores more elastic PE.' (Real PSLE 2017 Q38cd marker phrasing.)",
+        "**Fair-test signal** — when the question says 'no wind in the room' or 'same starting position', that's a hint to mention WHY: keeps other variables constant so the comparison is valid."
+      ],
+      "scoringExample": {
+        "scenario": "A toy rocket has a compressed spring at its base. When released, it shoots upwards into the air. Describe the energy changes.",
+        "oneMark": {
+          "label": "1 mark (incomplete)",
+          "text": "Spring energy turns into kinetic energy."
+        },
+        "fullMarks": {
+          "label": "3 marks",
+          "text": "The **elastic potential energy** stored in the compressed spring is converted to **kinetic energy** as the rocket shoots up. As the rocket rises, the kinetic energy is converted to **gravitational potential energy**. (Bonus: some KE is also lost as **heat and sound** due to air resistance.)"
+        }
+      },
+      "callout": "Name ALL three energy types: elastic PE → KE → GPE. Skipping any one = lose 1 mark. Real PSLE 2021 Q40 (toy rocket) and PSLE 2022-24 Q13 (launching ball at 45°) both follow this template."
+    },
+    {
+      "title": "Pattern D — Magnets (attract, repel, balance)",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-adaptation.png",
+      "body": "Magnetic force is the only \"contactless\" force you'll see at PSLE. Two big trap patterns: (a) repulsion balancing weight (like-poles facing each other holding an object up), and (b) identifying which materials are magnetic.",
+      "bullets": [
+        "**Like poles repel** (N-N or S-S). **Unlike poles attract** (N-S).",
+        "**Magnetic materials** — iron, steel, nickel, cobalt. NOT aluminium, copper, plastic, wood.",
+        "**Balance trick** — two magnets stacked with like poles facing → top magnet floats because magnetic REPULSION (upwards) balances gravity (downwards). Real PSLE 2019 Q38 ran this 5-mark question.",
+        "**Magnet on slope** — when a magnet is placed on a slope above another magnet, the bottom magnet's attraction (or repulsion) can pull/push it down or hold it in place. ALL THREE forces act: gravity (down the slope), friction (parallel to slope), and magnetic (toward/away from the other magnet).",
+        "**Strength varies with distance** — magnetic force decreases as distance increases. Common MCQ trap: 'Which configuration would lift the most paper clips?' → the answer is whichever has the magnet CLOSEST to the clips."
+      ],
+      "scoringExample": {
+        "scenario": "Two bar magnets are stacked vertically with their N poles facing each other. The top magnet floats above the bottom one without falling. Explain why.",
+        "oneMark": {
+          "label": "1 mark (incomplete)",
+          "text": "Like poles repel."
+        },
+        "fullMarks": {
+          "label": "3 marks",
+          "text": "The two N poles **repel** each other, pushing the top magnet **upwards**. The **magnetic repulsion force** is equal to the top magnet's **weight** (gravity pulling it down). Since the two forces are **balanced**, the top magnet floats in place."
+        }
+      },
+      "callout": "For balance questions: state both forces, state they're equal, THEN conclude. \"Repel\" alone = 1 mark. \"Repel + balances weight\" = full marks."
+    },
+    {
+      "title": "The 5-mark killer chain — name + state + chain + compare + outcome",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-causal-chain.png",
+      "body": "4-mark and 5-mark OEQs on forces follow a predictable structure. Once you know the 5-step skeleton, you can hit it from any starting question.",
+      "bullets": [
+        "**Step 1 — NAME the forces** acting on the object (gravity, friction, elastic, magnetic).",
+        "**Step 2 — STATE the energy** stored or being converted (elastic PE, kinetic, GPE, heat/sound from friction).",
+        "**Step 3 — CHAIN the conversions** — write the arrow chain (elastic PE → KE → GPE).",
+        "**Step 4 — COMPARE magnitudes** — which force is greater? Which energy contribution dominates?",
+        "**Step 5 — LINK to the OUTCOME** — what does the object DO as a result? (Moves up, stops, slides, floats.)",
+        "**Worked structure for PSLE 2017 Q38cd (spring stiffness):**\nStep 1: Same mass attached → gravity is the same on both.\nStep 2: Spring Q extends LESS → more elastic PE stored per cm.\nStep 3: When released, elastic PE → KE for both springs.\nStep 4: Spring Q has greater elastic PE → object launched by Q has greater KE.\nStep 5: Object launched by spring Q rises HIGHER (KE → GPE conversion).\n= 4 marks, all 4 marking points hit."
+      ],
+      "callout": "Skipping any one step typically costs 1 mark. Practice writing the 5-step chain on EVERY 4-mark+ question, even if the prompt only asks for one part."
+    },
+    {
+      "title": "Top 5 traps to avoid",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-definitions.png",
+      "body": "The most common force mistakes across PSLE 2016-2025 papers. Read these once before practice — each one typically costs 1-2 marks per paper.",
+      "bullets": [
+        "**Trap 1 — Forgetting friction on stationary objects.** Friction is what HOLDS objects still. Whenever two surfaces touch, friction is there — name it.",
+        "**Trap 2 — Skipping the energy chain in force questions.** Even if the question asks about forces, you usually need to name elastic PE → KE → GPE somewhere in your answer. Heat/sound from friction is a bonus mark.",
+        "**Trap 3 — Not comparing magnitudes.** The phrase 'greater than' is a marking-point keyword. Don't just name forces — state which is bigger.",
+        "**Trap 4 — Confusing 'attract' and 'repel' on magnets.** Like poles REPEL, unlike attract. Easy to mix up under pressure — write down N-N = repel, N-S = attract before answering.",
+        "**Trap 5 — Missing the 'balanced forces' conclusion.** If an object is stationary or moves at constant speed, forces are BALANCED — say so explicitly. The marker counts this as a separate marking point even when the rest of your answer is right."
+      ]
+    },
+    {
+      "title": "Let's get some practice!",
+      "mascotImage": "/master-class/interactions-environment/panda-cta.png",
+      "body": "Time to put it together. This quiz pulls real PSLE-style force questions across all 4 patterns plus the 5-mark killer chain.",
+      "bullets": [
+        "**10 MCQ + 5 OEQ** — a mix across friction, gravity, elastic, and magnets.",
+        "After you submit, the AI looks at where you went wrong and suggests a follow-up focused quiz on just those patterns.",
+        "Mistakes auto-saved — we'll come back to them in 1 week."
+      ],
+      "cta": {
+        "label": "Click here to start your practice quiz",
+        "quizSpec": {
+          "title": "Mastery: Forces Quiz 1",
+          "mcq": 10,
+          "oeq": 5
+        }
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "gravity",
+      "definition": "The force that pulls everything down towards the Earth. Always acts on objects with weight, regardless of whether they're moving or stationary."
+    },
+    {
+      "word": "friction",
+      "definition": "The force that opposes motion (or attempted motion) between two surfaces in contact. ALWAYS present when surfaces touch — even when the object is stationary, friction is the force holding it still."
+    },
+    {
+      "word": "elastic potential energy",
+      "definition": "Energy stored in a compressed or stretched spring/rubber band. Released as kinetic energy when the spring returns to its natural shape."
+    },
+    {
+      "word": "kinetic energy",
+      "definition": "Energy a moving object has. Increases with speed and mass. Often comes FROM elastic PE (spring release) and converts INTO gravitational PE (rising) or heat (friction)."
+    },
+    {
+      "word": "gravitational potential energy",
+      "definition": "Energy an object has because of its height above the ground. Increases as the object rises, decreases as it falls. KE ↔ GPE is a constant exchange during projectile motion."
+    },
+    {
+      "word": "balanced forces",
+      "definition": "When two or more forces acting on an object cancel out (equal sizes, opposite directions). Result: object stays still OR moves at constant speed. Must be stated EXPLICITLY in OEQ answers — it's a separate marking point."
+    },
+    {
+      "word": "magnetic repulsion",
+      "definition": "The force between two like poles (N-N or S-S) that pushes them apart. Can be used to balance gravity in 'floating magnet' setups."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "name-all-forces",
+      "label": "Pattern A — Naming all forces (incl. stationary friction)",
+      "description": "Tests whether the student names EVERY force acting on an object — gravity always, friction whenever surfaces touch (even at rest), elastic if attached to spring, magnetic if near a magnet. Common at-rest trap: students drop friction when the object isn't moving.",
+      "slideIdx": 1
+    },
+    {
+      "id": "compare-forces",
+      "label": "Pattern B — Comparing forces (greater than / equal / less)",
+      "description": "Tests stating which of two forces is greater and explaining the outcome (object moves / stops / stays still). The phrase 'greater than' is a marking-point keyword. Balanced forces → stationary or constant-speed motion.",
+      "slideIdx": 2
+    },
+    {
+      "id": "spring-energy-chain",
+      "label": "Pattern C — Spring energy chain (PE → KE → GPE)",
+      "description": "Tests the elastic PE → KE → GPE conversion when a compressed spring launches an object. Must name all three energy types. Stiffer spring stores more elastic PE per unit compression. Bonus: heat/sound from friction during motion.",
+      "slideIdx": 3
+    },
+    {
+      "id": "magnets-attract-repel",
+      "label": "Pattern D — Magnets (attract, repel, balance)",
+      "description": "Tests like-poles-repel / unlike-attract rule, identifying magnetic materials, and the balance trick where repulsion holds a magnet up against gravity. Strength decreases with distance.",
+      "slideIdx": 4
+    },
+    {
+      "id": "killer-chain",
+      "label": "5-mark killer chain structure",
+      "description": "The 5-step skeleton for high-mark Forces OEQs: NAME forces → STATE energy → CHAIN conversions → COMPARE magnitudes → LINK to outcome. Skipping any step typically costs 1 mark.",
+      "slideIdx": 5
+    }
+  ]
+}
