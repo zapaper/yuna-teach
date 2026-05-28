@@ -1,0 +1,353 @@
+# Master Class: PSLE Math — Nested Fractions
+# --------------------------------------------
+# "Fraction of a remainder" problems. Trap: students add fractions
+# as if parallel when they're actually nested.
+#
+# Four patterns:
+#   A. Two-stage nested      (Beads: 1/4 red, 2/9 of remainder blue)
+#   B. Three-stage nested    (Baker: 1/3, then 1/4, then 2/5 of remainders)
+#   C. Mixed parallel + nested  (combined within one stage)
+#   D. Reverse "Find original"  (Mariam's caps: work backward from "left")
+#
+# Slide flow (10 slides):
+#   0  Welcome           — parallel vs nested fractions
+#   1  The "of WHAT?" question + bar-model rule
+#   2  Pattern A: Two-stage nested (Beads, worked)
+#   3  Pattern B: Three-stage nested (Baker, worked)
+#   4  Pattern C: Mixed parallel + nested (worked)
+#   5  Try it — A & B (2 MCQs)
+#   6  Pattern D: Reverse "Find original" (Mariam, worked)
+#   7  Top 5 traps
+#   8  Try it — Mixed & Reverse (2 MCQs)
+#   9  Start practising! (CTA)
+#
+# Filler words in {curly-braces} are SPOKEN in the TTS narration but
+# hidden from the rendered slide — same convention as grammar-mcq-1.
+
+slug: math-nested-fractions
+subject: math
+level: P5-P6
+topicLabel: Nested Fractions
+title: "PSLE Math — Nested Fractions (fraction of a remainder)"
+
+stats:
+  headline: >-
+    Nested-fraction problems appear in nearly every PSLE Paper 2.
+    The trap is the word "remainder" — the moment you see it, the
+    next fraction is taken from a SMALLER bar, not the original.
+    Bar-model drawing makes this obvious in 20 seconds.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Nested Fractions"
+    mascotImage: /master-class/patterns/panda-welcome.png
+    body: >-
+      Some fraction problems take a fraction OF the original. Others
+      take a fraction OF WHAT'S LEFT. Confusing the two is the
+      #1 way students lose marks in this topic. The fix is one
+      question and one bar-model habit.
+    bullets:
+      - |-
+        **Parallel fractions {— both of the original}:**
+        "Mei spent **1/4** of her money on a pen AND **2/5** on a book."
+        → 1/4 + 2/5 = **13/20 used** → 7/20 left.
+        {Here both fractions are of the SAME original amount, so you can add them.}
+      - |-
+        **Nested fractions {— of what's LEFT after the first}:**
+        "Mei spent **1/4** on a pen, then **2/5 of the REMAINDER** on a book."
+        → 1/4 used. 3/4 left → 2/5 of 3/4 = **3/10 more used**.
+        {Total used = 1/4 + 3/10 = 11/20. NOT 13/20.}
+      - |-
+        💡 **{The keyword that signals nesting:}** "remainder", "what was left", "rest of", "of the remaining". {When you see ANY of these — STOP and re-read. The next fraction is NOT of the original.}
+
+  # ─── Slide 1: The "of WHAT?" check ──────────────────────────
+  - title: "The one question + bar-model rule"
+    mascotImage: /master-class/patterns/panda-teaching-action.png
+    body: >-
+      Every fraction in the problem must answer ONE question: "of
+      what?" Then draw a bar so the "what" is visible. This stops
+      90% of nested-fraction mistakes before they happen.
+    bullets:
+      - |-
+        {Question }**"OF WHAT?"** {— ask after every fraction you read.}
+        -- "1/4 of her money" → **of the original total**{.}
+        -- "2/5 of the remainder" → **of what's left after Stage 1**{ — a SMALLER bar.}
+        -- "1/3 of what was left" → **of the Stage-2 remainder** {— even smaller.}
+      - |-
+        **Bar-model rule {for nested fractions}:**
+        -- Draw the original bar.
+        -- Cut off Stage 1 fraction → the **remainder** is the NEW bar.
+        -- Cut Stage 2 fraction off the NEW bar → that gives a SMALLER remainder.
+        -- Keep going for each stage.
+        💡 {The trick is }never re-use the original bar{ for Stage 2 or later. The bar shrinks every time.}
+      - |-
+        **The shortcut formula {for "what fraction is left"}:**
+        Left = {(1 − f₁) × (1 − f₂) × (1 − f₃) …}
+        {Each bracket is the FRACTION left after that stage. Multiply them all to get the fraction left at the end. Quick and exam-safe — but always draw the bar to check.}
+
+  # ─── Slide 2: Pattern A — Two-stage nested ───────────────────
+  - title: "Pattern A — Two-stage nested (Beads)"
+    mascotImage: /master-class/patterns/panda-teaching-differences.png
+    body: >-
+      Two fractions, one nested inside the first remainder. Always
+      shows up at 2-3 marks on Paper 2.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2016}:**
+        In a box of beads, **1/4** are red.
+        **2/9** of the remaining beads are blue.
+        The rest are yellow.
+        {What fraction of the beads are yellow?}
+      - |-
+        **{Step 1 — Apply Stage 1.}**
+        Red = 1/4 → **Remainder = 3/4**{ of the original.}
+      - |-
+        **{Step 2 — Apply Stage 2 to the REMAINDER (not the original).}**
+        Blue = 2/9 of 3/4 = 2/9 × 3/4 = **6/36 = 1/6** {of the original.}
+      - |-
+        **{Step 3 — Yellow = the rest of the remainder.}**
+        Of the 3/4 remainder: blue took 2/9, so yellow gets the OTHER 7/9.
+        Yellow = 7/9 × 3/4 = **21/36 = 7/12** {of the original.}
+      - |-
+        ⚠️ **{Common wrong answer:}** {students add the fractions: }1/4 + 2/9 = 17/36{, so yellow = 19/36. That's wrong — the 2/9 was taken from a SMALLER bar, not the whole.}
+
+  # ─── Slide 3: Pattern B — Three-stage nested ─────────────────
+  - title: "Pattern B — Three-stage nested (Baker)"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      Three sequential fractions of remainders. Looks scary but the
+      shortcut formula handles it in one line.
+    bullets:
+      - |-
+        **📝 Worked example:**
+        A baker had a bag of flour.
+        He used **1/3** in the morning.
+        Then **1/4 of the remainder** at noon.
+        Then **2/5 of what was left** in the evening.
+        He had **540 g left** at the end.
+        {How much flour did he have at first?}
+      - |-
+        **{Step 1 — Find the fraction LEFT after each stage.}**
+        After morning: 1 − 1/3 = **2/3 left**{.}
+        After noon: 1 − 1/4 = **3/4 of that left**{.}
+        After evening: 1 − 2/5 = **3/5 of that left**{.}
+      - |-
+        **{Step 2 — Multiply.}**
+        Final fraction left = 2/3 × 3/4 × 3/5 = 18/60 = **3/10** {of the original.}
+      - |-
+        **{Step 3 — Solve.}**
+        3/10 of original = 540 g → 1/10 = 180 g → **original = 1800 g**{.}
+      - |-
+        💡 **{Why the shortcut works:}** {at every stage you're keeping a FRACTION of the previous remainder. Multiplying those fractions together = the share of the original that survived all stages.}
+
+  # ─── Slide 4: Pattern C — Mixed parallel + nested ───────────
+  - title: "Pattern C — Mixed parallel + nested"
+    mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
+    body: >-
+      Two actions in Stage 1 (parallel — both of the original), then
+      a nested third action of the remainder. Read carefully because
+      both fraction types show up in one problem.
+    bullets:
+      - |-
+        **📝 Worked example {PSLE-style}:**
+        Mr Tan spent **1/6** of his money on a shirt AND **2/6** on a watch
+        {(both of the original amount — parallel).}
+        Then he spent **3/4 of the remainder** on a bag.
+        The bag cost **$135**{.}
+        {How much money did Mr Tan have at first?}
+      - |-
+        **{Step 1 — Combine the parallel fractions.}**
+        Stage 1 used = 1/6 + 2/6 = 3/6 = **1/2 of original**{.}
+        Remainder after Stage 1 = **1/2 of original**{.}
+      - |-
+        **{Step 2 — Apply the nested fraction to the remainder.}**
+        Bag = 3/4 of 1/2 = **3/8 of original**{.}
+      - |-
+        **{Step 3 — Solve.}**
+        3/8 of original = $135 → 1/8 = $45 → **original = $360**{.}
+      - |-
+        💡 **{The split-second decision:}** {when you see }"on X AND on Y"{ within one sentence — they're parallel. When you see }"then" or "of the remainder"{ — it's nested. Mark each fraction P or N as you read.}
+
+  # ─── Slide 5: Try it — Patterns A & B ────────────────────────
+  - title: "Try it — Two-stage & Three-stage nested"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern A — Two-stage nested"
+        stem: |-
+          Devi had a ribbon. She used 2/5 of it for a gift, then 1/3
+          of the remainder for a hairband. What fraction of the
+          original ribbon does she have left?
+        options:
+          - "4/15"
+          - "1/5"
+          - "2/5"
+          - "1/2"
+        correctAnswer: 3
+        explanation: >-
+          Left = (1 − 2/5) × (1 − 1/3) = 3/5 × 2/3 = 6/15 = 2/5.
+          (Trap: option "4/15" comes from adding 2/5 + 1/3 = 11/15 used,
+          treating the 1/3 as of the ORIGINAL. The 1/3 is of the 3/5
+          remainder, so the correct working uses multiplication.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern B — Three-stage nested"
+        stem: |-
+          A tank was full of water. 1/2 was used to wash the car.
+          1/3 of the remainder was used to water plants. 1/4 of what
+          was then left was used to clean the floor. What fraction
+          of the original water is left in the tank?
+        options:
+          - "1/24"
+          - "1/12"
+          - "1/4"
+          - "1/8"
+        correctAnswer: 3
+        explanation: >-
+          Left = (1 − 1/2) × (1 − 1/3) × (1 − 1/4)
+              = 1/2 × 2/3 × 3/4
+              = 6/24
+              = 1/4.
+          (The cascading multiplication of "fraction left at each
+          stage" is the shortcut — works for any number of stages.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 6: Pattern D — Reverse ────────────────────────────
+  - title: "Pattern D — Reverse (work backward from 'left')"
+    mascotImage: /master-class/patterns/panda-teaching-nth-term.png
+    body: >-
+      Most reverse problems give you what's LEFT at the end and ask
+      for the original. Use the same shortcut formula — just solve
+      backward from a known number instead of forward to one.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2020, Mariam's caps}:**
+        Mariam sold **1/3** of her caps in the morning, then **1/5
+        of the remainder** in the afternoon.
+        She had **56 caps left**{.}
+        {How many caps did she have at first?}
+      - |-
+        **{Step 1 — Find the fraction LEFT after each stage.}**
+        After morning: 1 − 1/3 = **2/3 left**{.}
+        After afternoon: 1 − 1/5 = **4/5 of that left**{.}
+      - |-
+        **{Step 2 — Multiply.}**
+        Final left = 2/3 × 4/5 = **8/15 of original**{.}
+      - |-
+        **{Step 3 — Solve from the known "left" amount.}**
+        8/15 of original = 56 → 1/15 = 7 → **original = 105 caps**{.}
+      - |-
+        ⚠️ **{The trap to avoid:}** {students see "sold 1/3 then 1/5" and add: 1/3 + 1/5 = 8/15 sold → 7/15 left = 56 → answer 120. That's wrong because the 1/5 was of the remainder, not the original. Always do the }multiplication shortcut{ for nested problems.}
+
+  # ─── Slide 7: Top 5 traps ────────────────────────────────────
+  - title: "Top 5 traps to avoid"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      The most common mistakes across nested-fraction problems.
+      Read these before practice — each one saves 1-2 marks.
+    bullets:
+      - |-
+        ⚠️ **{Trap }1 — Adding fractions when they're nested.**
+        "1/4 then 2/5 of remainder" {is NOT 1/4 + 2/5 used. Multiply the "fraction left" pieces — never add fractions across stages.}
+      - |-
+        ⚠️ **{Trap }2 — Forgetting that "remainder" means a smaller bar.**
+        {The Stage-2 fraction is }of a smaller bar{ — not the original. Always re-draw the bar after each stage to make the new "what" visible.}
+      - |-
+        ⚠️ **{Trap }3 — Mixing up "of the remainder" vs "of the original".**
+        {The keyword "remainder" / "rest" / "what was left" }signals nesting{. Without those keywords, the fraction is usually of the ORIGINAL — and you can add to other parallel fractions.}
+      - |-
+        ⚠️ **{Trap }4 — Solving "find original" by multiplying instead of dividing.**
+        {If you know }3/10 of original = 540 g{, you find original by }dividing 540 by 3/10{ (or 540 ÷ 3 × 10). Some students multiply 540 × 3/10 by reflex — that gives a smaller number, which can't be right.}
+      - |-
+        ⚠️ **{Trap }5 — Treating a parallel-fraction problem as nested.**
+        {If both fractions are "of the money" or "of the total" }without "remainder"{ between them, they're PARALLEL. Add them — don't multiply. Re-read the problem if you're unsure.}
+
+  # ─── Slide 8: Try it — Mixed & Reverse ──────────────────────
+  - title: "Try it — Mixed parallel/nested & Reverse"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern C — Mixed parallel + nested"
+        stem: |-
+          Sara had some money. She spent 1/5 on a magazine AND 2/5 on
+          lunch. She then spent 1/2 of the remainder on a bus fare.
+          She had $9 left. How much money did Sara have at first?
+        options:
+          - "$30"
+          - "$45"
+          - "$60"
+          - "$90"
+        correctAnswer: 2
+        explanation: >-
+          Stage 1 (parallel): 1/5 + 2/5 = 3/5 used → 2/5 left.
+          Stage 2 (nested): bus = 1/2 of 2/5 = 1/5 of original.
+          Final left = 2/5 − 1/5 = 1/5 of original = $9.
+          So original = $45.
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern D — Reverse"
+        stem: |-
+          After spending 1/4 of his money on a book and 2/3 of the
+          remainder on snacks, Ravi had $15 left. How much money
+          did Ravi have at first?
+        options:
+          - "$30"
+          - "$45"
+          - "$60"
+          - "$90"
+        correctAnswer: 3
+        explanation: >-
+          Fraction left = (1 − 1/4) × (1 − 2/3) = 3/4 × 1/3 = 1/4.
+          1/4 of original = $15 → original = $60.
+          (Distractor $90 = students subtract 1/4 + 2/3 = 11/12 → 1/12 = 15
+          → 180, then divide by 2 somewhere — common scratch-paper muddle.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 9: Wrap-up CTA ───────────────────────────────────
+  - title: "Start practising!"
+    mascotImage: /master-class/patterns/panda-cta.png
+    body: >-
+      Mixed practice drawn from real PSLE-style nested-fraction
+      problems. Trains the reflex of asking "of WHAT?" and drawing
+      a fresh bar at every stage.
+    bullets:
+      - |-
+        {You'll tackle a }**mix of 10 questions** {across all four patterns —} two-stage, three-stage, mixed parallel/nested, {and }reverse "find original"{.}
+      - |-
+        {Any }Wrong answers {are }auto-saved {and }reviewed in 1 week{.}
+      - |-
+        {The }AI marks {your working step-by-step — } partial credit {if you spotted nesting but slipped on the arithmetic.}
+    cta:
+      label: Click here to start practice
+      quizSpec:
+        title: "Mastery: Nested Fractions"
+        mcq: 6
+        oeq: 4
+
+commonMistakes: []
+
+keyWords:
+  - { word: "nested fraction", definition: "A fraction taken of the REMAINDER after a previous fraction was taken — not of the original. Keywords: 'of the remainder', 'of what was left', 'of the rest'. Multiply (don't add) the surviving fraction at each stage." }
+  - { word: "parallel fraction", definition: "Multiple fractions, each of the SAME original amount. Add them together to find total used. Keyword: 'AND' connecting two fractions in one sentence with no 'remainder' between them." }
+  - { word: "shortcut formula", definition: "Fraction left after N nested stages = (1 − f₁) × (1 − f₂) × … × (1 − fₙ). Each bracket is what survived that stage. Multiply them all. Saves drawing every bar in a 3-4 stage problem." }
+  - { word: "bar-model rule", definition: "Draw the original bar. After Stage 1, the remainder becomes the NEW bar. Stage 2's fraction is taken from that NEW bar, not the original. The bar shrinks at every stage." }
+  - { word: "of WHAT?", definition: "The one question to ask after every fraction in the problem. 'Of the original?' or 'of the remainder?' If you can't answer, re-read the sentence — the answer is usually one or two words back." }
+
+subTopics:
+  - id: two-stage-nested
+    label: Pattern A — Two-stage nested
+    description: "Two fractions, the second taken from the remainder of the first. Apply Stage 1 first, then Stage 2 fraction × Stage 1 remainder."
+    slideIdx: 2
+  - id: three-stage-nested
+    label: Pattern B — Three-stage nested
+    description: "Three sequential fractions of remainders. Use the shortcut formula — multiply (1−f) for each stage to find the fraction left at the end."
+    slideIdx: 3
+  - id: mixed-parallel-nested
+    label: Pattern C — Mixed parallel + nested
+    description: "Two parallel fractions in Stage 1 (combined by adding), then a nested fraction in Stage 2. Mark each fraction P or N as you read."
+    slideIdx: 4
+  - id: reverse-find-original
+    label: Pattern D — Reverse (find original)
+    description: "Given the amount LEFT at the end, find the original. Compute the fraction-left formula, set equal to the known amount, divide to find original."
+    slideIdx: 6
