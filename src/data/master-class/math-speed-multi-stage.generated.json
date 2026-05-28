@@ -1,0 +1,295 @@
+{
+  "slug": "math-speed-multi-stage",
+  "subject": "math",
+  "level": "P5-P6",
+  "topicLabel": "Speed, Distance & Time",
+  "title": "PSLE Math — Speed, Distance & Time (multi-stage problems)",
+  "stats": {
+    "headline": "Speed problems are worth 3-5 marks each on PSLE Paper 2. Most are multi-stage — one object with two speeds, two objects catching up or meeting, or a return journey. Same 4 patterns repeat every year. Spot the pattern → write the right equation in one line."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Speed, Distance & Time",
+      "mascotImage": "/master-class/patterns/panda-welcome.png",
+      "body": "Speed × Time = Distance. That's the whole formula. The trap isn't the formula — it's that PSLE almost always chains TWO stages or TWO objects, and students apply the formula to the wrong combination of numbers.",
+      "bullets": [
+        "**The formula triangle :**\n-- Distance = **Speed × Time**\n-- Speed = **Distance ÷ Time**\n-- Time = **Distance ÷ Speed**\n💡",
+        "**The 4 patterns :**\n-- 🔵 **Pattern A** — multi-stage -- 🟢 **Pattern B** — same direction, catching up -- 🟠 **Pattern C** — opposite direction, meeting -- 🟣 **Pattern D** — return journey",
+        "**3-question check**"
+      ],
+      "narration": {
+        "bullets": [
+          "**The formula triangle to memorise:**\n-- Distance = **Speed × Time**\n-- Speed = **Distance ÷ Time**\n-- Time = **Distance ÷ Speed**\n💡 Cover the unknown — the other two tell you whether to multiply or divide.",
+          "**The 4 patterns PSLE rotates:**\n-- 🔵 **Pattern A** — one object, multi-stage (walked then ran).\n-- 🟢 **Pattern B** — two objects, same direction, catching up.\n-- 🟠 **Pattern C** — two objects, opposite direction, meeting.\n-- 🟣 **Pattern D** — one object, return journey — the average-speed trap.",
+          "Next slide is the **3-question check** to figure out which pattern the problem is throwing at you — and how to handle units before you start."
+        ]
+      }
+    },
+    {
+      "title": "The 3-question check — every speed problem",
+      "mascotImage": "/master-class/patterns/panda-teaching-action.png",
+      "body": "Run these BEFORE drawing any model or writing any formula. They take 10 seconds and tell you which pattern you're facing and what units to lock in.",
+      "bullets": [
+        "**Q1 — One object or TWO?**\n-- one object **Pattern A** (multi-stage) -- two objects →",
+        "**Q2 — Same direction or opposite?**\n-- **Pattern B** subtract speeds -- **Pattern C** add speeds -- one object goes and returns **Pattern D**",
+        "**Q3 — Are the units consistent?**\n-- km/h with hours → ✓ get km.\n-- km/h with minutes → ✗ -- m/s with km → ✗",
+        "💡 ** ** **S**ame direction → **S**ubtract. **O**pposite → add."
+      ],
+      "narration": {
+        "bullets": [
+          "Question **Q1 — One object or TWO?**\n-- If one object with a speed change → **Pattern A** (multi-stage).\n-- If two objects → go to Q2.",
+          "Question **Q2 — Same direction or opposite?**\n-- Same direction → **Pattern B** — subtract speeds (closing speed = faster − slower).\n-- Opposite direction → **Pattern C** — add speeds (closing speed = sum).\n-- Special case — one object goes and returns → **Pattern D**.",
+          "Question **Q3 — Are the units consistent?**\n-- km/h with hours → ✓ get km.\n-- km/h with minutes → ✗ convert to hours OR convert km/h to km/min first.\n-- m/s with km → ✗ convert before solving — most-missed step in this whole topic.",
+          "💡 **Memory trick:** **S**ame direction → **S**ubtract. **O**pposite → add. (The S–S match keeps the rule sticky.)"
+        ]
+      }
+    },
+    {
+      "title": "Pattern A — One object, multi-stage",
+      "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
+      "body": "Clue words: \"then\", \"for the rest of\", \"remaining distance\". One person/car/train but the speed changes partway. Solve each stage separately, then combine.",
+      "bullets": [
+        "**📝 Worked example :**\nEric took **2 hours** to travel **3/5** of his journey.\nHe completed the remaining **84 km** in **1 hour**. **average speed for the whole journey**",
+        "** **\nRemaining 2/5 = 84 km → 1/5 = 42 km → **whole = 210 km**",
+        "** **\nStage 1 = 2 h, Stage 2 = 1 h → **total time = 3 h**",
+        "** **\n210 ÷ 3 = **70 km/h**",
+        "⚠️ ** ** Stage 1 speed Stage 2 speed total distance ÷ total time"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example from PSLE 2018:**\nEric took **2 hours** to travel **3/5** of his journey.\nHe completed the remaining **84 km** in **1 hour**.\nWhat was Eric's **average speed for the whole journey**?",
+          "**Step 1 — Find the whole journey.**\nRemaining 2/5 = 84 km → 1/5 = 42 km → **whole = 210 km**.",
+          "**Step 2 — Find total time.**\nStage 1 = 2 h, Stage 2 = 1 h → **total time = 3 h**.",
+          "**Step 3 — Average speed = total distance ÷ total time.**\n210 ÷ 3 = **70 km/h**.",
+          "⚠️ **Trap to avoid:** students try to average Stage 1 speed and Stage 2 speed directly. That's wrong (see Pattern D for why). Always use total distance ÷ total time for average speed."
+        ]
+      }
+    },
+    {
+      "title": "Pattern B — Same direction (catching up)",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "body": "Clue words: \"Jane was ahead of Linda\", \"started X minutes earlier\". Two objects moving in the SAME direction. The faster one is closing a gap at a speed = (faster − slower).",
+      "bullets": [
+        "**📝 Worked example :**\nWhen Jane started jogging from her home, Linda was already\n**1.2 km ahead** of her.\nJane jogged at **10 km/h** and Linda walked at **4 km/h**",
+        "** **\nSame direction → SUBTRACT: 10 − 4 = **6 km/h**",
+        "** **\nTime to close 1.2 km gap = 1.2 ÷ 6 = **0.2 h** = **12 minutes**",
+        "⚠️ ** ** closing a 1.2 km gap closing speed"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example from PSLE 2022:**\nWhen Jane started jogging from her home, Linda was already\n**1.2 km ahead** of her.\nJane jogged at **10 km/h** and Linda walked at **4 km/h**.\nHow long did Jane take to catch up with Linda?",
+          "**Step 1 — Find the closing speed.**\nSame direction → SUBTRACT: 10 − 4 = **6 km/h** (this is how fast Jane gains on Linda).",
+          "**Step 2 — Use Time = Distance ÷ Speed.**\nTime to close 1.2 km gap = 1.2 ÷ 6 = **0.2 h** = **12 minutes**.",
+          "⚠️ **Trap to avoid:** students use Jane's speed alone (10 km/h) and write 1.2 ÷ 10 = 0.12 h. But Jane isn't crossing 1.2 km — she's closing a 1.2 km gap while Linda also moves. Use the closing speed, not either person's actual speed."
+        ]
+      }
+    },
+    {
+      "title": "Pattern C — Opposite direction (meeting)",
+      "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
+      "body": "Clue words: \"in opposite directions\", \"from each end\", \"from opposite ends of a track\". Two objects moving toward each other. They close the gap at a speed = (object 1 + object 2).",
+      "bullets": [
+        "**📝 Worked example:**\nTwo trains start from cities **360 km apart** and travel\ntoward each other along the same track.\nTrain A travels at **80 km/h** and Train B travels at **100 km/h**",
+        "** **\nOpposite direction → ADD: 80 + 100 = **180 km/h**",
+        "** **\nTime = 360 ÷ 180 = **2 hours**",
+        "💡 ** **",
+        "⚠️ ** ** same direction"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example:**\nTwo trains start from cities **360 km apart** and travel\ntoward each other along the same track.\nTrain A travels at **80 km/h** and Train B travels at **100 km/h**.\nHow long until they meet?",
+          "**Step 1 — Find the closing speed.**\nOpposite direction → ADD: 80 + 100 = **180 km/h** (every hour, the gap shrinks by 180 km).",
+          "**Step 2 — Use Time = Distance ÷ Speed.**\nTime = 360 ÷ 180 = **2 hours**.",
+          "💡 **Why add?** Both trains are eating into the gap from their own ends. Train A closes 80 km per hour, Train B closes another 100 km per hour — together they wipe out 180 km per hour.",
+          "⚠️ **Trap to avoid:** students subtract speeds (100 − 80 = 20) and write 360 ÷ 20 = 18 h. That would only be correct if they were going the same direction (Pattern B). Opposite direction always ADDS."
+        ]
+      }
+    },
+    {
+      "title": "Try it — Multi-stage & Catching up",
+      "mascotImage": "/master-class/patterns/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Pattern A — Multi-stage",
+          "stem": "Mr Lim drove 90 km at 60 km/h, then drove another 60 km at 40 km/h.\nWhat was his average speed for the whole journey?",
+          "options": [
+            "48 km/h",
+            "50 km/h",
+            "52 km/h",
+            "75 km/h"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Average speed = total distance ÷ total time. Total distance = 90 + 60 = 150 km. Stage 1 time = 90 ÷ 60 = 1.5 h. Stage 2 time = 60 ÷ 40 = 1.5 h. Total time = 3 h. Average = 150 ÷ 3 = 50 km/h. (Naive \"average of 60 and 40 = 50\" only works by coincidence here because the two stages took equal time — usually it wouldn't!)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern B — Catching up",
+          "stem": "Ahmad cycled from his house at 18 km/h. Ben started cycling from\nthe same house 20 minutes later, at 24 km/h, along the same road.\nHow long after Ben started will he catch up with Ahmad?",
+          "options": [
+            "20 minutes",
+            "40 minutes",
+            "60 minutes",
+            "80 minutes"
+          ],
+          "correctAnswer": 3,
+          "explanation": "By the time Ben starts, Ahmad is already 18 × (20/60) = 6 km ahead. Same direction → closing speed = 24 − 18 = 6 km/h. Time to close 6 km = 6 ÷ 6 = 1 h = 60 minutes.",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Pattern D — Return journey (average-speed trap)",
+      "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
+      "body": "Clue words: \"drove to town X at A km/h and returned at B km/h\", \"round trip\". Same distance each way, but DIFFERENT speeds. The headline trap is averaging the two speeds directly — that gives the WRONG answer.",
+      "bullets": [
+        "**📝 Worked example:**\nMr Tan drove from town A to town B at **60 km/h** and\nreturned along the same road at **40 km/h**",
+        "**⚠️ The trap :** (60 + 40) ÷ 2 = 50 km/h",
+        "** ** **120 km**",
+        "** **\nGoing: 120 ÷ 60 = 2 h. Returning: 120 ÷ 40 = 3 h.\nTotal time = **5 h**",
+        "** **\nTotal distance = 120 × 2 = 240 km.\nAverage = 240 ÷ 5 = **48 km/h**",
+        "💡 ** **"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example:**\nMr Tan drove from town A to town B at **60 km/h** and\nreturned along the same road at **40 km/h**.\nFind his average speed for the whole journey.",
+          "**⚠️ The trap answer:** (60 + 40) ÷ 2 = 50 km/h. Wrong — and almost every student writes this.",
+          "**Step 1 — Assume any distance for one way.**\nPick a number that divides nicely. Let one-way distance = **120 km**.",
+          "**Step 2 — Compute times for each leg.**\nGoing: 120 ÷ 60 = 2 h. Returning: 120 ÷ 40 = 3 h.\nTotal time = **5 h**.",
+          "**Step 3 — Average speed = total distance ÷ total time.**\nTotal distance = 120 × 2 = 240 km.\nAverage = 240 ÷ 5 = **48 km/h** (not 50).",
+          "💡 **Why is it less than 50?** You spent MORE time at the slower speed (3 h at 40 km/h vs 2 h at 60 km/h), so the slower speed gets more \"weight\" in the average. The trick of assuming a distance works for ANY value — try 240 km, you'd still get 48 km/h."
+        ]
+      }
+    },
+    {
+      "title": "Top 5 traps to avoid",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "body": "The most-missed mistakes across all speed problems. Read these once before starting practice — they save 2-3 marks per paper.",
+      "bullets": [
+        "⚠️ ** 1 — Averaging two speeds directly for average speed.** total distance ÷ total time",
+        "⚠️ ** 2 — Mixing up add vs subtract for two objects.**\nSame direction → subtract speeds. Opposite direction → add speeds. **S**ame → **S**ubtract.",
+        "⚠️ ** 3 — Mixing units mid-problem.** (45 min = 0.75 h) (60 km/h = 1 km/min)",
+        "⚠️ ** 4 — Forgetting the head start in staggered-start problems.**",
+        "⚠️ ** 5 — Using one object's speed instead of the closing speed.** closing speed"
+      ],
+      "narration": {
+        "bullets": [
+          "⚠️ **Trap 1 — Averaging two speeds directly for average speed.**\nAverage speed = total distance ÷ total time, NOT (speed₁ + speed₂) ÷ 2. This is the most common Paper 2 mistake.",
+          "⚠️ **Trap 2 — Mixing up add vs subtract for two objects.**\nSame direction → subtract speeds. Opposite direction → add speeds.\nMantra: **S**ame → **S**ubtract.",
+          "⚠️ **Trap 3 — Mixing units mid-problem.**\nkm/h with minutes won't work. Either convert minutes to hours (45 min = 0.75 h), or convert km/h to km/min (60 km/h = 1 km/min). Lock units BEFORE doing any arithmetic.",
+          "⚠️ **Trap 4 — Forgetting the head start in staggered-start problems.**\n\"Robot B started 7 minutes AFTER Robot A\" — Robot A had already moved for 7 minutes. Compute Robot A's lead distance first, THEN apply catching-up logic.",
+          "⚠️ **Trap 5 — Using one object's speed instead of the closing speed.**\nWhen two objects move together, you almost never use just one of their speeds. Use the closing speed — sum or difference — to figure out the time to meet/catch up."
+        ]
+      }
+    },
+    {
+      "title": "Try it — Meeting & Return journey",
+      "mascotImage": "/master-class/patterns/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Pattern C — Meeting (opposite direction)",
+          "stem": "Jack and Kira start at the same point on a 6 km circular track\nat 8.00 a.m. and walk in opposite directions. Jack walks at\n5 km/h and Kira walks at 4 km/h. At what time will they first\nmeet?",
+          "options": [
+            "8.40 a.m.",
+            "9.00 a.m.",
+            "9.20 a.m.",
+            "10.40 a.m."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Opposite direction → ADD speeds. Closing speed = 5 + 4 = 9 km/h. They meet when their combined distance = full track = 6 km. Time = 6 ÷ 9 = 2/3 h = 40 min. Meeting time = 8.00 + 40 min = 8.40 a.m. (Trap distractor: 10.40 a.m. comes from using the DIFFERENCE 1 km/h → 6 ÷ 1 = 6 h. That's the same-direction rule wrongly applied here.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern D — Return journey",
+          "stem": "Mei drove 120 km to Malacca at 80 km/h and returned along the\nsame road at 60 km/h. What was her average speed for the\nwhole trip?",
+          "options": [
+            "70 km/h",
+            "68.6 km/h",
+            "72 km/h",
+            "75 km/h"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Going: 120 ÷ 80 = 1.5 h. Returning: 120 ÷ 60 = 2 h. Total time = 3.5 h. Total distance = 240 km. Average speed = 240 ÷ 3.5 = 68.57… ≈ 68.6 km/h. (Distractor 70 = (80 + 60) ÷ 2 — the classic naive-average trap.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Start practising!",
+      "mascotImage": "/master-class/patterns/panda-cta.png",
+      "body": "Mixed practice drawn from real PSLE-style speed problems. Trains the reflex of running the 3-question check FIRST, locking units SECOND, and only THEN writing the formula.",
+      "bullets": [
+        "**mix of 10 questions** multi-stage, catching up, meeting, return journey",
+        "Wrong answers auto-saved reviewed in 1 week",
+        "AI marks partial credit"
+      ],
+      "cta": {
+        "label": "Click here to start practice",
+        "quizSpec": {
+          "title": "Mastery: Speed, Distance & Time",
+          "mcq": 6,
+          "oeq": 4
+        }
+      },
+      "narration": {
+        "bullets": [
+          "You'll tackle a **mix of 10 questions** across all four patterns — multi-stage, catching up, meeting, and return journey.",
+          "Any Wrong answers are auto-saved and reviewed in 1 week.",
+          "The AI marks your working step-by-step — partial credit if you set up the right closing speed but slipped on arithmetic."
+        ]
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "formula triangle",
+      "definition": "Speed × Time = Distance. To find Speed: cover S in the triangle → Distance ÷ Time. To find Time: cover T → Distance ÷ Speed. The visual helps you not mix up which to multiply vs divide."
+    },
+    {
+      "word": "closing speed",
+      "definition": "How fast the gap between two moving objects shrinks. Same direction → faster − slower. Opposite direction → sum of both speeds. Use this to find time-to-meet, never one object's actual speed alone."
+    },
+    {
+      "word": "average speed",
+      "definition": "Total distance ÷ total time. Almost NEVER equal to (speed₁ + speed₂) ÷ 2. The slower stage takes more time so it weighs more — that's why a 60/40 return trip averages 48, not 50."
+    },
+    {
+      "word": "staggered start",
+      "definition": "When one object starts moving before the other. Compute the head-start distance (first object's speed × delay time) FIRST, then apply catching-up logic with the closing speed."
+    },
+    {
+      "word": "S-S rule",
+      "definition": "Same direction → Subtract. Memory hook for which arithmetic to use on the two objects' speeds. Opposite direction → Add (S+S also works: Sum for Opposite Sides)."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "multi-stage",
+      "label": "Pattern A — One object, multi-stage",
+      "description": "One person/vehicle with two or more speeds across the journey. Solve each stage separately, then average = total distance ÷ total time.",
+      "slideIdx": 2
+    },
+    {
+      "id": "catching-up",
+      "label": "Pattern B — Same direction (catching up)",
+      "description": "Two objects moving the same way. Closing speed = faster − slower. Time to catch up = gap ÷ closing speed.",
+      "slideIdx": 3
+    },
+    {
+      "id": "meeting",
+      "label": "Pattern C — Opposite direction (meeting)",
+      "description": "Two objects moving toward each other or away from a shared point. Closing speed = sum of speeds. Combined distance covered = full gap when they meet.",
+      "slideIdx": 4
+    },
+    {
+      "id": "return-journey",
+      "label": "Pattern D — Return journey (average speed)",
+      "description": "Same distance, different speeds each way. Average speed = total distance ÷ total time. Never (speed₁ + speed₂) ÷ 2.",
+      "slideIdx": 6
+    }
+  ]
+}

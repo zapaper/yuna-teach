@@ -14,6 +14,7 @@ import { englishSynthesisTricks } from "./english-synthesis-tricks";
 import { englishCompCloze } from "./english-comp-cloze";
 import { englishVisualTextMcq } from "./english-visual-text-mcq";
 import { mathHiddenConstantTotal } from "./math-hidden-constant-total";
+import { mathSpeedMultiStage } from "./math-speed-multi-stage";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
@@ -34,6 +35,7 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "english-comp-cloze": englishCompCloze,
   "english-visual-text-mcq": englishVisualTextMcq,
   "math-hidden-constant-total": mathHiddenConstantTotal,
+  "math-speed-multi-stage": mathSpeedMultiStage,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
