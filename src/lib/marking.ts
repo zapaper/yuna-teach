@@ -1063,6 +1063,17 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
     Award partial marks if some steps or methods are correct, proportional to marksAvailable.
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
+
+  ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — enforce after computing partial credit above):
+  A wrong final answer can NEVER receive FULL marks. The cap is `marksAvailable - 1`. Within that cap, USE JUDGMENT about how much of the solving was correct:
+    - 2-mark question wrong → 0 if nothing right, 1 if some method right; **MAX 1**
+    - 3-mark question wrong → 0 / 1 / 2 depending on working quality; **MAX 2**
+      · 1 mark — student set up the problem reasonably but made an early conceptual or arithmetic error.
+      · 2 marks — student got most of the way there; only the very last step or a small arithmetic slip is wrong.
+    - 4-mark question wrong → 0 / 1 / 2 / 3 depending on working quality; **MAX 3**
+    - 5-mark question wrong → 0 / 1 / 2 / 3 / 4 depending on working quality; **MAX 4**
+  Rationale: PSLE math marking always reserves at least 1 "answer mark" that requires the right final answer. Without it, full marks are impossible. But within the remaining marks, partial credit scales with HOW MUCH of the working is correct — a student who set up the right ratios and got the right unit value deserves more than a student who only labelled a diagram.
+  In the notes, state which intermediate steps you credited and which you did not.
   - CONCEPT ERRORS: If the student used the wrong formula, method, or operation, wrap the specific error in **double asterisks** in the notes (e.g. "Student used **multiplication** instead of division" or "Wrong formula: used **P = 2l + w** instead of area formula").
 
   REPRESENTATION STRICTNESS — fraction vs ratio vs decimal:
@@ -2430,6 +2441,14 @@ Instructions:
    - ONLY if the final answer is WRONG or absent: check working/steps for partial credit → award PARTIAL marks if some steps are correct.
    - If wrong with no correct working → ZERO marks.
    - For MCQ (single option answer): no partial marks.
+
+   ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — for Math OEQ only):
+   A wrong final answer can NEVER receive FULL marks. The cap is `marksAvailable - 1`. Within the cap, USE JUDGMENT about how much of the solving was correct:
+     - 2-mark question wrong → 0 / 1; MAX 1
+     - 3-mark question wrong → 0 / 1 / 2; MAX 2 (1 if early misstep; 2 if only the last step or a small slip is wrong)
+     - 4-mark question wrong → 0 / 1 / 2 / 3; MAX 3
+     - 5-mark question wrong → 0 / 1 / 2 / 3 / 4; MAX 4
+   PSLE math marking always reserves at least 1 "answer mark" for the correct final answer. Without it, full marks are impossible. Within the remaining marks, partial credit scales with how much of the working is correct. State which steps you credited in your notes.
 4. Record what you detected.
 
 Return ONLY valid JSON (no markdown fences):
