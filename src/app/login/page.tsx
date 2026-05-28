@@ -383,6 +383,9 @@ function LoginContent() {
                     <p className="text-sm text-on-surface-variant">
                       If <span className="font-semibold">{forgotEmail}</span> is registered, we&apos;ve sent you a link to reset your password. The link is valid for 1 hour.
                     </p>
+                    <p className="text-xs text-on-surface-variant bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1">
+                      💡 <span className="font-semibold">Tip:</span> the reset email might land in your <span className="font-semibold">spam</span> or <span className="font-semibold">promotions</span> folder.
+                    </p>
                   </div>
                 ) : (
                   <form onSubmit={handleForgot} className="space-y-3">
