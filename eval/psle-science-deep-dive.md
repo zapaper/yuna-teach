@@ -2,23 +2,38 @@
 
 Source data: [`scripts/psle-science-dump.json`](../scripts/psle-science-dump.json) — 11 papers, 417 questions across 2016-2025 (2022-2024 bundled into Life/Physical × MCQ/OEQ).
 
-## 1. Year-over-year trends (single-year papers: 2016-2021, 2025)
+## 1. Year-over-year trends (Pre-2021 vs 2022-2025, per-year-equivalent)
 
-Comparing early avg (2016-2019) vs recent avg (2020/2021/2025):
+The 2022-2024 bundle pools 3 years of questions (122 across 4 sub-papers — Life MCQ/OEQ + Physical MCQ/OEQ). Divided by 3 to get a per-year rate, then combined with 2025 to give the "recent" column. Pre-2021 = simple average of 2016-2020 (5 papers, ~42 q/yr). 2021 sits between as a transition year.
 
-| Topic | Early | Recent | Δ |
-|---|---|---|---|
-| Interactions within environment | 8.0 | 2.7 | **−5.3** |
-| Cycles in matter | 2.0 | 3.7 | **+1.7** |
-| Plant parts & functions | 1.5 | 3.0 | **+1.5** |
-| Human digestive | 0.5 | 1.7 | **+1.2** |
-| Human respiratory/circulatory | 1.3 | 2.3 | **+1.1** |
-| Water cycle / evap-condense | 2.3 | 1.3 | −0.9 |
-| Forces (Friction/Grav/Elastic) | 3.8 | 3.0 | −0.8 |
+| Topic | Pre-2021 avg/yr | 2021 | 2022-2025 avg/yr | Δ |
+|---|---|---|---|---|
+| Interactions within the environment | **7.0** | **1** | **4.8** | **−2.3** |
+| Life cycles in plants and animals | 1.8 | 3 | 2.8 | +0.9 |
+| Diversity of living and non-living things | 3.0 | 4 | 3.8 | +0.8 |
+| Water cycle, evaporation, condensation | 2.0 | 1 | 1.3 | −0.8 |
+| Photosynthesis | 2.2 | 3 | 1.5 | −0.7 |
+| Heat energy and uses | 2.6 | 2 | 3.3 | +0.6 |
+| Electrical system and circuits | 2.8 | 4 | 3.3 | +0.5 |
+| Reproduction in plants and animals | 2.4 | 3 | 2.8 | +0.4 |
+| Interaction of forces (Magnets) | 2.4 | 2 | 2.0 | −0.4 |
+| Diversity of materials | 1.8 | 2 | 1.5 | −0.3 |
+| Cycles in matter | 2.2 | 4 | 2.5 | +0.3 |
+| Energy conversion | 2.2 | 1 | 2.5 | +0.3 |
+| Interaction of forces (Friction/Gravity/Elastic) | 3.8 | 3 | 3.5 | −0.3 |
+| Plant parts and functions | 2.2 | 3 | 2.0 | −0.2 |
+| Human digestive system | 0.8 | 2 | 1.0 | +0.2 |
+| Human respiratory/circulatory systems | 1.6 | 1 | 1.8 | +0.1 |
+| Light energy and uses | 1.0 | 2 | 1.0 | 0.0 |
+| Plant respiratory/circulatory systems | 0.2 | 0 | 0.0 | −0.2 |
 
-**Interactions hasn't disappeared** — it's been absorbed into the 2022-2024 bundle (15 questions there) and now leans more toward systems-thinking (multi-organ traces) than pure ecology.
+**Interpretation:**
 
-**Rising fast: plant systems + human body systems + cycles in matter.** Plant cell biology + stomata + tube-tracing is now a near-certain MCQ block.
+- **Interactions still dominates** at 4.8 q/yr in 2022-2025 — more than any other topic. But its share has dropped from ~7/yr to ~5/yr; the slack went to Life cycles, Diversity, Heat, and Electrical.
+- **Life cycles (+0.9) and Diversity (+0.8) are the real risers.** Together they add ~1.7 q/yr — a clean 2-mark uplift for any student strong on these. (Earlier "Plant parts is rising fast" claim was an artefact of dropping the 2022-2024 bundle from the comparison; with the bundle included, Plant parts is roughly stable at 2.0 q/yr.)
+- **Photosynthesis is FALLING (−0.7)** — surprising. Earlier reports that called it "OEQ-heavy and rising" were misled by the 14/20 OEQ split inside its total, not the year trend. **De-prioritise this for master class building.**
+- **Heat (+0.6) and Electrical (+0.5)** continue their slow climb — confirms the "physics is gaining" intuition.
+- **2021 was a one-off outlier on Interactions** (just 1 question vs typical 7-8/yr). 2022-2025 returned to high frequency.
 
 ## 2. Per-topic deep dive — top 7
 
@@ -77,14 +92,57 @@ Comparing early avg (2016-2019) vs recent avg (2020/2021/2025):
 3. **Variegated leaf / starch test logic.** Q13 2022-24.
 4. **"Why grass turned yellow under stall."** Q7 2016.
 
-## 3. Cross-topic traps (high yield — could be a standalone class)
+## 3. Skills that show up across ALL topics — teach these once and they pay back everywhere
 
-| Cross-trap | Where it appears |
-|---|---|
-| **Fair-test variables (change/keep/measure)** | Every paper has 2-3 |
-| **Scientific term vs everyday word** | "Boiling vs evaporation" Q36 2017, "Temperature vs heat" Q36 2018, "Pollination vs fertilisation" Q32 2017, "Breathing vs respiration" Q33 2017 |
-| **Energy chain mandatory in non-energy questions** | Q43 2016, Q40 2021, Q38cd 2017 |
-| **"State the change AND link to outcome"** | Universal: 2m = state + link; 4m = state + mechanism + organism response + ecosystem consequence |
+These are the recurring SKILLS the marker rewards across many different topics. A student who masters them picks up marks even on questions about topics they didn't revise.
+
+### Skill 1 — Fair-test variables (change / keep the same / measure)
+
+The most common Booklet B set-piece. The student is shown an experiment description and asked to identify:
+- **the variable CHANGED** (what was deliberately varied — only ONE thing)
+- **variables KEPT THE SAME** (everything else that could affect the result)
+- **the variable MEASURED** (the outcome)
+
+Examples across topics — same skill, different setups:
+- Q33 2019 (Interactions) — Susan's leaf-litter vs soil moisture
+- Q9 2022-24 (Interactions) — Secchi disc vs algae turbidity
+- Q32 2021 (Reproduction) — water type vs mosquito hatching
+- Q33 2020 (Photosynthesis) — light vs plant growth
+- Q5 2022-24 (Plant parts) — varying water vs leaf yellowing
+- Q38 2020 (Forces) — surface type vs friction
+
+**Every paper has at least 2 of these.** Drill the change/keep/measure template once and harvest the marks regardless of topic.
+
+### Skill 2 — Specific scientific term vs everyday paraphrase
+
+PSLE marking docks marks when a student substitutes a vague everyday word for the precise science term. The marker is hunting for the named term — paraphrase loses marks even if the meaning is roughly right.
+
+Confusable pairs that PSLE actively tests:
+- "Boiling" vs "evaporation" (Q36 2017) — boiling happens AT boiling point; evaporation happens at any temperature
+- "Temperature" vs "heat" (Q36 2018) — temperature = how hot; heat = energy
+- "Pollination" vs "fertilisation" (Q32 2017) — pollination = pollen moves to stigma; fertilisation = nuclei fuse
+- "Breathing" vs "respiration" (Q33 2017) — breathing = inhale/exhale; respiration = cellular energy release
+- "Mass" vs "weight" — mass = matter content; weight = pull of gravity
+- Anatomy names (nose, lungs, heart) — see the "anatomy" rule already in the marker; "inhales air" doesn't satisfy "takes in oxygen through the nose"
+
+### Skill 3 — Energy chain even when the question isn't about energy
+
+Forces and Reproduction questions often "secretly" expect an energy-conversion sentence as part of the answer, even though the question is phrased about motion or growth.
+
+Examples:
+- Q43 2016 (Forces) — balloon released; expected answer mentions elastic PE → KE
+- Q40 2021 (Forces) — toy rocket; expected answer mentions elastic PE → KE → GPE
+- Q38cd 2017 (Forces) — spring stiffness; expected answer mentions which spring has more elastic PE
+
+**Rule of thumb:** if the answer involves something moving, releasing, or transforming, name the energy chain even if not asked. It's usually a hidden 1-mark point.
+
+### Skill 4 — "State the change AND link to outcome" sentence structure
+
+Universal marking pattern PSLE applies across Interactions, Heat, Electrical, and Reproduction:
+- **2-mark answer** = STATE the change + LINK to the outcome ("plant grows faster BECAUSE …")
+- **4-mark answer** = STATE the change + MECHANISM + ORGANISM response + ECOSYSTEM consequence
+
+Practising this 4-step skeleton lifts a student from 2-mark partial credit to 4-mark full marks on the same question.
 
 ## 4. The 5-mark killer OEQs (10 across the corpus)
 
@@ -109,7 +167,12 @@ Comparing early avg (2016-2019) vs recent avg (2020/2021/2025):
 2. **Forces & energy: the launch problem** — name all forces (incl. friction on stationary), energy chain w/ heat from friction, comparison sentences, fair-test signals, improvements.
 3. **Heat: things expand differently** — differential expansion, temp vs heat vocab, rate ∝ ΔT, trapped-air insulator, cooking/cooling graphs.
 4. **Interactions: cascades & adaptations** — already shipped; needs fair-test slide and graph-reading enhancement.
-5. **Plant systems (rising fast)** — water vs food tubes, cell parts shared with animals, stomata, photosynthesis sentence, day-night gas swap + variegated-leaf.
+5. **Plant systems (stable, MCQ-heavy block)** — water vs food tubes, cell parts shared with animals, stomata, photosynthesis sentence, day-night gas swap + variegated-leaf. (Note: corrected from "rising fast" — including the 2022-2024 bundle, Plant parts is roughly stable at 2.0 q/yr, not rising.)
+
+### Topics to DE-PRIORITISE
+
+- **Photosynthesis** — actually falling (−0.7 q/yr). The 14 OEQs in the corpus are spread across 10 years and the topic is shrinking. Build only if you have spare capacity after the top 4.
+- **Light energy** — flat at 1.0 q/yr, low yield.
 
 ## Notes
 
