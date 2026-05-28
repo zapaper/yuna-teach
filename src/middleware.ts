@@ -48,6 +48,14 @@ function methodAwareAllowed(pathname: string, method: string): boolean {
   // before the user has a session — must be reachable unauth. Read
   // only, returns just { available: boolean }.
   if (pathname === "/api/users/check" && method === "GET") return true;
+  // GET /api/users/lookup?id=... = "fetch username by userId" used
+  // by the login page to pre-fill the identity field when bounced
+  // from /home/<userId> with no session. Called before the user has
+  // a session. Read-only, returns just { name: string | null }.
+  // Exposure equivalent to /api/users/check (userId → name leak vs
+  // name → exists leak); userId is already in the URL the caller
+  // arrived from.
+  if (pathname === "/api/users/lookup" && method === "GET") return true;
   return false;
 }
 
