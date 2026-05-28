@@ -1065,7 +1065,7 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
 
   ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — enforce after computing partial credit above):
-  A wrong final answer can NEVER receive FULL marks. The cap is `marksAvailable - 1`. Within that cap, USE JUDGMENT about how much of the solving was correct:
+  A wrong final answer can NEVER receive FULL marks. The cap is (marksAvailable − 1). Within that cap, USE JUDGMENT about how much of the solving was correct:
     - 2-mark question wrong → 0 if nothing right, 1 if some method right; **MAX 1**
     - 3-mark question wrong → 0 / 1 / 2 depending on working quality; **MAX 2**
       · 1 mark — student set up the problem reasonably but made an early conceptual or arithmetic error.
@@ -2443,7 +2443,7 @@ Instructions:
    - For MCQ (single option answer): no partial marks.
 
    ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — for Math OEQ only):
-   A wrong final answer can NEVER receive FULL marks. The cap is `marksAvailable - 1`. Within the cap, USE JUDGMENT about how much of the solving was correct:
+   A wrong final answer can NEVER receive FULL marks. The cap is (marksAvailable − 1). Within the cap, USE JUDGMENT about how much of the solving was correct:
      - 2-mark question wrong → 0 / 1; MAX 1
      - 3-mark question wrong → 0 / 1 / 2; MAX 2 (1 if early misstep; 2 if only the last step or a small slip is wrong)
      - 4-mark question wrong → 0 / 1 / 2 / 3; MAX 3
