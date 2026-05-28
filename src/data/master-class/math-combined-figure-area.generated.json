@@ -1,0 +1,297 @@
+{
+  "slug": "math-combined-figure-area",
+  "subject": "math",
+  "level": "P5-P6",
+  "topicLabel": "Combined Figure Area",
+  "title": "PSLE Math — Combined Figure Area & Perimeter",
+  "stats": {
+    "headline": "Combined-figure questions appear on every PSLE Paper 2 — 3 to 5 marks each. Once you recognise the 4 build-up patterns and learn when to use π = 22/7 vs 3.14, these become some of the easier high-mark questions in the paper."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Combined Figure Area",
+      "mascotImage": "/master-class/patterns/panda-welcome.png",
+      "body": "A \"combined figure\" is a shape built from 2 or more standard shapes — rectangles, squares, triangles, full circles, semicircles, quarter circles. PSLE always asks one of: shaded area, total area, or perimeter.",
+      "bullets": [
+        "**The 4 build-up patterns :**\n-- 🔵 **Pattern A** — cut OUT -- 🟢 **Pattern B** — glued together -- 🟠 **Pattern C** — overlapping -- 🟣 **Pattern D** — rearranged into a simpler shape",
+        "**The π convention :**\n-- Use **π = 22/7** r = 7, 14, 21, 28 -- Use **π = 3.14** r = 5, 10, 12, 15, 16 💡",
+        "** **\nRectangle = L × B · Square = side² · Triangle = ½ × base × height\nCircle area = **π × r²** · Semicircle = ½ × π × r² · Quarter circle = ¼ × π × r²"
+      ],
+      "narration": {
+        "bullets": [
+          "**The 4 build-up patterns PSLE rotates:**\n-- 🔵 **Pattern A** — one big shape with smaller pieces cut OUT (shaded = big − small).\n-- 🟢 **Pattern B** — several shapes glued together (area = sum of pieces).\n-- 🟠 **Pattern C** — two shapes overlapping (must subtract the overlap once).\n-- 🟣 **Pattern D** — pieces that can be rearranged into a simpler shape (2 half-circles = 1 circle, etc.).",
+          "**The π (pi) convention PSLE always tells you:**\n-- Use **π = 22/7** when the radius is a multiple of 7 — like r = 7, 14, 21, 28.\n-- Use **π = 3.14** when the radius is anything else — like r = 5, 10, 12, 15, 16.\n💡 The question stem ALWAYS tells you which π to use. Use what it says — don't switch.",
+          "**Standard area formulas to memorise:**\nRectangle = L × B · Square = side² · Triangle = ½ × base × height\nCircle area = **π × r²** · Semicircle = ½ × π × r² · Quarter circle = ¼ × π × r²"
+        ]
+      }
+    },
+    {
+      "title": "The 4-step method — every combined figure",
+      "mascotImage": "/master-class/patterns/panda-teaching-action.png",
+      "body": "Run these 4 steps on every combined-figure question. They take 30 seconds and they catch the two most common mistakes — wrong π, and using diameter as radius.",
+      "bullets": [
+        "**1 — Identify the SHAPES.**",
+        "**2 — Decide which π to use.** 22/7 3.14",
+        "**3 — RADIUS, not diameter!** diameter r = ½ × d",
+        "**4 — Decide: ADD or SUBTRACT?**\n-- Pattern A → big − small (subtract).\n-- Pattern B → sum of pieces (add).\n-- Pattern C → add both − overlap (add, then subtract overlap).\n-- Pattern D → rearrange first, then it usually becomes Pattern A or B.",
+        "💡 ** ** half the rectangle"
+      ],
+      "narration": {
+        "bullets": [
+          "Step **1 — Identify the SHAPES.**\nLabel each piece with what it is — rectangle, semicircle, quarter circle. Even sketch dotted lines if you need to cut a piece off.",
+          "Step **2 — Decide which π pi to use.**\nLook at the radius (or diameter ÷ 2). Multiple of 7 → 22/7. Otherwise → 3.14. Write your chosen π at the top of the working — once.",
+          "Step **3 — RADIUS, not diameter!**\nIf the question gives a diameter — circle it in pencil and write r = ½ × d next to it. This single step prevents the #1 mistake in this topic.",
+          "Step **4 — Decide: ADD or SUBTRACT?**\n-- Pattern A → big − small (subtract).\n-- Pattern B → sum of pieces (add).\n-- Pattern C → add both − overlap (add, then subtract overlap).\n-- Pattern D → rearrange first, then it usually becomes Pattern A or B.",
+          "💡 **Bonus check:** After your final answer, ask \"does this look about right?\" If the shaded region looks like half the rectangle but your answer is bigger than the rectangle — you've made a sign error somewhere."
+        ]
+      }
+    },
+    {
+      "title": "Pattern A — Big shape minus small shape",
+      "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
+      "body": "Clue: a smaller shape is \"cut out\", \"removed\", or shown as a hole inside the bigger shape. Shaded area = big − small.",
+      "bullets": [
+        "**📝 Worked example :**\nA square has a circle cut out from the middle.\nThe square has side **28 cm**.\nThe circle has diameter **28 cm**.",
+        "** **\nCircle diameter = 28 → **r = 14 cm**",
+        "** **\nSquare area = 28 × 28 = **784 cm²** Circle area = 22/7 × 14 × 14 = 22/7 × 196 = **616 cm²**",
+        "** **\nShaded = 784 − 616 = **168 cm²**",
+        "⚠️ ** ** half the diameter first"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example from PSLE 2019:**\nA square has a circle cut out from the middle.\nThe square has side **28 cm**.\nThe circle has diameter **28 cm**.\nFind the shaded area. Take π = 22/7.",
+          "**Step 1 — Diameter to radius.**\nCircle diameter = 28 → **r = 14 cm**.",
+          "**Step 2 — Compute each piece.**\nSquare area = 28 × 28 = **784 cm²**.\nCircle area = 22/7 × 14 × 14 = 22/7 × 196 = **616 cm²**.",
+          "**Step 3 — Subtract.**\nShaded = 784 − 616 = **168 cm²**.",
+          "⚠️ **Common wrong move:** students plug d = 28 straight into πr² and get 22/7 × 28² = 2464. Or they compute only the circle area and forget the subtraction. Always: half the diameter first, then subtract second."
+        ]
+      }
+    },
+    {
+      "title": "Pattern B — Sum of standard shapes",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "body": "Clue: the figure is a rectangle with semicircles glued to one end, or a square with a quarter circle on one corner. Add up every piece. Bookkeeping matters — list each piece before adding.",
+      "bullets": [
+        "**📝 Worked example:**\nA figure is made of a rectangle (length **20 cm**, breadth\n**14 cm**) with a **semicircle** glued onto one short side.\nThe semicircle's diameter is **14 cm**",
+        "** **\nSemicircle diameter = 14 → **r = 7 cm**",
+        "** **\nRectangle = 20 × 14 = **280 cm²** Semicircle = ½ × 22/7 × 7 × 7 = ½ × 22/7 × 49 = ½ × 154 = **77 cm²**",
+        "** **\nTotal = 280 + 77 = **357 cm²**",
+        "💡 ** ** perimeter"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example:**\nA figure is made of a rectangle (length **20 cm**, breadth\n**14 cm**) with a **semicircle** glued onto one short side.\nThe semicircle's diameter is **14 cm**.\nFind the total area. Take π = 22/7.",
+          "**Step 1 — Diameter to radius.**\nSemicircle diameter = 14 → **r = 7 cm**.",
+          "**Step 2 — Compute each piece.**\nRectangle = 20 × 14 = **280 cm²**.\nSemicircle = ½ × 22/7 × 7 × 7 = ½ × 22/7 × 49 = ½ × 154 = **77 cm²**.",
+          "**Step 3 — Add.**\nTotal = 280 + 77 = **357 cm²**.",
+          "💡 **Perimeter version:** if the question asked for perimeter, the rule changes — count the OUTSIDE edges only. For this figure: 20 + 14 + 20 (the 3 straight sides of the rectangle the semicircle didn't cover) + half-circle-arc (½ × 2 × 22/7 × 7 = 22). Total perimeter = 76 cm. Don't double-count the shared edge."
+        ]
+      }
+    },
+    {
+      "title": "Pattern C — Overlapping shapes (subtract the overlap)",
+      "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
+      "body": "Two shapes that overlap. If you naively add both areas, the overlap region gets counted TWICE. Fix: add both, then subtract the overlap once.",
+      "bullets": [
+        "**📝 Worked example :**\nTwo circles overlap. Each circle has radius **7 cm** and\narea = 22/7 × 49 = **154 cm²** The overlap region has area **20 cm²**",
+        "** **\n154 + 154 = **308 cm²**",
+        "** **\nTotal covered = 308 − 20 = **288 cm²**",
+        "💡 ** **",
+        "💡 ** ** (quarter circle − triangle) × 2"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example PSLE-style, simplified:**\nTwo circles overlap. Each circle has radius **7 cm** and\narea = 22/7 × 49 = **154 cm²**.\nThe overlap region has area **20 cm²**.\nFind the TOTAL area covered by the two circles together.",
+          "**Step 1 — Add both circles.**\n154 + 154 = **308 cm²** — but this double-counts the overlap region.",
+          "**Step 2 — Subtract the overlap ONCE.**\nTotal covered = 308 − 20 = **288 cm²**.",
+          "💡 **Why subtract just once, not twice?** The overlap is in BOTH circles, so when you add them it appears 2× — once for each circle. Subtracting it 1× brings it back to being counted 1×.",
+          "💡 **Overlap-only question:** if the question asks for just the OVERLAP area, the working is different. Often you need to compute (quarter circle − triangle) × 2 for two overlapping equal circles whose centres connect through the overlap."
+        ]
+      }
+    },
+    {
+      "title": "Try it — Big minus small & Sum of shapes",
+      "mascotImage": "/master-class/patterns/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Pattern A — Big minus small",
+          "stem": "A rectangle measures 30 cm by 14 cm. A circle of diameter 14 cm\nis cut out from the middle. Find the area of the shaded\n(remaining) region. Take π = 22/7.",
+          "options": [
+            "266 cm²",
+            "420 cm²",
+            "154 cm²",
+            "574 cm²"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Rectangle = 30 × 14 = 420 cm². Circle: d = 14 → r = 7 → area = 22/7 × 49 = 154 cm². Shaded = 420 − 154 = 266 cm². (Distractor 420 = forgot to subtract; 154 = gave only the circle area; 574 = added instead of subtracted.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern B — Sum of shapes",
+          "stem": "A figure consists of a square of side 14 cm with a quarter\ncircle of radius 14 cm attached to one corner (sharing two\nsides of the square). Find the total area of the figure.\nTake π = 22/7.",
+          "options": [
+            "196 cm²",
+            "350 cm²",
+            "154 cm²",
+            "112 cm²"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Square = 14 × 14 = 196 cm². Quarter circle = ¼ × 22/7 × 14 × 14 = ¼ × 616 = 154 cm². Total = 196 + 154 = 350 cm². (Distractor 196 = only the square; 154 = only the quarter circle.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Pattern D — Rearrange / cut-and-paste",
+      "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
+      "body": "The figure looks complicated, but pieces can be MOVED to make a simpler shape. The most useful rearrangements are: 4 quarter circles of the same radius = 1 full circle; 2 semicircles of the same radius = 1 full circle.",
+      "bullets": [
+        "**📝 Worked example :**\nA figure is made of **4 identical quarter circles**, each of\nradius **7 cm**, arranged inside a square of side **14 cm** so\nthey all fit and their curved edges face inward.",
+        "** **\n4 quarter circles of radius 7 = **1 full circle of radius 7**",
+        "** **\nSquare = 14 × 14 = 196 cm².\nCombined quarter circles = 1 circle = 22/7 × 49 = **154 cm²** Shaded = 196 − 154 = **42 cm²**",
+        "💡 ** **",
+        "💡 ** **"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example PSLE-style:**\nA figure is made of **4 identical quarter circles**, each of\nradius **7 cm**, arranged inside a square of side **14 cm** so\nthey all fit and their curved edges face inward.\nFind the area of the SHADED region inside the square but outside the quarter circles. Take π = 22/7.",
+          "**Step 1 — Rearrange.**\n4 quarter circles of radius 7 = **1 full circle of radius 7** — they fit together perfectly because each is a quarter.",
+          "**Step 2 — Now it's Pattern A.**\nSquare = 14 × 14 = 196 cm².\nCombined quarter circles = 1 circle = 22/7 × 49 = **154 cm²**.\nShaded = 196 − 154 = **42 cm²**.",
+          "💡 **The rearrange shortcut saves time:** without it you'd compute 4 quarter circles separately and add. The answer's the same, but rearranging is faster, easier to draw, and harder to mess up the arithmetic on.",
+          "💡 **Other useful rearrangements:** 2 quarter circles back-to-back = 1 semicircle; a semicircle pulled out and placed on the other side leaves a rectangle — sometimes the SHADED area equals a plain rectangle once you move pieces around."
+        ]
+      }
+    },
+    {
+      "title": "Top 5 traps to avoid",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "body": "The most-missed mistakes in combined-figure problems. Each one typically costs 2-3 marks per paper.",
+      "bullets": [
+        "⚠️ ** 1 — Using diameter as radius.**\nπr² uses RADIUS, not diameter. If the question gives d, write r = d ÷ 2 immediately. This single mistake costs more marks than any other in this topic.",
+        "⚠️ ** 2 — Wrong π .** 22/7 for radius multiples of 7 3.14 for everything else",
+        "⚠️ ** 3 — Counting an overlap twice.**",
+        "⚠️ ** 4 — Perimeter vs area confusion.** semicircle perimeter",
+        "⚠️ ** 5 — Forgetting interior edges in perimeter.**"
+      ],
+      "narration": {
+        "bullets": [
+          "⚠️ **Trap 1 — Using diameter as radius.**\nπr² uses RADIUS, not diameter. If the question gives d, write r = d ÷ 2 immediately. This single mistake costs more marks than any other in this topic.",
+          "⚠️ **Trap 2 — Wrong π pi.**\nThe question stem tells you which to use. Use 22/7 for radius multiples of 7, 3.14 for everything else. Mixing them up gives a slightly-wrong answer the marker will catch.",
+          "⚠️ **Trap 3 — Counting an overlap twice.**\nWhen two shapes overlap, adding both whole areas double-counts the overlap. Subtract the overlap region ONCE to fix.",
+          "⚠️ **Trap 4 — Perimeter vs area confusion.**\nArea uses πr². Perimeter (circumference) uses 2πr. For a semicircle perimeter, it's ½ × 2πr PLUS the straight diameter — students often forget the straight part.",
+          "⚠️ **Trap 5 — Forgetting interior edges in perimeter.**\nPerimeter = OUTSIDE edges only. If two shapes share an edge inside the figure, that shared edge is NOT part of the outside perimeter. Trace the outside boundary with your finger before adding."
+        ]
+      }
+    },
+    {
+      "title": "Try it — Overlap & Rearrange",
+      "mascotImage": "/master-class/patterns/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Pattern C — Overlap subtraction",
+          "stem": "Two rectangles overlap. The first rectangle has area 60 cm²\nand the second has area 45 cm². The overlap region has area\n15 cm². What is the total area covered by both rectangles?",
+          "options": [
+            "90 cm²",
+            "105 cm²",
+            "120 cm²",
+            "75 cm²"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Total covered = 60 + 45 − 15 = 90 cm². You subtract the overlap ONCE because adding both rectangles counts the overlap twice (once in each rectangle). (Distractor 105 = just added without subtracting overlap; 120 = subtracted overlap twice.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern D — Rearrange",
+          "stem": "A figure is made of 2 semicircles of radius 7 cm joined at their\nstraight edges (forming a full circle) plus a square of side\n14 cm attached on one side. Find the total area of the figure.\nTake π = 22/7.",
+          "options": [
+            "350 cm²",
+            "196 cm²",
+            "154 cm²",
+            "287 cm²"
+          ],
+          "correctAnswer": 1,
+          "explanation": "The 2 semicircles of radius 7 rearrange into 1 full circle. Circle area = 22/7 × 7 × 7 = 154 cm². Square = 14 × 14 = 196 cm². Total = 154 + 196 = 350 cm².",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Start practising!",
+      "mascotImage": "/master-class/patterns/panda-cta.png",
+      "body": "Mixed practice drawn from real PSLE-style combined-figure problems. Trains the reflex of converting diameter to radius FIRST, picking the right π SECOND, and only THEN deciding whether to add or subtract.",
+      "bullets": [
+        "**mix of 10 questions** big-minus-small, sum-of-shapes, overlap, rearrange",
+        "Wrong answers auto-saved reviewed in 1 week",
+        "AI marks partial credit"
+      ],
+      "cta": {
+        "label": "Click here to start practice",
+        "quizSpec": {
+          "title": "Mastery: Combined Figure Area",
+          "mcq": 6,
+          "oeq": 4
+        }
+      },
+      "narration": {
+        "bullets": [
+          "You'll tackle a **mix of 10 questions** across all four patterns — big-minus-small, sum-of-shapes, overlap, and rearrange.",
+          "Any Wrong answers are auto-saved and reviewed in 1 week.",
+          "The AI marks your working step-by-step — partial credit if you spotted the right pattern but slipped on arithmetic."
+        ]
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "π {pi} convention",
+      "definition": "Use π = 22/7 when the radius is a multiple of 7 (r = 7, 14, 21, 28). Use π = 3.14 otherwise. The PSLE question stem always tells you which to use — write it down once at the top of your working."
+    },
+    {
+      "word": "radius vs diameter",
+      "definition": "Radius = ½ × diameter. The area formula πr² and circumference 2πr both use RADIUS. If the question gives a diameter, your VERY FIRST step is to halve it. This is the most common mistake in the topic."
+    },
+    {
+      "word": "overlap subtraction",
+      "definition": "When two shapes overlap, the combined covered area = (shape 1) + (shape 2) − (overlap). Subtract once, not twice — adding both shapes already counts the overlap one extra time."
+    },
+    {
+      "word": "rearrange shortcut",
+      "definition": "4 quarter circles of same radius = 1 full circle. 2 semicircles of same radius = 1 full circle. Spotting this lets you skip drawing every piece — combine first, then apply Pattern A or B."
+    },
+    {
+      "word": "perimeter rule",
+      "definition": "Perimeter = OUTSIDE edges only. For a semicircle on a flat side: perimeter = ½ × 2πr (the curve) + the straight diameter. Don't include any shared interior edge in perimeter calculations."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "big-minus-small",
+      "label": "Pattern A — Big shape minus small",
+      "description": "Smaller shape cut out of a bigger one. Shaded area = big − small. Always halve diameter to radius first, then compute each piece.",
+      "slideIdx": 2
+    },
+    {
+      "id": "sum-of-shapes",
+      "label": "Pattern B — Sum of standard shapes",
+      "description": "Multiple shapes joined together. Area = sum of pieces. List each piece, compute each, then add. Don't double-count shared edges in perimeter.",
+      "slideIdx": 3
+    },
+    {
+      "id": "overlap-subtraction",
+      "label": "Pattern C — Overlapping regions",
+      "description": "Two shapes overlap. Total covered = shape 1 + shape 2 − overlap (subtract once). The overlap-only area uses a separate trick: (quarter circle − triangle) × 2 for symmetric overlaps.",
+      "slideIdx": 4
+    },
+    {
+      "id": "rearrange",
+      "label": "Pattern D — Rearrange / cut-and-paste",
+      "description": "4 quarter circles = 1 circle. 2 semicircles = 1 circle. Combine the pieces into a simpler standard shape first, then apply Pattern A or B.",
+      "slideIdx": 6
+    }
+  ]
+}
