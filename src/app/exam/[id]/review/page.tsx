@@ -104,6 +104,19 @@ function SubmissionImage({ src, alt, className, aspectRatio, imgStyle, onError }
   );
 }
 
+// Multi-part marker output (e.g. "(a) missing | (b) missing | (c) ___")
+// counts as blank when every sub-part is a missing/blank/skipped marker.
+// Used by the canvas-hiding gate so we don't render a tall white box
+// just because the marker tagged each sub-part as missing instead of
+// emitting "no answer detected" globally.
+function isAllPartsMissing(saLower: string): boolean {
+  if (!saLower) return false;
+  const parts = saLower.split("|").map(p => p.trim()).filter(Boolean);
+  if (parts.length === 0) return false;
+  const MISSING_RE = /^(?:\([^)]+\)\s*:?\s*)?(blank|none|empty|skipped|missing|incorrect|wrong|n\/?a|-)\.?$/i;
+  return parts.every(p => MISSING_RE.test(p));
+}
+
 // AI-explainer cache reader. Newer entries are JSON ({solution,
 // diagrams}); older ones are bare text from before the bar-model
 // feature shipped. JSON.parse-then-shape-check handles both.
@@ -3368,7 +3381,8 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const isBlankAnswer = !currentQ.studentAnswer
                                               || sa === "__skipped__"
                                               || sa === "no answer detected"
-                                              || sa.startsWith("no answer");
+                                              || sa.startsWith("no answer")
+                                              || isAllPartsMissing(sa);
                                             if (isBlankAnswer && !sp.diagramBase64 && !sp.refImageBase64) return null;
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             // Both drawable AND non-drawable subparts now use
@@ -3494,15 +3508,17 @@ function ExamReviewContent({ id }: { id: string }) {
                           // Hide the entire 'Written Answer' canvas when the
                           // marker recorded the question as blank — no point
                           // rendering a 450-pixel-tall white box that adds
-                          // nothing. 'No answer detected' is the marker's
-                          // standard tag for missing blue ink (see
-                          // marking.ts BLUE INK CHECK).
+                          // nothing. Catches 'No answer detected' (BLUE INK
+                          // CHECK in marking.ts) AND multi-part shapes like
+                          // '(a) missing | (b) missing' where the marker
+                          // tagged every sub-part as blank.
                           const sa = (currentQ.studentAnswer ?? "").trim().toLowerCase();
                           const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
                           const isBlankAnswer = !currentQ.studentAnswer
                             || sa === "__skipped__"
                             || sa === "no answer detected"
-                            || sa.startsWith("no answer");
+                            || sa.startsWith("no answer")
+                            || isAllPartsMissing(sa);
                           if (isBlankAnswer && !hasDrawable) return null;
                           const overlayKey = `question:${currentQ.id}`;
                           // Wrapper height comes from the trimmed image's

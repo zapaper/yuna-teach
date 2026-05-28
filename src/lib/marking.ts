@@ -631,6 +631,39 @@ export function parsePartAnswers(answer: string | null | undefined): Map<string,
 }
 
 /**
+ * PSLE OEQ Science answer keys sometimes append "| Explanation: …" as
+ * a teacher-facing elaboration — NOT something the student is required
+ * to write. Strip that suffix before sending to the AI marker so the
+ * model compares handwriting against the required answer, not against
+ * marker notes.
+ *
+ * Gated to PSLE × Science × OEQ only, because other source banks
+ * (school WAs, generated quizzes) may include the explanation as part
+ * of the expected answer.
+ */
+function stripExplanationFromAnswer(answer: string | null | undefined): string | null {
+  if (!answer) return answer ?? null;
+  const m = answer.match(/^([\s\S]*?)\s*\|\s*explanation\s*:[\s\S]*$/i);
+  return m ? m[1].trim() : answer;
+}
+
+function shouldStripExplanation(
+  paper: { subject?: string | null; title?: string | null; level?: string | null } | null | undefined,
+  answer: string | null | undefined,
+): boolean {
+  if (!answer || !paper) return false;
+  const subject = (paper.subject ?? "").toLowerCase();
+  if (!subject.includes("science")) return false;
+  const title = (paper.title ?? "").toLowerCase();
+  const level = (paper.level ?? "").toLowerCase();
+  if (!title.includes("psle") && !level.includes("psle")) return false;
+  // OEQ only — MCQ answers are short tokens like "1" / "(2)" with no
+  // explanation suffix, so this check is mostly belt-and-braces.
+  if (isMcqAnswer(answer)) return false;
+  return true;
+}
+
+/**
  * Build the answer description string for the marking prompt.
  * When an answer image is present, explicitly spells out per sub-part
  * whether to mark against TEXT or against the IMAGE. A sub-part is
@@ -1400,10 +1433,13 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   // Step 2: Mark normally
   const yStart = useCrop ? "0%" : (question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown");
   const yEnd = useCrop ? "100%" : (question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown");
-  const answerDesc = buildAnswerDesc(question.answer, !!question.answerImageData);
+  const answerForPrompt = shouldStripExplanation(paper, question.answer)
+    ? stripExplanationFromAnswer(question.answer)
+    : question.answer;
+  const answerDesc = buildAnswerDesc(answerForPrompt, !!question.answerImageData);
   const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
-  const printWarning = question.answer
-    ? ` ⚠️ WARNING: The text "${question.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
+  const printWarning = answerForPrompt
+    ? ` ⚠️ WARNING: The text "${answerForPrompt}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
     : "";
   const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
   const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
@@ -1604,10 +1640,13 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         .map((q) => {
           const yStart = isCropped ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = isCropped ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
+          const answerForPrompt = shouldStripExplanation(paper, q.answer)
+            ? stripExplanationFromAnswer(q.answer)
+            : q.answer;
+          const answerDesc = buildAnswerDesc(answerForPrompt, !!q.answerImageData);
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-          const printWarning = q.answer
-            ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
+          const printWarning = answerForPrompt
+            ? ` [PRINTED TEXT "${answerForPrompt}" may appear on page — IGNORE unless handwritten in BLUE ink]`
             : "";
           const cropNote = isCropped ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
           return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
@@ -1892,7 +1931,10 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
           const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
+          const answerForPrompt = shouldStripExplanation(paper, q.answer)
+            ? stripExplanationFromAnswer(q.answer)
+            : q.answer;
+          const answerDesc = buildAnswerDesc(answerForPrompt, !!q.answerImageData);
           const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
           const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}${cropNote}`;
@@ -2002,7 +2044,10 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
           const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
+          const answerForPrompt = shouldStripExplanation(paper, q.answer)
+            ? stripExplanationFromAnswer(q.answer)
+            : q.answer;
+          const answerDesc = buildAnswerDesc(answerForPrompt, !!q.answerImageData);
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const retryAnswerOneHint = q.answer?.trim() === "1"
             ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
