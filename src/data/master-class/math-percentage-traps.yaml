@@ -1,0 +1,366 @@
+# Master Class: PSLE Math — Percentage Traps
+# --------------------------------------------
+# Situations where naive percentage arithmetic gives the wrong answer.
+# Most-tested category at PSLE Paper 2 — 4-5 marks each.
+#
+# Five patterns:
+#   A. Reverse % ("find original from sale price")    — most-tested
+#   B. Increase then decrease ≠ zero                    — symmetry trap
+#   C. Successive discounts (% on top of %)            — discount math
+#   D. Mixed % and fractions                            — nested remainders
+#   E. % of WHAT? (different base)                      — Ping textbooks trap
+#
+# Slide flow (10 slides):
+#   0  Welcome           — unitary % method + the 1 question
+#   1  The "100% of WHAT?" check
+#   2  Pattern A: Reverse % (worked: jacket / museum visitors)
+#   3  Pattern B: Increase then decrease (worked: +20%, −20%)
+#   4  Pattern C: Successive discounts (worked: 2 fans, different %)
+#   5  Try it — A & B (2 MCQs)
+#   6  Pattern D: Mixed % and fractions (worked: Peggy 75%, 40%)
+#   7  Top 5 traps
+#   8  Try it — C & D (2 MCQs)
+#   9  Start practising! (CTA)
+#
+# Filler words in {curly-braces} are SPOKEN in the TTS narration but
+# hidden from the rendered slide — same convention as grammar-mcq-1.
+
+slug: math-percentage-traps
+subject: math
+level: P5-P6
+topicLabel: Percentage Traps
+title: "PSLE Math — Percentage Traps (reverse, compound, mixed)"
+
+stats:
+  headline: >-
+    Percentage problems are worth 4-5 marks each on PSLE Paper 2 — and
+    they hide the same traps every year. Once you adopt the unitary
+    method (100% → 1% → answer) and learn the "100% of what?" question,
+    you can crack any compound or reverse percentage problem in one
+    line.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Percentage Traps"
+    mascotImage: /master-class/patterns/panda-welcome.png
+    body: >-
+      Percentages look simple — until two of them stack. "20% discount
+      then 10% GST" is NOT 10% off. "+20% then −20%" doesn't bring you
+      back to the start. The fix is one habit (the unitary method) and
+      one question (100% of what?).
+    bullets:
+      - |-
+        **The 5 patterns {PSLE rotates}:**
+        -- 🔵 **Pattern A** — {find the original from the }sale price (reverse %){.}
+        -- 🟢 **Pattern B** — {percentage }increase then decrease isn't zero{.}
+        -- 🟠 **Pattern C** — {two }successive discounts on different items{.}
+        -- 🟣 **Pattern D** — {mixed }% and fractions{ (nested remainders).}
+        -- 🔴 **Pattern E** — {% of }WHAT? (different base){.}
+      - |-
+        **The unitary % method {PSLE marking schemes always use}:**
+        Step 1: Identify what is "100%" (the original total).
+        Step 2: Convert what you KNOW into its % equivalent.
+        Step 3: Divide to find what 1% equals.
+        Step 4: Multiply by 100 to find what 100% equals.
+        💡 {Example: "85% → $57.80, so 1% → $0.68, so 100% → $68."}
+      - |-
+        {Next slide: }the ONE question {to ask every time you see a percentage — }"100% of what?"
+
+  # ─── Slide 1: The "100% of WHAT?" check ─────────────────────
+  - title: "The 1 question — '100% of WHAT?'"
+    mascotImage: /master-class/patterns/panda-teaching-action.png
+    body: >-
+      Every percentage refers to a 100%. The trap is when there's MORE
+      THAN ONE possible 100% in the problem. Pause and write down what
+      the 100% is, in words, before doing any arithmetic.
+    bullets:
+      - |-
+        **Examples {of finding the 100%}:**
+        -- "20% discount on a $50 shirt" → 100% = original shirt price = $50.
+        -- "Sold 25% of his stickers" → 100% = his original stickers.
+        -- "Earns 15% more than Ben" → 100% = Ben's earnings {(not his own!).}
+        -- "Sale price after 20% off is $80" → 100% = original price ({UNKNOWN — solve for this}).
+      - |-
+        **The {3} mini-rules {around 100%}:**
+        -- "X% MORE than Y" → Y is 100%, you're at (100 + X)%.
+        -- "X% LESS than Y" → Y is 100%, you're at (100 − X)%.
+        -- "X% OF Y" → Y is 100%, you're at X%.
+      - |-
+        ⚠️ **{The killer trap:}** {after one step, the base changes. "Increased the price by 20%, then discounted by 20%" — the 2nd "20%" is of the NEW price, not the original. The 100% shifted.}
+      - |-
+        💡 **{Strategy:}** {at every step in a multi-step problem, write down what's currently 100%. If it changes, mark it clearly. This single habit prevents Patterns B, C, D, E from going wrong.}
+
+  # ─── Slide 2: Pattern A — Reverse % ──────────────────────────
+  - title: "Pattern A — Reverse % (find the original)"
+    mascotImage: /master-class/patterns/panda-teaching-differences.png
+    body: >-
+      The question gives you the AFTER price and asks for the BEFORE.
+      The trap: students multiply by (1 + discount) instead of dividing
+      by (1 − discount). The unitary method makes the right answer
+      automatic.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2024}:**
+        After a **15% discount**, a jacket cost **$57.80**{.}
+        {Find the original price.}
+      - |-
+        **❌ The trap {answer}:** $57.80 × 1.15 = $66.47{. Wrong.}
+        {(Adding 15% back to the sale price gives a different base — not the original.)}
+      - |-
+        **✓ Unitary method:**
+        After a 15% discount, you pay 100 − 15 = **85%** of the original.
+        85% → $57.80.
+        1% → $57.80 ÷ 85 = **$0.68**.
+        100% → $0.68 × 100 = **$68**{.}
+      - |-
+        💡 **{The "÷ by what's left" shortcut:}** {if 85% → $57.80, then 100% → $57.80 ÷ 0.85 = $68. Same answer in one step.}
+      - |-
+        **📝 Worked example {from PSLE 2018, museum}:**
+        A museum had **9000 visitors** in August. This was a **20% increase**
+        from July.
+        {Find July's visitors.}
+        After +20%, August = **120%** of July. 120% → 9000 → 1% → 75 → 100% → **7500**{.}
+        (Naïve: 9000 × 0.8 = 7200 — wrong, because 9000 is already 120% of the original.)
+
+  # ─── Slide 3: Pattern B — Increase then decrease ─────────────
+  - title: "Pattern B — Increase then decrease isn't zero"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      "Price went up 20%, then down 20%." Most students say "back to
+      the start." Wrong — you end up LOWER. The second percentage is
+      taken of a LARGER number.
+    bullets:
+      - |-
+        **📝 Worked example:**
+        A shirt was originally **$100**.
+        Price went **up 20%**, then later **down 20%**{.}
+        {Find the final price.}
+      - |-
+        **{Step 1 — After +20%}:**
+        +20% of $100 = $20.
+        New price = **$120** {(this is the new 100% now).}
+      - |-
+        **{Step 2 — After −20%}:**
+        −20% of $120 = $24 {(NOT $20 — the base shifted).}
+        Final price = 120 − 24 = **$96**{.}
+      - |-
+        💡 **{Why $96 not $100?}** {The 20% decrease was of a }BIGGER number{ ($120 not $100), so the decrease "amount" is LARGER than the original increase ($24 not $20). Result: 4% lower overall.}
+      - |-
+        **📝 Real PSLE 2019 (Lily's savings):**
+        Jan = $50. Feb = +20% → **$60**. Mar = −15% of Feb → 60 − 9 = **$51**.
+        Mar vs Jan = +$1 = **2% increase** (not 5%).
+
+  # ─── Slide 4: Pattern C — Successive discounts ───────────────
+  - title: "Pattern C — Successive discounts (% on different items)"
+    mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
+    body: >-
+      Two items, different discount %s, same original price. The
+      trap: students average the discounts. The fix: think in
+      "percentage of original you paid" — then sum those.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2021, Xinyi's fans}:**
+        Xinyi bought 2 identical fans (same original price).
+        She got the 1st at **55% off** and the 2nd at **70% off**.
+        Total paid = **$127.50**{.}
+        {Find the original price of one fan.}
+      - |-
+        **❌ The trap {answer}:** Average discount = (55 + 70) ÷ 2 = 62.5%, so paid 37.5% of $2 × original{. Messy and wrong because the discounts don't average correctly.}
+      - |-
+        **✓ "Percentage paid" approach:**
+        Fan 1 at 55% off → paid 45% of original.
+        Fan 2 at 70% off → paid 30% of original.
+        Total paid as % of one fan: 45% + 30% = **75% of one fan's original price**{.}
+      - |-
+        **{Solve:}**
+        75% of one fan = $127.50 → 1% = $1.70 → 100% = **$170** {(original price of one fan).}
+      - |-
+        💡 **{Why this works:}** {you're paying 45% for one and 30% for the other, both of the SAME original price. So adding 45 + 30 = 75% of one original gives the total cost in % terms.}
+
+  # ─── Slide 5: Try it — Patterns A & B ────────────────────────
+  - title: "Try it — Reverse % & Compound %"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern A — Reverse %"
+        stem: |-
+          After a 25% discount, a bag costs $90. What was the original
+          price?
+        options:
+          - "$112.50"
+          - "$115"
+          - "$120"
+          - "$67.50"
+        correctAnswer: 3
+        explanation: >-
+          After 25% off → paid 75% of original. 75% → $90.
+          1% → $1.20. 100% → $120.
+          (Distractor $112.50 = $90 × 1.25 — the classic mistake of
+          adding 25% back to the sale price, which uses a different base.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern B — Increase then decrease"
+        stem: |-
+          A shirt's price was increased by 25% and then decreased by
+          20%. The final price compared to the original price is:
+        options:
+          - "Unchanged"
+          - "5% higher"
+          - "5% lower"
+          - "4% lower"
+        correctAnswer: 1
+        explanation: >-
+          Let original = $100. After +25% → $125. After −20% of $125
+          → $125 − $25 = $100. Final price = original = unchanged!
+          (This is a special case — 1.25 × 0.80 = 1.00. Most
+          increase-then-decrease pairs are NOT a wash, but +25% then
+          −20% happens to cancel exactly.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 6: Pattern D — Mixed % and fractions ─────────────
+  - title: "Pattern D — Mixed % and fractions"
+    mascotImage: /master-class/patterns/panda-teaching-nth-term.png
+    body: >-
+      Some problems mix % and fractions in the same chain — "spent
+      60% then 1/2 of the remainder". Treat them as nested fractions
+      (Pattern from Nested Fractions class). The "left after each
+      stage" shortcut still works.
+    bullets:
+      - |-
+        **📝 Worked example {from PSLE 2023, Peggy}:**
+        Peggy spent **75%** of her money on a calculator.
+        Then **40%** of the remainder on a book.
+        She had **$6.90 left**{.}
+        {How much money did Peggy have at first?}
+      - |-
+        **{Step 1 — Fraction left after each stage.}**
+        After calculator: 100 − 75 = **25% left**{.}
+        After book: 100 − 40 = **60% of that left**{.}
+      - |-
+        **{Step 2 — Multiply (nested fraction shortcut).}**
+        Final left = 25% × 60% = 0.25 × 0.6 = **15% of original**{.}
+        Or: 60% × 25% = 15%.
+      - |-
+        **{Step 3 — Use unitary method.}**
+        15% → $6.90 → 1% → $0.46 → 100% → **$46**{.}
+      - |-
+        ⚠️ **{The trap:}** {students add 75% + 40% = 115% used, which doesn't even make sense (you can't use more than 100%). It happens because they treat the 2nd % as }of the original{ — but the question says "of the remainder."}
+
+  # ─── Slide 7: Top 5 traps ────────────────────────────────────
+  - title: "Top 5 traps to avoid"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      The most common percentage mistakes at PSLE. Each one typically
+      costs 2-3 marks per paper.
+    bullets:
+      - |-
+        ⚠️ **{Trap }1 — Reverse % by adding back instead of dividing.**
+        {Sale price $80 after 20% off → original is NOT $80 × 1.2 = $96. It's $80 ÷ 0.8 = $100. The 20% you "lost" is of the original, not of the sale price.}
+      - |-
+        ⚠️ **{Trap }2 — Assuming +X% then −X% cancels out.**
+        +20% then −20% gives 96% of original — NOT 100%. The second % is of a bigger number.
+      - |-
+        ⚠️ **{Trap }3 — Averaging discounts in successive purchases.**
+        {(55% + 70%) ÷ 2 = 62.5% does NOT give "average price paid". Add the percentages PAID (45% + 30% = 75%), not the discounts.}
+      - |-
+        ⚠️ **{Trap }4 — Treating mixed % + fractions as parallel.**
+        {"60% then 1/2 of remainder" is NESTED, not parallel. Don't add 60% + 50% = 110% (impossible). Multiply what's LEFT: 40% × 1/2 = 20% left.}
+      - |-
+        ⚠️ **{Trap }5 — Wrong base for "X% of WHAT?"**
+        {"Mei earns 25% more than Ben" → 100% = Ben's salary, not Mei's. "% MORE than" or "% LESS than" → the OTHER person is the 100%.}
+
+  # ─── Slide 8: Try it — Patterns C & D ────────────────────────
+  - title: "Try it — Successive discounts & Mixed % + fractions"
+    mascotImage: /master-class/patterns/panda-thinking.png
+    interactiveQuiz:
+      - label: "Pattern C — Successive discounts"
+        stem: |-
+          Tom bought 2 identical shirts (same original price). He got
+          the first at 30% off and the second at 50% off. He paid $48
+          in total. What was the original price of ONE shirt?
+        options:
+          - "$30"
+          - "$40"
+          - "$48"
+          - "$60"
+        correctAnswer: 2
+        explanation: >-
+          Shirt 1 paid: 70% of original. Shirt 2 paid: 50% of original.
+          Total paid as % of one shirt: 70 + 50 = 120% of original.
+          120% → $48. 1% → $0.40. 100% → $40.
+          (Distractor $30 = average discount 40% off $50 — wrong method.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+      - label: "Pattern D — Mixed % + fractions"
+        stem: |-
+          Mr Lim spent 40% of his money on books, then 1/4 of the
+          remainder on stationery. He had $36 left. How much money did
+          Mr Lim have at first?
+        options:
+          - "$60"
+          - "$80"
+          - "$72"
+          - "$90"
+        correctAnswer: 2
+        explanation: >-
+          After books: 100% − 40% = 60% left.
+          After stationery: kept 3/4 of the 60% remainder = 45% of original.
+          45% → $36. 1% → $0.80. 100% → $80.
+          (Distractor $60 = added 40% + 25% = 65% used → 35% = $36 → $103
+          — wrong approach. Distractor $90 = forgot one of the steps.)
+        mascotCorrect: /master-class/patterns/panda-correct.png
+        mascotWrong: /master-class/patterns/panda-wrong.png
+
+  # ─── Slide 9: Wrap-up CTA ───────────────────────────────────
+  - title: "Start practising!"
+    mascotImage: /master-class/patterns/panda-cta.png
+    body: >-
+      Mixed practice drawn from real PSLE-style percentage problems.
+      Trains the reflex of asking "100% of WHAT?" before any
+      arithmetic, and using the unitary method (the marking-scheme
+      format) for every reverse-% question.
+    bullets:
+      - |-
+        {You'll tackle a }**mix of 10 questions** {across all five patterns —} reverse %, compound %, successive discounts, mixed % + fractions, {and }"% of what?" base mistakes{.}
+      - |-
+        {Any }Wrong answers {are }auto-saved {and }reviewed in 1 week{.}
+      - |-
+        {The }AI marks {your working step-by-step in }unitary % format —{ same as PSLE marking schemes —} partial credit {if you set up the right percentages but slipped on the arithmetic.}
+    cta:
+      label: Click here to start practice
+      quizSpec:
+        title: "Mastery: Percentage Traps"
+        mcq: 6
+        oeq: 4
+
+commonMistakes: []
+
+keyWords:
+  - { word: "unitary method", definition: "PSLE's official marking-scheme approach. Step 1: identify what is 100%. Step 2: convert known to its % equivalent. Step 3: divide to find 1%. Step 4: multiply by 100. Example: 85% → $57.80 → 1% → $0.68 → 100% → $68." }
+  - { word: "reverse %", definition: "Given the AFTER price (sale price), find the BEFORE price (original). DIVIDE by what's left, don't multiply by what was added back. Sale $80 after 20% off → original = $80 ÷ 0.8 = $100, not $80 × 1.2." }
+  - { word: "100% of WHAT?", definition: "The single most important question in any percentage problem. Different sentences refer to different bases — 'X% more than Y' makes Y the 100%, not X. Write down what's currently 100% before every step." }
+  - { word: "compound % shift", definition: "When two percentages stack, the second is taken of a DIFFERENT base (the result of the first). +20% then −20% gives 96% of original, not 100%. The base changes after every percentage step." }
+  - { word: "% paid vs % off", definition: "For successive discounts on identical items, sum the % PAID, not the % off. Shirts at 30% off and 50% off → paid 70% + 50% = 120% of one shirt's original price. Averaging the discounts gives the wrong answer." }
+
+subTopics:
+  - id: reverse-percent
+    label: Pattern A — Reverse % (find original)
+    description: "Given the AFTER price, find the original. Use unitary: identify what % of original was paid, then divide. Don't multiply the sale price by (1 + discount) — that uses a different base."
+    slideIdx: 2
+  - id: increase-then-decrease
+    label: Pattern B — Increase then decrease
+    description: "+X% then −X% does NOT cancel. The second X% is taken of a bigger number, so the absolute decrease > absolute increase. Result is below the original."
+    slideIdx: 3
+  - id: successive-discounts
+    label: Pattern C — Successive discounts
+    description: "Two identical items at different % off. Sum the % PAID (not the % off), then apply to one item's original price. Averaging the discounts is the classic wrong move."
+    slideIdx: 4
+  - id: mixed-percent-fraction
+    label: Pattern D — Mixed % and fractions
+    description: "Spent X%, then 1/n of the remainder. Same nested-fraction logic as the Nested Fractions class. Multiply what's LEFT at each stage. Never add % + fraction directly."
+    slideIdx: 6
+  - id: percent-of-what
+    label: Pattern E — % of WHAT? (base mistakes)
+    description: "Different sentences set different 100%-bases. 'X% more than Y' → Y = 100%. 'X% of Z' → Z = 100%. Write down the base BEFORE any arithmetic to avoid using the wrong total."
+    slideIdx: 7
