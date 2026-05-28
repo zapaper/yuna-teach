@@ -13,13 +13,13 @@
       "mascotImage": "/master-class/patterns/panda-welcome.png",
       "body": "Speed × Time = Distance. That's the whole formula. The trap isn't the formula — it's that PSLE almost always chains TWO stages or TWO objects, and students apply the formula to the wrong combination of numbers.",
       "bullets": [
-        "**The formula triangle :**\n-- Distance = **Speed × Time**\n-- Speed = **Distance ÷ Time**\n-- Time = **Distance ÷ Speed**\n💡",
+        "**The D-S-T triangle :**\nPicture a triangle split into 3 cells — **D** on top, **S** and **T** side-by-side on the bottom.\n\n```\n ┌─────────┐\n │ D │\n ├────┬────┤\n │ S │ T │\n └────┴────┘\n``` -- Cover **D** → see S next to T → **D = S × T**\n-- Cover **S** → see D over T → **S = D ÷ T**\n-- Cover **T** → see D over S → **T = D ÷ S**\n💡",
         "**The 4 patterns :**\n-- 🔵 **Pattern A** — multi-stage -- 🟢 **Pattern B** — same direction, catching up -- 🟠 **Pattern C** — opposite direction, meeting -- 🟣 **Pattern D** — return journey",
         "**3-question check**"
       ],
       "narration": {
         "bullets": [
-          "**The formula triangle to memorise:**\n-- Distance = **Speed × Time**\n-- Speed = **Distance ÷ Time**\n-- Time = **Distance ÷ Speed**\n💡 Cover the unknown — the other two tell you whether to multiply or divide.",
+          "**The D-S-T triangle to memorise — the most useful memory trick in this topic:**\nPicture a triangle split into 3 cells — **D** on top, **S** and **T** side-by-side on the bottom.\n\n```\n ┌─────────┐\n │ D │\n ├────┬────┤\n │ S │ T │\n └────┴────┘\n```\n\nTo find any unknown, cover that letter with your finger and read what's left:\n-- Cover **D** → see S next to T → **D = S × T**\n-- Cover **S** → see D over T → **S = D ÷ T**\n-- Cover **T** → see D over S → **T = D ÷ S**\n💡 The horizontal line in the triangle means \"divide\". The cells side-by-side mean \"multiply\".",
           "**The 4 patterns PSLE rotates:**\n-- 🔵 **Pattern A** — one object, multi-stage (walked then ran).\n-- 🟢 **Pattern B** — two objects, same direction, catching up.\n-- 🟠 **Pattern C** — two objects, opposite direction, meeting.\n-- 🟣 **Pattern D** — one object, return journey — the average-speed trap.",
           "Next slide is the **3-question check** to figure out which pattern the problem is throwing at you — and how to handle units before you start."
         ]

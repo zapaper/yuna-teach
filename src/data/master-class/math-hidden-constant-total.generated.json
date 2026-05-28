@@ -5,7 +5,7 @@
   "topicLabel": "Hidden Constant Total",
   "title": "PSLE Math — Hidden Constant Total Trap",
   "stats": {
-    "headline": "Many PSLE word problems hide an invariant: a TOTAL, a DIFFERENCE, or one quantity that secretly never changes. Spot the invariant and the problem becomes a 2-line ratio solve. Miss it and you end up chasing the wrong unknown."
+    "headline": "Many PSLE word problems hide an invariant: a TOTAL, a DIFFERENCE, or one quantity that secretly never changes — or two parties whose totals are secretly equal. Spot the invariant and the problem becomes a 2-line ratio solve. Miss it and you chase the wrong unknown."
   },
   "keyConcepts": [
     {
@@ -13,13 +13,15 @@
       "mascotImage": "/master-class/patterns/panda-welcome.png",
       "body": "Some word problems describe stamps being given away, money moving between people, or beads being removed from a box. Your brain wants to redo the ratios from scratch — but usually, ONE thing in the problem never changes. Find that invariant first.",
       "bullets": [
-        "**The 4 most common invariants :**\n-- 🔵 **TOTAL stays the same** — one person gives to another (internal transfer) -- 🟢 **DIFFERENCE stays the same** — both quantities grow or shrink by the SAME amount -- 🟠 **DIFFERENCE doubles per unit** — give-and-take swaps -- 🟣 **ONE quantity stays the same** — the problem only acts on the OTHER quantity",
-        "On the next slide the **3-question check** that figures out WHICH invariant the problem is hiding."
+        "**The 5 patterns :**\n-- 🔵 **Pattern A — TOTAL stays the same** — one person gives to another (internal transfer) -- 🟢 **Pattern B — DIFFERENCE stays the same** — both quantities grow or shrink by the SAME amount -- 🟣 **Pattern C — ONE quantity stays the same** — the problem only acts on the OTHER quantity -- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — different ratios → equalise the totals first -- 🔴 **Pattern E — EQUAL TOTAL but different MIX** — diff in one item × weight difference",
+        "💡 ** ** Pattern A in disguise",
+        "the **3-question check**"
       ],
       "narration": {
         "bullets": [
-          "**The 4 most common invariants to look for:**\n-- 🔵 **TOTAL stays the same** — happens when one person gives to another (internal transfer).\n-- 🟢 **DIFFERENCE stays the same** — happens when both quantities grow or shrink by the SAME amount.\n-- 🟠 **DIFFERENCE doubles per unit** — happens in give-and-take swaps where one person's gain is the other's loss.\n-- 🟣 **ONE quantity stays the same** — happens when the problem only acts on the OTHER quantity.",
-          "Each pattern has its own clue word. So On the next slide — the **3-question check** that figures out WHICH invariant the problem is hiding."
+          "**The 5 patterns to watch for:**\n-- 🔵 **Pattern A — TOTAL stays the same** — happens when one person gives to another (internal transfer).\n-- 🟢 **Pattern B — DIFFERENCE stays the same** — happens when both quantities grow or shrink by the SAME amount.\n-- 🟣 **Pattern C — ONE quantity stays the same** — happens when the problem only acts on the OTHER quantity.\n-- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — with different ratios → equalise the totals first.\n-- 🔴 **Pattern E — EQUAL TOTAL but different MIX** — classic coins / weights problem: diff in one item × weight difference.",
+          "💡 **Big insight:** \"give-and-take\" problems (e.g. \"A gave $X to B, now A has $Y less than B\") are just Pattern A in disguise — the TOTAL is still constant. The \"difference shifts by 2 × transfer\" is the SAME unlock, framed differently.",
+          "On the next slide — the **3-question check** that figures out WHICH pattern the problem is hiding."
         ]
       }
     },
@@ -28,36 +30,38 @@
       "mascotImage": "/master-class/patterns/panda-teaching-action.png",
       "body": "Before you draw any model or write any ratio, run these 3 questions on the problem. They take 15 seconds and they tell you which pattern (A, B, C, D, or E) you're facing.",
       "bullets": [
-        "**Q1 — Where does the stuff GO?**\n-- **another person/box in the SAME problem** → **internal transfer** → **TOTAL is constant** (Pattern A) -- **out of the problem entirely** (eaten, thrown away, sold) → **total drops** —",
-        "**Q2 — How much was removed from EACH part?**\n-- **the same amount** **DIFFERENCE is constant** (Pattern B) -- **OTHER part is the constant** (Pattern D)",
-        "**Q3 — Is it a give-and-take SWAP?**\n-- \"A gave $X to B\" → **difference moves by 2 × $X** (Pattern C)",
-        "💡 TWO separate situations \"the total number of X is the same in both\" **Pattern E**"
+        "**Q1 — Where does the stuff GO?**\n-- one person/box to ANOTHER person/box **internal transfer** → **TOTAL is constant** (Pattern A) -- total drops",
+        "**Q2 — How much was removed from EACH part?**\n-- the SAME amount **DIFFERENCE is constant** (Pattern B) -- **THE OTHER is the constant** (Pattern C)",
+        "**Q3 — Are there TWO situations with equal totals?**\n-- the same TOTAL different ratios **Pattern D** -- different mix **Pattern E**",
+        "💡 one and only one"
       ],
       "narration": {
         "bullets": [
-          "Question **Q1 — Where does the stuff GO?**\n-- If it goes from one person/box to **another person/box in the SAME problem** → it's an **internal transfer** → **TOTAL is constant** (Pattern A).\n-- If it goes **out of the problem entirely** (eaten, thrown away, sold) → the **total drops** — check Q2 next.",
-          "Question **Q2 — How much was removed from EACH part?**\n-- If **the same amount** was removed from both — **DIFFERENCE is constant** (Pattern B).\n-- If only ONE part lost or gained — the **OTHER part is the constant** (Pattern D).",
-          "Question **Q3 — Is it a give-and-take SWAP?**\n-- Watch for \"A gave $X to B\" → one loses what the other gains. The **difference moves by 2 × $X** per dollar transferred — (Pattern C).",
-          "💡 If the problem describes TWO separate situations with a phrase like \"the total number of X is the same in both\" — that's **Pattern E** (scale the ratios so the totals match)."
+          "Question **Q1 — Where does the stuff GO?**\n-- If it moves from one person/box to ANOTHER person/box in the SAME problem → it's an **internal transfer** → **TOTAL is constant** (Pattern A). This includes give-and-take like \"A gave $X to B.\"\n-- If it leaves the problem entirely (eaten, sold, removed) → total drops — check Q2.",
+          "Question **Q2 — How much was removed from EACH part?**\n-- If the SAME amount was removed from both → **DIFFERENCE is constant** (Pattern B).\n-- If only ONE part lost or gained → **THE OTHER is the constant** (Pattern C).",
+          "Question **Q3 — Are there TWO situations with equal totals?**\n-- If two boxes / two people share the same TOTAL but different ratios → **Pattern D** — equalise the totals.\n-- If they share the same total count but different mix of items (coins, weights) → **Pattern E** — diff × weight-difference.",
+          "💡 Most PSLE problems fit one and only one of A-E. Identify it first, write your equation second."
         ]
       }
     },
     {
       "title": "Pattern A — Internal transfer (TOTAL is constant)",
       "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
-      "body": "Clue words: \"gave some to\", \"transferred\", \"moved from … to\". The stuff doesn't leave the problem — it just moves sides. So add the BEFORE quantities once and use that as your fixed total.",
+      "body": "The headline pattern. Clue words: \"gave some to\", \"transferred\", \"moved from … to\", \"passed\". The stuff doesn't leave the problem — it just moves sides. Add the BEFORE quantities once and use that as your fixed total. Includes give-and-take problems!",
       "bullets": [
-        "**📝 Worked example :**\nSally had **40 stamps**, Ting had **32 stamps**. Sally gave some to Ting. **1 : 2**.",
-        "** **\nStamps went from Sally to Ting → internal transfer → **TOTAL is fixed** Total = 40 + 32 = **72 stamps**",
-        "** **\nAfter: 1 : 2 → 3 units = 72 → **1 unit = 24** Ting (2 units) = **48 stamps**",
-        "⚠️ **Common wrong move:** 1 unit from 40+32 = 72 using the BEFORE numbers but then solve as if Sally's 40 = some new unit count"
+        "**📝 Worked example 1 :**\nSally had **40 stamps**, Ting had **32 stamps**. Sally gave some to Ting. **1 : 2**.",
+        "Total = 40 + 32 = **72 stamps** After ratio: 1 : 2 → 3 units = 72 → 1 unit = **24**.\nTing = 2 units = **48 stamps**",
+        "**📝 Worked example 2 :**\nKen had **$15 more** than Lisa Ken gave some money to Lisa. Ken had **$21 less** than Lisa",
+        "** ** Total swing in gap = 15 + 21 = **$36** Transfer = 36 ÷ 2 = **$18**",
+        "⚠️ ** **"
       ],
       "narration": {
         "bullets": [
-          "**📝 Worked example from PSLE:**\nSally had **40 stamps**, Ting had **32 stamps**.\nThen, Sally gave some to Ting.\nAfterwards, the ratio of Sally to Ting was **1 : 2**.\nHow many stamps did Ting have in the end?",
-          "**Step 1 — Spot the invariant.**\nStamps went from Sally to Ting → internal transfer → **TOTAL is fixed**.\nTotal = 40 + 32 = **72 stamps** — that number doesn't change.",
-          "**Step 2 — Use the after-ratio on the FIXED total.**\nAfter: 1 : 2 → 3 units = 72 → **1 unit = 24**.\nTing (2 units) = **48 stamps**.",
-          "⚠️ **Common wrong move:** students compute 1 unit from 40+32 = 72 using the BEFORE numbers but then forget to apply the AFTER ratio. Or they solve as if Sally's 40 = some new unit count — neither works once stamps have moved."
+          "**📝 Worked example 1 — after-ratio version:**\nSally had **40 stamps**, Ting had **32 stamps**.\nThen, Sally gave some to Ting.\nAfterwards, the ratio of Sally to Ting was **1 : 2**.\nHow many stamps did Ting have in the end?",
+          "Total = 40 + 32 = **72 stamps** — fixed by internal transfer.\nAfter ratio: 1 : 2 → 3 units = 72 → 1 unit = **24**.\nTing = 2 units = **48 stamps**.",
+          "**📝 Worked example 2 — give-and-take version, SAME pattern:**\nKen had **$15 more** than Lisa.\nThen, Ken gave some money to Lisa.\nNow, Ken had **$21 less** than Lisa.\nHow much did Ken give?",
+          "**The give-and-take shortcut:** each $1 transferred shifts the gap by $2 (Ken loses $1, Lisa gains $1).\nTotal swing in gap = 15 + 21 = **$36** (crossed zero from +15 to −21).\nTransfer = 36 ÷ 2 = **$18**.",
+          "⚠️ **Common wrong moves:** (1) Treating the transfer as an external loss and shrinking the total — DON'T. (2) Computing $21 − $15 = $6 and stopping — IGNORES the doubling. Both errors miss that the TOTAL pile is conserved."
         ]
       }
     },
@@ -66,40 +70,19 @@
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
       "body": "Clue words: \"equal number\", \"the same number of … and …\", \"removed [X] of each\". When BOTH parts change by the SAME amount, the GAP between them stays exactly the same. That gap is your anchor.",
       "bullets": [
-        "**📝 Worked example :**\nSusan had blue and red beads in the ratio **7 : 13** She removed an **equal number** of blue and red beads.\nThe new ratio became **1 : 3**",
-        "** **\nEqual number removed → blue and red both lose the same amount → **DIFFERENCE is fixed** Before difference = 13u − 7u = **6 units**",
-        "** **\nAfter: 1 : 3 → difference = 3p − 1p = **2 parts** Old 6 units = New 2 parts → **1 new part = 3 old units** So after = 3u (blue) : 9u (red)",
-        "** **\nBlue removed = 7u − 3u = **4 units**.",
-        "⚠️ **Common wrong move:** difference"
+        "**📝 Worked example:**\nSusan had blue and red beads in the ratio **7 : 13** She removed an **equal number** of blue and red beads.\nThe new ratio became **1 : 3** If she removed **20 blue beads**, how many beads of each colour were there at first?",
+        "** **\nEqual removed → DIFFERENCE is fixed.\nBefore difference = 13u − 7u = **6 units**",
+        "** **\nAfter: 1 : 3 → difference = 2 parts.\n6 old units = 2 new parts → **1 new part = 3 old units**.\nAfter ratio in old units: 3u (blue) : 9u (red)",
+        "** **\nBlue removed = 7u − 3u = **4 units** = 20 → **1 unit = 5** Original blue = 7u = **35 beads**. Original red = 13u = **65 beads**",
+        "⚠️ ** ** difference"
       ],
       "narration": {
         "bullets": [
-          "**📝 Worked example from PSLE:**\nSusan had blue and red beads in the ratio **7 : 13**.\nThen, She removed an **equal number** of blue and red beads.\nThe new ratio became **1 : 3**.\nHow many beads were removed of each colour?",
-          "**Step 1 — Spot the invariant.**\nEqual number removed → blue and red both lose the same amount → **DIFFERENCE is fixed**.\nBefore difference = 13u − 7u = **6 units** (call these \"old units\")",
-          "**Step 2 — Match the difference in the new ratio.**\nAfter: 1 : 3 → difference = 3p − 1p = **2 parts** (call these \"new parts\")\nOld 6 units = New 2 parts → **1 new part = 3 old units**.\nSo after = 3u (blue) : 9u (red).",
-          "**Step 3 — Solve.**\nBlue removed = 7u − 3u = **4 units**.\n(You can find the actual number if the question gives you a total or a specific amount.)",
-          "⚠️ **Common wrong move:** students assume the TOTAL is constant — but beads were REMOVED from the box, so the total dropped. The difference is what survived equal removal, not the total."
-        ]
-      }
-    },
-    {
-      "title": "Pattern C — Give-and-take (DIFFERENCE shifts by 2 × transfer)",
-      "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
-      "body": "Clue words: \"gave $X to\", \"passed [stuff] to\". The catch: when A gives $1 to B, A loses $1 AND B gains $1 — so the GAP between them shrinks (or grows) by **$2**, not $1. This is the most-missed mental model in P6.",
-      "bullets": [
-        "**📝 Worked example:**\nKen had **$15 more** than Lisa at first Ken gave some money to Lisa. Ken had **$21 less** than Lisa",
-        "**⚠️ The trap :** $21 − $15 = $6",
-        "** **\nBefore: Ken was **+$15** ahead of Lisa.\nAfter: Ken was **−$21** behind Lisa.\nTotal swing = 15 + 21 = **$36**",
-        "** **\nTransfer = $36 ÷ 2 = **$18**",
-        "💡 ** ** When Ken gives $1, his pile drops by $1 AND Lisa's pile rises by $1 → the gap changes by $2 per $1 transferred."
-      ],
-      "narration": {
-        "bullets": [
-          "**📝 Worked example:**\nKen had **$15 more** than Lisa at first.\nAfter, Ken gave some money to Lisa.\nNow, Ken had **$21 less** than Lisa.\nHow much money did Ken give to Lisa?",
-          "**⚠️ The trap answer:** $21 − $15 = $6. Wrong. Why? Because that ignores the doubling effect.",
-          "**Step 1 — Track the total swing in the gap.**\nBefore: Ken was **+$15** ahead of Lisa.\nAfter: Ken was **−$21** behind Lisa.\nTotal swing = 15 + 21 = **$36** (both directions add up because the gap crossed zero).",
-          "**Step 2 — Divide by 2 because each dollar moves the gap by $2.**\nTransfer = $36 ÷ 2 = **$18**. That's how much Ken gave.",
-          "💡 **Why divide by 2?** When Ken gives $1, his pile drops by $1 AND Lisa's pile rises by $1 → the gap changes by $2 per $1 transferred."
+          "**📝 Worked example:**\nSusan had blue and red beads in the ratio **7 : 13**.\nThen, She removed an **equal number** of blue and red beads.\nThe new ratio became **1 : 3**.\nIf she removed **20 blue beads**, how many beads of each colour were there at first?",
+          "**Step 1 — Spot the invariant.**\nEqual removed → DIFFERENCE is fixed.\nBefore difference = 13u − 7u = **6 units** (old units).",
+          "**Step 2 — Match the difference in the new ratio.**\nAfter: 1 : 3 → difference = 2 parts.\n6 old units = 2 new parts → **1 new part = 3 old units**.\nAfter ratio in old units: 3u (blue) : 9u (red).",
+          "**Step 3 — Solve.**\nBlue removed = 7u − 3u = **4 units** = 20 → **1 unit = 5**.\nOriginal blue = 7u = **35 beads**. Original red = 13u = **65 beads**.\n(Check: 35 : 65 → remove 20 each → 15 : 45 = 1 : 3 ✓)",
+          "⚠️ **Common wrong move:** students assume the TOTAL is constant — but beads were REMOVED, so total dropped. The difference is what survived equal removal, not the total."
         ]
       }
     },
@@ -138,63 +121,95 @@
       ]
     },
     {
-      "title": "Pattern D & E — two more variations to spot",
-      "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
-      "body": "Two less-common but still high-yield patterns. Once you can name them, they stop being scary.",
+      "title": "Pattern C — One quantity unchanged",
+      "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
+      "body": "Clue: the problem only acts on ONE of the two parts. The OTHER part is your anchor — it never changes, so treat it as a constant.",
       "bullets": [
-        "🟣 **Pattern D — ONE quantity stays the same:**\nClue: the problem only acts on ONE of the two parts. \"Liz had equal red and blue stickers. She gave away 2/3 of her RED stickers and some blue.\" Blue",
-        "🟠 **Pattern E — Two boxes, equal totals:**\nClue: \"the total number of X in Box 1 = total in Box 2\". Box 1 has gold : silver = **1 : 5**. Box 2 has **1 : 2**. scale the ratios so totals match",
-        "💡 never compare ratios directly when they have different totals. common total"
+        "**📝 Worked example:**\nMei Ling has **90 books** in total — some story, the rest reference.\nShe gave away **2/3 of her story books**.\nShe did NOT give away any reference books.\nAfter that, she had **50 books left**",
+        "** **\nReference books = unchanged anchor.\nBooks gone = 90 − 50 = **40, all story books**",
+        "** **\n40 story books = 2/3 of her story books → story books = **60** Reference = 90 − 60 = **30 books**",
+        "💡 ** **"
       ],
       "narration": {
         "bullets": [
-          "🟣 **Pattern D — ONE quantity stays the same:**\nClue: the problem only acts on ONE of the two parts.\nFor example: \"Liz had equal red and blue stickers. She gave away 2/3 of her RED stickers and some blue.\"\nHere, the original red count is GONE — but if a different problem says only red changed, then Blue stays as your anchor. Treat it as a constant and the rest is one variable.",
-          "🟠 **Pattern E — Two boxes, equal totals:**\nClue: \"the total number of X in Box 1 = total in Box 2\".\nFor example: Box 1 has gold : silver = **1 : 5**. Box 2 has **1 : 2**. Totals are equal, so scale the ratios so totals match — Box 1 has 6 parts, Box 2 has 3 parts → multiply Box 2 by 2 → both totals are 6 parts.",
-          "💡 The trick for Pattern E is never compare ratios directly when they have different totals. Always scale them to a common total first — then comparisons are real."
+          "**📝 Worked example:**\nMei Ling has **90 books** in total — some story, the rest reference.\nShe gave away **2/3 of her story books**.\nShe did NOT give away any reference books.\nAfter that, she had **50 books left**.\nHow many reference books does she have?",
+          "**Step 1 — Spot the constant.**\nReference books = unchanged anchor.\nBooks gone = 90 − 50 = **40, all story books**.",
+          "**Step 2 — Reverse-engineer the missing original.**\n40 story books = 2/3 of her story books → story books = **60**.\nReference = 90 − 60 = **30 books**.",
+          "💡 **The unlock:** because one part never moved, you only have ONE variable to solve — even though the problem mentions two quantities. Always identify the constant first, then the moving part is straightforward."
+        ]
+      }
+    },
+    {
+      "title": "Pattern D — Equal total, different ratios (equalise!)",
+      "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
+      "body": "Clue: \"the total in Box 1 equals the total in Box 2\" or \"both contain the same number of …\". The two ratios have DIFFERENT part-totals (e.g. 1:5 = 6 parts, 1:2 = 3 parts), so you must SCALE one of them so their part-totals match.",
+      "bullets": [
+        "**📝 Worked example:**\nBox A: red : blue beads = **1 : 5** Box B: red : blue beads = **1 : 2** Both boxes hold the **same total** number of beads.\nThere are **30 red beads** in total across both boxes.",
+        "** **\nBox A → 1 + 5 = **6 parts** Box B → 1 + 2 = **3 parts**",
+        "** **\nLCM(6, 3) = 6. Box A is already 6 parts. Scale Box B by ×2 → **2 : 4** (now 6 parts)",
+        "** **\nBox A: 1 red, 5 blue. Box B: 2 red, 4 blue.\nCombined: red = 1 + 2 = **3**, blue = 5 + 4 = **9**, total = 12 parts",
+        "** **\n3 parts red = 30 → 1 part = **10** → 9 parts blue = **90 blue beads**",
+        "⚠️ ** **"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example:**\nBox A: red : blue beads = **1 : 5**.\nBox B: red : blue beads = **1 : 2**.\nBoth boxes hold the **same total** number of beads.\nThere are **30 red beads** in total across both boxes.\nFind the total number of BLUE beads across both boxes.",
+          "**Step 1 — Find the part-totals.**\nBox A → 1 + 5 = **6 parts**.\nBox B → 1 + 2 = **3 parts**.\nThese don't match — but the real totals do. So 6 parts in A = 3 parts in B by count. Scale.",
+          "**Step 2 — Equalise totals using LCM.**\nLCM(6, 3) = 6. Box A is already 6 parts. Scale Box B by ×2 → **2 : 4** (now 6 parts).",
+          "**Step 3 — Now per box (standard 6 parts):**\nBox A: 1 red, 5 blue. Box B: 2 red, 4 blue.\nCombined: red = 1 + 2 = **3**, blue = 5 + 4 = **9**, total = 12 parts.",
+          "**Step 4 — Use the given.**\n3 parts red = 30 → 1 part = **10** → 9 parts blue = **90 blue beads**.",
+          "⚠️ **Common wrong move:** students add the ratios directly: 1+1 = 2 red, 5+2 = 7 blue, total 9 — wrong, because the two ratios have different part-sizes. Always equalise the totals first."
+        ]
+      }
+    },
+    {
+      "title": "Pattern E — Equal total, different mix (weight trick)",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
+      "body": "Clue: \"X and Y have the SAME number of coins (or marbles, etc.) but a DIFFERENT mix — one has more 50¢ coins, the other has more 20¢ coins\". Because totals are equal, the count of \"extra heavy coins\" on one side equals the \"missing heavy coins\" on the other. Shortcut: difference in count × weight-difference per coin.",
+      "bullets": [
+        "**📝 Worked example :**\nHelen and Ivan each have the **same total number of coins**.\nHelen has **8 more 50¢ coins** than Ivan.\nEach 50¢ coin weighs **3 g** more than each 20¢ coin.",
+        "** **\nSame total count, but Helen has 8 EXTRA 50¢ coins.\nBecause total counts match → Helen must have **8 FEWER 20¢ coins** than Ivan",
+        "** **\nEach swap = Helen gets one MORE 50¢ coin instead of a 20¢ coin.\nPer swap weight gain = 3 g",
+        "** **\nWeight difference = 8 × 3 = **24 g**",
+        "💡 ** **"
+      ],
+      "narration": {
+        "bullets": [
+          "**📝 Worked example PSLE-style, Helen & Ivan coins:**\nHelen and Ivan each have the **same total number of coins**.\nHelen has **8 more 50¢ coins** than Ivan.\nEach 50¢ coin weighs **3 g** more than each 20¢ coin.\nFind the difference in total weight of their coins.",
+          "**Step 1 — Spot the swap.**\nSame total count, but Helen has 8 EXTRA 50¢ coins.\nBecause total counts match → Helen must have **8 FEWER 20¢ coins** than Ivan (the other denomination makes up the gap).",
+          "**Step 2 — Think of it as 8 \"coin swaps\".**\nEach swap = Helen gets one MORE 50¢ coin instead of a 20¢ coin.\nPer swap weight gain = 3 g (the weight difference per coin).",
+          "**Step 3 — Multiply.**\nWeight difference = 8 × 3 = **24 g** (Helen is heavier by 24 g).",
+          "💡 **Why this works:** because totals are equal, the only thing that matters is the DIFFERENCE in counts of one denomination. Multiply that difference by the per-coin weight difference. No need to find individual totals."
         ]
       }
     },
     {
       "title": "Top 5 traps to avoid",
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
-      "body": "These are the most-missed mistakes in problems involving transfers, removals, and equalisation. Read them once before attempting your practice — they save 2–3 marks per paper.",
+      "body": "The most-missed mistakes across hidden-constant problems. Read these once before practice — they save 2-3 marks per paper.",
       "bullets": [
         "⚠️ ** 1 — Treating an internal transfer like an external loss.** Total stays constant",
         "⚠️ ** 2 — Forgetting that \"equal removal\" preserves the DIFFERENCE, not the total.** gap",
         "⚠️ ** 3 — In give-and-take, dividing the swing by 1 instead of 2.**",
-        "⚠️ ** 4 — Comparing two ratios without scaling them first.** totals match",
-        "⚠️ ** 5 — Using the BEFORE ratio with AFTER quantities (or vice versa).** before-units and after-units are different sizes"
+        "⚠️ ** 4 — Comparing two ratios without equalising their totals.**",
+        "⚠️ ** 5 — In weight-difference problems, computing individual totals when you don't need to.** diff in count × weight-diff per item"
       ],
       "narration": {
         "bullets": [
-          "⚠️ **Trap 1 — Treating an internal transfer like an external loss.**\nIf person A gave to person B, the stuff did NOT leave the problem. Total stays constant. Don't subtract.",
-          "⚠️ **Trap 2 — Forgetting that \"equal removal\" preserves the DIFFERENCE, not the total.**\nIf the same number was taken from both parts, the gap between them is fixed — not the total.",
+          "⚠️ **Trap 1 — Treating an internal transfer like an external loss.**\nIf person A gave to person B, the stuff did NOT leave the problem. Total stays constant. Don't subtract from the total.",
+          "⚠️ **Trap 2 — Forgetting that \"equal removal\" preserves the DIFFERENCE, not the total.**\nIf the same number was taken from both parts, the gap between them is fixed, not the total.",
           "⚠️ **Trap 3 — In give-and-take, dividing the swing by 1 instead of 2.**\nEach $1 transferred moves the gap by $2 because one side loses while the other gains. Always divide the swing by 2.",
-          "⚠️ **Trap 4 — Comparing two ratios without scaling them first.**\n1 : 5 and 1 : 2 cannot be added or compared until you make their totals match (Pattern E).",
-          "⚠️ **Trap 5 — Using the BEFORE ratio with AFTER quantities (or vice versa).**\nMark your model clearly: before-units and after-units are different sizes. Don't mix them."
+          "⚠️ **Trap 4 — Comparing two ratios without equalising their totals.**\n1 : 5 and 1 : 2 cannot be added or compared until you scale them to the same part-total (Pattern D).",
+          "⚠️ **Trap 5 — In weight-difference problems, computing individual totals when you don't need to.**\nIf totals are equal, the answer is just diff in count × weight-diff per item — skip the full breakdown."
         ]
       }
     },
     {
-      "title": "Try it — Give-and-take & One quantity constant",
+      "title": "Try it — One constant, Equalise, Weight difference",
       "mascotImage": "/master-class/patterns/panda-thinking.png",
       "interactiveQuiz": [
         {
-          "label": "Pattern C — Give-and-take",
-          "stem": "Ravi had $40 more than Siti at first. Ravi gave some of his\nmoney to Siti. After that, Siti had $20 more than Ravi.\nHow much money did Ravi give to Siti?",
-          "options": [
-            "$20",
-            "$30",
-            "$40",
-            "$60"
-          ],
-          "correctAnswer": 2,
-          "explanation": "Total swing in the gap = 40 + 20 = $60 (Ravi went from +40 to −20). Each $1 transferred swings the gap by $2, so transfer = $60 ÷ 2 = $30.",
-          "mascotCorrect": "/master-class/patterns/panda-correct.png",
-          "mascotWrong": "/master-class/patterns/panda-wrong.png"
-        },
-        {
-          "label": "Pattern D — One quantity unchanged",
+          "label": "Pattern C — One quantity unchanged",
           "stem": "Mei Ling has 90 books in total — some are story books and\nthe rest are reference books. She gave away 2/3 of her story\nbooks. She did not give away any reference books. After that,\nshe had 50 books left. How many reference books does she have?",
           "options": [
             "10",
@@ -206,6 +221,34 @@
           "explanation": "Reference books are the CONSTANT — they never changed. Books gone = 90 − 50 = 40, all story books. Those 40 are 2/3 of her story books → story books = 60. Reference = 90 − 60 = 30.",
           "mascotCorrect": "/master-class/patterns/panda-correct.png",
           "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern D — Equalise ratios",
+          "stem": "Container P has red and green marbles in the ratio 1 : 3.\nContainer Q has red and green marbles in the ratio 1 : 1.\nBoth containers hold the same TOTAL number of marbles. If\nthere are 6 red marbles in total across both containers, how\nmany GREEN marbles are there in total?",
+          "options": [
+            "10",
+            "12",
+            "14",
+            "18"
+          ],
+          "correctAnswer": 1,
+          "explanation": "P = 1+3 = 4 parts. Q = 1+1 = 2 parts. LCM = 4. Scale Q by ×2 → 2 : 2 (now 4 parts). Per standardised box: P has 1 red + 3 green; Q has 2 red + 2 green. Combined: red = 1+2 = 3 parts, green = 3+2 = 5 parts. 3 parts red = 6 → 1 part = 2 → 5 parts green = 10. (Check: each container = 4 parts = 8 marbles. P = 2 red + 6 green; Q = 4 red + 4 green. Total red = 6 ✓, total green = 10 ✓.)",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
+        },
+        {
+          "label": "Pattern E — Weight difference",
+          "stem": "Alvin and Brenda each have the same number of coins. Alvin\nhas 12 more $1 coins than Brenda. Each $1 coin weighs 4 g\nmore than each 50¢ coin. By how many grams is Alvin's pile\nheavier than Brenda's?",
+          "options": [
+            "12 g",
+            "16 g",
+            "48 g",
+            "60 g"
+          ],
+          "correctAnswer": 3,
+          "explanation": "Same total count → Alvin's 12 extra $1 coins mean he has 12 fewer 50¢ coins. That's 12 \"coin swaps\", each gaining 4 g. Weight difference = 12 × 4 = 48 g.",
+          "mascotCorrect": "/master-class/patterns/panda-correct.png",
+          "mascotWrong": "/master-class/patterns/panda-wrong.png"
         }
       ]
     },
@@ -214,7 +257,7 @@
       "mascotImage": "/master-class/patterns/panda-cta.png",
       "body": "Mixed practice drawn from real PSLE-style hidden-constant problems. Trains the reflex of running the 3-question check BEFORE drawing any model.",
       "bullets": [
-        "**mix of 10 questions** internal transfer, equal removal, give-and-take, one-constant, and equal-total scaling",
+        "**mix of 10 questions** internal transfer, equal removal, one-constant, equalise-ratios, weight-difference",
         "Wrong answers auto-saved reviewed in 1 week",
         "AI marks partial credit"
       ],
@@ -228,7 +271,7 @@
       },
       "narration": {
         "bullets": [
-          "You'll tackle a **mix of 10 questions** across all five patterns — internal transfer, equal removal, give-and-take, one-constant, and equal-total scaling.",
+          "You'll tackle a **mix of 10 questions** across all five patterns — internal transfer, equal removal, one-constant, equalise-ratios, and weight-difference.",
           "Any Wrong answers are auto-saved and reviewed in 1 week.",
           "The AI marks your working step-by-step — partial credit if you spotted the right invariant but slipped on arithmetic."
         ]
@@ -239,55 +282,59 @@
   "keyWords": [
     {
       "word": "internal transfer",
-      "definition": "When stuff moves from one person/box to ANOTHER person/box in the same problem (not out of the problem). Total stays constant — add the BEFORE quantities and use that as your fixed total."
+      "definition": "When stuff moves from one party to another within the problem (not out of the problem). TOTAL stays constant — add the BEFORE quantities and use that as your fixed total. Includes give-and-take problems."
+    },
+    {
+      "word": "give-and-take doubling",
+      "definition": "When A gives $X to B, the GAP between them changes by $2X (one loses while the other gains). Add before-gap and after-gap, divide by 2 to find the transfer. Still Pattern A — TOTAL is unchanged."
     },
     {
       "word": "constant difference",
-      "definition": "When the SAME amount is added to or removed from both parts of a ratio, the difference between them stays the same. Solve by matching the difference in the new ratio to the difference in the old ratio."
-    },
-    {
-      "word": "give-and-take swing",
-      "definition": "In transfers between two people, every $1 moved changes the GAP between them by $2 (one loses, the other gains). Add the before-gap and after-gap together, then divide by 2 to find the transfer."
+      "definition": "When the SAME amount is added to or removed from both parts of a ratio, the difference between them stays the same. Match the old-difference to the new-difference in units to solve."
     },
     {
       "word": "anchor quantity",
       "definition": "The thing in the problem that never changes. Find it first — it becomes your fixed reference for solving for everything else."
     },
     {
-      "word": "equal-total scaling",
-      "definition": "When two parallel situations share an equal total but have different ratios (e.g. Box 1 = 1:5, Box 2 = 1:2, same total), scale the ratios so their totals match before comparing or adding."
+      "word": "equalise the ratios",
+      "definition": "When two parallel situations share an equal TOTAL but have different ratios (e.g. 1:5 and 1:2), scale them to a common part-total (LCM of denominators) BEFORE comparing or adding. Trying to add ratios directly without equalising gives wrong answers."
+    },
+    {
+      "word": "weight-difference shortcut",
+      "definition": "When two parties have equal total COUNTS but different MIXES (e.g. coins of different denominations), the weight difference = (diff in count of one type) × (weight difference per item). No need to compute individual totals."
     }
   ],
   "subTopics": [
     {
       "id": "internal-transfer",
-      "label": "Pattern A — Internal transfer",
-      "description": "Stuff moves from one party to another within the problem. TOTAL is constant. Add before-quantities, then apply the after-ratio to that fixed total.",
+      "label": "Pattern A — Internal transfer (incl. give-and-take)",
+      "description": "Stuff moves from one party to another. TOTAL is constant. Add before-quantities, then apply the after-ratio. Give-and-take is the same pattern — each $1 transferred shifts the GAP by $2.",
       "slideIdx": 2
     },
     {
       "id": "equal-removal",
       "label": "Pattern B — Equal change to both",
-      "description": "Same amount added/removed from both parts. DIFFERENCE is constant. Match the old-difference to the new-difference in units.",
+      "description": "Same amount added/removed from both parts. DIFFERENCE is constant. Match old-difference to new-difference in units.",
       "slideIdx": 3
     },
     {
-      "id": "give-and-take",
-      "label": "Pattern C — Give-and-take swap",
-      "description": "One person gives to another. The gap changes by 2 × transfer (one loses while the other gains). Add before-gap + after-gap, divide by 2.",
-      "slideIdx": 4
-    },
-    {
       "id": "one-constant",
-      "label": "Pattern D — One quantity unchanged",
+      "label": "Pattern C — One quantity unchanged",
       "description": "Only one of the two parts is affected. The other is your anchor. Solve for total-change from the part that did move.",
+      "slideIdx": 5
+    },
+    {
+      "id": "equalise-ratios",
+      "label": "Pattern D — Equal total, equalise ratios",
+      "description": "Two situations share an equal TOTAL but different ratios. Scale both ratios to a common part-total (LCM) before combining or comparing.",
       "slideIdx": 6
     },
     {
-      "id": "equal-total-scaling",
-      "label": "Pattern E — Parallel cases, equal total",
-      "description": "Two situations with equal totals but different ratios. Scale both ratios to a common total before comparing or adding.",
-      "slideIdx": 6
+      "id": "weight-difference",
+      "label": "Pattern E — Equal total, weight/value difference",
+      "description": "Two parties with equal total counts but different mixes of items. Weight difference = (diff in count) × (weight-diff per item). Skip the individual breakdown.",
+      "slideIdx": 7
     }
   ]
 }

@@ -76,7 +76,21 @@ function MasterClassList() {
               onClick={() => router.push(`/admin/master-class/${mc.slug}?userId=${userId}`)}
               className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:border-slate-300 transition-colors flex items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-700">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/master-class/${mc.slug}/icon`}
+                alt=""
+                className="w-12 h-12 rounded-xl object-cover flex-shrink-0 bg-emerald-50"
+                onError={(e) => {
+                  // Fall back to the school icon if the API 502s or the slug
+                  // has no icon and auto-gen failed.
+                  const img = e.currentTarget;
+                  img.style.display = "none";
+                  const fallback = img.nextElementSibling as HTMLElement | null;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div className="w-12 h-12 rounded-xl items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-700" style={{ display: "none" }}>
                 <span className="material-symbols-outlined">school</span>
               </div>
               <div className="flex-1 min-w-0">

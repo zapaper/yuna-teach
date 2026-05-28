@@ -48,11 +48,22 @@ keyConcepts:
       wrong combination of numbers.
     bullets:
       - |-
-        **The formula triangle {to memorise}:**
-        -- Distance = **Speed × Time**
-        -- Speed = **Distance ÷ Time**
-        -- Time = **Distance ÷ Speed**
-        💡 {Cover the unknown — the other two tell you whether to multiply or divide.}
+        **The D-S-T triangle {to memorise — the most useful memory trick in this topic}:**
+        Picture a triangle split into 3 cells — **D** on top, **S** and **T** side-by-side on the bottom.
+
+        ```
+              ┌─────────┐
+              │    D    │
+              ├────┬────┤
+              │  S │ T  │
+              └────┴────┘
+        ```
+
+        {To find any unknown, cover that letter with your finger and read what's left:}
+        -- Cover **D** → see S next to T → **D = S × T**
+        -- Cover **S** → see D over T → **S = D ÷ T**
+        -- Cover **T** → see D over S → **T = D ÷ S**
+        💡 {The horizontal line in the triangle means "divide". The cells side-by-side mean "multiply".}
       - |-
         **The 4 patterns {PSLE rotates}:**
         -- 🔵 **Pattern A** — {one object, }multi-stage {(walked then ran).}
