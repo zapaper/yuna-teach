@@ -73,8 +73,8 @@
         "label": "点这里开始练习",
         "quizSpec": {
           "title": "Mastery: 华文词义 + 成语",
-          "mcq": 15,
-          "oeq": 0
+          "mcq": 0,
+          "oeq": 15
         }
       },
       "narration": {

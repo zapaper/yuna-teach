@@ -106,8 +106,11 @@ keyConcepts:
       label: 点这里开始练习
       quizSpec:
         title: "Mastery: 华文词义 + 成语"
-        mcq: 15
-        oeq: 0
+        # 词义理解 + 成语 Q7-Q8 and Q34-Q35 are OEQ shape (typed
+        # short answer, not 1-4 MCQ). Extraction classifies them as
+        # OEQ. Spec accordingly.
+        mcq: 0
+        oeq: 15
 
 commonMistakes: []
 

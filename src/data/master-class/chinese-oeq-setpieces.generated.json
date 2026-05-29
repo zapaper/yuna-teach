@@ -324,8 +324,8 @@
         "label": "点这里开始练习",
         "quizSpec": {
           "title": "Mastery: 华文写作套话 (Q33 + Q40)",
-          "mcq": 10,
-          "oeq": 0
+          "mcq": 0,
+          "oeq": 10
         }
       },
       "narration": {

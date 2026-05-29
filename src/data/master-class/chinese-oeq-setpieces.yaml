@@ -435,8 +435,11 @@ keyConcepts:
       label: 点这里开始练习
       quizSpec:
         title: "Mastery: 华文写作套话 (Q33 + Q40)"
-        mcq: 10
-        oeq: 0
+        # OEQ setpieces — Q33 写作 + Q40 个人意见 are both
+        # free-text OEQ. Extraction classifies every question as OEQ
+        # (answer is a typed sentence, not 1-4). Spec accordingly.
+        mcq: 0
+        oeq: 10
 
 commonMistakes: []
 
