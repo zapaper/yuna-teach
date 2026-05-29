@@ -50,6 +50,115 @@ function shuffle<T>(arr: T[]): T[] {
 const QUIZ_MCQ_COUNT = 10;
 const QUIZ_OEQ_COUNT = 6;
 
+// ─── Multi-part OEQ sibling helpers ──────────────────────────────────
+// Mirrors the focused-test / daily-quiz pickers. A source question
+// stored as "Q14c" represents only the (c) sub-part; without pulling
+// its siblings (Q14a/Q14b) it would render in a practice with only
+// the (c) stem and no parent scenario.
+function baseNum(questionNum: string) {
+  return questionNum.replace(/[a-zA-Z]+$/, "");
+}
+
+function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
+  const result = new Map<string, string>();
+  if (!answer || !answer.trim()) return result;
+  // Accept single-letter labels (a, b, c) AND roman-nested labels like
+  // (ai), (aii), (bii), (civ). Matches lib/marking.ts.
+  const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
+  const matches = [...answer.matchAll(re)];
+  if (matches.length === 0) return result;
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i];
+    const label = m[2].toLowerCase();
+    const start = m.index! + m[0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+    const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
+    if (content) result.set(label, content);
+  }
+  return result;
+}
+
+type OeqLike = {
+  id: string;
+  questionNum: string;
+  examPaperId: string;
+  transcribedStem: string | null;
+  transcribedSubparts: unknown;
+  answer: string | null;
+  marksAvailable: number | null;
+  diagramImageData: string | null;
+  imageData: string | null;
+  answerImageData: string | null;
+};
+
+function mergeOeqGroup<T extends OeqLike>(group: T[]): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type Out = any;
+  type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+  const first = group[0];
+  // group[0]'s stem is the main stem; later siblings' stems carry extra
+  // scenario context that belongs to their own subparts (prepended below).
+  const leadStem = (first.transcribedStem ?? "").trim();
+  const mainDiagram = first.diagramImageData ?? null;
+  const imageSource = (first.imageData && first.imageData.length > 100)
+    ? first
+    : (group.find(q => q.imageData && q.imageData.length > 100) ?? first);
+  const allSubparts: Subpart[] = [];
+  for (const q of group) {
+    const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+    const realSubs = subs.filter(s => !s.label.startsWith("_"));
+    const qStem = (q.transcribedStem ?? "").trim();
+    const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
+    const processed = realSubs.map((sp, idx) => {
+      let next = sp;
+      if (idx === 0 && extraStem) {
+        next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
+      }
+      if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+        const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
+        next = { ...next, refImageBase64: diagramData };
+      }
+      return next;
+    });
+    allSubparts.push(...processed);
+  }
+  const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
+  const partAnswers = new Map<string, string>();
+  for (const q of group) {
+    const parsed = parsePartAnswers(q.answer);
+    if (parsed.size > 0) {
+      for (const [label, text] of parsed) partAnswers.set(label, text);
+      continue;
+    }
+    // No (a)/(b) markers — if this sibling has exactly one real subpart, use its label
+    const sibSubs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+    const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+    if (sibRealSubs.length === 1 && q.answer?.trim()) {
+      partAnswers.set(sibRealSubs[0].label.toLowerCase(), q.answer.trim());
+    }
+  }
+  const enrichedSubparts = allSubparts.map(sp => {
+    const ans = partAnswers.get(sp.label.toLowerCase());
+    return ans !== undefined ? { ...sp, answer: ans } : sp;
+  });
+  const rebuiltAnswer = partAnswers.size > 0
+    ? [...partAnswers.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `(${k}) ${v}`).join(" | ")
+    : [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
+  const sortedGroup = [...group].sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+  const answerImageData = sortedGroup.find(q => q.answerImageData)?.answerImageData ?? first.answerImageData ?? null;
+  const out: Out = {
+    ...first,
+    imageData: imageSource.imageData,
+    answer: rebuiltAnswer || first.answer,
+    answerImageData,
+    transcribedStem: leadStem,
+    transcribedSubparts: enrichedSubparts.length > 0 ? [...enrichedSubparts, ...sentinels] : null,
+    marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
+    diagramImageData: mainDiagram,
+  };
+  return out;
+}
+
 export async function POST(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const sessionUserId = await getSessionUserId();
   if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -124,6 +233,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     select: {
       id: true,
       questionNum: true,
+      examPaperId: true,
       imageData: true,
       answer: true,
       answerImageData: true,
@@ -180,13 +290,99 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         return !key || !slideStemKeys.has(key);
       });
 
+  // ─── Pull OEQ siblings + merge groups ──────────────────────────────
+  // A candidate row representing a sub-part of a multi-part question
+  // (e.g. "Q14c") would render in the quiz with only its own (c) stem
+  // and no parent scenario. Group OEQ candidates by (examPaperId,
+  // baseNum), fetch any missing siblings, and merge each group into a
+  // single combined question — same approach as focused-test / daily-
+  // quiz so "the stems go together".
+  type Candidate = typeof candidates[number];
+  const oeqCandidates = candidates.filter(q => !hasOptions(q));
+  const mcqCandidatesOnly = candidates.filter(q => hasOptions(q));
+  const groupKeys = new Set<string>(
+    oeqCandidates.map(q => `${q.examPaperId}::${baseNum(q.questionNum)}`),
+  );
+  const siblingWheres = [...groupKeys].map(k => {
+    const [examPaperId, base] = k.split("::");
+    return { examPaperId, questionNum: { startsWith: base } };
+  });
+  const siblingRows: Candidate[] = siblingWheres.length > 0
+    ? await prisma.examQuestion.findMany({
+        where: {
+          OR: siblingWheres,
+          // Same paper-level filters as the candidates query so we don't
+          // pull a sibling from a paper that was excluded upstream.
+          examPaper: { sourceExamId: null, paperType: null },
+        },
+        select: {
+          id: true,
+          questionNum: true,
+          examPaperId: true,
+          imageData: true,
+          answer: true,
+          answerImageData: true,
+          marksAvailable: true,
+          syllabusTopic: true,
+          subTopic: true,
+          transcribedStem: true,
+          transcribedOptions: true,
+          transcribedOptionImages: true,
+          transcribedOptionTable: true,
+          transcribedSubparts: true,
+          diagramImageData: true,
+          diagramBounds: true,
+          elaboration: true,
+          examPaper: { select: { title: true, year: true, level: true, examType: true } },
+        },
+      })
+    : [];
+  const byIdMap = new Map<string, Candidate>();
+  for (const q of oeqCandidates) byIdMap.set(q.id, q);
+  for (const q of siblingRows) if (!byIdMap.has(q.id)) byIdMap.set(q.id, q);
+  const groupMap = new Map<string, Candidate[]>();
+  for (const q of byIdMap.values()) {
+    const key = `${q.examPaperId}::${baseNum(q.questionNum)}`;
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(q);
+  }
+  for (const g of groupMap.values()) {
+    g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+  }
+  // For each group, find the candidate that triggered inclusion. Its
+  // subTopic / classifier tag drives bucket placement — without this,
+  // the merged row would land in the lead sibling's (often null or
+  // different) bucket and silently get dropped.
+  const triggeringByKey = new Map<string, Candidate>();
+  for (const c of oeqCandidates) {
+    const key = `${c.examPaperId}::${baseNum(c.questionNum)}`;
+    if (!triggeringByKey.has(key)) triggeringByKey.set(key, c);
+  }
+  const mergeClassifier = STEM_CLASSIFIERS[slug];
+  const mergedOeqs: Candidate[] = [];
+  for (const [key, group] of groupMap) {
+    const triggering = triggeringByKey.get(key)!;
+    const merged = mergeOeqGroup(group);
+    // Preserve the triggering candidate's classification (not the
+    // merged lead stem's) so the merged row lands in the same bucket
+    // that got it picked in the first place. Single-sibling groups
+    // (no multi-part) are unaffected — merge is a no-op there.
+    const explicitSubTopic = mergeClassifier
+      ? mergeClassifier(triggering.transcribedStem)
+      : triggering.subTopic;
+    mergedOeqs.push({ ...merged, subTopic: explicitSubTopic });
+  }
+  // Replace OEQ rows in the candidate pool with the merged groups.
+  // MCQ rows are untouched — MCQ source questions are always single-row.
+  const candidatesMerged: Candidate[] = [...mcqCandidatesOnly, ...mergedOeqs];
+
   // ─── Group by subTopic + mcq/oeq ───────────────────────────────────
   // Regex-mode master classes (Patterns) don't have per-question
   // sub-topic tags yet, so we lump everything into a single bucket.
-  const groups = new Map<string, { mcq: typeof candidates; oeq: typeof candidates }>();
+  const groups = new Map<string, { mcq: Candidate[]; oeq: Candidate[] }>();
   if (useRegex) {
     groups.set("_all", { mcq: [], oeq: [] });
-    for (const q of candidates) {
+    for (const q of candidatesMerged) {
       const g = groups.get("_all")!;
       if (hasOptions(q)) g.mcq.push(q); else g.oeq.push(q);
     }
@@ -194,9 +390,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     for (const st of subTopics) groups.set(st.id, { mcq: [], oeq: [] });
     // Classifier-based slugs (Circuits) re-tag from the stem; pure
     // tagged slugs (Interactions) use the admin-set subTopic field.
+    // Merged OEQ rows arrive with subTopic already pre-set above, so
+    // prefer that over re-classifying the (merged) lead stem.
     const classifier = STEM_CLASSIFIERS[slug];
-    for (const q of candidates) {
-      const subTopicId = classifier ? classifier(q.transcribedStem) : q.subTopic;
+    for (const q of candidatesMerged) {
+      const subTopicId = q.subTopic ?? (classifier ? classifier(q.transcribedStem) : null);
       if (!subTopicId || !groups.has(subTopicId)) continue;
       const g = groups.get(subTopicId)!;
       if (hasOptions(q)) g.mcq.push(q);
@@ -252,7 +450,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   }
 
   // ─── Selection ─────────────────────────────────────────────────────
-  type Picked = typeof candidates[number];
+  type Picked = Candidate;
   const picked: Picked[] = [];
   const warnings: string[] = [];
   // Per-master-class quiz size: YAML can override the defaults via
@@ -411,10 +609,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           // re-tag at clone time. Source questions for these master
           // classes don't have admin-set subTopic, so the classifier
           // fills it from the stem keywords. Falls through to the
-          // source's subTopic for classes that don't need it.
-          subTopic: STEM_CLASSIFIERS[slug]
-            ? STEM_CLASSIFIERS[slug](q.transcribedStem)
-            : q.subTopic,
+          // source's subTopic for classes that don't need it. For
+          // merged multi-part OEQs we already pre-set q.subTopic from
+          // the triggering sibling's classification — prefer that so
+          // the clone matches the bucket it was picked from.
+          subTopic: q.subTopic ?? (STEM_CLASSIFIERS[slug]?.(q.transcribedStem) ?? null),
           pageIndex: 0,
           orderIndex: i,
           transcribedStem: q.transcribedStem,
@@ -476,30 +675,81 @@ async function upsertPendingReviewPaper(params: {
 
   // 3. Fetch full source questions so the cloned review has the same
   //    fields as a normal mastery quiz.
+  const sourceSelect = {
+    id: true,
+    questionNum: true,
+    examPaperId: true,
+    imageData: true,
+    answer: true,
+    answerImageData: true,
+    marksAvailable: true,
+    syllabusTopic: true,
+    subTopic: true,
+    transcribedStem: true,
+    transcribedOptions: true,
+    transcribedOptionImages: true,
+    transcribedOptionTable: true,
+    transcribedSubparts: true,
+    diagramImageData: true,
+    diagramBounds: true,
+    elaboration: true,
+  } as const;
   const sourceQuestions = await prisma.examQuestion.findMany({
     where: { id: { in: sourceIds } },
-    select: {
-      id: true,
-      questionNum: true,
-      imageData: true,
-      answer: true,
-      answerImageData: true,
-      marksAvailable: true,
-      syllabusTopic: true,
-      subTopic: true,
-      transcribedStem: true,
-      transcribedOptions: true,
-      transcribedOptionImages: true,
-      transcribedOptionTable: true,
-      transcribedSubparts: true,
-      diagramImageData: true,
-      diagramBounds: true,
-      elaboration: true,
-    },
+    select: sourceSelect,
   });
-  // Preserve the most-recent-wrong-first order from sourceIds.
-  const byId = new Map(sourceQuestions.map(q => [q.id, q]));
-  const orderedSources = sourceIds.map(id => byId.get(id)).filter((q): q is NonNullable<typeof q> => !!q);
+  type SourceQ = typeof sourceQuestions[number];
+
+  // Pull in siblings of every source row by (examPaperId, baseNum) so
+  // multi-part questions render in the review with all sub-parts, not
+  // just the lead row the mastery clone pointed at. Without this, a
+  // student who got "Q14 (c)" wrong would see only the (c) stem on the
+  // review paper — same bug the main mastery picker had pre-fix.
+  const reviewGroupKeys = new Set<string>(
+    sourceQuestions.map(q => `${q.examPaperId}::${baseNum(q.questionNum)}`),
+  );
+  const reviewSiblingWheres = [...reviewGroupKeys].map(k => {
+    const [examPaperId, base] = k.split("::");
+    return { examPaperId, questionNum: { startsWith: base } };
+  });
+  const reviewSiblings: SourceQ[] = reviewSiblingWheres.length > 0
+    ? await prisma.examQuestion.findMany({
+        where: {
+          OR: reviewSiblingWheres,
+          examPaper: { sourceExamId: null, paperType: null },
+        },
+        select: sourceSelect,
+      })
+    : [];
+  const reviewById = new Map<string, SourceQ>();
+  for (const q of sourceQuestions) reviewById.set(q.id, q);
+  for (const q of reviewSiblings) if (!reviewById.has(q.id)) reviewById.set(q.id, q);
+  const reviewGroupMap = new Map<string, SourceQ[]>();
+  for (const q of reviewById.values()) {
+    const key = `${q.examPaperId}::${baseNum(q.questionNum)}`;
+    if (!reviewGroupMap.has(key)) reviewGroupMap.set(key, []);
+    reviewGroupMap.get(key)!.push(q);
+  }
+  for (const g of reviewGroupMap.values()) {
+    g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+  }
+  // Walk sourceIds in their original (most-recent-wrong-first) order
+  // and emit one merged group per unique key. Multiple wrong clones
+  // pointing to siblings of the same source group collapse into one
+  // review entry rather than repeating the same combined question.
+  const sourceById = new Map(sourceQuestions.map(q => [q.id, q]));
+  const seenReviewKeys = new Set<string>();
+  const orderedSources: SourceQ[] = [];
+  for (const id of sourceIds) {
+    const trigger = sourceById.get(id);
+    if (!trigger) continue;
+    const key = `${trigger.examPaperId}::${baseNum(trigger.questionNum)}`;
+    if (seenReviewKeys.has(key)) continue;
+    const group = reviewGroupMap.get(key);
+    if (!group) continue;
+    seenReviewKeys.add(key);
+    orderedSources.push(mergeOeqGroup(group));
+  }
 
   // 4. Create the review paper, scheduledFor = now + 7 days.
   const scheduledFor = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
