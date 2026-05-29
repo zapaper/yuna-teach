@@ -324,6 +324,212 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         return !key || !slideStemKeys.has(key);
       });
 
+  // ─── Passage-bound branch (Comp Cloze, Visual Text, 短文填空, etc.) ──
+  // Some master classes target syllabus topics where each "question"
+  // is one blank in a shared passage — Comp Cloze (15 blanks per
+  // passage), Visual Text MCQ (8 questions about a poster), Chinese
+  // 短文填空 / 阅读理解. These can't be picked one-at-a-time because
+  // they only make sense WITH their passage context. Instead we pull
+  // entire passage sections as units, copy each passage into the
+  // mastery quiz paper's metadata.englishSections / chineseSections
+  // (same shape Daily Quiz uses), and let the quiz UI render
+  // passage + questions side-by-side.
+  const PASSAGE_BOUND_TOPICS = new Set<string>([
+    // English
+    "Comprehension Cloze",
+    "Visual Text Comprehension MCQ",
+    "Comprehension Open Ended",
+    "Grammar Cloze",
+    "Editing (Spelling & Grammar)",
+    // Chinese
+    "短文填空",
+    "阅读理解 MCQ",
+    "阅读理解 OEQ",
+  ]);
+  const passageBoundLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])];
+  const isPassageBound = passageBoundLabels.some(l => PASSAGE_BOUND_TOPICS.has(l));
+
+  if (isPassageBound) {
+    type PCandidate = typeof candidates[number];
+    type PassageGroup = { paperId: string; topic: string; questions: PCandidate[] };
+    // 1. Group candidates by (examPaperId, syllabusTopic). Each group
+    //    is one passage section (e.g. "Comprehension Cloze" on PSLE
+    //    English 2024 — all 15 blanks).
+    const pgMap = new Map<string, PassageGroup>();
+    for (const q of candidates) {
+      // Skip questions that aren't on a passage-bound topic — when
+      // an MC uses topicLabelExtras, only the extras that ARE
+      // passage-bound contribute. (Example: a hypothetical MC that
+      // spans both 完成对话 standalone and 短文填空 — the dialogue
+      // questions don't need a passage.)
+      const topic = q.syllabusTopic ?? "";
+      if (!PASSAGE_BOUND_TOPICS.has(topic)) continue;
+      const key = `${q.examPaperId}::${topic}`;
+      let g = pgMap.get(key);
+      if (!g) { g = { paperId: q.examPaperId, topic, questions: [] }; pgMap.set(key, g); }
+      g.questions.push(q);
+    }
+    const allPassageGroups = [...pgMap.values()];
+    for (const g of allPassageGroups) {
+      g.questions.sort((a, b) =>
+        a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }),
+      );
+    }
+
+    // 2. Shuffle + pick passages until question target reached.
+    const allSlidesPG = [...content.keyConcepts, ...content.commonMistakes];
+    const pgSpec = allSlidesPG.map(s => s.cta?.quizSpec).find(Boolean);
+    const pgTarget = (pgSpec?.mcq ?? QUIZ_MCQ_COUNT) + (pgSpec?.oeq ?? QUIZ_OEQ_COUNT);
+    const shuffledGroups = shuffle(allPassageGroups);
+    const pickedGroups: PassageGroup[] = [];
+    let runCount = 0;
+    for (const g of shuffledGroups) {
+      if (runCount >= pgTarget) break;
+      pickedGroups.push(g);
+      runCount += g.questions.length;
+    }
+    if (pickedGroups.length === 0) {
+      return NextResponse.json({ error: "No passage sections available to build a quiz." }, { status: 400 });
+    }
+
+    // 3. Fetch source-paper metadata for each picked group's passage.
+    const pgPaperIds = [...new Set(pickedGroups.map(g => g.paperId))];
+    const pgSourcePapers = await prisma.examPaper.findMany({
+      where: { id: { in: pgPaperIds } },
+      select: { id: true, subject: true, metadata: true, year: true },
+    });
+    const pgSourceMap = new Map(pgSourcePapers.map(p => [p.id, p]));
+
+    // 4. Flatten the picked groups in section order + build sections metadata.
+    type SectionEntry = { label: string; startIndex: number; endIndex: number; passage?: string };
+    type FlatItem = { source: PCandidate; sourcePaperId: string };
+    const flatItems: FlatItem[] = [];
+    const englishSections: SectionEntry[] = [];
+    const chineseSections: SectionEntry[] = [];
+    for (const g of pickedGroups) {
+      const startIdx = flatItems.length;
+      const src = pgSourceMap.get(g.paperId);
+      const meta = (src?.metadata as Record<string, unknown> | null) ?? null;
+      const subjectLc = (src?.subject ?? content.subject).toLowerCase();
+      const isChinesePG = subjectLc.includes("chinese");
+
+      // Pull the passage. Chinese papers carry a fully-built
+      // chineseSections array; English papers carry per-section OCR
+      // texts that we synthesise into a passage using the same rules
+      // Daily Quiz uses.
+      let passage: string | undefined;
+      if (isChinesePG) {
+        const cs = (meta?.chineseSections as Array<{ label: string; passage?: string }> | undefined) ?? [];
+        passage = cs.find(s => s.label === g.topic)?.passage;
+      } else {
+        const ocrTexts = meta?.sectionOcrTexts as Record<string, {
+          ocrText?: string;
+          passageOcrText?: string;
+          passageDisplayText?: string;
+          passagePageIndices?: number[];
+        }> | undefined;
+        const sectionOcr = ocrTexts?.[g.topic];
+        const topicLc = g.topic.toLowerCase();
+        const isVisualText = topicLc.includes("visual") && topicLc.includes("text");
+        const isCompOeq = topicLc.includes("comprehension") && !topicLc.includes("cloze");
+        if (isVisualText && sectionOcr?.passagePageIndices?.length) {
+          // Visual Text uses the back-pointing format Daily Quiz
+          // uses — the quiz UI loads the rasterised page from the
+          // SOURCE paper, not the mastery clone.
+          passage = `[VISUAL_PAGES:${g.paperId}:${sectionOcr.passagePageIndices.join(",")}]`;
+        } else if (isCompOeq) {
+          passage = sectionOcr?.passageOcrText ?? sectionOcr?.ocrText;
+        } else {
+          passage = sectionOcr?.passageDisplayText ?? sectionOcr?.ocrText ?? sectionOcr?.passageOcrText;
+        }
+      }
+
+      for (const q of g.questions) {
+        flatItems.push({ source: q, sourcePaperId: g.paperId });
+      }
+      // Label includes source paper year/topic so a student doing 3
+      // PSLE Comp Cloze passages in one quiz sees them distinguished.
+      const labelSuffix = src?.year ? ` — ${src.year}` : "";
+      const entry: SectionEntry = {
+        label: `${g.topic}${labelSuffix}`,
+        startIndex: startIdx,
+        endIndex: flatItems.length - 1,
+        ...(passage ? { passage } : {}),
+      };
+      if (isChinesePG) chineseSections.push(entry);
+      else englishSections.push(entry);
+    }
+
+    // 5. Quiz numbering + paper creation.
+    const pgPriorCount = await prisma.examPaper.count({
+      where: {
+        assignedToId: studentId,
+        paperType: "mastery",
+        metadata: { path: ["masterClassSlug"], equals: slug } as never,
+      },
+    });
+    const pgQuizNumber = pgPriorCount + 1;
+    const pgTotalMarks = flatItems.reduce(
+      (s, item) => s + (hasOptions(item.source) ? 2 : (item.source.marksAvailable ?? 1)),
+      0,
+    );
+
+    const pgPaper = await prisma.examPaper.create({
+      data: {
+        title: `Mastery: ${content.title} Quiz ${pgQuizNumber}`,
+        subject: content.subject,
+        level: student?.level ? `P${student.level}` : null,
+        userId: sessionUserId,
+        assignedToId: studentId,
+        paperType: "mastery",
+        instantFeedback: true,
+        pageCount: 0,
+        extractionStatus: "ready",
+        totalMarks: String(pgTotalMarks),
+        metadata: {
+          masterClassSlug: slug,
+          masterClassTitle: content.title,
+          quizNumber: pgQuizNumber,
+          passageBound: true,
+          ...(englishSections.length > 0 ? { englishSections } : {}),
+          ...(chineseSections.length > 0 ? { chineseSections } : {}),
+          ...(body.parentMasteryId ? { parentMasteryId: body.parentMasteryId } : {}),
+          warnings: [],
+        } as never,
+        questions: {
+          create: flatItems.map((item, i) => ({
+            questionNum: String(i + 1),
+            imageData: item.source.imageData,
+            answer: item.source.answer,
+            answerImageData: item.source.answerImageData,
+            marksAvailable: hasOptions(item.source) ? 2 : (item.source.marksAvailable ?? 1),
+            syllabusTopic: item.source.syllabusTopic,
+            subTopic: item.source.subTopic,
+            pageIndex: 0,
+            orderIndex: i,
+            transcribedStem: item.source.transcribedStem,
+            transcribedOptions: item.source.transcribedOptions ?? undefined,
+            transcribedOptionImages: item.source.transcribedOptionImages ?? undefined,
+            transcribedOptionTable: item.source.transcribedOptionTable ?? undefined,
+            transcribedSubparts: item.source.transcribedSubparts ?? undefined,
+            diagramImageData: item.source.diagramImageData ?? undefined,
+            diagramBounds: item.source.diagramBounds ?? undefined,
+            elaboration: item.source.elaboration ?? undefined,
+            sourceQuestionId: item.source.id,
+          })),
+        },
+      },
+      select: { id: true },
+    });
+
+    // Re-use the same review-paper scheduler the standard path uses.
+    await upsertPendingReviewPaper({
+      slug, content, studentId, sessionUserId,
+      studentLevel: student?.level ?? null,
+    });
+    return NextResponse.json({ paperId: pgPaper.id, warnings: [], quizNumber: pgQuizNumber });
+  }
+
   // ─── Pull OEQ siblings + merge groups ──────────────────────────────
   // A candidate row representing a sub-part of a multi-part question
   // (e.g. "Q14c") would render in the quiz with only its own (c) stem
