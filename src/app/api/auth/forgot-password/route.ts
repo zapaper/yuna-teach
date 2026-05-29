@@ -15,6 +15,18 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 // Failure paths are logged server-side for debugging.
 
 export async function POST(request: NextRequest) {
+  // Loud entry log — fires BEFORE any body parsing or branch so we can
+  // confirm the route is actually being hit from production logs even
+  // when the request body is malformed or empty. Distinct prefix
+  // (`*** FORGOT-PW HIT ***`) makes it grep-friendly in Railway logs.
+  // Also writes to stdout so log streamers that filter stderr still
+  // surface it.
+  const hitTs = new Date().toISOString();
+  const ua = request.headers.get("user-agent") ?? "(no-ua)";
+  const ref = request.headers.get("referer") ?? "(no-ref)";
+  console.log(`*** FORGOT-PW HIT *** ${hitTs} ua="${ua.slice(0, 60)}" ref="${ref}"`);
+  console.error(`*** FORGOT-PW HIT *** ${hitTs} ua="${ua.slice(0, 60)}" ref="${ref}"`);
+
   let email: string | undefined;
   let debug: boolean | undefined;
   try {
@@ -22,6 +34,7 @@ export async function POST(request: NextRequest) {
     email = body?.email;
     debug = body?.debug;
   } catch {
+    console.error(`[forgot-password] body parse failed — returning 400`);
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
   console.error(`[forgot-password] request received email=${email ?? "(none)"}`);
