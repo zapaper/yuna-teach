@@ -192,7 +192,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
         const paragraphs = hasTextPassage ? toParagraphs(passage!) : [];
         return (
           <div className={`relative ${splitPassageCls}`}>
-            {tool === "pen" && <PassageScratchOverlay />}
+            <PassageScratchOverlay enabled={tool === "pen"} />
             {hasTextPassage ? (
               <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
                 {paragraphs.map((para, pi) => (
@@ -225,7 +225,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
       {/* Comprehension OEQ: reading passage with drawing overlay */}
       {sectionType === "comprehension-oeq" && passage && (
         <div className={`relative ${splitPassageCls}`}>
-          {tool === "pen" && <PassageScratchOverlay />}
+          <PassageScratchOverlay enabled={tool === "pen"} />
           <ReadingPassage text={passage} />
         </div>
       )}
@@ -744,7 +744,7 @@ function PassageWithInputs({
 
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
-      {tool === "pen" && <PassageScratchOverlay />}
+      <PassageScratchOverlay enabled={tool === "pen"} />
       {(() => {
         // Cross-line counter for plain ______ markers — each one
         // consumes the next synthetic key built above (negative sentinels).
@@ -1438,7 +1438,15 @@ function ReadingPassage({ text }: { text: string }) {
 }
 
 /** Transparent drawing overlay for passage annotation (underlining, circling) */
-function PassageScratchOverlay() {
+// Chinese passage annotation overlay. Mounted always so the canvas
+// bitmap survives a tool-switch — the input-focus auto-switches `tool`
+// to "type", which under the old conditional-mount setup unmounted the
+// canvas and wiped every annotation the student had drawn. `enabled`
+// only toggles pointer-events / handlers, never the element itself.
+// Resize preserves existing strokes via an offscreen-canvas snapshot.
+// Intentionally a Chinese-local copy of the same shape as the English
+// overlay — kept forked per the Chinese-pathway isolation rule.
+function PassageScratchOverlay({ enabled }: { enabled: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
@@ -1483,10 +1491,27 @@ function PassageScratchOverlay() {
     const obs = new ResizeObserver(() => {
       const w = parent.offsetWidth;
       const h = parent.offsetHeight;
+      const newW = w * 2;
+      const newH = h * 2;
+      if (canvas.width === newW && canvas.height === newH
+          && canvas.style.width === `${w}px` && canvas.style.height === `${h}px`) return;
+      const hadContent = canvas.width > 0 && canvas.height > 0;
+      let snapshot: HTMLCanvasElement | null = null;
+      if (hadContent) {
+        snapshot = document.createElement("canvas");
+        snapshot.width = canvas.width;
+        snapshot.height = canvas.height;
+        const sctx = snapshot.getContext("2d");
+        if (sctx) sctx.drawImage(canvas, 0, 0);
+      }
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      canvas.width = w * 2;
-      canvas.height = h * 2;
+      canvas.width = newW;
+      canvas.height = newH;
+      if (snapshot) {
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(snapshot, 0, 0, newW, newH);
+      }
     });
     obs.observe(parent);
     return () => obs.disconnect();
@@ -1495,12 +1520,12 @@ function PassageScratchOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10 pointer-events-auto"
-      style={{ touchAction: "none" }}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={onUp}
+      className="absolute inset-0 z-10"
+      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none" }}
+      onPointerDown={enabled ? onDown : undefined}
+      onPointerMove={enabled ? onMove : undefined}
+      onPointerUp={enabled ? onUp : undefined}
+      onPointerCancel={enabled ? onUp : undefined}
     />
   );
 }
