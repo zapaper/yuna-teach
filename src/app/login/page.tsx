@@ -1,5 +1,16 @@
 "use client";
 
+// Force this page to render at request time instead of being statically
+// pre-rendered at build time. Next.js defaults static pages to
+// `Cache-Control: s-maxage=31536000` (1 year) — which means a fresh
+// deploy's new HTML (pointing at the new JS chunks) never reaches the
+// browser through the CDN. Any client-side bugfix here (the forgot-
+// password nested-form was a recent one) sits in a deploy that users
+// never see because they get the cached old HTML referencing old chunks.
+// Force-dynamic costs us one server render per page load — fine for a
+// low-traffic auth page, worth it for safe iterability.
+export const dynamic = "force-dynamic";
+
 import { Suspense, useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
