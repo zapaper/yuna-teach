@@ -352,8 +352,11 @@ keyConcepts:
       label: Click here to start practice
       quizSpec:
         title: "Mastery: Comprehension Cloze"
-        mcq: 15
-        oeq: 0
+        # Comp Cloze is fill-in-the-blank — extractor classifies every
+        # question as OEQ (the answer is a typed word, not a 4-option
+        # choice). Spec accordingly.
+        mcq: 0
+        oeq: 15
 
 commonMistakes: []
 

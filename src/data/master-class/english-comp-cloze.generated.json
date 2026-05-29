@@ -231,8 +231,8 @@
         "label": "Click here to start practice",
         "quizSpec": {
           "title": "Mastery: Comprehension Cloze",
-          "mcq": 15,
-          "oeq": 0
+          "mcq": 0,
+          "oeq": 15
         }
       },
       "narration": {
