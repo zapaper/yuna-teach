@@ -3,6 +3,15 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Geometry (Angles & Shape Properties)",
+  "topicLabelExtras": [
+    "Geometry"
+  ],
+  "practiceStemRegex": "\\bangle|\\b∠|parallel\\s+(?:to|lines?)|isosceles|alternate\\s+angles?|vertically\\s+opposite|sum\\s+of\\s+angles?|interior\\s+angles?|exterior\\s+angles?|right[\\s-]angle|trapezium|rhombus|parallelogram|reflex\\s+angle",
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Geometry: Angles & Shape Properties",
   "stats": {
     "psleQuestions": 68,

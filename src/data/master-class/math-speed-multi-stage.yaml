@@ -27,6 +27,13 @@ slug: math-speed-multi-stage
 subject: math
 level: P5-P6
 topicLabel: Speed, Distance & Time
+# Extraction doesn't tag with this label — speed problems land under
+# "Time" / "Basic math operations". Pool by stem regex instead, the
+# way Patterns + Hidden Constant Total do. Single-pool until a
+# hand-coded classifier is added for per-pattern variety.
+practiceStemRegex: "\\b(speed|km/h|m/min|m/s|jogg(?:ed|ing)?|cycl(?:ed|ing)?|drove|driving|journey|catch(?:ing)?\\s+up|met\\s+at|average\\s+speed|kilometres?|kilometers?)\\b"
+paperLevels: [PSLE, P6]
+noSubTopicFilter: true
 title: "PSLE Math — Speed, Distance & Time (multi-stage problems)"
 
 stats:

@@ -31,6 +31,12 @@ slug: math-painted-cube
 subject: math
 level: P5-P6
 topicLabel: Painted Cubes & Nets
+# Extraction tags these under "Volume of cube and cuboid" (77 rows).
+# Pool by stem regex matching painted-cube / cube-net / stacked-cubes
+# language. Single-pool until classifier added.
+practiceStemRegex: "\\b(painted|unit\\s+cubes?|net\\s+of\\s+(?:a|the)\\s+cube|cube\\s+nets?|fold(?:ed|s)?\\s+to\\s+form\\s+a\\s+cube|stack\\s+of\\s+cubes?)\\b"
+paperLevels: [PSLE, P6]
+noSubTopicFilter: true
 title: "PSLE Math — Painted Cubes & Cube Nets"
 
 stats:

@@ -29,6 +29,13 @@ slug: math-combined-figure-area
 subject: math
 level: P5-P6
 topicLabel: Combined Figure Area
+# Extraction lumps these under "Geometry" (297 rows) or "Area and
+# circumference of circle" (42 rows). Pool by stem regex matching
+# composite-figure cues — shaded area / made up of / overlap /
+# quarter circle / semicircle. Single-pool until classifier added.
+practiceStemRegex: "\\b(shaded\\s+area|find\\s+the\\s+(?:area|perimeter)|made\\s+up\\s+of|overlap(?:ping)?|quarter\\s+circles?|semi-?circles?|combined\\s+(?:area|figure))\\b"
+paperLevels: [PSLE, P6]
+noSubTopicFilter: true
 title: "PSLE Math — Combined Figure Area & Perimeter"
 
 stats:

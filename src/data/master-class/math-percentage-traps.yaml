@@ -29,6 +29,13 @@ slug: math-percentage-traps
 subject: math
 level: P5-P6
 topicLabel: Percentage Traps
+# Extraction tags these under "Percentage" (76 rows). topicLabel
+# match works here — the bank pool is small enough that nearly every
+# Percentage question is a trap variant. No regex needed; single-pool
+# mode is enough.
+topicLabelExtras: ["Percentage"]
+paperLevels: [PSLE, P6]
+noSubTopicFilter: true
 title: "PSLE Math — Percentage Traps (reverse, compound, mixed)"
 
 stats:

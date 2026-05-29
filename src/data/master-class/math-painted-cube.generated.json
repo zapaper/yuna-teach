@@ -3,6 +3,12 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Painted Cubes & Nets",
+  "practiceStemRegex": "\\b(painted|unit\\s+cubes?|net\\s+of\\s+(?:a|the)\\s+cube|cube\\s+nets?|fold(?:ed|s)?\\s+to\\s+form\\s+a\\s+cube|stack\\s+of\\s+cubes?)\\b",
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Painted Cubes & Cube Nets",
   "stats": {
     "headline": "Painted-cube and cube-net questions appear on almost every PSLE paper — usually as a 2-mark MCQ plus a 3-4 mark Paper 2 question. Once you learn the 4 \"locations\" a small cube can be in (corner, edge, face, centre), the counting becomes mechanical."

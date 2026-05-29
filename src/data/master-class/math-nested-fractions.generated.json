@@ -3,6 +3,12 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Nested Fractions",
+  "practiceStemRegex": "(?:\\\\frac|\\bfraction|\\b\\d+/\\d+\\b)[\\s\\S]{0,400}\\b(?:remainder|remaining|left|spent|gave|sold)\\b|\\b(?:remainder|remaining|left)\\b[\\s\\S]{0,200}(?:\\\\frac|\\bfraction|\\b\\d+/\\d+\\b)",
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Nested Fractions (fraction of a remainder)",
   "stats": {
     "headline": "Nested-fraction problems appear in nearly every PSLE Paper 2. The trap is the word \"remainder\" — the moment you see it, the next fraction is taken from a SMALLER bar, not the original. Bar-model drawing makes this obvious in 20 seconds."

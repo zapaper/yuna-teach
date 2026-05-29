@@ -3,6 +3,12 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Speed, Distance & Time",
+  "practiceStemRegex": "\\b(speed|km/h|m/min|m/s|jogg(?:ed|ing)?|cycl(?:ed|ing)?|drove|driving|journey|catch(?:ing)?\\s+up|met\\s+at|average\\s+speed|kilometres?|kilometers?)\\b",
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Speed, Distance & Time (multi-stage problems)",
   "stats": {
     "headline": "Speed problems are worth 3-5 marks each on PSLE Paper 2. Most are multi-stage — one object with two speeds, two objects catching up or meeting, or a return journey. Same 4 patterns repeat every year. Spot the pattern → write the right equation in one line."

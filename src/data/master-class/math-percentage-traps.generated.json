@@ -3,6 +3,14 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Percentage Traps",
+  "topicLabelExtras": [
+    "Percentage"
+  ],
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Percentage Traps (reverse, compound, mixed)",
   "stats": {
     "headline": "Percentage problems are worth 4-5 marks each on PSLE Paper 2 — and they hide the same traps every year. Once you adopt the unitary method (100% → 1% → answer) and learn the \"100% of what?\" question, you can crack any compound or reverse percentage problem in one line."

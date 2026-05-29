@@ -3,6 +3,12 @@
   "subject": "math",
   "level": "P5-P6",
   "topicLabel": "Combined Figure Area",
+  "practiceStemRegex": "\\b(shaded\\s+area|find\\s+the\\s+(?:area|perimeter)|made\\s+up\\s+of|overlap(?:ping)?|quarter\\s+circles?|semi-?circles?|combined\\s+(?:area|figure))\\b",
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Math — Combined Figure Area & Perimeter",
   "stats": {
     "headline": "Combined-figure questions appear on every PSLE Paper 2 — 3 to 5 marks each. Once you recognise the 4 build-up patterns and learn when to use π = 22/7 vs 3.14, these become some of the easier high-mark questions in the paper."
