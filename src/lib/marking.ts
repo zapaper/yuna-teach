@@ -720,6 +720,11 @@ interface QuestionMarkResult {
   marksAwarded: number;
   studentAnswer?: string;
   notes: string;
+  // Per-subpart breakdown. When present and non-empty, the server SUMS
+  // these to derive marksAwarded — eliminates the "AI declares 4/4 but
+  // notes say minus 0.5" disagreement surface. AI may omit on single-part
+  // questions; legacy prose-reconciliation runs as a fallback.
+  parts?: Array<{ label: string; awarded: number; max?: number }>;
 }
 
 // Strip markdown scaffolding the Phase-1 detection AI occasionally
@@ -3861,16 +3866,42 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               // below captures the all-empty case in one line.
               if (spHasInk) console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → HAS INK (${spInkBuffer.length} bytes)`);
             } catch {
-              // No ink file. For TEXT subparts assume ink exists —
-              // the AI reads handwriting off the composite image.
-              // For DRAWABLE subparts (shade/draw/arrow on a printed
-              // diagram), treat missing-ink as BLANK: the composite
-              // contains the printed diagram + answer-image overlay,
-              // which the AI consistently hallucinates as the student
-              // having drawn the correct answer. Safer to award 0
-              // for genuinely missing-ink than to award full marks
-              // off a non-existent submission.
-              spHasInk = !isSpDrawable;
+              // No per-subpart ink file. For DRAWABLE subparts (shade /
+              // arrow / mark a printed diagram), treat missing-ink as
+              // BLANK — the composite contains the printed diagram +
+              // answer-image overlay, which the AI hallucinates as the
+              // student having drawn the correct answer.
+              //
+              // For TEXT subparts the historical default was "assume
+              // ink exists" (the AI reads handwriting off the composite
+              // image). That path let blank canvases through to the AI,
+              // which then hallucinated marks against printed stem text
+              // rendered into the canvas — Q14 in cmpqa5voe... was a
+              // real instance: the orphan "(c)" stem rendered onto a
+              // blank canvas, AI awarded marks for a student who wrote
+              // nothing. Safety net: if the WHOLE-question ink layer
+              // exists and is pixel-level empty, no subpart can have
+              // ink either, so treat the subpart as blank. Only default
+              // to "assume yes" when there's no ink artefact at all on
+              // disk (scanned-back printables, where the composite JPG
+              // is the only source of truth).
+              if (isSpDrawable) {
+                spHasInk = false;
+              } else {
+                try {
+                  const fullInkPath = path.join(subDir, `page_${scanPageIdx}_ink.png`);
+                  const fullInkBuffer = await fs.readFile(fullInkPath);
+                  const wholeHasInk = hasOpaquePixels(fullInkBuffer);
+                  spHasInk = wholeHasInk;
+                  if (!wholeHasInk) {
+                    console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): no per-subpart ink file AND whole-canvas ink is pixel-empty → BLANK`);
+                  }
+                } catch {
+                  // Truly no ink artefacts on disk (likely scanned-back
+                  // printable) — defer to the AI by trusting the composite.
+                  spHasInk = true;
+                }
+              }
             }
             if (!spHasInk) {
               blankSubparts.add(sp.label);
@@ -4386,8 +4417,21 @@ For math questions, working is secondary to the final answer:
 - If the student's final answer (the value on or near the "Ans:" / "Answer:" line, or the clearly-stated final value) matches the expected answer → award FULL MARKS immediately. Do NOT deduct for missing, incomplete, or unclear working. Working is not required when the answer is right.
 - The expected answer key may include AUXILIARY identifications such as "x = ∠BDC" or "let y be …" or "this angle is alternate to …". These are reasoning hints, NOT required parts of the student's answer. If the student's final NUMERICAL/value answer matches the key, award FULL MARKS even if they omit these labels or angle identifications. Example: question is "find ∠x", key is "180 − 105 − 32 = 43° | x = ∠BDC", student wrote "43°" → FULL MARKS.
 - ONLY when the final answer is WRONG or absent: scan the working steps for partial credit. Award partial marks proportional to marksAvailable if some steps or methods are correct.
-- IF THE WORKING REACHES THE CORRECT ANSWER but the student wrote a different number on the "Final answer" line (very common transcription/write-down slip — e.g. working shows "108 − 70 = 38" but final-answer line says "88"), trust the working and award FULL MARKS. The student did the math correctly; they just mis-copied at the end.
-- For partial credit on multi-step problems, divide the marks across the required steps. Example (3-mark question, key has 4 steps): student does 3 of the 4 steps correctly with the right intermediate values → award 2 of 3 marks; student does 2 of 4 → award 1 of 3. Do NOT award 0 simply because the final number is wrong if the working contains correctly executed intermediate calculations from the same method.
+- IF THE WORKING REACHES THE CORRECT ANSWER but the student wrote a different number on the "Final answer" line (very common transcription/write-down slip — e.g. working shows "108 − 70 = 38" but final-answer line says "88"), trust the working and award FULL MARKS. The student did the math correctly; they just mis-copied at the end. EXCLUSIONS — the following are WRONG ANSWERS, NOT transcription errors: (a) ratio order reversed (working "B:W = 3:7", final "7:3"); (b) units swapped or omitted; (c) negative/positive sign flipped; (d) different number with no working bridge to the right one. Apply the cap below.
+
+⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — for math OEQ; also applies inside parts[]):
+A wrong final answer can NEVER receive full marks. Cap = (marksAvailable − 1) for the part. Within the cap:
+  - 2-mark question/part wrong → MAX 1
+  - 3-mark question/part wrong → MAX 2 (1 if EARLY MISSTEP; 2 ONLY if the only slip is in the FINAL arithmetic step)
+  - 4-mark question/part wrong → MAX 3 (1-2 if early misstep; 3 only if just the last step)
+  - 5-mark question/part wrong → MAX 4 (1-3 if early misstep; 4 only if just the last step)
+
+DEFINITIONS (read carefully — this is where marking errors usually creep in):
+  - "EARLY MISSTEP" = a wrong OPERATION, wrong SETUP, wrong FORMULA, or any conceptual error in steps 1 to (n−1) of an n-step solution. Examples: adding instead of subtracting overlapping regions (inclusion-exclusion), using "+" where the question requires "−", picking the wrong fraction-of-remainder base, mis-applying a ratio direction in setup, omitting a controlled variable. The whole rest of the working then uses wrong inputs, even if the arithmetic on those wrong inputs is mechanically correct. THIS IS NOT A "SMALL SLIP" — it caps at the LOWER tier (1 on a 3-mark, 1-2 on 4-mark, 1-3 on 5-mark).
+  - "SMALL SLIP" = a final-step arithmetic error only — the setup, method, formula, intermediate values were all correct, and the student just mis-added / mis-multiplied at the very end. Only this qualifies for the HIGHER tier (2 on 3-mark, 3 on 4-mark, 4 on 5-mark).
+  - "Correctly executed step" requires BOTH the operation AND the input values to that step to be correct. A step like "8 ÷ 2 = 4" is not "correct" if "2" came from a wrong earlier calculation — it's executing right arithmetic on wrong inputs, which does NOT earn the step's mark.
+
+NOTE: The MAX values above are CAPS, not defaults. Justify any award strictly using the definitions above; default to the LOWER tier when uncertain.
 - If wrong with no correct working → ZERO.
 - Equivalent-form answers are equivalent answers: 1/2 = 0.5 = 50%; 3 1/2 = 7/2 = 3.5; 25 cm = 0.25 m if units accepted. Accept all standard equivalences unless the question asks for a specific form.
 - If the student wrote the correct number but forgot the unit (and the expected answer specifies a unit), award FULL MARKS minus at most a 0.5-mark unit deduction; do not award 0.
@@ -4688,9 +4732,10 @@ Instructions:
    - End each part with a single "Awarded N mark(s)." line that gives the TOTAL marks for that part (sum of any sub-elements). Do NOT write "Awarded 0 marks for the explanation" as the closing line of a part — that's a sub-mention; restate the part total afterwards.
    - For single-part questions, omit the Part header and just state "Awarded N mark(s)." once at the end.
    NEVER propose an alternative answer that contradicts a part the key DOES cover.
+4. PER-PART MARKS BREAKDOWN (parts[] in the JSON): for every labelled sub-part you commented on in notes, add one entry to the parts array with the EXACT mark you awarded that part. The top-level marksAwarded MUST equal the sum of parts[].awarded — the server uses parts[] as the source of truth when both are present, so any disagreement gets resolved against your per-part numbers, not the top-level total. For single-part questions, return parts as an empty array []; the top-level marksAwarded stands.
 
 Return ONLY valid JSON:
-{"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
+{"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number — must equal sum of parts[].awarded for multi-part>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>", "parts": [{"label": "a", "awarded": <number>, "max": <number — the cap for this part>}, ...]}`;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const markParts: any[] = [];
@@ -4784,6 +4829,40 @@ Return ONLY valid JSON:
               parsed.studentAnswer = detectedAnswer || parsed.studentAnswer;
               let awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
 
+              // SOURCE-OF-TRUTH: per-part breakdown (parts[]). When the
+              // AI provides per-part awards, SUM them — bypasses the AI's
+              // own top-level marksAwarded number, which historically
+              // disagreed with its own per-part prose ("notes say -1 for
+              // part (c), but total = 4/4"). Each part's award is clamped
+              // to its declared max OR the corresponding partMaxMarks cap.
+              // Empty / missing parts[] falls through to the legacy prose
+              // reconciliation chain below.
+              const partsBreakdown = Array.isArray(parsed.parts) ? parsed.parts : null;
+              const usePartsSum = !!partsBreakdown && partsBreakdown.length > 0;
+              if (usePartsSum) {
+                let sum = 0;
+                const trace: string[] = [];
+                for (const p of partsBreakdown!) {
+                  const label = String(p?.label ?? "").toLowerCase();
+                  const rawAwarded = Math.max(0, Number(p?.awarded) || 0);
+                  const declaredMax = Number(p?.max);
+                  const knownMax = partMaxMarks.get(label);
+                  const cap = Number.isFinite(declaredMax) && declaredMax > 0
+                    ? Math.min(declaredMax, knownMax ?? declaredMax)
+                    : (knownMax ?? marksAvailable);
+                  const clamped = Math.min(rawAwarded, cap);
+                  sum += clamped;
+                  trace.push(`(${label})=${clamped}${clamped !== rawAwarded ? `[clamped from ${rawAwarded}, cap ${cap}]` : ""}`);
+                }
+                const newAwarded = Math.min(marksAvailable, sum);
+                if (Math.abs(newAwarded - awarded) > 0.0001) {
+                  console.log(`[quiz-marking] Q${q.questionNum} per-part sum overrides AI top-level: ${awarded} → ${newAwarded}/${marksAvailable} (${trace.join(", ")})`);
+                } else {
+                  console.log(`[quiz-marking] Q${q.questionNum} per-part sum: ${newAwarded}/${marksAvailable} (${trace.join(", ")})`);
+                }
+                awarded = newAwarded;
+              }
+
               // Per-part clamp. Multi-mark questions ask the AI to put
               // an explicit "Awarded N mark(s)" line per part in the
               // notes (see prompt instruction 3 above). Split into
@@ -4797,7 +4876,11 @@ Return ONLY valid JSON:
               // subpart text where known. Only clamp the overall
               // marksAwarded if the per-part total is strictly less
               // than what the AI returned — never inflate.
-              if (parsed.notes && marksAvailable > 1 && awarded > 0) {
+              //
+              // Skipped when parts[] is the source of truth — the prose
+              // reconciliation only exists for the case the AI omits
+              // the structured breakdown (single-part, or model regression).
+              if (!usePartsSum && parsed.notes && marksAvailable > 1 && awarded > 0) {
                 const notesStr = String(parsed.notes);
                 const verbRe = /\b(?:awarded|earning|earned|scoring|scored|gaining|gained|given)\s+(\d+(?:\.\d+)?)\s*marks?\b/gi;
                 // Chunk by "Part (x):" / "(x):" headers. Anything
@@ -4856,7 +4939,10 @@ Return ONLY valid JSON:
               // in a part chunk — saw this on a Science circuit-
               // drawing Q where part (a) = 0 and part (b) = 1 but
               // marksAwarded stayed at 0.
-              if (parsed.notes && hasFullPartMaxes) {
+              //
+              // Skipped when parts[] is the source of truth — each
+              // part was already clamped to its cap in the sum path.
+              if (!usePartsSum && parsed.notes && hasFullPartMaxes) {
                 const notesStr = String(parsed.notes);
                 // Match "Part (a): … Awarded N mark(s)" or "(a) … Awarded N mark(s)"
                 // — split notes into per-part chunks first, then read each chunk's
@@ -4913,7 +4999,11 @@ Return ONLY valid JSON:
               // says marksAwarded:0.5 at the JSON top but writes
               // "Awarded 2 mark(s)" in the trailing notes summary —
               // trust the trailing total. Capped at marksAvailable.
-              if (parsed.notes) {
+              //
+              // Skipped when parts[] is the source of truth — for
+              // single-part questions parts[] is empty, so usePartsSum
+              // is false and this still runs as before.
+              if (!usePartsSum && parsed.notes) {
                 const notesStr = String(parsed.notes).trim();
                 // Match "Awarded N mark(s)." or "Awarded N marks." at end.
                 // The (s) literal-paren form is what the marker prompt
@@ -4935,32 +5025,69 @@ Return ONLY valid JSON:
               // We've still seen the marker hallucinate marks for them
               // (e.g. detected="(b) :" → notes claim student "filled
               // in A, B, C, D, E" → awarded 2/2). Strip any per-part
-              // mark on a confirmed-blank label and rewrite that
-              // chunk's "Awarded N mark(s)" to 0.
-              if (parsed.notes && blankSubparts.size > 0 && awarded > 0) {
-                const notesStr = String(parsed.notes);
-                const partRe = /((?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*)([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
-                let deducted = 0;
-                let rewritten = notesStr;
-                for (const m of notesStr.matchAll(partRe)) {
-                  const label = m[2].toLowerCase();
-                  if (!blankSubparts.has(label)) continue;
-                  const chunk = m[3];
-                  const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
-                  if (awardMatches.length === 0) continue;
-                  const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
-                  if (partAwarded > 0) {
-                    deducted += partAwarded;
-                    const replacement = ` The student left this part blank — confirmed by ink check. Awarded 0 mark(s).`;
-                    rewritten = rewritten.replace(m[0], m[1] + replacement);
-                    console.log(`[quiz-marking] Q${q.questionNum} blank-subpart clamp: (${label}) AI awarded ${partAwarded} but canvas was blank → 0`);
+              // mark on a confirmed-blank label, rewrite the notes
+              // chunk's "Awarded N mark(s)" to 0, AND override the
+              // structured parts[] entry when present.
+              if (blankSubparts.size > 0 && awarded > 0) {
+                // 1. parts[] override (when usePartsSum) — re-sum with blanks zeroed.
+                let partsOverrode = false;
+                if (usePartsSum && partsBreakdown) {
+                  let resum = 0;
+                  for (const p of partsBreakdown) {
+                    const label = String(p?.label ?? "").toLowerCase();
+                    const rawAwarded = Math.max(0, Number(p?.awarded) || 0);
+                    if (blankSubparts.has(label) && rawAwarded > 0) {
+                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart parts[] override: (${label}) AI awarded ${rawAwarded} but canvas was blank → 0`);
+                      partsOverrode = true;
+                      continue;
+                    }
+                    // Reapply the same cap logic as the original sum.
+                    const declaredMax = Number(p?.max);
+                    const knownMax = partMaxMarks.get(label);
+                    const cap = Number.isFinite(declaredMax) && declaredMax > 0
+                      ? Math.min(declaredMax, knownMax ?? declaredMax)
+                      : (knownMax ?? marksAvailable);
+                    resum += Math.min(rawAwarded, cap);
+                  }
+                  if (partsOverrode) {
+                    const newAwarded = Math.min(marksAvailable, resum);
+                    console.log(`[quiz-marking] Q${q.questionNum} blank-subpart parts[] total: ${awarded} → ${newAwarded}/${marksAvailable}`);
+                    awarded = newAwarded;
                   }
                 }
-                if (deducted > 0) {
-                  const newAwarded = Math.max(0, awarded - deducted);
-                  console.log(`[quiz-marking] Q${q.questionNum} blank-subpart total clamp: ${awarded} → ${newAwarded}/${marksAvailable} (deducted ${deducted})`);
-                  awarded = newAwarded;
-                  parsed.notes = rewritten;
+                // 2. Notes rewrite (always — displayed prose stays in sync).
+                if (parsed.notes) {
+                  const notesStr = String(parsed.notes);
+                  const partRe = /((?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*)([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+                  let deducted = 0;
+                  let rewritten = notesStr;
+                  for (const m of notesStr.matchAll(partRe)) {
+                    const label = m[2].toLowerCase();
+                    if (!blankSubparts.has(label)) continue;
+                    const chunk = m[3];
+                    const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
+                    if (awardMatches.length === 0) continue;
+                    const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
+                    if (partAwarded > 0) {
+                      deducted += partAwarded;
+                      const replacement = ` The student left this part blank — confirmed by ink check. Awarded 0 mark(s).`;
+                      rewritten = rewritten.replace(m[0], m[1] + replacement);
+                      if (!partsOverrode) {
+                        console.log(`[quiz-marking] Q${q.questionNum} blank-subpart notes clamp: (${label}) AI awarded ${partAwarded} but canvas was blank → 0`);
+                      }
+                    }
+                  }
+                  if (deducted > 0) {
+                    parsed.notes = rewritten;
+                    // Legacy path (parts[] not present): also deduct from
+                    // the running `awarded` since it came from the AI's
+                    // top-level marksAwarded number, not from a sum.
+                    if (!usePartsSum) {
+                      const newAwarded = Math.max(0, awarded - deducted);
+                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart total clamp: ${awarded} → ${newAwarded}/${marksAvailable} (deducted ${deducted})`);
+                      awarded = newAwarded;
+                    }
+                  }
                 }
               }
 
