@@ -85,7 +85,15 @@ export default function RootLayout({
             initial render typically doesn't depend on it. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+        {/* Material Symbols (icon font). Was display=swap which let every
+            <span class="material-symbols-outlined">lock</span> briefly
+            render as the LITERAL TEXT "lock" / "person" / "mail" in a
+            system font before the icon font arrived — the "funny font"
+            flash on cold loads. display=block keeps the text invisible
+            for up to 3s while the font loads (icon-font-FOUT standard
+            mitigation); on modern broadband with browser cache the
+            font is virtually always ready in time. */}
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
       </head>
       <body className="min-h-screen">
         <ChunkErrorReloader />
