@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
     // sourcePaperId for a Chinese master through here either.
     if (isChinese) {
       const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
-      if (!isAdmin(actor)) {
+      // Admin OR an entry in the Chinese-access allow-list
+      // (src/lib/chinese-access.ts) passes the gate.
+      const { canAssignChinese } = await import("@/lib/chinese-access");
+      if (!isAdmin(actor) && !canAssignChinese(actor?.name)) {
         return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
       }
     }
@@ -231,7 +234,9 @@ export async function POST(request: NextRequest) {
   // paper so the quiz player picks up the section-aware layouts.
   if (subject === "chinese") {
     const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
-    if (!isAdmin(actor)) {
+    // Admin OR an entry in the Chinese-access allow-list passes.
+    const { canAssignChinese } = await import("@/lib/chinese-access");
+    if (!isAdmin(actor) && !canAssignChinese(actor?.name)) {
       return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
     }
     if (!chineseSections || chineseSections.length === 0) {

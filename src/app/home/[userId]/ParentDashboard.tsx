@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
+import { canAssignChinese } from "@/lib/chinese-access";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
 import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
@@ -208,6 +209,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const defaultAvatarMap: Record<string, string> = { admin: "bunny", papa: "bear" };
   const nameLower = user.name?.toLowerCase() ?? "";
   const isAdminUser = adminCheck(user);
+  // Chinese subject is otherwise admin-only; a tiny allow-list lets
+  // specific non-admin accounts (e.g. student666) assign Chinese
+  // quizzes too without granting them full admin rights.
+  const chineseAllowedForUser = isAdminUser || canAssignChinese(user.name);
   // `user.name` is the immutable login username; `displayName` is the
   // mutable label shown in greetings/headers. Falls back to the
   // username when no override has been set.
@@ -1203,7 +1208,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
             const isP3 = quizStudent?.level === 3;
             const base: Array<"math" | "science" | "english"> = isP3 ? ["math", "science"] : ["math", "science", "english"];
-            const subjects: Array<"math" | "science" | "english" | "chinese"> = isAdminUser ? [...base, "chinese"] : base;
+            const subjects: Array<"math" | "science" | "english" | "chinese"> = (isAdminUser || chineseAllowedForUser) ? [...base, "chinese"] : base;
             return subjects.map(s => (
               <button key={s} onClick={() => setQuizSubject(s)}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
