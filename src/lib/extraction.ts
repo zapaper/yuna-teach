@@ -544,6 +544,13 @@ async function extractExamPaperCore(
       import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
       // Fire-and-forget difficulty classification (see main-path hook below).
       import("@/lib/difficulty-classify").then(m => m.classifyPaperDifficulty(paperId).catch(e => console.error(`[extraction] classifyPaperDifficulty failed:`, e)));
+      // Fire-and-forget master-class subTopic tagging — assigns each
+      // question to a sub-topic bucket for every master class whose
+      // taxonomy applies (matches by syllabusTopic). Without this,
+      // newly-uploaded papers' questions stay invisible to mastery
+      // quizzes for the "default" master classes that need admin-
+      // tagged subTopics.
+      import("@/lib/master-class/classify-by-ai").then(m => m.classifyPaperSubtopics(paperId).catch(e => console.error(`[extraction] classifyPaperSubtopics failed:`, e)));
       return;
     }
 
@@ -947,6 +954,9 @@ async function extractExamPaperCore(
     // batches of 5 so newly uploaded papers come pre-labelled. Non-blocking,
     // runs after extractionStatus is already "ready".
     import("@/lib/difficulty-classify").then(m => m.classifyPaperDifficulty(paperId).catch(e => console.error(`[extraction] classifyPaperDifficulty failed:`, e)));
+    // Fire-and-forget master-class subTopic tagging (see text-based path
+    // above for rationale).
+    import("@/lib/master-class/classify-by-ai").then(m => m.classifyPaperSubtopics(paperId).catch(e => console.error(`[extraction] classifyPaperSubtopics failed:`, e)));
   } catch (err) {
     console.error(`[extraction] Failed for ${paperId}:`, err);
     await prisma.examPaper
