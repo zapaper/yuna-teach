@@ -8,7 +8,15 @@
 slug: english-synthesis-tricks
 subject: english
 level: P5-P6
-topicLabel: Synthesis & Transformation
+# Extraction writes "Synthesis / Transformation" (slash). The MC name
+# uses ampersand in the title for readability but the picker matches
+# against the slash form to align with the bank.
+topicLabel: Synthesis / Transformation
+# Existing sub-topics (concession / cause / condition / reported-speech)
+# are about pattern types, not buckets the picker needs to gate on —
+# every PSLE synthesis question fits the deck's 4-pattern teaching.
+noSubTopicFilter: true
+paperLevels: [P5, P6, PSLE]
 title: "PSLE English — Synthesis & Transformation Tricks (10 marks)"
 
 stats:

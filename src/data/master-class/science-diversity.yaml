@@ -12,7 +12,16 @@
 slug: science-diversity
 subject: science
 level: P5-P6
-topicLabel: Diversity
+# Extraction writes the full PSLE-syllabus topic strings. Living-things
+# diversity = "Diversity of living and non-living things" (107 rows).
+# Materials = "Diversity of materials" (73 rows). MC spans both.
+topicLabel: Diversity of living and non-living things
+topicLabelExtras: ["Diversity of materials"]
+paperLevels: [P5, P6, PSLE]
+# Sub-topics (living-things / classification / flow-charts / materials)
+# drive the slide deck — no per-bucket tags exist on source rows
+# yet, so the picker uses a single pool until a classifier is added.
+noSubTopicFilter: true
 title: "PSLE Science — Diversity (Living Things + Materials)"
 
 stats:

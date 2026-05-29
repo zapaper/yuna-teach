@@ -2,7 +2,13 @@
   "slug": "english-synthesis-tricks",
   "subject": "english",
   "level": "P5-P6",
-  "topicLabel": "Synthesis & Transformation",
+  "topicLabel": "Synthesis / Transformation",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "P5",
+    "P6",
+    "PSLE"
+  ],
   "title": "PSLE English — Synthesis & Transformation Tricks (10 marks)",
   "stats": {
     "headline": "Synthesis = 10 marks. PSLE rotates the same 4 grammar patterns every year. Learn the keyword-to-pattern map and the most common traps — full marks become straightforward."

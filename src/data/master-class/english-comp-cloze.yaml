@@ -25,12 +25,19 @@ level: P5-P6
 topicLabel: Comprehension Cloze
 title: "PSLE English — Comprehension Cloze (15 marks)"
 
-# General-pool mode: pull from ALL Comprehension Cloze questions across
-# PSLE + P6 papers, no sub-topic filtering. The four sub-topics below
-# (verbs / linkers / collocations / traps) drive the slide deck flow
-# only — they don't constrain the quiz pool.
+# General-pool mode: pull from ALL Comprehension Cloze questions
+# regardless of sub-topic. The four sub-topics below (verbs / linkers
+# / collocations / traps) drive the slide deck flow only — they don't
+# constrain the quiz pool.
+#
+# Pool scope: P5 + P6 + PSLE. Extraction currently tags only 30
+# rows (all P5) as "Comprehension Cloze" — PSLE/P6 papers DO contain
+# the Comp Cloze section but extraction labels those questions under
+# a different section header, so they're invisible here. Falls back
+# to the P5 pool until extraction is re-run with the PSLE/P6 Comp
+# Cloze header recognised.
 noSubTopicFilter: true
-paperLevels: [PSLE, P6]
+paperLevels: [P5, P6, PSLE]
 
 stats:
   headline: >-

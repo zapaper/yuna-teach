@@ -23,7 +23,19 @@
 slug: forces
 subject: science
 level: P5-P6
-topicLabel: Forces (Friction, Gravity, Elastic, Magnets)
+# Extraction splits Forces across TWO syllabus topics (the PSLE
+# syllabus does the same):
+#   - "Interaction of forces (Frictional force, gravitational force,
+#      elastic spring force)" — 93 rows
+#   - "Interaction of forces (Magnets)"                                — 77 rows
+# Pool the union so the MC covers all four force families.
+topicLabel: "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+topicLabelExtras: ["Interaction of forces (Magnets)"]
+paperLevels: [P5, P6, PSLE]
+# Sub-topics (name-all-forces / compare-forces / spring-energy-chain
+# / magnets-attract-repel) drive the deck — source rows aren't
+# tagged yet, so single-pool until a classifier is added.
+noSubTopicFilter: true
 title: Forces in PSLE Science
 
 stats:

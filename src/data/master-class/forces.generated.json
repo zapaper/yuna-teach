@@ -2,7 +2,16 @@
   "slug": "forces",
   "subject": "science",
   "level": "P5-P6",
-  "topicLabel": "Forces (Friction, Gravity, Elastic, Magnets)",
+  "topicLabel": "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+  "topicLabelExtras": [
+    "Interaction of forces (Magnets)"
+  ],
+  "paperLevels": [
+    "P5",
+    "P6",
+    "PSLE"
+  ],
+  "noSubTopicFilter": true,
   "title": "Forces in PSLE Science",
   "stats": {
     "psleQuestions": 58,

@@ -2,7 +2,16 @@
   "slug": "science-diversity",
   "subject": "science",
   "level": "P5-P6",
-  "topicLabel": "Diversity",
+  "topicLabel": "Diversity of living and non-living things",
+  "topicLabelExtras": [
+    "Diversity of materials"
+  ],
+  "paperLevels": [
+    "P5",
+    "P6",
+    "PSLE"
+  ],
+  "noSubTopicFilter": true,
   "title": "PSLE Science — Diversity (Living Things + Materials)",
   "stats": {
     "headline": "Diversity = ~10-15 marks across living things + materials. PSLE tests the EDGE CASES, not the obvious. Master the trap list and the classification keys — easy marks every year."
