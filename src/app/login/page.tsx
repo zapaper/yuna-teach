@@ -397,7 +397,14 @@ function LoginContent() {
                     </p>
                   </div>
                 ) : (
-                  <form onSubmit={handleForgot} className="space-y-3">
+                  // NOT a <form> — this panel renders INSIDE the parent
+                  // <form onSubmit={handleLogin}> above. Nested forms are
+                  // invalid HTML; the browser strips the inner one, which
+                  // means a <button type="submit"> inside would submit the
+                  // outer login form instead of running handleForgot.
+                  // Wired as a button with explicit onClick instead, and
+                  // Enter-in-the-email-field calls handleForgot directly.
+                  <div className="space-y-3">
                     <p className="text-xs text-on-surface-variant font-medium">Enter your registered email and we&apos;ll send you a reset link.</p>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant text-sm">mail</span>
@@ -405,19 +412,26 @@ function LoginContent() {
                         type="email"
                         value={forgotEmail}
                         onChange={e => setForgotEmail(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleForgot(e as unknown as React.FormEvent);
+                          }
+                        }}
                         placeholder="your@email.com"
                         className="w-full pl-11 pr-4 py-3 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface text-sm outline-none"
                       />
                     </div>
                     {forgotError && <p className="text-xs text-error">{forgotError}</p>}
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={(e) => handleForgot(e as unknown as React.FormEvent)}
                       disabled={forgotLoading}
                       className="w-full py-3 bg-primary text-on-primary font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-60"
                     >
                       {forgotLoading ? "Sending…" : "Send reset link"}
                     </button>
-                  </form>
+                  </div>
                 )}
               </div>
             )}
