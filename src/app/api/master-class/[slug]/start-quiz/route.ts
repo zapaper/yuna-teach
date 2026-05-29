@@ -376,7 +376,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       );
     }
 
-    // 2. Shuffle + pick passages until question target reached.
+    // 2. Shuffle + pick passages. Two constraints:
+    //    a) hit the quiz spec's question target,
+    //    b) include AT LEAST 2 passages so the student sees variety
+    //       — a single Comp Cloze passage covers the full spec
+    //       (15 blanks = 15-question target), but practising on
+    //       only one passage shape doesn't transfer; rotating across
+    //       two passages each quiz is the minimum educational unit.
+    //    If the pool only has 1 passage, fall back to that one.
+    const MIN_PASSAGES = 2;
     const allSlidesPG = [...content.keyConcepts, ...content.commonMistakes];
     const pgSpec = allSlidesPG.map(s => s.cta?.quizSpec).find(Boolean);
     const pgTarget = (pgSpec?.mcq ?? QUIZ_MCQ_COUNT) + (pgSpec?.oeq ?? QUIZ_OEQ_COUNT);
@@ -384,7 +392,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     const pickedGroups: PassageGroup[] = [];
     let runCount = 0;
     for (const g of shuffledGroups) {
-      if (runCount >= pgTarget) break;
+      // Keep picking while EITHER we haven't reached the question
+      // target OR we haven't hit the minimum-passages floor yet.
+      const hitTarget = runCount >= pgTarget;
+      const hitMinPassages = pickedGroups.length >= MIN_PASSAGES;
+      if (hitTarget && hitMinPassages) break;
       pickedGroups.push(g);
       runCount += g.questions.length;
     }
