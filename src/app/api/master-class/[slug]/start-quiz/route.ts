@@ -419,8 +419,24 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       // Daily Quiz uses.
       let passage: string | undefined;
       if (isChinesePG) {
+        // 1st-choice: chineseSections array carries the cleaned
+        // passage Daily Quiz prefers (set during extraction for
+        // 短文填空 and 阅读理解 MCQ).
         const cs = (meta?.chineseSections as Array<{ label: string; passage?: string }> | undefined) ?? [];
         passage = cs.find(s => s.label === g.topic)?.passage;
+        // Fallback: 阅读理解 OEQ doesn't always make it into
+        // chineseSections, but the OCR text for the section IS in
+        // sectionOcrTexts. Use it as the passage so the quiz can
+        // render the reading passage above the OEQ questions.
+        if (!passage) {
+          const ot = meta?.sectionOcrTexts as Record<string, {
+            ocrText?: string;
+            passageOcrText?: string;
+            passageDisplayText?: string;
+          }> | undefined;
+          const s = ot?.[g.topic];
+          passage = s?.passageOcrText ?? s?.passageDisplayText ?? s?.ocrText;
+        }
       } else {
         const ocrTexts = meta?.sectionOcrTexts as Record<string, {
           ocrText?: string;
