@@ -198,6 +198,35 @@ export async function POST(request: NextRequest) {
     } catch (err) {
       console.error("Failed to auto-link student to parent:", err);
     }
+
+    // Day-0 welcome email — FIRST-TIME ONLY: fires when this student
+    // is the parent's FIRST linked child. Adding a second child later
+    // doesn't re-trigger. Skipped when the parent has no email on
+    // record. Fire-and-forget so a SendGrid hiccup never blocks the
+    // signup response.
+    try {
+      const linkCount = await prisma.parentStudent.count({ where: { parentId } });
+      if (linkCount === 1) {
+        const parent = await prisma.user.findUnique({
+          where: { id: parentId },
+          select: { id: true, email: true, name: true, displayName: true },
+        });
+        if (parent?.email) {
+          // Avoid the late require — keep the import at module top once
+          // the route file already imports a few server-only helpers.
+          const { sendWelcomeEmail } = await import("@/lib/send-welcome-email");
+          sendWelcomeEmail({
+            parentEmail: parent.email,
+            parentId: parent.id,
+            parentDisplayName: parent.displayName ?? parent.name,
+            childId: user.id,
+            childDisplayName: user.displayName ?? user.name,
+          }).catch(err => console.error("[welcome-email] async send failed:", err));
+        }
+      }
+    } catch (err) {
+      console.error("[welcome-email] trigger check failed:", err);
+    }
   }
 
   // Previously: we cloned every paper owned by the first-created parent
