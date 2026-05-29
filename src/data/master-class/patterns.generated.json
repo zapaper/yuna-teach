@@ -105,37 +105,24 @@
       "body": "Figure-based patterns are the trickiest pattern questions on the paper. The diagram is full of dots / sticks / tiles / circles and it's easy to panic. The cure is a single discipline: **stop counting from the diagram. Build a TABLE.** Once the first 3-4 rows of the table are filled in, the formula reveals itself. Here are the 5 patterns you'll see most often, with worked examples.",
       "bullets": [
         "**Pattern type A — Linear (constant difference)**. Each figure adds the SAME number of objects to the previous one. Formula: count = first + (n − 1) × d, where d is the constant difference.",
-        "**Pattern type B — Increasing difference / triangular numbers** (1, 3, 6, 10, 15…). Each figure adds ONE MORE than the previous one (+2, +3, +4, +5). Formula: count = n × (n + 1) ÷ 2.",
-        "**Pattern type C — Square numbers** (1, 4, 9, 16, 25…). Differences are consecutive ODD numbers (+3, +5, +7, +9). Formula: count = n². Or sometimes (n + 1)² depending on how the figures are labelled.",
-        "**Pattern type D — Two sub-counts** (e.g. dots increase by 3, lines increase by 4). Build TWO tables, find the rule for each, then add at the end if needed.",
-        "**The fixed 4-step method** for any figure question:\n   • **Step 1** — Make a table: Figure no. | Count. Fill the first 3-4 rows from the diagram.\n   • **Step 2** — Look at the **differences** between consecutive counts. Constant → Type A. Growing by 1 each step → Type B. Differences are consecutive odd numbers (3, 5, 7, 9) → Type C.\n   • **Step 3** — Pick a formula candidate from the 5 types. Plug in n = 1, 2, 3 to **verify** it matches your table.\n   • **Step 4** — Apply the formula to the target figure (Figure 10, Figure 20, Figure 50). Show the substitution clearly — markers want to see your working, not just the answer."
+        "**Pattern type B — Square numbers** (1, 4, 9, 16, 25…). **If you see 9, 16, 25 in a sequence, that's a dead giveaway it's a square pattern.** Differences are consecutive ODD numbers (+3, +5, +7, +9). Formula: count = n². Or sometimes (n + 1)² depending on how the figures are labelled.",
+        "**Pattern type C — Two sub-counts** (e.g. dots increase by 3, lines increase by 4). Build TWO tables, find the rule for each, then add at the end if needed.",
+        "**The fixed 4-step method** for any figure question:\n   • **Step 1** — Make a table: Figure no. | Count. Fill the first 3-4 rows from the diagram.\n   • **Step 2** — Look at the **differences** between consecutive counts. Constant → Type A. Differences are consecutive odd numbers (3, 5, 7, 9) — or you spot 9, 16, 25 in the counts → Type B.\n   • **Step 3** — Pick a formula candidate (linear n+d, or n²) and plug in n = 1, 2, 3 to **verify** it matches your table.\n   • **Step 4** — Apply the formula to the target figure (Figure 10, Figure 20, Figure 50). Show the substitution clearly — markers want to see your working, not just the answer."
       ],
       "callout": "**The single most important habit:** before you do ANYTHING else, write the table. Three columns: Figure no. | Count | Difference. 90% of figure questions crack open the moment that table is on the page. The remaining 10% need you to split into TWO tables (one per colour / object) and apply the same method to each."
     },
     {
-      "title": "Now let's see it in action — 3 real worked examples",
+      "title": "Now let's see it in action — 2 real worked examples",
       "mascotImage": "/master-class/patterns/panda-teaching-action.png",
-      "body": "The theory is one thing. The marking scheme doesn't care if you know the 5 pattern types — it cares about the **working**. So we'll apply the same 4-step method to 3 real prelim / WA questions, with the original diagrams. Each one shows the **exact question**, the **table** to draw, and the **formula** that falls out.",
+      "body": "The theory is one thing. The marking scheme doesn't care if you know the pattern types — it cares about the **working**. So we'll apply the same 4-step method to 2 real prelim / WA questions, with the original diagrams. Each one shows the **exact question**, the **table** to draw, and the **formula** that falls out.",
       "bullets": [
-        "**Coming up:** increasing difference (beads in rows), squared differences (squares in a grid), and constant difference (sticks to make figures).",
+        "**Coming up:** square pattern (squares in a grid, n²), and constant difference (sticks to make figures, n + d).",
         "**Same recipe every time** — read the question → build the table → list the differences → derive the formula → verify → apply to the target figure."
       ],
       "callout": "Pause and try each one on paper before reading the answer. The point isn't to memorise the result — it's to build the habit."
     },
     {
-      "title": "Worked example 1 — Beads in rows (increasing difference)",
-      "body": "**P5 Tao Nan EOY 2023.** Beads are arranged in rows: row n contains n beads. Figure 1 is just row 1, Figure 2 is rows 1-2, Figure 3 is rows 1-3, and so on. **Find the TOTAL number of beads (grey + white) in Figure 10.**",
-      "diagramImage": "/master-class/patterns/pattern-b-beads.png",
-      "bullets": [
-        "**Step 1 — Read the current table from the diagram.** Count all the beads in each figure shown.\n   • Figure 1 → 1 bead\n   • Figure 2 → 3 beads (1 + 2)\n   • Figure 3 → 6 beads (1 + 2 + 3)\n   • Figure 4 → 10 beads (1 + 2 + 3 + 4)",
-        "**Step 2 — Extend the table by working out the next rows.** Differences: 3 − 1 = **2**, 6 − 3 = **3**, 10 − 6 = **4**. **The difference INCREASES by 1 each step** (next: +5, +6, +7…).\n   • Figure 5 → 10 + 5 = **15 beads**\n   • Figure 6 → 15 + 6 = **21 beads**\n   • Figure 7 → 21 + 7 = **28 beads**\n   • Figure 8 → 28 + 8 = **36 beads**\n   • Figure 9 → 36 + 9 = **45 beads**\n   • Figure 10 → 45 + 10 = **55 beads**",
-        "**Step 3 — Derive the formula.** Figure n total = 1 + 2 + 3 + … + n. Use the **sum formula** (first + last) × count ÷ 2.\n   • Total in Figure n = (1 + n) × n ÷ 2 = **n × (n + 1) ÷ 2**.\n   • Check F4: 4 × 5 ÷ 2 = 10 ✓. F10: 10 × 11 ÷ 2 = 55 ✓.",
-        "**Step 4 — Answer.** Figure 10 → 10 × 11 ÷ 2 = **55 beads**. ✓ matches the row we extended in Step 2."
-      ],
-      "callout": "**Take-away:** when each step ADDS one more than the previous (+2, +3, +4, +5…), the total is a **triangular number** and the shortcut formula is **n × (n + 1) ÷ 2**. No need to add 10 numbers one at a time on the exam."
-    },
-    {
-      "title": "Worked example 2 — Squares in a grid (squared differences)",
+      "title": "Worked example 1 — Squares in a grid (squared differences)",
       "body": "**P6 Rosyth WA2 2023, 3 marks.** Squares form a growing n × n grid (Figure 1 is 1×1, Figure 2 is 2×2, and so on). **How many small squares in total are in Figure 8?**",
       "diagramImage": "/master-class/patterns/pattern-c-squares.png",
       "bullets": [
@@ -147,7 +134,7 @@
       "callout": "**Take-away:** when the differences are consecutive odd numbers (3, 5, 7, 9…), the totals are square numbers. Differences-of- differences = 2 — the calling card of n²."
     },
     {
-      "title": "Worked example 3 — Sticks to make the figures (constant difference)",
+      "title": "Worked example 2 — Sticks to make the figures (constant difference)",
       "body": "**P6 Raffles Girls WA1 2023, 3 marks.** Ahmad uses sticks to build figures: each figure has squares with a triangle on top and bottom. **(a)** How many sticks for Figure 4? **(b)** Ahmad noticed that one figure uses 2 507 sticks. Which figure number is it?",
       "diagramImage": "/master-class/patterns/pattern-sticks-triangles.png",
       "bullets": [
@@ -222,7 +209,7 @@
     {
       "id": "changing-difference",
       "label": "Patterns: changing difference",
-      "description": "Sequences where the differences themselves change — they flip sign (subtract-subtract-add repeats), grow each step (triangular / square / cubic), or hide two interleaved sub-sequences in one list. Trick is to find the repeating sub-rule or look at every-other term.",
+      "description": "Sequences where the differences themselves change — they flip sign (subtract-subtract-add repeats), grow each step as consecutive odd numbers (square pattern, n²), or hide two interleaved sub-sequences in one list. Trick is to find the repeating sub-rule or look at every-other term.",
       "slideIdx": 2
     },
     {
@@ -234,7 +221,7 @@
     {
       "id": "figure-patterns",
       "label": "Figure patterns",
-      "description": "'Figure 1, Figure 2, Figure 3…' with objects (tiles, dots, beads, circles, squares) growing. Asks for the count in Figure n, OR the total area / perimeter. Solved by tabling the first 3-4 figures, listing differences, and matching to a formula (linear, triangular, n², or sum of two squares).",
+      "description": "'Figure 1, Figure 2, Figure 3…' with objects (tiles, dots, beads, circles, squares) growing. Asks for the count in Figure n, OR the total area / perimeter. Solved by tabling the first 3-4 figures, listing differences, and matching to a formula (linear n + d, or square n²).",
       "slideIdx": 4
     }
   ]
