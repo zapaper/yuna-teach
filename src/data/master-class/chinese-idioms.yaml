@@ -14,6 +14,11 @@ slug: chinese-idioms
 subject: chinese
 level: P5-P6
 topicLabel: 阅读理解 OEQ
+# General-pool — Q7-Q8/Q34-Q35 词义理解 and Q13-Q15 词语用法 land under
+# the same 阅读理解 OEQ extraction label. Picker uses single pool
+# until a hand-coded classifier separates the two trick families.
+noSubTopicFilter: true
+paperLevels: [PSLE, P6]
 title: "PSLE 华文 — 词义 + 成语 (14 分)"
 
 stats:

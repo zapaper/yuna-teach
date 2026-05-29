@@ -3,6 +3,11 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "阅读理解 OEQ",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "title": "PSLE 华文 — 写作套话 (Q33 + Q40)",
   "stats": {
     "headline": "PSLE 华文 Q33 (写作 4 分) + Q40 (意见 4 分) = 8 分。题目每年都变, 但格式和\"套话\"基本相同。背熟套话, 套上去就有分。"

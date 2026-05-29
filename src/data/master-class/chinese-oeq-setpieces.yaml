@@ -14,6 +14,12 @@ slug: chinese-oeq-setpieces
 subject: chinese
 level: P5-P6
 topicLabel: 阅读理解 OEQ
+# General-pool — slide deck teaches Q33 写作 and Q40 个人意见 as
+# separate sub-topics but extraction tags both under 阅读理解 OEQ,
+# and the AI sub-topic classifier can't reliably split them. Picker
+# uses single pool until a hand-coded classifier is added.
+noSubTopicFilter: true
+paperLevels: [PSLE, P6]
 title: "PSLE 华文 — 写作套话 (Q33 + Q40)"
 
 stats:

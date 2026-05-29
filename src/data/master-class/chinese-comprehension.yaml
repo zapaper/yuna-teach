@@ -18,6 +18,12 @@ slug: chinese-comprehension
 subject: chinese
 level: P5-P6
 topicLabel: 阅读理解 MCQ
+# General-pool — slide deck teaches 5 fixed question types (找原因,
+# 找动作, 找性格, 解释引文, 总结道理) but all five share the same
+# 阅读理解 MCQ extraction label. Picker uses single pool until a
+# hand-coded classifier separates them.
+noSubTopicFilter: true
+paperLevels: [PSLE, P6]
 title: "PSLE 华文 — Comprehension 阅读理解 (~28 分)"
 
 stats:

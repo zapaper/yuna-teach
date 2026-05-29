@@ -22,6 +22,12 @@ topicLabelExtras: ["完成对话"]
 # Restrict the pool to PSLE + P6 Chinese papers — sentence completion
 # and dialogue completion are P6-level skills.
 paperLevels: [PSLE, P6]
+# General-pool — slide deck teaches Q9-Q10 关联词 / Q11-Q12 完成句子 /
+# Q26-Q29 完成对话 as separate sub-topics, but Q26-Q29 are OEQ-shape
+# (digit-from-word-bank, not 4-option MCQ). The previous per-sub-topic
+# bucketing failed because some buckets only had MCQ and others only
+# OEQ. Single pool lets the picker pull the natural mix.
+noSubTopicFilter: true
 title: "PSLE 华文 — Sentence Completion (16 分)"
 
 stats:

@@ -3,6 +3,11 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "阅读理解 OEQ",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "title": "PSLE 华文 — 词义 + 成语 (14 分)",
   "stats": {
     "headline": "14 分考的是同一件事: 词的**意思** + **用在什么场景**。 背好 Tier 1 词汇表, 这 14 分稳。"

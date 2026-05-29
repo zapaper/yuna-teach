@@ -3,6 +3,11 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "阅读理解 MCQ",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "title": "PSLE 华文 — Comprehension 阅读理解 (~28 分)",
   "stats": {
     "headline": "阅读理解的 MCQ 和 OEQ 都考 **5 种固定问法**: 找原因 / 找动作 / 找性格 / 解释引文 / 总结道理。把这 5 种问法练熟, 答题套路一样。"
