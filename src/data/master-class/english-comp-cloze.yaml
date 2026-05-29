@@ -25,6 +25,13 @@ level: P5-P6
 topicLabel: Comprehension Cloze
 title: "PSLE English — Comprehension Cloze (15 marks)"
 
+# General-pool mode: pull from ALL Comprehension Cloze questions across
+# PSLE + P6 papers, no sub-topic filtering. The four sub-topics below
+# (verbs / linkers / collocations / traps) drive the slide deck flow
+# only — they don't constrain the quiz pool.
+noSubTopicFilter: true
+paperLevels: [PSLE, P6]
+
 stats:
   headline: >-
     Comprehension Cloze = 15 marks. 15 blanks. No word bank.

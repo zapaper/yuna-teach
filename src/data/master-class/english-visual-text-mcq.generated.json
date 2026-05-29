@@ -4,6 +4,11 @@
   "level": "P5-P6",
   "topicLabel": "Visual Text Comprehension MCQ",
   "title": "PSLE English — Visual Text Comprehension MCQ (8 marks)",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "stats": {
     "headline": "Visual Text Comprehension = 8 marks. The text could be a poster, newsletter, website or two-text spread. The answer is always in the text — but only if you READ THE QUESTION FIRST and HUNT for the answer, instead of reading the whole text first."
   },

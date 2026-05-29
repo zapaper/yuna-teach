@@ -232,8 +232,9 @@ export async function classifyPaperSubtopics(paperId: string): Promise<void> {
 
   let totalTagged = 0;
   for (const content of targets) {
+    const allLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])].map(l => l.toLowerCase());
     const candidates = allQs.filter(q =>
-      (q.syllabusTopic ?? "").toLowerCase() === content.topicLabel.toLowerCase(),
+      allLabels.includes((q.syllabusTopic ?? "").toLowerCase()),
     );
     if (candidates.length === 0) continue;
     const assignments = await classifyQuestionsForMasterClass(content, candidates, {

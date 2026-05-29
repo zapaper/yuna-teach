@@ -4,6 +4,11 @@
   "level": "P5-P6",
   "topicLabel": "Comprehension Cloze",
   "title": "PSLE English — Comprehension Cloze (15 marks)",
+  "noSubTopicFilter": true,
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "stats": {
     "headline": "Comprehension Cloze = 15 marks. 15 blanks. No word bank. Most blanks are VERBS, LINKING WORDS, or COLLOCATIONS — once you know the patterns, half the marks become easy."
   },

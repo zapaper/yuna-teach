@@ -15,6 +15,13 @@ slug: chinese-sentence-completion
 subject: chinese
 level: P5-P6
 topicLabel: 语文应用 MCQ
+# PSLE Chinese 完成对话 (Q26-Q29) is extracted as its own syllabusTopic
+# ("完成对话"), not as part of "语文应用 MCQ". This extra label brings
+# those questions into the same master-class pool as Q9-Q12.
+topicLabelExtras: ["完成对话"]
+# Restrict the pool to PSLE + P6 Chinese papers — sentence completion
+# and dialogue completion are P6-level skills.
+paperLevels: [PSLE, P6]
 title: "PSLE 华文 — Sentence Completion (16 分)"
 
 stats:
@@ -301,8 +308,17 @@ keyConcepts:
       label: 点这里开始练习
       quizSpec:
         title: "Mastery: 华文 Sentence Completion"
-        mcq: 15
-        oeq: 0
+        # 10 MCQ (Q9-Q10 关联词 + Q11-Q12 完成句子) + 5 OEQ
+        # (Q26-Q29 完成对话 — extractor classifies these as OEQ
+        # because the answer is a digit-from-word-bank, not a
+        # 4-option MCQ shape; treating them as OEQ at the picker
+        # is correct).
+        mcq: 10
+        oeq: 5
+        subTopicOeqMin:
+          q9-q10-connectors: 0
+          q11-q12-completion: 0
+          q26-q29-dialogue: 5
 
 commonMistakes: []
 

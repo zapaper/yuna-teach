@@ -3,6 +3,13 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "语文应用 MCQ",
+  "topicLabelExtras": [
+    "完成对话"
+  ],
+  "paperLevels": [
+    "PSLE",
+    "P6"
+  ],
   "title": "PSLE 华文 — Sentence Completion (16 分)",
   "stats": {
     "headline": "PSLE 华文 Q9-Q10 + Q11-Q12 + Q26-Q29 = 16 分。三个题型考的是同一件事: 把句子两半的**逻辑**对上。关联词和对话都是小固定池, 背熟就稳。"
@@ -177,8 +184,13 @@
         "label": "点这里开始练习",
         "quizSpec": {
           "title": "Mastery: 华文 Sentence Completion",
-          "mcq": 15,
-          "oeq": 0
+          "mcq": 10,
+          "oeq": 5,
+          "subTopicOeqMin": {
+            "q9-q10-connectors": 0,
+            "q11-q12-completion": 0,
+            "q26-q29-dialogue": 5
+          }
         }
       },
       "narration": {

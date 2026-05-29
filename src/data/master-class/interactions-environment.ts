@@ -100,6 +100,27 @@ export type MasterClassContent = {
   // classes like Patterns (which spans Algebra / Basic operations /
   // Geometry / Statistics).
   practiceStemRegex?: string;
+  // Optional: when true, the master class picker ignores subTopic
+  // bucketing entirely and pulls MCQ + OEQ directly from the syllabus
+  // topic pool — same as the regex-mode picker but without needing a
+  // regex. Use for master classes where sub-topic granularity isn't
+  // needed for quiz pulls (English Comp Cloze, English Visual Text MCQ,
+  // etc.). Sub-topics are still defined for display + mastery tracking
+  // on the slides, but they don't constrain the question pool.
+  noSubTopicFilter?: boolean;
+  // Optional: paper-level filter on the practice pool. Each entry
+  // accepts the level/title variants we see in the bank — e.g. "PSLE"
+  // matches level === "PSLE" OR title contains "PSLE"; "P6" matches
+  // level ∈ {"P6", "Primary 6", "6"}. Master classes can scope their
+  // pool to specific levels (e.g. English Visual Text MCQ wants only
+  // P6 + PSLE papers).
+  paperLevels?: Array<"PSLE" | "P6" | "P5" | "P4" | "P3">;
+  // Optional: secondary syllabusTopic strings to match against, in
+  // addition to the primary `topicLabel`. Use when a master class spans
+  // multiple section labels in the bank — e.g. PSLE Chinese Sentence
+  // Completion covers Q9-Q12 (extracted as "语文应用 MCQ") AND Q26-Q29
+  // (extracted as "完成对话") — both should feed the same MC's pool.
+  topicLabelExtras?: string[];
   title: string;
   stats: {
     // Optional numeric stats — only used by classes that show a

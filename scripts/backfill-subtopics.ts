@@ -94,9 +94,13 @@ async function main() {
         { title: { contains: "PSLE", mode: "insensitive" as const } },
       ],
     };
+    const allTopicLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])];
+    const syllabusTopicClause = allTopicLabels.length === 1
+      ? { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" as const } }
+      : { syllabusTopic: { in: allTopicLabels, mode: "insensitive" as const } };
     const candidates = await prisma.examQuestion.findMany({
       where: {
-        syllabusTopic: { equals: content.topicLabel, mode: "insensitive" },
+        ...syllabusTopicClause,
         subTopic: null,
         transcribedStem: { not: null },
         examPaper: {

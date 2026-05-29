@@ -167,10 +167,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const content = await getMasterClassHydrated(slug);
   if (!content) return NextResponse.json({ error: "Master Class not found" }, { status: 404 });
   const subTopics = content.subTopics ?? [];
-  // Sub-topics only required for non-regex classes (the per-sub-topic
-  // round-robin picker uses them). Regex-mode classes do a single-pool
-  // pick instead.
-  if (!content.practiceStemRegex && subTopics.length === 0) {
+  // Sub-topics only required for non-regex, non-general-pool classes
+  // (the per-sub-topic round-robin picker uses them). Regex-mode AND
+  // general-pool classes do a single-pool pick instead.
+  if (!content.practiceStemRegex && !content.noSubTopicFilter && subTopics.length === 0) {
     return NextResponse.json({ error: "Master Class has no sub-topics defined" }, { status: 400 });
   }
 
@@ -217,17 +217,49 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   //      an admin-tagged subTopic on each candidate.
   const useRegex = !!content.practiceStemRegex;
   const useClassifier = !useRegex && !!STEM_CLASSIFIERS[slug];
+  const useGeneralPool = !useRegex && !useClassifier && !!content.noSubTopicFilter;
+  // Multi-topic match — if `topicLabelExtras` is set, the syllabusTopic
+  // filter accepts any of [topicLabel, ...extras] (case-insensitive).
+  // Used by Chinese Sentence Completion which spans "语文应用 MCQ"
+  // (Q9-Q12) and "完成对话" (Q26-Q29) in the bank.
+  const allTopicLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])];
+  const syllabusTopicClause = allTopicLabels.length === 1
+    ? { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" as const } }
+    : { syllabusTopic: { in: allTopicLabels, mode: "insensitive" as const } };
+  // Optional paperLevels filter — expanded into the level/title variants
+  // we actually see in the bank. PSLE matches level === "PSLE" OR a
+  // title containing "PSLE"; P3-P6 match the level field with the
+  // common formatting variants. Empty / undefined paperLevels = no
+  // level filter (all master papers).
+  const paperLevelClause = (() => {
+    const levels = content.paperLevels ?? [];
+    if (levels.length === 0) return {};
+    const orClauses: Array<Record<string, unknown>> = [];
+    for (const lv of levels) {
+      if (lv === "PSLE") {
+        orClauses.push({ level: { equals: "PSLE", mode: "insensitive" as const } });
+        orClauses.push({ title: { contains: "PSLE", mode: "insensitive" as const } });
+      } else {
+        const n = lv.replace("P", "");
+        orClauses.push({ level: { in: [`P${n}`, `Primary ${n}`, n] } });
+      }
+    }
+    return { OR: orClauses };
+  })();
   const candidatesRaw = await prisma.examQuestion.findMany({
     where: {
       ...(useRegex
         ? { transcribedStem: { not: null } }
         : useClassifier
-          ? { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null } }
-          : { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null }, subTopic: { not: null } }),
+          ? { ...syllabusTopicClause, transcribedStem: { not: null } }
+          : useGeneralPool
+            ? { ...syllabusTopicClause, transcribedStem: { not: null } }
+            : { ...syllabusTopicClause, transcribedStem: { not: null }, subTopic: { not: null } }),
       examPaper: {
         sourceExamId: null,
         paperType: null,
         ...(useRegex ? { subject: { contains: content.subject, mode: "insensitive" } } : {}),
+        ...paperLevelClause,
       },
     },
     select: {
@@ -377,10 +409,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const candidatesMerged: Candidate[] = [...mcqCandidatesOnly, ...mergedOeqs];
 
   // ─── Group by subTopic + mcq/oeq ───────────────────────────────────
-  // Regex-mode master classes (Patterns) don't have per-question
-  // sub-topic tags yet, so we lump everything into a single bucket.
+  // Regex-mode master classes (Patterns) AND general-pool master classes
+  // (English Comp Cloze, English Visual Text MCQ) don't bucket by
+  // sub-topic — we lump everything into one bucket and let the round-
+  // robin selection pull from it directly.
   const groups = new Map<string, { mcq: Candidate[]; oeq: Candidate[] }>();
-  if (useRegex) {
+  if (useRegex || useGeneralPool) {
     groups.set("_all", { mcq: [], oeq: [] });
     for (const q of candidatesMerged) {
       const g = groups.get("_all")!;
@@ -461,9 +495,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const mcqTarget = quizSpec?.mcq ?? QUIZ_MCQ_COUNT;
   const oeqTarget = quizSpec?.oeq ?? QUIZ_OEQ_COUNT;
 
-  if (useRegex) {
+  if (useRegex || useGeneralPool) {
     // Single-bucket pick — just take the first N OEQ then the first
-    // N MCQ from the deduped/shuffled pool.
+    // N MCQ from the deduped/shuffled pool. Same path for regex-mode
+    // (Patterns) and general-pool-mode (Comp Cloze, Visual Text MCQ).
     const g = groups.get("_all")!;
     picked.push(...g.oeq.slice(0, oeqTarget));
     g.oeq = g.oeq.slice(oeqTarget);
