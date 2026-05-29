@@ -20,7 +20,7 @@
 //   npx tsx scripts/run-marking-eval.ts --tolerance=0    (strict equality)
 //   npx tsx scripts/run-marking-eval.ts --paper=cmpj...  (run one paper)
 
-import { promises as fs } from "fs";
+import { promises as fs, readFileSync } from "fs";
 import path from "path";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/db";
@@ -127,12 +127,38 @@ async function copyDir(src: string, dst: string) {
 // each named file. Works for both quiz papers (per-question canvas
 // files) and printable / scanned papers (per-page scans), since we
 // stop guessing filenames and just mirror what the server has.
+// File-backed defaults so the eval always pulls from prod without the
+// caller having to remember env vars. `eval/cookie.txt` holds the admin
+// yuna_session cookie; `eval/base.txt` (optional) holds the base URL.
+// Env vars still win when set.
+function readEvalConfig(): { base: string | null; cookie: string | null } {
+  const envBase = process.env.EVAL_REMOTE_BASE;
+  const envCookie = process.env.EVAL_SESSION_COOKIE;
+  let base = envBase ?? null;
+  let cookie = envCookie ?? null;
+  if (!base) {
+    try {
+      const baseFile = path.join(__dirname, "..", "eval", "base.txt");
+      const raw = readFileSync(baseFile, "utf-8").trim();
+      if (raw) base = raw;
+    } catch { /* file missing — fall through */ }
+    if (!base) base = "https://www.markforyou.com";
+  }
+  if (!cookie) {
+    try {
+      const cookieFile = path.join(__dirname, "..", "eval", "cookie.txt");
+      const raw = readFileSync(cookieFile, "utf-8").trim();
+      if (raw) cookie = raw;
+    } catch { /* file missing — fall through */ }
+  }
+  return { base, cookie };
+}
+
 async function fetchRemoteSubmissionFiles(
   sourceId: string,
   dstSubDir: string,
 ): Promise<{ fetched: number; failed: number }> {
-  const base = process.env.EVAL_REMOTE_BASE;
-  const cookie = process.env.EVAL_SESSION_COOKIE;
+  const { base, cookie } = readEvalConfig();
   if (!base || !cookie) return { fetched: 0, failed: 0 };
 
   const headers = { cookie: `yuna_session=${cookie}` } as const;
@@ -254,13 +280,15 @@ async function clonePaper(sourceId: string): Promise<string> {
   });
 
   // Make canvas files available for the marker to read.
-  //   Local mode: copy from the local SUBMISSIONS_DIR if files exist.
-  //   Remote mode (EVAL_REMOTE_BASE set): fetch each file over HTTP from
-  //                                       the deployed app and write into
-  //                                       the clone's local sub-dir.
+  //   Remote mode (default — uses eval/cookie.txt + eval/base.txt or
+  //                env overrides): fetch each file over HTTP from prod.
+  //   Local mode (fallback when no cookie configured): copy from local
+  //                SUBMISSIONS_DIR. Only useful when files happen to be
+  //                on disk — most prod submissions aren't.
   const srcSubDir = path.join(SUBMISSIONS_DIR, sourceId);
   const dstSubDir = path.join(SUBMISSIONS_DIR, clone.id);
-  if (process.env.EVAL_REMOTE_BASE) {
+  const cfg = readEvalConfig();
+  if (cfg.base && cfg.cookie) {
     const { fetched, failed } = await fetchRemoteSubmissionFiles(sourceId, dstSubDir);
     if (failed > 0) console.warn(`  remote fetch: ${fetched} files OK, ${failed} failed`);
     else process.stdout.write(`fetched=${fetched} `);
