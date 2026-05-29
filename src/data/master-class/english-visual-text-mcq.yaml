@@ -29,11 +29,10 @@ level: P5-P6
 topicLabel: Visual Text Comprehension MCQ
 title: "PSLE English — Visual Text Comprehension MCQ (8 marks)"
 
-# General-pool mode: pull from ALL Visual Text MCQ questions across
-# PSLE + P6 papers, no sub-topic filtering. Sub-topics below
-# (scenario / not-true / punctuation-tone / traps) drive the slide
-# deck flow only — they don't constrain the quiz pool.
-noSubTopicFilter: true
+# Pool scope: PSLE + P6 papers (school prelim + PSLE main). Sub-topic
+# bucketing IS used here — each question gets classified into one of
+# the four buckets (scenario / not-true / punctuation-tone / traps) so
+# the picker can pull a balanced quiz across question types.
 paperLevels: [PSLE, P6]
 
 stats:
