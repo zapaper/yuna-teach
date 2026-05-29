@@ -37,6 +37,20 @@ level: P5-P6
 topicLabel: Hidden Constant Total
 title: "PSLE Math — Hidden Constant Total Trap"
 
+# Extraction tags questions by topic (Ratio / Whole Numbers / etc.),
+# not by the trick family this master class teaches. So we pool by
+# stem regex (matches A — "X gave $ to Y" — or D — "ratio became
+# X:Y") + filter false positives in the backfill that tags subTopic.
+# Sub-topics (internal-transfer / equalise-ratios) are then enforced
+# by the picker's normal per-sub-topic bucketing.
+# Broad pool: any math question with "ratio" anywhere OR with a
+# give/transfer verb. The classifier (classifyHiddenConstantTotal)
+# narrows further to A or D archetypes; unclassifiable ones return
+# null and get skipped at bucketing time. Keeps the regex permissive
+# so multi-sentence ratio problems aren't lost to a tight [^.] anchor.
+practiceStemRegex: "\\bratio\\b|\\b(?:gave|gives|hand(?:ed)?|pass(?:ed)?|transfer(?:red)?)\\b"
+paperLevels: [PSLE, P6]
+
 stats:
   headline: >-
     Many PSLE word problems hide an invariant: a TOTAL, a DIFFERENCE,
@@ -338,8 +352,11 @@ keyConcepts:
       label: Click here to start practice
       quizSpec:
         title: "Mastery: Hidden Constant Total"
-        mcq: 6
-        oeq: 4
+        # Pool is OEQ-heavy (~22 OEQ vs ~5 MCQ across A + D after
+        # cleanup). Spec matches the supply so retakes don't keep
+        # serving the same few MCQs.
+        mcq: 2
+        oeq: 6
 
 commonMistakes: []
 
@@ -351,18 +368,16 @@ keyWords:
   - { word: "equalise the ratios", definition: "When two parallel situations share an equal TOTAL but have different ratios (e.g. 1:5 and 1:2), scale them to a common part-total (LCM of denominators) BEFORE comparing or adding. Trying to add ratios directly without equalising gives wrong answers." }
 
 subTopics:
+  # Slide deck still TEACHES all four patterns (A/B/C/D) — but the
+  # mastery-quiz pool only pulls A and D because those are the ONLY
+  # archetypes PSLE actually tests as distinct trick families. B (equal
+  # removal) and C (one quantity unchanged) appear in PSLE but blend
+  # into other categories at marking time — keeping them as practice
+  # buckets would force the picker to pull near-empty sub-topic pools.
   - id: internal-transfer
     label: Pattern A — Internal transfer (incl. give-and-take)
     description: "Stuff moves from one party to another. TOTAL is constant. Add before-quantities, then apply the after-ratio. Give-and-take is the same pattern — each $1 transferred shifts the GAP by $2."
     slideIdx: 2
-  - id: equal-removal
-    label: Pattern B — Equal change to both
-    description: "Same amount added/removed from both parts. DIFFERENCE is constant. Match old-difference to new-difference in units."
-    slideIdx: 3
-  - id: one-constant
-    label: Pattern C — One quantity unchanged
-    description: "Only one of the two parts is affected. The other is your anchor. Solve for total-change from the part that did move."
-    slideIdx: 5
   - id: equalise-ratios
     label: Pattern D — Equal total, equalise ratios
     description: "Two situations share an equal TOTAL but different ratios. Scale both ratios to a common part-total (LCM) before combining or comparing."

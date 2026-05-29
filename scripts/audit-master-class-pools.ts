@@ -82,22 +82,40 @@ async function main() {
         }
       : {};
 
+    // Regex-mode classes (Patterns, Hidden Constant Total) pool by
+    // stem match, NOT by syllabusTopic. The audit needs to mirror that
+    // — otherwise the topicLabel comparison returns 0 candidates
+    // because extraction tags by subject-topic (Ratio / Whole Numbers)
+    // not by the master-class trick family.
     const allTopicLabels = [c.topicLabel, ...(c.topicLabelExtras ?? [])];
-    const syllabusTopicClause = allTopicLabels.length === 1
-      ? { syllabusTopic: { equals: c.topicLabel, mode: "insensitive" as const } }
-      : { syllabusTopic: { in: allTopicLabels, mode: "insensitive" as const } };
-    const allQs = await prisma.examQuestion.findMany({
+    const syllabusTopicClause = c.practiceStemRegex
+      ? { transcribedStem: { not: null } }   // regex post-filter below
+      : (allTopicLabels.length === 1
+          ? { syllabusTopic: { equals: c.topicLabel, mode: "insensitive" as const } }
+          : { syllabusTopic: { in: allTopicLabels, mode: "insensitive" as const } });
+    const subjectClause = c.practiceStemRegex
+      ? { subject: { contains: c.subject, mode: "insensitive" as const } }
+      : {};
+    let allQs = await prisma.examQuestion.findMany({
       where: {
         ...syllabusTopicClause,
-        examPaper: { sourceExamId: null, paperType: null, ...psleClause },
+        examPaper: { sourceExamId: null, paperType: null, ...subjectClause, ...psleClause },
       },
       select: {
+        transcribedStem: true,
         subTopic: true,
         transcribedOptions: true,
         transcribedOptionImages: true,
         transcribedOptionTable: true,
       },
     });
+    // Regex post-filter for regex-mode classes.
+    if (c.practiceStemRegex) {
+      try {
+        const re = new RegExp(c.practiceStemRegex, "i");
+        allQs = allQs.filter(q => re.test(q.transcribedStem ?? ""));
+      } catch { /* invalid regex — leave unfiltered */ }
+    }
 
     // Per-sub-topic tallies + untagged count.
     const byBucket = new Map<string, { mcq: number; oeq: number }>();
@@ -114,11 +132,18 @@ async function main() {
     // column being unset is FINE because the picker doesn't gate on
     // it. The verdict logic below collapses to a single "total pool"
     // check instead of per-sub-topic blocking.
+    //
+    // Exception: regex-mode classes that ALSO have a hand-coded
+    // classifier (Hidden Constant Total) do gate by sub-topic via
+    // the classifier output, so we fall through to the per-sub-topic
+    // branch with the regex-narrowed pool.
     const usesGeneralPool = !!c.noSubTopicFilter;
     const usesCodeClassifier = SLUGS_WITH_CODE_CLASSIFIER.has(c.slug);
     const usesRegexMatcher = !!c.practiceStemRegex;
+    const SLUGS_WITH_REGEX_AND_CLASSIFIER = new Set<string>(["math-hidden-constant-total"]);
+    const usesRegexWithBucketing = usesRegexMatcher && SLUGS_WITH_REGEX_AND_CLASSIFIER.has(c.slug);
     const totalPoolSize = allQs.length;
-    if (usesGeneralPool || usesCodeClassifier || usesRegexMatcher) {
+    if ((usesGeneralPool || usesCodeClassifier || usesRegexMatcher) && !usesRegexWithBucketing) {
       // Skip per-sub-topic breakdown — just verify the total pool is
       // adequate. Threshold = the quiz spec total (mcq + oeq).
       const target = quizSpec.mcq + quizSpec.oeq;

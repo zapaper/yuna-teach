@@ -4,6 +4,7 @@ import { getSessionUserId } from "@/lib/session";
 import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 import { classifyPatternQuestion } from "@/lib/master-class/classify-pattern";
 import { classifyCircuitsQuestion } from "@/lib/master-class/classify-circuits";
+import { classifyHiddenConstantTotal } from "@/lib/master-class/classify-hidden-constant-total";
 
 // Per-slug stem classifier. When the source question has no
 // subTopic tag, we fill it in at clone time so per-sub-topic
@@ -11,6 +12,7 @@ import { classifyCircuitsQuestion } from "@/lib/master-class/classify-circuits";
 const STEM_CLASSIFIERS: Record<string, (stem: string | null) => string | null> = {
   "patterns": classifyPatternQuestion,
   "electrical-circuits": classifyCircuitsQuestion,
+  "math-hidden-constant-total": classifyHiddenConstantTotal,
 };
 import { getWrongSourceQuestionIds } from "@/lib/master-class/mastery";
 
@@ -409,12 +411,18 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const candidatesMerged: Candidate[] = [...mcqCandidatesOnly, ...mergedOeqs];
 
   // ─── Group by subTopic + mcq/oeq ───────────────────────────────────
-  // Regex-mode master classes (Patterns) AND general-pool master classes
-  // (English Comp Cloze, English Visual Text MCQ) don't bucket by
-  // sub-topic — we lump everything into one bucket and let the round-
-  // robin selection pull from it directly.
+  // Three bucketing modes:
+  //   - Single-bucket "_all": general-pool master classes (Comp Cloze,
+  //     Visual Text MCQ), AND regex-mode classes that DON'T have a
+  //     stem classifier registered. Selection rounds from one pool.
+  //   - Per-sub-topic: everyone else — including regex-mode classes
+  //     WITH a stem classifier (Patterns, Hidden Constant Total).
+  //     Classifier output places questions into the YAML's declared
+  //     sub-topic buckets, and the picker enforces per-bucket
+  //     minimums (subTopicOeqMin) for variety.
+  const useSingleBucket = useGeneralPool || (useRegex && !STEM_CLASSIFIERS[slug]);
   const groups = new Map<string, { mcq: Candidate[]; oeq: Candidate[] }>();
-  if (useRegex || useGeneralPool) {
+  if (useSingleBucket) {
     groups.set("_all", { mcq: [], oeq: [] });
     for (const q of candidatesMerged) {
       const g = groups.get("_all")!;
@@ -495,10 +503,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const mcqTarget = quizSpec?.mcq ?? QUIZ_MCQ_COUNT;
   const oeqTarget = quizSpec?.oeq ?? QUIZ_OEQ_COUNT;
 
-  if (useRegex || useGeneralPool) {
+  if (useSingleBucket) {
     // Single-bucket pick — just take the first N OEQ then the first
-    // N MCQ from the deduped/shuffled pool. Same path for regex-mode
-    // (Patterns) and general-pool-mode (Comp Cloze, Visual Text MCQ).
+    // N MCQ from the deduped/shuffled pool. Used for general-pool and
+    // for regex-mode classes with no classifier registered.
     const g = groups.get("_all")!;
     picked.push(...g.oeq.slice(0, oeqTarget));
     g.oeq = g.oeq.slice(oeqTarget);
