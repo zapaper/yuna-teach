@@ -136,7 +136,7 @@
             "watching"
           ],
           "correctAnswer": 3,
-          "explanation": "The verbs around the blank are in past tense (walked, sat). The blank should match — \"watched\". Option 1 is present tense; option 2 is base form; option 4 is the -ing form, which would need \"was\" in front. Always scan the other verbs in the same sentence first.",
+          "explanation": "**Step 1 — Underline the clue words.** In the SAME sentence: __Last night__ (time phrase: past), __walked__ (past), __sat__ (past). AFTER the blank: __playing__ (this is the object of the verb — Mary watched something happening). **Step 2 — What do they tell us?** The two other verbs (__walked__, __sat__) are past tense; \"__Last night__\" confirms past time. The blank must also be past tense to stay consistent. **Step 3 — Eliminate.** Option 1 \"watches\" = present, doesn't match. Option 2 \"watch\" = base form, would need \"did\" in front. Option 4 \"watching\" = -ing form, would need \"was\" in front of it. Only option 3 \"**watched**\" is plain past tense — it slots in cleanly. **Answer: watched.**",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
@@ -150,7 +150,7 @@
             "However"
           ],
           "correctAnswer": 3,
-          "explanation": "Two clues. (1) The two ideas CONTRAST (heavy rain vs continuing the match), so it's a contrast word — not \"Because\". (2) The blank is followed by \"the heavy rain\" — a NOUN PHRASE, not a clause. \"Although\" needs a clause (subject + verb): \"Although it rained heavily.\" \"Despite\" takes a noun phrase: \"Despite the heavy rain.\" \"However\" needs a comma + a full sentence after, not just a noun phrase.",
+          "explanation": "**Step 1 — Underline the clue words.** AFTER the blank: __the heavy rain__ (a noun phrase — \"the\" + adjective + noun, no verb). In the second clause: __the children continued their football match__ (a full sentence, opposite outcome to what the rain would suggest). **Step 2 — What do they tell us?** Two cues to read off the underlines. (a) The two ideas CONTRAST — rain would normally STOP a match, but it CONTINUED. So the linker must signal contrast. (b) The blank is followed by a noun phrase, NOT a clause — that rules out anything that needs a subject + verb after it. **Step 3 — Eliminate.** \"Because\" = cause, not contrast → ✗. \"Although\" needs a CLAUSE after it (\"Although it rained heavily, …\") not just \"__the heavy rain__\" → ✗. \"However\" needs a comma and a full sentence after, plus it usually sits in the MIDDLE of a sentence → ✗. \"**Despite**\" takes a noun phrase (\"Despite + the heavy rain\") AND signals contrast → ✓. **Answer: Despite.**",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
@@ -193,7 +193,7 @@
             "do"
           ],
           "correctAnswer": 4,
-          "explanation": "\"**Do** your best\" is the fixed phrase — like \"do your homework\". English uses \"do\" with these effort/duty words, not \"make\". \"Make\" goes with decisions / mistakes / effort (\"make an effort\"). \"Take\" goes with chances / actions. \"Have\" goes with feelings or experiences. The trick is just memorising these from reading.",
+          "explanation": "**Step 1 — Underline the clue words.** BEFORE the blank: __to__ (signal: base form of a verb is needed). AFTER the blank: __their best__ (signal: this is a fixed phrase you've heard before). **Step 2 — What do they tell us?** The \"to + ___ + their best\" shape is classic collocation territory — there's only ONE verb in English that pairs naturally with \"your best\": __do your best__. **Step 3 — Eliminate.** \"Make your best\" sounds wrong (we say \"make your bed\" / \"make a decision\", not \"make your best\"). \"Have your best\" doesn't work either. \"Take your best\" can appear with \"shot\" (\"take your best shot\") but NOT with just \"best\". \"**Do** your best\" is the locked-in phrase — same family as \"do your homework\", \"do your duty\". **Answer: do.**",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
@@ -207,7 +207,7 @@
             "be"
           ],
           "correctAnswer": 2,
-          "explanation": "The SUBJECT is \"the list\" (singular), NOT \"names\". \"Of names\" just describes what kind of list. Singular subject + present tense → \"is\". The rest of the sentence is in present (\"makes it hard\"), so we stay in present. PSLE loves this trap — they put a plural noun between a singular subject and its verb to confuse you.",
+          "explanation": "**Step 1 — Underline the clue words.** The real subject of the blank: __the list__ (singular). The distractor sitting between subject and verb: __of names__ (a plural noun — but it's only describing the list, NOT the subject). AFTER the blank: __very long__, and later: __makes__ (present tense). **Step 2 — What do they tell us?** Subject-verb agreement runs off the HEAD noun (\"__the list__\"), not the modifier (\"__of names__\"). PSLE drops a plural noun between subject and verb to bait you into matching the wrong word. The other verb in the sentence (\"__makes__\") tells you the tense is PRESENT, not past. **Step 3 — Eliminate.** \"Are\" = present plural → wrong number (the list is singular) → ✗. \"Were\" = past plural → wrong number AND wrong tense → ✗. \"Be\" = base form → can't stand alone here → ✗. \"**Is**\" = present singular → matches \"__the list__\" AND matches the present tense \"__makes__\" → ✓. **Answer: is.**",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
