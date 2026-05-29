@@ -231,8 +231,12 @@ keyConcepts:
       label: Click here to start practice
       quizSpec:
         title: "Mastery: Synthesis & Transformation"
-        mcq: 15
-        oeq: 0
+        # Synthesis is OEQ-shape (student writes a transformed sentence),
+        # not MCQ. Extraction classifies every question as OEQ. With
+        # mcq:15/oeq:0 the picker came up empty even though 200
+        # questions sit in the pool.
+        mcq: 0
+        oeq: 15
 
 commonMistakes: []
 
