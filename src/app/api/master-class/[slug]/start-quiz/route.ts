@@ -629,7 +629,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const mergeClassifier = STEM_CLASSIFIERS[slug];
   const mergedOeqs: Candidate[] = [];
   for (const [key, group] of groupMap) {
-    const triggering = triggeringByKey.get(key)!;
+    // SAFETY: the sibling fetch uses `questionNum: startsWith: base`,
+    // which overmatches when base is a short string — Q1's siblings
+    // also pull Q10, Q11, …, Q19, creating groupMap entries with no
+    // triggering candidate. Skip those — they shouldn't be in the
+    // mastery pool because they were never in the topic-matched set.
+    // (Synthesis crashed here: most questions are single-digit Q-nums
+    // so the overmatch hit a huge chunk of the paper.)
+    const triggering = triggeringByKey.get(key);
+    if (!triggering) continue;
     const merged = mergeOeqGroup(group);
     // Preserve the triggering candidate's classification (not the
     // merged lead stem's) so the merged row lands in the same bucket
