@@ -13,13 +13,13 @@
       "mascotImage": "/master-class/patterns/panda-welcome.png",
       "body": "Some word problems describe stamps being given away, money moving between people, or beads being removed from a box. Your brain wants to redo the ratios from scratch — but usually, ONE thing in the problem never changes. Find that invariant first.",
       "bullets": [
-        "**The 5 patterns :**\n-- 🔵 **Pattern A — TOTAL stays the same** — one person gives to another (internal transfer) -- 🟢 **Pattern B — DIFFERENCE stays the same** — both quantities grow or shrink by the SAME amount -- 🟣 **Pattern C — ONE quantity stays the same** — the problem only acts on the OTHER quantity -- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — different ratios → equalise the totals first -- 🔴 **Pattern E — EQUAL TOTAL but different MIX** — diff in one item × weight difference",
+        "**The 4 patterns :**\n-- 🔵 **Pattern A — TOTAL stays the same** — one person gives to another (internal transfer) -- 🟢 **Pattern B — DIFFERENCE stays the same** — both quantities grow or shrink by the SAME amount -- 🟣 **Pattern C — ONE quantity stays the same** — the problem only acts on the OTHER quantity -- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — different ratios → equalise the totals first",
         "💡 ** ** Pattern A in disguise",
         "the **3-question check**"
       ],
       "narration": {
         "bullets": [
-          "**The 5 patterns to watch for:**\n-- 🔵 **Pattern A — TOTAL stays the same** — happens when one person gives to another (internal transfer).\n-- 🟢 **Pattern B — DIFFERENCE stays the same** — happens when both quantities grow or shrink by the SAME amount.\n-- 🟣 **Pattern C — ONE quantity stays the same** — happens when the problem only acts on the OTHER quantity.\n-- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — with different ratios → equalise the totals first.\n-- 🔴 **Pattern E — EQUAL TOTAL but different MIX** — classic coins / weights problem: diff in one item × weight difference.",
+          "**The 4 patterns to watch for:**\n-- 🔵 **Pattern A — TOTAL stays the same** — happens when one person gives to another (internal transfer).\n-- 🟢 **Pattern B — DIFFERENCE stays the same** — happens when both quantities grow or shrink by the SAME amount.\n-- 🟣 **Pattern C — ONE quantity stays the same** — happens when the problem only acts on the OTHER quantity.\n-- 🟠 **Pattern D — TWO situations share an EQUAL TOTAL** — with different ratios → equalise the totals first.",
           "💡 **Big insight:** \"give-and-take\" problems (e.g. \"A gave $X to B, now A has $Y less than B\") are just Pattern A in disguise — the TOTAL is still constant. The \"difference shifts by 2 × transfer\" is the SAME unlock, framed differently.",
           "On the next slide — the **3-question check** that figures out WHICH pattern the problem is hiding."
         ]
@@ -28,19 +28,19 @@
     {
       "title": "The 3-question check — every before/after problem",
       "mascotImage": "/master-class/patterns/panda-teaching-action.png",
-      "body": "Before you draw any model or write any ratio, run these 3 questions on the problem. They take 15 seconds and they tell you which pattern (A, B, C, D, or E) you're facing.",
+      "body": "Before you draw any model or write any ratio, run these 3 questions on the problem. They take 15 seconds and they tell you which pattern (A, B, C, or D) you're facing.",
       "bullets": [
         "**Q1 — Where does the stuff GO?**\n-- one person/box to ANOTHER person/box **internal transfer** → **TOTAL is constant** (Pattern A) -- total drops",
         "**Q2 — How much was removed from EACH part?**\n-- the SAME amount **DIFFERENCE is constant** (Pattern B) -- **THE OTHER is the constant** (Pattern C)",
-        "**Q3 — Are there TWO situations with equal totals?**\n-- the same TOTAL different ratios **Pattern D** -- different mix **Pattern E**",
+        "**Q3 — Are there TWO situations with equal totals but different ratios?**\n-- the same TOTAL different ratios **Pattern D**",
         "💡 one and only one"
       ],
       "narration": {
         "bullets": [
           "Question **Q1 — Where does the stuff GO?**\n-- If it moves from one person/box to ANOTHER person/box in the SAME problem → it's an **internal transfer** → **TOTAL is constant** (Pattern A). This includes give-and-take like \"A gave $X to B.\"\n-- If it leaves the problem entirely (eaten, sold, removed) → total drops — check Q2.",
           "Question **Q2 — How much was removed from EACH part?**\n-- If the SAME amount was removed from both → **DIFFERENCE is constant** (Pattern B).\n-- If only ONE part lost or gained → **THE OTHER is the constant** (Pattern C).",
-          "Question **Q3 — Are there TWO situations with equal totals?**\n-- If two boxes / two people share the same TOTAL but different ratios → **Pattern D** — equalise the totals.\n-- If they share the same total count but different mix of items (coins, weights) → **Pattern E** — diff × weight-difference.",
-          "💡 Most PSLE problems fit one and only one of A-E. Identify it first, write your equation second."
+          "Question **Q3 — Are there TWO situations with equal totals but different ratios?**\n-- If two boxes / two people share the same TOTAL but different ratios → **Pattern D** — equalise the totals before combining or comparing.",
+          "💡 Most PSLE problems fit one and only one of A-D. Identify it first, write your equation second."
         ]
       }
     },
@@ -163,49 +163,26 @@
       }
     },
     {
-      "title": "Pattern E — Equal total, different mix (weight trick)",
-      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
-      "body": "Clue: \"X and Y have the SAME number of coins (or marbles, etc.) but a DIFFERENT mix — one has more 50¢ coins, the other has more 20¢ coins\". Because totals are equal, the count of \"extra heavy coins\" on one side equals the \"missing heavy coins\" on the other. Shortcut: difference in count × weight-difference per coin.",
-      "bullets": [
-        "**📝 Worked example :**\nHelen and Ivan each have the **same total number of coins**.\nHelen has **8 more 50¢ coins** than Ivan.\nEach 50¢ coin weighs **3 g** more than each 20¢ coin.",
-        "** **\nSame total count, but Helen has 8 EXTRA 50¢ coins.\nBecause total counts match → Helen must have **8 FEWER 20¢ coins** than Ivan",
-        "** **\nEach swap = Helen gets one MORE 50¢ coin instead of a 20¢ coin.\nPer swap weight gain = 3 g",
-        "** **\nWeight difference = 8 × 3 = **24 g**",
-        "💡 ** **"
-      ],
-      "narration": {
-        "bullets": [
-          "**📝 Worked example PSLE-style, Helen & Ivan coins:**\nHelen and Ivan each have the **same total number of coins**.\nHelen has **8 more 50¢ coins** than Ivan.\nEach 50¢ coin weighs **3 g** more than each 20¢ coin.\nFind the difference in total weight of their coins.",
-          "**Step 1 — Spot the swap.**\nSame total count, but Helen has 8 EXTRA 50¢ coins.\nBecause total counts match → Helen must have **8 FEWER 20¢ coins** than Ivan (the other denomination makes up the gap).",
-          "**Step 2 — Think of it as 8 \"coin swaps\".**\nEach swap = Helen gets one MORE 50¢ coin instead of a 20¢ coin.\nPer swap weight gain = 3 g (the weight difference per coin).",
-          "**Step 3 — Multiply.**\nWeight difference = 8 × 3 = **24 g** (Helen is heavier by 24 g).",
-          "💡 **Why this works:** because totals are equal, the only thing that matters is the DIFFERENCE in counts of one denomination. Multiply that difference by the per-coin weight difference. No need to find individual totals."
-        ]
-      }
-    },
-    {
-      "title": "Top 5 traps to avoid",
+      "title": "Top 4 traps to avoid",
       "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
       "body": "The most-missed mistakes across hidden-constant problems. Read these once before practice — they save 2-3 marks per paper.",
       "bullets": [
         "⚠️ ** 1 — Treating an internal transfer like an external loss.** Total stays constant",
         "⚠️ ** 2 — Forgetting that \"equal removal\" preserves the DIFFERENCE, not the total.** gap",
         "⚠️ ** 3 — In give-and-take, dividing the swing by 1 instead of 2.**",
-        "⚠️ ** 4 — Comparing two ratios without equalising their totals.**",
-        "⚠️ ** 5 — In weight-difference problems, computing individual totals when you don't need to.** diff in count × weight-diff per item"
+        "⚠️ ** 4 — Comparing two ratios without equalising their totals.**"
       ],
       "narration": {
         "bullets": [
           "⚠️ **Trap 1 — Treating an internal transfer like an external loss.**\nIf person A gave to person B, the stuff did NOT leave the problem. Total stays constant. Don't subtract from the total.",
           "⚠️ **Trap 2 — Forgetting that \"equal removal\" preserves the DIFFERENCE, not the total.**\nIf the same number was taken from both parts, the gap between them is fixed, not the total.",
           "⚠️ **Trap 3 — In give-and-take, dividing the swing by 1 instead of 2.**\nEach $1 transferred moves the gap by $2 because one side loses while the other gains. Always divide the swing by 2.",
-          "⚠️ **Trap 4 — Comparing two ratios without equalising their totals.**\n1 : 5 and 1 : 2 cannot be added or compared until you scale them to the same part-total (Pattern D).",
-          "⚠️ **Trap 5 — In weight-difference problems, computing individual totals when you don't need to.**\nIf totals are equal, the answer is just diff in count × weight-diff per item — skip the full breakdown."
+          "⚠️ **Trap 4 — Comparing two ratios without equalising their totals.**\n1 : 5 and 1 : 2 cannot be added or compared until you scale them to the same part-total (Pattern D)."
         ]
       }
     },
     {
-      "title": "Try it — One constant, Equalise, Weight difference",
+      "title": "Try it — One constant, Equalise",
       "mascotImage": "/master-class/patterns/panda-thinking.png",
       "interactiveQuiz": [
         {
@@ -235,20 +212,6 @@
           "explanation": "P = 1+3 = 4 parts. Q = 1+1 = 2 parts. LCM = 4. Scale Q by ×2 → 2 : 2 (now 4 parts). Per standardised box: P has 1 red + 3 green; Q has 2 red + 2 green. Combined: red = 1+2 = 3 parts, green = 3+2 = 5 parts. 3 parts red = 6 → 1 part = 2 → 5 parts green = 10. (Check: each container = 4 parts = 8 marbles. P = 2 red + 6 green; Q = 4 red + 4 green. Total red = 6 ✓, total green = 10 ✓.)",
           "mascotCorrect": "/master-class/patterns/panda-correct.png",
           "mascotWrong": "/master-class/patterns/panda-wrong.png"
-        },
-        {
-          "label": "Pattern E — Weight difference",
-          "stem": "Alvin and Brenda each have the same number of coins. Alvin\nhas 12 more $1 coins than Brenda. Each $1 coin weighs 4 g\nmore than each 50¢ coin. By how many grams is Alvin's pile\nheavier than Brenda's?",
-          "options": [
-            "12 g",
-            "16 g",
-            "48 g",
-            "60 g"
-          ],
-          "correctAnswer": 3,
-          "explanation": "Same total count → Alvin's 12 extra $1 coins mean he has 12 fewer 50¢ coins. That's 12 \"coin swaps\", each gaining 4 g. Weight difference = 12 × 4 = 48 g.",
-          "mascotCorrect": "/master-class/patterns/panda-correct.png",
-          "mascotWrong": "/master-class/patterns/panda-wrong.png"
         }
       ]
     },
@@ -257,7 +220,7 @@
       "mascotImage": "/master-class/patterns/panda-cta.png",
       "body": "Mixed practice drawn from real PSLE-style hidden-constant problems. Trains the reflex of running the 3-question check BEFORE drawing any model.",
       "bullets": [
-        "**mix of 10 questions** internal transfer, equal removal, one-constant, equalise-ratios, weight-difference",
+        "**mix of 10 questions** internal transfer, equal removal, one-constant, equalise-ratios",
         "Wrong answers auto-saved reviewed in 1 week",
         "AI marks partial credit"
       ],
@@ -271,7 +234,7 @@
       },
       "narration": {
         "bullets": [
-          "You'll tackle a **mix of 10 questions** across all five patterns — internal transfer, equal removal, one-constant, equalise-ratios, and weight-difference.",
+          "You'll tackle a **mix of 10 questions** across all four patterns — internal transfer, equal removal, one-constant, and equalise-ratios.",
           "Any Wrong answers are auto-saved and reviewed in 1 week.",
           "The AI marks your working step-by-step — partial credit if you spotted the right invariant but slipped on arithmetic."
         ]
@@ -299,10 +262,6 @@
     {
       "word": "equalise the ratios",
       "definition": "When two parallel situations share an equal TOTAL but have different ratios (e.g. 1:5 and 1:2), scale them to a common part-total (LCM of denominators) BEFORE comparing or adding. Trying to add ratios directly without equalising gives wrong answers."
-    },
-    {
-      "word": "weight-difference shortcut",
-      "definition": "When two parties have equal total COUNTS but different MIXES (e.g. coins of different denominations), the weight difference = (diff in count of one type) × (weight difference per item). No need to compute individual totals."
     }
   ],
   "subTopics": [
@@ -329,12 +288,6 @@
       "label": "Pattern D — Equal total, equalise ratios",
       "description": "Two situations share an equal TOTAL but different ratios. Scale both ratios to a common part-total (LCM) before combining or comparing.",
       "slideIdx": 6
-    },
-    {
-      "id": "weight-difference",
-      "label": "Pattern E — Equal total, weight/value difference",
-      "description": "Two parties with equal total counts but different mixes of items. Weight difference = (diff in count) × (weight-diff per item). Skip the individual breakdown.",
-      "slideIdx": 7
     }
   ]
 }
