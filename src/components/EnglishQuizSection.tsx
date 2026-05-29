@@ -104,7 +104,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       {/* Visual Text: show scanned page images with drawing overlay */}
       {sectionType === "visual-text-mcq" && (
         <div className={`relative ${splitPassageCls}`}>
-          {tool === "pen" && <PassageScratchOverlay />}
+          <PassageScratchOverlay enabled={tool === "pen"} />
           <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
         </div>
       )}
@@ -126,7 +126,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       {/* Comprehension OEQ: reading passage with drawing overlay */}
       {sectionType === "comprehension-oeq" && passage && (
         <div className={`relative ${splitPassageCls}`}>
-          {tool === "pen" && <PassageScratchOverlay />}
+          <PassageScratchOverlay enabled={tool === "pen"} />
           <ReadingPassage text={passage} />
         </div>
       )}
@@ -464,7 +464,7 @@ function PassageWithInputs({
 
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
-      {tool === "pen" && <PassageScratchOverlay />}
+      <PassageScratchOverlay enabled={tool === "pen"} />
       {lines.map((line, li) => {
         // Skip table separator rows (must check before table rows)
         if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
@@ -1106,8 +1106,14 @@ function ReadingPassage({ text }: { text: string }) {
   );
 }
 
-/** Transparent drawing overlay for passage annotation (underlining, circling) */
-function PassageScratchOverlay() {
+/** Transparent drawing overlay for passage annotation (underlining, circling).
+ *  Mounted always (regardless of active tool) so the canvas bitmap survives
+ *  when the user focuses an input to type — losing the bitmap on every
+ *  tool-switch wiped annotations the user had drawn on the passage. The
+ *  `enabled` prop only toggles pointer-events / event handlers, not the
+ *  canvas element itself. Resize preserves existing strokes by snapshotting
+ *  the bitmap into a temp canvas and replaying it after the size change. */
+function PassageScratchOverlay({ enabled }: { enabled: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
@@ -1152,10 +1158,35 @@ function PassageScratchOverlay() {
     const obs = new ResizeObserver(() => {
       const w = parent.offsetWidth;
       const h = parent.offsetHeight;
+      const newW = w * 2;
+      const newH = h * 2;
+      // Skip when nothing actually changed — setting canvas.width/height
+      // clears the bitmap, which would wipe annotations on a no-op
+      // ResizeObserver fire (these happen on layout-only re-flows).
+      if (canvas.width === newW && canvas.height === newH
+          && canvas.style.width === `${w}px` && canvas.style.height === `${h}px`) return;
+      // Snapshot the existing bitmap before resize, then redraw it
+      // scaled to the new dimensions. Preserves all strokes across
+      // resize. Uses an offscreen canvas instead of toDataURL/Image
+      // because the redraw needs to be synchronous (otherwise the
+      // user sees a one-frame flash of cleared annotations).
+      const hadContent = canvas.width > 0 && canvas.height > 0;
+      let snapshot: HTMLCanvasElement | null = null;
+      if (hadContent) {
+        snapshot = document.createElement("canvas");
+        snapshot.width = canvas.width;
+        snapshot.height = canvas.height;
+        const sctx = snapshot.getContext("2d");
+        if (sctx) sctx.drawImage(canvas, 0, 0);
+      }
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      canvas.width = w * 2;
-      canvas.height = h * 2;
+      canvas.width = newW;
+      canvas.height = newH;
+      if (snapshot) {
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(snapshot, 0, 0, newW, newH);
+      }
     });
     obs.observe(parent);
     return () => obs.disconnect();
@@ -1164,12 +1195,12 @@ function PassageScratchOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10 pointer-events-auto"
-      style={{ touchAction: "none" }}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={onUp}
+      className="absolute inset-0 z-10"
+      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none" }}
+      onPointerDown={enabled ? onDown : undefined}
+      onPointerMove={enabled ? onMove : undefined}
+      onPointerUp={enabled ? onUp : undefined}
+      onPointerCancel={enabled ? onUp : undefined}
     />
   );
 }
