@@ -313,10 +313,10 @@ export async function POST(request: NextRequest) {
   // Fuzzy dedup: schools sometimes print the same question with one
   // or two word swaps ("must" vs "have to", "shown above" vs "shown
   // below"). Exact normaliseStem equality misses these; Jaccard
-  // similarity over word-token sets catches them. Threshold 0.85
-  // keeps legitimately distinct questions that happen to share a
-  // generic opening clause from collapsing — a single sentence in
-  // common is well under 0.85 of the union.
+  // similarity over word-token sets catches them. Threshold 0.95 —
+  // tuned conservative so only very near-identical paraphrases
+  // collapse; legitimately distinct questions that share an opening
+  // clause stay distinct.
   function wordTokens(s: string): Set<string> {
     return new Set(s.split(/\s+/).filter(w => w.length > 2));
   }
@@ -325,7 +325,7 @@ export async function POST(request: NextRequest) {
     let inter = 0;
     for (const w of a) if (b.has(w)) inter++;
     const union = a.size + b.size - inter;
-    return union > 0 && inter / union >= 0.85;
+    return union > 0 && inter / union >= 0.95;
   }
 
   // ── MCQ pool: deduplicate by lineage + normalised stem ──
