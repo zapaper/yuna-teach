@@ -95,12 +95,16 @@ export async function sendWelcomeEmail(p: WelcomeEmailParams): Promise<void> {
     // Silent BCC to jessica@markforyou.com on every welcome email so
     // the team has visibility into Day-0 outbound without polluting
     // the parent's "to" line. SendGrid honours bcc on the top-level
-    // payload object.
-    const TEAM_BCC = "jessica@markforyou.com";
+    // payload object. The same address sits in Reply-To so parent
+    // replies land in Jessica's inbox directly instead of hitting
+    // the hello@ inbound-parse webhook (which only knows how to
+    // process scanned-paper attachments and drops everything else).
+    const TEAM_ADDRESS = "jessica@markforyou.com";
     const [resp] = await sgMail.send({
       to: p.parentEmail,
-      bcc: TEAM_BCC,
+      bcc: TEAM_ADDRESS,
       from: { email: FROM_ADDRESS, name: "MarkForYou" },
+      replyTo: TEAM_ADDRESS,
       subject: rendered.subject,
       html,
       text: rendered.text,
