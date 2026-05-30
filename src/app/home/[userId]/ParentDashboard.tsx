@@ -909,7 +909,35 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     return Array.from(seen.values());
   };
   const availableSubjects = dedupKeepFirst(masterPapers.map(p => p.subject));
-  const availableExamTypes = dedupKeepFirst(masterPapers.map(p => p.examType));
+  // Group "End of Year" and "Preliminary" / "Prelim" under a single
+  // user-facing filter label — the assessment shape is the same as
+  // far as a parent picking papers cares, and splitting them buried
+  // the prelim papers behind a separate chip the user often missed.
+  // EXAM_TYPE_GROUPS maps raw bank-stored values to the display label
+  // we want them collapsed into. canonicalExamType + matchesExamType
+  // use this map both for dedup (filter chip list) and for matching
+  // (filter equality).
+  const EXAM_TYPE_GROUPS: Array<{ display: string; matches: RegExp }> = [
+    { display: "End of Year/Prelims", matches: /^(end of year|eoy|prelim(inary)?)$/i },
+  ];
+  function canonicalExamType(et: string | null | undefined): string | null {
+    if (!et) return null;
+    for (const g of EXAM_TYPE_GROUPS) {
+      if (g.matches.test(et.trim())) return g.display;
+    }
+    return et.trim();
+  }
+  function matchesExamType(filter: string, paperExamType: string | null | undefined): boolean {
+    const fNorm = filter.trim().toLowerCase();
+    const canon = canonicalExamType(paperExamType);
+    if (canon && canon.toLowerCase() === fNorm) return true;
+    // Fallback: direct case-insensitive match for assessment types
+    // outside the grouped list (WA1 / WA2 / etc.).
+    return norm(paperExamType) === fNorm;
+  }
+  const availableExamTypes = dedupKeepFirst(
+    masterPapers.map(p => canonicalExamType(p.examType)),
+  );
 
   // Filtered papers for Set Papers view — filter by selected student's level + subject + examType
   const selectedStudentLevel = selectedStudent?.level ?? null;
@@ -935,7 +963,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }
   const filteredPapers = masterPapers.filter(p => {
     if (subjectFilter && norm(p.subject) !== norm(subjectFilter)) return false;
-    if (examTypeFilter && norm(p.examType) !== norm(examTypeFilter)) return false;
+    // examType match goes through matchesExamType so the grouped
+    // "End of Year/Prelims" filter chip matches papers stored as
+    // either "End of Year" / "EOY" or "Prelim" / "Preliminary".
+    if (examTypeFilter && !matchesExamType(examTypeFilter, p.examType)) return false;
     if (selectedStudentLevel && !levelMatches(p.level, selectedStudentLevel)) return false;
     return true;
   });
@@ -2620,7 +2651,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           <div className="flex-1 min-w-0">
                             <p className="font-headline font-bold text-[#001e40] text-sm leading-tight">{p.title}</p>
                             <p className="text-xs text-[#737780] font-medium mt-0.5">
-                              {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
+                              {[p.subject, canonicalExamType(p.examType), p.level].filter(Boolean).join(" · ")}
                             </p>
                             {lastAssignedIso && (
                               <p className="text-[11px] text-[#43474f] mt-1">
