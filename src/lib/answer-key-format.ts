@@ -28,6 +28,21 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
   const original = answer;
   let result = answer;
 
+  // 0) Repair the malformed nested compound label "(b(i))" — a single
+  //    outer parens group with an inner parens for the roman, and the
+  //    letter's own closing paren missing. Convert to canonical
+  //    "(b)(i)". Run FIRST so the question-number passes below see the
+  //    repaired shape.
+  result = result.replace(
+    new RegExp(`\\(([a-h])\\((${ROMAN_RE})\\)\\)`, "gi"),
+    (_m, letter, roman) => `(${letter.toLowerCase()})(${roman.toLowerCase()})`
+  );
+  //    Also catches the Q-prefixed nested form "Q7(b(i))" → "(b)(i)".
+  result = result.replace(
+    new RegExp(`(^|\\s\\|\\s)\\s*Q?\\d+\\(([a-h])\\((${ROMAN_RE})\\)\\)`, "gi"),
+    (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
+  );
+
   // 1) Strip the question-number prefix in front of compound labels:
   //    "Q7(a)(i) X" / "7(a)(i) X" → "(a)(i) X"
   //    Run BEFORE the simple-letter pass below so we don't accidentally

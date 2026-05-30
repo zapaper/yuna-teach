@@ -11,6 +11,7 @@ type Row = {
   paperTitle: string;
   level: number | null;
   subject: string | null;
+  field: "answer" | "stem";
   before: string;
   after: string;
 };
@@ -40,7 +41,14 @@ function Content() {
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [filterLevel, setFilterLevel] = useState<"all" | "3" | "4" | "5" | "6">("all");
-  const [filterSubject, setFilterSubject] = useState<"all" | "math" | "science">("all");
+  const [filterSubject, setFilterSubject] = useState<"all" | "math" | "science" | "english" | "chinese">("all");
+  const [filterField, setFilterField] = useState<"all" | "answer" | "stem">("all");
+
+  // Same question id can produce TWO rows (one for the answer key,
+  // one for the stem). Use `${id}:${field}` as the unique selection
+  // key everywhere — selection Sets, edit map, applied set. Avoids
+  // the answer + stem rows for the same question stomping each other.
+  const rowKey = (r: Row) => `${r.id}:${r.field}`;
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -65,7 +73,7 @@ function Content() {
       setRows(data.rows);
       setScannedCount(data.scannedCount);
       // Pre-tick everything by default; admin un-checks anything that looks wrong.
-      setSelected(new Set(data.rows.map(r => r.id)));
+      setSelected(new Set(data.rows.map(r => `${r.id}:${r.field}`)));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -80,42 +88,52 @@ function Content() {
         const subj = (r.subject ?? "").toLowerCase();
         if (filterSubject === "math" && !subj.includes("math")) return false;
         if (filterSubject === "science" && !subj.includes("science")) return false;
+        if (filterSubject === "english" && !subj.includes("english")) return false;
+        if (filterSubject === "chinese" && !subj.includes("chinese")) return false;
       }
+      if (filterField !== "all" && r.field !== filterField) return false;
       return true;
     });
-  }, [rows, filterLevel, filterSubject]);
+  }, [rows, filterLevel, filterSubject, filterField]);
 
   const applySelected = useCallback(async () => {
-    const targets = filtered.filter(r => selected.has(r.id) && !appliedIds.has(r.id));
+    const targets = filtered.filter(r => selected.has(rowKey(r)) && !appliedIds.has(rowKey(r)));
     if (targets.length === 0) return;
     setApplying(true);
     setError(null);
     try {
-      // Send explicit per-row text (edited value if admin typed in the
-      // textarea, otherwise the auto-normaliser's "after"). The API's
-      // `updates` mode writes verbatim — no second-pass normalisation —
-      // so admin edits are honoured exactly.
-      const updates = targets.map(r => ({
+      // Chunk into batches of 25 so a 100+ row apply doesn't time out
+      // (each update is one DB write; 100 in a single request can
+      // exceed the route's Lambda timeout). The "Applied" counter
+      // updates after each chunk so the admin sees forward progress.
+      const CHUNK = 25;
+      const allUpdates = targets.map(r => ({
         id: r.id,
-        answer: edits[r.id] ?? r.after,
+        field: r.field,
+        text: edits[rowKey(r)] ?? r.after,
       }));
-      const res = await fetch(`/api/admin/answer-key-format`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates }),
-      });
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || `${res.status}`);
+      let appliedSoFar = 0;
+      for (let i = 0; i < allUpdates.length; i += CHUNK) {
+        const slice = allUpdates.slice(i, i + CHUNK);
+        const res = await fetch(`/api/admin/answer-key-format`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ updates: slice }),
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || `${res.status}`);
+        }
+        const data: { updated: number; skipped: number } = await res.json();
+        appliedSoFar += data.updated;
+        setAppliedIds(prev => {
+          const next = new Set(prev);
+          for (const u of slice) next.add(`${u.id}:${u.field}`);
+          return next;
+        });
       }
-      const data: { updated: number; skipped: number } = await res.json();
-      setAppliedIds(prev => {
-        const next = new Set(prev);
-        for (const u of updates) next.add(u.id);
-        return next;
-      });
       setError(null);
-      console.log(`Applied ${data.updated}, skipped ${data.skipped}`);
+      console.log(`Applied ${appliedSoFar} of ${allUpdates.length}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -123,16 +141,16 @@ function Content() {
     }
   }, [filtered, selected, appliedIds, edits]);
 
-  function toggleRow(id: string) {
+  function toggleRow(key: string) {
     setSelected(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
   function selectAll() {
-    setSelected(new Set(filtered.map(r => r.id)));
+    setSelected(new Set(filtered.map(r => rowKey(r))));
   }
   function selectNone() {
     setSelected(new Set());
@@ -147,7 +165,7 @@ function Content() {
     );
   }
 
-  const pendingCount = filtered.filter(r => selected.has(r.id) && !appliedIds.has(r.id)).length;
+  const pendingCount = filtered.filter(r => selected.has(rowKey(r)) && !appliedIds.has(rowKey(r))).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -204,12 +222,26 @@ function Content() {
                 <span className="text-slate-600">Subject:</span>
                 <select
                   value={filterSubject}
-                  onChange={(e) => setFilterSubject(e.target.value as "all" | "math" | "science")}
+                  onChange={(e) => setFilterSubject(e.target.value as "all" | "math" | "science" | "english" | "chinese")}
                   className="border border-slate-300 rounded px-2 py-1"
                 >
                   <option value="all">All</option>
                   <option value="math">Math</option>
                   <option value="science">Science</option>
+                  <option value="english">English</option>
+                  <option value="chinese">Chinese</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2">
+                <span className="text-slate-600">Field:</span>
+                <select
+                  value={filterField}
+                  onChange={(e) => setFilterField(e.target.value as "all" | "answer" | "stem")}
+                  className="border border-slate-300 rounded px-2 py-1"
+                >
+                  <option value="all">All</option>
+                  <option value="answer">Answer key</option>
+                  <option value="stem">Question stem</option>
                 </select>
               </label>
               <span className="text-slate-400 mx-2">|</span>
@@ -229,23 +261,28 @@ function Content() {
 
             <div className="space-y-3">
               {filtered.map(r => {
-                const isApplied = appliedIds.has(r.id);
+                const key = rowKey(r);
+                const isApplied = appliedIds.has(key);
+                const fieldChip = r.field === "stem"
+                  ? <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-bold uppercase tracking-wide">Stem</span>
+                  : <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wide">Answer</span>;
                 return (
                   <div
-                    key={r.id}
+                    key={key}
                     className={`bg-white rounded-xl border p-4 ${isApplied ? "border-emerald-300 bg-emerald-50/50" : "border-slate-200"}`}
                   >
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
-                        checked={selected.has(r.id)}
+                        checked={selected.has(key)}
                         disabled={isApplied}
-                        onChange={() => toggleRow(r.id)}
+                        onChange={() => toggleRow(key)}
                         className="mt-1.5"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2 text-xs text-slate-500">
                           <span className="font-semibold text-slate-700">Q{r.questionNum}</span>
+                          {fieldChip}
                           {r.level && <span>· P{r.level}</span>}
                           {r.subject && <span>· {r.subject}</span>}
                           <span className="truncate">· {r.paperTitle}</span>
@@ -258,11 +295,11 @@ function Content() {
                           </div>
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-semibold text-emerald-600">After {edits[r.id] !== undefined && <span className="text-amber-600">(edited)</span>}</span>
-                              {edits[r.id] !== undefined && (
+                              <span className="text-xs font-semibold text-emerald-600">After {edits[key] !== undefined && <span className="text-amber-600">(edited)</span>}</span>
+                              {edits[key] !== undefined && (
                                 <button
                                   type="button"
-                                  onClick={() => setEdits(prev => { const n = { ...prev }; delete n[r.id]; return n; })}
+                                  onClick={() => setEdits(prev => { const n = { ...prev }; delete n[key]; return n; })}
                                   className="text-[10px] text-slate-500 hover:text-slate-700"
                                 >
                                   Reset to proposed
@@ -270,11 +307,11 @@ function Content() {
                               )}
                             </div>
                             <textarea
-                              value={edits[r.id] ?? r.after}
-                              onChange={e => setEdits(prev => ({ ...prev, [r.id]: e.target.value }))}
+                              value={edits[key] ?? r.after}
+                              onChange={e => setEdits(prev => ({ ...prev, [key]: e.target.value }))}
                               disabled={isApplied}
                               spellCheck={false}
-                              rows={Math.max(2, (edits[r.id] ?? r.after).split("\n").length)}
+                              rows={Math.max(2, (edits[key] ?? r.after).split("\n").length)}
                               className="w-full whitespace-pre-wrap font-mono text-xs bg-emerald-50 p-2 rounded border border-emerald-100 text-slate-800 disabled:opacity-60 focus:outline-emerald-400"
                             />
                           </div>
