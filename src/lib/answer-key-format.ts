@@ -100,30 +100,16 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     (_m, letter, roman) => `(${letter.toLowerCase()})(${roman.toLowerCase()})`
   );
 
-  // 6a) MCQ keys that carry an explanation suffix: "(3) | working notes"
-  //     or "B | because the others are…". When the whole answer is a single
-  //     MCQ-shaped head followed by " | …", drop the suffix. The marker
-  //     and renderer have defensive splits but cleaning the stored data
-  //     is the durable fix.
-  //
-  //     IMPORTANT: only match digits 1-4 and UPPERCASE A-D — lowercase
-  //     a-d overlaps with the OEQ sub-part label space, and OEQ keys
-  //     of the form "(c) | (i) … | (ii) …" would otherwise lose every
-  //     chunk after "(c)". An MCQ answer key is never lowercase by
-  //     convention. We also bail out if a later chunk carries another
-  //     sub-part label "(a)/(b)/(c)/(d)" — that's a multi-subpart OEQ,
-  //     not an MCQ-with-explanation.
-  {
-    const headMatch = result.match(/^\s*(\(?[1-4A-D]\)?)\s*\|/);
-    if (headMatch) {
-      const after = result.slice(headMatch[0].length);
-      const hasMoreSubparts = /\s\|\s\s*\(?[a-h]\)/i.test(` | ${after}`)
-        || /\(?[a-h]\)\s*\(?(?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\)/i.test(after);
-      if (!hasMoreSubparts) {
-        result = headMatch[1];
-      }
-    }
-  }
+  // 6a) PREVIOUSLY: stripped the explanation suffix off MCQ keys
+  //     "(3) | working notes" → "(3)". Removed — admin-side review
+  //     showed these as flagged-for-change in the formatter UI even
+  //     though the original is a valid stored shape (the marker and
+  //     renderer already split on " | " defensively). Keeping the
+  //     explanation in the DB is useful for students reading the
+  //     answer key, so the deterministic strip pass is more noise
+  //     than signal. If we ever want to clean these centrally, do it
+  //     as a separate explicit one-shot — don't bury it inside the
+  //     sub-part label normaliser.
 
   // 6) Bare "(i)" / "(ii)" / "ii)" / "ii." / etc. as a chunk → attach
   //    the most-recent parent letter seen earlier in the answer. Walk
