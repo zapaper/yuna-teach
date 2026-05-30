@@ -71,10 +71,23 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
   //     MCQ-shaped head followed by " | …", drop the suffix. The marker
   //     and renderer have defensive splits but cleaning the stored data
   //     is the durable fix.
+  //
+  //     IMPORTANT: only match digits 1-4 and UPPERCASE A-D — lowercase
+  //     a-d overlaps with the OEQ sub-part label space, and OEQ keys
+  //     of the form "(c) | (i) … | (ii) …" would otherwise lose every
+  //     chunk after "(c)". An MCQ answer key is never lowercase by
+  //     convention. We also bail out if a later chunk carries another
+  //     sub-part label "(a)/(b)/(c)/(d)" — that's a multi-subpart OEQ,
+  //     not an MCQ-with-explanation.
   {
-    const m = result.match(/^\s*(\(?[1-4A-Da-d]\)?)\s*\|/);
-    if (m) {
-      result = m[1];
+    const headMatch = result.match(/^\s*(\(?[1-4A-D]\)?)\s*\|/);
+    if (headMatch) {
+      const after = result.slice(headMatch[0].length);
+      const hasMoreSubparts = /\s\|\s\s*\(?[a-h]\)/i.test(` | ${after}`)
+        || /\(?[a-h]\)\s*\(?(?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\)/i.test(after);
+      if (!hasMoreSubparts) {
+        result = headMatch[1];
+      }
     }
   }
 
