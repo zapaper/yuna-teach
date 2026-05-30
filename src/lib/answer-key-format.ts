@@ -88,6 +88,20 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     new RegExp(`(^|\\s\\|\\s)\\s*Q?\\d+\\(([a-h])\\((${ROMAN_RE})\\)\\)`, "gi"),
     (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
   );
+  //    Concatenated-roman shape "(ai)" / "(bii)" / "(cv)" — the inner
+  //    parens around the roman went missing during OCR and the letter
+  //    sits flush against its roman. Restrict to chunk boundaries
+  //    (start of string or after " | ") so prose like "ai" inside a
+  //    sentence isn't rewritten.
+  result = result.replace(
+    new RegExp(`(^|\\s\\|\\s)\\s*\\(([a-h])(${ROMAN_RE})\\)`, "gi"),
+    (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
+  );
+  //    Q-prefixed concatenated form "Q7(ai)" → "(a)(i)".
+  result = result.replace(
+    new RegExp(`(^|\\s\\|\\s)\\s*Q?\\d+\\(([a-h])(${ROMAN_RE})\\)`, "gi"),
+    (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
+  );
 
   // 1) Strip the question-number prefix in front of compound labels:
   //    "Q7(a)(i) X" / "7(a)(i) X" → "(a)(i) X"

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 import { mathHeuristicsBlock } from "@/lib/math-heuristics";
+import { isSessionAdmin } from "@/lib/session";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -78,6 +79,53 @@ function parseModelResponse(text: string): { solution: string; diagrams: Diagram
     }
   } catch { /* not JSON — treat the whole thing as plain solution text */ }
   return { solution: text, diagrams: [] };
+}
+
+// PATCH /api/exam/[id]/elaborate
+// Body: { questionId, solution: string, diagrams?: DiagramStep[] }
+// Admin-only — overwrites the cached AI explanation for one question
+// with hand-edited text. Stored in the same {solution, diagrams} JSON
+// shape that the AI-generation path writes, so the read path
+// (parseCachedElaboration / parseElabCache) needs no changes.
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await isSessionAdmin())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const { id } = await params;
+  let body: { questionId?: unknown; solution?: unknown; diagrams?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "bad JSON" }, { status: 400 });
+  }
+  if (typeof body.questionId !== "string" || typeof body.solution !== "string") {
+    return NextResponse.json({ error: "questionId and solution required" }, { status: 400 });
+  }
+  const diagrams = Array.isArray(body.diagrams) ? body.diagrams : [];
+  // Confirm the question belongs to this paper before touching it.
+  const q = await prisma.examQuestion.findFirst({
+    where: { id: body.questionId, examPaperId: id },
+    select: { id: true, sourceQuestionId: true },
+  });
+  if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  const payload = JSON.stringify({ solution: body.solution, diagrams });
+  await prisma.examQuestion.update({
+    where: { id: q.id },
+    data: { elaboration: payload },
+  });
+  // If this is a clone of a master question, mirror the edit onto the
+  // master too so future clones (and the master's own review page)
+  // pick up the curated text instead of re-generating from scratch.
+  if (q.sourceQuestionId) {
+    await prisma.examQuestion.update({
+      where: { id: q.sourceQuestionId },
+      data: { elaboration: payload },
+    }).catch(() => { /* master may not exist if extraction was deleted */ });
+  }
+  return NextResponse.json({ ok: true });
 }
 
 // POST /api/exam/[id]/elaborate

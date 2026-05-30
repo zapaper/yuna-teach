@@ -230,6 +230,13 @@ function ExamReviewContent({ id }: { id: string }) {
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
   const [elabDiagrams, setElabDiagrams] = useState<Record<string, DiagramStep[]>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
+  // Admin-only edit mode for the AI explanation card. Keyed by
+  // question id; a non-undefined entry means "this question is in
+  // edit mode" and holds the in-flight text the admin is typing.
+  // Save sends the draft to PATCH /api/exam/[id]/elaborate; the
+  // diagrams sidecar is preserved as-is (not edited inline).
+  const [elabDraft, setElabDraft] = useState<Record<string, string>>({});
+  const [elabSaving, setElabSaving] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   // Flag-with-note flow: clicking the flag button on a NOT-yet-flagged
   // question opens FlagVoiceModal first (record / type / just-flag).
@@ -265,6 +272,10 @@ function ExamReviewContent({ id }: { id: string }) {
   // window, which is safe (admin briefly sees student-view, then UI
   // flips to admin-view on hydrate).
   const [sessionIsAdminOrParent, setSessionIsAdminOrParent] = useState(false);
+  // Strict-admin signal: gates affordances that should NEVER appear
+  // for parents — e.g. editing the cached AI explanation text. Set
+  // in the same /api/users/me effect below.
+  const [sessionIsAdmin, setSessionIsAdmin] = useState(false);
   useEffect(() => {
     let cancelled = false;
     fetch("/api/users/me")
@@ -276,6 +287,7 @@ function ExamReviewContent({ id }: { id: string }) {
         // are the only role that should be locked into student-view.
         const u = d.user as { role?: string; isAdmin?: boolean };
         if (u.isAdmin || u.role === "PARENT") setSessionIsAdminOrParent(true);
+        if (u.isAdmin) setSessionIsAdmin(true);
       })
       .catch(() => { /* non-fatal — falls back to URL-based detection */ });
     return () => { cancelled = true; };
@@ -2910,17 +2922,29 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div className="mt-2 ml-11">
                             {elaborations[q.id] ? (
                               <div>
-                                <button
-                                  onClick={() => setExpandedElabs(prev => {
-                                    const next = new Set(prev);
-                                    next.has(q.id) ? next.delete(q.id) : next.add(q.id);
-                                    return next;
-                                  })}
-                                  className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline"
-                                >
-                                  <span className="material-symbols-outlined text-sm">{expandedElabs.has(q.id) ? "expand_less" : "expand_more"}</span>
-                                  {expandedElabs.has(q.id) ? "Hide explanation" : "Show explanation"}
-                                </button>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => setExpandedElabs(prev => {
+                                      const next = new Set(prev);
+                                      next.has(q.id) ? next.delete(q.id) : next.add(q.id);
+                                      return next;
+                                    })}
+                                    className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline"
+                                  >
+                                    <span className="material-symbols-outlined text-sm">{expandedElabs.has(q.id) ? "expand_less" : "expand_more"}</span>
+                                    {expandedElabs.has(q.id) ? "Hide explanation" : "Show explanation"}
+                                  </button>
+                                  {sessionIsAdmin && expandedElabs.has(q.id) && elabDraft[q.id] === undefined && (
+                                    <button
+                                      onClick={() => setElabDraft(prev => ({ ...prev, [q.id]: elaborations[q.id] }))}
+                                      className="text-xs font-bold text-[#43474f] hover:text-[#003366] hover:underline flex items-center gap-1"
+                                      title="Edit AI explanation (admin only)"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">edit</span>
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
                                 {expandedElabs.has(q.id) && (
                                   <div className="mt-2 p-3 bg-[#eff4ff] rounded-xl space-y-3">
                                     {elabDiagrams[q.id]?.map((d, i) => (
@@ -2929,7 +2953,64 @@ function ExamReviewContent({ id }: { id: string }) {
                                         <BarDiagram diagram={d} />
                                       </div>
                                     ))}
-                                    <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
+                                    {sessionIsAdmin && elabDraft[q.id] !== undefined ? (
+                                      <div className="space-y-2">
+                                        <textarea
+                                          value={elabDraft[q.id]}
+                                          onChange={(e) => setElabDraft(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                          spellCheck={false}
+                                          rows={Math.min(20, Math.max(4, elabDraft[q.id].split("\n").length + 1))}
+                                          className="w-full text-sm font-mono p-3 rounded-lg border-2 border-[#003366]/30 focus:border-[#003366] outline-none bg-white text-[#0b1c30] leading-relaxed"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                          <button
+                                            onClick={async () => {
+                                              setElabSaving(q.id);
+                                              try {
+                                                const res = await fetch(`/api/exam/${id}/elaborate`, {
+                                                  method: "PATCH",
+                                                  headers: { "Content-Type": "application/json" },
+                                                  body: JSON.stringify({
+                                                    questionId: q.id,
+                                                    solution: elabDraft[q.id],
+                                                    diagrams: elabDiagrams[q.id] ?? [],
+                                                  }),
+                                                });
+                                                if (!res.ok) {
+                                                  alert(`Save failed: ${await res.text()}`);
+                                                  return;
+                                                }
+                                                setElaborations(prev => ({ ...prev, [q.id]: elabDraft[q.id] }));
+                                                setElabDraft(prev => {
+                                                  const n = { ...prev };
+                                                  delete n[q.id];
+                                                  return n;
+                                                });
+                                              } finally {
+                                                setElabSaving(null);
+                                              }
+                                            }}
+                                            disabled={elabSaving === q.id}
+                                            className="px-3 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold disabled:opacity-50"
+                                          >
+                                            {elabSaving === q.id ? "Saving…" : "Save"}
+                                          </button>
+                                          <button
+                                            onClick={() => setElabDraft(prev => {
+                                              const n = { ...prev };
+                                              delete n[q.id];
+                                              return n;
+                                            })}
+                                            disabled={elabSaving === q.id}
+                                            className="px-3 py-1.5 rounded-lg border border-[#c3c6d1] text-[#43474f] text-xs font-bold hover:bg-white/60"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
+                                    )}
                                   </div>
                                 )}
                               </div>
