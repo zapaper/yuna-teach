@@ -71,103 +71,105 @@ export async function generateContentWithRetry(
   const tag = label ? `[Gemini:${label}]` : "[Gemini]";
   let lastErr: unknown;
   const primaryModel = (params as { model?: string }).model ?? "";
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  // attempts loop — only handles RETRYABLE non-quota errors (503 /
+  // 504 / transport hiccups). Quota / non-retryable errors break out
+  // immediately and drop straight into the fallback chain below.
+  let lastStatus: unknown = "unknown";
+  retryLoop: for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       if (attempt > 0) console.log(`${tag} attempt ${attempt + 1}/${maxRetries + 1}...`);
       return await getAI().models.generateContent(params);
     } catch (err) {
       lastErr = err;
       const status = (err as Record<string, unknown>).status ?? (err as Record<string, unknown>).code ?? "unknown";
-      if (!isRetryable(err) || attempt === maxRetries) {
-        // Try fallback model before giving up
-        const fallback = FALLBACK_MODELS[primaryModel];
-        if (fallback && isRetryable(err)) {
-          console.warn(`${tag} primary model ${primaryModel} failed, trying fallback: ${fallback}`);
-          try {
-            const result = await getAI().models.generateContent({ ...params, model: fallback });
-            _lastFallbackUsed = fallback;
-            console.log(`${tag} fallback ${fallback} succeeded`);
-            return result;
-          } catch (fallbackErr) {
-            console.error(`${tag} fallback ${fallback} also failed`);
-            // Fall through to the OpenAI cross-provider fallback below
-            // if this is a quota-exhausted error and OPENAI_API_KEY is
-            // set. Otherwise rethrow the fallback model's error.
-            if (!(isQuotaExhaustedError(fallbackErr) && isOpenAIFallbackEnabled())) {
-              throw fallbackErr;
-            }
-            lastErr = fallbackErr;
-          }
-        }
-        // Step 1: backup Gemini API key. Same provider, same prompts,
-        // separate quota bucket — try this BEFORE the cross-provider
-        // OpenAI fallback so we stay on Gemini (which is what every
-        // prompt in this file is tuned for) whenever possible.
-        if (isQuotaExhaustedError(lastErr)) {
-          const backup = getBackupAI();
-          if (backup) {
-            console.warn(`${tag} Gemini quota exhausted — trying backup Gemini key`);
-            try {
-              const result = await backup.models.generateContent(params);
-              _lastFallbackUsed = "gemini-backup-key";
-              console.log(`${tag} backup Gemini key succeeded`);
-              return result;
-            } catch (backupErr) {
-              console.error(`${tag} backup Gemini key also failed:`, backupErr instanceof Error ? backupErr.message : backupErr);
-              // Try the model-family fallback against the backup key
-              // too — e.g. if pro is over-quota on both, both flash
-              // probably still has room.
-              const backupFallback = FALLBACK_MODELS[primaryModel];
-              if (backupFallback && isRetryable(backupErr)) {
-                try {
-                  const result = await backup.models.generateContent({ ...params, model: backupFallback });
-                  _lastFallbackUsed = `gemini-backup-key:${backupFallback}`;
-                  console.log(`${tag} backup Gemini key with model fallback ${backupFallback} succeeded`);
-                  return result;
-                } catch (backupFallbackErr) {
-                  console.error(`${tag} backup Gemini key + model fallback also failed`);
-                  lastErr = backupFallbackErr;
-                }
-              } else {
-                lastErr = backupErr;
-              }
-            }
-          }
-        }
-        // Step 2: cross-provider OpenAI fallback. Only fires for
-        // quota-exhausted errors and only when OPENAI_API_KEY is set
-        // on the env. The openai-fallback module translates the
-        // Gemini params into an OpenAI chat call and adapts the
-        // response back to a Gemini-shaped { text } object so callers
-        // don't need to know which provider answered. Last-resort
-        // safety net — only useful when even the backup Gemini key
-        // can't help.
-        if (isQuotaExhaustedError(lastErr) && isOpenAIFallbackEnabled()) {
-          console.warn(`${tag} Gemini quota exhausted — trying OpenAI fallback`);
-          try {
-            const openaiResult = await runOpenAIFallback(params, label);
-            _lastFallbackUsed = "openai";
-            console.log(`${tag} OpenAI fallback succeeded`);
-            // Cast through unknown so the Gemini-shaped return type
-            // isn't widened; only `.text` is reliably available on the
-            // OpenAI return.
-            return openaiResult as unknown as Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>;
-          } catch (openaiErr) {
-            console.error(`${tag} OpenAI fallback also failed:`, openaiErr instanceof Error ? openaiErr.message : openaiErr);
-            // Surface the ORIGINAL Gemini error to the caller — that
-            // preserves the existing "Gemini failed" log signature
-            // every existing caller expects to see.
-            throw lastErr;
-          }
-        }
-        console.error(`${tag} FAILED after ${attempt + 1} attempts (${status})`);
-        throw err;
+      lastStatus = status;
+      // Quota errors (429 / RESOURCE_EXHAUSTED / monthly spending cap)
+      // don't recover within a retry window — the quota bucket only
+      // refills on a billing-period boundary. Skip the wait loop on
+      // the FIRST 429 so we hit the backup-key / OpenAI fallback
+      // immediately instead of burning ~24s of pointless retries.
+      if (isQuotaExhaustedError(err)) {
+        console.warn(`${tag} quota-exhausted (${status}) — skipping retries, going to fallback`);
+        break retryLoop;
       }
+      // Non-retryable or out of attempts → fall through to the
+      // fallback chain. (Retryable-but-budget-exhausted still drops
+      // here — the model-family fallback inside that chain is the
+      // safety net for primary-pro flapping with 503/504.)
+      if (!isRetryable(err) || attempt === maxRetries) break retryLoop;
       const wait = delayMs * (attempt + 1);
       console.warn(`${tag} error (${status}), retrying in ${wait / 1000}s (attempt ${attempt + 1}/${maxRetries})...`);
       await new Promise(r => setTimeout(r, wait));
     }
   }
+
+  // ── Fallback chain — runs once for any of: retries exhausted,
+  // non-retryable error, or early-broken-out quota error.
+
+  // Step 0: model-family fallback (e.g. gemini-2.5-pro → -flash) on
+  // the PRIMARY key, but only for non-quota retryable errors.
+  // Pointless for 429 — same key, same bucket. Skip in that case.
+  const familyFallback = FALLBACK_MODELS[primaryModel];
+  if (familyFallback && isRetryable(lastErr) && !isQuotaExhaustedError(lastErr)) {
+    console.warn(`${tag} primary model ${primaryModel} failed, trying fallback: ${familyFallback}`);
+    try {
+      const result = await getAI().models.generateContent({ ...params, model: familyFallback });
+      _lastFallbackUsed = familyFallback;
+      console.log(`${tag} fallback ${familyFallback} succeeded`);
+      return result;
+    } catch (fallbackErr) {
+      console.error(`${tag} fallback ${familyFallback} also failed`);
+      lastErr = fallbackErr;
+    }
+  }
+
+  // Step 1: backup Gemini API key (same prompts, separate quota).
+  // Fires for any quota-exhausted error.
+  if (isQuotaExhaustedError(lastErr)) {
+    const backup = getBackupAI();
+    if (backup) {
+      console.warn(`${tag} Gemini quota exhausted — trying backup Gemini key`);
+      try {
+        const result = await backup.models.generateContent(params);
+        _lastFallbackUsed = "gemini-backup-key";
+        console.log(`${tag} backup Gemini key succeeded`);
+        return result;
+      } catch (backupErr) {
+        console.error(`${tag} backup Gemini key also failed:`, backupErr instanceof Error ? backupErr.message : backupErr);
+        // Try the model-family fallback against the backup key too —
+        // if pro is over-quota on both keys, flash probably still has
+        // room on the backup.
+        if (familyFallback && isRetryable(backupErr)) {
+          try {
+            const result = await backup.models.generateContent({ ...params, model: familyFallback });
+            _lastFallbackUsed = `gemini-backup-key:${familyFallback}`;
+            console.log(`${tag} backup Gemini key with model fallback ${familyFallback} succeeded`);
+            return result;
+          } catch (backupFallbackErr) {
+            console.error(`${tag} backup Gemini key + model fallback also failed`);
+            lastErr = backupFallbackErr;
+          }
+        } else {
+          lastErr = backupErr;
+        }
+      }
+    }
+  }
+
+  // Step 2: cross-provider OpenAI fallback (last resort).
+  if (isQuotaExhaustedError(lastErr) && isOpenAIFallbackEnabled()) {
+    console.warn(`${tag} Gemini quota exhausted — trying OpenAI fallback`);
+    try {
+      const openaiResult = await runOpenAIFallback(params, label);
+      _lastFallbackUsed = "openai";
+      console.log(`${tag} OpenAI fallback succeeded`);
+      return openaiResult as unknown as Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>;
+    } catch (openaiErr) {
+      console.error(`${tag} OpenAI fallback also failed:`, openaiErr instanceof Error ? openaiErr.message : openaiErr);
+    }
+  }
+
+  console.error(`${tag} FAILED — last status ${lastStatus}`);
   throw lastErr;
 }
 
