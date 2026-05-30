@@ -1150,7 +1150,29 @@ function mathMarkingRules(subject: string | null | undefined): string {
 
   When the question specifies a unit (e.g. "Express your answer
   in litres"), apply the unit requirement strictly — even a
-  correctly-magnituded answer in the wrong unit drops marks.`;
+  correctly-magnituded answer in the wrong unit drops marks.
+
+  UNIT OMISSION — BENEFIT OF THE DOUBT (PSLE convention):
+  - PSLE math papers PRINT the required unit on the answer line
+    (e.g. "Ans: ______ litres" or "______ kg"). The student writes
+    only the numeric value because the unit is already on the page.
+  - If the student writes ONLY the number with NO explicit unit,
+    DO NOT penalise for missing units. Treat the number as the
+    answer in the printed unit and compare magnitudes. Example:
+    expected "8.4 L", student writes "8.4" with nothing after →
+    award full marks for the numeric match.
+  - If the student EXPLICITLY writes a unit after the number
+    (e.g. "8.4 litres", "8.4 L", "8400 ml", "8.4 kg"), the unit
+    now counts as part of the answer and MUST be correct:
+      · Same unit as expected, right magnitude → full marks.
+      · Equivalent unit, right magnitude (per the table above) →
+        full marks (e.g. expected "8.4 L", student "8400 ml" ✓).
+      · Wrong unit (e.g. expected "8.4 L", student "8.4 kg") →
+        wrong-answer cap applies. The student declared the unit;
+        getting it wrong is a substantive error, not a slip.
+      · Right unit, wrong magnitude → wrong-answer cap applies.
+    In the notes, flag the explicit-unit case (e.g. "Student wrote
+    **8.4 kg** but the expected unit is **litres**.").`;
 }
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise. Use British English throughout (e.g. "colour", "centre", "recognised").
