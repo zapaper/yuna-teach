@@ -781,6 +781,50 @@ function PassageWithInputs({
     linkedLabels[j] = cells;
   }
 
+  // Pre-pass: skip rows that are print-paper score-table artifacts
+  // from 完成对话 sections. These are:
+  //   · "(接下页)"  — "continue to next page" footer.
+  //   · A table block whose header row carries 得分 / 分数 / Q26 /
+  //     Q27 / Q28 / Q29 cells (the per-question score sheet at the
+  //     foot of every PSLE 完成对话 / 阅读理解 section). The body
+  //     rows are blank — useless on screen.
+  // Marked rows return null from the render pass below.
+  const skipLine: boolean[] = new Array(lines.length).fill(false);
+  {
+    const looksLikeScoreHeader = (cells: string[]) => {
+      if (cells.length < 2) return false;
+      const hasScoreLabel = cells.some(c => c === "得分" || c === "分数" || c === "Score");
+      const qCells = cells.filter(c => /^Q\s*\d+$/i.test(c));
+      return hasScoreLabel && qCells.length >= 2;
+    };
+    for (let i = 0; i < lines.length; i++) {
+      const raw = lines[i].trim();
+      if (raw === "(接下页)" || raw === "（接下页）") {
+        skipLine[i] = true;
+        continue;
+      }
+      if (!isTableRow(lines[i]) || isSepRow(lines[i])) continue;
+      const cells = raw.replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+      if (!looksLikeScoreHeader(cells)) continue;
+      // Walk down: mark this row + every sep / blank-body table row
+      // immediately below it as skip.
+      skipLine[i] = true;
+      let j = i + 1;
+      while (j < lines.length) {
+        if (isSepRow(lines[j])) { skipLine[j] = true; j++; continue; }
+        if (!isTableRow(lines[j])) break;
+        const bodyCells = lines[j].trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+        // Body row of a score table is all empty (blanks waiting for
+        // the student to write their marks in). Stop at the first
+        // non-empty body row — that's a real content row.
+        if (bodyCells.some(c => c)) break;
+        skipLine[j] = true;
+        j++;
+      }
+      i = j - 1;
+    }
+  }
+
   // Pre-pass: detect dialogue table blocks (PSLE 2017 / 2018 完成对话
   // style — dialogue lines wrapped inside a 2-column markdown table
   // with the answer-label "Q26 ( )" in the right cell). Any row in
@@ -823,6 +867,8 @@ function PassageWithInputs({
         // consumes the next synthetic key built above (negative sentinels).
         let underscoreCounter = 0;
         return lines.map((line, li) => {
+          // Skip print-paper artifacts (score table, "continue to next page").
+          if (skipLine[li]) return null;
           // Skip table separator rows (must check before table rows)
           if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
           // Table rows
@@ -930,30 +976,29 @@ function TableLine({
   const hasMarker = cells.some(c => /\*\*\(\d+\)/.test(c));
   const renderAsDialogue = (hasMarker || !!forceDialogueRow) && !isLabelRow;
   if (renderAsDialogue && qNumToId && answers && onAnswer && sectionType) {
-    // Render each cell as a dialogue paragraph with inline inputs.
-    // Two-column layout: left = dialogue text, right = "Q26 ( )" hint
-    // (the printed paper's answer column). We render the right column
-    // small and muted so the eye reads the dialogue first.
+    // Render the dialogue cells only — drop the printed "Q26 ( )" /
+    // "Q26 (  )" answer-column hint (and empty filler cells) that
+    // the OCR carries over from the print layout. Each surviving
+    // cell is rendered as its own dialogue paragraph with inline
+    // inputs via PassageLine.
+    const isAnswerColumn = (s: string) => /^Q\s*\d+\s*\(\s*\)$/i.test(s.trim()) || s.trim() === "";
+    const visibleCells = cells.filter(c => !isAnswerColumn(c));
+    if (visibleCells.length === 0) return null;
     return (
-      <div className="flex gap-3 my-1.5 items-baseline">
-        {cells.map((cell, ci) => {
-          const widthCls = ci === 0 ? "flex-1 min-w-0" : "shrink-0 text-xs text-[#737780] font-medium";
-          // Reuse PassageLine to parse markers + render inputs.
-          return (
-            <div key={ci} className={widthCls}>
-              <PassageLine
-                line={cell}
-                sectionType={sectionType}
-                qNumToId={qNumToId}
-                qNumToDisplayNum={qNumToDisplayNum ?? new Map()}
-                answers={answers}
-                onAnswer={onAnswer}
-                onFocusInput={onFocusInput}
-                emptyFieldIds={emptyFieldIds}
-              />
-            </div>
-          );
-        })}
+      <div className="my-1.5">
+        {visibleCells.map((cell, ci) => (
+          <PassageLine
+            key={ci}
+            line={cell}
+            sectionType={sectionType}
+            qNumToId={qNumToId}
+            qNumToDisplayNum={qNumToDisplayNum ?? new Map()}
+            answers={answers}
+            onAnswer={onAnswer}
+            onFocusInput={onFocusInput}
+            emptyFieldIds={emptyFieldIds}
+          />
+        ))}
       </div>
     );
   }
