@@ -32,11 +32,32 @@ const ROMAN_RE = "i{1,3}|iv|v|vi{0,3}|ix|x";
 //   "(b)(i)" →  "b-i"     (over-paren'd by OCR)
 //   "B"      →  "b"       (lowercase normalisation)
 //   "B-I"    →  "b-i"
+//
+// Sentinel rows (label starts with "_") carry side-channel data, not
+// student-facing subpart text. The only sentinel in use is
+// "_subref-{label}" (see app/exam/[id]/transcribe-edit/page.tsx) —
+// when its suffix label is malformed (e.g. "_subref-b(i)") it must
+// rewrite in lockstep with the real subpart, otherwise the
+// reference-image lookup at render time misses the real subpart and
+// the diagram gets orphaned. Strip the prefix, normalise the
+// suffix, reattach.
 export function normaliseSubpartLabel(label: string): NormaliseResult {
   if (!label || typeof label !== "string") return { normalized: label, changed: false };
   const original = label;
-  let s = label.trim();
-  // "(b)(i)" → "b)(i)"  (strip outer opening paren)
+  const trimmed = label.trim();
+  // Sentinel: "_subref-{suffix}". Normalise the suffix and reattach
+  // the prefix so the link to the matching real subpart stays intact.
+  const sentinel = trimmed.match(/^(_subref-)(.+)$/);
+  if (sentinel) {
+    const suffixOut = normaliseSubpartLabel(sentinel[2]).normalized;
+    const out = `${sentinel[1]}${suffixOut}`;
+    return { normalized: out, changed: out !== original };
+  }
+  // Other "_"-prefixed sentinels: pass through untouched. We don't
+  // know what format they encode, and rewriting risks breaking them.
+  if (trimmed.startsWith("_")) return { normalized: label, changed: false };
+  let s = trimmed;
+  // "(b)(i)" → "b-i"
   s = s.replace(/^\(([a-h])\)\((i{1,3}|iv|v|vi{0,3}|ix|x)\)$/i, "$1-$2");
   // "b(i)" or "b)(i)" → "b-i"
   s = s.replace(/^([a-h])\)?\((i{1,3}|iv|v|vi{0,3}|ix|x)\)$/i, "$1-$2");
