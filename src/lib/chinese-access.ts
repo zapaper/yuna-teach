@@ -8,6 +8,8 @@
 // (`isAdmin()` in src/lib/admin.ts) so they don't need to be listed.
 const ALLOWED_NAMES_LC: ReadonlySet<string> = new Set([
   "student666",
+  "mark lim",
+  "david lim",
 ]);
 
 export function canAssignChinese(name: string | null | undefined): boolean {
