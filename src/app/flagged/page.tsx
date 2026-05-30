@@ -310,8 +310,14 @@ function FlaggedContent() {
                   </p>
                 )}
 
-                {/* Source question link — for editing Q or A */}
-                {item.sourcePaperId && (
+                {/* Source question link — for editing Q or A. Chinese
+                    papers have no clean-extract editor, so the label
+                    swaps to "Go to paper" (still the same URL — the
+                    /edit page exists and lets admin view the question,
+                    just without the typed transcription UI). */}
+                {item.sourcePaperId && (() => {
+                  const isChinese = (item.subject ?? "").toLowerCase().includes("chinese");
+                  return (
                   <div className="pt-1">
                     <Link
                       href={`/exam/${item.sourcePaperId}/edit?userId=${userId}${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`}
@@ -320,11 +326,12 @@ function FlaggedContent() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-[10px] font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded hover:bg-primary-100 transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[10px]">edit</span>
-                      Clean Edit Q{item.sourceQuestionNum} ↗
+                      <span className="material-symbols-outlined text-[10px]">{isChinese ? "description" : "edit"}</span>
+                      {isChinese ? `Go to paper Q${item.sourceQuestionNum} ↗` : `Clean Edit Q${item.sourceQuestionNum} ↗`}
                     </Link>
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Admin reply box */}
                 {userId && (
