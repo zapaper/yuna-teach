@@ -862,6 +862,23 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     title = `Mastery: ${content.title} Quiz ${quizNumber}`;
   }
 
+  // English Synthesis & Transformation needs the quiz player's
+  // dedicated synthesis renderer (keyword + input boxes from
+  // EnglishQuizSection's sectionType="synthesis"), not the default
+  // OEQ textarea. The quiz player keys off metadata.englishSections —
+  // stamp a single section spanning every picked question so the
+  // page detects this as a synthesis section. Other English master
+  // classes (Visual Text, Comp Cloze, etc.) already go through the
+  // passage-bound branch above and stamp their own englishSections.
+  const isSynthesisMastery = (content.topicLabel ?? "").toLowerCase().includes("synthesis");
+  const synthesisEnglishSections = isSynthesisMastery && finalPicked.length > 0
+    ? [{
+        label: "Synthesis & Transformation",
+        startIndex: 0,
+        endIndex: finalPicked.length - 1,
+      }]
+    : undefined;
+
   const paper = await prisma.examPaper.create({
     data: {
       title,
@@ -880,6 +897,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         quizNumber,
         ...(focusSubTopics.length > 0 ? { focusSubTopics } : {}),
         ...(body.parentMasteryId ? { parentMasteryId: body.parentMasteryId } : {}),
+        ...(synthesisEnglishSections ? { englishSections: synthesisEnglishSections } : {}),
         warnings,
       } as never,
       questions: {
