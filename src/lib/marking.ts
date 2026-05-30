@@ -1025,12 +1025,35 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   - 短文填空 / 阅读理解 MCQ: exact option match (1-4 digit). No partial marks.
   - 完成对话: exact word-bank digit (1-8) match. No partial marks.
 
-  CHINESE 长 OEQ RUBRIC SCORING (e.g. 五-A Q33, 4 marks):
-  - When the expected answer (answer key) contains (0.5) / (1) notations interleaved with phrases, that is the MARKING RUBRIC. Each (0.5) marks a content phrase worth 0.5.
-  - Score CONTENT: for each (0.5) phrase in the rubric, check if the student's answer contains that phrase OR an equivalent idea. Award 0.5 per match. Synonyms / paraphrases of the rubric phrase still count.
-  - Score LANGUAGE (the remaining 2 marks on a 4-mark question): start from full language marks and deduct 0.5 per category of error — major grammar / sentence-structure mistake, wrong / missing punctuation, awkward flow / unclear referent, or character / homophone error. Cap deduction at the full language allocation.
-  - Final marksAwarded = content_score + language_score. Round to the nearest 0.5. Clamp to [0, marksAvailable].
-  - In your Chinese feedback note, briefly list which content phrases were captured and any language deductions.
+  CHINESE 阅读理解 OEQ MARKING — PHRASE-BASED RUBRIC:
+  - Answer keys for 阅读理解 OEQ list the expected answer as a series
+    of phrases separated by " | " (pipe). EACH SEPARATED PHRASE IS 1
+    MARK. The phrase count should equal marksAvailable.
+    Example: 4-mark answer "在11月29日上午十点 | 在东海岸海滩 | 学习保护环境 | 了解小海龟出生条件"
+    → 4 phrases, 1 mark each.
+  - Score: for each rubric phrase, check if the student's answer
+    contains that phrase OR an equivalent idea (synonyms / paraphrases
+    accepted). Award 1 per phrase matched; 0.5 if partially captured.
+  - LEGACY (0.5) / (1) NOTATIONS — when the answer key still uses
+    older "(0.5)" parenthetical notations after phrases, honour the
+    notation: each "(0.5)" tag is worth 0.5, each "(1)" tag worth 1.
+    Phrases without explicit tags default to 1 mark.
+
+  CHINESE 长 OEQ — OPINION / 你同意吗 QUESTION (4 marks, typically the LAST OEQ in 阅读理解二B):
+  - When the question asks for the student's opinion (e.g. "你同意吗？
+    试加以说明", "你认为..."), the 4 marks are split as:
+      · 1 mark — clear agree / disagree (or "yes / no") stance stated
+        at the start.
+      · 2 marks — elaboration: TWO distinct supporting reasons drawn
+        from the passage or the student's own argument, 1 mark each.
+        A student who only gives ONE reason gets 1 of the 2 elaboration
+        marks; vague repetition of the stance is 0.
+      · 1 mark — conclusion / closing line that restates the position
+        or wraps up the argument.
+  - In the notes, name each component (stance / 论点1 / 论点2 / 结论)
+    and say which were awarded. Missing components lose their marks.
+  - Final marksAwarded = sum of awarded components. Clamp to
+    [0, marksAvailable]. Round to nearest 0.5.
 
   - LANGUAGE OF OUTPUT — CRITICAL: EVERY string in the "notes" / "feedback" field of your JSON response MUST be written in Simplified Chinese (简体中文). Do NOT respond in English. Do NOT use British English. Numbers and punctuation may stay as printed.
   `;

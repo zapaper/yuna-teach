@@ -1198,8 +1198,14 @@ function PassageScratchOverlay({ enabled }: { enabled: boolean }) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10"
-      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none" }}
+      className="absolute inset-0"
+      // z-index flips with `enabled`: when pen is on we sit above the
+      // inline-input wrappers (relative z-20 on each `(N)` cloze input
+      // in PassageLine), so the student can draw across the input
+      // areas — without this the pen would only work between inputs.
+      // When pen is off we drop below the inputs so taps reach the
+      // text fields normally.
+      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none", zIndex: enabled ? 30 : 10 }}
       onPointerDown={enabled ? onDown : undefined}
       onPointerMove={enabled ? onMove : undefined}
       onPointerUp={enabled ? onUp : undefined}

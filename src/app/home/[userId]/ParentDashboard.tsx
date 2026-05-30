@@ -1235,7 +1235,40 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </select>
           </div>
         )}
-        {assignMode === "focused" && quizSubject !== "english" && (() => {
+        {assignMode === "focused" && quizSubject === "chinese" && (
+          // Chinese focused practice — there are no syllabus topics
+          // for 华文 (the question bank is organised by exam paper
+          // section, not subject topic), so the math / science topic
+          // dropdown shouldn't render. Show the same section checklist
+          // that Chinese daily quiz uses; pick a single section to
+          // focus on. Submit routes through /api/daily-quiz with the
+          // picked chineseSections.
+          <div className="mb-5">
+            <p className="text-[10px] text-[#43474f] mb-3">Pick one section to focus on:</p>
+            <div className="space-y-2">
+              {[
+                { key: "语文应用 MCQ", label: "一 语文应用 (MCQ)" },
+                { key: "短文填空", label: "二 短文填空" },
+                { key: "阅读理解 MCQ", label: "三 阅读理解一 MCQ" },
+                { key: "完成对话", label: "四 完成对话" },
+                { key: "阅读理解 A", label: "五 阅读理解二 A (MCQ + 长 OEQ)" },
+                { key: "阅读理解 B OEQ", label: "五 阅读理解二 B (OEQ)" },
+              ].map(s => (
+                <label key={s.key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="chinese-focused-section"
+                    checked={chineseSections.size === 1 && chineseSections.has(s.key)}
+                    onChange={() => setChineseSections(new Set([s.key]))}
+                    className="w-4 h-4 accent-[#006c49]"
+                  />
+                  <span className="text-sm text-[#001e40]">{s.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+        {assignMode === "focused" && quizSubject !== "english" && quizSubject !== "chinese" && (() => {
           const weakDetected = allTopics
             .filter(t => t.subject.toLowerCase().includes(quizSubject === "math" ? "math" : "science") && t.pct <= 75)
             .sort((a, b) => a.pct - b.pct)
@@ -1373,7 +1406,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <div className="flex gap-3">
           <button onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
-            disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && quizSubject !== "english" && !focusedTopic) || (assignMode === "focused" && quizSubject === "english" && englishSections.size !== 1)}
+            disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && quizSubject !== "english" && quizSubject !== "chinese" && !focusedTopic) || (assignMode === "focused" && quizSubject === "english" && englishSections.size !== 1) || (assignMode === "focused" && quizSubject === "chinese" && chineseSections.size !== 1)}
             onClick={async () => {
               setCreatingQuiz(true);
               try {
@@ -1394,6 +1427,32 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         quizType: "mcq",
                         subject: "english",
                         englishSections: [...englishSections],
+                        focused: true,
+                        ...(revisionLevel ? { revisionLevel } : {}),
+                        ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { alert(data.error || "Failed"); return; }
+                    setShowQuiz(false); setQuizTargetDay(null);
+                    maybeShowFirstAssignPrompt(quizStudentId);
+                    await refreshPapers();
+                    return;
+                  }
+                  if (quizSubject === "chinese") {
+                    // Focused Chinese (admin-only) — pick a single
+                    // section and assign through the same daily-quiz
+                    // Chinese branch the multi-section flow uses, so
+                    // we don't fork the question-pulling logic.
+                    const res = await fetch("/api/daily-quiz", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        userId,
+                        studentId: quizStudentId,
+                        quizType: "mcq",
+                        subject: "chinese",
+                        chineseSections: [...chineseSections],
                         focused: true,
                         ...(revisionLevel ? { revisionLevel } : {}),
                         ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),

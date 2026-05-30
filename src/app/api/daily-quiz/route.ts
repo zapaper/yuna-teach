@@ -259,19 +259,57 @@ export async function POST(request: NextRequest) {
     }
     type MasterSec = { label: string; startIndex: number; endIndex: number; passage?: string };
     type PickedSec = MasterSec & { questions: typeof masters[0]["questions"]; sourcePaperId: string };
+    // Canonical PSLE 华文 paper section order. Used both to sort the
+    // wanted labels (so we pick one section at a time in the order the
+    // student would meet them on the printed paper) and to re-order the
+    // final pickedSections array (different sections may come from
+    // different masters, so source iteration alone can't preserve order).
+    const CANON_ORDER = ["语文应用 MCQ", "短文填空", "阅读理解 MCQ", "完成对话", "阅读理解 A", "阅读理解 B OEQ"];
+    const canonIdx = (lbl: string) => {
+      const i = CANON_ORDER.indexOf(lbl);
+      return i >= 0 ? i : 99;
+    };
+    // Hard rule for the mixed-passage 阅读理解 A section: the modern
+    // PSLE format pairs Q30-32 MCQ with one long 4-mark OEQ (Q33) on
+    // the same passage, and the user-facing intent of picking "阅读理解
+    // A" is to get that bundle. Older masters (e.g. PSLE 2016) split
+    // the long OEQ into a separate "阅读理解 A OEQ" section, so picking
+    // their "阅读理解 A" yields only the 4 MCQs — Q33 silently disappears.
+    // Validate that the section's final question is OEQ-shaped before
+    // accepting it; otherwise skip and try a different master.
+    function isModernCompA(secQs: typeof masters[0]["questions"]): boolean {
+      const last = secQs[secQs.length - 1];
+      if (!last) return false;
+      const lastIsOeq = !(Array.isArray(last.transcribedOptions) && last.transcribedOptions.length > 0);
+      return lastIsOeq;
+    }
+    // Sort wanted labels into canonical order BEFORE picking, so each
+    // section gets a single chance to find its best source master and
+    // the resulting test quiz reads in paper order.
+    const wantedOrdered = [...wanted].sort((a, b) => canonIdx(a) - canonIdx(b));
     const pickedSections: PickedSec[] = [];
-    for (const master of masters) {
-      const cs = (master.metadata as { chineseSections?: MasterSec[] } | null)?.chineseSections ?? [];
-      for (const sec of cs) {
-        if (!wanted.has(sec.label)) continue;
-        // Skip if the section is already in the pool — avoid showing
-        // the same printed section twice when the admin has multiple
-        // years of the same paper.
-        if (pickedSections.some(p => p.label === sec.label)) continue;
-        const secQs = master.questions.slice(sec.startIndex, sec.endIndex + 1);
-        if (secQs.length === 0) continue;
-        pickedSections.push({ ...sec, questions: secQs, sourcePaperId: master.id });
+    for (const label of wantedOrdered) {
+      // Gather every master that carries this exact section label and
+      // passes the per-label validation. masters[] is newest-first by
+      // createdAt; once we have valid candidates we randomly pick one
+      // for variety (re-running the same assignment shouldn't always
+      // return the same paper's questions).
+      type Cand = { master: typeof masters[0]; sec: MasterSec; secQs: typeof masters[0]["questions"] };
+      const candidates: Cand[] = [];
+      for (const master of masters) {
+        const cs = (master.metadata as { chineseSections?: MasterSec[] } | null)?.chineseSections ?? [];
+        for (const sec of cs) {
+          if (sec.label !== label) continue;
+          const secQs = master.questions.slice(sec.startIndex, sec.endIndex + 1);
+          if (secQs.length === 0) continue;
+          // 阅读理解 A must include the long OEQ (Q33) — see comment above.
+          if (label === "阅读理解 A" && !isModernCompA(secQs)) continue;
+          candidates.push({ master, sec, secQs });
+        }
       }
+      if (candidates.length === 0) continue;
+      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      pickedSections.push({ ...pick.sec, questions: pick.secQs, sourcePaperId: pick.master.id });
     }
     if (pickedSections.length === 0) {
       return NextResponse.json({ error: "No matching sections found across the Chinese masters." }, { status: 404 });

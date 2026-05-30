@@ -753,6 +753,68 @@ function PassageWithInputs({
     }
   }
 
+  // Pre-pass: detect 2-row word banks (PSLE 2021+, 2024, 2025, P6
+  // Prelim 2025 style). The label row carries pure digits 1-8 and the
+  // immediately following row carries one phrase per column. When the
+  // student picks a digit, both the digit cell AND the same-column
+  // phrase cell should strike through so they don't have to mentally
+  // pair them. linkedLabels[li] holds the digit-row labels in column
+  // order for the phrase row at line index li.
+  const linkedLabels: (string[] | undefined)[] = new Array(lines.length).fill(undefined);
+  const isTableRow = (l: string) => l.trim().startsWith("|") && l.trim().endsWith("|");
+  const isSepRow = (l: string) => /^\s*\|[\s-:|]+\|\s*$/.test(l);
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (!isTableRow(lines[i]) || isSepRow(lines[i])) continue;
+    const cells = lines[i].trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+    const isDigitLabel = cells.length > 0 && cells.every(c => /^[1-9]$/.test(c));
+    const isLetterLabel = cells.length > 0 && cells.every(c => /^[A-Q]$/.test(c));
+    if (!isDigitLabel && !isLetterLabel) continue;
+    // Walk forward past sep / blank rows to the next content table row.
+    let j = i + 1;
+    while (j < lines.length && (isSepRow(lines[j]) || !lines[j].trim())) j++;
+    if (j >= lines.length) continue;
+    if (!isTableRow(lines[j])) continue;
+    const nextCells = lines[j].trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+    if (nextCells.length !== cells.length) continue;
+    const nextIsLabel = nextCells.every(c => /^[A-Q1-9]$/.test(c));
+    if (nextIsLabel) continue;
+    linkedLabels[j] = cells;
+  }
+
+  // Pre-pass: detect dialogue table blocks (PSLE 2017 / 2018 完成对话
+  // style — dialogue lines wrapped inside a 2-column markdown table
+  // with the answer-label "Q26 ( )" in the right cell). Any row in
+  // such a block must render as a dialogue paragraph with inline
+  // inputs, NOT as the centered word-bank cells used for the word
+  // bank above. We mark each row of a block as a "dialogue row" when
+  // ANY row in that block carries a **(N)____** marker — that's the
+  // unique fingerprint of the dialogue table; the standalone word
+  // bank above it never has markers.
+  const isDialogueRow: boolean[] = new Array(lines.length).fill(false);
+  {
+    let blockStart = -1;
+    let blockHasMarker = false;
+    const flush = (endExclusive: number) => {
+      if (blockStart !== -1 && blockHasMarker) {
+        for (let j = blockStart; j < endExclusive; j++) isDialogueRow[j] = true;
+      }
+      blockStart = -1;
+      blockHasMarker = false;
+    };
+    for (let i = 0; i < lines.length; i++) {
+      const inTable = isTableRow(lines[i]) || isSepRow(lines[i]);
+      if (inTable) {
+        if (blockStart === -1) blockStart = i;
+        if (isTableRow(lines[i]) && !isSepRow(lines[i]) && /\*\*\(\d+\)/.test(lines[i])) {
+          blockHasMarker = true;
+        }
+      } else {
+        flush(i);
+      }
+    }
+    flush(lines.length);
+  }
+
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
       <PassageScratchOverlay enabled={tool === "pen"} />
@@ -765,7 +827,20 @@ function PassageWithInputs({
           if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
           // Table rows
           if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-            return <TableLine key={li} line={line} usedLetters={usedLetters} />;
+            return <TableLine
+              key={li}
+              line={line}
+              usedLetters={usedLetters}
+              linkedLabels={linkedLabels[li]}
+              forceDialogueRow={isDialogueRow[li]}
+              qNumToId={qNumToId}
+              qNumToDisplayNum={qNumToDisplayNum}
+              sectionType={sectionType}
+              answers={answers}
+              onAnswer={onAnswer}
+              emptyFieldIds={emptyFieldIds}
+              onFocusInput={onFocusInput}
+            />;
           }
           // Empty line = paragraph break
           if (!line.trim()) return <br key={li} />;
@@ -799,7 +874,47 @@ function PassageWithInputs({
   );
 }
 
-function TableLine({ line, usedLetters }: { line: string; usedLetters?: Set<string> }) {
+function TableLine({
+  line,
+  usedLetters,
+  linkedLabels,
+  forceDialogueRow,
+  qNumToId,
+  qNumToDisplayNum,
+  sectionType,
+  answers,
+  onAnswer,
+  emptyFieldIds,
+  onFocusInput,
+}: {
+  line: string;
+  usedLetters?: Set<string>;
+  // 2-row word bank: when this row is the phrase row (i.e. the row
+  // immediately after a digit-label row), linkedLabels[ci] gives the
+  // label of the same-column digit cell. Used to strike through the
+  // phrase when the student picks that digit.
+  linkedLabels?: string[];
+  // PassageWithInputs pre-pass tag: this row sits inside a dialogue
+  // table block (any sibling row in the block carries a **(N)____**
+  // marker). Renders cells as dialogue paragraphs instead of the
+  // centered word-bank style — covers the dialogue rows in the
+  // block that DON'T themselves carry a blank.
+  forceDialogueRow?: boolean;
+  // Optional dialogue-cell rendering context. When present and a cell
+  // contains a **(N)________** marker, the marker is rendered as an
+  // input (matching PassageLine's behaviour) rather than as literal
+  // text. Older PSLE formats (2017 / 2018) wrap the dialogue lines
+  // inside a 2-column table cell — without this the markers would
+  // render as plain bold "(26)________" strings and the student would
+  // have nowhere to type.
+  qNumToId?: Map<number, string>;
+  qNumToDisplayNum?: Map<number, number>;
+  sectionType?: "grammar-cloze" | "editing" | "comprehension-cloze";
+  answers?: Record<string, string>;
+  onAnswer?: (questionId: string, answer: string) => void;
+  emptyFieldIds?: Set<string>;
+  onFocusInput?: () => void;
+}) {
   const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
   // Detect if this is a label row. Two flavours of word bank:
   //  - English Grammar Cloze: single letters A-Q
@@ -810,10 +925,44 @@ function TableLine({ line, usedLetters }: { line: string; usedLetters?: Set<stri
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
   const isDigitRow = cells.every(c => /^[1-9]$/.test(c));
   const isLabelRow = isLetterRow || isDigitRow;
+  // Any cell carries an inline question marker, OR the pre-pass flagged
+  // this row's table block as a dialogue block → render dialogue-style.
+  const hasMarker = cells.some(c => /\*\*\(\d+\)/.test(c));
+  const renderAsDialogue = (hasMarker || !!forceDialogueRow) && !isLabelRow;
+  if (renderAsDialogue && qNumToId && answers && onAnswer && sectionType) {
+    // Render each cell as a dialogue paragraph with inline inputs.
+    // Two-column layout: left = dialogue text, right = "Q26 ( )" hint
+    // (the printed paper's answer column). We render the right column
+    // small and muted so the eye reads the dialogue first.
+    return (
+      <div className="flex gap-3 my-1.5 items-baseline">
+        {cells.map((cell, ci) => {
+          const widthCls = ci === 0 ? "flex-1 min-w-0" : "shrink-0 text-xs text-[#737780] font-medium";
+          // Reuse PassageLine to parse markers + render inputs.
+          return (
+            <div key={ci} className={widthCls}>
+              <PassageLine
+                line={cell}
+                sectionType={sectionType}
+                qNumToId={qNumToId}
+                qNumToDisplayNum={qNumToDisplayNum ?? new Map()}
+                answers={answers}
+                onAnswer={onAnswer}
+                onFocusInput={onFocusInput}
+                emptyFieldIds={emptyFieldIds}
+              />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
   return (
     <div className="flex gap-2 my-1">
       {cells.map((cell, ci) => {
-        const isUsed = isLabelRow && usedLetters?.has(cell) === true;
+        const isLabelCellUsed = isLabelRow && usedLetters?.has(cell) === true;
+        const isLinkedCellUsed = !!(linkedLabels && linkedLabels[ci] && usedLetters?.has(linkedLabels[ci]) === true);
+        const isUsed = isLabelCellUsed || isLinkedCellUsed;
         const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLabelRow ? "font-extrabold text-[#003366] underline" : "font-medium"} transition-opacity`;
         const styleProps = isUsed ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
         return (
@@ -1531,8 +1680,13 @@ function PassageScratchOverlay({ enabled }: { enabled: boolean }) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10"
-      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none" }}
+      className="absolute inset-0"
+      // z-index flips with `enabled`: when pen is on we sit above the
+      // inline-input wrappers (relative z-20 on each `(N)` cloze input
+      // in PassageLine), so the student can draw across the input
+      // areas. When pen is off we drop below the inputs so taps reach
+      // the text fields normally.
+      style={{ touchAction: "none", pointerEvents: enabled ? "auto" : "none", zIndex: enabled ? 30 : 10 }}
       onPointerDown={enabled ? onDown : undefined}
       onPointerMove={enabled ? onMove : undefined}
       onPointerUp={enabled ? onUp : undefined}
