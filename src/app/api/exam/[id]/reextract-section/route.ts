@@ -194,18 +194,44 @@ Output ONLY the clean passage/question text, no commentary.` });
   }
 
   // Find existing questions for this section to get question range.
-  // For 完成对话 we accept BOTH the Chinese canonical label AND any
-  // English alias the previous extraction may have set — the section
-  // boundary is the same content even when the label string differs.
-  const sectionQs = paper.questions.filter(q => {
-    const t = (q.syllabusTopic ?? "").toLowerCase().replace(/\s+/g, "");
-    if (t === secLabel.toLowerCase().replace(/\s+/g, "")) return true;
-    if (isDialogueCompletion) {
-      return t === "完成对话" || t === "对话填空" ||
-        t.includes("dialoguecompletion") || t.includes("completedialogue");
-    }
-    return false;
-  });
+  //
+  // Three matching paths, in order of preference:
+  //
+  //   1) metadata.chineseSections range — when the section is a
+  //      passage-split alias like "阅读理解 A OEQ" / "阅读理解 B OEQ",
+  //      every question still carries the bare topic "阅读理解 OEQ",
+  //      so a syllabusTopic equality match returns nothing. The
+  //      chineseSections array holds the exact array-index range for
+  //      each split section — use that to slice paper.questions.
+  //
+  //   2) lowercase-no-whitespace syllabusTopic equality — the default
+  //      path for sections whose label IS the syllabusTopic (e.g.
+  //      "短文填空" — every Q in the section is tagged "短文填空").
+  //
+  //   3) Dialogue-completion aliases — accept "Dialogue Completion" /
+  //      "Complete Dialogue" for older English-aliased extractions.
+  //
+  // Without (1) the route would silently fall through to a 1..5
+  // default range, prompt Gemini for the wrong question numbers, and
+  // the update-by-questionNum loop at the end would find no matches
+  // → "0/6 questions updated".
+  const csMeta = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number }> } | null)?.chineseSections;
+  const secLabelNorm = secLabel.toLowerCase().replace(/\s+/g, "");
+  const csHit = csMeta?.find(s => s.label.toLowerCase().replace(/\s+/g, "") === secLabelNorm);
+  let sectionQs: typeof paper.questions;
+  if (csHit) {
+    sectionQs = paper.questions.slice(csHit.startIndex, csHit.endIndex + 1);
+  } else {
+    sectionQs = paper.questions.filter(q => {
+      const t = (q.syllabusTopic ?? "").toLowerCase().replace(/\s+/g, "");
+      if (t === secLabelNorm) return true;
+      if (isDialogueCompletion) {
+        return t === "完成对话" || t === "对话填空" ||
+          t.includes("dialoguecompletion") || t.includes("completedialogue");
+      }
+      return false;
+    });
+  }
   const qNums = sectionQs.map(q => parseInt(q.questionNum)).filter(n => !isNaN(n));
   const secFirstQ = qNums.length > 0 ? Math.min(...qNums) : 1;
   const secLastQ = qNums.length > 0 ? Math.max(...qNums) : secFirstQ + 4;
