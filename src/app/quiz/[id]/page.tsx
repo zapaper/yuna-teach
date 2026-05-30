@@ -713,19 +713,34 @@ function QuizContent({ id }: { id: string }) {
   async function handleSubmit() {
     if (submitting) return;
 
-    // Warn if a large share of questions are unanswered
+    // Warn if any meaningful share of questions are unanswered.
+    // Threshold tightened 0.2 → 0.1 so a 3-blank gap on a 15-Q quiz
+    // (Q13–15 case the synthesis student hit) prompts instead of
+    // sliding through. Also handles multi-input synthesis: a stem
+    // like `___ **keyword** ___` saves as `partA|||partB`, and the
+    // old check treated `partA|||` as fully answered because the
+    // string was non-empty after trim — split on the separator and
+    // count the answer empty if ANY required half is blank.
+    const isPartialMultiInput = (raw: string) => {
+      if (!raw.includes("|||")) return false;
+      const parts = raw.split("|||");
+      return parts.some(p => p.trim() === "");
+    };
     const allAnswerableQs = paper?.questions ?? [];
     const unansweredCount = allAnswerableQs.filter(q => {
       if (skippedIds.has(q.id)) return false;
       // Non-canvas questions: empty/missing mcqAnswers counts as unanswered
       const hasCanvas = !!oeqCanvasHandles.current[q.id];
-      if (!hasCanvas) return !mcqAnswers[q.id] || mcqAnswers[q.id].trim() === "";
-      return false; // canvas OEQs: can't cheaply tell if blank, skip the check
+      if (hasCanvas) return false; // canvas OEQs: can't cheaply tell if blank, skip the check
+      const raw = mcqAnswers[q.id];
+      if (!raw || raw.trim() === "") return true;
+      if (isPartialMultiInput(raw)) return true;
+      return false;
     }).length;
     const answerableTotal = allAnswerableQs.filter(q => !oeqCanvasHandles.current[q.id] && !skippedIds.has(q.id)).length;
-    if (answerableTotal > 0 && unansweredCount / answerableTotal > 0.2) {
+    if (answerableTotal > 0 && unansweredCount / answerableTotal > 0.1) {
       const answered = answerableTotal - unansweredCount;
-      if (!confirm(`You answered ${answered} of ${answerableTotal} MCQ questions (written answers not counted). Submit anyway?`)) return;
+      if (!confirm(`You answered ${answered} of ${answerableTotal} questions (canvas drawings not counted). Submit anyway?`)) return;
     }
 
     setSubmitting(true);
