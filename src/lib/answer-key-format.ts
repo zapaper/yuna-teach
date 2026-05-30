@@ -102,6 +102,25 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     new RegExp(`(^|\\s\\|\\s)\\s*Q?\\d+\\(([a-h])(${ROMAN_RE})\\)`, "gi"),
     (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
   );
+  //    "Part a)i)" / "Part a)ii)" / "Part b)" — both labels carry
+  //    only their closing paren, no opening parens at all, with the
+  //    optional "Part " human-prose prefix. This shows up in older
+  //    Science answer keys typed out by hand. Rewrite anywhere in
+  //    the string (not gated on chunk boundary) because the labels
+  //    are sometimes inlined mid-prose without a " | " separator.
+  result = result.replace(
+    new RegExp(`(\\bPart\\s+)?([a-h])\\)(${ROMAN_RE})\\)`, "gi"),
+    (_m, _part, letter, roman) => `(${letter.toLowerCase()})(${roman.toLowerCase()})`
+  );
+  //    "Part b)" alone (no roman) — strip the "Part " prefix and
+  //    wrap the letter in parens. Gated on the "Part " prefix so a
+  //    plain "b)" in prose ("b) the second option") isn't touched
+  //    accidentally; pass 3 below already handles bare "b) " at a
+  //    chunk boundary.
+  result = result.replace(
+    /\bPart\s+([a-h])\)/gi,
+    (_m, letter) => `(${letter.toLowerCase()})`
+  );
 
   // 1) Strip the question-number prefix in front of compound labels:
   //    "Q7(a)(i) X" / "7(a)(i) X" → "(a)(i) X"
