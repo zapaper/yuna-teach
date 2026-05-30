@@ -2554,22 +2554,35 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
                       }`}
                     >All</button>
-                    {availableSubjects.map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setSubjectFilter(subjectFilter === s ? null : s)}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
-                          subjectFilter === s
-                            ? "bg-[#001e40] text-white shadow-md"
-                            : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-sm">
-                          {s.toLowerCase().includes("math") ? "calculate" : s.toLowerCase().includes("science") ? "science" : "abc"}
-                        </span>
-                        {s}
-                      </button>
-                    ))}
+                    {availableSubjects.map(s => {
+                      const sLc = s.toLowerCase();
+                      const isMath = sLc.includes("math");
+                      const isScience = sLc.includes("science");
+                      const isChinese = sLc.includes("chinese") || /[一-鿿]/.test(s);
+                      // Chinese filter chip uses "华文" (the subject's
+                      // own name in 华文) and drops the abc icon —
+                      // "abc" is the English-alphabet glyph and looks
+                      // wrong sitting next to a Chinese label.
+                      const icon = isMath ? "calculate"
+                        : isScience ? "science"
+                        : isChinese ? null
+                        : "abc";
+                      const label = isChinese ? "华文" : s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => setSubjectFilter(subjectFilter === s ? null : s)}
+                          className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                            subjectFilter === s
+                              ? "bg-[#001e40] text-white shadow-md"
+                              : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
+                          }`}
+                        >
+                          {icon && <span className="material-symbols-outlined text-sm">{icon}</span>}
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
