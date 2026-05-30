@@ -898,6 +898,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const masterPapers = examPapers.filter(p => {
     if (p.assignedToId) return false;
     if (p.paperType !== null) return false;
+    // Admin hides individual papers via the /admin/papers visibility
+    // toggle. Hidden papers must not surface here. Admin accounts
+    // still see them (so they can un-hide), matching the convention
+    // we use elsewhere — parents see only visible papers.
+    if (p.visible === false && !isAdminUser) return false;
     const subjLc = (p.subject ?? "").toLowerCase();
     const isEnglish = subjLc.includes("english");
     const isChinese = subjLc.includes("chinese");
