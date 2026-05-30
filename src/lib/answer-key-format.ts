@@ -37,10 +37,29 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     (_m, sep, letter, roman) => `${sep}(${letter.toLowerCase()})(${roman.toLowerCase()})`
   );
 
-  // 2) Strip the question-number prefix in front of simple labels:
-  //    "Q7a X" / "Q7a) X" / "Q7(a) X" / "7a X" / "7a) X" / "7(a) X" → "(a) X"
+  // 2) Strip the question-number prefix in front of simple labels.
+  //    Three concrete shapes — every accepted form has either a `Q`
+  //    prefix or explicit parens/closing-paren around the letter:
+  //      "Q7a X"   / "Q7a) X"  / "Q7(a) X"  → "(a) X"
+  //      "7(a) X"                            → "(a) X"
+  //      "7a) X"                             → "(a) X"
+  //    Bare "7a X" (digit-letter-space, no paren, no Q) is
+  //    INTENTIONALLY not matched — math answers like "3h 40 min",
+  //    "5kg", "7cm" use that shape and must pass through unchanged.
+  //
+  //    2a) Q prefix — any of Q7a, Q7a), Q7(a) becomes (a).
   result = result.replace(
-    /(^|\s\|\s)\s*Q?\d+\(?([a-h])\)?(?=[\s.):])/gi,
+    /(^|\s\|\s)\s*Q\d+\(?([a-h])\)?(?=[\s.):])/gi,
+    (_m, sep, letter) => `${sep}(${letter.toLowerCase()})`
+  );
+  //    2b) No Q, but explicit parens around the letter ("7(a)").
+  result = result.replace(
+    /(^|\s\|\s)\s*\d+\(([a-h])\)(?=[\s.):])/gi,
+    (_m, sep, letter) => `${sep}(${letter.toLowerCase()})`
+  );
+  //    2c) No Q, no opening paren, but a trailing closing paren ("7a)").
+  result = result.replace(
+    /(^|\s\|\s)\s*\d+([a-h])\)(?=[\s.])/gi,
     (_m, sep, letter) => `${sep}(${letter.toLowerCase()})`
   );
 
