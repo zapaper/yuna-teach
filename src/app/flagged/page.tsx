@@ -136,19 +136,29 @@ function FlaggedContent() {
                 <div className="flex items-center justify-between mb-1">
                   <button
                     onClick={() => {
+                      const isChineseRow = (item.subject ?? "").toLowerCase().includes("chinese");
                       const examId = item.cloneId ?? item.paperId;
                       const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                       const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                      // Mastery flags route to the live quiz so admin can
-                      // attempt the question themselves. Quiz / focused
-                      // route to the marked review. Everything else goes
-                      // to the paper overview.
-                      const path = isMastery
-                        ? `/quiz/${examId}`
-                        : isQuizOrFocused
-                          ? `/exam/${examId}/review`
-                          : `/exam/${examId}/overview`;
-                      window.open(`${path}?userId=${userId}`, "_blank");
+                      // Chinese flags always open the SOURCE master
+                      // exam paper (when we know it) — there's no
+                      // useful student-facing review for a Chinese
+                      // test quiz to land on, and the admin's intent
+                      // is to inspect the underlying paper. Falls
+                      // through to the default routing if the source
+                      // link is missing.
+                      // Mastery flags route to the live quiz so admin
+                      // can attempt the question themselves. Quiz /
+                      // focused route to the marked review. Everything
+                      // else goes to the paper overview.
+                      const path = (isChineseRow && item.sourcePaperId)
+                        ? `/exam/${item.sourcePaperId}/edit${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`
+                        : isMastery
+                          ? `/quiz/${examId}`
+                          : isQuizOrFocused
+                            ? `/exam/${examId}/review`
+                            : `/exam/${examId}/overview`;
+                      window.open(`${path}${path.includes("?") ? "&" : "?"}userId=${userId}`, "_blank");
                     }}
                     className="text-sm font-bold text-primary-600 hover:text-primary-800 underline underline-offset-2"
                   >
@@ -180,24 +190,30 @@ function FlaggedContent() {
                         user's expected "Go to paper" affordance. */}
                     <button
                       onClick={() => {
+                        const isChineseRow = (item.subject ?? "").toLowerCase().includes("chinese");
                         const examId = item.cloneId ?? item.paperId;
                         const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                         const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                        const path = isMastery
-                          ? `/quiz/${examId}`
-                          : isQuizOrFocused
-                            ? `/exam/${examId}/review`
-                            : `/exam/${examId}/overview`;
-                        window.open(`${path}?userId=${userId}`, "_blank");
+                        // See Q{num} button above — same Chinese rule.
+                        const path = (isChineseRow && item.sourcePaperId)
+                          ? `/exam/${item.sourcePaperId}/edit${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`
+                          : isMastery
+                            ? `/quiz/${examId}`
+                            : isQuizOrFocused
+                              ? `/exam/${examId}/review`
+                              : `/exam/${examId}/overview`;
+                        window.open(`${path}${path.includes("?") ? "&" : "?"}userId=${userId}`, "_blank");
                       }}
                       className="text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded underline underline-offset-2"
                       title="Open this flag's paper"
                     >
-                      {item.paperType === "mastery" || item.paperType === "mastery-review"
-                        ? "Mastery ↗"
-                        : item.paperType === "focused" ? "Focused ↗"
-                        : item.paperType === "quiz" ? "Quiz ↗"
-                        : "Paper ↗"}
+                      {(item.subject ?? "").toLowerCase().includes("chinese") && item.sourcePaperId
+                        ? "Paper ↗"
+                        : item.paperType === "mastery" || item.paperType === "mastery-review"
+                          ? "Mastery ↗"
+                          : item.paperType === "focused" ? "Focused ↗"
+                          : item.paperType === "quiz" ? "Quiz ↗"
+                          : "Paper ↗"}
                     </button>
                     {item.year && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
