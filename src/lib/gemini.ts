@@ -4831,29 +4831,49 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
     for (let bi = 0; bi < bookletPageRanges.length; bi++) {
       const { paper, pageIndices, firstQuestionNum } = bookletPageRanges[bi];
       if (!paper.sections?.length || pageIndices.length === 0) continue;
-      let needsRetry = false;
+      // Recompute the current Q set from questionResult.pages — an
+      // earlier booklet's retry may have already mutated the pages
+      // array, and the snapshot allExtractedQNums is stale by this
+      // point. Without this we'd mis-trigger or mis-skip retries.
+      const currentQNums = new Set(
+        questionResult.pages.flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum)),
+      );
+      const missingTriggers: string[] = [];
       for (const sec of paper.sections) {
         const range = (sec as { questionRange?: string }).questionRange;
         if (!range) continue;
         const match = range.match(/Q(\d+)/);
         if (!match) continue;
         const firstQ = paper.questionPrefix + match[1];
-        if (!allExtractedQNums.includes(firstQ)) {
+        if (!currentQNums.has(firstQ)) {
+          missingTriggers.push(firstQ);
           console.log(`[Exam Pipeline] Retrying ${paper.label} extraction — missing first question of ${sec.name || sec.type} (${firstQ})`);
-          needsRetry = true;
-          break;
         }
       }
-      if (needsRetry) {
+      if (missingTriggers.length > 0) {
         const images = pageIndices.map(idx => imagesBase64[idx]);
         const retryResult = await extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum, structure.header.subject);
-        const retryQNums = retryResult.pages.flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum));
-        console.log(`[Exam Pipeline] Retry result for ${paper.label}: ${retryQNums.length} questions: ${retryQNums.join(", ")}`);
-        if (retryQNums.length > allExtractedQNums.filter(q => pageIndices.some(pi => questionResult.pages.find(p => p.pageIndex === pi)?.questions.some(qq => qq.questionNum === q))).length) {
+        const retryQNumsList = retryResult.pages.flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum));
+        const retryQNumSet = new Set(retryQNumsList);
+        console.log(`[Exam Pipeline] Retry result for ${paper.label}: ${retryQNumsList.length} questions: ${retryQNumsList.join(", ")}`);
+        // Accept the retry if it (a) recovers at least one missing
+        // trigger question we ran the retry to find OR (b) returns
+        // strictly more questions than the booklet's current pages
+        // do. Either condition means the retry adds real value;
+        // judging on raw count alone was masking the "recovered the
+        // missing Q but tied on count" case (Comp OEQ Q71).
+        const currentForBooklet = questionResult.pages
+          .filter(p => pageIndices.includes(p.pageIndex))
+          .flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum));
+        const recoveredMissing = missingTriggers.some(q => retryQNumSet.has(q));
+        const strictlyMore = retryQNumsList.length > currentForBooklet.length;
+        if (recoveredMissing || strictlyMore) {
           // Replace this booklet's pages in the result
           const otherPages = questionResult.pages.filter(p => !pageIndices.includes(p.pageIndex));
           questionResult.pages = [...otherPages, ...retryResult.pages];
-          console.log(`[Exam Pipeline] Retry for ${paper.label} produced better result — using it`);
+          console.log(`[Exam Pipeline] Retry for ${paper.label} produced better result — using it (recoveredMissing=${recoveredMissing}, strictlyMore=${strictlyMore})`);
+        } else {
+          console.log(`[Exam Pipeline] Retry for ${paper.label} did NOT improve — keeping original (retry=${retryQNumsList.length}, current=${currentForBooklet.length}, missingRecovered=${recoveredMissing})`);
         }
       }
     }
