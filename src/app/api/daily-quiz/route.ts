@@ -244,11 +244,16 @@ export async function POST(request: NextRequest) {
     }
     const wanted = new Set(chineseSections);
     // Pull all uploaded Chinese masters (newest first), pool their
-    // questions for the selected sections.
+    // questions for the selected sections. `paperType: null` excludes
+    // earlier Chinese Test Quizzes (paperType="quiz") from the pool —
+    // without it the picker silently sourced questions from previously
+    // generated test quizzes, and the resulting sourceQuestionId chain
+    // had to be walked twice to reach the real master.
     const masters = await prisma.examPaper.findMany({
       where: {
         subject: { contains: "chinese", mode: "insensitive" },
         sourceExamId: null,
+        paperType: null,
         extractionStatus: "ready",
       },
       orderBy: { createdAt: "desc" },

@@ -49,25 +49,67 @@ export async function GET(_request: NextRequest) {
     : [];
   const flaggerMap = new Map(flaggers.map(u => [u.id, u]));
 
-  // Batch-fetch source question info for quiz/focused questions
+  // Batch-fetch source question info for quiz/focused questions.
+  // Walk the sourceQuestionId chain up to 4 hops — a Chinese flagged
+  // question can land on a question whose source is ANOTHER test
+  // quiz (older daily-quiz Chinese branch sourced from any paper
+  // with sourceExamId=null, including paperType="quiz"). Stop at the
+  // first paperType=null hop (the real master) or when we've gone
+  // 4 deep.
   const sourceIds = flagged.map(q => q.sourceQuestionId).filter(Boolean) as string[];
   const sourceMap: Record<string, { paperId: string; questionNum: string; school: string | null; year: string | null; examType: string | null }> = {};
   if (sourceIds.length > 0) {
-    const sourceQuestions = await prisma.examQuestion.findMany({
-      where: { id: { in: sourceIds } },
-      select: {
-        id: true,
-        questionNum: true,
-        examPaper: { select: { id: true, school: true, year: true, examType: true } },
-      },
-    });
-    for (const sq of sourceQuestions) {
-      sourceMap[sq.id] = {
-        paperId: sq.examPaper.id,
-        questionNum: sq.questionNum,
-        school: sq.examPaper.school,
-        year: sq.examPaper.year,
-        examType: sq.examPaper.examType,
+    type Hop = { id: string; questionNum: string; school: string | null; year: string | null; examType: string | null; sourceQuestionId: string | null; paperType: string | null; paperId: string };
+    // resolved[startId] = ultimate Hop reached after walking.
+    const resolved = new Map<string, Hop>();
+    // pendingByStart[startId] = the id we still need to look up.
+    let pendingByStart = new Map<string, string>(sourceIds.map(id => [id, id]));
+    for (let depth = 0; depth < 4 && pendingByStart.size > 0; depth++) {
+      const toFetch = [...new Set(pendingByStart.values())];
+      const rows = await prisma.examQuestion.findMany({
+        where: { id: { in: toFetch } },
+        select: {
+          id: true,
+          questionNum: true,
+          sourceQuestionId: true,
+          examPaper: { select: { id: true, school: true, year: true, examType: true, paperType: true } },
+        },
+      });
+      const fetchedById = new Map(rows.map(r => [r.id, {
+        id: r.id,
+        questionNum: r.questionNum,
+        school: r.examPaper.school,
+        year: r.examPaper.year,
+        examType: r.examPaper.examType,
+        sourceQuestionId: r.sourceQuestionId,
+        paperType: r.examPaper.paperType,
+        paperId: r.examPaper.id,
+      } as Hop]));
+      const nextPending = new Map<string, string>();
+      for (const [startId, currentId] of pendingByStart) {
+        const hop = fetchedById.get(currentId);
+        if (!hop) {
+          // Row vanished — give up on this chain.
+          continue;
+        }
+        // Reached the real master (no further sourceQuestionId, or
+        // paperType is null which marks an uploaded source paper).
+        if (!hop.sourceQuestionId || hop.paperType === null) {
+          resolved.set(startId, hop);
+          continue;
+        }
+        // Else keep walking.
+        nextPending.set(startId, hop.sourceQuestionId);
+      }
+      pendingByStart = nextPending;
+    }
+    for (const [startId, hop] of resolved) {
+      sourceMap[startId] = {
+        paperId: hop.paperId,
+        questionNum: hop.questionNum,
+        school: hop.school,
+        year: hop.year,
+        examType: hop.examType,
       };
     }
   }
