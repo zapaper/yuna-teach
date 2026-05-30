@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
 import { canAssignChinese } from "@/lib/chinese-access";
+import { hasSessionCookie } from "@/lib/session-client";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
 import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
@@ -585,6 +586,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ── Fetches ──────────────────────────────────────────────────────────────
 
   const refreshPapers = useCallback(async () => {
+    // Skip the round-trip when no session presence flag is set — the
+    // middleware would reject this as 401 / no_cookie anyway. The
+    // top-level page redirect handles the "send the user to /login"
+    // case; here we just avoid polluting the server log with mount
+    // 401s from logged-out tabs / link-preview crawlers.
+    if (!hasSessionCookie()) { setLoadingPapers(false); return; }
     const res = await fetch(`/api/exam?userId=${userId}`);
     if (res.ok) setExamPapers((await res.json()).papers ?? []);
     setLoadingPapers(false);
@@ -613,6 +620,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   useEffect(() => {
     if (!selectedStudentId) return;
+    if (!hasSessionCookie()) { setLoadingProgress(false); return; }
     setLoadingProgress(true);
     setProgressData(null);
     fetch(`/api/student-progress?parentId=${userId}&studentId=${selectedStudentId}`)

@@ -278,6 +278,14 @@ function ExamReviewContent({ id }: { id: string }) {
   const [sessionIsAdmin, setSessionIsAdmin] = useState(false);
   useEffect(() => {
     let cancelled = false;
+    // Skip /api/users/me when there's no session presence flag — the
+    // middleware would 401 it anyway. The route's own auth check
+    // still fires for any client that did slip through; this is just
+    // log-noise reduction.
+    if (typeof document !== "undefined"
+        && !/(?:^|; )yuna_session_present=1(?:;|$)/.test(document.cookie)) {
+      return () => { cancelled = true; };
+    }
     fetch("/api/users/me")
       .then(r => r.ok ? r.json() : null)
       .then(d => {

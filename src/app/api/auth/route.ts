@@ -78,5 +78,14 @@ export async function DELETE() {
     maxAge: 0,
     expires: new Date(0),
   });
+  // Clear the JS-readable presence flag alongside the real cookie.
+  res.cookies.set("yuna_session_present", "", {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
   return res;
 }
