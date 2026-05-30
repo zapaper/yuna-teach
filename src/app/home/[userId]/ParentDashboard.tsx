@@ -914,11 +914,29 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // Filtered papers for Set Papers view — filter by selected student's level + subject + examType
   const selectedStudentLevel = selectedStudent?.level ?? null;
   const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
+  // Level match is fuzzy because the source bank stores `level` in
+  // inconsistent shapes — "P6" / "Primary 6" / "6" / "PSLE" all show
+  // up on real papers. Specifically, PSLE Math / Science / English
+  // papers are commonly tagged level="PSLE" (no digit) which the
+  // original .includes(String(level)) check silently hid from any
+  // P6 student. Match strategy:
+  //   · explicit digit substring (e.g. "Primary 6" → "6")
+  //   · for P6 students, "PSLE" / "Primary School" also count
+  //     (PSLE is by definition the P6 leaving exam)
+  //   · empty / null level passes through (don't drop on missing data)
+  function levelMatches(paperLevel: string | null | undefined, studentLevel: number): boolean {
+    if (!paperLevel) return true;
+    const lvl = paperLevel.trim();
+    if (!lvl) return true;
+    if (lvl.includes(String(studentLevel))) return true;
+    if (studentLevel === 6 && /\bPSLE\b/i.test(lvl)) return true;
+    if (studentLevel === 6 && /primary school/i.test(lvl)) return true;
+    return false;
+  }
   const filteredPapers = masterPapers.filter(p => {
     if (subjectFilter && norm(p.subject) !== norm(subjectFilter)) return false;
     if (examTypeFilter && norm(p.examType) !== norm(examTypeFilter)) return false;
-    // Only show papers matching the selected student's level
-    if (selectedStudentLevel && p.level && !p.level.includes(String(selectedStudentLevel))) return false;
+    if (selectedStudentLevel && !levelMatches(p.level, selectedStudentLevel)) return false;
     return true;
   });
 
