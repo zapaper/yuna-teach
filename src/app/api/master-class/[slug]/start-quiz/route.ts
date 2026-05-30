@@ -345,6 +345,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     "短文填空",
     "阅读理解 MCQ",
     "阅读理解 OEQ",
+    // 完成对话 (sentence completion / dialogue) needs the same
+    // passage + word-bank rendering Grammar Cloze uses — without
+    // the dialogue context and the numbered phrase bank the
+    // student has nothing to pick from. ChineseQuizSection keys off
+    // the section label ("完成对话" / "对话填空") to switch to
+    // grammar-cloze sectionType.
+    "完成对话",
   ]);
   const passageBoundLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])];
   const isPassageBound = passageBoundLabels.some(l => PASSAGE_BOUND_TOPICS.has(l));
@@ -486,6 +493,60 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       };
       if (isChinesePG) chineseSections.push(entry);
       else englishSections.push(entry);
+    }
+
+    // 4b. Mixed-mode classes: when the master class's topicLabel set
+    //     includes BOTH a passage-bound topic and a standalone topic
+    //     (e.g. chinese-sentence-completion pulls 完成对话 +
+    //     语文应用 MCQ), pick standalone questions from the
+    //     non-passage-bound topics too and append them as their own
+    //     section. The quiz player keys off the section LABEL to
+    //     pick render shape — "语文应用 MCQ" / "Grammar MCQ" etc.
+    //     hit the visual-text-mcq path with no passage, which is
+    //     exactly the standalone-MCQ layout we want.
+    const standaloneLabels = passageBoundLabels.filter(l => !PASSAGE_BOUND_TOPICS.has(l));
+    if (standaloneLabels.length > 0) {
+      type StandaloneCandidate = typeof candidates[number];
+      const standaloneCandidates: StandaloneCandidate[] = candidates.filter(
+        q => standaloneLabels.includes(q.syllabusTopic ?? ""),
+      );
+      if (standaloneCandidates.length > 0) {
+        // Same per-class spec the passage-bound branch reads above —
+        // count how many we've already added via passage groups and
+        // top up from the standalone pool. Standalone questions don't
+        // get round-trip dedup (the focused-test fingerprinting isn't
+        // wired here yet) but a simple shuffle + slice gives variety.
+        const slidesSA = [...content.keyConcepts, ...content.commonMistakes];
+        const saSpec = slidesSA.map(s => s.cta?.quizSpec).find(Boolean);
+        const saTarget = (saSpec?.mcq ?? QUIZ_MCQ_COUNT) + (saSpec?.oeq ?? QUIZ_OEQ_COUNT);
+        const saRemaining = Math.max(0, saTarget - flatItems.length);
+        if (saRemaining > 0) {
+          const shuffled = shuffle(standaloneCandidates).slice(0, saRemaining);
+          // Group by source topic so each standalone topic becomes
+          // one section. Preserves the player's per-section header.
+          const byTopic = new Map<string, StandaloneCandidate[]>();
+          for (const q of shuffled) {
+            const topic = q.syllabusTopic ?? "";
+            if (!byTopic.has(topic)) byTopic.set(topic, []);
+            byTopic.get(topic)!.push(q);
+          }
+          for (const [topic, qs] of byTopic) {
+            const startIdx = flatItems.length;
+            for (const q of qs) flatItems.push({ source: q, sourcePaperId: q.examPaperId });
+            const entry: SectionEntry = {
+              label: topic,
+              startIndex: startIdx,
+              endIndex: flatItems.length - 1,
+            };
+            // Chinese-shape topics land in chineseSections, English
+            // in englishSections — mirrors the per-question subject
+            // detection above.
+            const isChineseTopic = /[一-鿿]/.test(topic);
+            if (isChineseTopic) chineseSections.push(entry);
+            else englishSections.push(entry);
+          }
+        }
+      }
     }
 
     // 5. Quiz numbering + paper creation.
