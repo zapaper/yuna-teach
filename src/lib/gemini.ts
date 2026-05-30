@@ -12,6 +12,24 @@ function getAI() {
   return _ai;
 }
 
+// Backup Gemini client — points at a SECOND AI Studio project's API
+// key (env: GEMINI_API_KEY_BACKUP). Used when the primary key returns
+// a quota-exhausted error (429 / RESOURCE_EXHAUSTED — the
+// monthly-spending-cap signal AI Studio sends when a project's tier
+// gets clipped). Same provider, same prompts, no translation — just
+// a parallel quota bucket.
+let _aiBackup: GoogleGenAI | null = null;
+function getBackupAI(): GoogleGenAI | null {
+  if (!process.env.GEMINI_API_KEY_BACKUP) return null;
+  if (!_aiBackup) {
+    _aiBackup = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY_BACKUP,
+      httpOptions: { timeout: 180000 },
+    });
+  }
+  return _aiBackup;
+}
+
 /** Retryable network error codes — ECONNRESET means Railway's proxy cut the connection mid-request. */
 const RETRYABLE_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND"]);
 
@@ -81,13 +99,49 @@ export async function generateContentWithRetry(
             lastErr = fallbackErr;
           }
         }
-        // Cross-provider fallback. Only fires for quota-exhausted
-        // errors (429 RESOURCE_EXHAUSTED — the AI Studio spending-cap
-        // signal) and only when OPENAI_API_KEY is set on the env. The
-        // openai-fallback module translates the Gemini params into an
-        // OpenAI chat call and adapts the response back to a
-        // Gemini-shaped { text } object so callers don't need to know
-        // which provider answered.
+        // Step 1: backup Gemini API key. Same provider, same prompts,
+        // separate quota bucket — try this BEFORE the cross-provider
+        // OpenAI fallback so we stay on Gemini (which is what every
+        // prompt in this file is tuned for) whenever possible.
+        if (isQuotaExhaustedError(lastErr)) {
+          const backup = getBackupAI();
+          if (backup) {
+            console.warn(`${tag} Gemini quota exhausted — trying backup Gemini key`);
+            try {
+              const result = await backup.models.generateContent(params);
+              _lastFallbackUsed = "gemini-backup-key";
+              console.log(`${tag} backup Gemini key succeeded`);
+              return result;
+            } catch (backupErr) {
+              console.error(`${tag} backup Gemini key also failed:`, backupErr instanceof Error ? backupErr.message : backupErr);
+              // Try the model-family fallback against the backup key
+              // too — e.g. if pro is over-quota on both, both flash
+              // probably still has room.
+              const backupFallback = FALLBACK_MODELS[primaryModel];
+              if (backupFallback && isRetryable(backupErr)) {
+                try {
+                  const result = await backup.models.generateContent({ ...params, model: backupFallback });
+                  _lastFallbackUsed = `gemini-backup-key:${backupFallback}`;
+                  console.log(`${tag} backup Gemini key with model fallback ${backupFallback} succeeded`);
+                  return result;
+                } catch (backupFallbackErr) {
+                  console.error(`${tag} backup Gemini key + model fallback also failed`);
+                  lastErr = backupFallbackErr;
+                }
+              } else {
+                lastErr = backupErr;
+              }
+            }
+          }
+        }
+        // Step 2: cross-provider OpenAI fallback. Only fires for
+        // quota-exhausted errors and only when OPENAI_API_KEY is set
+        // on the env. The openai-fallback module translates the
+        // Gemini params into an OpenAI chat call and adapts the
+        // response back to a Gemini-shaped { text } object so callers
+        // don't need to know which provider answered. Last-resort
+        // safety net — only useful when even the backup Gemini key
+        // can't help.
         if (isQuotaExhaustedError(lastErr) && isOpenAIFallbackEnabled()) {
           console.warn(`${tag} Gemini quota exhausted — trying OpenAI fallback`);
           try {
