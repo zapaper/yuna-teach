@@ -419,7 +419,11 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   //   3 marks           → 6 rows
                   //   4+ marks          → 8 rows
                   const m = q.marksAvailable ?? 0;
-                  const linesPerAnswer = m >= 4 ? 8 : m === 3 ? 6 : m === 2 ? 4 : 3;
+                  // Base height ladder + 1 row per OEQ mark on top so
+                  // a 4-mark question gets 4 extra writing rows than a
+                  // 1-mark one. Same intent as the English textarea
+                  // change — more space scales with marks.
+                  const linesPerAnswer = (m >= 4 ? 8 : m === 3 ? 6 : m === 2 ? 4 : 3) + m;
                   const cellSize = 88;
                   const canvasHeight = cellSize * linesPerAnswer;
                   return (
@@ -525,7 +529,14 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
           passage — the renderer picks the shape per-question instead
           of routing the whole section through one sectionType. */}
       {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (
-        <div className={`space-y-6 ${splitQuestionsCls}`}>
+        // Wrap the questions list in a relative container with a
+        // PassageScratchOverlay so the student can annotate the
+        // question stems / options too — just like the passage panel
+        // above. The overlay's pointer-events: none kicks in when
+        // tool !== "pen", so MCQ option buttons stay clickable in
+        // type mode. Same treatment Comp OEQ gets on the passage side.
+        <div className={`relative space-y-6 ${splitQuestionsCls}`}>
+          <PassageScratchOverlay enabled={tool === "pen"} />
           {questions.map(q => {
             const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
             const isOeq = !hasOptions;

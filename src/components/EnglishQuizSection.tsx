@@ -141,7 +141,10 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
             // Parse lines count from stem: [Lines: N] or [N lines]
             const linesMatch = stem.match(/\[(?:Lines?:\s*)?(\d+)\s*(?:lines?)?\]/i);
-            const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
+            // +1 line per OEQ mark so a 4-mark question gets 4 more
+            // rows of writing space than a 1-mark question. Marker-set
+            // values stay the floor — the marker only adds lines.
+            const lineCount = (linesMatch ? parseInt(linesMatch[1]) : 2) + (q.marksAvailable ?? 0);
             // For comp-OEQ we keep the [LINES: N] / ___ markers in the stem so
             // RichStemText can render them as actual textareas (one per subpart).
             // For synthesis we strip them — synthesis has its own marker logic.
