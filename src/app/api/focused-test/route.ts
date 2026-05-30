@@ -310,6 +310,24 @@ export async function POST(request: NextRequest) {
       .trim();
   }
 
+  // Fuzzy dedup: schools sometimes print the same question with one
+  // or two word swaps ("must" vs "have to", "shown above" vs "shown
+  // below"). Exact normaliseStem equality misses these; Jaccard
+  // similarity over word-token sets catches them. Threshold 0.85
+  // keeps legitimately distinct questions that happen to share a
+  // generic opening clause from collapsing — a single sentence in
+  // common is well under 0.85 of the union.
+  function wordTokens(s: string): Set<string> {
+    return new Set(s.split(/\s+/).filter(w => w.length > 2));
+  }
+  function jaccardSimilar(a: Set<string>, b: Set<string>): boolean {
+    if (a.size < 8 || b.size < 8) return false; // too short to compare confidently
+    let inter = 0;
+    for (const w of a) if (b.has(w)) inter++;
+    const union = a.size + b.size - inter;
+    return union > 0 && inter / union >= 0.85;
+  }
+
   // ── MCQ pool: deduplicate by lineage + normalised stem ──
   // Lineage: a synthetic-bank question carries sourceQuestionId pointing back
   // to the original ExamQuestion. Both `simple` and `similar` variants share
@@ -320,14 +338,21 @@ export async function POST(request: NextRequest) {
   const mcqPool: Q[] = [];
   const seenMcqLineages = new Set<string>();
   const seenMcqStems = new Set<string>();
+  const seenMcqTokenSets: Set<string>[] = [];
   for (const q of allQuestions) {
     if (!hasOptions(q)) continue;
     const lineage = q.sourceQuestionId || q.id;
     if (seenMcqLineages.has(lineage)) continue;
     const norm = normaliseStem(q.transcribedStem ?? "");
     if (norm && seenMcqStems.has(norm)) continue;
+    // Fuzzy near-duplicate check — catches paraphrased copies across
+    // different schools' WA2 papers (e.g. "concrete blocks have to be
+    // pushed" vs "concrete blocks must be pushed").
+    const tokens = norm ? wordTokens(norm) : null;
+    if (tokens && seenMcqTokenSets.some(prev => jaccardSimilar(tokens, prev))) continue;
     seenMcqLineages.add(lineage);
     if (norm) seenMcqStems.add(norm);
+    if (tokens) seenMcqTokenSets.push(tokens);
     mcqPool.push(q);
   }
 
@@ -371,17 +396,23 @@ export async function POST(request: NextRequest) {
     return parts.sort().join("|");
   }
 
-  // Dedup OEQ groups by lineage + content fingerprint.
+  // Dedup OEQ groups by lineage + content fingerprint + Jaccard
+  // similarity on the fingerprint tokens (catches paraphrased
+  // duplicates across schools, same as the MCQ branch above).
   const oeqPool: Q[][] = [];
   const seenOeqLineages = new Set<string>();
   const seenOeqFingerprints = new Set<string>();
+  const seenOeqTokenSets: Set<string>[] = [];
   for (const group of validGroups) {
     const lineage = group[0].sourceQuestionId || group[0].id;
     if (seenOeqLineages.has(lineage)) continue;
     const fp = groupFingerprint(group);
     if (fp && seenOeqFingerprints.has(fp)) continue;
+    const tokens = fp ? wordTokens(fp) : null;
+    if (tokens && seenOeqTokenSets.some(prev => jaccardSimilar(tokens, prev))) continue;
     seenOeqLineages.add(lineage);
     if (fp) seenOeqFingerprints.add(fp);
+    if (tokens) seenOeqTokenSets.push(tokens);
     oeqPool.push(group);
   }
 
