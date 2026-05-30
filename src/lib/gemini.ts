@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { isCompOeqLabel } from "./english-sections";
+import { runOpenAIFallback, isOpenAIFallbackEnabled, isQuotaExhaustedError } from "./openai-fallback";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -71,7 +72,38 @@ export async function generateContentWithRetry(
             return result;
           } catch (fallbackErr) {
             console.error(`${tag} fallback ${fallback} also failed`);
-            throw fallbackErr;
+            // Fall through to the OpenAI cross-provider fallback below
+            // if this is a quota-exhausted error and OPENAI_API_KEY is
+            // set. Otherwise rethrow the fallback model's error.
+            if (!(isQuotaExhaustedError(fallbackErr) && isOpenAIFallbackEnabled())) {
+              throw fallbackErr;
+            }
+            lastErr = fallbackErr;
+          }
+        }
+        // Cross-provider fallback. Only fires for quota-exhausted
+        // errors (429 RESOURCE_EXHAUSTED — the AI Studio spending-cap
+        // signal) and only when OPENAI_API_KEY is set on the env. The
+        // openai-fallback module translates the Gemini params into an
+        // OpenAI chat call and adapts the response back to a
+        // Gemini-shaped { text } object so callers don't need to know
+        // which provider answered.
+        if (isQuotaExhaustedError(lastErr) && isOpenAIFallbackEnabled()) {
+          console.warn(`${tag} Gemini quota exhausted — trying OpenAI fallback`);
+          try {
+            const openaiResult = await runOpenAIFallback(params, label);
+            _lastFallbackUsed = "openai";
+            console.log(`${tag} OpenAI fallback succeeded`);
+            // Cast through unknown so the Gemini-shaped return type
+            // isn't widened; only `.text` is reliably available on the
+            // OpenAI return.
+            return openaiResult as unknown as Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>;
+          } catch (openaiErr) {
+            console.error(`${tag} OpenAI fallback also failed:`, openaiErr instanceof Error ? openaiErr.message : openaiErr);
+            // Surface the ORIGINAL Gemini error to the caller — that
+            // preserves the existing "Gemini failed" log signature
+            // every existing caller expects to see.
+            throw lastErr;
           }
         }
         console.error(`${tag} FAILED after ${attempt + 1} attempts (${status})`);
