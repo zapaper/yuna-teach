@@ -11,7 +11,7 @@ type Row = {
   paperTitle: string;
   level: number | null;
   subject: string | null;
-  field: "answer" | "stem";
+  field: "answer" | "stem" | "subparts";
   before: string;
   after: string;
 };
@@ -42,7 +42,7 @@ function Content() {
   const [error, setError] = useState<string | null>(null);
   const [filterLevel, setFilterLevel] = useState<"all" | "3" | "4" | "5" | "6">("all");
   const [filterSubject, setFilterSubject] = useState<"all" | "math" | "science" | "english" | "chinese">("all");
-  const [filterField, setFilterField] = useState<"all" | "answer" | "stem">("all");
+  const [filterField, setFilterField] = useState<"all" | "answer" | "stem" | "subparts">("all");
 
   // Same question id can produce TWO rows (one for the answer key,
   // one for the stem). Use `${id}:${field}` as the unique selection
@@ -236,12 +236,13 @@ function Content() {
                 <span className="text-slate-600">Field:</span>
                 <select
                   value={filterField}
-                  onChange={(e) => setFilterField(e.target.value as "all" | "answer" | "stem")}
+                  onChange={(e) => setFilterField(e.target.value as "all" | "answer" | "stem" | "subparts")}
                   className="border border-slate-300 rounded px-2 py-1"
                 >
                   <option value="all">All</option>
                   <option value="answer">Answer key</option>
                   <option value="stem">Question stem</option>
+                  <option value="subparts">Subpart labels</option>
                 </select>
               </label>
               <span className="text-slate-400 mx-2">|</span>
@@ -265,7 +266,9 @@ function Content() {
                 const isApplied = appliedIds.has(key);
                 const fieldChip = r.field === "stem"
                   ? <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-bold uppercase tracking-wide">Stem</span>
-                  : <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wide">Answer</span>;
+                  : r.field === "subparts"
+                    ? <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wide">Subparts</span>
+                    : <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wide">Answer</span>;
                 return (
                   <div
                     key={key}

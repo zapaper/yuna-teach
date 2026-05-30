@@ -23,6 +23,31 @@ export type NormaliseResult = { normalized: string; changed: boolean };
 
 const ROMAN_RE = "i{1,3}|iv|v|vi{0,3}|ix|x";
 
+// Normalise a subpart label stored on ExamQuestion.transcribedSubparts.
+// Storage convention (see lib/subpart-label.ts): single letter "a" /
+// dash-joined compound "a-i". Malformed shapes we repair:
+//   "b(i)"   →  "b-i"     (paren around the roman; the printed paper
+//                           used "(b)(i)" but the OCR collapsed it)
+//   "b)(i)"  →  "b-i"
+//   "(b)(i)" →  "b-i"     (over-paren'd by OCR)
+//   "B"      →  "b"       (lowercase normalisation)
+//   "B-I"    →  "b-i"
+export function normaliseSubpartLabel(label: string): NormaliseResult {
+  if (!label || typeof label !== "string") return { normalized: label, changed: false };
+  const original = label;
+  let s = label.trim();
+  // "(b)(i)" → "b)(i)"  (strip outer opening paren)
+  s = s.replace(/^\(([a-h])\)\((i{1,3}|iv|v|vi{0,3}|ix|x)\)$/i, "$1-$2");
+  // "b(i)" or "b)(i)" → "b-i"
+  s = s.replace(/^([a-h])\)?\((i{1,3}|iv|v|vi{0,3}|ix|x)\)$/i, "$1-$2");
+  // Strip a stray outer paren on a simple letter — "(b)" → "b".
+  s = s.replace(/^\(([a-h])\)$/i, "$1");
+  // Final lowercase pass — labels are case-insensitive in storage but
+  // canonical form is lowercase. Letter + dash + roman, no parens.
+  s = s.toLowerCase();
+  return { normalized: s, changed: s !== original };
+}
+
 export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
   if (!answer || typeof answer !== "string") return { normalized: answer, changed: false };
   const original = answer;
