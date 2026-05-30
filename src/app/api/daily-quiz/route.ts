@@ -178,13 +178,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Target student: prefer the explicit `studentId` field — the
+    // parent UI sends both `userId` (the actor) and `studentId`
+    // (the child the quiz is for) when assigning English / Chinese
+    // papers as quiz-format. Falls back to `userId` so admin-as-self
+    // "test quiz for me" calls still work.
+    const sourceQuizTargetStudent = studentId ?? userId;
     const testQuiz = await prisma.examPaper.create({
       data: {
         title: `Test Quiz — ${paper.title}`,
         subject: paper.subject,
         level: paper.level,
         userId,
-        assignedToId: userId,
+        assignedToId: sourceQuizTargetStudent,
         ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: "quiz",
         instantFeedback: true,
