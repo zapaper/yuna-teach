@@ -882,21 +882,34 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }
 
   // Master papers (not assigned = available to assign)
-  // English exam papers are temporarily disabled from the parent Set Papers flow.
-  // Defence-in-depth: even though paperType==null already excludes focused/quiz,
-  // also exclude by title prefix in case any drifted into paperType=null via
-  // an old admin tool or data import.
-  const masterPapers = examPapers.filter(p =>
-    !p.assignedToId
-    && p.paperType === null
-    && !(p.subject ?? "").toLowerCase().includes("english")
-    && !p.title.startsWith("[Synthetic Bank]")
+  // English exam papers are NORMALLY hidden from Set Papers because
+  // the paper-format flow doesn't work for English (sections need
+  // section-aware rendering, not a single scrolled paper). The same
+  // is true for Chinese. For allow-listed accounts (chineseAllowedForUser
+  // — currently admin + mark lim / david lim / student666) we keep them
+  // in the list and the Assign button below routes them through
+  // /api/daily-quiz with the paper as sourcePaperId so the resulting
+  // assignment is a quiz-format test with each section rendered the
+  // way Daily Quiz does it. Defence-in-depth: paperType==null already
+  // excludes focused/quiz, but we also exclude by title prefix in
+  // case any drifted into paperType=null via an old admin tool or
+  // data import.
+  const allowQuizFormatPaperAssign = chineseAllowedForUser;
+  const masterPapers = examPapers.filter(p => {
+    if (p.assignedToId) return false;
+    if (p.paperType !== null) return false;
+    const subjLc = (p.subject ?? "").toLowerCase();
+    const isEnglish = subjLc.includes("english");
+    const isChinese = subjLc.includes("chinese");
+    if ((isEnglish || isChinese) && !allowQuizFormatPaperAssign) return false;
+    if (p.title.startsWith("[Synthetic Bank]")) return false;
     // \bFocused\b catches both 'P5 Focused: Fractions' (current format)
     // and legacy 'Focused Test on Fractions' style titles. \bFocus\b
     // catches the human-typed 'Focus on Fractions'. Daily Quiz too.
-    && !/\bFocus(ed)?\b/i.test(p.title)
-    && !/Daily Quiz/i.test(p.title)
-  );
+    if (/\bFocus(ed)?\b/i.test(p.title)) return false;
+    if (/Daily Quiz/i.test(p.title)) return false;
+    return true;
+  });
 
   // Available subjects and exam types from master papers (dedup case-insensitively, keep first casing seen)
   const dedupKeepFirst = (vals: (string | null)[]) => {
@@ -2619,14 +2632,44 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         if (!selectedStudentId || isAssigning) return;
                         setAssigningPaperId(p.id);
                         try {
-                          const res = await fetch(`/api/exam/${p.id}`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
-                          });
-                          if (!res.ok) {
-                            alert("Failed to assign paper. Please try again.");
-                            return;
+                          // English / Chinese can't ride the regular
+                          // paper-assign endpoint — they need
+                          // section-aware rendering (englishSections /
+                          // chineseSections metadata). Route those
+                          // through daily-quiz with sourcePaperId,
+                          // which clones the paper as a Test Quiz
+                          // and stamps the section metadata so each
+                          // section renders the way Daily Quiz does
+                          // it (Comp Cloze inline blanks, Visual Text
+                          // page images, 完成对话 word bank, etc.).
+                          const subjLc = (p.subject ?? "").toLowerCase();
+                          const isEngOrCn = subjLc.includes("english") || subjLc.includes("chinese");
+                          if (isEngOrCn) {
+                            const res = await fetch("/api/daily-quiz", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                userId,
+                                studentId: selectedStudentId,
+                                sourcePaperId: p.id,
+                                quizType: "mcq",
+                              }),
+                            });
+                            if (!res.ok) {
+                              const errText = await res.text().catch(() => "");
+                              alert(`Failed to assign paper: ${errText || "please try again."}`);
+                              return;
+                            }
+                          } else {
+                            const res = await fetch(`/api/exam/${p.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
+                            });
+                            if (!res.ok) {
+                              alert("Failed to assign paper. Please try again.");
+                              return;
+                            }
                           }
                           await refreshPapers();
                           setAssignToast(`Paper assigned to ${selectedStudent?.name ?? "student"}`);

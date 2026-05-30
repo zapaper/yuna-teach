@@ -64,16 +64,20 @@ export async function POST(request: NextRequest) {
 
     const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
     const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
-    // Chinese papers: admin-only test-quiz creation. Mirrors the
-    // same guard on the assign endpoint so a non-admin can't slip a
-    // sourcePaperId for a Chinese master through here either.
-    if (isChinese) {
+    // English AND Chinese papers: gated test-quiz creation via this
+    // path. The parent UI exposes paper-as-quiz assignment only for
+    // allow-listed accounts; mirror the same gate here so a non-
+    // allow-listed user can't slip a sourcePaperId through the API
+    // directly. The Chinese allow-list (src/lib/chinese-access.ts)
+    // is reused for English by design — same set of accounts
+    // (admin + mark lim / david lim / student666 at the time of
+    // writing) is authorised for both.
+    if (isEnglish || isChinese) {
       const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
-      // Admin OR an entry in the Chinese-access allow-list
-      // (src/lib/chinese-access.ts) passes the gate.
       const { canAssignChinese } = await import("@/lib/chinese-access");
       if (!isAdmin(actor) && !canAssignChinese(actor?.name)) {
-        return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
+        const which = isChinese ? "Chinese" : "English";
+        return NextResponse.json({ error: `${which} papers can only be assigned as a quiz by an authorised account.` }, { status: 403 });
       }
     }
     const allQs = paper.questions.filter(q => q.answer);
