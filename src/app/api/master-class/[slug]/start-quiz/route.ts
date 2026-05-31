@@ -362,8 +362,20 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     // 1. Group candidates by (examPaperId, syllabusTopic). Each group
     //    is one passage section (e.g. "Comprehension Cloze" on PSLE
     //    English 2024 — all 15 blanks).
+    //
+    // For passage-bound topics we group from candidatesAfterRegex
+    // (BEFORE the slide-example filter) so the group's question count
+    // matches the passage's blank count. Removing slide-example
+    // questions would leave a passage with N blanks but N-k questions —
+    // the quiz UI binds blanks to questions positionally, so the
+    // trailing blanks would render as plain "______" underscores and
+    // the option pickers shift to the wrong positions. Hit on
+    // 短文填空 master quiz: 4 passages × (5 blanks - 1 slide example)
+    // = 4 missing pickers per quiz. Standalone topics keep using the
+    // filtered candidates so they don't repeat slide content.
+    const pgPool = candidatesAfterRegex;
     const pgMap = new Map<string, PassageGroup>();
-    for (const q of candidates) {
+    for (const q of pgPool) {
       // Skip questions that aren't on a passage-bound topic — when
       // an MC uses topicLabelExtras, only the extras that ARE
       // passage-bound contribute. (Example: a hypothetical MC that
