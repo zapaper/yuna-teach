@@ -36,16 +36,22 @@ function getOpenAI() {
   return _openai;
 }
 
-// Tier mapping. Cheap / flash → gpt-4o-mini; pro → gpt-4o. Both
-// support vision + JSON mode. If a caller specifies a model not in
-// this map, default to gpt-4o for safety.
+// Tier mapping. Updated 2026-05 to "Option B" — newest GA tiers
+// with no announced deprecation:
+//   flash family → gpt-5-mini ($0.25 / $2 per 1M)
+//   pro family   → gpt-5.4   ($2.50 / $15 per 1M)
+// Both support vision + JSON mode. Picked over gpt-4o (still GA but
+// legacy) and gpt-5.4-mini (slightly pricier than gpt-5-mini for the
+// same tier role). If a caller specifies a model not in this map,
+// default to gpt-5.4 for safety.
 const MODEL_MAP: Record<string, string> = {
-  "gemini-2.5-flash": "gpt-4o-mini",
-  "gemini-2.5-flash-lite": "gpt-4o-mini",
-  "gemini-2.5-pro": "gpt-4o",
-  "gemini-3.1-pro-preview": "gpt-4o",
-  "gemini-3-flash-preview": "gpt-4o-mini",
-  "gemini-3-pro-preview": "gpt-4o",
+  "gemini-2.5-flash": "gpt-5-mini",
+  "gemini-2.5-flash-lite": "gpt-5-mini",
+  "gemini-3.1-flash-lite-preview": "gpt-5-mini",
+  "gemini-3-flash-preview": "gpt-5-mini",
+  "gemini-2.5-pro": "gpt-5.4",
+  "gemini-3.1-pro-preview": "gpt-5.4",
+  "gemini-3-pro-preview": "gpt-5.4",
 };
 
 export function isOpenAIFallbackEnabled(): boolean {
@@ -81,7 +87,7 @@ function translateRequest(params: GeminiParams): {
   temperature?: number;
 } {
   const geminiModel: string = params?.model ?? "gemini-2.5-flash";
-  const openaiModel = MODEL_MAP[geminiModel] ?? "gpt-4o";
+  const openaiModel = MODEL_MAP[geminiModel] ?? "gpt-5.4";
 
   const contents = (params?.contents ?? []) as Array<{
     role?: string;
