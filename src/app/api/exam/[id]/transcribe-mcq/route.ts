@@ -193,8 +193,14 @@ export async function POST(
     return stitched.toString("base64");
   }
 
-  const results = await Promise.all(
-    questions.map(async (q) => {
+  // Sliding-window concurrency. Firing all ~28-40 transcription calls
+  // through Promise.all hammers the 3.1-pro-preview tier hard enough
+  // to trigger cascading 504s — we then burn 90s/question on retries
+  // before falling through to flash. Cap concurrent in-flight calls
+  // at 10: as one finishes the next starts, no batch-edge stalls.
+  const CONCURRENCY = 10;
+  const results: Array<Awaited<ReturnType<typeof transcribeOne>>> = new Array(questions.length);
+  async function transcribeOne(q: typeof questions[number]) {
       const base64 = await getContextualBase64(q);
       // Answer-first check — the answer key is the ground-truth
       // signal for MCQ vs OEQ. A stored answer of "(1)" / "(2)" /
@@ -335,8 +341,17 @@ export async function POST(
           error: err instanceof Error ? err.message : "Failed",
         };
       }
-    })
-  );
+  }
+
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(CONCURRENCY, questions.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= questions.length) return;
+      results[i] = await transcribeOne(questions[i]);
+    }
+  });
+  await Promise.all(workers);
 
   return NextResponse.json({ questions: results });
 }
