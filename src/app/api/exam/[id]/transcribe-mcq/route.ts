@@ -196,9 +196,27 @@ export async function POST(
   const results = await Promise.all(
     questions.map(async (q) => {
       const base64 = await getContextualBase64(q);
-      // Detect MCQ vs OEQ from the image itself — more reliable than answer field alone
-      const detectedType = await detectQuestionType(base64);
-      const mcq = detectedType === "mcq";
+      // Answer-first check — the answer key is the ground-truth
+      // signal for MCQ vs OEQ. A stored answer of "(1)" / "(2)" /
+      // "(3)" / "(4)" / bare "1"-"4" can ONLY come from an MCQ.
+      // Override the vision-based detection in that case so Science
+      // MCQs whose options ARE a table or image set (where the
+      // visual detector frequently misreads "no MCQ buttons present"
+      // as OEQ) still route through the MCQ extractor — which is
+      // the only one that knows how to pull optionTable /
+      // optionImages out of the image.
+      const ansNormalized = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      const answerLooksMcq = /^[1-4]$/.test(ansNormalized);
+      let mcq: boolean;
+      if (answerLooksMcq) {
+        mcq = true;
+      } else {
+        // Detect MCQ vs OEQ from the image itself when the answer
+        // doesn't give us a clear signal (no answer key yet, or the
+        // answer is text — typical for non-Science OEQ).
+        const detectedType = await detectQuestionType(base64);
+        mcq = detectedType === "mcq";
+      }
       try {
         if (mcq) {
           // Science MCQ can additionally come back as a table-
