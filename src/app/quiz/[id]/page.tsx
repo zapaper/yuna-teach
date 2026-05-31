@@ -2885,40 +2885,27 @@ const ResizableCanvas = forwardRef<
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
 
   // Adapt the visible canvas height to the drawable image's natural
-  // aspect ratio: the image renders at the top of the canvas, scaled
-  // to the canvas's 800px-wide pixel grid (capped at 1.5× natural
-  // width). Pre-measure the image once, then set canvas display
-  // height to "scaled image height (in CSS px) + writing buffer".
-  // That way the user's writing room below the diagram is ~constant
-  // (≈180px) instead of swinging from 400px on small diagrams to
-  // 0px on tall ones. Skipped when the student has a savedHeight
-  // (they manually resized — don't fight them).
+  // aspect ratio: image is drawn at the top of an 800×1800 pixel grid
+  // (scale = min(800/w, 1800/h, 1.5)), and that grid is rendered at a
+  // FIXED 900 CSS px tall via BlankCanvas (line ~2949, height prop =
+  // maxCanvasHeight). So the image's CSS height is pixelImgH / 2 —
+  // not pixelImgH × visibleHeight / 1800 like the previous formula
+  // assumed. That earlier math kept clamping to 300, which left a
+  // huge white band of canvas below most diagrams. Set visible to
+  // "image CSS height + 180-px writing buffer" instead.
+  // Skipped when the student has a savedHeight (they manually
+  // resized — don't fight them).
   useEffect(() => {
     if (!backgroundImage) return;
     if (savedHeight) return;
     const img = new Image();
     img.onload = () => {
-      // Pixel-grid scale: same formula BlankCanvas.drawBackground uses.
       const PIXEL_W = 800;
-      const PIXEL_H_INTERNAL = maxCanvasHeight * 2; // matches BlankCanvas's CANVAS_H
+      const PIXEL_H_INTERNAL = maxCanvasHeight * 2; // 1800 — matches BlankCanvas's CANVAS_H
       const pixelScale = Math.min(PIXEL_W / img.width, PIXEL_H_INTERNAL / img.height, 1.5);
-      const pixelImgH = img.height * pixelScale;
-      // The canvas is rendered at CSS height = visibleHeight against
-      // a pixel-grid height of PIXEL_H_INTERNAL, so the image's CSS
-      // height is pixelImgH × (visibleHeight / PIXEL_H_INTERNAL).
-      // Solving for visibleHeight such that "image CSS height +
-      // writing buffer" === visibleHeight:
-      //   v = imgCss + buf  AND  imgCss = pixelImgH × v / PIXEL_H_INTERNAL
-      // → v − pixelImgH × v / PIXEL_H_INTERNAL = buf
-      // → v = buf / (1 − pixelImgH / PIXEL_H_INTERNAL)
+      const cssImgH = (img.height * pixelScale) / 2; // grid → CSS is 2:1
       const WRITING_BUFFER_CSS = 180;
-      const ratio = pixelImgH / PIXEL_H_INTERNAL;
-      // Defensive: if the image would consume ≥ 90% of the pixel grid
-      // there's no room to add a meaningful buffer — just cap at
-      // maxCanvasHeight so the image isn't cut off.
-      const next = ratio >= 0.9
-        ? maxCanvasHeight
-        : Math.max(300, Math.min(maxCanvasHeight, Math.round(WRITING_BUFFER_CSS / (1 - ratio))));
+      const next = Math.max(300, Math.min(maxCanvasHeight, Math.round(cssImgH + WRITING_BUFFER_CSS)));
       setVisibleHeight(next);
     };
     img.src = backgroundImage;
