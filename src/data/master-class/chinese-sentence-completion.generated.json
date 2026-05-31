@@ -115,27 +115,27 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
       "body": "Q26-Q29 是 4 个空, 每空 2 分, 共 8 分。词库有 8 个短句, 你填数字 1-8。 8 个短句往往属于 **8 种对话功能**之一 — 看上下文找匹配。 Q26-Q29: 4 blanks × 2 marks = 8 total. Word bank has 8 short phrases; fill digits 1-8. The 8 phrases usually belong to 8 DIFFERENT conversational functions — match by context.",
       "bullets": [
-        "**8 种对话功能** (词库里几乎一定有这几类):\n> **8 conversational functions** (the word bank almost always contains examples from each):",
-        "**① 表示感谢**: 谢谢您 / 太感谢了 > **① Thanking** — e.g. \"Thank you\" / \"Many thanks.\"",
-        "**② 表示道歉 / 解释**: 对不起 / 我没有故意 / 实在很抱歉 > **② Apologising / explaining** — e.g. \"Sorry\" / \"I didn't mean to\" / \"I'm really sorry.\"",
-        "**③ 提议 / 邀请**: 不如 ___ / 你要不要 ___ > **③ Suggesting / inviting** — e.g. \"Why don't we ___\" / \"Would you like to ___\"",
-        "**④ 拒绝 / 推辞**: 不用了 / 我不太方便 > **④ Declining / refusing** — e.g. \"No thanks\" / \"It's not really convenient for me.\"",
-        "**⑤ 答应 / 同意**: 好的 / 我答应你 > **⑤ Agreeing / accepting** — e.g. \"OK\" / \"I promise you.\"",
-        "**⑥ 表示惊讶**: 真没想到 / 真的吗 > **⑥ Expressing surprise** — e.g. \"Didn't expect that\" / \"Really?\"",
-        "**⑦ 安慰 / 鼓励**: 别担心 / 你一定可以 > **⑦ Comforting / encouraging** — e.g. \"Don't worry\" / \"You can do it.\"",
-        "**⑧ 总结 / 决定**: 那就这么决定 / 看来 ___ > **⑧ Concluding / deciding** — e.g. \"Let's go with that\" / \"It looks like ___\""
+        "**8 种对话功能** (词库里几乎一定有这几类):",
+        "**① 表示感谢**: 谢谢您 / 太感谢了",
+        "**② 表示道歉 / 解释**: 对不起 / 我没有故意 / 实在很抱歉",
+        "**③ 提议 / 邀请**: 不如 ___ / 你要不要 ___",
+        "**④ 拒绝 / 推辞**: 不用了 / 我不太方便",
+        "**⑤ 答应 / 同意**: 好的 / 我答应你",
+        "**⑥ 表示惊讶**: 真没想到 / 真的吗",
+        "**⑦ 安慰 / 鼓励**: 别担心 / 你一定可以",
+        "**⑧ 总结 / 决定**: 那就这么决定 / 看来 ___"
       ],
       "narration": {
         "bullets": [
           null,
-          "第一种是 **① 表示感谢**:比如谢谢您 / 太感谢了。\n> **① Thanking** — e.g. \"Thank you\" / \"Many thanks.\"",
-          "第二种是 **② 表示道歉 / 解释**:像是对不起 / 我没有故意 / 实在很抱歉。\n> **② Apologising / explaining** — e.g. \"Sorry\" / \"I didn't mean to\" / \"I'm really sorry.\"",
-          "第三种是 **③ 提议 / 邀请**:例如不如 ___ / 你要不要 ___。\n> **③ Suggesting / inviting** — e.g. \"Why don't we ___\" / \"Would you like to ___\"",
-          "第四种是 **④ 拒绝 / 推辞**:比如不用了 / 我不太方便。\n> **④ Declining / refusing** — e.g. \"No thanks\" / \"It's not really convenient for me.\"",
-          "第五种是 **⑤ 答应 / 同意**:像是好的 / 我答应你。\n> **⑤ Agreeing / accepting** — e.g. \"OK\" / \"I promise you.\"",
-          "第六种是 **⑥ 表示惊讶**:例如真没想到 / 真的吗。\n> **⑥ Expressing surprise** — e.g. \"Didn't expect that\" / \"Really?\"",
-          "第七种是 **⑦ 安慰 / 鼓励**:比如别担心 / 你一定可以。\n> **⑦ Comforting / encouraging** — e.g. \"Don't worry\" / \"You can do it.\"",
-          "最后第八种是 **⑧ 总结 / 决定**:像是那就这么决定 / 看来 ___。\n> **⑧ Concluding / deciding** — e.g. \"Let's go with that\" / \"It looks like ___\""
+          "第一种是 **① 表示感谢**:比如谢谢您 / 太感谢了。",
+          "第二种是 **② 表示道歉 / 解释**:像是对不起 / 我没有故意 / 实在很抱歉。",
+          "第三种是 **③ 提议 / 邀请**:例如不如 ___ / 你要不要 ___。",
+          "第四种是 **④ 拒绝 / 推辞**:比如不用了 / 我不太方便。",
+          "第五种是 **⑤ 答应 / 同意**:像是好的 / 我答应你。",
+          "第六种是 **⑥ 表示惊讶**:例如真没想到 / 真的吗。",
+          "第七种是 **⑦ 安慰 / 鼓励**:比如别担心 / 你一定可以。",
+          "最后第八种是 **⑧ 总结 / 决定**:像是那就这么决定 / 看来 ___。"
         ]
       }
     },
