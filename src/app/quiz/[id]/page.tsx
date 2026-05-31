@@ -2796,7 +2796,14 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              defaultHeight={drawableDiagramBase64 ? 900 : 300}
+              // Drawable canvas was 900px tall, which left ~400px of
+              // empty writing room below the diagram on a typical
+              // Science drawable (~500px scaled image height). Drop
+              // to 700 so the extra writing space is ~halved. Student
+              // can still drag the handle to expand if they need
+              // more room — the underlying canvas resolution
+              // (maxCanvasHeight) is unchanged.
+              defaultHeight={drawableDiagramBase64 ? 700 : 300}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
               canvasId={question.id}
