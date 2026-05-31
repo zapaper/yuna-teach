@@ -167,6 +167,7 @@
       "body": "简化示例: 词库 8 句 (功能见上一张), 对话有 4 个空。用 3 步法逐个解。 Simplified example: word bank has 8 sentences (functions above), dialogue has 4 blanks. Apply the 3-step method.",
       "bullets": [
         "**对话**:\n小华: 听说你周末要去__爬山__？ ← 在上一句里画线: __爬山__ (活动), __？__ (问号 = 问句)\n小明: 是啊, **(26) ______**。 ← 空在 __\"是啊\"__ 之后, 表示要先回答, 再接话\n> **Dialogue**:\n> Xiaohua: I heard you're going **mountain climbing** this weekend? ← Underline in the previous line: __mountain climbing__ (activity), __?__ (question mark — it's a question)\n> Xiaoming: Yes, **(26) ______**. ← The blank comes after \"Yes\" — first acknowledge, then continue the thought",
+        "**正确答案 (Q26)**: 词库里第 **3** 号 — \"你要不要一起去？\" 既接 __\"是啊\"__ 后面, 又顺着 __\"爬山\"__ 邀请小华同行 → 功能 = **答句 + 邀请** ✓\n> **Answer to Q26**: Word bank **#3** — \"你要不要一起去？\" (\"Would you like to come along?\") follows the **\"Yes\"** and uses the **\"mountain climbing\"** cue to invite Xiaohua along → function = **answer + invitation** ✓",
         "**关键 — 上一句的\"画线词\"决定下一空的功能**:\n画 __？__ → **问句 → 答句 + 邀请**\n画 __陈述句句号__ → **陈述 → 同意 / 反驳**\n画 __感叹号 !__ → **惊讶 → 安慰 / 同感**\n画 __\"那我们\"__ / __\"不如\"__ → **建议 → 接受 / 拒绝**\n> **Key — the underlined word in the previous sentence tells you what function fits the next blank**:\n> Underline __?__ → **question → answer + invitation**\n> Underline __statement period__ → **statement → agree / push back**\n> Underline __!__ → **exclamation → comfort / sympathise**\n> Underline __\"那我们\" / \"不如\"__ → **suggestion → accept / decline**\n先识别上句的标点和语气, 再到词库里挑功能对得上的句子。"
       ]
     },
