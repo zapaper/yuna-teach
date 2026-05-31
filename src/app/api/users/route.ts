@@ -175,7 +175,10 @@ export async function POST(request: NextRequest) {
       role: role as "PARENT" | "STUDENT",
       password,
       email: role === "PARENT" ? (email ?? null) : null,
-      level: role === "STUDENT" ? (level ?? 1) : null,
+      // Default to P3 if caller omits level (lowest supported primary
+      // level — content libraries don't cover P1/P2). Old default was
+      // 1, which silently created P1 students that saw no questions.
+      level: role === "STUDENT" ? (level ?? 3) : null,
       subscriptionStatus: "trialing",
       trialEndsAt,
       promoCodeId: redeemedPromo?.id ?? null,

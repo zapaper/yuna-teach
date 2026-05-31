@@ -229,8 +229,8 @@ function RegisterStudentContent() {
           {/* Level */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-600 mb-1">Level</label>
-            <div className="grid grid-cols-6 gap-1.5">
-              {[1, 2, 3, 4, 5, 6].map((l) => (
+            <div className="grid grid-cols-4 gap-1.5">
+              {[3, 4, 5, 6].map((l) => (
                 <button
                   key={l}
                   onClick={() => setLevel(l)}
