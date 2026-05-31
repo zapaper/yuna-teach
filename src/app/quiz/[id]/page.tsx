@@ -1350,7 +1350,15 @@ function QuizContent({ id }: { id: string }) {
                   // interaction.
                   const wantsSplit = isVisualText || isCompOeq;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
-                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
+                  // Multi-section comp/VT quizzes (e.g. mastery class
+                  // Visual Text MCQ pulls 2 passages): auto-enter the
+                  // FIRST section so the student lands directly on
+                  // the split-screen passage instead of a wall of
+                  // grey "Continue to {section}" cards. Subsequent
+                  // sections still require an explicit click so the
+                  // student paces themselves between passages.
+                  const isAutoEnteredFirst = wantsSplit && si === 0;
+                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz || isAutoEnteredFirst;
                   // Sibling separator between sections (top border on
                   // anything but the first section). Lives outside the
                   // section content so it doesn't get hidden when the
@@ -1625,7 +1633,12 @@ function QuizContent({ id }: { id: string }) {
                   // block so changes don't leak.
                   const wantsSplit = isAnyComp || isVisualText;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
-                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
+                  // See the English block above — multi-section comp
+                  // quizzes auto-enter the first section so the
+                  // student lands directly on the split-screen
+                  // passage instead of a wall of Continue cards.
+                  const isAutoEnteredFirst = wantsSplit && si === 0;
+                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz || isAutoEnteredFirst;
                   const divider = si > 0 ? <hr className="border-t-2 border-slate-200 my-10 lg:my-12" /> : null;
                   // Continue card: render on lg+ for every unentered
                   // wantsSplit section. Mobile never shows the card.
