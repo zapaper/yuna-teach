@@ -566,6 +566,92 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   )}
                 </div>
 
+                {/* Use page image as passage — Chinese 阅读理解 only.
+                    PSLE 华文 sometimes prints the passage as an image
+                    (illustration + caption, comic, infographic) where
+                    OCR can't capture what the student sees. Admin
+                    picks page indices on the source paper; we stamp a
+                    [VISUAL_PAGES:paperId:p1,p2] sentinel into the
+                    section's passage field and ChineseQuizSection's
+                    render path already swaps to image rendering when
+                    it sees that prefix. Empty input + Apply = revert
+                    to OCR text. */}
+                {(paper.subject ?? "").toLowerCase().includes("chinese")
+                  && sec.name.includes("阅读理解") && (() => {
+                  const cs = (paper.metadata as { chineseSections?: Array<{ label: string; passage?: string }> } | null)?.chineseSections;
+                  const csEntry = cs?.find(s => s.label === sec.name);
+                  const current = csEntry?.passage ?? "";
+                  const isImage = current.startsWith("[VISUAL_") || current.startsWith("data:image");
+                  // Pre-fill with current page indices if already set
+                  // as an image; otherwise default to the section's
+                  // own pages so the admin doesn't have to look them up.
+                  const sectionDefaultPages = sectionPageIndices.length > 0
+                    ? sectionPageIndices.map(i => i + 1).join(",")
+                    : "";
+                  const currentPagesIfImage = (() => {
+                    const m = current.match(/^\[VISUAL_PAGES:[^:]+:([^\]]+)\]$/);
+                    if (!m) return "";
+                    return m[1].split(",").map(p => String(parseInt(p) + 1)).join(",");
+                  })();
+                  const draftKey = `_img:${sec.name}`;
+                  const draft = reextractPages[draftKey] ?? (currentPagesIfImage || sectionDefaultPages);
+                  return (
+                    <div className="p-4 bg-violet-50/50 border-b border-violet-100">
+                      <p className="text-[10px] font-bold text-violet-600 uppercase tracking-wider mb-2">
+                        Use Page Image as Passage
+                        {isImage && <span className="ml-2 px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-bold">Currently image-mode</span>}
+                      </p>
+                      <p className="text-[11px] text-violet-700/80 mb-2">
+                        Set this only when the printed passage contains an illustration / caption / comic layout that OCR can&apos;t represent. Leave empty + Apply to revert to OCR text.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g. 20 or 19,20"
+                          value={draft}
+                          onChange={e => setReextractPages(prev => ({ ...prev, [draftKey]: e.target.value }))}
+                          className="w-36 px-3 py-1.5 rounded-lg border border-violet-200 text-sm focus:outline-none focus:border-violet-400"
+                        />
+                        <button
+                          onClick={async () => {
+                            const input = draft.trim();
+                            const indices: number[] = [];
+                            for (const part of input.split(",")) {
+                              const trimmed = part.trim();
+                              if (trimmed.includes("-")) {
+                                const [a, b] = trimmed.split("-").map(s => parseInt(s.trim()));
+                                if (!isNaN(a) && !isNaN(b)) {
+                                  for (let i = a; i <= b; i++) indices.push(i - 1);
+                                }
+                              } else {
+                                const n = parseInt(trimmed);
+                                if (!isNaN(n)) indices.push(n - 1);
+                              }
+                            }
+                            const payload = indices.length === 0
+                              ? { sectionLabel: sec.name, pageIndices: null }
+                              : { sectionLabel: sec.name, pageIndices: indices };
+                            const res = await fetch(`/api/exam/${paper.id}/set-chinese-passage-image`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(payload),
+                            });
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok) {
+                              alert(`Failed: ${data.error ?? "unknown error"}`);
+                              return;
+                            }
+                            alert(indices.length === 0 ? "Reverted to OCR text. Reload to see changes." : "Applied. Reload to see the image render.");
+                          }}
+                          className="px-4 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* OCR text */}
                 {ocrData && (
                   <div className="p-4 border-b border-slate-100">
