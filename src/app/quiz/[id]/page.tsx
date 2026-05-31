@@ -2796,13 +2796,11 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              // Drawable canvas was 900px tall, which left ~400px of
-              // empty writing room below the diagram on a typical
-              // Science drawable (~500px scaled image height). Drop
-              // to 700 so the extra writing space is ~halved. Student
-              // can still drag the handle to expand if they need
-              // more room — the underlying canvas resolution
-              // (maxCanvasHeight) is unchanged.
+              // Drawable canvas adapts to image size: ResizableCanvas
+              // pre-measures the background image and sets its visible
+              // height to (image display height) + a fixed writing
+              // buffer below. defaultHeight is just the seed used
+              // until the image loads (or the fallback when no image).
               defaultHeight={drawableDiagramBase64 ? 700 : 300}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
@@ -2875,6 +2873,46 @@ const ResizableCanvas = forwardRef<
   const maxCanvasHeight = 900;
   const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
+
+  // Adapt the visible canvas height to the drawable image's natural
+  // aspect ratio: the image renders at the top of the canvas, scaled
+  // to the canvas's 800px-wide pixel grid (capped at 1.5× natural
+  // width). Pre-measure the image once, then set canvas display
+  // height to "scaled image height (in CSS px) + writing buffer".
+  // That way the user's writing room below the diagram is ~constant
+  // (≈180px) instead of swinging from 400px on small diagrams to
+  // 0px on tall ones. Skipped when the student has a savedHeight
+  // (they manually resized — don't fight them).
+  useEffect(() => {
+    if (!backgroundImage) return;
+    if (savedHeight) return;
+    const img = new Image();
+    img.onload = () => {
+      // Pixel-grid scale: same formula BlankCanvas.drawBackground uses.
+      const PIXEL_W = 800;
+      const PIXEL_H_INTERNAL = maxCanvasHeight * 2; // matches BlankCanvas's CANVAS_H
+      const pixelScale = Math.min(PIXEL_W / img.width, PIXEL_H_INTERNAL / img.height, 1.5);
+      const pixelImgH = img.height * pixelScale;
+      // The canvas is rendered at CSS height = visibleHeight against
+      // a pixel-grid height of PIXEL_H_INTERNAL, so the image's CSS
+      // height is pixelImgH × (visibleHeight / PIXEL_H_INTERNAL).
+      // Solving for visibleHeight such that "image CSS height +
+      // writing buffer" === visibleHeight:
+      //   v = imgCss + buf  AND  imgCss = pixelImgH × v / PIXEL_H_INTERNAL
+      // → v − pixelImgH × v / PIXEL_H_INTERNAL = buf
+      // → v = buf / (1 − pixelImgH / PIXEL_H_INTERNAL)
+      const WRITING_BUFFER_CSS = 180;
+      const ratio = pixelImgH / PIXEL_H_INTERNAL;
+      // Defensive: if the image would consume ≥ 90% of the pixel grid
+      // there's no room to add a meaningful buffer — just cap at
+      // maxCanvasHeight so the image isn't cut off.
+      const next = ratio >= 0.9
+        ? maxCanvasHeight
+        : Math.max(300, Math.min(maxCanvasHeight, Math.round(WRITING_BUFFER_CSS / (1 - ratio))));
+      setVisibleHeight(next);
+    };
+    img.src = backgroundImage;
+  }, [backgroundImage, savedHeight, maxCanvasHeight]);
 
   function onDragStart(e: React.PointerEvent) {
     dragRef.current = { startY: e.clientY, startH: visibleHeight };
