@@ -2,6 +2,8 @@ import path from "path";
 import { promises as fs } from "fs";
 import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
+import { isOpenAIFallbackEnabled, runOpenAIFallback } from "@/lib/openai-fallback";
+import { generateContentWithRetry } from "@/lib/gemini";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isCompOeqLabel } from "@/lib/english-sections";
@@ -236,8 +238,29 @@ function hasOpaquePixels(pngBuffer: Buffer): boolean {
 // Timeout for each Gemini call (3 minutes — some pages with many diagram answers are slow)
 const GEMINI_TIMEOUT_MS = 180_000;
 
-function getAI() {
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+function getAI(): GoogleGenAI {
+  // Marking originally called ai.models.generateContent directly, which
+  // meant a single 429 from the primary Gemini key killed the entire
+  // marking pass — no backup-key, no OpenAI fallback, no model-family
+  // hop. Route every marking call through generateContentWithRetry
+  // (maxRetries=0 — the marking loop above already does its own 3-
+  // attempt model-escalation; we just want the shared fallback chain).
+  //
+  // This also makes the OPENAI_AS_PRIMARY=1 flag work for marking
+  // automatically, since the wrapper already honours it.
+  const proxy = {
+    models: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      generateContent: (params: any) => generateContentWithRetry(params, 0, 0, "marking"),
+    },
+  };
+  // Keep the unused-import escape hatches so future refactors don't
+  // strip them while this proxy is the only thing tying the file
+  // together with the OpenAI helpers.
+  void isOpenAIFallbackEnabled;
+  void runOpenAIFallback;
+  void GoogleGenAI;
+  return proxy as unknown as GoogleGenAI;
 }
 
 /** Crop a page image to a vertical region defined by yStartPct/yEndPct */

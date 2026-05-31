@@ -36,19 +36,18 @@ function getOpenAI() {
   return _openai;
 }
 
-// Tier mapping. Updated 2026-05 to "Option B" — newest GA tiers
-// with no announced deprecation:
-//   flash family → gpt-5-mini ($0.25 / $2 per 1M)
-//   pro family   → gpt-5.4   ($2.50 / $15 per 1M)
-// Both support vision + JSON mode. Picked over gpt-4o (still GA but
-// legacy) and gpt-5.4-mini (slightly pricier than gpt-5-mini for the
-// same tier role). If a caller specifies a model not in this map,
-// default to gpt-5.4 for safety.
+// Tier mapping. Updated 2026-05 after probe-discovered that gpt-5 / gpt-5-mini
+// require OpenAI org verification (404 model_not_found until verified).
+// Pro tier (gpt-5.4) already passes the gate, so we kept it; flash tier
+// moves to gpt-4.1-mini — newest cheap model that's GA without
+// verification, supports vision + JSON, and runs ~$0.40 / $1.60 per 1M
+// (slightly above gpt-5-mini but no gate). If a caller specifies a
+// model not in this map, default to gpt-5.4 for safety.
 const MODEL_MAP: Record<string, string> = {
-  "gemini-2.5-flash": "gpt-5-mini",
-  "gemini-2.5-flash-lite": "gpt-5-mini",
-  "gemini-3.1-flash-lite-preview": "gpt-5-mini",
-  "gemini-3-flash-preview": "gpt-5-mini",
+  "gemini-2.5-flash": "gpt-4.1-mini",
+  "gemini-2.5-flash-lite": "gpt-4.1-mini",
+  "gemini-3.1-flash-lite-preview": "gpt-4.1-mini",
+  "gemini-3-flash-preview": "gpt-4.1-mini",
   "gemini-2.5-pro": "gpt-5.4",
   "gemini-3.1-pro-preview": "gpt-5.4",
   "gemini-3-pro-preview": "gpt-5.4",

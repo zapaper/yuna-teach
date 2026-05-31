@@ -139,6 +139,8 @@ function ExamOverviewContent({ id }: { id: string }) {
     marksAvailable: number | null;
     stem: string | null;
     options: [string, string, string, string] | null;
+    optionImages: (string | null)[] | null;
+    optionTable: { columns: string[]; rows: string[][] } | null;
     subparts: { label: string; text: string }[] | null;
     diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
     diagramBase64: string | null;
@@ -166,8 +168,16 @@ function ExamOverviewContent({ id }: { id: string }) {
           questions: (data.questions as TranscribedQuestion[]).map(q => ({
             id: q.id,
             stem: q.stem,
+            // Forward whichever option shape the extractor chose — text
+            // options, image-option crops, or comparison-table format.
+            // Earlier this hardcoded optionImages: null and dropped
+            // optionTable entirely, so every table/diagram-based Science
+            // MCQ got persisted with all four shape fields null. Q1, Q2,
+            // Q3, Q5, Q6, Q9, Q10, Q12, Q15, Q17 on the Catholic Science
+            // Prelim 2025 all went through this drain.
             options: q.options ?? null,
-            optionImages: null,
+            optionImages: q.optionImages ?? null,
+            optionTable: q.optionTable ?? null,
             subparts: q.subparts ?? null,
             diagramBounds: q.diagramBounds ?? null,
             diagramImageData: q.diagramBase64 ?? null,
