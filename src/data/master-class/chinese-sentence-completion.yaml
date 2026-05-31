@@ -135,22 +135,26 @@ keyConcepts:
     bullets:
       - |-
         **Q9 (2025):** "______ 事情__多么糟糕__, 我__都__会和你一起面对。"
-        **第 1 步 — 画线找关键词**:
-        画 __多么糟糕__ → 程度副词, 提示"不管程度多大"。
-        画 __都__ → 让步呼应词 (跟"不管 / 无论 / 即使"配对)。
-        **第 2 步 — 关系判断**: 画线的 __都__ 锁定**让步关系** (不论 X, 一定 Y)。
-        **第 3 步 — 选连词**: 让步类单连词候选 = 不管 / 无论 / 即使。
-        填 **不管** → "不管事情多么糟糕, 我都会..." ✓ (PSLE 2025 标答)
+        **Relationship we want**: "**No matter** <something bad happens>, I will **still** <stick with you>" — the 都 in the sentence locks in the "no matter / regardless" family.
+        **MCQ options**:
+        (1) ~~如果~~ — "if" → pairs with 就 / 那么, not 都 ✗
+        (2) ~~除了~~ — "besides / except" → wrong relation (addition, not concession) ✗
+        (3) **不管** — "no matter" → pairs with 都, locks in universal concession ✓
+        (4) ~~要是~~ — colloquial "if" → same shape as 如果, still the wrong adverb pair ✗
+        > "**No matter** how bad things get, **I will still** face them with you."
       - |-
         **Q10 (2025):** "______ 平时多吃__有营养__的食物, ______ __不会__那么容易生病。"
-        **第 1 步 — 画线找关键词**:
-        画 __有营养__ (前半条件) + __不会那么容易生病__ (后半结果)。
-        **第 2 步 — 关系判断**: 条件 → 结果 (达成 X 就 Y)。
-        **第 3 步 — 选双连词**: 条件类候选 = 只要...就 / 如果...就。
-        填 **只要 ___, 就 ___** ✓ (PSLE 2025 标答)
+        **Relationship we want**: "**If** <do something good>, **then** <won't fall sick>" — a condition → result link.
+        **MCQ options**:
+        (1) **只要……就** — "as long as ... then" ✓ (achievable condition → certain result)
+        (2) ~~不但……也~~ — "not only ... also" → addition, not condition ✗
+        (3) ~~虽然……但是~~ — "although ... but" → concession ("despite eating well, no sick" makes no sense) ✗
+        (4) ~~尽管……还是~~ — "despite ... still" → concession again, same problem ✗
+        > "**As long as** you regularly eat nutritious food, you **won't** get sick so easily."
       - |-
         **错题陷阱**: __"如果...就"__ 也是条件, 但语气是"假设可能"; __"只要...就"__ 是"达成必然"。
         画线后, 如果前半像 __必然成立__ 的条件 (这里"多吃有营养的食物"是确定能做到的), 用 **只要...就**。
+        > "如果...就" leaves the action as a hypothetical (maybe will, maybe won't). "只要...就" treats the action as something within reach, so the result is certain. When the first half is something the speaker definitely CAN do, use **只要...就**.
 
   # ─── Q11-Q12 Section Opener ───────────────────────────────
   - title: "Q11-Q12: Sentence Completion (完成句子) — 评分 / Scoring (4 分)"
@@ -196,23 +200,25 @@ keyConcepts:
     bullets:
       - |-
         **Q11 (2024):** "______, 那是我__最开心__的__一天__。"
-        **第 1 步 — 画线找情绪和指代**:
-        画 __最开心__ → 强烈正面情绪。
-        画 __那是__ → 指代之前发生的**一件具体事情**。
-        画 __一天__ → 时间范围 = 某一天的特定事件。
-        **第 2 步 — 锁定前半应该是什么**: 必须是一件**具体的、能让人开心的事件**, 不能是普通陈述句。
-        **第 3 步 — 选选项**: "老师带我们全班去海边野餐" = 事件 + 集体经历 → 匹配 ✓
-        **标答**: 老师带我们全班去海边野餐。 (模板 ①/⑥: 事件 → 情绪结果)
+        **What we're looking for**: a **single specific past event** that was the speaker's happiest day — needs to be concrete, completed, and joyful (the 那是 and 一天 anchor it as one recalled day).
+        **MCQ options**:
+        (1) ~~爸爸很想带全家人出国旅行~~ — "Dad really wants to take the family abroad" → a future wish, not a remembered event ✗
+        (2) ~~同学们在讨论明天一起看戏~~ — "Classmates are discussing watching a show tomorrow" → future planning, not the happiest day itself ✗
+        (3) ~~我决定从今天起去公园跑步~~ — "I decided to start running in the park from today" → a decision / new habit, not an event ✗
+        (4) **老师带我们全班去海边野餐** — "Teacher took our whole class on a beach picnic" → past, specific, collective, joyful ✓
+        > "**Our teacher took the whole class on a beach picnic** — that was my happiest day."
       - |-
         **Q12 (2024):** "__忙了一个星期__, ______。"
-        **第 1 步 — 画线找时间和状态**:
-        画 __忙了__ → 持续状态 = 累 / 紧张。
-        画 __一个星期__ → 时间长度 = 工作日已尽 → **暗示周末**。
-        **第 2 步 — 锁定后半应该是什么**: 必须是**期待结束 / 渴望休息 / 盼望周末**。
-        **第 3 步 — 选选项**: "大家都盼望周末的到来" = 期待 + 周末 → 匹配 ✓
-        **标答**: 大家都盼望周末的到来。 (模板 ③: 时间过 → 期待)
+        **What we're looking for**: a **reaction to a busy week** — most natural is craving rest / anticipating the weekend (the 忙了 + 一个星期 sets up "fatigue + week's end").
+        **MCQ options**:
+        (1) ~~爸爸每天都去公司上班~~ — "Dad goes to the office every day" → describes a routine, doesn't follow from "after a busy week" ✗
+        (2) **大家都盼望周末的到来** — "Everyone looks forward to the weekend arriving" → captures the rest-anticipation reaction ✓
+        (3) ~~休息是为了走更远的路~~ — "Rest is so you can walk a further path" → generic proverb, no link to a specific busy week ✗
+        (4) ~~工作总是堆成一座小山~~ — "Work always piles up into a small mountain" → another stress description, doesn't continue the thought ✗
+        > "**After a busy week**, everyone looks forward to the weekend arriving."
       - |-
         **关键秘诀**: 先在半句里**给情绪词、时间词、指代词画线**, 再用画线词推后/前半的方向 (积极/消极/期待/失望), 最后看 4 个选项里哪个匹配画线的方向。
+        > Underline the emotion words, time markers, and back-references in the given half first. Use them to predict whether the missing half should be positive / negative / anticipating / disappointed. Then pick the option that matches that direction.
 
   # ─── Q26-Q29 Section Opener ───────────────────────────────
   - title: "Q26-Q29: Dialogue Completion (完成对话) — 评分 / Scoring (8 分)"
@@ -226,22 +232,31 @@ keyConcepts:
     bullets:
       - |-
         **8 种对话功能** (词库里几乎一定有这几类):
+        > **8 conversational functions** (the word bank almost always contains examples from each):
       - |-
         {第一种是 }**① 表示感谢**:{比如}谢谢您 / 太感谢了{。}
+        > **① Thanking** — e.g. "Thank you" / "Many thanks."
       - |-
         {第二种是 }**② 表示道歉 / 解释**:{像是}对不起 / 我没有故意 / 实在很抱歉{。}
+        > **② Apologising / explaining** — e.g. "Sorry" / "I didn't mean to" / "I'm really sorry."
       - |-
         {第三种是 }**③ 提议 / 邀请**:{例如}不如 ___ / 你要不要 ___{。}
+        > **③ Suggesting / inviting** — e.g. "Why don't we ___" / "Would you like to ___"
       - |-
         {第四种是 }**④ 拒绝 / 推辞**:{比如}不用了 / 我不太方便{。}
+        > **④ Declining / refusing** — e.g. "No thanks" / "It's not really convenient for me."
       - |-
         {第五种是 }**⑤ 答应 / 同意**:{像是}好的 / 我答应你{。}
+        > **⑤ Agreeing / accepting** — e.g. "OK" / "I promise you."
       - |-
         {第六种是 }**⑥ 表示惊讶**:{例如}真没想到 / 真的吗{。}
+        > **⑥ Expressing surprise** — e.g. "Didn't expect that" / "Really?"
       - |-
         {第七种是 }**⑦ 安慰 / 鼓励**:{比如}别担心 / 你一定可以{。}
+        > **⑦ Comforting / encouraging** — e.g. "Don't worry" / "You can do it."
       - |-
         {最后第八种是 }**⑧ 总结 / 决定**:{像是}那就这么决定 / 看来 ___{。}
+        > **⑧ Concluding / deciding** — e.g. "Let's go with that" / "It looks like ___"
 
   # ─── Q26-Q29 Strategy ────────────────────────────────────
   - title: "Q26-Q29 解题秘诀 — 看上下文 3 步走"
@@ -249,18 +264,25 @@ keyConcepts:
     body: >-
       完成对话的"3 步法":
       Dialogue completion in 3 steps:
+    callout: >-
+      **技巧和完成句子完全一样: Read the whole passage and the sentence before and after the blank, decide what logically should go in there. If unsure, work through the other options to cross them out first.**
     bullets:
       - |-
         {首先是}**第 1 步**: {你需要去}读 4 个空的**前一句**和**后一句**, {从而}推断空里要表达什么"功能"{。}
+        > **Step 1**: Read the **sentence before** and the **sentence after** each of the 4 blanks. Use them to work out what conversational function the blank needs to perform.
       - |-
         {接下来是}**第 2 步**: {你需要}在 8 个词库短句里找对应功能的那一句{。}
+        > **Step 2**: In the 8-phrase word bank, find the one phrase that matches that function.
       - |-
         **第 3 步**: 把数字填进空里。**已用过的数字打勾**, 避免重复
+        > **Step 3**: Write the number into the blank. **Tick off the number you've used** so you don't reuse it.
       - |-
         **关键陷阱**: 8 个短句中**只有 4 个用得上** (题目只有 4 个空)。
         多出 4 个是干扰项 — 别因为某句"听起来对"就乱选。
+        > **Key trap**: Only **4 of the 8 phrases will be used** (there are only 4 blanks). The extra 4 are distractors — don't pick a phrase just because it "sounds right" in isolation.
       - |-
         {最后还有一个}**加分点**: {当这}4 个数字填完后, {最好}把对话从头读一遍, {用来}检查是否流畅。
+        > **Bonus tip**: After all 4 numbers are filled in, read the whole dialogue from start to finish to check that it flows naturally.
 
   # ─── Q26-Q29 Worked Example ───────────────────────────────
   - title: "Q26-Q29 解题示范 — 用 3 步法"
@@ -274,24 +296,20 @@ keyConcepts:
         **对话**:
         小华: 听说你周末要去__爬山__？ ← 在上一句里画线: __爬山__ (活动), __？__ (问号 = 问句)
         小明: 是啊, **(26) ______**。 ← 空在 __"是啊"__ 之后, 表示要先回答, 再接话
-      - |-
-        **第 1 步 — 给上一句的关键词画线, 看类型**:
-        画 __？__ → 这是**问句**, 空里必须**回应这个问题**。
-        画 __爬山__ → 这是**活动**, 空里可以**接邀请同行**。
-        所以这空的功能 = **回应 + 邀请**。
-      - |-
-        **第 2 步 — 在词库 8 句里找"功能匹配"的那一句**:
-        词库里如果有 "__你要不要一起去__?" → 关键词 __一起__, __吗__ 显示这是**邀请类**功能。
-        其他句子如 "对不起" (= 道歉), "谢谢你" (= 道谢) → 跟"回应 + 邀请"对不上, 直接划掉。
-        正确编号 → **3** (假设邀请句是第 3 号)。
-      - |-
-        **第 3 步**: 填 **3**, 在 8 个数字旁打勾 (用过的不能再用), 继续下一空。
+        > **Dialogue**:
+        > Xiaohua: I heard you're going **mountain climbing** this weekend? ← Underline in the previous line: __mountain climbing__ (activity), __?__ (question mark — it's a question)
+        > Xiaoming: Yes, **(26) ______**. ← The blank comes after "Yes" — first acknowledge, then continue the thought
       - |-
         **关键 — 上一句的"画线词"决定下一空的功能**:
         画 __？__ → **问句 → 答句 + 邀请**
         画 __陈述句句号__ → **陈述 → 同意 / 反驳**
         画 __感叹号 !__ → **惊讶 → 安慰 / 同感**
         画 __"那我们"__ / __"不如"__ → **建议 → 接受 / 拒绝**
+        > **Key — the underlined word in the previous sentence tells you what function fits the next blank**:
+        > Underline __?__ → **question → answer + invitation**
+        > Underline __statement period__ → **statement → agree / push back**
+        > Underline __!__ → **exclamation → comfort / sympathise**
+        > Underline __"那我们" / "不如"__ → **suggestion → accept / decline**
         先识别上句的标点和语气, 再到词库里挑功能对得上的句子。
 
   # ─── Wrap-up CTA ────────────────────────────────────────────

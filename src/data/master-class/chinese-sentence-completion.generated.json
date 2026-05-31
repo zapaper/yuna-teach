@@ -81,9 +81,9 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "看 2 道 PSLE 2025 真题, 用\"先想关系, 再挑词\"的方法解题: Two PSLE 2025 questions worked through with the \"think relation first, then pick word\" method:",
       "bullets": [
-        "**Q9 (2025):** \"______ 事情__多么糟糕__, 我__都__会和你一起面对。\"\n**第 1 步 — 画线找关键词**:\n画 __多么糟糕__ → 程度副词, 提示\"不管程度多大\"。\n画 __都__ → 让步呼应词 (跟\"不管 / 无论 / 即使\"配对)。\n**第 2 步 — 关系判断**: 画线的 __都__ 锁定**让步关系** (不论 X, 一定 Y)。\n**第 3 步 — 选连词**: 让步类单连词候选 = 不管 / 无论 / 即使。\n填 **不管** → \"不管事情多么糟糕, 我都会...\" ✓ (PSLE 2025 标答)",
-        "**Q10 (2025):** \"______ 平时多吃__有营养__的食物, ______ __不会__那么容易生病。\"\n**第 1 步 — 画线找关键词**:\n画 __有营养__ (前半条件) + __不会那么容易生病__ (后半结果)。\n**第 2 步 — 关系判断**: 条件 → 结果 (达成 X 就 Y)。\n**第 3 步 — 选双连词**: 条件类候选 = 只要...就 / 如果...就。\n填 **只要 ___, 就 ___** ✓ (PSLE 2025 标答)",
-        "**错题陷阱**: __\"如果...就\"__ 也是条件, 但语气是\"假设可能\"; __\"只要...就\"__ 是\"达成必然\"。\n画线后, 如果前半像 __必然成立__ 的条件 (这里\"多吃有营养的食物\"是确定能做到的), 用 **只要...就**。"
+        "**Q9 (2025):** \"______ 事情__多么糟糕__, 我__都__会和你一起面对。\"\n**Relationship we want**: \"**No matter** <something bad happens>, I will **still** <stick with you>\" — the 都 in the sentence locks in the \"no matter / regardless\" family.\n**MCQ options**:\n(1) ~~如果~~ — \"if\" → pairs with 就 / 那么, not 都 ✗\n(2) ~~除了~~ — \"besides / except\" → wrong relation (addition, not concession) ✗\n(3) **不管** — \"no matter\" → pairs with 都, locks in universal concession ✓\n(4) ~~要是~~ — colloquial \"if\" → same shape as 如果, still the wrong adverb pair ✗\n> \"**No matter** how bad things get, **I will still** face them with you.\"",
+        "**Q10 (2025):** \"______ 平时多吃__有营养__的食物, ______ __不会__那么容易生病。\"\n**Relationship we want**: \"**If** <do something good>, **then** <won't fall sick>\" — a condition → result link.\n**MCQ options**:\n(1) **只要……就** — \"as long as ... then\" ✓ (achievable condition → certain result)\n(2) ~~不但……也~~ — \"not only ... also\" → addition, not condition ✗\n(3) ~~虽然……但是~~ — \"although ... but\" → concession (\"despite eating well, no sick\" makes no sense) ✗\n(4) ~~尽管……还是~~ — \"despite ... still\" → concession again, same problem ✗\n> \"**As long as** you regularly eat nutritious food, you **won't** get sick so easily.\"",
+        "**错题陷阱**: __\"如果...就\"__ 也是条件, 但语气是\"假设可能\"; __\"只要...就\"__ 是\"达成必然\"。\n画线后, 如果前半像 __必然成立__ 的条件 (这里\"多吃有营养的食物\"是确定能做到的), 用 **只要...就**。\n> \"如果...就\" leaves the action as a hypothetical (maybe will, maybe won't). \"只要...就\" treats the action as something within reach, so the result is certain. When the first half is something the speaker definitely CAN do, use **只要...就**."
       ]
     },
     {
@@ -105,9 +105,9 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "PSLE 2024 Q11 + Q12 — 用 \"看半句的情绪/方向, 选完整逻辑\" 的方法: PSLE 2024 Q11 and Q12 — match each fragment's tone/direction:",
       "bullets": [
-        "**Q11 (2024):** \"______, 那是我__最开心__的__一天__。\"\n**第 1 步 — 画线找情绪和指代**:\n画 __最开心__ → 强烈正面情绪。\n画 __那是__ → 指代之前发生的**一件具体事情**。\n画 __一天__ → 时间范围 = 某一天的特定事件。\n**第 2 步 — 锁定前半应该是什么**: 必须是一件**具体的、能让人开心的事件**, 不能是普通陈述句。\n**第 3 步 — 选选项**: \"老师带我们全班去海边野餐\" = 事件 + 集体经历 → 匹配 ✓\n**标答**: 老师带我们全班去海边野餐。 (模板 ①/⑥: 事件 → 情绪结果)",
-        "**Q12 (2024):** \"__忙了一个星期__, ______。\"\n**第 1 步 — 画线找时间和状态**:\n画 __忙了__ → 持续状态 = 累 / 紧张。\n画 __一个星期__ → 时间长度 = 工作日已尽 → **暗示周末**。\n**第 2 步 — 锁定后半应该是什么**: 必须是**期待结束 / 渴望休息 / 盼望周末**。\n**第 3 步 — 选选项**: \"大家都盼望周末的到来\" = 期待 + 周末 → 匹配 ✓\n**标答**: 大家都盼望周末的到来。 (模板 ③: 时间过 → 期待)",
-        "**关键秘诀**: 先在半句里**给情绪词、时间词、指代词画线**, 再用画线词推后/前半的方向 (积极/消极/期待/失望), 最后看 4 个选项里哪个匹配画线的方向。"
+        "**Q11 (2024):** \"______, 那是我__最开心__的__一天__。\"\n**What we're looking for**: a **single specific past event** that was the speaker's happiest day — needs to be concrete, completed, and joyful (the 那是 and 一天 anchor it as one recalled day).\n**MCQ options**:\n(1) ~~爸爸很想带全家人出国旅行~~ — \"Dad really wants to take the family abroad\" → a future wish, not a remembered event ✗\n(2) ~~同学们在讨论明天一起看戏~~ — \"Classmates are discussing watching a show tomorrow\" → future planning, not the happiest day itself ✗\n(3) ~~我决定从今天起去公园跑步~~ — \"I decided to start running in the park from today\" → a decision / new habit, not an event ✗\n(4) **老师带我们全班去海边野餐** — \"Teacher took our whole class on a beach picnic\" → past, specific, collective, joyful ✓\n> \"**Our teacher took the whole class on a beach picnic** — that was my happiest day.\"",
+        "**Q12 (2024):** \"__忙了一个星期__, ______。\"\n**What we're looking for**: a **reaction to a busy week** — most natural is craving rest / anticipating the weekend (the 忙了 + 一个星期 sets up \"fatigue + week's end\").\n**MCQ options**:\n(1) ~~爸爸每天都去公司上班~~ — \"Dad goes to the office every day\" → describes a routine, doesn't follow from \"after a busy week\" ✗\n(2) **大家都盼望周末的到来** — \"Everyone looks forward to the weekend arriving\" → captures the rest-anticipation reaction ✓\n(3) ~~休息是为了走更远的路~~ — \"Rest is so you can walk a further path\" → generic proverb, no link to a specific busy week ✗\n(4) ~~工作总是堆成一座小山~~ — \"Work always piles up into a small mountain\" → another stress description, doesn't continue the thought ✗\n> \"**After a busy week**, everyone looks forward to the weekend arriving.\"",
+        "**关键秘诀**: 先在半句里**给情绪词、时间词、指代词画线**, 再用画线词推后/前半的方向 (积极/消极/期待/失望), 最后看 4 个选项里哪个匹配画线的方向。\n> Underline the emotion words, time markers, and back-references in the given half first. Use them to predict whether the missing half should be positive / negative / anticipating / disappointed. Then pick the option that matches that direction."
       ]
     },
     {
@@ -115,27 +115,27 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
       "body": "Q26-Q29 是 4 个空, 每空 2 分, 共 8 分。词库有 8 个短句, 你填数字 1-8。 8 个短句往往属于 **8 种对话功能**之一 — 看上下文找匹配。 Q26-Q29: 4 blanks × 2 marks = 8 total. Word bank has 8 short phrases; fill digits 1-8. The 8 phrases usually belong to 8 DIFFERENT conversational functions — match by context.",
       "bullets": [
-        "**8 种对话功能** (词库里几乎一定有这几类):",
-        "**① 表示感谢**: 谢谢您 / 太感谢了",
-        "**② 表示道歉 / 解释**: 对不起 / 我没有故意 / 实在很抱歉",
-        "**③ 提议 / 邀请**: 不如 ___ / 你要不要 ___",
-        "**④ 拒绝 / 推辞**: 不用了 / 我不太方便",
-        "**⑤ 答应 / 同意**: 好的 / 我答应你",
-        "**⑥ 表示惊讶**: 真没想到 / 真的吗",
-        "**⑦ 安慰 / 鼓励**: 别担心 / 你一定可以",
-        "**⑧ 总结 / 决定**: 那就这么决定 / 看来 ___"
+        "**8 种对话功能** (词库里几乎一定有这几类):\n> **8 conversational functions** (the word bank almost always contains examples from each):",
+        "**① 表示感谢**: 谢谢您 / 太感谢了 > **① Thanking** — e.g. \"Thank you\" / \"Many thanks.\"",
+        "**② 表示道歉 / 解释**: 对不起 / 我没有故意 / 实在很抱歉 > **② Apologising / explaining** — e.g. \"Sorry\" / \"I didn't mean to\" / \"I'm really sorry.\"",
+        "**③ 提议 / 邀请**: 不如 ___ / 你要不要 ___ > **③ Suggesting / inviting** — e.g. \"Why don't we ___\" / \"Would you like to ___\"",
+        "**④ 拒绝 / 推辞**: 不用了 / 我不太方便 > **④ Declining / refusing** — e.g. \"No thanks\" / \"It's not really convenient for me.\"",
+        "**⑤ 答应 / 同意**: 好的 / 我答应你 > **⑤ Agreeing / accepting** — e.g. \"OK\" / \"I promise you.\"",
+        "**⑥ 表示惊讶**: 真没想到 / 真的吗 > **⑥ Expressing surprise** — e.g. \"Didn't expect that\" / \"Really?\"",
+        "**⑦ 安慰 / 鼓励**: 别担心 / 你一定可以 > **⑦ Comforting / encouraging** — e.g. \"Don't worry\" / \"You can do it.\"",
+        "**⑧ 总结 / 决定**: 那就这么决定 / 看来 ___ > **⑧ Concluding / deciding** — e.g. \"Let's go with that\" / \"It looks like ___\""
       ],
       "narration": {
         "bullets": [
           null,
-          "第一种是 **① 表示感谢**:比如谢谢您 / 太感谢了。",
-          "第二种是 **② 表示道歉 / 解释**:像是对不起 / 我没有故意 / 实在很抱歉。",
-          "第三种是 **③ 提议 / 邀请**:例如不如 ___ / 你要不要 ___。",
-          "第四种是 **④ 拒绝 / 推辞**:比如不用了 / 我不太方便。",
-          "第五种是 **⑤ 答应 / 同意**:像是好的 / 我答应你。",
-          "第六种是 **⑥ 表示惊讶**:例如真没想到 / 真的吗。",
-          "第七种是 **⑦ 安慰 / 鼓励**:比如别担心 / 你一定可以。",
-          "最后第八种是 **⑧ 总结 / 决定**:像是那就这么决定 / 看来 ___。"
+          "第一种是 **① 表示感谢**:比如谢谢您 / 太感谢了。\n> **① Thanking** — e.g. \"Thank you\" / \"Many thanks.\"",
+          "第二种是 **② 表示道歉 / 解释**:像是对不起 / 我没有故意 / 实在很抱歉。\n> **② Apologising / explaining** — e.g. \"Sorry\" / \"I didn't mean to\" / \"I'm really sorry.\"",
+          "第三种是 **③ 提议 / 邀请**:例如不如 ___ / 你要不要 ___。\n> **③ Suggesting / inviting** — e.g. \"Why don't we ___\" / \"Would you like to ___\"",
+          "第四种是 **④ 拒绝 / 推辞**:比如不用了 / 我不太方便。\n> **④ Declining / refusing** — e.g. \"No thanks\" / \"It's not really convenient for me.\"",
+          "第五种是 **⑤ 答应 / 同意**:像是好的 / 我答应你。\n> **⑤ Agreeing / accepting** — e.g. \"OK\" / \"I promise you.\"",
+          "第六种是 **⑥ 表示惊讶**:例如真没想到 / 真的吗。\n> **⑥ Expressing surprise** — e.g. \"Didn't expect that\" / \"Really?\"",
+          "第七种是 **⑦ 安慰 / 鼓励**:比如别担心 / 你一定可以。\n> **⑦ Comforting / encouraging** — e.g. \"Don't worry\" / \"You can do it.\"",
+          "最后第八种是 **⑧ 总结 / 决定**:像是那就这么决定 / 看来 ___。\n> **⑧ Concluding / deciding** — e.g. \"Let's go with that\" / \"It looks like ___\""
         ]
       }
     },
@@ -143,20 +143,21 @@
       "title": "Q26-Q29 解题秘诀 — 看上下文 3 步走",
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
       "body": "完成对话的\"3 步法\": Dialogue completion in 3 steps:",
+      "callout": "**技巧和完成句子完全一样: Read the whole passage and the sentence before and after the blank, decide what logically should go in there. If unsure, work through the other options to cross them out first.**",
       "bullets": [
-        "**第 1 步**: 读 4 个空的**前一句**和**后一句**, 推断空里要表达什么\"功能\"",
-        "**第 2 步**: 在 8 个词库短句里找对应功能的那一句",
-        "**第 3 步**: 把数字填进空里。**已用过的数字打勾**, 避免重复",
-        "**关键陷阱**: 8 个短句中**只有 4 个用得上** (题目只有 4 个空)。\n多出 4 个是干扰项 — 别因为某句\"听起来对\"就乱选。",
-        "**加分点**: 4 个数字填完后, 把对话从头读一遍, 检查是否流畅。"
+        "**第 1 步**: 读 4 个空的**前一句**和**后一句**, 推断空里要表达什么\"功能\" > **Step 1**: Read the **sentence before** and the **sentence after** each of the 4 blanks. Use them to work out what conversational function the blank needs to perform.",
+        "**第 2 步**: 在 8 个词库短句里找对应功能的那一句 > **Step 2**: In the 8-phrase word bank, find the one phrase that matches that function.",
+        "**第 3 步**: 把数字填进空里。**已用过的数字打勾**, 避免重复\n> **Step 3**: Write the number into the blank. **Tick off the number you've used** so you don't reuse it.",
+        "**关键陷阱**: 8 个短句中**只有 4 个用得上** (题目只有 4 个空)。\n多出 4 个是干扰项 — 别因为某句\"听起来对\"就乱选。\n> **Key trap**: Only **4 of the 8 phrases will be used** (there are only 4 blanks). The extra 4 are distractors — don't pick a phrase just because it \"sounds right\" in isolation.",
+        "**加分点**: 4 个数字填完后, 把对话从头读一遍, 检查是否流畅。\n> **Bonus tip**: After all 4 numbers are filled in, read the whole dialogue from start to finish to check that it flows naturally."
       ],
       "narration": {
         "bullets": [
-          "首先是**第 1 步**: 你需要去读 4 个空的**前一句**和**后一句**, 从而推断空里要表达什么\"功能\"。",
-          "接下来是**第 2 步**: 你需要在 8 个词库短句里找对应功能的那一句。",
+          "首先是**第 1 步**: 你需要去读 4 个空的**前一句**和**后一句**, 从而推断空里要表达什么\"功能\"。\n> **Step 1**: Read the **sentence before** and the **sentence after** each of the 4 blanks. Use them to work out what conversational function the blank needs to perform.",
+          "接下来是**第 2 步**: 你需要在 8 个词库短句里找对应功能的那一句。\n> **Step 2**: In the 8-phrase word bank, find the one phrase that matches that function.",
           null,
           null,
-          "最后还有一个**加分点**: 当这4 个数字填完后, 最好把对话从头读一遍, 用来检查是否流畅。"
+          "最后还有一个**加分点**: 当这4 个数字填完后, 最好把对话从头读一遍, 用来检查是否流畅。\n> **Bonus tip**: After all 4 numbers are filled in, read the whole dialogue from start to finish to check that it flows naturally."
         ]
       }
     },
@@ -165,11 +166,8 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "简化示例: 词库 8 句 (功能见上一张), 对话有 4 个空。用 3 步法逐个解。 Simplified example: word bank has 8 sentences (functions above), dialogue has 4 blanks. Apply the 3-step method.",
       "bullets": [
-        "**对话**:\n小华: 听说你周末要去__爬山__？ ← 在上一句里画线: __爬山__ (活动), __？__ (问号 = 问句)\n小明: 是啊, **(26) ______**。 ← 空在 __\"是啊\"__ 之后, 表示要先回答, 再接话",
-        "**第 1 步 — 给上一句的关键词画线, 看类型**:\n画 __？__ → 这是**问句**, 空里必须**回应这个问题**。\n画 __爬山__ → 这是**活动**, 空里可以**接邀请同行**。\n所以这空的功能 = **回应 + 邀请**。",
-        "**第 2 步 — 在词库 8 句里找\"功能匹配\"的那一句**:\n词库里如果有 \"__你要不要一起去__?\" → 关键词 __一起__, __吗__ 显示这是**邀请类**功能。\n其他句子如 \"对不起\" (= 道歉), \"谢谢你\" (= 道谢) → 跟\"回应 + 邀请\"对不上, 直接划掉。\n正确编号 → **3** (假设邀请句是第 3 号)。",
-        "**第 3 步**: 填 **3**, 在 8 个数字旁打勾 (用过的不能再用), 继续下一空。",
-        "**关键 — 上一句的\"画线词\"决定下一空的功能**:\n画 __？__ → **问句 → 答句 + 邀请**\n画 __陈述句句号__ → **陈述 → 同意 / 反驳**\n画 __感叹号 !__ → **惊讶 → 安慰 / 同感**\n画 __\"那我们\"__ / __\"不如\"__ → **建议 → 接受 / 拒绝**\n先识别上句的标点和语气, 再到词库里挑功能对得上的句子。"
+        "**对话**:\n小华: 听说你周末要去__爬山__？ ← 在上一句里画线: __爬山__ (活动), __？__ (问号 = 问句)\n小明: 是啊, **(26) ______**。 ← 空在 __\"是啊\"__ 之后, 表示要先回答, 再接话\n> **Dialogue**:\n> Xiaohua: I heard you're going **mountain climbing** this weekend? ← Underline in the previous line: __mountain climbing__ (activity), __?__ (question mark — it's a question)\n> Xiaoming: Yes, **(26) ______**. ← The blank comes after \"Yes\" — first acknowledge, then continue the thought",
+        "**关键 — 上一句的\"画线词\"决定下一空的功能**:\n画 __？__ → **问句 → 答句 + 邀请**\n画 __陈述句句号__ → **陈述 → 同意 / 反驳**\n画 __感叹号 !__ → **惊讶 → 安慰 / 同感**\n画 __\"那我们\"__ / __\"不如\"__ → **建议 → 接受 / 拒绝**\n> **Key — the underlined word in the previous sentence tells you what function fits the next blank**:\n> Underline __?__ → **question → answer + invitation**\n> Underline __statement period__ → **statement → agree / push back**\n> Underline __!__ → **exclamation → comfort / sympathise**\n> Underline __\"那我们\" / \"不如\"__ → **suggestion → accept / decline**\n先识别上句的标点和语气, 再到词库里挑功能对得上的句子。"
       ]
     },
     {
