@@ -5042,13 +5042,26 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
   const subjectStr = (structure.header?.subject ?? "").toLowerCase();
   const isScience = subjectStr.includes("science");
   function isScienceMcqPaper(label: string): boolean {
+    if (!isScience) return false;
     const l = (label ?? "").toLowerCase();
-    return isScience && (l.includes("booklet a") || l.includes("section a"));
+    // PSLE explicit MCQ booklet markers.
+    if (l.includes("booklet a") || l.includes("section a") || l.includes("multiple choice") || l.includes("mcq")) return true;
+    // P6 / P5 Prelim papers often label the booklet just by school
+    // name + "Science" without a Booklet-A marker (e.g. Nanyang's
+    // "Preliminary Examination 2025 Primary 6 Science"). Bail out
+    // when the label clearly indicates an OEQ-only booklet; otherwise
+    // default to MCQ — the bracket-mark detection in step 2 below
+    // will OVERRIDE every actual OEQ question to its real mark
+    // allocation, so a generous default here is safe.
+    if (l.includes("booklet b") || l.includes("section b") || l.includes("oeq") || l.includes("open-ended") || l.includes("structured")) return false;
+    return true;
   }
   function isMcqSection(s: { name: string; type: string }) {
     const t = (s.type ?? "").toLowerCase();
     const n = (s.name ?? "").toLowerCase();
-    return t === "mcq" || t.includes("multiple choice") || n.includes("mcq") || n.includes("booklet a");
+    if (t === "mcq" || t.includes("multiple choice")) return true;
+    if (n.includes("mcq") || n.includes("multiple choice") || n.includes("booklet a") || n.includes("section a")) return true;
+    return false;
   }
 
   // 1. Start with section-level defaults
