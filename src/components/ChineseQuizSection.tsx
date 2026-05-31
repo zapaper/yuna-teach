@@ -981,6 +981,18 @@ function TableLine({
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
   const isDigitRow = cells.every(c => /^[1-9]$/.test(c));
   const isLabelRow = isLetterRow || isDigitRow;
+  // Labeled-phrase rows: each cell carries BOTH the label and the
+  // phrase, e.g. "1. 这种想法真是难得" (PSLE 2014 vertical bank) or
+  // "1 我们年纪还小" (PSLE 2018 4-column bank). Strike-through has to
+  // key off the extracted leading digit/letter; without this the
+  // student picks an answer and nothing crosses out because the
+  // cell text doesn't match the bare digit in usedLetters.
+  function extractCellLabel(cell: string): string | null {
+    const m = cell.trim().match(/^([1-9]|[A-Q])(?:[.．、）)]\s*|\s+)\S/);
+    return m ? m[1] : null;
+  }
+  const cellLabels: (string | null)[] = cells.map(extractCellLabel);
+  const isLabeledPhraseRow = !isLabelRow && cellLabels.every(l => l !== null);
   // Any cell carries an inline question marker, OR the pre-pass flagged
   // this row's table block as a dialogue block → render dialogue-style.
   const hasMarker = cells.some(c => /\*\*\(\d+\)/.test(c));
@@ -1017,7 +1029,8 @@ function TableLine({
       {cells.map((cell, ci) => {
         const isLabelCellUsed = isLabelRow && usedLetters?.has(cell) === true;
         const isLinkedCellUsed = !!(linkedLabels && linkedLabels[ci] && usedLetters?.has(linkedLabels[ci]) === true);
-        const isUsed = isLabelCellUsed || isLinkedCellUsed;
+        const isLabeledPhraseUsed = isLabeledPhraseRow && cellLabels[ci] != null && usedLetters?.has(cellLabels[ci]!) === true;
+        const isUsed = isLabelCellUsed || isLinkedCellUsed || isLabeledPhraseUsed;
         const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLabelRow ? "font-extrabold text-[#003366] underline" : "font-medium"} transition-opacity`;
         const styleProps = isUsed ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
         return (
