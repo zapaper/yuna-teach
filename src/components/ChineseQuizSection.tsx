@@ -707,16 +707,26 @@ function PassageWithInputs({
   // real English Q numbers in the same passage.
   const passageQNums: number[] = [];
   const seenEng = new Set<number>();
-  const COMBINED_RX = /\*\*\((\d+)\)|_{6,}/g;
+  // Must match PassageLine's blank regex one-for-one — one match per
+  // visible blank in the passage. PassageLine groups
+  // `**(NN)____**` as a SINGLE blank (the regex captures qNum +
+  // inner content together). An older split version of this regex
+  // counted the inner `____` as a second blank, which inflated the
+  // mapping list to 2× the real blank count: the first 4 of 8
+  // entries got bound to Q1–Q4 and the next 4 fell off the end —
+  // so 完成对话 quizzes ended up showing badges like "(6) (8) (28)
+  // (29)" instead of "(6) (7) (8) (9)" and the last 2 inputs had no
+  // qId to write to.
+  const COMBINED_RX = /\*\*\((\d+)\)[^*]*\*\*|_{6,}/g;
   let blankIdx = 0;
   let pm;
   while ((pm = COMBINED_RX.exec(passage)) !== null) {
     if (pm[1] !== undefined) {
-      // English **(NN) style
+      // English / Chinese **(NN)____** style — one blank per match.
       const n = parseInt(pm[1]);
       if (!seenEng.has(n)) { passageQNums.push(n); seenEng.add(n); }
     } else {
-      // Chinese ______ style — synthetic position-based key
+      // Chinese plain ______ style — synthetic position-based key.
       passageQNums.push(-(blankIdx + 1));
     }
     blankIdx++;
