@@ -2022,16 +2022,26 @@ function McqQuestionCard({
           ) : (<>
 
           {!hideStem && question.transcribedStem && (
-            <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
-              <MathText text={question.transcribedStem} />
-            </p>
+            // Wrap the stem in a relative container so the pen-mode
+            // ScratchOverlay can sit on top — students working on a
+            // tablet often want to circle key words / cross out
+            // distractors right on the printed question text. The
+            // overlay is pointer-events-none unless tool === pen /
+            // eraser, so normal stem reading + scrolling is untouched.
+            <div className="relative mb-5 lg:mb-6">
+              <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
+                <MathText text={question.transcribedStem} />
+              </p>
+              <ScratchOverlay tool={tool} />
+            </div>
           )}
 
           {/* Fallback: show question image if no stem text */}
           {!hideStem && !question.transcribedStem && question.imageData && question.imageData.length > 100 && (
-            <div className="mb-5 lg:mb-6 rounded-xl overflow-hidden border border-[#e5eeff]">
+            <div className="mb-5 lg:mb-6 rounded-xl overflow-hidden border border-[#e5eeff] relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={question.imageData} alt={`Question ${numStr}`} className="w-full h-auto" />
+              <ScratchOverlay tool={tool} />
             </div>
           )}
 
