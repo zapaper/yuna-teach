@@ -102,9 +102,17 @@ function AdminPapersContent() {
     if (p.paperType === "mastery" || p.paperType === "mastery-review") return false;
     if (hideQuizzes) {
       if (p.paperType === "quiz" || p.paperType === "focused") return false;
-      // Also filter by title pattern for older papers without paperType set
+      // Also filter by title pattern for older papers without
+      // paperType set. Earlier focused tests (Apr 2026) shipped with
+      // paperType=null AND a title like "P6 Focused: Human digestive
+      // system" — the literal "focused practice" / "focused test"
+      // substring check missed them. Widen to \bfocused?\b so the
+      // current "P{n} Focused: {topic}" / "Focus on {topic}" formats
+      // are both caught, matching the parent-dashboard masterPapers
+      // filter convention.
       const t = p.title.toLowerCase();
-      if (t.includes("daily quiz") || t.includes("focused practice") || t.includes("focused test")) return false;
+      if (t.includes("daily quiz")) return false;
+      if (/\bfocused?\b/i.test(p.title)) return false;
     }
     if (subjectFilter && p.subject !== subjectFilter) return false;
     if (yearFilter && p.year !== yearFilter) return false;
