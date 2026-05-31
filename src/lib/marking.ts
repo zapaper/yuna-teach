@@ -2381,6 +2381,18 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
     }
   } catch (err) {
+    // Only flip to "failed" if marking hadn't already committed.
+    // The auto-release block runs AFTER the main transaction sets
+    // status="complete"; if it throws on a Gemini 429 / DB hiccup,
+    // we mustn't clobber a successful mark. Same guard pattern in
+    // markFocusedTest and markQuizPaper below.
+    const current = await prisma.examPaper.findUnique({
+      where: { id: paperId }, select: { markingStatus: true },
+    });
+    if (current?.markingStatus === "complete" || current?.markingStatus === "released") {
+      console.warn(`[marking] post-marking error suppressed for ${paperId} — status already "${current.markingStatus}":`, err);
+      return;
+    }
     console.error(`[marking] markExamPaper failed for ${paperId}:`, err);
     await prisma.examPaper.update({
       where: { id: paperId },
@@ -2786,6 +2798,13 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
 
     console.log(`[focused-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
   } catch (err) {
+    const current = await prisma.examPaper.findUnique({
+      where: { id: paperId }, select: { markingStatus: true },
+    });
+    if (current?.markingStatus === "complete" || current?.markingStatus === "released") {
+      console.warn(`[focused-marking] post-marking error suppressed for ${paperId} — status already "${current.markingStatus}":`, err);
+      return;
+    }
     console.error(`[focused-marking] Failed for ${paperId}:`, err);
     await prisma.examPaper.update({
       where: { id: paperId },
@@ -5258,6 +5277,13 @@ Return ONLY valid JSON:
 
     console.log(`[quiz-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
   } catch (err) {
+    const current = await prisma.examPaper.findUnique({
+      where: { id: paperId }, select: { markingStatus: true },
+    });
+    if (current?.markingStatus === "complete" || current?.markingStatus === "released") {
+      console.warn(`[quiz-marking] post-marking error suppressed for ${paperId} — status already "${current.markingStatus}":`, err);
+      return;
+    }
     console.error(`[quiz-marking] Failed for ${paperId}:`, err);
     await prisma.examPaper.update({
       where: { id: paperId },
