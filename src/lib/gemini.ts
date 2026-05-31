@@ -5135,6 +5135,25 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
     }
   }
 
+  // 3. Science MCQ answer-key fallback. If a question's answer key looks
+  // like an MCQ choice (1/2/3/4 or A/B/C/D, with or without parens) but
+  // step 1's section-default never fired for it AND step 2 found no
+  // bracket marks, apply the 2-mark convention. Catches the Red
+  // Swastika 2025 case where Booklet A's first sub-section came back
+  // mpq=null without an MCQ label, leaving Q1-Q12 with null marks while
+  // the second sub-section (Q13-Q28) correctly got 2.
+  if (isScience) {
+    for (const [qNum, rawAns] of Object.entries(answerResult.answers ?? {})) {
+      if (marksPerQuestion[qNum] != null) continue;
+      const ansNorm = String(rawAns ?? "").trim().replace(/[().]/g, "").trim().toUpperCase();
+      const looksMcq = /^[1-4]$/.test(ansNorm) || /^[A-D]$/.test(ansNorm);
+      if (looksMcq) {
+        marksPerQuestion[qNum] = 2;
+        console.log(`[Exam Pipeline] Science MCQ answer-key fallback: Q${qNum} ans="${rawAns}" → 2 marks`);
+      }
+    }
+  }
+
   // Auto-detect skip pages and comprehension passage pages for English exams.
 
   // 1. Skip pages: all pages belonging to Writing / Listening papers (skipExtraction: true)
