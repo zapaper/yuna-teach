@@ -71,6 +71,24 @@ export async function generateContentWithRetry(
   const tag = label ? `[Gemini:${label}]` : "[Gemini]";
   let lastErr: unknown;
   const primaryModel = (params as { model?: string }).model ?? "";
+
+  // Cross-provider override: when OPENAI_AS_PRIMARY=1 on the env,
+  // skip Gemini entirely and route every call through the OpenAI
+  // fallback (gpt-4o-mini for flash / gpt-4o for pro/preview).
+  // Useful for A/B testing marking accuracy without waiting for a
+  // Gemini quota error. Unset to revert to the normal Gemini-first
+  // chain. Requires OPENAI_API_KEY to also be set.
+  if (process.env.OPENAI_AS_PRIMARY === "1" && isOpenAIFallbackEnabled()) {
+    console.warn(`${tag} OPENAI_AS_PRIMARY=1 — bypassing Gemini, calling OpenAI directly`);
+    try {
+      const openaiResult = await runOpenAIFallback(params, label);
+      _lastFallbackUsed = "openai-primary";
+      return openaiResult as unknown as Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>;
+    } catch (err) {
+      console.error(`${tag} OpenAI-primary call failed:`, err instanceof Error ? err.message : err);
+      throw err;
+    }
+  }
   // attempts loop — only handles RETRYABLE non-quota errors (503 /
   // 504 / transport hiccups). Quota / non-retryable errors break out
   // immediately and drop straight into the fallback chain below.
