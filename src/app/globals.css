@@ -20,7 +20,7 @@
   --color-on-surface-variant: #4E463D;
   --color-primary: #003366;
   --color-on-primary: #ffffff;
-  --color-secondary: #00875A;
+  --color-secondary: #006c49;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #D1FADF;
   --color-on-secondary-container: #005236;
@@ -61,7 +61,7 @@
 }
 
 .soft-glow {
-  box-shadow: 0 20px 50px -12px rgba(0, 135, 90, 0.15);
+  box-shadow: 0 20px 50px -12px rgba(0, 108, 73, 0.15);
 }
 
 .warm-gradient {

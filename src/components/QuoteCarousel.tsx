@@ -76,23 +76,38 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    let settleTimer: number | undefined;
+    let fallbackTimer: number | undefined;
+    let snapping = false;
+
+    function settleIfFlank() {
+      if (!track) return;
+      if (snapping) { snapping = false; return; }
+      const c = findClosest();
+      if (c < len || c >= 2 * len) {
+        const realIdx = ((c % len) + len) % len;
+        snapping = true;
+        scrollToIdx(realIdx + len, false);
+      }
+    }
+
     function onScroll() {
       const closest = findClosest();
       setActive(((closest % len) + len) % len);
-      if (settleTimer) clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(() => {
-        const c = findClosest();
-        if (c < len || c >= 2 * len) {
-          const realIdx = ((c % len) + len) % len;
-          scrollToIdx(realIdx + len, false);
-        }
-      }, 180);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = window.setTimeout(settleIfFlank, 200);
     }
+
+    function onScrollEnd() {
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = undefined; }
+      settleIfFlank();
+    }
+
     track.addEventListener("scroll", onScroll, { passive: true });
+    track.addEventListener("scrollend", onScrollEnd, { passive: true });
     return () => {
       track.removeEventListener("scroll", onScroll);
-      if (settleTimer) clearTimeout(settleTimer);
+      track.removeEventListener("scrollend", onScrollEnd);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, [findClosest, len]);
 

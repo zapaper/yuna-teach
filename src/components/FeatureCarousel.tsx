@@ -65,29 +65,46 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
     }
   }, [len]);
 
-  // After every settled scroll: update the active dot AND, if we've
-  // crossed into a flank, silently snap to the equivalent slide in
-  // the middle copy.
+  // Update the active dot in real time during scroll, AND silently snap
+  // to the middle copy as soon as scroll fully stops if we've crossed
+  // into a flank. Uses the scrollend event on modern browsers (fires
+  // exactly when the user's swipe finishes) with a 200ms timer fallback
+  // for older browsers that don't support scrollend.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    let settleTimer: number | undefined;
+    let fallbackTimer: number | undefined;
+    let snapping = false;
+
+    function settleIfFlank() {
+      if (!track) return;
+      if (snapping) { snapping = false; return; }
+      const c = findClosest();
+      if (c < len || c >= 2 * len) {
+        const realIdx = ((c % len) + len) % len;
+        snapping = true;
+        scrollToIdx(realIdx + len, false);
+      }
+    }
+
     function onScroll() {
       const closest = findClosest();
       setActive(((closest % len) + len) % len);
-      if (settleTimer) clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(() => {
-        const c = findClosest();
-        if (c < len || c >= 2 * len) {
-          const realIdx = ((c % len) + len) % len;
-          scrollToIdx(realIdx + len, false); // jump to middle copy, no animation
-        }
-      }, 180);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = window.setTimeout(settleIfFlank, 200);
     }
+
+    function onScrollEnd() {
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = undefined; }
+      settleIfFlank();
+    }
+
     track.addEventListener("scroll", onScroll, { passive: true });
+    track.addEventListener("scrollend", onScrollEnd, { passive: true });
     return () => {
       track.removeEventListener("scroll", onScroll);
-      if (settleTimer) clearTimeout(settleTimer);
+      track.removeEventListener("scrollend", onScrollEnd);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, [findClosest, len]);
 
