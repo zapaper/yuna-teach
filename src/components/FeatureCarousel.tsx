@@ -53,7 +53,7 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
         {items.map((it, i) => (
           <article
             key={i}
-            className="relative bg-surface-container-low rounded-3xl shadow-lg overflow-hidden snap-center shrink-0 w-[88vw] sm:w-[440px] md:w-[560px] lg:w-[760px] aspect-[4/3]"
+            className="relative bg-surface-container-low rounded-3xl shadow-lg overflow-hidden snap-center shrink-0 w-[60vw] sm:w-[300px] md:w-[380px] lg:w-[510px] aspect-[4/3]"
           >
             {/* Image as backdrop — fills the card, object-contain so
                 screenshots aren't cropped. Padding-top makes room for
