@@ -833,11 +833,32 @@ export type SyntheticSynthesisVariant = {
   keyword: string; // The transformation keyword on its own
 };
 
+// Sub-topic → focused-pattern instruction. Used by callers that want
+// to LOCK the generated variants to one of the 8 canonical buckets
+// (the same set the english-synthesis-tricks master class defines).
+// Without a targetSubTopic the function infers the rule from the
+// original; with one, the prompt force-locks both variants to that
+// exact pattern.
+const SUB_TOPIC_FOCUS: Record<string, string> = {
+  "concession": "CONCESSION — Two contrasting ideas. Use Although + clause (subject + verb) OR Despite / In spite of + noun phrase OR No matter how/what/where + clause. Conversion trick: verb → noun/-ing, drop subject.",
+  "cause": "CAUSE — Reason → result. Use Because/Since/As + clause OR Due to / Owing to / On account of + noun phrase. Convert verb → noun, drop subject.",
+  "condition": "CONDITION — If clause vs main clause. Use If + present, will + verb OR Unless (= if not — DO NOT add a second 'not' in the conditional).",
+  "reported-speech": "REPORTED SPEECH — Direct ↔ indirect. Backshift tenses one step (present → past, past → past perfect with had + V-ed). Pronouns and time/place words shift (yesterday → the previous day, today → that day, here → there, this → that). Use asked / told / wanted to know / wondered as reporting verbs.",
+  "preference": "PREFERENCE — Comparing two activities, one preferred. Would rather + bare verb + than + bare verb. OR Prefer + V-ing to V-ing. OR Have a preference for X over Y. NO 'to' after 'than'.",
+  "participle-having": "PARTICIPLE (Having + V-ed) — Joins two sequential actions where the first finishes before the second starts. Having + past participle + (object), (new subject) + verb. Keep his/her/their possessives intact. Negative form: Not having + V-ed.",
+  "inclusion-correlative": "INCLUSION / CORRELATIVE — Pair conjunctions joining two equal parts. Both X and Y / Either X or Y / Neither X nor Y / Not only X but (also) Y / X or Y. CRITICAL: 'Not only' at sentence start FORCES inversion — 'Not only DOES/DID/HAS Subject + base verb'.",
+  "relative-clause": "RELATIVE CLAUSE — Second sentence describes a noun in the first. who = subject (people), whom = object (people), which = things, whose = possessive. The relative pronoun must sit RIGHT AFTER the noun it describes. Use commas on both sides for non-defining clauses; no commas for defining.",
+};
+
 export async function generateSyntheticSynthesis(
   originalStem: string,
   originalAnswer: string,
+  targetSubTopic?: string,
 ): Promise<{ simple: SyntheticSynthesisVariant; similar: SyntheticSynthesisVariant }> {
-  const prompt = `You are generating Synthesis & Transformation practice items for Singapore Primary 6 English.
+  const focusBlock = targetSubTopic && SUB_TOPIC_FOCUS[targetSubTopic]
+    ? `\n\nTARGET PATTERN (mandatory — both variants MUST use this pattern):\n${SUB_TOPIC_FOCUS[targetSubTopic]}\n`
+    : "";
+  const prompt = `You are generating Synthesis & Transformation practice items for Singapore Primary 6 English.${focusBlock}
 
 Student flow:
 - Student is shown TWO short sentences plus a keyword.
