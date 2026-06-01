@@ -60,7 +60,13 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
     // Wrap around so the carousel loops: -1 → last, length → 0.
     const wrapped = ((idx % slides.length) + slides.length) % slides.length;
     const target = slides[wrapped];
-    if (target) target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    if (!target) return;
+    // Explicit scrollTo on the track instead of scrollIntoView so the
+    // page never scrolls vertically and the loop-around animates
+    // cleanly inside the carousel viewport.
+    const left = target.offsetLeft - (track.clientWidth - target.offsetWidth) / 2;
+    track.scrollTo({ left, behavior: "smooth" });
+    setActive(wrapped);
   }
 
   return (
