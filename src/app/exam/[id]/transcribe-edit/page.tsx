@@ -32,6 +32,7 @@ type EditQuestion = {
   diagramBase64: string | null;
   drawableDiagramBase64: string | null; // for OEQ without subparts — canvas background in quiz
   imageData?: string; // original question image for drawing/cropping
+  pageIndex?: number | null; // 0-based page index — needed by the subref page-nav feature
   error: string | null;
 };
 
@@ -197,10 +198,12 @@ function TranscribeEditContent({ id }: { id: string }) {
       if (!genRes.ok) throw new Error(genData.error ?? "Failed");
 
       const imgMap: Record<string, string> = {};
+      const pageMap: Record<string, number | null> = {};
       if (paperRes.ok) {
         const pd = await paperRes.json();
         for (const q of pd.questions ?? []) {
           if (q.id && q.imageData) imgMap[q.id] = q.imageData;
+          if (q.id) pageMap[q.id] = (q.pageIndex ?? null) as number | null;
         }
       }
 
@@ -211,6 +214,7 @@ function TranscribeEditContent({ id }: { id: string }) {
           optionImages: q.optionImages ?? null,
           drawableDiagramBase64: null,
           imageData: imgMap[q.id],
+          pageIndex: pageMap[q.id] ?? null,
         }))
       );
     } catch (e) {
@@ -230,14 +234,16 @@ function TranscribeEditContent({ id }: { id: string }) {
           fetch(`/api/exam/${id}`), // full paper for imageData + title
         ]);
 
-        // Build imageData map
+        // Build imageData + pageIndex maps
         const imgMap: Record<string, string> = {};
+        const pageMap: Record<string, number | null> = {};
         if (paperRes.ok) {
           const pd = await paperRes.json();
           setPaperTitle(pd.title ?? "");
           setPaperSubject((pd.subject ?? "").toLowerCase());
           for (const q of pd.questions ?? []) {
             if (q.id && q.imageData) imgMap[q.id] = q.imageData;
+            if (q.id) pageMap[q.id] = (q.pageIndex ?? null) as number | null;
           }
         }
 
@@ -289,6 +295,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                   diagramBounds: q.diagramBounds ?? null,
                   diagramBase64: q.diagramImageData ?? null,
                   imageData: imgMap[q.id],
+                  pageIndex: pageMap[q.id] ?? null,
                   error: null,
                 };
               })
@@ -718,6 +725,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                 onUpdateOption={(i, v) => updateOption(q.id, i, v)}
                 onUpdateSubpart={(i, v) => updateSubpart(q.id, i, v)}
                 onDraw={(bounds, target) => handleCrop(q.id, bounds, target)}
+                paperId={id}
                 onRemoveDiagram={() => updateQuestion(q.id, { diagramBounds: null, diagramBase64: null })}
                 onToggleOptionImages={(imageMode) => updateQuestion(q.id, {
                   optionImages: imageMode ? [null, null, null, null] : null,
@@ -861,6 +869,7 @@ function QuestionCard({
   onUpdateOption,
   onUpdateSubpart,
   onDraw,
+  paperId,
   onRemoveDiagram,
   onToggleOptionImages,
   onToggleType,
@@ -879,6 +888,7 @@ function QuestionCard({
   onUpdateOption: (i: number, v: string) => void;
   onUpdateSubpart: (i: number, v: string) => void;
   onDraw: (bounds: DiagramBounds, target: DrawTarget) => void;
+  paperId: string;
   onRemoveDiagram: () => void;
   onToggleOptionImages: (imageMode: boolean) => void;
   onToggleType: () => void;  // MCQ <-> OEQ
@@ -908,6 +918,119 @@ function QuestionCard({
     setDrawTarget("diagram");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subpartLabelKey]);
+
+  // ── Subpart reference-diagram page preview ────────────────────────
+  // When the admin picks a subref-{label} draw target, they're cropping
+  // a diagram for that subpart. By default the diagram has to live on
+  // the question's own page region — but some PSLE Science questions
+  // refer back to a diagram drawn on the PREVIOUS page (e.g. Q29(b)
+  // referencing Q29(a)'s setup figure). Let admin page through the PDF
+  // while still in subref mode without touching the question crop.
+  //
+  // subrefPreview holds the currently-loaded page snapshot and a small
+  // page-image cache so back/forward doesn't re-fetch. Activates only
+  // when drawTarget starts with "subref-" — clears on switch back to
+  // any other draw target so the displayed image returns to q.imageData.
+  const [subrefPreview, setSubrefPreview] = useState<{
+    pageIdx: number;
+    pageImg: string;
+    totalPages: number;
+    cachedPages: Record<number, string>;
+  } | null>(null);
+  const [subrefLoading, setSubrefLoading] = useState(false);
+  const inSubrefMode = typeof drawTarget === "string" && drawTarget.startsWith("subref-");
+
+  async function fetchPageDataUrl(idx: number): Promise<string | null> {
+    const r = await fetch(`/api/exam/${paperId}/pages/${idx}`);
+    if (!r.ok) return null;
+    const blob = await r.blob();
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  useEffect(() => {
+    if (!inSubrefMode) {
+      if (subrefPreview) setSubrefPreview(null);
+      return;
+    }
+    if (subrefPreview) return;
+    let cancelled = false;
+    (async () => {
+      setSubrefLoading(true);
+      try {
+        const countRes = await fetch(`/api/exam/${paperId}/pages`);
+        if (!countRes.ok) return;
+        const { pageCount } = await countRes.json() as { pageCount?: number };
+        const total = pageCount ?? 1;
+        const homeIdx = Math.min(Math.max(0, q.pageIndex ?? 0), Math.max(0, total - 1));
+        const pageImg = await fetchPageDataUrl(homeIdx);
+        if (cancelled || !pageImg) return;
+        setSubrefPreview({ pageIdx: homeIdx, pageImg, totalPages: total, cachedPages: { [homeIdx]: pageImg } });
+      } finally {
+        if (!cancelled) setSubrefLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inSubrefMode]);
+
+  async function gotoSubrefPage(idx: number) {
+    if (!subrefPreview) return;
+    if (idx < 0 || idx >= subrefPreview.totalPages) return;
+    const cached = subrefPreview.cachedPages[idx];
+    if (cached) {
+      setSubrefPreview({ ...subrefPreview, pageIdx: idx, pageImg: cached });
+      return;
+    }
+    setSubrefLoading(true);
+    try {
+      const pageImg = await fetchPageDataUrl(idx);
+      if (!pageImg) return;
+      setSubrefPreview({
+        ...subrefPreview,
+        pageIdx: idx,
+        pageImg,
+        cachedPages: { ...subrefPreview.cachedPages, [idx]: pageImg },
+      });
+    } finally {
+      setSubrefLoading(false);
+    }
+  }
+
+  // Wrap onDraw: when a subref crop is drawn while previewing the
+  // question's home page, fall through to the existing server-side
+  // crop (which uses q.imageData). When previewing an adjacent page,
+  // do the crop client-side against the previewed page image so the
+  // question's locked crop region stays untouched.
+  async function handleDrawWithSubrefPreview(bounds: DiagramBounds, target: DrawTarget) {
+    const targetStr = String(target);
+    const isSubref = targetStr.startsWith("subref-");
+    const onAdjacentPage = !!subrefPreview && subrefPreview.pageIdx !== (q.pageIndex ?? 0);
+    if (!isSubref || !subrefPreview || !onAdjacentPage) {
+      onDraw(bounds, target);
+      return;
+    }
+    const img = new Image();
+    await new Promise<void>((resolve) => { img.onload = () => resolve(); img.src = subrefPreview.pageImg; });
+    const x = Math.floor((bounds.left / 100) * img.width);
+    const y = Math.floor((bounds.top / 100) * img.height);
+    const w = Math.ceil(((bounds.right - bounds.left) / 100) * img.width);
+    const h = Math.ceil(((bounds.bottom - bounds.top) / 100) * img.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext("2d")!.drawImage(img, x, y, w, h, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+    const label = targetStr.slice(7);
+    if (!q.subparts) return;
+    onUpdate({
+      subparts: q.subparts.map(sp => sp.label === label ? { ...sp, refImageBase64: base64 } : sp),
+    });
+  }
 
   // Build overlay boxes for the drawable image
   const boxes: { bounds: DiagramBounds; color: string; label: string }[] = [];
@@ -1032,11 +1155,43 @@ function QuestionCard({
                 )}
               </div>
 
+              {/* Subref page navigation — only when picking a subpart
+                  reference diagram. Lets the admin pull a diagram from
+                  the previous / next PDF page without changing the
+                  question's locked imageData crop. */}
+              {inSubrefMode && subrefPreview && subrefPreview.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => void gotoSubrefPage(subrefPreview.pageIdx - 1)}
+                    disabled={subrefPreview.pageIdx === 0 || subrefLoading}
+                    className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ◀ Page
+                  </button>
+                  <span className="text-xs text-slate-500">
+                    Page {subrefPreview.pageIdx + 1} / {subrefPreview.totalPages}
+                    {subrefPreview.pageIdx !== (q.pageIndex ?? 0) && (
+                      <span className="ml-1 text-violet-600 font-semibold">(preview — saves to subpart only)</span>
+                    )}
+                    {subrefLoading && <span className="ml-1 text-slate-400">loading…</span>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void gotoSubrefPage(subrefPreview.pageIdx + 1)}
+                    disabled={subrefPreview.pageIdx === subrefPreview.totalPages - 1 || subrefLoading}
+                    className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Page ▶
+                  </button>
+                </div>
+              )}
+
               <DrawableImage
-                src={q.imageData}
-                boxes={boxes}
+                src={inSubrefMode && subrefPreview ? subrefPreview.pageImg : q.imageData}
+                boxes={inSubrefMode && subrefPreview && subrefPreview.pageIdx !== (q.pageIndex ?? 0) ? [] : boxes}
                 liveColor={(drawTarget === "drawable" || (typeof drawTarget === "string" && (drawTarget.startsWith("sub-") || drawTarget.startsWith("subref-")))) ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
-                onDraw={bounds => onDraw(bounds, drawTarget)}
+                onDraw={bounds => void handleDrawWithSubrefPreview(bounds, drawTarget)}
               />
               <p className="text-xs text-slate-400 mt-1 text-center">Drag on image to set crop region</p>
             </div>
