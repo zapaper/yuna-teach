@@ -12,10 +12,11 @@ level: P5-P6
 # uses ampersand in the title for readability but the picker matches
 # against the slash form to align with the bank.
 topicLabel: Synthesis / Transformation
-# Existing sub-topics (concession / cause / condition / reported-speech)
-# are about pattern types, not buckets the picker needs to gate on —
-# every PSLE synthesis question fits the deck's 4-pattern teaching.
-noSubTopicFilter: true
+# 8 sub-topics now exposed as picker filters so a student can drill
+# down on one pattern (e.g. just Preference, just Relative Clause)
+# instead of mixed-bag practice. The DB tag write done by
+# scripts/_classify-synthesis.ts populates subTopic on 833 of 1216
+# rows; the misc-bucket rows still come through unfiltered.
 paperLevels: [P5, P6, PSLE]
 title: "PSLE English — Synthesis & Transformation Tricks (10 marks)"
 
@@ -75,8 +76,8 @@ keyConcepts:
         "Although it was raining" → "Despite the rain."
       - |-
         **Common mistakes** (from real student work)
-        ✗ Changing the original word — wrote "homework" when the source said "work" → meaning change, -0.5.
-        ✗ Leaving "No matter" questions blank because the structure feels foreign — "No matter how hard I tried…" follows the same pattern as Although, just bigger setup.
+        ✗ Changing the original word — wrote "homework" when the source said "work". Synthesis is **all or nothing**: any word swap = 0 marks for that sentence.
+        ✗ Leaving "No matter" questions blank because the structure feels foreign — "No matter how hard I tried…" follows the same pattern as Although, just with a bigger setup.
 
   # ─── Slide 2: Pattern B — Cause ──────────────────────────────
   - title: "Pattern B — Cause (Because / Due to)"
@@ -97,9 +98,9 @@ keyConcepts:
         "Because she was sick" → "Due to her illness."
       - |-
         **Common mistakes** (from real student work)
-        ✗ Dropping a modifier — "Sam fell ill **suddenly**" → noun form must be "sudden illness", not just "illness". Skipping "sudden" loses 0.5.
-        ✗ Spelling slips on the derived noun: "indecision" not "indecesion". The noun has to be a real word — the marker checks the spelling.
-        ✗ Repeating the subject ("Sam") when the rewrite has already named them — use the pronoun ("he"). Otherwise -0.5.
+        ✗ Dropping a modifier — "Sam fell ill **suddenly**" must become "sudden illness", not just "illness". Skipping "sudden" = 0 marks.
+        ✗ Spelling slips on the derived noun: "indecision" not "indecesion". The noun has to be a real word.
+        ✗ Repeating the subject ("Sam") when the rewrite has already named them — use the pronoun ("he").
 
   # ─── Slide 3: Try it — Concession & Cause ────────────────────
   - title: "Try it — Concession & Cause"
@@ -198,10 +199,10 @@ keyConcepts:
         -- "Sit down!" the teacher said. → The teacher **told** us **to sit down**.
       - |-
         **Common mistakes** (from real student work)
-        ✗ Using "they" / vague pronouns when the original speaker addressed a specific person → mark deducted for changing meaning.
-        ✗ Forgetting the verb backshift — "saw" should become "had seen" when the reporting verb is past.
+        ✗ Using "they" / vague pronouns when the original speaker addressed a specific person — that changes the meaning. Match the original referent exactly.
+        ✗ Forgetting the verb backshift — "saw" must become "had seen" when the reporting verb is past.
         ✗ Lowercase "if" / "i" at the start of the rewrite. Capitalisation counts.
-        ✗ Synonym swaps the marker rejects: "the day before" might cost 0.5 vs the expected "the previous day". Use the EXACT shift words from the table.
+        ✗ Synonym swaps for time/place words — "the day before" is not the same as the expected "the previous day". Use the EXACT shift words from the table.
 
   # ─── Slide 6: Try it — Condition & Reported Speech ───────────
   - title: "Try it — Condition & Reported Speech"
@@ -260,11 +261,6 @@ keyConcepts:
         **Have a preference for X over Y**
         ✓ My grandparents have a **preference for** visiting local attractions **over** travelling overseas.
         ✗ "preference to travelling" — wrong preposition. "over", not "to".
-      - |-
-        **Common mistakes** (from real student work)
-        ✗ Adding "to" after "than" → "would rather X than **to** Y". Drop the "to".
-        ✗ Changing singular/plural ("books" → "a book") — the count changes the meaning, -0.5.
-        ✗ Spelling the original subject's name wrong ("Rami" instead of "Rani"). Copy the name exactly.
 
   # ─── Slide 8: Pattern F — Participle (Having) ────────────────
   - title: "Pattern F — Participle (Having + V-ed)"
@@ -288,7 +284,7 @@ keyConcepts:
         ② The "his / her / their" possessives match the original — DON'T change them.
       - |-
         **Common mistakes** (from real student work)
-        ✗ Changing "his" / "her" / "their" to "a" or "the" — meaning shift, -0.5.
+        ✗ Changing "his" / "her" / "their" to "a" or "the" — meaning shift = 0 marks.
         ✗ Using the wrong past participle (drewn, eaten/ate confusion). Common one: "drawn", not "drew".
         ✗ Repeating the subject in BOTH clauses ("Having finished her homework, **she** Mary went…"). Pick one — usually the proper noun in the second clause.
 
@@ -348,44 +344,58 @@ keyConcepts:
         ✓ **Neither** Ali **nor** Lily likes swimming.
       - |-
         **Not only X but (also) Y** — INVERSION after "Not only" at sentence start.
-        ✓ **Not only does** Sarah sing beautifully, **but she also** plays the piano well.
+        ✓ **Not only does** Sarah **sing** beautifully, **but she also** plays the piano well.
         ✗ "Not only Sarah sings beautifully, but she plays the piano." (no inversion = wrong)
       - |-
         **X or Y** (warning + consequence form):
         ✓ Hand in your assignment on time **or** your marks will be deducted.
       - |-
-        **Common mistakes** (from real student work)
-        ✗ Forgetting the inversion after "Not only" — missing the "does / did / has". -1 mark.
-        ✗ Leaving "or"-warning sentences blank — students treat them as too simple but the marker still expects the connector slotted in.
-        ✗ Spelling: "library" (not "libary"). Common slip.
+        **The "Not only" inversion formula** (must be memorised):
+        **Not only + DOES / DID / HAS + Subject + BASE VERB**
+        ✓ Not only **does** Sarah **sing** beautifully, but she also plays the piano well.
+        ✓ Not only **did** Ali **win** the race, but he also broke the record.
+        ✓ Not only **has** Mark **finished** his work, but he has also helped others.
+        Notice: the verb after the subject is in BASE form (sing, win) — the tense is carried by the helper (does, did, has).
+      - |-
+        **Common mistake**
+        ✗ Forgetting the inversion: "Not only Sarah sings beautifully…" — synthesis is **all-or-nothing**, the whole rewrite is marked wrong without "does".
 
   # ─── Slide 11: Pattern H — Relative Clause ───────────────────
   - title: "Pattern H — Relative Clause (who / whom / which / whose)"
     mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
     body: >-
       Joins two sentences where the second describes a noun in the
-      first. The relative pronoun depends on what it replaces.
+      first. The relative pronoun depends on what it replaces, AND
+      where you put it.
     bullets:
       - |-
-        **who** = subject (people).
-        Mrs Lee is our teacher. She teaches us English. → Mrs Lee, **who** teaches us English, is our teacher.
+        **who** = subject (people). **whom** = object (people).
+        Quick test:
+        – If you could replace it with **he / she / they** → use **who**.
+        – If you could replace it with **him / her / them** → use **whom**.
       - |-
-        **whom** = object (people). After a verb or preposition.
-        We admire Mr Kwan. He is our football player. → Mr Kwan, **whom** we admire, is our football player.
-        Quick test: if you could replace it with "him / her / them" → use "whom"; if "he / she / they" → use "who".
-      - |-
-        **which** = subject or object (things). **whose** = possessive.
-        ✓ My mother bought a new blender **which can** make fruit juices very quickly.
+        **which** = things. **whose** = possessive (people or things).
+        ✓ My mother bought a new blender **which can** make fruit juices.
         ✓ The boy **whose** dog was lost is my classmate.
       - |-
-        **Punctuation** — non-defining clause needs commas around it.
-        ✓ Mr Kwan, **whom** we admire, is our football player. (commas — non-defining)
-        ✓ The robber **who** wore a black mask was caught. (no commas — defining)
+        **POSITION RULE — the relative pronoun must sit RIGHT AFTER the noun it describes.**
+        Original: We admire Mr Kwan. He is our local football player.
+        ✓ **Mr Kwan, whom we admire,** is our local football player.
+        ✗ Mr Kwan is our local football player, **whom we admire**.   (whom is detached from Mr Kwan)
+        Why it's wrong: the relative clause has to touch the noun. If "whom we admire" sits at the end, the reader can't tell which noun it describes — it looks like it's describing "football player".
+      - |-
+        **Defining vs non-defining clauses — the comma rule:**
+        – **Defining clause = essential info, NO commas.** The clause picks out WHICH one you mean. Without it the sentence doesn't make sense.
+        ✓ The robber **who wore a black mask** was caught.
+        (There were several robbers; "who wore a black mask" tells us which one. No commas.)
+        – **Non-defining clause = extra info, USES commas.** The clause adds detail you could remove and the sentence still makes sense.
+        ✓ Mr Kwan, **whom we admire**, is our local football player.
+        (We already know it's Mr Kwan; "whom we admire" is extra info. Commas required on BOTH sides.)
+        Quick test: read the sentence without the clause. If the meaning still holds → non-defining, comma it. If the meaning breaks → defining, no commas.
       - |-
         **Common mistakes** (from real student work)
-        ✗ Using "whom" where it should be "who" — "whom is our football player" is wrong because "whom" is the subject of "is". -0.5.
-        ✗ Dropping modal verbs from the original — "It **can** make fruit juices" must stay "which **can** make" — not "which makes". Losing "can" loses 0.5.
-        ✗ Missing commas around the non-defining clause.
+        ✗ Placing the relative clause far from the noun — "Mr Kwan is our football player, whom we admire" puts "whom" miles from "Mr Kwan". Synthesis is **all-or-nothing**: position wrong = 0 marks.
+        ✗ Missing commas on a non-defining clause — both commas are required, one on each side.
 
   # ─── Slide 12: Try it — Inclusion & Relative ─────────────────
   - title: "Try it — Inclusion & Relative Clause"
