@@ -941,7 +941,9 @@ function QuestionCard({
   const inSubrefMode = typeof drawTarget === "string" && drawTarget.startsWith("subref-");
 
   async function fetchPageDataUrl(idx: number): Promise<string | null> {
-    const r = await fetch(`/api/exam/${paperId}/pages/${idx}`);
+    // Note: query-param form (matches the recrop modal's helper).
+    // Path-param form returns 404 — original bug here.
+    const r = await fetch(`/api/exam/${paperId}/pages?page=${idx}`);
     if (!r.ok) return null;
     const blob = await r.blob();
     return await new Promise<string>((resolve) => {
