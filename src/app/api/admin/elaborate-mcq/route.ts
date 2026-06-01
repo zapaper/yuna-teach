@@ -69,33 +69,65 @@ function parseModelResponse(text: string): { solution: string; diagrams: Diagram
   return { solution: text, diagrams: [] };
 }
 
-// Scope: P3-P6 Math + Science MCQ on real master papers
-// (paperType=null, sourceExamId=null), no elaboration yet.
+// Scope: master papers (sourceExamId=null, paperType=null), no
+// elaboration yet. Two subject buckets:
+//   · Math + Science — P3-P6
+//   · English        — P5-P6 only, AND only "Grammar MCQ" topic
+//                      (vocab MCQ / visual text / editing etc. need
+//                      different prompt shapes — handle separately)
 //
 // MCQ detection has to happen in JS because Prisma's JSON-array-length
 // filters are brittle — we pull a slightly wider candidate pool and
 // keep MCQ. Result: bulk run touches the same questions the per-card
 // elaborate path would, just without a student in the loop.
+const LEVEL_P3_P6: Prisma.ExamPaperWhereInput["OR"] = [
+  { level: { contains: "Primary 3", mode: "insensitive" } },
+  { level: { contains: "Primary 4", mode: "insensitive" } },
+  { level: { contains: "Primary 5", mode: "insensitive" } },
+  { level: { contains: "Primary 6", mode: "insensitive" } },
+  { level: { equals: "P3", mode: "insensitive" } },
+  { level: { equals: "P4", mode: "insensitive" } },
+  { level: { equals: "P5", mode: "insensitive" } },
+  { level: { equals: "P6", mode: "insensitive" } },
+];
+const LEVEL_P5_P6: Prisma.ExamPaperWhereInput["OR"] = [
+  { level: { contains: "Primary 5", mode: "insensitive" } },
+  { level: { contains: "Primary 6", mode: "insensitive" } },
+  { level: { equals: "P5", mode: "insensitive" } },
+  { level: { equals: "P6", mode: "insensitive" } },
+  // PSLE is functionally P6 — PSLE papers ARE the P6 exams. Without
+  // this, every PSLE English Grammar MCQ master row stays out of
+  // scope and the loop misses ~90 P6-grade questions.
+  { level: { equals: "PSLE", mode: "insensitive" } },
+];
 const MASTER_SCOPE: Prisma.ExamPaperWhereInput = {
   sourceExamId: null,
   paperType: null,
   OR: [
-    { subject: { contains: "math", mode: "insensitive" } },
-    { subject: { contains: "science", mode: "insensitive" } },
+    {
+      OR: [
+        { subject: { contains: "math", mode: "insensitive" } },
+        { subject: { contains: "science", mode: "insensitive" } },
+      ],
+      AND: [{ OR: LEVEL_P3_P6 }],
+    },
+    {
+      subject: { contains: "english", mode: "insensitive" },
+      AND: [{ OR: LEVEL_P5_P6 }],
+    },
   ],
-  AND: [{
-    OR: [
-      { level: { contains: "Primary 3", mode: "insensitive" } },
-      { level: { contains: "Primary 4", mode: "insensitive" } },
-      { level: { contains: "Primary 5", mode: "insensitive" } },
-      { level: { contains: "Primary 6", mode: "insensitive" } },
-      { level: { equals: "P3", mode: "insensitive" } },
-      { level: { equals: "P4", mode: "insensitive" } },
-      { level: { equals: "P5", mode: "insensitive" } },
-      { level: { equals: "P6", mode: "insensitive" } },
-    ],
-  }],
 };
+
+// Per-subject question-level filter applied AFTER the paper scope.
+// English-source rows must be tagged "Grammar MCQ" — every other
+// English MCQ topic (Vocab MCQ / Visual Text MCQ / etc.) is excluded
+// because the prompt needs a different shape per topic. Math + Science
+// pass unfiltered.
+function isInTopicScope(subject: string | null | undefined, syllabusTopic: string | null | undefined): boolean {
+  const s = (subject ?? "").toLowerCase();
+  if (s.includes("english")) return syllabusTopic === "Grammar MCQ";
+  return true;
+}
 
 function isMcqRow(opts: unknown, optImgs: unknown, answer: string | null): boolean {
   if (Array.isArray(opts) && opts.length === 4) return true;
@@ -114,6 +146,7 @@ export async function GET() {
     where: { examPaper: MASTER_SCOPE },
     select: {
       transcribedOptions: true, transcribedOptionImages: true, answer: true, elaboration: true,
+      syllabusTopic: true,
       examPaper: { select: { subject: true, level: true } },
     },
   });
@@ -129,6 +162,7 @@ export async function GET() {
   }
   for (const q of qs) {
     if (!isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer)) continue;
+    if (!isInTopicScope(q.examPaper.subject, q.syllabusTopic)) continue;
     total++;
     const isFail = !!q.elaboration && q.elaboration.startsWith(ELAB_ERROR_PREFIX);
     const isElab = !!q.elaboration && !isFail;
@@ -182,11 +216,16 @@ export async function POST(request: NextRequest) {
       examPaper: MASTER_SCOPE,
       ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
     },
-    select: { id: true, transcribedOptions: true, transcribedOptionImages: true, answer: true },
+    select: {
+      id: true, transcribedOptions: true, transcribedOptionImages: true, answer: true,
+      syllabusTopic: true,
+      examPaper: { select: { subject: true } },
+    },
     orderBy: { id: "asc" },
   });
   const mcqIds = slim
     .filter((q) => isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer))
+    .filter((q) => isInTopicScope(q.examPaper.subject, q.syllabusTopic))
     .slice(0, limit)
     .map((q) => q.id);
   const mcq = mcqIds.length === 0 ? [] : await prisma.examQuestion.findMany({
@@ -222,8 +261,36 @@ export async function POST(request: NextRequest) {
     const hasDiagram = !!q.diagramImageData;
     const answerAnchor = `**The answer is ${q.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagram ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine the question text and answer key, then explain how the official answer is reached.`;
 
-    parts.push({
-      text: `You are a helpful tutor for a primary school student.
+    const subjectLc = (q.examPaper.subject ?? "").toLowerCase();
+    const isEnglishGrammar = subjectLc.includes("english");
+    if (isEnglishGrammar) {
+      // Grammar-MCQ specific prompt. No diagram block, no fractions,
+      // no math heuristics — explanation centres on the grammar rule
+      // and why each wrong option fails.
+      parts.push({
+        text: `You are a helpful tutor for a Primary 5/6 student learning English grammar.
+
+Here is the question:
+${questionText}
+
+${answerAnchor}
+
+Explain the answer in this structure:
+1. **The rule** — name the specific grammar rule being tested (e.g. subject-verb agreement, prepositions of place, tense consistency, relative pronouns, conditional sentences, indirect speech backshift, etc.) in ONE clear sentence.
+2. **Why the answer is correct** — apply the rule to the sentence in 1-2 sentences.
+3. **Why each wrong option fails** — go through the three distractors in order. For each, name the SPECIFIC error (wrong tense, mismatched subject, wrong preposition, double negative, etc.) in one short line per option.
+
+Keep the entire explanation under 130 words, hard cap at 160. Age-appropriate, encouraging, plain language a P5/P6 student can follow. Use **double asterisks** to bold the rule name, key grammar terms, and option numbers ((1), (2), etc.). No fractions, no LaTeX, no diagrams. Return diagrams as an empty array.
+
+Respond with ONLY valid JSON (no markdown fences, no surrounding text):
+{
+  "solution": "<grammar explanation with **bold** as described>",
+  "diagrams": []
+}`,
+      });
+    } else {
+      parts.push({
+        text: `You are a helpful tutor for a primary school student.
 
 Here is the question:
 ${questionText}
@@ -238,7 +305,8 @@ For Singapore-primary fraction or ratio word problems where the question gives o
 ${mathHeuristicsBlock(q.examPaper.subject)}
 
 ${COMMON_DIAGRAM_RULES}`,
-    });
+      });
+    }
 
     try {
       const response = await getAI().models.generateContent({
@@ -282,9 +350,16 @@ ${COMMON_DIAGRAM_RULES}`,
   // re-count via the same JS filter — admin endpoint, low call rate.
   const remainingCandidates = await prisma.examQuestion.findMany({
     where: { elaboration: null, examPaper: MASTER_SCOPE },
-    select: { transcribedOptions: true, transcribedOptionImages: true, answer: true },
+    select: {
+      transcribedOptions: true, transcribedOptionImages: true, answer: true,
+      syllabusTopic: true,
+      examPaper: { select: { subject: true } },
+    },
   });
-  const totalRemaining = remainingCandidates.filter((q) => isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer)).length;
+  const totalRemaining = remainingCandidates
+    .filter((q) => isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer))
+    .filter((q) => isInTopicScope(q.examPaper.subject, q.syllabusTopic))
+    .length;
 
   return NextResponse.json({
     requested: limit,
