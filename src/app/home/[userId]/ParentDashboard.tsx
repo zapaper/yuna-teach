@@ -207,8 +207,8 @@ function WeakTopicsTable({ rows, onTopicClick }: { rows: WeakTopicRow[]; onTopic
             <tr className="text-[10px] font-semibold uppercase tracking-wider text-[#4edea3]">
               <th className="text-left px-3 py-2">Subject</th>
               <th className="text-left px-3 py-2">Topic</th>
-              <th className="text-right px-3 py-2">Score</th>
-              <th className="text-right px-3 py-2 pr-3">N</th>
+              <th className="text-left px-3 py-2">Score</th>
+              <th className="text-left px-3 py-2 pr-3">N</th>
             </tr>
           </thead>
           <tbody className="text-white/90">
@@ -221,15 +221,20 @@ function WeakTopicsTable({ rows, onTopicClick }: { rows: WeakTopicRow[]; onTopic
               >
                 <td className="px-3 py-1.5 whitespace-nowrap">{r.subject.replace(/Language$/, "").trim()}</td>
                 <td className="px-3 py-1.5">{r.topic}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">
-                  <span className="inline-flex items-center gap-0.5 justify-end">
-                    {r.pct.toFixed(0)}%
-                    {r.improving && (
-                      <span className="material-symbols-outlined text-[#4edea3] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
-                    )}
+                <td className="px-3 py-1.5 text-left tabular-nums whitespace-nowrap">
+                  {/* Fixed 3-digit slot so 8% / 67% / 100% all start at the
+                      same x. The arrow lives in a fixed-width slot on the
+                      right so its presence doesn't shift the score. */}
+                  <span className="inline-flex items-center gap-1">
+                    <span className="inline-block w-9 text-right">{r.pct.toFixed(0)}%</span>
+                    <span className="inline-block w-4">
+                      {r.improving && (
+                        <span className="material-symbols-outlined text-[#4edea3] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+                      )}
+                    </span>
                   </span>
                 </td>
-                <td className="px-3 py-1.5 text-right tabular-nums pr-3">{r.sample}</td>
+                <td className="px-3 py-1.5 text-left tabular-nums pr-3">{r.sample}</td>
               </tr>
             ))}
           </tbody>
