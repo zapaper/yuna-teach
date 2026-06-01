@@ -17,14 +17,14 @@ export default function AboutPage() {
             <span className="text-lg lg:text-xl font-bold text-primary tracking-tight font-headline">MarkForYou.com</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 font-medium text-sm">
-            <Link className="text-on-surface-variant hover:text-tertiary transition-colors" href="/">Home</Link>
-            <Link className="text-on-surface-variant hover:text-tertiary transition-colors" href="/login">Login</Link>
+            <Link className="text-on-surface-variant hover:text-secondary transition-colors" href="/">Home</Link>
+            <Link className="text-on-surface-variant hover:text-secondary transition-colors" href="/login">Login</Link>
             <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-sm">
               Try Free
             </Link>
           </div>
           <div className="md:hidden flex items-center gap-3">
-            <Link href="/login" className="text-xs text-on-surface-variant hover:text-tertiary transition-colors font-medium">Login</Link>
+            <Link href="/login" className="text-xs text-on-surface-variant hover:text-secondary transition-colors font-medium">Login</Link>
             <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-xs">
               Try Free
             </Link>
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <main className="pt-16 lg:pt-20">
         <section className="py-14 lg:py-20 px-6 warm-gradient">
           <div className="max-w-3xl mx-auto">
-            <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">ABOUT US</span>
+            <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">ABOUT US</span>
             <h1 className="font-headline text-3xl md:text-5xl font-extrabold text-primary leading-tight mb-8 text-balance">
               Built by parents, at the dining table.
             </h1>
@@ -45,7 +45,7 @@ export default function AboutPage() {
                 We built MarkForYou after marking our own kids&apos; papers and hunting for more appropriate practices at 11pm on a Sunday.
               </p>
               <p>
-                Between tuition bills, endless assessment books, and searching for &ldquo;one more similar question,&rdquo; we were spending more time on admin than actually helping our kids learn. Every tool we tried was built by a company for a school. None were built for the parent sitting at the dining table with a red pen and a cup of kopi-O.
+                Between tuition, endless assessment books, and searching for &ldquo;one more similar question,&rdquo; we were spending more time on admin than actually helping our kids learn. Every tool we tried was built by a company for a school. None were built for the parent sitting at the dining table with a red pen and a cup of kopi-O.
               </p>
               <p>
                 So we made our own. MarkForYou does the marking and the &ldquo;what&apos;s next?&rdquo; — you get to be the parent again.
@@ -59,10 +59,10 @@ export default function AboutPage() {
             </div>
 
             <div className="mt-12 flex flex-wrap gap-4">
-              <Link href="/signup" className="px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
+              <Link href="/signup" className="px-10 py-4 bg-secondary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
                 Try now free
               </Link>
-              <Link href="/" className="px-10 py-4 bg-white text-tertiary font-bold rounded-full border-2 border-tertiary hover:bg-tertiary hover:text-white transition-colors text-lg">
+              <Link href="/" className="px-10 py-4 bg-white text-secondary font-bold rounded-full border-2 border-secondary hover:bg-secondary hover:text-white transition-colors text-lg">
                 Back to home
               </Link>
             </div>

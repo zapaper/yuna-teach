@@ -216,7 +216,7 @@ export default function HomePage() {
               {[
                 { q: "What subjects and levels are covered?", a: "We currently support Primary 4 to 6 English, Mathematics, Science and Chinese, all strictly aligned with the latest MOE syllabus." },
                 { q: "How much does it cost?", a: "MarkForYou is currently FREE during our beta period. Our priority is ensuring the best experience for families before we introduce pricing." },
-                { q: "How does the AI marking work?", a: "Students complete quizzes directly on their device. They can tap options for MCQs or write naturally on a digital canvas for open-ended questions. Our AI is trained to read handwriting and provide a grade within seconds." },
+                { q: "How does the AI marking work?", a: "Students complete quizzes directly on their device or on printed worksheets. Our AI is trained to read handwriting, understand MOE scoring rubrics, and marks within seconds." },
               ].map((faq, i) => (
                 <details key={i} className="group bg-white rounded-2xl border border-surface-container-high shadow-sm">
                   <summary className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none font-headline text-base lg:text-lg font-bold text-primary hover:text-secondary transition-colors">
