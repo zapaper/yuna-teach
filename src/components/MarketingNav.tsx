@@ -1,11 +1,10 @@
 import Link from "next/link";
 
-// Shared top-of-page nav for the marketing surfaces (/, /about, /faq,
-// /privacy, /terms). Kept structurally identical to the homepage's
-// inline nav so brand sizing, button shapes and palette read the same
-// across every public page. The homepage doesn't use this component
-// because it has a special "How it Works" anchor link that other
-// pages don't need.
+// Shared top-of-page nav for every public marketing surface (/, /about,
+// /faq, /privacy, /terms). The "How it Works" link points at the
+// homepage anchor — on the homepage it smooth-scrolls in place; from
+// any other marketing page it navigates home and scrolls to that
+// section.
 export default function MarketingNav() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-surface-container">
@@ -19,6 +18,7 @@ export default function MarketingNav() {
         </Link>
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-3 font-medium text-base shrink-0">
+          <Link className="px-5 py-2.5 rounded-full text-on-surface-variant hover:text-secondary hover:bg-secondary-container/50 transition-colors font-semibold whitespace-nowrap" href="/#how-it-works">How it Works</Link>
           <Link className="px-5 py-2.5 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors whitespace-nowrap" href="/login">Login</Link>
           <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all whitespace-nowrap">
             Try Free
