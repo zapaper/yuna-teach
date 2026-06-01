@@ -3,29 +3,32 @@ import NativeLandingBouncer from "@/components/NativeLandingBouncer";
 import FeatureCarousel from "@/components/FeatureCarousel";
 import QuoteCarousel from "@/components/QuoteCarousel";
 
+// Quote text supports **bold** markdown markers. QuoteCarousel parses
+// them into <strong> spans. Used to emphasise the share-worthy phrases
+// without rewriting the surrounding prose.
 const QUOTES = [
   {
-    text: "MarkForYou takes the process every parent already does — buy test papers, hand them to your child, mark them, tag the mistakes, search for more practice — and simplifies all of it. That frees up my time to focus on the thing that actually matters: my child's learning journey.",
+    text: "MarkForYou takes the process every parent already does — buy test papers, hand them to your child, mark them, tag the mistakes, search for more practice — and **simplifies all of it**. That frees up my time to focus on the thing that actually matters: **my child's learning journey**.",
     name: "Melissa",
     attribution: "P6 Mum",
   },
   {
-    text: "I really like that I can choose the topics I want my son to work on — and I'm also reminded to review his weak topics after he's done.",
+    text: "I really like that I can **choose the topics** I want my son to work on — and I'm also **reminded to review his weak topics** after he's done.",
     name: "PY",
     attribution: "P6 Mum, Tiong Bahru",
   },
   {
-    text: "As a P5 parent, MarkForYou gives me a clear snapshot of exactly where my child is struggling — by topic, not just by grade. We can zero in on those weak areas. Honestly, one of the smartest tools to have for PSLE prep!",
+    text: "As a P5 parent, MarkForYou gives me a clear snapshot of exactly where my child is struggling — **by topic, not just by grade**. We can zero in on those weak areas. Honestly, one of the **smartest tools to have for PSLE prep**!",
     name: "Elaine",
     attribution: "P5 Mum",
   },
   {
-    text: "Marking accurately handwritten work is really important. It replicates what my child actually does in a real exam setting.",
+    text: "**Marking accurately handwritten work is really important.** It replicates what my child actually does in a **real exam setting**.",
     name: "Peter",
     attribution: "P4 & P6 Father, Hougang",
   },
   {
-    text: "I absolutely love the revision function. The AI compiles my child's mistakes in a single platform — I no longer have to amass stacks of torn-out pages or worry about losing them!",
+    text: "I absolutely love the **revision function**. The AI **compiles my child's mistakes in a single platform** — I no longer have to amass stacks of torn-out pages or worry about losing them!",
     name: "Jessica",
     attribution: "P5 Mum, Newton",
   },
@@ -41,7 +44,7 @@ const FEATURES = [
   {
     src: "/explanation.png",
     alt: "AI explanation accepting alternative correct answers",
-    title: "Explains every answer — including yours",
+    title: "Explains every answer — in detail",
     description: "Step-by-step working for every question. Accepts answers that aren't in the answer key but are grammatically and contextually correct.",
   },
   {

@@ -3,10 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 
 export type QuoteItem = {
-  text: string;
+  text: string;        // supports **bold** markers — rendered as <strong>
   name: string;
   attribution: string;
 };
+
+// Split a quote string on **bold** spans and return an array of React
+// nodes. Keep it inline-only; no nested markdown. The bold spans pick
+// up text-primary so the key phrases stand out against the body grey.
+function renderWithBold(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) => {
+    if (p.startsWith("**") && p.endsWith("**")) {
+      return (
+        <strong key={i} className="font-bold text-primary">
+          {p.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <span key={i}>{p}</span>;
+  });
+}
 
 // Mirrors FeatureCarousel's mechanics (scroll-snap, IO-driven dot
 // indicator, prev/next chevrons) but with quote-card visuals: large
@@ -62,8 +79,8 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
               format_quote
             </span>
             <blockquote className="flex-1 flex flex-col">
-              <p className="font-quote italic text-lg md:text-xl lg:text-2xl text-on-surface leading-relaxed mb-6 flex-1">
-                &ldquo;{q.text}&rdquo;
+              <p className="font-quote text-lg md:text-xl lg:text-2xl text-on-surface leading-relaxed mb-6 flex-1">
+                &ldquo;{renderWithBold(q.text)}&rdquo;
               </p>
               <figcaption className="text-sm md:text-base font-bold text-primary mt-auto">
                 — {q.name}, <span className="text-on-surface-variant font-semibold">{q.attribution}</span>
