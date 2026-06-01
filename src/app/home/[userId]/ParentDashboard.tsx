@@ -2104,7 +2104,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
         <div className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
-          {recLoading ? null : renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}
+          {recLoading ? null : renderInsight(aiInsight || insightForCard, completedPapers.length > 0 && insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}
         </div>
         {!recLoading && (
           <div className="space-y-2 mb-5">
@@ -3461,7 +3461,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}</div>
+                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard, completedPapers.length > 0 && insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}</div>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
