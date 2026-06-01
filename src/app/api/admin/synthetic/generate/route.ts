@@ -5,6 +5,7 @@ import {
   generateSyntheticDiagramImage,
   generateSyntheticOptionImage,
   generateSyntheticScienceOeq,
+  generateSyntheticSynthesis,
 } from "@/lib/gemini";
 
 import { isSessionAdmin } from "@/lib/session";
@@ -48,6 +49,44 @@ export async function POST(request: NextRequest) {
   // We look up the human-readable label + description from the
   // matching master class so the prompt can quote it back to Gemini.
   const subTopicInfo = resolveSubTopic(q.syllabusTopic, q.subTopic);
+
+  // English Synthesis branch — independent of mcq/oeq toggle. Source
+  // questions are Synthesis & Transformation rows tagged with a
+  // canonical sub-topic (concession, cause, etc.). The generator
+  // returns one transformed-sentence answer per variant, which the
+  // save path stores as options.length === 1.
+  const isSynthesisSource = subj === "english"
+    && q.syllabusTopic !== null
+    && (q.syllabusTopic === "Synthesis / Transformation" || q.syllabusTopic === "Synthesis & Transformation")
+    && q.answer
+    && q.answer.trim().length > 0;
+  if (isSynthesisSource) {
+    try {
+      const variants = await generateSyntheticSynthesis(
+        q.transcribedStem!,
+        q.answer!,
+        q.subTopic ?? undefined,
+      );
+      // Re-shape into the (stem, options, correctAnswer) Variant the
+      // save / admin UI already understands. Synthesis convention:
+      // options[0] = the transformed sentence; correctAnswer = 1.
+      function toVariant(v: { stem: string; answer: string }) {
+        return {
+          stem: v.stem,
+          options: [v.answer],
+          correctAnswer: 1,
+          diagramImageData: null,
+        };
+      }
+      return NextResponse.json({
+        simple: toVariant(variants.simple),
+        similar: toVariant(variants.similar),
+      });
+    } catch (err) {
+      console.error("[synthetic/generate synthesis] failed", err);
+      return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    }
+  }
 
   // OEQ branch: multi-subpart, command-word-aware. Much simpler than MCQ —
   // no image options and no MCQ answer-index validation.

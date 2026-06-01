@@ -100,6 +100,10 @@ function SyntheticContent() {
   // Narrow the source pool further by level + exam type. Empty = no filter.
   const [level, setLevel] = useState<string>("");
   const [examTypes, setExamTypes] = useState<Set<string>>(new Set());
+  // English-only: pick which Synthesis & Transformation sub-topic to
+  // pull from. Empty = no synthesis filter (falls back to the existing
+  // Grammar/Vocab MCQ source pool).
+  const [synthesisSubTopic, setSynthesisSubTopic] = useState<string>("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -132,6 +136,7 @@ function SyntheticContent() {
       const params = new URLSearchParams({ userId, subject, type: questionType });
       if (level) params.set("level", level);
       if (examTypes.size > 0) params.set("examTypes", [...examTypes].join(","));
+      if (subject === "english" && synthesisSubTopic) params.set("synthesisSubTopic", synthesisSubTopic);
       const res = await fetch(`/api/admin/synthetic/batch?${params.toString()}`);
       const data = await res.json();
       const qs: Question[] = data.questions ?? [];
@@ -204,7 +209,7 @@ function SyntheticContent() {
     } finally {
       setLoading(false);
     }
-  }, [userId, subject, questionType, level, examTypes]);
+  }, [userId, subject, questionType, level, examTypes, synthesisSubTopic]);
 
   useEffect(() => { if (allowed) loadBatch(); }, [allowed, loadBatch]);
 
@@ -466,6 +471,33 @@ function SyntheticContent() {
                   {t.toUpperCase()}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* English-only: Synthesis & Transformation sub-topic picker.
+              When set, the source pool is filtered to questions tagged
+              with that sub-topic (concession, cause, etc.) so the
+              generator can produce more variants for an underweighted
+              bucket — Concession only has 8 source rows today, the
+              most undersupplied of the 8 buckets. */}
+          {subject === "english" && (
+            <div className="flex items-center gap-2 mb-3">
+              <label className="text-xs font-bold text-slate-500 whitespace-nowrap">Synthesis sub-topic</label>
+              <select
+                value={synthesisSubTopic}
+                onChange={e => setSynthesisSubTopic(e.target.value)}
+                className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:border-slate-500"
+              >
+                <option value="">— Grammar / Vocab MCQ (default) —</option>
+                <option value="concession">Concession (Although / Despite / No matter)</option>
+                <option value="cause">Cause (Because / Due to / Owing to)</option>
+                <option value="condition">Condition (If / Unless / Only with)</option>
+                <option value="reported-speech">Reported Speech (asked / told / wondered)</option>
+                <option value="preference">Preference (Would rather / Prefer)</option>
+                <option value="participle-having">Participle (Having + V-ed)</option>
+                <option value="inclusion-correlative">Inclusion (Both / Either / Neither / Not only)</option>
+                <option value="relative-clause">Relative Clause (who / whom / which / whose)</option>
+              </select>
             </div>
           )}
 

@@ -18,6 +18,14 @@ export async function GET(request: NextRequest) {
   // Optional filters. If omitted, no restriction is applied.
   const levelParam = qs.get("level"); // "P6", "P5", etc.
   const examTypesParam = qs.get("examTypes"); // comma-separated, e.g. "WA2,EOY"
+  // English-only: when set, switch the source pool to Synthesis &
+  // Transformation questions tagged with this canonical sub-topic
+  // (concession / cause / condition / reported-speech / preference /
+  // participle-having / inclusion-correlative / relative-clause).
+  const synthesisSubTopicParam = qs.get("synthesisSubTopic");
+  const synthesisSubTopic = subjectMatch === "english" && synthesisSubTopicParam
+    ? synthesisSubTopicParam.trim()
+    : "";
 
   // Exclude the synthetic-bank papers themselves — we don't want to generate
   // variants of variants. They're marked with examType: "Synthetic" on create,
@@ -52,6 +60,77 @@ export async function GET(request: NextRequest) {
     ...(examTypes ? { examType: { in: examTypes } } : {}),
     ...notSyntheticBank,
   };
+
+  // English Synthesis branch — independent of mcq/oeq toggle. Source
+  // pool: Synthesis & Transformation questions tagged with the chosen
+  // canonical sub-topic. Shape returned: options=null, correctAnswer=
+  // the transformed-sentence text (so the admin page renders the
+  // synthesis editor instead of MCQ choices).
+  if (synthesisSubTopic) {
+    const SYN_TOPICS = ["Synthesis / Transformation", "Synthesis & Transformation"];
+    const synthQuestions = await prisma.examQuestion.findMany({
+      where: {
+        syntheticGenerated: false,
+        transcribedStem: { not: null },
+        answer: { not: null },
+        syllabusTopic: { in: SYN_TOPICS },
+        subTopic: synthesisSubTopic,
+        examPaper: paperFilter,
+      },
+      select: {
+        id: true,
+        questionNum: true,
+        transcribedStem: true,
+        answer: true,
+        syllabusTopic: true,
+        subTopic: true,
+        syntheticGenerated: true,
+        syntheticQuestions: {
+          // Synthesis variants store the transformed sentence as the
+          // single-item options array — already supported by the save
+          // path. Pull them back so the admin page can rehydrate any
+          // previously-accepted variants.
+          select: { variant: true, stem: true, options: true, correctAnswer: true, diagramImageData: true },
+        },
+        examPaper: { select: { id: true, title: true, year: true, school: true, level: true, examType: true } },
+      },
+      orderBy: [{ syntheticSkipped: "asc" }, { id: "asc" }],
+      take: 50,
+    });
+    // Quality gate: keep only those whose stored answer looks like a
+    // full transformed sentence (≥ 5 words). Filters out OCR garbage.
+    const filtered = synthQuestions
+      .filter(q => {
+        const a = (q.answer ?? "").trim();
+        if (!a) return false;
+        const words = a.split(/\s+/).filter(Boolean);
+        return words.length >= 5;
+      })
+      .slice(0, 10);
+    return NextResponse.json({
+      type: "mcq",  // re-use the MCQ render path on the page (options=null branch)
+      synthesis: true,
+      subTopic: synthesisSubTopic,
+      questions: filtered.map(q => ({
+        id: q.id,
+        questionNum: q.questionNum,
+        stem: q.transcribedStem,
+        options: null,
+        optionImages: null,
+        correctAnswer: q.answer,
+        diagramImageData: null,
+        syllabusTopic: q.syllabusTopic,
+        subTopic: q.subTopic,
+        syntheticGenerated: q.syntheticGenerated,
+        syntheticQuestions: q.syntheticQuestions,
+        paperTitle: q.examPaper.title,
+        paperYear: q.examPaper.year,
+        paperSchool: q.examPaper.school,
+        paperLevel: q.examPaper.level,
+        paperExamType: q.examPaper.examType,
+      })),
+    });
+  }
 
   // OEQ branch: multi-subpart open-ended questions. Source pool is questions
   // with a transcribed stem AND at least one transcribed subpart and no text
