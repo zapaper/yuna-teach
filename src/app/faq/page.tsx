@@ -1,4 +1,4 @@
-import Link from "next/link";
+import MarketingNav from "@/components/MarketingNav";
 
 type FaqSection = { heading: string; items: { q: string; a: string }[] };
 
@@ -79,18 +79,10 @@ const faqSections: FaqSection[] = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#eff6ff] to-white">
-      {/* Header */}
-      <header className="px-6 py-5 flex items-center justify-between max-w-4xl mx-auto">
-        <Link href="/" className="font-headline text-xl font-extrabold text-[#003366]">
-          MarkForYou
-        </Link>
-        <Link href="/signup" className="px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#001e40] transition-colors">
-          Sign Up Free
-        </Link>
-      </header>
+      <MarketingNav />
 
-      {/* Content */}
-      <main className="max-w-3xl mx-auto px-6 py-10 lg:py-16">
+      {/* Content. pt-24/pt-28 so the first heading clears the fixed nav. */}
+      <main className="max-w-3xl mx-auto px-6 pt-24 lg:pt-28 pb-10 lg:pb-16">
         <div className="text-center mb-10 lg:mb-14">
           <h1 className="font-headline text-3xl lg:text-4xl font-extrabold text-[#001e40] mb-3">
             Frequently Asked Questions

@@ -1,3 +1,5 @@
+import MarketingNav from "@/components/MarketingNav";
+
 export const metadata = {
   title: "Terms of Use · MarkForYou",
   description: "Terms governing your use of the MarkForYou service.",
@@ -7,8 +9,9 @@ const LAST_UPDATED = "May 2026";
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-white">
-      <article className="max-w-3xl mx-auto px-6 py-14 text-[#0b1c30]">
+    <div className="min-h-screen bg-white">
+      <MarketingNav />
+      <article className="max-w-3xl mx-auto px-6 pt-24 lg:pt-28 pb-14 text-[#0b1c30]">
         <h1 className="text-3xl font-extrabold mb-1">Terms of Use</h1>
         <p className="text-sm text-[#737780] mb-10">Last updated: {LAST_UPDATED}</p>
 
@@ -158,6 +161,6 @@ export default function TermsPage() {
           <a href="/" className="underline">Home</a>
         </p>
       </article>
-    </main>
+    </div>
   );
 }

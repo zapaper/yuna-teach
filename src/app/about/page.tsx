@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MarketingNav from "@/components/MarketingNav";
 
 export const metadata = {
   title: "About Us | MarkForYou.com",
@@ -8,29 +9,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <div className="bg-background text-on-surface font-body min-h-screen">
-      {/* ── TopNavBar ── */}
-      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-surface-container">
-        <div className="flex justify-between items-center h-16 lg:h-20 px-6 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="MarkForYou Logo" className="h-8 w-8 lg:h-10 lg:w-10 object-contain rounded-lg" src="/logo_t.png" />
-            <span className="text-lg lg:text-xl font-bold text-primary tracking-tight font-headline">MarkForYou.com</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8 font-medium text-sm">
-            <Link className="text-on-surface-variant hover:text-secondary transition-colors" href="/">Home</Link>
-            <Link className="text-on-surface-variant hover:text-secondary transition-colors" href="/login">Login</Link>
-            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-sm">
-              Try Free
-            </Link>
-          </div>
-          <div className="md:hidden flex items-center gap-3">
-            <Link href="/login" className="text-xs text-on-surface-variant hover:text-secondary transition-colors font-medium">Login</Link>
-            <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-xs">
-              Try Free
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <MarketingNav />
 
       <main className="pt-16 lg:pt-20">
         <section className="py-14 lg:py-20 px-6 warm-gradient">
