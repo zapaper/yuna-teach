@@ -1,5 +1,33 @@
 import Link from "next/link";
 import NativeLandingBouncer from "@/components/NativeLandingBouncer";
+import FeatureCarousel from "@/components/FeatureCarousel";
+
+const FEATURES = [
+  {
+    src: "/marking_combined.png",
+    alt: "Handwritten answers marked with partial credit",
+    title: "Marks handwritten work — even messy",
+    description: "Reads your child's writing and awards partial marks where they're earned, the way a teacher would.",
+  },
+  {
+    src: "/explanation.png",
+    alt: "AI explanation accepting alternative correct answers",
+    title: "Explains every answer — including yours",
+    description: "Step-by-step working for every question. Accepts answers that aren't in the answer key but are grammatically and contextually correct.",
+  },
+  {
+    src: "/weaktopics.png",
+    alt: "Weak topics dashboard with focused practice",
+    title: "Pinpoints weak topics — and what to do next",
+    description: "No more hunting for “more like this”. The dashboard tells you which topics are weak and queues a focused practice on each.",
+  },
+  {
+    src: "/accuracy.png",
+    alt: "Marking accuracy benchmarked against top AI models",
+    title: "Marking accuracy you can trust",
+    description: "Aligned with MOE scoring rubrics. We benchmark our marking against the top AI models on every release.",
+  },
+];
 
 export default function HomePage() {
   return (
@@ -164,55 +192,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-8">
-              {/* Feature 1 — handwriting + partial credit */}
-              <article className="bg-white border border-surface-container-high rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="aspect-[4/3] bg-surface-container-low flex items-center justify-center p-3 lg:p-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="Handwritten answers marked with partial credit" className="max-h-full max-w-full object-contain" src="/marking_combined.png" />
-                </div>
-                <div className="p-6 lg:p-8">
-                  <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-2">Marks handwritten work — even messy</h3>
-                  <p className="text-on-surface-variant text-sm lg:text-base leading-relaxed">Reads your child&apos;s writing and awards partial marks where they&apos;re earned, the way a teacher would.</p>
-                </div>
-              </article>
-
-              {/* Feature 2 — explanation + non-key answers */}
-              <article className="bg-white border border-surface-container-high rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="aspect-[4/3] bg-surface-container-low flex items-center justify-center p-3 lg:p-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="AI explanation accepting alternative correct answers" className="max-h-full max-w-full object-contain" src="/explanation.png" />
-                </div>
-                <div className="p-6 lg:p-8">
-                  <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-2">Explains every answer — including yours</h3>
-                  <p className="text-on-surface-variant text-sm lg:text-base leading-relaxed">Step-by-step working for every question. Accepts answers that aren&apos;t in the answer key but are grammatically and contextually correct.</p>
-                </div>
-              </article>
-
-              {/* Feature 3 — weak topics + focused practice */}
-              <article className="bg-white border border-surface-container-high rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="aspect-[4/3] bg-surface-container-low flex items-center justify-center p-3 lg:p-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="Weak topics dashboard with focused practice" className="max-h-full max-w-full object-contain" src="/weaktopics.png" />
-                </div>
-                <div className="p-6 lg:p-8">
-                  <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-2">Pinpoints weak topics — and what to do next</h3>
-                  <p className="text-on-surface-variant text-sm lg:text-base leading-relaxed">No more hunting for &ldquo;more like this&rdquo;. The dashboard tells you which topics are weak and queues a focused practice on each.</p>
-                </div>
-              </article>
-
-              {/* Feature 4 — accuracy + MOE rubric */}
-              <article className="bg-white border border-surface-container-high rounded-3xl shadow-sm overflow-hidden flex flex-col">
-                <div className="aspect-[4/3] bg-surface-container-low flex items-center justify-center p-3 lg:p-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="Marking accuracy chart" className="max-h-full max-w-full object-contain" src="/accuracy.png" />
-                </div>
-                <div className="p-6 lg:p-8">
-                  <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-2">Marking accuracy you can trust</h3>
-                  <p className="text-on-surface-variant text-sm lg:text-base leading-relaxed">Aligned with MOE scoring rubrics. We track marking accuracy across every release.</p>
-                </div>
-              </article>
-            </div>
+            <FeatureCarousel items={FEATURES} />
           </div>
         </section>
 
