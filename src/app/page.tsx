@@ -114,8 +114,7 @@ export default function HomePage() {
         <section className="py-12 lg:py-20 bg-white px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 lg:mb-12">
-              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">PARENTS SAY</span>
-              <h2 className="font-headline text-3xl lg:text-5xl font-extrabold text-primary text-balance">What parents tell us</h2>
+              <h2 className="font-headline text-3xl lg:text-5xl font-extrabold text-primary text-balance">Hear from Real Parents</h2>
             </div>
             <QuoteCarousel items={QUOTES} />
           </div>
@@ -149,11 +148,11 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 lg:mb-12 max-w-4xl mx-auto">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">HOW IT WORKS</span>
-              <h2 className="font-headline text-xl md:text-2xl lg:text-3xl font-medium text-primary mb-5 leading-tight text-balance">
-                A <strong className="text-secondary font-bold">10-minute</strong> quiz on <strong className="text-secondary font-bold">mobile</strong>, or a full exam-style <strong className="text-secondary font-bold">handwritten paper</strong>?
+              <h2 className="font-headline text-2xl md:text-3xl lg:text-4xl font-extrabold text-primary mb-5 leading-tight text-balance">
+                A <span className="text-secondary">10-minute</span> quiz on <span className="text-secondary">mobile</span>, or a full exam-style <span className="text-secondary">handwritten paper</span>?
               </h2>
               <p className="text-base lg:text-xl text-on-surface-variant leading-relaxed">
-                <strong className="text-primary font-bold">Your choice.</strong> Instantly marked against <strong className="text-primary font-bold">MOE scoring rubrics</strong>, with <strong className="text-primary font-bold">step-by-step explanation</strong>.
+                <strong className="text-primary font-bold">Either way, your choice.</strong> Both will be instantly marked against <strong className="text-primary font-bold">MOE scoring rubrics</strong>, with <strong className="text-primary font-bold">step-by-step explanation</strong>.
               </p>
             </div>
 
