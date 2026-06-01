@@ -40,25 +40,25 @@ const FEATURES = [
     src: "/marking_combined.png",
     alt: "Handwritten answers marked with partial credit",
     title: "Marks handwritten work — even messy",
-    description: "Reads your child's writing and awards partial marks where they're earned, the way a teacher would.",
+    description: "Reads handwriting and awards partial marks the way a teacher would.",
   },
   {
     src: "/explanation.png",
     alt: "AI explanation accepting alternative correct answers",
     title: "Explains every answer — in detail",
-    description: "Step-by-step working for every question. Accepts answers that aren't in the answer key but are grammatically and contextually correct.",
+    description: "Step-by-step working. Accepts correct answers that aren't in the answer key.",
   },
   {
     src: "/weaktopics.png",
     alt: "Weak topics dashboard with focused practice",
-    title: "Pinpoints weak topics — and what to do next",
-    description: "No more hunting for “more like this”. The dashboard tells you which topics are weak and creates a focused practice.",
+    title: "Pinpoints weak topics",
+    description: "Tells you which topics are weak and creates a focused practice on each.",
   },
   {
     src: "/accuracy.png",
     alt: "Marking accuracy benchmarked against top AI models",
     title: "Marking accuracy you can trust",
-    description: "Aligned with MOE scoring rubrics. We benchmark our marking against the top AI models on every release.",
+    description: "Aligned with MOE rubrics. Benchmarked against the top AI models on every release.",
   },
 ];
 
@@ -215,32 +215,14 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA ────────────────────────────────────────────── */}
-        <section className="py-12 lg:py-20 px-6 bg-white">
-          <div className="max-w-5xl mx-auto bg-secondary-container rounded-[3rem] p-8 md:p-14 text-center relative overflow-hidden soft-glow">
-            {/* Owl — mobile: top center */}
-            <div className="lg:hidden flex justify-center mb-6">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="Flying Owl" className="h-24 w-auto object-contain opacity-90" src="/owlfly_t.png" />
-            </div>
-            {/* Owl — desktop: bottom left */}
-            <div className="absolute -left-12 bottom-0 hidden lg:block z-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="Flying Owl" className="h-48 w-auto object-contain opacity-90" src="/owlfly_t.png" />
-            </div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full -mr-32 -mt-32"></div>
-            <div className="relative z-10">
-              <h2 className="font-headline text-2xl md:text-5xl font-extrabold text-primary mb-5 lg:mb-6">
-                Stop marking. <span className="text-secondary">Start coaching.</span>
-              </h2>
-              <p className="text-on-secondary-container text-base md:text-xl mb-8 lg:mb-10 max-w-2xl mx-auto">
-                Try now and see your child&apos;s homework marked instantly, weak spots identified and next steps recommended. FREE, no credit card.
-              </p>
-              <div className="flex justify-center">
-                <Link href="/signup" className="w-full sm:w-auto px-12 py-5 bg-secondary text-white font-extrabold rounded-full text-lg hover:opacity-90 transition-opacity shadow-lg">
-                  Try now FREE
-                </Link>
-              </div>
-            </div>
+        <section className="py-12 lg:py-20 px-6 bg-surface-container-low">
+          <div className="max-w-2xl mx-auto text-center">
+            <p className="text-on-surface text-base md:text-xl mb-8 lg:mb-10">
+              Try now and see your child&apos;s homework marked instantly, weak spots identified and next steps recommended. FREE, no credit card.
+            </p>
+            <Link href="/signup" className="inline-block px-12 py-5 bg-secondary text-white font-extrabold rounded-full text-lg hover:opacity-90 transition-opacity shadow-lg">
+              Try now FREE
+            </Link>
           </div>
         </section>
 

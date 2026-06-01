@@ -128,16 +128,14 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt={it.alt}
-                className="absolute inset-0 w-full h-full object-contain p-3 pt-28 lg:pt-40"
+                className="absolute inset-0 w-full h-full object-contain p-2 pt-20 lg:pt-28"
                 src={it.src}
               />
-              {/* Fixed-height header so every card's title block sits at
-                  the same vertical position. line-clamp keeps overflow
-                  silent on longer descriptions. Smaller header on
-                  mobile so the image area isn't crushed. */}
-              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-5 py-3 lg:px-8 lg:py-5 z-10 h-28 lg:h-40 overflow-hidden flex flex-col justify-center">
-                <h3 className="font-headline text-base md:text-lg lg:text-xl font-bold mb-0.5 leading-tight line-clamp-1">{it.title}</h3>
-                <p className="text-white/85 text-xs md:text-sm lg:text-base leading-snug line-clamp-3">{it.description}</p>
+              {/* Compact, uniform-height header. line-clamp keeps over-
+                  flow silent so longer copy doesn't bleed past the strip. */}
+              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-4 py-2 lg:px-6 lg:py-3 z-10 h-20 lg:h-28 overflow-hidden flex flex-col justify-center">
+                <h3 className="font-headline text-sm md:text-base lg:text-lg font-bold mb-0.5 leading-tight line-clamp-1">{it.title}</h3>
+                <p className="text-white/85 text-xs lg:text-sm leading-snug line-clamp-2">{it.description}</p>
               </div>
             </article>
           );
