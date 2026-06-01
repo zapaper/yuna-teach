@@ -58,7 +58,7 @@ const FEATURES = [
     src: "/accuracy2.png",
     alt: "Marking accuracy benchmarked against top AI models",
     title: "Marking accuracy you can trust",
-    description: "Aligned with MOE rubrics. Benchmarked against the top AI models on every release.",
+    description: "Aligned with MOE rubrics. Benchmarked against the top AI models.",
   },
 ];
 
