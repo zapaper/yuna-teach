@@ -162,12 +162,49 @@ function adaptResponse(text: string): { text: string } {
   return { text };
 }
 
+// OpenAI-only marking reminder. The Gemini prompt in marking.ts
+// already carries equivalence + "no-working-needed-for-correct-answer"
+// rules buried inside its math-answer-first block, but the OpenAI eval
+// showed gpt-4.1-mini ignores them in ~3 questions per run — awards 0
+// on "6/7 m vs 6/7", "32° with no working", "35S vs 35" etc. Front-
+// loading the rules into a system message lifts compliance without
+// changing the Gemini path (Gemini doesn't see this prepend).
+//
+// Rules deliberately overlap with what's already in markPrompt — we
+// pay token cost for redundancy, not for new rules, so behaviour is
+// strictly more permissive on equivalence + strictly preserved on
+// the FINAL-ANSWER-GOVERNS / no-rescue anti-hallucination guards.
+const OPENAI_MARKING_REMINDER = `You are about to receive a marking task. Before applying the detailed prompt, internalise these THREE NON-NEGOTIABLE rules — gpt-4.1-mini has been observed to under-apply them in past runs:
+
+1. EQUIVALENCE — these are the SAME answer and earn FULL marks for that part:
+   - 6/7 = 6/7 m = $\\frac{6}{7}$ = 0.857… (units are optional unless the question explicitly says "give your answer in cm" / "leave units in"; any fraction format = the same number)
+   - 1/2 = 0.5 = 50% ; 3 1/2 = 7/2 = 3.5 ; 18 2/3 = $18\\frac{2}{3}$
+   - 35 = "35 notes" = "35S" = "35 dollars" (trailing labels / unit hints that don't contradict the expected answer are not penalised)
+   - 22° = 22 degrees = 22 (degree symbol optional unless the question literally requires the symbol)
+   - 3:7 ≠ 7:3 (ratios DO have direction — wrong-direction is still wrong, this exemption does NOT extend to ratio reversal)
+
+2. CORRECT FINAL ANSWER → FULL MARKS, EVEN IF NO WORKING IS SHOWN.
+   If the student's final-answer line matches the expected answer (after applying rule 1), award the full marks for that part. Do NOT deduct for "no working shown" / "no intermediate steps" / "did not show calculation". The "no working = 0" guard exists ONLY for WRONG final answers (to prevent the marker from rescuing a wrong answer by hallucinating method credit). Correct final answer + no working = full marks.
+
+3. METHOD JUDGEMENT — when the student's working uses the correct method but expresses it differently from the expected steps, accept it. The expected-answer key is one valid path, not the only valid path. "1 set = 6 + 5 = 11; 385 ÷ 11 = 35" is a correct 3u + 1u = $11 → 1u = $35 chain, even if the key wrote "6U + 5U = 385; U = 35".
+
+These three rules apply at EVERY part of the marking. The detailed prompt below still binds — but where it appears to contradict equivalence / correct-final-answer / valid-alternative-method, these three rules win.`;
+
 export async function runOpenAIFallback(
   params: GeminiParams,
   label?: string,
 ): Promise<{ text: string }> {
   const tag = label ? `[OpenAI-fallback:${label}]` : "[OpenAI-fallback]";
   const req = translateRequest(params);
+  // For marking calls only: prepend a system message that re-asserts
+  // the rules gpt-4.1-mini tends to under-apply. Gemini never sees
+  // this — it's exclusively an OpenAI-side patch.
+  if (label === "marking") {
+    req.messages = [
+      { role: "system", content: OPENAI_MARKING_REMINDER },
+      ...req.messages,
+    ];
+  }
   console.log(`${tag} calling ${req.model} (translated from ${params?.model ?? "?"})`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const completion = await getOpenAI().chat.completions.create(req as any);
