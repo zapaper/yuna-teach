@@ -1002,16 +1002,18 @@ function QuestionCard({
     }
   }
 
-  // Wrap onDraw: when a subref crop is drawn while previewing the
-  // question's home page, fall through to the existing server-side
-  // crop (which uses q.imageData). When previewing an adjacent page,
-  // do the crop client-side against the previewed page image so the
-  // question's locked crop region stays untouched.
+  // Wrap onDraw: when a subref crop is drawn AND subrefPreview is
+  // active (any page, including the home page), crop client-side from
+  // the FULL page image that's currently displayed. Falling back to
+  // the server-side crop API would crop from q.imageData (the
+  // question's small locked region), but the displayed image is the
+  // full page — bounds drawn on a full page don't map onto the small
+  // crop, so the result was offset/cropped. Stay client-side for
+  // every subref draw while preview is loaded.
   async function handleDrawWithSubrefPreview(bounds: DiagramBounds, target: DrawTarget) {
     const targetStr = String(target);
     const isSubref = targetStr.startsWith("subref-");
-    const onAdjacentPage = !!subrefPreview && subrefPreview.pageIdx !== (q.pageIndex ?? 0);
-    if (!isSubref || !subrefPreview || !onAdjacentPage) {
+    if (!isSubref || !subrefPreview) {
       onDraw(bounds, target);
       return;
     }
@@ -1191,7 +1193,11 @@ function QuestionCard({
 
               <DrawableImage
                 src={inSubrefMode && subrefPreview ? subrefPreview.pageImg : q.imageData}
-                boxes={inSubrefMode && subrefPreview && subrefPreview.pageIdx !== (q.pageIndex ?? 0) ? [] : boxes}
+                // Existing diagram-bounds overlays are drawn in q.imageData
+                // pixel coords — they don't line up with the full-page
+                // preview, so hide them whenever we're showing a page
+                // rendering (any page in subref mode).
+                boxes={inSubrefMode && subrefPreview ? [] : boxes}
                 liveColor={(drawTarget === "drawable" || (typeof drawTarget === "string" && (drawTarget.startsWith("sub-") || drawTarget.startsWith("subref-")))) ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
                 onDraw={bounds => void handleDrawWithSubrefPreview(bounds, drawTarget)}
               />
