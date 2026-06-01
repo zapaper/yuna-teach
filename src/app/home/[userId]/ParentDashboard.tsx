@@ -130,7 +130,7 @@ function renderBold(text: string) {
 // items; other non-empty lines render as paragraphs above/between bullets.
 // Tolerant of mixed content (Gemini sometimes adds a preamble line).
 // Bold (**…**) is applied inline.
-function renderInsight(text: string) {
+function renderInsight(text: string, replaceLastBulletWith?: React.ReactNode) {
   // Normalize: Gemini sometimes returns all bullets on one line separated by
   // " • " instead of newlines. Inject a newline before every • (except the
   // first one). Only do this for the "•" character — leaving "-" / "*"
@@ -153,6 +153,19 @@ function renderInsight(text: string) {
       blocks.push({ type: "p", text: line });
     }
   }
+  // When the caller supplies a replacement node, drop the last bullet of
+  // the LAST ul block. Used by the AI Smart Insights card to swap the
+  // "weak topics" bullet for the structured weak-topics table.
+  if (replaceLastBulletWith) {
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const b = blocks[i];
+      if (b.type === "ul" && b.items.length > 0) {
+        b.items.pop();
+        if (b.items.length === 0) blocks.splice(i, 1);
+        break;
+      }
+    }
+  }
   return (
     <div className="space-y-2">
       {blocks.map((b, i) => b.type === "ul" ? (
@@ -167,6 +180,47 @@ function renderInsight(text: string) {
       ) : (
         <p key={i}>{renderBold(b.text)}</p>
       ))}
+      {replaceLastBulletWith}
+    </div>
+  );
+}
+
+// Small, tight weak-topics table for the AI Smart Insights card.
+// Columns: Subject · Topic · Score · Sample, with a green up-arrow when
+// the last-5-question average beats the last-10-question average by ≥5
+// percentage points (encoded server-side as `improving: true`).
+type WeakTopicRow = { subject: string; topic: string; pct: number; sample: number; improving: boolean };
+function WeakTopicsTable({ rows }: { rows: WeakTopicRow[] }) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="mt-3 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+      <table className="w-full text-xs">
+        <thead className="bg-white/5">
+          <tr className="text-[10px] font-semibold uppercase tracking-wider text-[#4edea3]">
+            <th className="text-left px-3 py-2">Subject</th>
+            <th className="text-left px-3 py-2">Topic</th>
+            <th className="text-right px-3 py-2">Score</th>
+            <th className="text-right px-3 py-2 pr-3">N</th>
+          </tr>
+        </thead>
+        <tbody className="text-white/90">
+          {rows.map((r, i) => (
+            <tr key={i} className={i % 2 === 0 ? "bg-white/[0.02]" : ""}>
+              <td className="px-3 py-1.5 whitespace-nowrap">{r.subject.replace(/Language$/, "").trim()}</td>
+              <td className="px-3 py-1.5">{r.topic}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">
+                <span className="inline-flex items-center gap-0.5 justify-end">
+                  {r.pct.toFixed(0)}%
+                  {r.improving && (
+                    <span className="material-symbols-outlined text-[#4edea3] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+                  )}
+                </span>
+              </td>
+              <td className="px-3 py-1.5 text-right tabular-nums pr-3">{r.sample}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -279,6 +333,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [aiInsight, setAiInsight] = useState("");
   const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recLoading, setRecLoading] = useState(false);
+  // Top weak topics for the AI Smart Insights card. Computed
+  // server-side from the student's marked questions — see
+  // /api/student/weak-topics and lib/weak-topics.ts.
+  // Named distinctly from the lower-card `weakTopics` derivation
+  // (line ~920) which is a separate shape used by the gap-card.
+  const [insightWeakTopics, setInsightWeakTopics] = useState<WeakTopicRow[]>([]);
   // In-app document scanner. Holds the assigned-paper context the
   // parent is scanning a completed paper for; null = scanner closed.
   const [scannerTarget, setScannerTarget] = useState<{
@@ -685,6 +745,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchInsight(); }, [userId, selectedStudentId, studentQuizFingerprint]);
+
+  // Pull the structured weak-topics table that replaces the LLM's
+  // "weak topics" bullet inside the AI Smart Insights card. Server
+  // computes the recent-trend (last-5 vs last-10 question avg).
+  useEffect(() => {
+    if (!selectedStudentId) { setInsightWeakTopics([]); return; }
+    let cancelled = false;
+    fetch(`/api/student/weak-topics?studentId=${selectedStudentId}&limit=5`)
+      .then(r => r.ok ? r.json() : { rows: [] })
+      .then((d: { rows: WeakTopicRow[] }) => { if (!cancelled) setInsightWeakTopics(d.rows ?? []); })
+      .catch(() => { if (!cancelled) setInsightWeakTopics([]); });
+    return () => { cancelled = true; };
+  }, [selectedStudentId]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
@@ -1886,7 +1959,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
         <div className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
-          {recLoading ? null : renderInsight(aiInsight || insightForCard)}
+          {recLoading ? null : renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} /> : undefined)}
         </div>
         {!recLoading && (
           <div className="space-y-2 mb-5">
@@ -3243,7 +3316,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard)}</div>
+                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} /> : undefined)}</div>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
