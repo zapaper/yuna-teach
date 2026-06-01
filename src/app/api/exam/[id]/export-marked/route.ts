@@ -468,8 +468,12 @@ async function handle(
 
     const qs = bySubPage.get(i) ?? [];
     const perQ = (allMarks.find(p => p.pageIdx === i)?.perQ) ?? [];
-    const markSize = Math.max(28, Math.round(pageH * 0.022));
-    const noteSize = Math.max(18, Math.round(pageH * 0.014));
+    // 2× larger ticks/crosses than before — they need to read as the
+    // dominant red mark on the page, not a small accent.
+    const markSize = Math.max(56, Math.round(pageH * 0.044));
+    // Note font ~50% larger so the handwriting comment sits at a
+    // comfortable teacher-paper reading size next to the stamp.
+    const noteSize = Math.max(27, Math.round(pageH * 0.021));
     const isScience = (paper.subject ?? "").toLowerCase().includes("science");
 
     for (const q of qs) {
@@ -506,9 +510,26 @@ async function handle(
         // status === "wrong" (covers full-wrong AND partial credit)
         stampMark(page, "cross", markX, markY, markSize);
 
-        // "-N" deduction badge to the RIGHT of the cross, sized close
-        // to the cross itself so the deduction is the loudest signal
-        // on the page.
+        if (isMcq) {
+          // MCQ: append "(correctAnswer)" right of the cross. For a
+          // 1-mark MCQ the answer key IS the comment — skip the -N
+          // badge and the long marking note entirely.
+          const mcqNote = `(${answerStr})`;
+          const mcqNoteSize = Math.round(markSize * 0.7);
+          page.drawText(mcqNote, {
+            x: markX + markSize * 0.6,
+            y: markY - mcqNoteSize * 0.05,
+            size: mcqNoteSize,
+            font: helvetica,
+            color: RED,
+          });
+          continue;
+        }
+
+        // OEQ from here on: -N deduction badge + per-subpart marking
+        // note positioned just below this subpart's cross (not at the
+        // end of the question), so each comment sits next to the
+        // answer it's about.
         const lost = m.marksLost > 0 ? m.marksLost : 1;
         const badge = `-${formatMarks(lost)}`;
         const badgeSize = Math.round(markSize * 0.95);
@@ -520,13 +541,6 @@ async function handle(
           color: RED,
         });
 
-        // Note placement: sits BELOW the question's bounding box rather
-        // than next to the cross. Wider per-line budget (~55% of page
-        // width) and capped at 2 lines so longer comments fit cleanly.
-        // Right-aligned to the mark column for a teacher-paper feel.
-        // Drawn character-by-character with tiny random rotation and
-        // y-offset per glyph so the same letter doesn't render
-        // identically each time — looks closer to actual handwriting.
         if (m.note) {
           const stripped = stripLatex(m.note);
           const rawLines = stripped.split(" / ").map(s => s.trim()).filter(Boolean);
@@ -543,9 +557,8 @@ async function handle(
           let wrapped = wrapAt(pageW * 0.55);
           if (wrapped.length > 1) wrapped = wrapAt(pageW * 0.75);
           const capped = wrapped.slice(0, 2);
-          // Question-region bottom in PDF coords (y increases upward).
-          const regionBottomY = pageH - (entry.pageRegion.topPx + entry.pageRegion.heightPx);
-          let yCursor = regionBottomY - noteSize * 0.4;
+          // First baseline sits just below this subpart's cross.
+          let yCursor = markY - markSize * 0.65 - noteSize;
           for (const line of capped) {
             const lineW = handFont.widthOfTextAtSize(line, noteSize);
             drawJitteredText(page, line, {
