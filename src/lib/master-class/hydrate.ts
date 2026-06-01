@@ -12,9 +12,29 @@ import { prisma } from "@/lib/db";
 import { getMasterClass, type MasterClassContent, type MasterClassSlide } from "@/data/master-class";
 import { parseSlideScript } from "./parse-script";
 
-function overlay(yaml: MasterClassSlide, script: string | undefined): MasterClassSlide {
+// Loose title match — lowercase, strip punctuation/whitespace/markdown.
+// Used to confirm a DB-saved script still refers to the SAME slide the
+// YAML now shows. Renaming/reordering/inserting slides in the YAML used
+// to be invisible because the stale DB scripts kept overlaying at the
+// same array index (the "I edited the master class but nothing changed"
+// bug). When the loose title match fails we drop the overlay for that
+// slide and let the fresh YAML show through.
+function titleKey(s: string): string {
+  return (s ?? "")
+    .toLowerCase()
+    .replace(/\*\*|__/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function overlay(yaml: MasterClassSlide, script: string | undefined, slug: string, idx: number): MasterClassSlide {
   if (!script || !script.trim()) return yaml;
   const parsed = parseSlideScript(script);
+  const yamlKey = titleKey(yaml.title);
+  const scriptKey = titleKey(parsed.title);
+  if (yamlKey && scriptKey && yamlKey !== scriptKey) {
+    console.warn(`[master-class:${slug}] stale script at slide ${idx} — DB script title "${parsed.title}" no longer matches YAML title "${yaml.title}". Falling back to YAML.`);
+    return yaml;
+  }
   // Script is the source of truth — deletions in the textarea must
   // apply (so removing a callout in the editor clears the callout).
   // Only structured blocks the textarea can't represent fall back to
@@ -45,7 +65,7 @@ export async function getMasterClassHydrated(slug: string): Promise<MasterClassC
   const mistakeScripts = Array.isArray(row.commonMistakeScripts) ? row.commonMistakeScripts as string[] : [];
   return {
     ...base,
-    keyConcepts: base.keyConcepts.map((s, i) => overlay(s, keyScripts[i])),
-    commonMistakes: base.commonMistakes.map((s, i) => overlay(s, mistakeScripts[i])),
+    keyConcepts: base.keyConcepts.map((s, i) => overlay(s, keyScripts[i], slug, i)),
+    commonMistakes: base.commonMistakes.map((s, i) => overlay(s, mistakeScripts[i], slug, i)),
   };
 }
