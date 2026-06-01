@@ -422,6 +422,7 @@ async function handle(
   const handFontBytes = await getHandFontBytes();
   const handFont = await doc.embedFont(handFontBytes);
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
+  const helveticaRegular = await doc.embedFont(StandardFonts.Helvetica);
   const RED = rgb(0.85, 0.10, 0.10);
 
   // Pre-embed every tick/cross PNG ONCE per document so the per-question
@@ -466,6 +467,48 @@ async function handle(
     const page = doc.addPage([pageW, pageH]);
     page.drawImage(img, { x: 0, y: 0, width: pageW, height: pageH });
 
+    // Pre-compute per-row mean greyscale so the note placer can slide
+    // a comment downward into the nearest whitespace band instead of
+    // overlapping the student's writing. We sample only the right 60%
+    // of the page (where notes get drawn) so a tall ASCII illustration
+    // in the question doesn't poison the row mean.
+    const { data: pageGray, info: grayInfo } = await sharp(jpgBytes).greyscale().raw().toBuffer({ resolveWithObject: true });
+    const grayW = grayInfo.width;
+    const grayH = grayInfo.height;
+    const sampleStartX = Math.floor(grayW * 0.4);
+    const sampleW = grayW - sampleStartX;
+    const rowMeans = new Float32Array(grayH);
+    for (let y = 0; y < grayH; y++) {
+      let sum = 0;
+      const rowOff = y * grayW;
+      for (let x = 0; x < sampleW; x++) sum += pageGray[rowOff + sampleStartX + x];
+      rowMeans[y] = sum / sampleW;
+    }
+    // A row counts as "whitespace" if its mean is brighter than this.
+    // 240 catches near-white scanned paper without misclassifying very
+    // light pencil strokes.
+    const WS_THRESHOLD = 240;
+    // Find the first y inside [yStart, yEnd) that has `needH` consecutive
+    // whitespace rows (so a multi-line note fits). Returns yStart as the
+    // graceful fallback when nothing is found.
+    function findWhitespaceBand(yStart: number, yEnd: number, needH: number): number {
+      const lo = Math.max(0, Math.floor(yStart));
+      const hi = Math.min(grayH, Math.floor(yEnd));
+      let runStart = -1;
+      let run = 0;
+      for (let y = lo; y < hi; y++) {
+        if (rowMeans[y] >= WS_THRESHOLD) {
+          if (runStart < 0) runStart = y;
+          run++;
+          if (run >= needH) return runStart;
+        } else {
+          runStart = -1;
+          run = 0;
+        }
+      }
+      return yStart;
+    }
+
     const qs = bySubPage.get(i) ?? [];
     const perQ = (allMarks.find(p => p.pageIdx === i)?.perQ) ?? [];
     // 2× larger ticks/crosses than before — they need to read as the
@@ -480,11 +523,12 @@ async function handle(
       const entry = perQ.find(e => e.qId === q.id);
       if (!entry) continue;
 
-      // Detect OEQ via the answer field — MCQ answers are a single
-      // letter/digit; anything else (even a one-word OEQ answer)
-      // counts as OEQ for layout purposes.
+      // Detect OEQ via the answer field. Strip parens / periods first
+      // so "(4)", "4.", "4" and "(1)" all detect as MCQ. Anything that
+      // doesn't reduce to a single A-D / 1-4 character counts as OEQ.
       const answerStr = (q.answer ?? "").trim();
-      const isMcq = /^[A-D1-4]$/i.test(answerStr);
+      const cleanAnswer = answerStr.replace(/[().]/g, "").trim();
+      const isMcq = /^[A-D1-4]$/i.test(cleanAnswer);
       const isOeq = !isMcq;
 
       // Mark column: 10% from the right edge by default; 15% for
@@ -514,7 +558,7 @@ async function handle(
           // MCQ: append "(correctAnswer)" right of the cross. For a
           // 1-mark MCQ the answer key IS the comment — skip the -N
           // badge and the long marking note entirely.
-          const mcqNote = `(${answerStr})`;
+          const mcqNote = `(${cleanAnswer})`;
           const mcqNoteSize = Math.round(markSize * 0.7);
           page.drawText(mcqNote, {
             x: markX + markSize * 0.6,
@@ -527,17 +571,16 @@ async function handle(
         }
 
         // OEQ from here on: -N deduction badge + per-subpart marking
-        // note positioned just below this subpart's cross (not at the
-        // end of the question), so each comment sits next to the
-        // answer it's about.
+        // note. Badge is 50% smaller than the cross and uses regular
+        // Helvetica (not bold) so the cross stays the dominant signal.
         const lost = m.marksLost > 0 ? m.marksLost : 1;
         const badge = `-${formatMarks(lost)}`;
-        const badgeSize = Math.round(markSize * 0.95);
+        const badgeSize = Math.round(markSize * 0.475);
         page.drawText(badge, {
           x: markX + markSize * 0.6,
-          y: markY - badgeSize * 0.05,
+          y: markY - badgeSize * 0.1,
           size: badgeSize,
-          font: helvetica,
+          font: helveticaRegular,
           color: RED,
         });
 
@@ -557,18 +600,36 @@ async function handle(
           let wrapped = wrapAt(pageW * 0.55);
           if (wrapped.length > 1) wrapped = wrapAt(pageW * 0.75);
           const capped = wrapped.slice(0, 2);
-          // First baseline sits just below this subpart's cross.
-          let yCursor = markY - markSize * 0.65 - noteSize;
-          for (const line of capped) {
-            const lineW = handFont.widthOfTextAtSize(line, noteSize);
+
+          // Left-justified: every line starts at the same x. Anchor
+          // the block so its longest line ends near the mark column,
+          // keeping the comment visually attached to the cross without
+          // ever wandering off the right edge.
+          const lineWidths = capped.map(l => handFont.widthOfTextAtSize(l, noteSize));
+          const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
+          const noteX = Math.max(pageW * 0.05, markRightX - longestW);
+
+          // Walk DOWN from the cross looking for the nearest band of
+          // whitespace tall enough for the whole note block. yPx is
+          // image-coord (from top); rowMeans is indexed the same way.
+          // Search up to ~25% of the page below the mark before
+          // giving up and using the original below-cross position.
+          const blockH = capped.length * noteSize * 1.25;
+          const lineSpacingPx = noteSize * 1.25;
+          const startY = yPx + markSize * 0.6;
+          const wsTop = findWhitespaceBand(startY, Math.min(grayH, startY + grayH * 0.25), Math.ceil(blockH));
+          // First baseline = top-of-whitespace + first line's ascent.
+          let yCursor = pageH - wsTop - noteSize;
+          for (let li = 0; li < capped.length; li++) {
+            const line = capped[li];
             drawJitteredText(page, line, {
-              x: markRightX - lineW,
+              x: noteX,
               y: yCursor,
               size: noteSize,
               font: handFont,
               color: RED,
             });
-            yCursor -= noteSize * 1.25;
+            yCursor -= lineSpacingPx;
           }
         }
       }
