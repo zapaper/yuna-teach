@@ -40,7 +40,9 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
     const track = trackRef.current;
     if (!track) return;
     const slides = Array.from(track.children) as HTMLElement[];
-    const target = slides[idx];
+    // Wrap around so the carousel loops: -1 → last, length → 0.
+    const wrapped = ((idx % slides.length) + slides.length) % slides.length;
+    const target = slides[wrapped];
     if (target) target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
@@ -80,19 +82,17 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
           visible regardless of viewport width. Desktop only. */}
       <button
         type="button"
-        onClick={() => go(Math.max(0, active - 1))}
-        disabled={active === 0}
+        onClick={() => go(active - 1)}
         aria-label="Previous feature"
-        className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors"
       >
         <span className="material-symbols-outlined">chevron_left</span>
       </button>
       <button
         type="button"
-        onClick={() => go(Math.min(items.length - 1, active + 1))}
-        disabled={active === items.length - 1}
+        onClick={() => go(active + 1)}
         aria-label="Next feature"
-        className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors"
       >
         <span className="material-symbols-outlined">chevron_right</span>
       </button>
