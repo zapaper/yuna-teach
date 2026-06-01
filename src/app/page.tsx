@@ -111,7 +111,7 @@ export default function HomePage() {
         {/* ── Parent Quotes ───────────────────────────────────── */}
         {/* All 5 quotes in a single swipe carousel — no featured-on-top
             layout. Same swipe + arrow + dot UX as the feature carousel. */}
-        <section className="py-12 lg:py-20 bg-white px-6">
+        <section className="py-12 lg:py-20 bg-surface-container-low px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 lg:mb-12">
               <h2 className="font-headline text-3xl lg:text-5xl font-extrabold text-primary text-balance">Hear from Real Parents</h2>
@@ -217,7 +217,7 @@ export default function HomePage() {
         <section className="py-12 lg:py-20 px-6 bg-surface-container-low">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-on-surface text-base md:text-xl mb-8 lg:mb-10">
-              Try now and see your child&apos;s homework marked instantly, weak spots identified and next steps recommended. FREE, no credit card.
+              Try now and see your child&apos;s homework marked instantly, weak spots identified and next steps recommended. FREE, no credit card required.
             </p>
             <Link href="/signup" className="inline-block px-12 py-5 bg-secondary text-white font-extrabold rounded-full text-lg hover:opacity-90 transition-opacity shadow-lg">
               Try now FREE

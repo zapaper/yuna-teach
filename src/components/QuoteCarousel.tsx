@@ -147,7 +147,7 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
                 format_quote
               </span>
               <blockquote className="flex-1 flex flex-col">
-                <p className="font-quote text-lg md:text-xl lg:text-2xl text-on-surface leading-relaxed mb-6 flex-1">
+                <p className="text-base md:text-lg lg:text-xl text-on-surface leading-relaxed mb-6 flex-1">
                   &ldquo;{renderWithBold(q.text)}&rdquo;
                 </p>
                 <figcaption className="text-sm md:text-base font-bold text-primary mt-auto">
