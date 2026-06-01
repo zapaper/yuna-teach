@@ -105,15 +105,16 @@ export async function getWeakTopics(studentId: string, limit = 5): Promise<WeakT
     if (b.items.length < MIN_SAMPLE) continue;
     if (b.available === 0) continue;
     const overall = (b.awarded / b.available) * 100;
+    // Improving signal: average of the most recent 10 questions on this
+    // topic vs the per-question average across ALL questions. If the
+    // student has fewer than 10 questions total, the recent slice IS
+    // the full set — the two averages collapse, delta = 0, improving
+    // stays false. That's intentional: an "improving" flag needs a
+    // baseline older than the recent window.
     const recent = b.items.slice(-10);
-    const last5 = recent.slice(-5);
-    const last10Pct = recent.length >= MIN_SAMPLE
-      ? recent.reduce((s, x) => s + x.pct, 0) / recent.length
-      : null;
-    const last5Pct = last5.length >= 3
-      ? last5.reduce((s, x) => s + x.pct, 0) / last5.length
-      : null;
-    const improving = last5Pct != null && last10Pct != null && (last5Pct - last10Pct) >= IMPROVING_DELTA;
+    const recentPct = recent.reduce((s, x) => s + x.pct, 0) / recent.length;
+    const overallPerQ = b.items.reduce((s, x) => s + x.pct, 0) / b.items.length;
+    const improving = (recentPct - overallPerQ) >= IMPROVING_DELTA;
     rows.push({ subject: b.subject, topic: b.topic, pct: overall, sample: b.items.length, improving });
   }
   rows.sort((a, b) => a.pct - b.pct);
