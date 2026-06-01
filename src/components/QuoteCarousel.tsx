@@ -62,8 +62,8 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
               format_quote
             </span>
             <blockquote className="flex-1 flex flex-col">
-              <p className="text-base md:text-lg lg:text-2xl text-on-surface leading-relaxed mb-6 font-medium flex-1">
-                {q.text}
+              <p className="font-quote italic text-lg md:text-xl lg:text-2xl text-on-surface leading-relaxed mb-6 flex-1">
+                &ldquo;{q.text}&rdquo;
               </p>
               <figcaption className="text-sm md:text-base font-bold text-primary mt-auto">
                 — {q.name}, <span className="text-on-surface-variant font-semibold">{q.attribution}</span>
@@ -73,13 +73,14 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
         ))}
       </div>
 
-      {/* Arrows — desktop only */}
+      {/* Arrows — overlay inside the track edges so they're always
+          visible regardless of viewport width. Desktop only. */}
       <button
         type="button"
         onClick={() => go(Math.max(0, active - 1))}
         disabled={active === 0}
         aria-label="Previous quote"
-        className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 w-11 h-11 bg-white rounded-full shadow-md items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <span className="material-symbols-outlined">chevron_left</span>
       </button>
@@ -88,7 +89,7 @@ export default function QuoteCarousel({ items }: { items: QuoteItem[] }) {
         onClick={() => go(Math.min(items.length - 1, active + 1))}
         disabled={active === items.length - 1}
         aria-label="Next quote"
-        className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 w-11 h-11 bg-white rounded-full shadow-md items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-full shadow-lg items-center justify-center text-primary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <span className="material-symbols-outlined">chevron_right</span>
       </button>

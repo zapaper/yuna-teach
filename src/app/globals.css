@@ -50,6 +50,11 @@
 .font-body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
+/* Used for parent testimonials on the homepage — Lora italic reads
+   warm and verbal, like the parent is actually saying the words. */
+.font-quote {
+  font-family: var(--font-lora), Georgia, "Times New Roman", serif;
+}
 
 .font-label {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Lora } from "next/font/google";
 import "./globals.css";
 import ChunkErrorReloader from "@/components/ChunkErrorReloader";
 import OfflineOverlay from "@/components/OfflineOverlay";
@@ -50,6 +50,16 @@ const inter = Inter({
   variable: "--font-inter",
   display: "optional",
 });
+// Lora — humanist serif used for testimonials. Italic gives quotes
+// the "this is someone speaking" feel without resorting to a script
+// face. Kept to homepage only via the .font-quote class.
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-lora",
+  display: "optional",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -76,7 +86,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`scroll-smooth ${jakarta.variable} ${inter.variable}`}>
+    <html lang="en" className={`scroll-smooth ${jakarta.variable} ${inter.variable} ${lora.variable}`}>
       <head>
         {/* iOS-only synchronous redirect — runs before any paint.
             See NATIVE_HOME_REDIRECT_SCRIPT comment above. */}
