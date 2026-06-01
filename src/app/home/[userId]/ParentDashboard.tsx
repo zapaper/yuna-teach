@@ -190,37 +190,51 @@ function renderInsight(text: string, replaceLastBulletWith?: React.ReactNode) {
 // the last-5-question average beats the last-10-question average by ≥5
 // percentage points (encoded server-side as `improving: true`).
 type WeakTopicRow = { subject: string; topic: string; pct: number; sample: number; improving: boolean };
-function WeakTopicsTable({ rows }: { rows: WeakTopicRow[] }) {
+function WeakTopicsTable({ rows, onTopicClick }: { rows: WeakTopicRow[]; onTopicClick?: (r: WeakTopicRow) => void }) {
   if (rows.length === 0) return null;
   return (
-    <div className="mt-3 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-      <table className="w-full text-xs">
-        <thead className="bg-white/5">
-          <tr className="text-[10px] font-semibold uppercase tracking-wider text-[#4edea3]">
-            <th className="text-left px-3 py-2">Subject</th>
-            <th className="text-left px-3 py-2">Topic</th>
-            <th className="text-right px-3 py-2">Score</th>
-            <th className="text-right px-3 py-2 pr-3">N</th>
-          </tr>
-        </thead>
-        <tbody className="text-white/90">
-          {rows.map((r, i) => (
-            <tr key={i} className={i % 2 === 0 ? "bg-white/[0.02]" : ""}>
-              <td className="px-3 py-1.5 whitespace-nowrap">{r.subject.replace(/Language$/, "").trim()}</td>
-              <td className="px-3 py-1.5">{r.topic}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">
-                <span className="inline-flex items-center gap-0.5 justify-end">
-                  {r.pct.toFixed(0)}%
-                  {r.improving && (
-                    <span className="material-symbols-outlined text-[#4edea3] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
-                  )}
-                </span>
-              </td>
-              <td className="px-3 py-1.5 text-right tabular-nums pr-3">{r.sample}</td>
+    <div className="mt-3">
+      {/* Header reads like a bullet so it slots cleanly under the
+          preceding insight bullets. Bold, green bullet marker
+          matching the existing list style. */}
+      <div className="flex gap-2 mb-1.5">
+        <span className="text-[#4edea3] mt-[2px]">•</span>
+        <span className="flex-1 font-bold text-white">Weakest Topics</span>
+      </div>
+      <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+        <table className="w-full text-xs">
+          <thead className="bg-white/5">
+            <tr className="text-[10px] font-semibold uppercase tracking-wider text-[#4edea3]">
+              <th className="text-left px-3 py-2">Subject</th>
+              <th className="text-left px-3 py-2">Topic</th>
+              <th className="text-right px-3 py-2">Score</th>
+              <th className="text-right px-3 py-2 pr-3">N</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="text-white/90">
+            {rows.map((r, i) => (
+              <tr
+                key={i}
+                className={`${i % 2 === 0 ? "bg-white/[0.02]" : ""} ${onTopicClick ? "cursor-pointer hover:bg-white/10 transition-colors" : ""}`}
+                onClick={onTopicClick ? () => onTopicClick(r) : undefined}
+                title={onTopicClick ? "Click to open Focused Practice on this topic" : undefined}
+              >
+                <td className="px-3 py-1.5 whitespace-nowrap">{r.subject.replace(/Language$/, "").trim()}</td>
+                <td className="px-3 py-1.5">{r.topic}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">
+                  <span className="inline-flex items-center gap-0.5 justify-end">
+                    {r.pct.toFixed(0)}%
+                    {r.improving && (
+                      <span className="material-symbols-outlined text-[#4edea3] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+                    )}
+                  </span>
+                </td>
+                <td className="px-3 py-1.5 text-right tabular-nums pr-3">{r.sample}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -758,6 +772,56 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       .catch(() => { if (!cancelled) setInsightWeakTopics([]); });
     return () => { cancelled = true; };
   }, [selectedStudentId]);
+
+  // Map a clicked weak-topic row to the Focused Practice modal state
+  // and open it. Math/Science route through focusedTopic; English maps
+  // the syllabus topic back to a section key; Chinese is admin-only so
+  // we don't auto-launch into it from here.
+  function handleWeakTopicClick(row: WeakTopicRow) {
+    if (!selectedStudentId) return;
+    const subjLc = row.subject.toLowerCase();
+    let target: "math" | "science" | "english" | null = null;
+    if (subjLc.includes("math")) target = "math";
+    else if (subjLc.includes("science")) target = "science";
+    else if (subjLc.includes("english")) target = "english";
+    if (!target) return; // Chinese / Other — no Focused Practice path
+
+    setAssignMode("focused");
+    setQuizSubject(target);
+    setQuizStudentId(selectedStudentId);
+    setQuizTargetDay(null);
+
+    if (target === "english") {
+      // Inverse of the englishSectionTopicMap defined in the English
+      // focused panel below. Pick the section key whose accepted
+      // syllabus-topic display strings include this row's topic.
+      const englishTopicToSection: Record<string, string> = {
+        "Grammar MCQ": "grammar-mcq",
+        "Vocabulary MCQ": "vocab-mcq",
+        "Vocabulary Cloze MCQ": "vocab-cloze",
+        "Vocabulary Cloze": "vocab-cloze",
+        "Visual Text Comprehension MCQ": "visual-text",
+        "Visual Text Comprehension": "visual-text",
+        "Grammar Cloze": "grammar-cloze",
+        "Editing (Spelling & Grammar)": "editing",
+        "Editing": "editing",
+        "Comprehension Cloze": "comprehension-cloze",
+        "Synthesis / Transformation": "synthesis",
+        "Synthesis & Transformation": "synthesis",
+        "Comprehension Open Ended": "comprehension-oeq",
+        "Comprehension (Open-ended)": "comprehension-oeq",
+        "Comprehension OEQ": "comprehension-oeq",
+      };
+      const sectionKey = englishTopicToSection[row.topic];
+      if (sectionKey) setEnglishSections(new Set([sectionKey]));
+      setFocusedTopic("");
+    } else {
+      // Math / Science — use focusedTopic directly. The Focus Practice
+      // panel's dropdown matches against this exact string.
+      setFocusedTopic(row.topic);
+    }
+    setShowQuiz(true);
+  }
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
@@ -2032,7 +2096,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
         <div className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
-          {recLoading ? null : renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} /> : undefined)}
+          {recLoading ? null : renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}
         </div>
         {!recLoading && (
           <div className="space-y-2 mb-5">
@@ -3389,7 +3453,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} /> : undefined)}</div>
+                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard, insightWeakTopics.length > 0 ? <WeakTopicsTable rows={insightWeakTopics} onTopicClick={handleWeakTopicClick} /> : undefined)}</div>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
