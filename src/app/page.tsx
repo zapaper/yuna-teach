@@ -172,8 +172,8 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 lg:mb-12 max-w-4xl mx-auto">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">HOW IT WORKS</span>
-              <h2 className="font-headline text-2xl md:text-4xl lg:text-5xl font-extrabold text-primary mb-5 leading-tight text-balance">
-                A <span className="text-secondary">10-minute quiz on mobile</span>, or a <span className="text-secondary">full exam-style handwritten paper</span>?
+              <h2 className="font-headline text-xl md:text-2xl lg:text-3xl font-medium text-primary mb-5 leading-tight text-balance">
+                A <strong className="text-secondary font-bold">10-minute</strong> quiz on <strong className="text-secondary font-bold">mobile</strong>, or a full exam-style <strong className="text-secondary font-bold">handwritten paper</strong>?
               </h2>
               <p className="text-base lg:text-xl text-on-surface-variant leading-relaxed">
                 <strong className="text-primary font-bold">Your choice.</strong> Instantly marked against <strong className="text-primary font-bold">MOE scoring rubrics</strong>, with <strong className="text-primary font-bold">step-by-step explanation</strong>.
