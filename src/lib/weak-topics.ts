@@ -18,13 +18,22 @@
 // Algorithm:
 //   1. Pull every marked question on the student's papers that pass
 //      the scope above.
-//   2. Group by (normalised subject, syllabusTopic). Require ≥5
-//      questions per bucket so we don't surface noise.
-//   3. Compute overall % = awarded / available across the bucket.
-//   4. Recent-trend: average of the last 5 questions (chronological
-//      by examPaper.completedAt) vs the last 10. If last-5 ≥ last-10
-//      + 5 percentage points → mark as improving (green up arrow).
-//   5. Sort ascending by overall %, return the top N.
+//   2. Group by (normalised subject, syllabusTopic). DEDUPE attempts
+//      to the most-recent attempt per source question — re-doing the
+//      same question 4× shouldn't be 4× the data points; it should be
+//      1 data point reflecting the child's current skill on that
+//      question. Falls back to the row's own id when sourceQuestionId
+//      is null (direct attempts on master papers — already unique).
+//   3. Require ≥5 UNIQUE questions per bucket so we don't surface noise.
+//   4. Compute overall % = sum of latest-awarded / sum of latest-available
+//      across the unique questions in the bucket.
+//   5. Recent-trend: average of the most recent 10 unique questions
+//      (chronological by completedAt of their latest attempt) vs the
+//      per-question average across ALL unique questions. If recent-10
+//      is ≥5 percentage points above the lifetime per-question average,
+//      mark improving (green up arrow). With ≤10 unique questions the
+//      slice equals the full set — delta = 0 → improving stays false.
+//   6. Sort ascending by overall %, return the top N.
 
 import { prisma } from "@/lib/db";
 
@@ -43,8 +52,8 @@ export type WeakTopicRow = {
   subject: string;
   topic: string;
   pct: number;        // overall % score on this topic
-  sample: number;     // questions seen on this topic
-  improving: boolean; // last-5 avg ≥ last-10 avg + 5 percentage points
+  sample: number;     // unique questions seen on this topic
+  improving: boolean; // recent-10 unique avg ≥ lifetime per-q avg + 5 percentage points
 };
 
 const MIN_SAMPLE = 5;
@@ -60,17 +69,24 @@ export async function getWeakTopics(studentId: string, limit = 5): Promise<WeakT
     select: {
       subject: true, completedAt: true, metadata: true,
       questions: {
-        select: { syllabusTopic: true, marksAwarded: true, marksAvailable: true },
+        select: {
+          id: true,
+          sourceQuestionId: true,
+          syllabusTopic: true,
+          marksAwarded: true,
+          marksAvailable: true,
+        },
       },
     },
   });
 
+  type Attempt = { awarded: number; available: number; pct: number; completedAt: Date };
   type Bucket = {
     subject: string;
     topic: string;
-    items: { pct: number }[];   // chronological order, per question
-    awarded: number;
-    available: number;
+    // Keyed by sourceQuestionId (or the question's own id if no source).
+    // Holds the LATEST attempt per unique source question.
+    latestBySource: Map<string, Attempt>;
   };
   const buckets = new Map<string, Bucket>();
 
@@ -82,6 +98,7 @@ export async function getWeakTopics(studentId: string, limit = 5): Promise<WeakT
 
     const subject = bucketSubject(p.subject);
     if (subject === "Other") continue;
+    const paperCompletedAt = p.completedAt ?? new Date(0);
 
     for (const q of p.questions) {
       const topic = q.syllabusTopic ?? "";
@@ -91,31 +108,41 @@ export async function getWeakTopics(studentId: string, limit = 5): Promise<WeakT
       if (awardedRaw == null || !Number.isFinite(avail) || avail <= 0) continue;
       const awarded = Number(awardedRaw);
 
-      const key = `${subject}|${topic}`;
-      const b = buckets.get(key) ?? { subject, topic, items: [], awarded: 0, available: 0 };
-      b.awarded += awarded;
-      b.available += avail;
-      b.items.push({ pct: (awarded / avail) * 100 });
-      buckets.set(key, b);
+      const bucketKey = `${subject}|${topic}`;
+      const b = buckets.get(bucketKey) ?? { subject, topic, latestBySource: new Map<string, Attempt>() };
+      // Use the source question id when present (clones from quizzes /
+      // focused tests / mastery point at the bank source row). Falls
+      // back to the row's own id for direct master-paper attempts.
+      const sourceKey = q.sourceQuestionId ?? q.id;
+      const existing = b.latestBySource.get(sourceKey);
+      if (!existing || paperCompletedAt > existing.completedAt) {
+        b.latestBySource.set(sourceKey, {
+          awarded, available: avail,
+          pct: (awarded / avail) * 100,
+          completedAt: paperCompletedAt,
+        });
+      }
+      buckets.set(bucketKey, b);
     }
   }
 
   const rows: WeakTopicRow[] = [];
   for (const b of buckets.values()) {
-    if (b.items.length < MIN_SAMPLE) continue;
-    if (b.available === 0) continue;
-    const overall = (b.awarded / b.available) * 100;
-    // Improving signal: average of the most recent 10 questions on this
-    // topic vs the per-question average across ALL questions. If the
-    // student has fewer than 10 questions total, the recent slice IS
-    // the full set — the two averages collapse, delta = 0, improving
-    // stays false. That's intentional: an "improving" flag needs a
-    // baseline older than the recent window.
-    const recent = b.items.slice(-10);
+    const items = [...b.latestBySource.values()]
+      .sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime());
+    if (items.length < MIN_SAMPLE) continue;
+    const totalAwarded = items.reduce((s, x) => s + x.awarded, 0);
+    const totalAvailable = items.reduce((s, x) => s + x.available, 0);
+    if (totalAvailable === 0) continue;
+    const overall = (totalAwarded / totalAvailable) * 100;
+    // Improving signal: avg of recent-10 unique questions vs lifetime
+    // per-question average. With ≤10 unique items the slice equals the
+    // full set — delta = 0 → improving stays false.
+    const recent = items.slice(-10);
     const recentPct = recent.reduce((s, x) => s + x.pct, 0) / recent.length;
-    const overallPerQ = b.items.reduce((s, x) => s + x.pct, 0) / b.items.length;
+    const overallPerQ = items.reduce((s, x) => s + x.pct, 0) / items.length;
     const improving = (recentPct - overallPerQ) >= IMPROVING_DELTA;
-    rows.push({ subject: b.subject, topic: b.topic, pct: overall, sample: b.items.length, improving });
+    rows.push({ subject: b.subject, topic: b.topic, pct: overall, sample: items.length, improving });
   }
   rows.sort((a, b) => a.pct - b.pct);
   return rows.slice(0, limit);
