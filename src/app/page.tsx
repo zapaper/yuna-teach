@@ -39,7 +39,7 @@ const FEATURES = [
   {
     src: "/marking_combined.png",
     alt: "Handwritten answers marked with partial credit",
-    title: "Marks handwritten work — even messy ones",
+    title: "Marks even messy handwritten work",
     description: "Reads handwriting and awards partial marks the way a teacher would.",
   },
   {
