@@ -133,7 +133,7 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
               />
               {/* Compact, uniform-height header. line-clamp keeps over-
                   flow silent so longer copy doesn't bleed past the strip. */}
-              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-4 py-2 lg:px-6 lg:py-3 z-10 h-20 lg:h-28 overflow-hidden flex flex-col justify-center">
+              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-4 py-2 lg:px-6 lg:py-3 z-10 h-20 lg:h-28 overflow-hidden flex flex-col justify-start">
                 <h3 className="font-headline text-sm md:text-base lg:text-lg font-bold mb-0.5 leading-tight line-clamp-1">{it.title}</h3>
                 <p className="text-white/85 text-xs lg:text-sm leading-snug line-clamp-2">{it.description}</p>
               </div>
