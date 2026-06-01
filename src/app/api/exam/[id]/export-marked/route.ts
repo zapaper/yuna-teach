@@ -42,7 +42,9 @@ async function getHandFontBytes(): Promise<Buffer> {
 // cross-*.png). Each stamp picks one at random per question so the
 // resulting PDF has natural ink variation, not four identical
 // vector glyphs. Loaded once per process.
-const TICK_FILES = ["tick-01.png","tick-02.png","tick-03.png","tick-04.png","tick-05.png","tick-06.png","tick-07.png","tick-08.png","tick-09.png","tick-10.png","tick-13.png","tick-14.png","tick-15.png","tick-16.png"] as const;
+// tick-05, tick-07, tick-08 dropped — they read as cropped fragments
+// rather than confident hand-drawn ticks. Pool stays at 11 variants.
+const TICK_FILES = ["tick-01.png","tick-02.png","tick-03.png","tick-04.png","tick-06.png","tick-09.png","tick-10.png","tick-13.png","tick-14.png","tick-15.png","tick-16.png"] as const;
 const CROSS_FILES = ["cross-01.png","cross-02.png","cross-03.png","cross-04.png"] as const;
 type MarkImageBytes = { bytes: Buffer; widthPx: number; heightPx: number };
 let _tickImages: MarkImageBytes[] | null = null;
