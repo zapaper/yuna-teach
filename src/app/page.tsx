@@ -39,7 +39,7 @@ const FEATURES = [
   {
     src: "/marking_combined.png",
     alt: "Handwritten answers marked with partial credit",
-    title: "Marks handwritten work — even messy",
+    title: "Marks handwritten work — even messy ones",
     description: "Reads handwriting and awards partial marks the way a teacher would.",
   },
   {
@@ -128,7 +128,7 @@ export default function HomePage() {
         <section className="py-12 lg:py-20 bg-surface-container-low px-6">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10 lg:mb-14">
-              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">WHY MARK FOR YOU</span>
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">WHY MARKFORYOU</span>
               <h2 className="font-headline text-3xl md:text-5xl font-extrabold text-primary mb-4 leading-tight text-balance">
                 Built by parents who were tired of marking.
               </h2>
