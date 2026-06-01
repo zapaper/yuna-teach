@@ -1,6 +1,35 @@
 import Link from "next/link";
 import NativeLandingBouncer from "@/components/NativeLandingBouncer";
 import FeatureCarousel from "@/components/FeatureCarousel";
+import QuoteCarousel from "@/components/QuoteCarousel";
+
+const QUOTES = [
+  {
+    text: "MarkForYou takes the process every parent already does — buy test papers, hand them to your child, mark them, tag the mistakes, search for more practice — and simplifies all of it. That frees up my time to focus on the thing that actually matters: my child's learning journey.",
+    name: "Melissa",
+    attribution: "P6 Mum",
+  },
+  {
+    text: "I really like that I can choose the topics I want my son to work on — and I'm also reminded to review his weak topics after he's done.",
+    name: "PY",
+    attribution: "P6 Mum, Tiong Bahru",
+  },
+  {
+    text: "As a P5 parent, MarkForYou gives me a clear snapshot of exactly where my child is struggling — by topic, not just by grade. We can zero in on those weak areas. Honestly, one of the smartest tools to have for PSLE prep!",
+    name: "Elaine",
+    attribution: "P5 Mum",
+  },
+  {
+    text: "Marking accurately handwritten work is really important. It replicates what my child actually does in a real exam setting.",
+    name: "Peter",
+    attribution: "P4 & P6 Father, Hougang",
+  },
+  {
+    text: "I absolutely love the revision function. The AI compiles my child's mistakes in a single platform — I no longer have to amass stacks of torn-out pages or worry about losing them!",
+    name: "Jessica",
+    attribution: "P5 Mum, Newton",
+  },
+];
 
 const FEATURES = [
   {
@@ -100,79 +129,15 @@ export default function HomePage() {
         </section>
 
         {/* ── Parent Quotes ───────────────────────────────────── */}
-        {/* Moved up: parents hear other parents first. Layout is one
-            featured quote, then a 4-card row below. All cards: white +
-            thin neutral border + a small green quote-mark icon. */}
+        {/* All 5 quotes in a single swipe carousel — no featured-on-top
+            layout. Same swipe + arrow + dot UX as the feature carousel. */}
         <section className="py-12 lg:py-20 bg-white px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 lg:mb-12">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">PARENTS SAY</span>
               <h2 className="font-headline text-3xl lg:text-5xl font-extrabold text-primary text-balance">What parents tell us</h2>
             </div>
-
-            {/* Featured quote — Melissa's captures the whole problem-to-solution arc */}
-            <figure className="relative bg-white border border-surface-container-high rounded-3xl p-8 md:p-12 mb-6 lg:mb-8 shadow-sm">
-              <span className="material-symbols-outlined text-secondary text-4xl lg:text-5xl mb-4 block" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-              <blockquote>
-                <p className="text-lg md:text-2xl text-on-surface leading-relaxed mb-6 font-medium">
-                  MarkForYou takes the process every parent already does — buy test papers, hand them to your child, mark them, tag the mistakes, search for more practice — and simplifies all of it. That frees up my time to focus on the thing that actually matters: my child&apos;s learning journey.
-                </p>
-                <figcaption className="text-sm md:text-base font-bold text-primary">
-                  — Melissa, <span className="text-on-surface-variant font-semibold">P6 Mum</span>
-                </figcaption>
-              </blockquote>
-            </figure>
-
-            {/* Grid of 4 supporting quotes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              <figure className="bg-white border border-surface-container-high rounded-2xl p-6 shadow-sm flex flex-col">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-3" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-                <blockquote className="flex-1 flex flex-col">
-                  <p className="text-sm md:text-base text-on-surface leading-relaxed mb-4 flex-1">
-                    As a P5 parent, MarkForYou gives me a clear snapshot of exactly where my child is struggling — by topic, not just by grade. We can zero in on those weak areas. Honestly, one of the smartest tools to have for PSLE prep!
-                  </p>
-                  <figcaption className="text-xs md:text-sm font-bold text-primary mt-auto">
-                    — Elaine, <span className="text-on-surface-variant font-semibold">P5 Mum</span>
-                  </figcaption>
-                </blockquote>
-              </figure>
-
-              <figure className="bg-white border border-surface-container-high rounded-2xl p-6 shadow-sm flex flex-col">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-3" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-                <blockquote className="flex-1 flex flex-col">
-                  <p className="text-sm md:text-base text-on-surface leading-relaxed mb-4 flex-1">
-                    I really like that I can choose the topics I want my son to work on — and I&apos;m also reminded to review his weak topics after he&apos;s done.
-                  </p>
-                  <figcaption className="text-xs md:text-sm font-bold text-primary mt-auto">
-                    — PY, <span className="text-on-surface-variant font-semibold">P6 Mum, Tiong Bahru</span>
-                  </figcaption>
-                </blockquote>
-              </figure>
-
-              <figure className="bg-white border border-surface-container-high rounded-2xl p-6 shadow-sm flex flex-col">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-3" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-                <blockquote className="flex-1 flex flex-col">
-                  <p className="text-sm md:text-base text-on-surface leading-relaxed mb-4 flex-1">
-                    Marking accurately handwritten work is really important. It replicates what my child actually does in a real exam setting.
-                  </p>
-                  <figcaption className="text-xs md:text-sm font-bold text-primary mt-auto">
-                    — Peter, <span className="text-on-surface-variant font-semibold">P4 &amp; P6 Father, Hougang</span>
-                  </figcaption>
-                </blockquote>
-              </figure>
-
-              <figure className="bg-white border border-surface-container-high rounded-2xl p-6 shadow-sm flex flex-col">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-3" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-                <blockquote className="flex-1 flex flex-col">
-                  <p className="text-sm md:text-base text-on-surface leading-relaxed mb-4 flex-1">
-                    I absolutely love the revision function. The AI compiles my child&apos;s mistakes in a single platform — I no longer have to amass stacks of torn-out pages or worry about losing them!
-                  </p>
-                  <figcaption className="text-xs md:text-sm font-bold text-primary mt-auto">
-                    — Jessica, <span className="text-on-surface-variant font-semibold">P5 Mum, Newton</span>
-                  </figcaption>
-                </blockquote>
-              </figure>
-            </div>
+            <QuoteCarousel items={QUOTES} />
           </div>
         </section>
 
@@ -197,39 +162,22 @@ export default function HomePage() {
         </section>
 
         {/* ── How it Works ───────────────────────────────────── */}
-        {/* 3-step strip + demo video. The features section that used to
-            sit separately (3,000+ questions, handwriting, marks in
-            seconds) now lives inside the step copy + stat strip. */}
+        {/* Single question-answer headline + stat strip + demo video.
+            The 3-step card strip was retired — the value-prop carousel
+            above already covers what each piece does. */}
         <section className="py-12 lg:py-20 bg-white px-6" id="how-it-works">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8 lg:mb-12">
+            <div className="text-center mb-8 lg:mb-12 max-w-4xl mx-auto">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-secondary tracking-[0.2em] mb-3">HOW IT WORKS</span>
-              <h2 className="font-headline text-3xl lg:text-5xl font-extrabold text-primary text-balance">Three steps, no marking required</h2>
+              <h2 className="font-headline text-2xl md:text-4xl lg:text-5xl font-extrabold text-primary mb-5 leading-tight text-balance">
+                A <span className="text-secondary">10-minute quiz on mobile</span>, or a <span className="text-secondary">full exam-style handwritten paper</span>?
+              </h2>
+              <p className="text-base lg:text-xl text-on-surface-variant leading-relaxed">
+                <strong className="text-primary font-bold">Your choice.</strong> Instantly marked against <strong className="text-primary font-bold">MOE scoring rubrics</strong>, with <strong className="text-primary font-bold">step-by-step explanation</strong>.
+              </p>
             </div>
 
-            {/* Step cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 mb-10 lg:mb-14">
-              <div className="bg-white border border-surface-container-high rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center shadow-sm">
-                <span className="font-headline text-3xl font-extrabold text-secondary mb-3">01</span>
-                <span className="material-symbols-outlined text-primary text-3xl mb-4" style={{ fontVariationSettings: "'FILL' 1" }}>edit_square</span>
-                <h3 className="font-headline text-lg lg:text-xl font-bold text-primary mb-2">Your child does a quiz</h3>
-                <p className="text-on-surface-variant text-sm lg:text-base">Tap MCQs or write naturally on the canvas — same as in an exam.</p>
-              </div>
-              <div className="bg-white border border-surface-container-high rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center shadow-sm">
-                <span className="font-headline text-3xl font-extrabold text-secondary mb-3">02</span>
-                <span className="material-symbols-outlined text-primary text-3xl mb-4" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
-                <h3 className="font-headline text-lg lg:text-xl font-bold text-primary mb-2">AI marks it in seconds</h3>
-                <p className="text-on-surface-variant text-sm lg:text-base">Reads handwriting. Returns step-by-step feedback and partial credit — aligned with <strong className="text-primary">MOE scoring rubrics</strong>.</p>
-              </div>
-              <div className="bg-white border border-surface-container-high rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center shadow-sm">
-                <span className="font-headline text-3xl font-extrabold text-secondary mb-3">03</span>
-                <span className="material-symbols-outlined text-primary text-3xl mb-4" style={{ fontVariationSettings: "'FILL' 1" }}>auto_fix_high</span>
-                <h3 className="font-headline text-lg lg:text-xl font-bold text-primary mb-2">A 10-min drill on the weak spots</h3>
-                <p className="text-on-surface-variant text-sm lg:text-base">Targeted practice generated automatically — tailored while they wait for the school bus.</p>
-              </div>
-            </div>
-
-            {/* Stat strip — replaces the old separate Features section */}
+            {/* Stat strip */}
             <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm md:text-base font-bold text-primary mb-8 lg:mb-12">
               <span>8,000+ questions</span>
               <span className="text-secondary">&bull;</span>
