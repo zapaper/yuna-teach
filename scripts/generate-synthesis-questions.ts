@@ -24,8 +24,8 @@ import { prisma } from "../src/lib/db";
 import { generateSyntheticSynthesis } from "../src/lib/gemini";
 
 const VALID_SUBTOPICS = [
-  "concession", "cause", "condition", "reported-speech",
-  "preference", "participle-having", "inclusion-correlative", "relative-clause",
+  "reported-speech", "subordinator", "correlative-preference",
+  "participle-clauses", "substitution-inversion", "noun-phrase",
 ] as const;
 
 async function main() {

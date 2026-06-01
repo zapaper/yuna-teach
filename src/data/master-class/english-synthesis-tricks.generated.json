@@ -10,66 +10,66 @@
   ],
   "title": "PSLE English — Synthesis & Transformation Tricks (10 marks)",
   "stats": {
-    "headline": "Synthesis = 10 marks. PSLE rotates the same 4 grammar patterns every year. Learn the keyword-to-pattern map and the most common traps — full marks become straightforward."
+    "headline": "Synthesis = 10 marks. PSLE rotates the same 6 patterns every year. Learn the keyword-to-pattern map and the most common traps — full marks become straightforward."
   },
   "keyConcepts": [
     {
       "title": "Welcome — Synthesis & Transformation (10 marks)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-welcome.png",
-      "body": "**This is a big topic — but we have identified all the patterns and common mistakes.**\n\nSynthesis asks you to REWRITE a sentence using a given keyword, keeping the meaning. 8 patterns cover almost every PSLE question in the bank. The hardest part isn't grammar — it's not changing meaning, tense, or adding info.",
+      "body": "**This is a big topic — but we have identified all the patterns and common mistakes.**\n\nSynthesis asks you to REWRITE a sentence using a given keyword, keeping the meaning. The keyword tells you which pattern to use. 6 patterns cover almost every PSLE question in the bank. The hardest part isn't the grammar — it's not changing the meaning, not changing the tense, and not adding new info.",
       "bullets": [
-        "**A: Concession** — Although / Despite / In spite of / No matter",
-        "**B: Cause** — Because / Due to / Owing to / On account of",
-        "**C: Condition** — If / Unless / Only with",
-        "**D: Reported Speech** — direct ↔ indirect, with backshift",
-        "**E: Preference** — Would rather / Prefer / Preference for",
-        "**F: Participle (Having)** — Having + V-ed, joining two actions",
-        "**G: Inclusion / Correlative** — Both…and / Either…or / Neither…nor / Not only…but also",
-        "**H: Relative Clause** — who / whom / which / whose",
+        "**A: Linking Words** — Although / Despite / Because / Due to / If / Unless / In order to",
+        "**B: Reported Speech** — direct ↔ indirect, with backshift",
+        "**C: Pair Words & Preference** — Both/Either/Neither/Not only + Would rather / Prefer",
+        "**D: Participle Clauses** — Having + V-ed, Seeing, Upon arriving, Being",
+        "**E: Substitution & Inversion** — Instead of / Except / Much to / Little did / No other",
+        "**F: Noun Patterns** — Relative (who/whom/which/whose), possessive ('s), verb→noun",
         "**The 3 rules of synthesis:**\n① Don't change the meaning. ② Don't change the tense. ③ Don't add info."
       ],
       "narration": {
         "bullets": [
-          "Pattern **A: Concession** — Although / Despite / In spite of / No matter.",
-          "Pattern **B: Cause** — Because / Due to / Owing to / On account of.",
-          "Pattern **C: Condition** — If / Unless / Only with.",
-          "Pattern **D: Reported Speech** — direct ↔ indirect, with backshift.",
-          "Pattern **E: Preference** — Would rather / Prefer / Preference for.",
-          "Pattern **F: Participle (Having)** — Having + V-ed, joining two actions.",
-          "Pattern **G: Inclusion / Correlative** — Both…and / Either…or / Neither…nor / Not only…but also.",
-          "Pattern **H: Relative Clause** — who / whom / which / whose.",
+          "Pattern **A: Linking Words** — Although / Despite / Because / Due to / If / Unless / In order to.",
+          "Pattern **B: Reported Speech** — direct ↔ indirect, with backshift.",
+          "Pattern **C: Pair Words & Preference** — Both/Either/Neither/Not only + Would rather / Prefer.",
+          "Pattern **D: Participle Clauses** — Having + V-ed, Seeing, Upon arriving, Being.",
+          "Pattern **E: Substitution & Inversion** — Instead of / Except / Much to / Little did / No other.",
+          "Pattern **F: Noun Patterns** — Relative (who/whom/which/whose), possessive ('s), verb→noun.",
           null
         ]
       }
     },
     {
-      "title": "Pattern A — Concession (Although / Despite)",
+      "title": "Pattern A — Linking Words (Although / Because / If / In order to)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Two contrasting ideas. The PSLE trap: students mix up the grammar after Although vs Despite.",
+      "body": "Linking words join two sentences into one. They tell the reader the relationship: contrast, cause, condition, or purpose. Each linker has its own grammar rule — clause vs noun phrase. The PSLE trap is mixing them up.",
       "bullets": [
-        "**Although + CLAUSE** (subject + verb)\n✓ Although **he was tired**, he kept working.",
-        "**Despite / In spite of + NOUN PHRASE**\n✓ Despite **his tiredness**, he kept working.\n✗ Despite **he was tired**, he kept working.",
-        "**Conversion** (Although → Despite): verb → noun/-ing, drop the subject.\n\"Although it was raining\" → \"Despite the rain.\"",
-        "**Common mistakes** (from real student work)\n✗ Changing the original word — wrote \"homework\" when the source said \"work\". Synthesis is **all or nothing**: any word swap = 0 marks for that sentence.\n✗ Leaving \"No matter\" questions blank because the structure feels foreign — \"No matter how hard I tried…\" follows the same pattern as Although, just with a bigger setup."
+        "**Contrast (Concession)** — two ideas that don't match.\n**Although / Even though + CLAUSE**  (subject + verb)\n✓ **Although** he was tired, he kept working.\n**Despite / In spite of + NOUN PHRASE**\n✓ **Despite** his tiredness, he kept working.\n✗ Despite he was tired, he kept working.",
+        "**Cause** — one thing leads to another.\n**Because / Since / As + CLAUSE**\n✓ **Because** the bus broke down, we were late.\n**Due to / Owing to / On account of + NOUN PHRASE**\n✓ **Due to** the bus breakdown, we were late.\n✗ Due to the bus broke down, we were late.",
+        "**Condition** — if-statements.\n**If + present, will + verb**\n✓ **If** you hurry, you will catch the bus.\n**Unless = if…not** — flip the negative!\n✓ **Unless** you hurry, you will miss the bus.\n✗ Unless you don't hurry, you will catch the bus.  (double negative)",
+        "**Purpose** — why something is done.\n**In order to / so as to + verb**  (same subject in both parts)\n✓ **In order to** pass the test, Daniel trained daily.\n**So that + clause**  (can have a different subject)\n✓ Daniel trained daily **so that** he could pass the test.",
+        "**The clause-vs-noun conversion trick** (same trick for all four)\nVerb → noun (or -ing form), drop the subject.\n– \"Although it was raining\" → \"**Despite the rain.**\"\n– \"Because she was sick\" → \"**Due to her illness.**\"\n– \"If we work hard\" → \"**In order to succeed.**\"",
+        "**Common mistakes** (from real student work)\n✗ Changing a content word — wrote \"homework\" when the source said \"work\". Synthesis is **all-or-nothing**: any swap = 0 marks.\n✗ Keeping \"not\" after **Unless** → double negative (\"Unless we do not leave\" → just \"Unless we leave\").\n✗ Spelling the derived noun wrong — \"indecision\" not \"indecesion\". The noun must be a real word.\n✗ Dropping a modifier — \"fell ill **suddenly**\" → \"**sudden** illness\", not just \"illness\". Skipping the adverb costs the mark."
       ]
     },
     {
-      "title": "Pattern B — Cause (Because / Due to)",
+      "title": "Pattern B — Reported Speech (Direct ↔ Indirect)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Same clause-vs-noun split as Concession. PSLE drills both because they share the conversion trick.",
+      "body": "Convert direct speech (with quotes) into indirect (no quotes). Headline rule: BACKSHIFT — when the reporting verb is past (said / told / asked), every tense moves one step further back. The biggest trap: past → **past perfect (had + past participle)**.",
       "bullets": [
-        "**Because / Since / As + CLAUSE**\n✓ Because **the bus broke down**, we were late.",
-        "**Due to / Owing to + NOUN PHRASE**\n✓ Due to **the bus breakdown**, we were late.\n✗ Due to **the bus broke down**, we were late.",
-        "**Conversion** (Because → Due to): same trick — verb → noun, drop subject.\n\"Because she was sick\" → \"Due to her illness.\"",
-        "**Common mistakes** (from real student work)\n✗ Dropping a modifier — \"Sam fell ill **suddenly**\" must become \"sudden illness\", not just \"illness\". Skipping \"sudden\" = 0 marks.\n✗ Spelling slips on the derived noun: \"indecision\" not \"indecesion\". The noun has to be a real word.\n✗ Repeating the subject (\"Sam\") when the rewrite has already named them — use the pronoun (\"he\")."
+        "**Tense backshift table** (when reporting verb is past)\n– present (am/is/are) → past (was/were)\n– present continuous (am eating) → past continuous (was eating)\n– **past (broke / went) → past perfect (had broken / had gone)**  ⚠️ the past-past trap\n– present perfect (has done) → past perfect (had done)\n– will → would   ·   can → could   ·   may → might",
+        "**⚠️ The past-past trap** (most-missed)\nDirect: \"I **broke** the window,\" John said.\n✗ John said that he **broke** the window.\n✓ John said that he **had broken** the window.\nPast + past = ambiguous time order. Use past perfect for the earlier event.",
+        "**Pronoun & time/place shifts**\n– I → he/she   ·   you → I/me   ·   we → they   ·   my → his/her\n– today → that day   ·   **yesterday → the day before**\n– tomorrow → the next day   ·   now → then\n– here → there   ·   this → that   ·   these → those",
+        "**Questions** — use `asked if / whether`; drop \"do/did\"; statement order; no question mark.\n– \"Where do you live?\" he asked. → He asked where I **lived**.\n– \"Are you coming?\" she asked. → She asked **if** I **was** coming.",
+        "**Commands** — use `told [person] to + verb`.\n– \"Sit down!\" the teacher said. → The teacher **told** us **to sit down**.",
+        "**Common mistakes** (from real student work)\n✗ Forgetting the verb backshift — \"saw\" must become \"had seen\" when the reporting verb is past.\n✗ Using vague pronouns when the original spoke to a specific person — meaning shift.\n✗ Synonym swaps for time/place words — \"the day before\" is not the same as \"the previous day\". Use the EXACT shift words from the table."
       ]
     },
     {
-      "title": "Try it — Concession & Cause",
+      "title": "Try it — Linking Words & Reported Speech",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
-          "label": "Concession — Although → Despite",
+          "label": "Linking Words — Although → Despite",
           "stem": "Original: Although the weather was bad, the football match continued.\nRewrite using \"Despite\". Which is correct?",
           "options": [
             "Despite the weather was bad, the football match continued.",
@@ -82,50 +82,6 @@
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
-        {
-          "label": "Cause — Because → Due to",
-          "stem": "Original: Because the road was flooded, the bus could not pass.\nRewrite using \"Due to\". Which is correct?",
-          "options": [
-            "Due to the road was flooded, the bus could not pass.",
-            "Due to the flooded road, the bus could not pass.",
-            "Due to that the road was flooded, the bus could not pass.",
-            "Due to flooding the road, the bus could not pass."
-          ],
-          "correctAnswer": 2,
-          "explanation": "Due to + noun phrase. \"The road was flooded\" → \"the flooded road\". Option 4 changes the meaning (\"flooding the road\" implies someone is doing the flooding).",
-          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
-          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
-        }
-      ]
-    },
-    {
-      "title": "Pattern C — Condition (If / Unless)",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Unless = \"if not\". When converting If → Unless, you must NEGATE the if-clause. Double negatives = the #1 trap.",
-      "bullets": [
-        "**If + present, will + verb**\n✓ If you hurry, you will catch the bus.",
-        "**Unless = If…not** — flip the negation!\n✓ Unless you hurry, you will miss the bus.   (= If you don't hurry…)\n✗ Unless you don't hurry, you will catch the bus.   (double negative)",
-        "**Conversion** (If → Unless): drop \"not\" if there is one, add \"not\" if there isn't.\n\"If you don't study, you will fail\" → \"Unless you study, you will fail.\"",
-        "**Common mistakes** (from real student work)\n✗ Keeping the \"not\" after Unless → double negative.\n\"If we do **not** leave now, we will be late\" → \"Unless we leave now\" (NOT \"Unless we **do not** leave\").\n✗ Missing articles when rewriting: \"we will start lesson\" → should be \"the lesson\". Articles count."
-      ]
-    },
-    {
-      "title": "Pattern D — Reported Speech (Direct ↔ Indirect)",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Convert direct speech (with quotes) to indirect (no quotes). Headline rule: BACKSHIFT — when the reporting verb is past (said / told / asked), every tense moves one step further back. The biggest trap: past → **past perfect (had + past participle)**.",
-      "bullets": [
-        "**Tense backshift table** (when reporting verb is past)\n-- present (am/is/are) → past (was/were)\n-- present continuous (am eating) → past continuous (was eating)\n-- **past (broke / went) → past perfect (had broken / had gone)**  ⚠️ the past-past trap\n-- present perfect (has done) → past perfect (had done)\n-- will → would   ·   can → could   ·   may → might",
-        "**⚠️ The past-past trap** (most-missed)\nDirect: \"I **broke** the window,\" John said.\n✗ John said that he **broke** the window.\n✓ John said that he **had broken** the window.\nPast + past = ambiguous time order. Use past perfect for the earlier event.",
-        "**Pronoun & time/place shifts**\n-- I → he/she   ·   you → I/me   ·   we → they   ·   my → his/her\n-- today → that day   ·   **yesterday → the day before**\n-- tomorrow → the next day   ·   now → then\n-- here → there   ·   this → that   ·   these → those",
-        "**Questions** — use `asked if / whether`; drop \"do/did\"; statement order; no question mark.\n-- \"Where do you live?\" he asked. → He asked where I **lived**.\n-- \"Are you coming?\" she asked. → She asked **if** I **was** coming.",
-        "**Commands** — use `told [person] to + verb`.\n-- \"Sit down!\" the teacher said. → The teacher **told** us **to sit down**.",
-        "**Common mistakes** (from real student work)\n✗ Using \"they\" / vague pronouns when the original speaker addressed a specific person — that changes the meaning. Match the original referent exactly.\n✗ Forgetting the verb backshift — \"saw\" must become \"had seen\" when the reporting verb is past.\n✗ Lowercase \"if\" / \"i\" at the start of the rewrite. Capitalisation counts.\n✗ Synonym swaps for time/place words — \"the day before\" is not the same as the expected \"the previous day\". Use the EXACT shift words from the table."
-      ]
-    },
-    {
-      "title": "Try it — Condition & Reported Speech",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
-      "interactiveQuiz": [
         {
           "label": "Unless negation trap",
           "stem": "Original: If you don't wear a raincoat, you will get wet.\nRewrite starting with \"Unless\". Which is correct?",
@@ -157,30 +113,50 @@
       ]
     },
     {
-      "title": "Pattern E — Preference (Would rather / Prefer)",
+      "title": "Pattern C — Pair Words & Preference",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Two activities the speaker compares; one is preferred. Three surface forms tested most: \"would rather\", \"prefer\", and the noun \"preference for\".",
+      "body": "Pair words link two equal halves. Preference compares two activities and says which is liked more. Both shapes share one trap: forgetting the right partner word (or the right preposition) on the second half.",
       "bullets": [
-        "**Would rather + bare verb + than + bare verb**\n✓ Alice would rather **read books** than **watch TV**.\n✗ Alice would rather **read books** than **to watch TV**.   (no \"to\")",
-        "**Prefer + V-ing to V-ing**  /  **Prefer + noun to noun**\n✓ My grandparents prefer **visiting** local attractions **to travelling** overseas.",
-        "**Have a preference for X over Y**\n✓ My grandparents have a **preference for** visiting local attractions **over** travelling overseas.\n✗ \"preference to travelling\" — wrong preposition. \"over\", not \"to\"."
+        "**Pair Words** — both halves must match in kind (noun + noun, verb + verb).\n**Both X and Y**\n✓ **Both** Ali **and** Lily like to hike.\n**Either X or Y**  /  **Neither X nor Y**\n✓ We can **either** play soccer **or** read.\n✓ **Neither** Ali **nor** Lily likes swimming.\n**As well as** — used inside the sentence to add more info.\n✓ Sheila enjoys baking **as well as** her sisters.",
+        "**Not only X but (also) Y** — INVERSION after \"Not only\" at sentence start.\n✓ **Not only does** Sarah **sing** beautifully, **but she also** plays the piano well.\n✗ \"Not only Sarah sings beautifully, but she plays the piano.\" (no inversion = wrong)",
+        "**The \"Not only\" inversion formula** (must be memorised):\n**Not only + DOES / DID / HAS + Subject + BASE VERB**\n✓ Not only **does** Sarah **sing** beautifully…\n✓ Not only **did** Ali **win** the race…\n✓ Not only **has** Mark **finished** his work…\nNotice: the verb after the subject is in BASE form (sing, win, finished). The tense is carried by the helper (does, did, has).",
+        "**X or Y** (warning + consequence form):\n✓ Hand in your assignment on time **or** your marks will be deducted.",
+        "**Preference — three forms** tested most:\n**Would rather + bare verb + than + bare verb**\n✓ Alice would rather **read** than **watch TV**.\n✗ Alice would rather **read** than **to watch TV**.   (no \"to\")\n**Prefer + V-ing to V-ing**  /  **Prefer + noun to noun**\n✓ My grandparents prefer **visiting** local attractions **to travelling** overseas.\n**Have a preference for X over Y**\n✓ My grandparents have a **preference for** visiting local attractions **over** travelling overseas.\n✗ \"preference to travelling\" — wrong preposition.",
+        "**Common mistakes**\n✗ Forgetting the inversion after \"Not only\" — costs all the marks.\n✗ Using gerunds after \"would rather\" — it takes BARE verbs.\n✗ Using \"to\" after \"than\" — \"would rather X than Y\", never \"than to\".\n✗ \"preference to\" — the correct preposition is \"preference **for**…**over**\"."
       ]
     },
     {
-      "title": "Pattern F — Participle (Having + V-ed)",
+      "title": "Pattern D — Participle Clauses (Having / -ing / Upon)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Joins TWO actions where the first finishes before the second starts. \"Having\" + past participle replaces the first sentence's subject + verb. The original subject moves to the SECOND clause.",
+      "body": "Participle clauses compress two sentences into one by replacing the first sentence with a participle (Having + V-ed or just V-ing). The new subject moves into the second clause. Same trick three flavours.",
       "bullets": [
-        "**Having + past participle, + new subject + verb**\n✓ Mary **finished** her homework. She went out to play.\n→ **Having finished** her homework, **Mary** went out to play.",
+        "**Having + past participle, + new subject + verb**  (action 1 finished, then action 2)\n✓ Mary **finished** her homework. She went out to play.\n→ **Having finished** her homework, **Mary** went out to play.",
         "**Not having** (negative form)\n✓ Amy **had not baked** cookies before. She burnt all of them.\n→ **Not having baked** cookies before, **Amy** burnt all of them.",
-        "**Two checkpoints** before submitting:\n① Past participle is correct (drew → drawn, eat → eaten, write → written).\n② The \"his / her / their\" possessives match the original — DON'T change them.",
-        "**Common mistakes** (from real student work)\n✗ Changing \"his\" / \"her\" / \"their\" to \"a\" or \"the\" — meaning shift = 0 marks.\n✗ Using the wrong past participle (drewn, eaten/ate confusion). Common one: \"drawn\", not \"drew\".\n✗ Repeating the subject in BOTH clauses (\"Having finished her homework, **she** Mary went…\"). Pick one — usually the proper noun in the second clause."
+        "**Bare -ing participle** (verb that describes what someone is doing or seeing/hearing when something else happens)\n✓ The boy **heard** a loud noise. He quickly looked up.\n→ **Hearing** a loud noise, the boy quickly looked up.\n✓ Mary **saw** her friend. She waved.\n→ **Seeing** her friend, Mary waved.",
+        "**Upon / On / After / Before + V-ing**  (time linkers)\n✓ **Upon arriving** at the station, we boarded the train.\n✓ **After finishing** dinner, John washed the dishes.\n✓ **Before leaving** the house, lock the door.",
+        "**Being + adjective / past participle**  (state of being, often passive)\n✓ **Being too shy**, Hamid kept quiet.\n✓ **Being late**, she missed the bus.",
+        "**Three checkpoints** before submitting:\n① Past participle is correct (drew → **drawn**, eat → **eaten**, write → **written**).\n② **his / her / their** possessives match the original — DON'T change them.\n③ The new subject is in the SECOND clause, not repeated in the first.",
+        "**Common mistakes** (from real student work)\n✗ \"Having **drew**\" — should be \"Having **drawn**\". The past participle of \"draw\" is \"drawn\".\n✗ Changing \"his / her\" to \"a\" or \"the\" — meaning shift = 0 marks.\n✗ Repeating the subject in both clauses (\"Having finished her homework, **she** Mary went…\"). Pick one — usually the proper noun in the second clause."
       ]
     },
     {
-      "title": "Try it — Preference & Participle",
+      "title": "Try it — Pair Words & Participle",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
+        {
+          "label": "Pair Words — Not only",
+          "stem": "Original: Sarah sings beautifully. She plays the piano well.\nRewrite starting with \"Not only\". Which is correct?",
+          "options": [
+            "Not only Sarah sings beautifully, but she also plays the piano well.",
+            "Not only does Sarah sings beautifully, but she also plays the piano well.",
+            "Not only does Sarah sing beautifully, but she also plays the piano well.",
+            "Sarah not only sings beautifully and she plays the piano well."
+          ],
+          "correctAnswer": 3,
+          "explanation": "\"Not only\" at the start FORCES inversion: \"does + Sarah + BASE verb\". Option 1 has no inversion; option 2 keeps \"sings\" (after \"does\" the verb must be in base form); option 4 rearranges and drops \"but also\". Option 3 inverts correctly and keeps both halves balanced with \"but she also\".",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
         {
           "label": "Preference — would rather",
           "stem": "Original: Rani enjoys cycling. She does not enjoy swimming.\nRewrite using \"would rather\". Which is correct?",
@@ -191,7 +167,7 @@
             "Rani prefers cycle than swim."
           ],
           "correctAnswer": 3,
-          "explanation": "\"Would rather\" is followed by the BARE infinitive (no \"to\"). Both halves use the same form — cycle / swim. Option 1 adds \"to\" by mistake; option 2 uses gerunds (would rather doesn't take -ing); option 4 confuses two patterns.",
+          "explanation": "\"Would rather\" is followed by the BARE infinitive (no \"to\" and no -ing). Both halves use the same form — cycle / swim. Option 1 adds \"to\" by mistake; option 2 uses gerunds; option 4 confuses two patterns.",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
@@ -212,59 +188,74 @@
       ]
     },
     {
-      "title": "Pattern G — Inclusion (Both / Either / Neither / Not only)",
+      "title": "Pattern E — Substitution & Inversion",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Pairs of conjunctions that link two equal parts. The trap is what comes AFTER the second half — verb agreement and word order shift depending on the pair.",
+      "body": "A small but reliable family. Substitution swaps one action for another (\"Instead of\") or removes one item from a group (\"Except\"). Inversion flips the normal subject-verb order after a negative starter (\"Little did he know…\"). PSLE loves these because the starter word forces a specific structure.",
       "bullets": [
-        "**Both X and Y** — both must be the same kind (noun + noun, verb + verb).\n✓ **Both** Ali **and** Lily **like** to hike at Bukit Timah Hill.",
-        "**Either X or Y**  /  **Neither X nor Y**\n✓ We can **either** play soccer **or** go to the library.\n✓ **Neither** Ali **nor** Lily likes swimming.",
-        "**Not only X but (also) Y** — INVERSION after \"Not only\" at sentence start.\n✓ **Not only does** Sarah **sing** beautifully, **but she also** plays the piano well.\n✗ \"Not only Sarah sings beautifully, but she plays the piano.\" (no inversion = wrong)",
-        "**X or Y** (warning + consequence form):\n✓ Hand in your assignment on time **or** your marks will be deducted.",
-        "**The \"Not only\" inversion formula** (must be memorised):\n**Not only + DOES / DID / HAS + Subject + BASE VERB**\n✓ Not only **does** Sarah **sing** beautifully, but she also plays the piano well.\n✓ Not only **did** Ali **win** the race, but he also broke the record.\n✓ Not only **has** Mark **finished** his work, but he has also helped others.\nNotice: the verb after the subject is in BASE form (sing, win) — the tense is carried by the helper (does, did, has).",
-        "**Common mistake**\n✗ Forgetting the inversion: \"Not only Sarah sings beautifully…\" — synthesis is **all-or-nothing**, the whole rewrite is marked wrong without \"does\"."
+        "**Instead of + V-ing** (or noun) — replaces one action with another.\n✓ Ahmad did not complete his homework. He watched TV.\n→ **Instead of** completing his homework, Ahmad watched TV.",
+        "**Except / except for + noun** — removes one item from a group.\n✓ All the children were pleased with their gifts. Linda was not pleased.\n→ All the children were pleased with their gifts **except** Linda.",
+        "**Much to + possessive + noun** — describes a reaction (surprise, delight, disappointment).\n✓ Gavin was very pleased to receive the present.\n→ **Much to** Gavin's delight, he received the present.\n✓ The team was disappointed when the match was called off.\n→ **Much to** the team's disappointment, the match was called off.",
+        "**Negative Inversion** — when a NEGATIVE word starts the sentence, the verb INVERTS.\n**Little did + Subject + base verb**\n✓ Ben never knew he would top the class.\n→ **Little did Ben know** he would top the class.\n**No other + noun + verb**\n✓ Rita can perform magic tricks. No one else can.\n→ **No other student can** perform magic tricks the way Rita does.\n**No sooner + had + S + V-ed + than…**\n✓ As soon as the bell rang, the students left.\n→ **No sooner had** the bell rung **than** the students left.",
+        "**The inversion rule** (must be memorised):\nAfter a negative starter (Little / No other / No sooner / Hardly / Scarcely / Never),\nflip Subject + Verb → Helper (does/did/has/had) + Subject + Base Verb.\nSame pattern as \"Not only\" inversion.",
+        "**Common mistakes**\n✗ Forgetting inversion after \"Little did\" — \"Little did he knew\" (should be \"Little did he **know**\" with base verb).\n✗ Using \"Instead of + clause\" — should be **Instead of + V-ing** (or noun). \"Instead of he watched TV\" → \"Instead of watching TV\".\n✗ Confusing \"Except\" (excludes one) with \"Besides\" (includes more). Different meanings.\n✗ Possessive after \"Much to\" — \"Gavin's delight\", not \"Gavin delight\" (the 's matters)."
       ]
     },
     {
-      "title": "Pattern H — Relative Clause (who / whom / which / whose)",
+      "title": "Pattern F — Noun Patterns (Relative / Possessive / Verb→Noun)",
       "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-tag.png",
-      "body": "Joins two sentences where the second describes a noun in the first. The relative pronoun depends on what it replaces, AND where you put it.",
+      "body": "Noun patterns reshape information about a noun. Three flavours: relative clauses describe a noun (\"the student **who** won\"), possessives compress a sentence into a noun phrase (\"**Sally's** insincerity annoyed them\"), and verb-to-noun conversions change an action into a noun (\"the **loss** of her phone\"). All three squeeze a clause into a noun-shaped piece.",
       "bullets": [
-        "**who** = subject (people). **whom** = object (people).\nQuick test:\n– If you could replace it with **he / she / they** → use **who**.\n– If you could replace it with **him / her / them** → use **whom**.",
-        "**which** = things. **whose** = possessive (people or things).\n✓ My mother bought a new blender **which can** make fruit juices.\n✓ The boy **whose** dog was lost is my classmate.",
-        "**POSITION RULE — the relative pronoun must sit RIGHT AFTER the noun it describes.**\nOriginal: We admire Mr Kwan. He is our local football player.\n✓ **Mr Kwan, whom we admire,** is our local football player.\n✗ Mr Kwan is our local football player, **whom we admire**.   (whom is detached from Mr Kwan)\nWhy it's wrong: the relative clause has to touch the noun. If \"whom we admire\" sits at the end, the reader can't tell which noun it describes — it looks like it's describing \"football player\".",
-        "**Defining vs non-defining clauses — the comma rule:**\n– **Defining clause = essential info, NO commas.** The clause picks out WHICH one you mean. Without it the sentence doesn't make sense.\n✓ The robber **who wore a black mask** was caught.\n(There were several robbers; \"who wore a black mask\" tells us which one. No commas.)\n– **Non-defining clause = extra info, USES commas.** The clause adds detail you could remove and the sentence still makes sense.\n✓ Mr Kwan, **whom we admire**, is our local football player.\n(We already know it's Mr Kwan; \"whom we admire\" is extra info. Commas required on BOTH sides.)\nQuick test: read the sentence without the clause. If the meaning still holds → non-defining, comma it. If the meaning breaks → defining, no commas.",
-        "**Common mistakes** (from real student work)\n✗ Placing the relative clause far from the noun — \"Mr Kwan is our football player, whom we admire\" puts \"whom\" miles from \"Mr Kwan\". Synthesis is **all-or-nothing**: position wrong = 0 marks.\n✗ Missing commas on a non-defining clause — both commas are required, one on each side."
+        "**Relative pronouns — who / whom / which / whose**\n– **who** = subject (people). Replace with he/she/they.\n– **whom** = object (people). Replace with him/her/them.\n– **which** = things.\n– **whose** = possessive (people or things).\n✓ My mother bought a new blender **which can** make fruit juices.\n✓ The boy **whose** dog was lost is my classmate.",
+        "**POSITION RULE — the relative pronoun must sit RIGHT AFTER the noun it describes.**\nOriginal: We admire Mr Kwan. He is our local football player.\n✓ **Mr Kwan, whom we admire,** is our local football player.\n✗ Mr Kwan is our local football player, **whom we admire**.   (whom is detached from Mr Kwan)",
+        "**Defining vs non-defining clauses — the comma rule:**\n– **Defining clause = essential info, NO commas.** The clause picks WHICH one you mean.\n✓ The robber **who wore a black mask** was caught.\n– **Non-defining clause = extra info, USES commas.** The clause adds detail you could remove.\n✓ Mr Kwan, **whom we admire**, is our local football player.\nQuick test: remove the clause. If the meaning still holds → non-defining, use commas.",
+        "**Possessive transformation** — compress \"X was [adjective]\" or \"X did Y\" into an 's noun phrase.\n✓ Sally was insincere. They were annoyed.\n→ **Sally's** insincerity annoyed them.\n✓ The boy worked hard. His effort impressed his teacher.\n→ The **boy's** hard work impressed his teacher.\n✓ If Mr Ahmad had not advised us…\n→ **Without Mr Ahmad's** advice…",
+        "**Verb → noun conversion** — change the action into a noun. PSLE drills this every year.\n✓ Vasanthi **lost** her phone. She reported it.\n→ Vasanthi reported **the loss** of her phone.\n✓ The diver **adjusted** his goggles slightly.\n→ The diver **made slight adjustments** to his goggles.\n✓ The meeting **concluded** in the evening.\n→ The meeting **came to a conclusion** in the evening.\nCommon openers: \"made\" + noun, \"came\" + to / for + noun, \"took\" + noun, \"had\" + a + noun.",
+        "**Common mistakes** (from real student work)\n✗ Placing the relative clause far from the noun — synthesis is **all-or-nothing**: position wrong = 0 marks.\n✗ \"whom is\" — always wrong. The subject pronoun is \"who\".\n✗ Wrong noun form — \"indecesion\" instead of \"indecision\", \"concluding\" instead of \"conclusion\". The noun must be a real word and spelled correctly.\n✗ Dropping a modifier when converting verb → noun. \"adjusted slightly\" → \"**slight** adjustments\", not just \"adjustments\"."
       ]
     },
     {
-      "title": "Try it — Inclusion & Relative Clause",
+      "title": "Try it — Substitution & Noun Patterns",
       "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
-          "label": "Inclusion — Not only",
-          "stem": "Original: Sarah sings beautifully. She plays the piano well.\nRewrite starting with \"Not only\". Which is correct?",
+          "label": "Substitution — Instead of",
+          "stem": "Original: Ahmad did not complete his homework. He watched TV.\nRewrite using \"Instead of\". Which is correct?",
           "options": [
-            "Not only Sarah sings beautifully, but she also plays the piano well.",
-            "Not only does Sarah sings beautifully, but she also plays the piano well.",
-            "Not only does Sarah sing beautifully, but she also plays the piano well.",
-            "Sarah not only sings beautifully and she plays the piano well."
+            "Instead of he watched TV, Ahmad did not complete his homework.",
+            "Instead of completing his homework, Ahmad watched TV.",
+            "Instead of his homework, Ahmad completed TV.",
+            "Instead of complete his homework, Ahmad watched TV."
           ],
-          "correctAnswer": 3,
-          "explanation": "\"Not only\" at the start FORCES inversion: \"does + Sarah + BASE verb\". Option 1 has no inversion; option 2 keeps \"sings\" (after \"does\" the verb must be in base form); option 4 rearranges and drops \"but also\". Option 3 inverts correctly and keeps both halves balanced with \"but she also\".",
+          "correctAnswer": 2,
+          "explanation": "\"Instead of\" takes the -ing form (or a noun), not a clause and not a bare verb. \"Did not complete his homework\" turns into \"completing his homework\". Option 4 uses the bare verb \"complete\" — also wrong.",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
         {
-          "label": "Relative — who vs whom",
-          "stem": "Original: We admire Mr Kwan. He is our local football player.\nRewrite using \"whom\". Which is correct?",
+          "label": "Inversion — Little did",
+          "stem": "Original: Ben never knew that he would top the class.\nRewrite starting with \"Little did\". Which is correct?",
           "options": [
-            "Mr Kwan, whom we admire, is our local football player.",
-            "Mr Kwan whom we admire is our local football player.",
-            "Mr Kwan, whom is our local football player, we admire.",
-            "We admire Mr Kwan, whom is our local football player."
+            "Little did Ben knew that he would top the class.",
+            "Little Ben did know that he would top the class.",
+            "Little did Ben know that he would top the class.",
+            "Little did know Ben that he would top the class."
+          ],
+          "correctAnswer": 3,
+          "explanation": "Negative starter forces inversion: Little did + Subject + BASE verb. The base form of \"knew\" is \"know\". Option 1 keeps \"knew\" (wrong). Option 2 has no inversion. Option 4 puts the subject in the wrong slot.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "Verb → Noun",
+          "stem": "Original: The meeting concluded only in the evening.\nRewrite starting with \"The meeting came\". Which is correct?",
+          "options": [
+            "The meeting came to a conclusion only in the evening.",
+            "The meeting came concluded only in the evening.",
+            "The meeting came conclusion only in the evening.",
+            "The meeting came to conclude only in the evening."
           ],
           "correctAnswer": 1,
-          "explanation": "\"whom\" is the OBJECT of \"admire\" (we admire him → whom). The non-defining clause \"whom we admire\" needs commas. Options 2 and 3/4 either miss the commas or use \"whom\" as a subject (\"whom is\" is always wrong — subject pronoun should be \"who\").",
+          "explanation": "The verb \"concluded\" must change into the noun \"conclusion\". The fixed phrase is **came to a conclusion** — needs \"to a\" before the noun. Options 2–4 either keep the verb form or drop \"a\".",
           "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
@@ -273,9 +264,9 @@
     {
       "title": "Start practising!",
       "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
-      "body": "Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation. Covers all 8 patterns from the slides. Trains the reflex of checking \"same tense, same info, same meaning\" on every rewrite.",
+      "body": "Mixed practice drawn from PSLE 2014-2024 Synthesis & Transformation. Covers all 6 patterns from the slides. Trains the reflex of checking \"same tense, same info, same meaning\" on every rewrite.",
       "bullets": [
-        "**24 questions** — **3 from each of the 8 patterns**",
+        "**24 questions** — **4 from each of the 6 patterns**",
         "Wrong answers auto-saved, reviewed in 1 week",
         "AI marks word-for-word — partial credit if you almost got it but missed tense/info"
       ],
@@ -286,20 +277,18 @@
           "mcq": 0,
           "oeq": 24,
           "subTopicOeqMin": {
-            "concession": 3,
-            "cause": 3,
-            "condition": 3,
-            "reported-speech": 3,
-            "preference": 3,
-            "participle-having": 3,
-            "inclusion-correlative": 3,
-            "relative-clause": 3
+            "reported-speech": 4,
+            "subordinator": 4,
+            "correlative-preference": 4,
+            "participle-clauses": 4,
+            "substitution-inversion": 4,
+            "noun-phrase": 4
           }
         }
       },
       "narration": {
         "bullets": [
-          "You'll tackle **24 questions** — exactly **3 from each of the 8 patterns** in this class.",
+          "You'll tackle **24 questions** — exactly **4 from each of the 6 patterns** in this class.",
           "Any Wrong answers are auto-saved, and reviewed in 1 week.",
           "The AI marks your answers word-for-word — giving partial credit if you almost got it but missed the tense/info."
         ]
@@ -321,6 +310,10 @@
       "definition": "Means 'if...not'. When converting If → Unless, NEGATE the if-clause (drop 'not' or add 'not'). Double negatives are the #1 trap."
     },
     {
+      "word": "in order to",
+      "definition": "Purpose linker. Used to explain WHY an action is taken. 'In order to + verb' (same subject in both halves) or 'So that + clause' (can have a different subject)."
+    },
+    {
       "word": "backshift",
       "definition": "In reported speech, when the reporting verb is past, every tense shifts one step further back: present → past, past → past perfect (had + past participle). Pronouns and time/place words shift too: yesterday → the day before, here → there."
     },
@@ -329,16 +322,36 @@
       "definition": "Compares two activities. Followed by BARE verbs: 'would rather X than Y' (no 'to' before Y). 'Prefer' uses gerunds: 'prefer V-ing to V-ing'. 'Preference' uses 'for X over Y'."
     },
     {
-      "word": "having + past participle",
-      "definition": "Joins two actions where the first finishes before the second starts. Replaces 'Subject + did X. Then subject did Y' with 'Having + V-ed X, subject did Y'. Possessives in the original (his / her / their) must stay unchanged."
-    },
-    {
       "word": "not only inversion",
       "definition": "When 'Not only' starts the sentence, the verb INVERTS: 'Not only DOES Sarah sing beautifully, but she also plays the piano well'. Forgetting the 'does / did / has' costs 1 mark."
     },
     {
+      "word": "negative inversion",
+      "definition": "After a negative starter (Little / No other / No sooner / Hardly / Scarcely), subject-verb order flips. Pattern: starter + helper (does/did/has/had) + subject + BASE verb. Same rule as Not only."
+    },
+    {
+      "word": "having + past participle",
+      "definition": "Joins two actions where the first finishes before the second starts. Replaces 'Subject + did X. Then subject did Y' with 'Having + V-ed X, subject did Y'. Possessives in the original (his / her / their) must stay unchanged."
+    },
+    {
+      "word": "bare -ing participle",
+      "definition": "Same idea as 'Having' but for ongoing actions or sensing. 'Hearing a loud noise, the boy looked up.' Use the bare V-ing form at the start; new subject comes in the second clause."
+    },
+    {
+      "word": "instead of + V-ing",
+      "definition": "Substitution. Replaces one action with another. Must use -ing form (or a noun), NEVER a clause or bare verb. 'Instead of completing his homework, Ahmad watched TV.'"
+    },
+    {
+      "word": "much to + possessive + noun",
+      "definition": "Describes a reaction. 'Much to Gavin's delight…' / 'Much to the team's disappointment…'. The 's possessive is essential — 'Gavin delight' is wrong."
+    },
+    {
       "word": "who vs whom",
       "definition": "who = subject (replaces he/she/they) — 'who teaches us'. whom = object (replaces him/her/them) — 'whom we admire'. Test: if you could substitute 'he/she' use 'who'; if 'him/her' use 'whom'."
+    },
+    {
+      "word": "verb to noun conversion",
+      "definition": "Change an action verb into a noun phrase. 'lost her phone' → 'the loss of her phone'. 'adjusted slightly' → 'made slight adjustments'. 'concluded' → 'came to a conclusion'. Common openers: made / came to / took / had a."
     },
     {
       "word": "3 rules of synthesis",
@@ -347,52 +360,40 @@
   ],
   "subTopics": [
     {
-      "id": "concession",
-      "label": "Concession (Although/Despite)",
-      "description": "Two contrasting ideas. Although + clause vs Despite/In spite of + noun phrase. Conversion trick: verb → noun/-ing form, drop subject. PSLE's most-tested pattern.",
-      "slideIdx": 1
-    },
-    {
-      "id": "cause",
-      "label": "Cause (Because/Due to)",
-      "description": "Same grammar split as concession. Because/Since/As + clause; Due to/Owing to + noun phrase. Same conversion technique applies.",
+      "id": "reported-speech",
+      "label": "Reported Speech (Direct ↔ Indirect)",
+      "description": "Direct ↔ indirect. Backshift tenses one step (present → past, past → past perfect). Also shift pronouns and time words (yesterday → the day before). Past-past trap is the headline mistake.",
       "slideIdx": 2
     },
     {
-      "id": "condition",
-      "label": "Condition (If/Unless)",
-      "description": "Unless = if + not. When converting If → Unless, you must NEGATE the if-clause. Double-negative trap is common.",
+      "id": "subordinator",
+      "label": "Linking Words (Although / Because / If / In order to)",
+      "description": "Combines concession (Although/Despite/No matter/However/But/While), cause (Because/Since/As/Due to/Owing to/So), condition (If/Unless/Provided/As long as) and purpose (In order to/So that). All share the clause-vs-noun-phrase conversion trick.",
+      "slideIdx": 1
+    },
+    {
+      "id": "correlative-preference",
+      "label": "Pair Words & Preference",
+      "description": "Pair words (Both/Either/Neither/Not only/As well as/Or) plus preference (Would rather/Prefer/Preference for). Headline trap: 'Not only' at sentence start FORCES inversion ('Not only DOES Sarah sing'). 'Would rather' takes bare verbs.",
       "slideIdx": 4
     },
     {
-      "id": "reported-speech",
-      "label": "Reported Speech (backshift)",
-      "description": "Direct ↔ indirect. Backshift tenses one step (present → past, past → past perfect). Also shift pronouns and time words (yesterday → the day before). Past-past trap is the headline mistake.",
+      "id": "participle-clauses",
+      "label": "Participle Clauses (Having / -ing)",
+      "description": "Joins two actions by reducing the first clause into a participle. Forms: Having + V-ed (sequential), bare V-ing (concurrent — Seeing/Hearing), Upon/After/Before + V-ing (temporal), and Being + adjective (state).",
       "slideIdx": 5
     },
     {
-      "id": "preference",
-      "label": "Preference (Would rather / Prefer)",
-      "description": "Compare two activities; one is preferred. Would rather + bare verb + than + bare verb. Prefer + V-ing to V-ing. Preference + for X over Y. Trap: adding 'to' after 'than'.",
+      "id": "substitution-inversion",
+      "label": "Substitution & Inversion",
+      "description": "Substitution (Instead of + V-ing, Except + noun, Much to + possessive). Inversion after a negative starter (Little did / No other / No sooner / Hardly): negative + helper + Subject + BASE verb. Same flip as 'Not only'.",
       "slideIdx": 7
     },
     {
-      "id": "participle-having",
-      "label": "Participle (Having + V-ed)",
-      "description": "Joins two actions where the first finishes before the second starts. Having + past participle replaces the first sentence's subject + verb. The original subject moves to the second clause. Keep his/her possessives intact.",
+      "id": "noun-phrase",
+      "label": "Noun Patterns (Relative / Possessive / Verb→Noun)",
+      "description": "Reshapes information about a noun. Relative clauses (who/whom/which/whose), possessive 's transformations (Sally's insincerity), and verb→noun conversions ('made slight adjustments', 'came to a conclusion'). The position rule and exact-spelling rule cost marks if missed.",
       "slideIdx": 8
-    },
-    {
-      "id": "inclusion-correlative",
-      "label": "Inclusion (Both / Either / Neither / Not only)",
-      "description": "Pair conjunctions linking two equal parts. Headline trap: 'Not only' at sentence start FORCES inversion ('Not only DOES Sarah sing'). 'Or' as warning + consequence is also tested.",
-      "slideIdx": 10
-    },
-    {
-      "id": "relative-clause",
-      "label": "Relative Clause (who / whom / which / whose)",
-      "description": "Joins two sentences where the second describes a noun in the first. who = subject (people), whom = object (people), which = things, whose = possessive. Non-defining clauses need commas.",
-      "slideIdx": 11
     }
   ]
 }

@@ -489,14 +489,12 @@ function SyntheticContent() {
                 className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:border-slate-500"
               >
                 <option value="">— Grammar / Vocab MCQ (default) —</option>
-                <option value="concession">Concession (Although / Despite / No matter)</option>
-                <option value="cause">Cause (Because / Due to / Owing to)</option>
-                <option value="condition">Condition (If / Unless / Only with)</option>
                 <option value="reported-speech">Reported Speech (asked / told / wondered)</option>
-                <option value="preference">Preference (Would rather / Prefer)</option>
-                <option value="participle-having">Participle (Having + V-ed)</option>
-                <option value="inclusion-correlative">Inclusion (Both / Either / Neither / Not only)</option>
-                <option value="relative-clause">Relative Clause (who / whom / which / whose)</option>
+                <option value="subordinator">Linking Words (Although / Because / If / In order to)</option>
+                <option value="correlative-preference">Pair Words & Preference (Both / Either / Not only / Would rather)</option>
+                <option value="participle-clauses">Participle Clauses (Having / Seeing / Upon arriving / Being)</option>
+                <option value="substitution-inversion">Substitution & Inversion (Instead of / Except / Much to / Little did)</option>
+                <option value="noun-phrase">Noun Patterns (Relative / Possessive 's / Verb→Noun)</option>
               </select>
             </div>
           )}
