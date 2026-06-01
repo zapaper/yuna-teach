@@ -16,7 +16,7 @@ const QUOTES = [
   {
     text: "I really like that I can **choose the topics** I want my son to work on — and I'm also **reminded to review his weak topics** after he's done.",
     name: "PY",
-    attribution: "P6 Mum, Tiong Bahru",
+    attribution: "P6 Mum",
   },
   {
     text: "As a P5 parent, MarkForYou gives me a clear snapshot of exactly where my child is struggling — **by topic, not just by grade**. We can zero in on those weak areas. Honestly, one of the **smartest tools to have for PSLE prep**!",
@@ -26,12 +26,12 @@ const QUOTES = [
   {
     text: "**Marking accurately handwritten work is really important.** It replicates what my child actually does in a **real exam setting**.",
     name: "Peter",
-    attribution: "P4 & P6 Father, Hougang",
+    attribution: "P4 & P6 Father",
   },
   {
     text: "I absolutely love the **revision function**. The AI **compiles my child's mistakes in a single platform** — I no longer have to amass stacks of torn-out pages or worry about losing them!",
     name: "Jessica",
-    attribution: "P5 Mum, Newton",
+    attribution: "P5 Mum",
   },
 ];
 
