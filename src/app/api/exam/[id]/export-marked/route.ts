@@ -490,25 +490,72 @@ async function handle(
     // 240 catches near-white scanned paper without misclassifying very
     // light pencil strokes.
     const WS_THRESHOLD = 240;
-    // Find the first y inside [yStart, yEnd) that has `needH` consecutive
-    // whitespace rows (so a multi-line note fits). Returns yStart as the
-    // graceful fallback when nothing is found.
-    function findWhitespaceBand(yStart: number, yEnd: number, needH: number): number {
-      const lo = Math.max(0, Math.floor(yStart));
-      const hi = Math.min(grayH, Math.floor(yEnd));
-      let runStart = -1;
-      let run = 0;
-      for (let y = lo; y < hi; y++) {
-        if (rowMeans[y] >= WS_THRESHOLD) {
-          if (runStart < 0) runStart = y;
-          run++;
-          if (run >= needH) return runStart;
-        } else {
-          runStart = -1;
-          run = 0;
+    // Search both above AND below the mark for a whitespace band tall
+    // enough to hold the note (needH consecutive rows brighter than
+    // the threshold). Picks whichever direction's band lands closer
+    // to the mark. Returns the band's top y AND the distance from
+    // the mark — the caller uses the distance to decide whether the
+    // note has drifted far enough that a "(b)" label is needed for
+    // the reader to tie the comment back to the subpart.
+    function findWhitespaceBand(
+      markY: number,
+      maxSearch: number,
+      needH: number,
+    ): { y: number; distance: number; direction: "below" | "above" | "fallback" } {
+      const startBelow = Math.floor(markY);
+      const endBelow = Math.min(grayH, startBelow + maxSearch);
+      let belowTop = -1;
+      {
+        let runStart = -1;
+        let run = 0;
+        for (let y = startBelow; y < endBelow; y++) {
+          if (rowMeans[y] >= WS_THRESHOLD) {
+            if (runStart < 0) runStart = y;
+            run++;
+            if (run >= needH) { belowTop = runStart; break; }
+          } else {
+            runStart = -1;
+            run = 0;
+          }
         }
       }
-      return yStart;
+
+      // Above: walk upward from markY-1. The "bottom" of the band is
+      // the first ws row encountered; extend upward until we have
+      // needH consecutive ws rows. Band top = the highest y still in
+      // the run.
+      const stopAbove = Math.max(0, Math.floor(markY) - maxSearch);
+      let aboveTop = -1;
+      let aboveBottom = -1;
+      {
+        let run = 0;
+        let lastBottom = -1;
+        for (let y = Math.floor(markY) - 1; y >= stopAbove; y--) {
+          if (rowMeans[y] >= WS_THRESHOLD) {
+            if (run === 0) lastBottom = y;
+            run++;
+            if (run >= needH) { aboveTop = y; aboveBottom = lastBottom; break; }
+          } else {
+            run = 0;
+            lastBottom = -1;
+          }
+        }
+      }
+
+      const belowDist = belowTop >= 0 ? belowTop - markY : Infinity;
+      // Distance for above is from mark down to the bottom of the band.
+      const aboveDist = aboveBottom >= 0 ? markY - aboveBottom : Infinity;
+
+      if (belowDist === Infinity && aboveDist === Infinity) {
+        return { y: Math.floor(markY), distance: 0, direction: "fallback" };
+      }
+      if (belowDist <= aboveDist) {
+        return { y: belowTop, distance: belowDist, direction: "below" };
+      }
+      // Above: anchor at aboveTop, but bump down so the note SITS at
+      // the band's bottom (closest to the mark) — the note block
+      // extends from (aboveBottom - needH + 1) down to aboveBottom.
+      return { y: Math.max(0, aboveBottom - needH + 1), distance: aboveDist, direction: "above" };
     }
 
     const qs = bySubPage.get(i) ?? [];
@@ -588,7 +635,24 @@ async function handle(
 
         if (m.note) {
           const stripped = stripLatex(m.note);
-          const rawLines = stripped.split(" / ").map(s => s.trim()).filter(Boolean);
+          // Search both directions for the nearest whitespace band big
+          // enough for the note. If the band is far from the cross,
+          // prepend the subpart label (e.g. "(b) ") so the reader can
+          // still tie the comment back to the right subpart. We wrap
+          // AFTER picking the band so the label is part of the first
+          // line and wraps with it.
+          const provisionalBlockH = Math.ceil(noteSize * 1.25 * 2); // worst-case 2 lines
+          const searchStartY = yPx + markSize * 0.6;
+          const band = findWhitespaceBand(
+            searchStartY,
+            Math.ceil(grayH * 0.3),
+            provisionalBlockH,
+          );
+          const TOO_FAR = markSize * 2.5;
+          const needsLabel = band.distance > TOO_FAR && m.label && !/^\s*\(/.test(stripped);
+          const noteText = needsLabel ? `(${m.label}) ${stripped}` : stripped;
+
+          const rawLines = noteText.split(" / ").map(s => s.trim()).filter(Boolean);
           // Adaptive width: try a tight 55% first so short notes stay
           // compact. If that forces a wrap, give the note 75% so the
           // second line gets more horizontal room before we cap at 2.
@@ -611,15 +675,11 @@ async function handle(
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
-          // Walk DOWN from the cross looking for the nearest band of
-          // whitespace tall enough for the whole note block. yPx is
-          // image-coord (from top); rowMeans is indexed the same way.
-          // Search up to ~25% of the page below the mark before
-          // giving up and using the original below-cross position.
-          const blockH = capped.length * noteSize * 1.25;
+          // Use the band top found above. If actual line count is 1 we
+          // could squeeze with less vertical room, but the band was
+          // sized for the worst case so it'll still fit cleanly.
           const lineSpacingPx = noteSize * 1.25;
-          const startY = yPx + markSize * 0.6;
-          const wsTop = findWhitespaceBand(startY, Math.min(grayH, startY + grayH * 0.25), Math.ceil(blockH));
+          const wsTop = band.y;
           // First baseline = top-of-whitespace + first line's ascent.
           let yCursor = pageH - wsTop - noteSize;
           for (let li = 0; li < capped.length; li++) {
