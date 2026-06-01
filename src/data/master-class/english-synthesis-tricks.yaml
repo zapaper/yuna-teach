@@ -447,7 +447,7 @@ keyConcepts:
       checking "same tense, same info, same meaning" on every rewrite.
     bullets:
       - |-
-        {You'll tackle }**15 questions** —{ a mix across the }8 patterns{ from this class.}
+        {You'll tackle }**24 questions** —{ exactly }**3 from each of the 8 patterns**{ in this class.}
       - |-
         {Any }Wrong answers {are }auto-saved, {and }reviewed in 1 week{.}
       - |-
@@ -461,7 +461,20 @@ keyConcepts:
         # mcq:15/oeq:0 the picker came up empty even though 200
         # questions sit in the pool.
         mcq: 0
-        oeq: 15
+        oeq: 24
+        # 3 questions per sub-topic × 8 sub-topics = 24. The picker
+        # honours subTopicOeqMin as a HARD minimum per bucket, so a
+        # student gets balanced practice across all 8 patterns
+        # instead of (e.g.) 12 reported-speech / 0 concession.
+        subTopicOeqMin:
+          concession: 3
+          cause: 3
+          condition: 3
+          reported-speech: 3
+          preference: 3
+          participle-having: 3
+          inclusion-correlative: 3
+          relative-clause: 3
 
 commonMistakes: []
 

@@ -275,7 +275,7 @@
       "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
       "body": "Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation. Covers all 8 patterns from the slides. Trains the reflex of checking \"same tense, same info, same meaning\" on every rewrite.",
       "bullets": [
-        "**15 questions** — 8 patterns",
+        "**24 questions** — **3 from each of the 8 patterns**",
         "Wrong answers auto-saved, reviewed in 1 week",
         "AI marks word-for-word — partial credit if you almost got it but missed tense/info"
       ],
@@ -284,12 +284,22 @@
         "quizSpec": {
           "title": "Mastery: Synthesis & Transformation",
           "mcq": 0,
-          "oeq": 15
+          "oeq": 24,
+          "subTopicOeqMin": {
+            "concession": 3,
+            "cause": 3,
+            "condition": 3,
+            "reported-speech": 3,
+            "preference": 3,
+            "participle-having": 3,
+            "inclusion-correlative": 3,
+            "relative-clause": 3
+          }
         }
       },
       "narration": {
         "bullets": [
-          "You'll tackle **15 questions** — a mix across the 8 patterns from this class.",
+          "You'll tackle **24 questions** — exactly **3 from each of the 8 patterns** in this class.",
           "Any Wrong answers are auto-saved, and reviewed in 1 week.",
           "The AI marks your answers word-for-word — giving partial credit if you almost got it but missed the tense/info."
         ]
