@@ -32,18 +32,26 @@ keyConcepts:
     mascotImage: /master-class/grammar-mcq-1/panda-welcome.png
     body: >-
       Synthesis asks you to REWRITE a sentence using a given keyword,
-      keeping the meaning. 4 patterns cover the bulk of past PSLE
-      questions. The hardest part isn't grammar — it's not changing
+      keeping the meaning. 8 patterns cover almost every PSLE question
+      in the bank. The hardest part isn't grammar — it's not changing
       meaning, tense, or adding info.
     bullets:
       - |-
-        {Pattern }**A: Concession** — Although / Despite / In spite of{.}
+        {Pattern }**A: Concession** — Although / Despite / In spite of / No matter{.}
       - |-
-        {Pattern }**B: Cause** — Because / Due to / Owing to / Since{.}
+        {Pattern }**B: Cause** — Because / Due to / Owing to / On account of{.}
       - |-
-        {Pattern }**C: Condition** — If / Unless / Provided that{.}
+        {Pattern }**C: Condition** — If / Unless / Only with{.}
       - |-
         {Pattern }**D: Reported Speech** — direct ↔ indirect, with backshift{.}
+      - |-
+        {Pattern }**E: Preference** — Would rather / Prefer / Preference for{.}
+      - |-
+        {Pattern }**F: Participle (Having)** — Having + V-ed, joining two actions{.}
+      - |-
+        {Pattern }**G: Inclusion / Correlative** — Both…and / Either…or / Neither…nor / Not only…but also{.}
+      - |-
+        {Pattern }**H: Relative Clause** — who / whom / which / whose{.}
       - |-
         **The 3 rules of synthesis:**
         ① Don't change the meaning. ② Don't change the tense. ③ Don't add info.
@@ -65,6 +73,10 @@ keyConcepts:
       - |-
         **Conversion** (Although → Despite): verb → noun/-ing, drop the subject.
         "Although it was raining" → "Despite the rain."
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Changing the original word — wrote "homework" when the source said "work" → meaning change, -0.5.
+        ✗ Leaving "No matter" questions blank because the structure feels foreign — "No matter how hard I tried…" follows the same pattern as Although, just bigger setup.
 
   # ─── Slide 2: Pattern B — Cause ──────────────────────────────
   - title: "Pattern B — Cause (Because / Due to)"
@@ -83,6 +95,11 @@ keyConcepts:
       - |-
         **Conversion** (Because → Due to): same trick — verb → noun, drop subject.
         "Because she was sick" → "Due to her illness."
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Dropping a modifier — "Sam fell ill **suddenly**" → noun form must be "sudden illness", not just "illness". Skipping "sudden" loses 0.5.
+        ✗ Spelling slips on the derived noun: "indecision" not "indecesion". The noun has to be a real word — the marker checks the spelling.
+        ✗ Repeating the subject ("Sam") when the rewrite has already named them — use the pronoun ("he"). Otherwise -0.5.
 
   # ─── Slide 3: Try it — Concession & Cause ────────────────────
   - title: "Try it — Concession & Cause"
@@ -138,6 +155,11 @@ keyConcepts:
       - |-
         **Conversion** (If → Unless): drop "not" if there is one, add "not" if there isn't.
         "If you don't study, you will fail" → "Unless you study, you will fail."
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Keeping the "not" after Unless → double negative.
+        "If we do **not** leave now, we will be late" → "Unless we leave now" (NOT "Unless we **do not** leave").
+        ✗ Missing articles when rewriting: "we will start lesson" → should be "the lesson". Articles count.
 
   # ─── Slide 5: Pattern D — Reported Speech ────────────────────
   - title: "Pattern D — Reported Speech (Direct ↔ Indirect)"
@@ -174,6 +196,12 @@ keyConcepts:
       - |-
         **Commands** — use `told [person] to + verb`.
         -- "Sit down!" the teacher said. → The teacher **told** us **to sit down**.
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Using "they" / vague pronouns when the original speaker addressed a specific person → mark deducted for changing meaning.
+        ✗ Forgetting the verb backshift — "saw" should become "had seen" when the reporting verb is past.
+        ✗ Lowercase "if" / "i" at the start of the rewrite. Capitalisation counts.
+        ✗ Synonym swaps the marker rejects: "the day before" might cost 0.5 vs the expected "the previous day". Use the EXACT shift words from the table.
 
   # ─── Slide 6: Try it — Condition & Reported Speech ───────────
   - title: "Try it — Condition & Reported Speech"
@@ -213,7 +241,194 @@ keyConcepts:
         mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
 
-  # ─── Slide 7: Wrap-up CTA ───────────────────────────────────
+  # ─── Slide 7: Pattern E — Preference ─────────────────────────
+  - title: "Pattern E — Preference (Would rather / Prefer)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Two activities the speaker compares; one is preferred. Three
+      surface forms tested most: "would rather", "prefer", and the
+      noun "preference for".
+    bullets:
+      - |-
+        **Would rather + bare verb + than + bare verb**
+        ✓ Alice would rather **read books** than **watch TV**.
+        ✗ Alice would rather **read books** than **to watch TV**.   (no "to")
+      - |-
+        **Prefer + V-ing to V-ing**  /  **Prefer + noun to noun**
+        ✓ My grandparents prefer **visiting** local attractions **to travelling** overseas.
+      - |-
+        **Have a preference for X over Y**
+        ✓ My grandparents have a **preference for** visiting local attractions **over** travelling overseas.
+        ✗ "preference to travelling" — wrong preposition. "over", not "to".
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Adding "to" after "than" → "would rather X than **to** Y". Drop the "to".
+        ✗ Changing singular/plural ("books" → "a book") — the count changes the meaning, -0.5.
+        ✗ Spelling the original subject's name wrong ("Rami" instead of "Rani"). Copy the name exactly.
+
+  # ─── Slide 8: Pattern F — Participle (Having) ────────────────
+  - title: "Pattern F — Participle (Having + V-ed)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Joins TWO actions where the first finishes before the second
+      starts. "Having" + past participle replaces the first sentence's
+      subject + verb. The original subject moves to the SECOND clause.
+    bullets:
+      - |-
+        **Having + past participle, + new subject + verb**
+        ✓ Mary **finished** her homework. She went out to play.
+        → **Having finished** her homework, **Mary** went out to play.
+      - |-
+        **Not having** (negative form)
+        ✓ Amy **had not baked** cookies before. She burnt all of them.
+        → **Not having baked** cookies before, **Amy** burnt all of them.
+      - |-
+        **Two checkpoints** before submitting:
+        ① Past participle is correct (drew → drawn, eat → eaten, write → written).
+        ② The "his / her / their" possessives match the original — DON'T change them.
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Changing "his" / "her" / "their" to "a" or "the" — meaning shift, -0.5.
+        ✗ Using the wrong past participle (drewn, eaten/ate confusion). Common one: "drawn", not "drew".
+        ✗ Repeating the subject in BOTH clauses ("Having finished her homework, **she** Mary went…"). Pick one — usually the proper noun in the second clause.
+
+  # ─── Slide 9: Try it — Preference & Participle ───────────────
+  - title: "Try it — Preference & Participle"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Preference — would rather"
+        stem: |-
+          Original: Rani enjoys cycling. She does not enjoy swimming.
+          Rewrite using "would rather". Which is correct?
+        options:
+          - Rani would rather cycle than to swim.
+          - Rani would rather cycling than swimming.
+          - Rani would rather cycle than swim.
+          - Rani prefers cycle than swim.
+        correctAnswer: 3
+        explanation: >-
+          "Would rather" is followed by the BARE infinitive (no "to").
+          Both halves use the same form — cycle / swim. Option 1 adds
+          "to" by mistake; option 2 uses gerunds (would rather doesn't
+          take -ing); option 4 confuses two patterns.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Participle — Having"
+        stem: |-
+          Original: John drew a picture of his dog. Then he framed it up.
+          Rewrite starting with "Having". Which is correct?
+        options:
+          - Having drew a picture of his dog, John framed it up.
+          - Having drawn a picture of a dog, John framed it up.
+          - Having drawn a picture of his dog, John framed it up.
+          - John drew a picture of his dog, having framed it up.
+        correctAnswer: 3
+        explanation: >-
+          Two checks. Verb form: "drawn" (past participle), not "drew"
+          — that rules out option 1. Possessive: "his dog" stays "his
+          dog"; option 2 changed it to "a" which changes the meaning.
+          Option 4 puts "having framed" on the wrong action.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 10: Pattern G — Inclusion / Correlative ───────────
+  - title: "Pattern G — Inclusion (Both / Either / Neither / Not only)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Pairs of conjunctions that link two equal parts. The trap is
+      what comes AFTER the second half — verb agreement and word
+      order shift depending on the pair.
+    bullets:
+      - |-
+        **Both X and Y** — both must be the same kind (noun + noun, verb + verb).
+        ✓ **Both** Ali **and** Lily **like** to hike at Bukit Timah Hill.
+      - |-
+        **Either X or Y**  /  **Neither X nor Y**
+        ✓ We can **either** play soccer **or** go to the library.
+        ✓ **Neither** Ali **nor** Lily likes swimming.
+      - |-
+        **Not only X but (also) Y** — INVERSION after "Not only" at sentence start.
+        ✓ **Not only does** Sarah sing beautifully, **but she also** plays the piano well.
+        ✗ "Not only Sarah sings beautifully, but she plays the piano." (no inversion = wrong)
+      - |-
+        **X or Y** (warning + consequence form):
+        ✓ Hand in your assignment on time **or** your marks will be deducted.
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Forgetting the inversion after "Not only" — missing the "does / did / has". -1 mark.
+        ✗ Leaving "or"-warning sentences blank — students treat them as too simple but the marker still expects the connector slotted in.
+        ✗ Spelling: "library" (not "libary"). Common slip.
+
+  # ─── Slide 11: Pattern H — Relative Clause ───────────────────
+  - title: "Pattern H — Relative Clause (who / whom / which / whose)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Joins two sentences where the second describes a noun in the
+      first. The relative pronoun depends on what it replaces.
+    bullets:
+      - |-
+        **who** = subject (people).
+        Mrs Lee is our teacher. She teaches us English. → Mrs Lee, **who** teaches us English, is our teacher.
+      - |-
+        **whom** = object (people). After a verb or preposition.
+        We admire Mr Kwan. He is our football player. → Mr Kwan, **whom** we admire, is our football player.
+        Quick test: if you could replace it with "him / her / them" → use "whom"; if "he / she / they" → use "who".
+      - |-
+        **which** = subject or object (things). **whose** = possessive.
+        ✓ My mother bought a new blender **which can** make fruit juices very quickly.
+        ✓ The boy **whose** dog was lost is my classmate.
+      - |-
+        **Punctuation** — non-defining clause needs commas around it.
+        ✓ Mr Kwan, **whom** we admire, is our football player. (commas — non-defining)
+        ✓ The robber **who** wore a black mask was caught. (no commas — defining)
+      - |-
+        **Common mistakes** (from real student work)
+        ✗ Using "whom" where it should be "who" — "whom is our football player" is wrong because "whom" is the subject of "is". -0.5.
+        ✗ Dropping modal verbs from the original — "It **can** make fruit juices" must stay "which **can** make" — not "which makes". Losing "can" loses 0.5.
+        ✗ Missing commas around the non-defining clause.
+
+  # ─── Slide 12: Try it — Inclusion & Relative ─────────────────
+  - title: "Try it — Inclusion & Relative Clause"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Inclusion — Not only"
+        stem: |-
+          Original: Sarah sings beautifully. She plays the piano well.
+          Rewrite starting with "Not only". Which is correct?
+        options:
+          - Not only Sarah sings beautifully, but she also plays the piano well.
+          - Not only does Sarah sings beautifully, but she also plays the piano well.
+          - Not only does Sarah sing beautifully, but she also plays the piano well.
+          - Sarah not only sings beautifully and she plays the piano well.
+        correctAnswer: 3
+        explanation: >-
+          "Not only" at the start FORCES inversion: "does + Sarah +
+          BASE verb". Option 1 has no inversion; option 2 keeps "sings"
+          (after "does" the verb must be in base form); option 4
+          rearranges and drops "but also". Option 3 inverts correctly
+          and keeps both halves balanced with "but she also".
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Relative — who vs whom"
+        stem: |-
+          Original: We admire Mr Kwan. He is our local football player.
+          Rewrite using "whom". Which is correct?
+        options:
+          - Mr Kwan, whom we admire, is our local football player.
+          - Mr Kwan whom we admire is our local football player.
+          - Mr Kwan, whom is our local football player, we admire.
+          - We admire Mr Kwan, whom is our local football player.
+        correctAnswer: 1
+        explanation: >-
+          "whom" is the OBJECT of "admire" (we admire him → whom). The
+          non-defining clause "whom we admire" needs commas. Options
+          2 and 3/4 either miss the commas or use "whom" as a subject
+          ("whom is" is always wrong — subject pronoun should be
+          "who").
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 13: Wrap-up CTA ───────────────────────────────────
   - title: "Start practising!"
     mascotImage: /master-class/grammar-mcq-1/panda-cta.png
     body: >-
@@ -222,7 +437,7 @@ keyConcepts:
       checking "same tense, same info, same meaning" on every rewrite.
     bullets:
       - |-
-        {You'll tackle }**15 questions** —{ a mix across } Concession, Cause, Condition, {and }Reported Speech{.}
+        {You'll tackle }**15 questions** —{ a mix across the }8 patterns{ from this class.}
       - |-
         {Any }Wrong answers {are }auto-saved, {and }reviewed in 1 week{.}
       - |-
@@ -245,6 +460,10 @@ keyWords:
   - { word: "cause clause vs cause phrase", definition: "Same grammar split as concession. Because/Since/As take a clause (subject + verb). Due to / Owing to take a noun phrase. Convert verb → noun + drop subject." }
   - { word: "unless", definition: "Means 'if...not'. When converting If → Unless, NEGATE the if-clause (drop 'not' or add 'not'). Double negatives are the #1 trap." }
   - { word: "backshift", definition: "In reported speech, when the reporting verb is past, every tense shifts one step further back: present → past, past → past perfect (had + past participle). Pronouns and time/place words shift too: yesterday → the day before, here → there." }
+  - { word: "would rather", definition: "Compares two activities. Followed by BARE verbs: 'would rather X than Y' (no 'to' before Y). 'Prefer' uses gerunds: 'prefer V-ing to V-ing'. 'Preference' uses 'for X over Y'." }
+  - { word: "having + past participle", definition: "Joins two actions where the first finishes before the second starts. Replaces 'Subject + did X. Then subject did Y' with 'Having + V-ed X, subject did Y'. Possessives in the original (his / her / their) must stay unchanged." }
+  - { word: "not only inversion", definition: "When 'Not only' starts the sentence, the verb INVERTS: 'Not only DOES Sarah sing beautifully, but she also plays the piano well'. Forgetting the 'does / did / has' costs 1 mark." }
+  - { word: "who vs whom", definition: "who = subject (replaces he/she/they) — 'who teaches us'. whom = object (replaces him/her/them) — 'whom we admire'. Test: if you could substitute 'he/she' use 'who'; if 'him/her' use 'whom'." }
   - { word: "3 rules of synthesis", definition: "① Don't change the tense. ② Don't add info. ③ Don't change the meaning. Every rewrite must pass all three checks before you submit." }
 
 subTopics:
@@ -264,3 +483,19 @@ subTopics:
     label: Reported Speech (backshift)
     description: "Direct ↔ indirect. Backshift tenses one step (present → past, past → past perfect). Also shift pronouns and time words (yesterday → the day before). Past-past trap is the headline mistake."
     slideIdx: 5
+  - id: preference
+    label: Preference (Would rather / Prefer)
+    description: "Compare two activities; one is preferred. Would rather + bare verb + than + bare verb. Prefer + V-ing to V-ing. Preference + for X over Y. Trap: adding 'to' after 'than'."
+    slideIdx: 7
+  - id: participle-having
+    label: Participle (Having + V-ed)
+    description: "Joins two actions where the first finishes before the second starts. Having + past participle replaces the first sentence's subject + verb. The original subject moves to the second clause. Keep his/her possessives intact."
+    slideIdx: 8
+  - id: inclusion-correlative
+    label: Inclusion (Both / Either / Neither / Not only)
+    description: "Pair conjunctions linking two equal parts. Headline trap: 'Not only' at sentence start FORCES inversion ('Not only DOES Sarah sing'). 'Or' as warning + consequence is also tested."
+    slideIdx: 10
+  - id: relative-clause
+    label: Relative Clause (who / whom / which / whose)
+    description: "Joins two sentences where the second describes a noun in the first. who = subject (people), whom = object (people), which = things, whose = possessive. Non-defining clauses need commas."
+    slideIdx: 11
