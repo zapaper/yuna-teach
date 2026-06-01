@@ -1365,24 +1365,97 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             ));
           })()}
         </div>
-        {assignMode === "focused" && quizSubject === "english" && (
-          <div className="mb-4">
-            <p className="text-[10px] font-extrabold text-[#43474f] uppercase tracking-wider mb-1.5">Pick one section (2x questions)</p>
-            <select value={[...englishSections][0] ?? ""} onChange={e => setEnglishSections(new Set(e.target.value ? [e.target.value] : []))}
-              className="w-full px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-xs font-medium text-[#001e40] focus:border-[#003366] focus:outline-none bg-white">
-              <option value="">Select a section…</option>
-              <option value="grammar-mcq">Grammar MCQ</option>
-              <option value="vocab-mcq">Vocabulary MCQ</option>
-              <option value="vocab-cloze">Vocabulary Cloze</option>
-              <option value="visual-text">Visual Text Comprehension</option>
-              <option value="grammar-cloze">Grammar Cloze</option>
-              <option value="editing">Editing (Spelling & Grammar)</option>
-              <option value="comprehension-cloze">Comprehension Cloze</option>
-              <option value="synthesis">Synthesis & Transformation</option>
-              <option value="comprehension-oeq">Comprehension OEQ</option>
-            </select>
-          </div>
-        )}
+        {assignMode === "focused" && quizSubject === "english" && (() => {
+          // Map English focused-section keys (the dropdown value) to the
+          // syllabusTopic strings that appear in allTopics so we can
+          // surface the weakest 3 sections as quick-pick cards above
+          // the dropdown — same UX Math + Science already have.
+          // Some topics have two valid display strings in the bank
+          // (e.g. "Synthesis / Transformation" and "Synthesis &
+          // Transformation"); accept either.
+          const englishSectionTopicMap: Record<string, string[]> = {
+            "grammar-mcq": ["Grammar MCQ"],
+            "vocab-mcq": ["Vocabulary MCQ"],
+            "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze"],
+            "visual-text": ["Visual Text Comprehension MCQ", "Visual Text Comprehension"],
+            "grammar-cloze": ["Grammar Cloze"],
+            "editing": ["Editing (Spelling & Grammar)", "Editing"],
+            "comprehension-cloze": ["Comprehension Cloze"],
+            "synthesis": ["Synthesis / Transformation", "Synthesis & Transformation"],
+            "comprehension-oeq": ["Comprehension Open Ended", "Comprehension (Open-ended)", "Comprehension OEQ"],
+          };
+          const sectionLabels: Record<string, string> = {
+            "grammar-mcq": "Grammar MCQ",
+            "vocab-mcq": "Vocabulary MCQ",
+            "vocab-cloze": "Vocabulary Cloze",
+            "visual-text": "Visual Text Comprehension",
+            "grammar-cloze": "Grammar Cloze",
+            "editing": "Editing (Spelling & Grammar)",
+            "comprehension-cloze": "Comprehension Cloze",
+            "synthesis": "Synthesis & Transformation",
+            "comprehension-oeq": "Comprehension OEQ",
+          };
+          const englishTopicPct = new Map<string, number>();
+          for (const t of allTopics) {
+            if (!t.subject.toLowerCase().includes("english")) continue;
+            englishTopicPct.set(t.topic, t.pct);
+          }
+          // For each section key, take the lowest pct across its
+          // accepted topic display strings.
+          type Weak = { sectionKey: string; label: string; pct: number };
+          const weakEnglishSections: Weak[] = [];
+          for (const [sectionKey, topics] of Object.entries(englishSectionTopicMap)) {
+            let bestPct: number | null = null;
+            for (const tname of topics) {
+              const p = englishTopicPct.get(tname);
+              if (p == null) continue;
+              if (bestPct == null || p < bestPct) bestPct = p;
+            }
+            if (bestPct != null && bestPct <= 75) {
+              weakEnglishSections.push({ sectionKey, label: sectionLabels[sectionKey] ?? sectionKey, pct: bestPct });
+            }
+          }
+          weakEnglishSections.sort((a, b) => a.pct - b.pct);
+          const top3 = weakEnglishSections.slice(0, 3);
+
+          return (
+            <>
+              {top3.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Weakest Sections</p>
+                  <div className="space-y-1.5">
+                    {top3.map(w => {
+                      const selected = englishSections.size === 1 && englishSections.has(w.sectionKey);
+                      return (
+                        <button key={w.sectionKey} onClick={() => setEnglishSections(new Set([w.sectionKey]))}
+                          className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-xl border-2 transition-all ${selected ? "border-[#006c49] bg-[#6cf8bb]/20" : "border-[#c3c6d1] bg-white"}`}>
+                          <span className="text-sm font-bold text-[#001e40] truncate pr-2">{w.label}</span>
+                          <span className="text-xs text-[#ba1a1a] font-extrabold shrink-0">{w.pct}%</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              <div className="mb-4">
+                <p className="text-[10px] font-extrabold text-[#43474f] uppercase tracking-wider mb-1.5">{top3.length > 0 ? "Or pick a section" : "Pick one section (2x questions)"}</p>
+                <select value={[...englishSections][0] ?? ""} onChange={e => setEnglishSections(new Set(e.target.value ? [e.target.value] : []))}
+                  className="w-full px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-xs font-medium text-[#001e40] focus:border-[#003366] focus:outline-none bg-white">
+                  <option value="">Select a section…</option>
+                  <option value="grammar-mcq">Grammar MCQ</option>
+                  <option value="vocab-mcq">Vocabulary MCQ</option>
+                  <option value="vocab-cloze">Vocabulary Cloze</option>
+                  <option value="visual-text">Visual Text Comprehension</option>
+                  <option value="grammar-cloze">Grammar Cloze</option>
+                  <option value="editing">Editing (Spelling & Grammar)</option>
+                  <option value="comprehension-cloze">Comprehension Cloze</option>
+                  <option value="synthesis">Synthesis & Transformation</option>
+                  <option value="comprehension-oeq">Comprehension OEQ</option>
+                </select>
+              </div>
+            </>
+          );
+        })()}
         {assignMode === "focused" && quizSubject === "chinese" && (
           // Chinese focused practice — there are no syllabus topics
           // for 华文 (the question bank is organised by exam paper
