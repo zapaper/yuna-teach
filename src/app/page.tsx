@@ -55,7 +55,7 @@ const FEATURES = [
     description: "Tells you which topics are weak and creates a focused practice on each.",
   },
   {
-    src: "/accuracy.png",
+    src: "/accuracy2.png",
     alt: "Marking accuracy benchmarked against top AI models",
     title: "Marking accuracy you can trust",
     description: "Aligned with MOE rubrics. Benchmarked against the top AI models on every release.",
