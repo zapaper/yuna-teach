@@ -36,19 +36,19 @@ function getOpenAI() {
   return _openai;
 }
 
-// Tier mapping. Flash tier uses gpt-4.1-mini (NOT gpt-5-mini): a
-// 2026-06-01 eval probe showed gpt-5-mini's vision call returns
-// null/empty when asked to OCR handwritten student answers in our
-// Phase 1 detection step. Phase 2 then correctly refuses to mark a
-// blank input → every OEQ scored 0. gpt-4.1-mini handles the same
-// prompt+image fine (90.8% match vs Gemini baseline). Re-evaluate
-// gpt-5-mini whenever its vision quality moves. Pro tier stays
-// gpt-5.4 — drawable / multi-step marking that already worked.
+// Tier mapping (2026-06-01 final). Flash tier = gpt-5; pro tier =
+// gpt-5.4. The earlier "vision regression" on gpt-5 / gpt-5-mini was a
+// misdiagnosis — the actual cause was OpenAI's chat completions API
+// rejecting our temperature=0.1 with a 400. The error got swallowed
+// in the marking catch block, Phase 1 returned empty, Phase 2 awarded
+// 0 for every OEQ. With temperature normalised below, gpt-5 scored
+// ~95.4% on the eval (vs gpt-4.1-mini at 90.0%, Gemini at ~97.7%).
+// Pro tier stays on gpt-5.4 — accepts custom temperature fine.
 const MODEL_MAP: Record<string, string> = {
-  "gemini-2.5-flash": "gpt-4.1-mini",
-  "gemini-2.5-flash-lite": "gpt-4.1-mini",
-  "gemini-3.1-flash-lite-preview": "gpt-4.1-mini",
-  "gemini-3-flash-preview": "gpt-4.1-mini",
+  "gemini-2.5-flash": "gpt-5",
+  "gemini-2.5-flash-lite": "gpt-5",
+  "gemini-3.1-flash-lite-preview": "gpt-5",
+  "gemini-3-flash-preview": "gpt-5",
   "gemini-2.5-pro": "gpt-5.4",
   "gemini-3.1-pro-preview": "gpt-5.4",
   "gemini-3-pro-preview": "gpt-5.4",
@@ -147,11 +147,21 @@ function translateRequest(params: GeminiParams): {
     }
   }
 
+  // gpt-5 / gpt-5-mini reject non-default temperature with a 400
+  // ("'temperature' does not support 0.1 with this model. Only the
+  // default (1) value is supported."). gpt-4.x and gpt-5.4 accept
+  // 0.1 fine. Pass the temperature through ONLY when the target model
+  // supports it — drop it for gpt-5 family so the call succeeds at
+  // default 1 instead of erroring out and forcing the marker to see
+  // an empty student answer (silent 0/N marks per OEQ, which was the
+  // "vision regression" I previously misdiagnosed).
+  const modelAcceptsCustomTemp = !/^gpt-5(?:-mini)?$/.test(openaiModel);
+
   return {
     model: openaiModel,
     messages: messagesForJson,
     ...(wantsJson ? { response_format: { type: "json_object" as const } } : {}),
-    ...(typeof cfg.temperature === "number" ? { temperature: cfg.temperature } : {}),
+    ...(typeof cfg.temperature === "number" && modelAcceptsCustomTemp ? { temperature: cfg.temperature } : {}),
   };
 }
 
