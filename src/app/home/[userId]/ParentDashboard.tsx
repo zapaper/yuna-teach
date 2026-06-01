@@ -769,7 +769,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // "weak topics" bullet inside the AI Smart Insights card. Server
   // computes the recent-trend (last-5 vs last-10 question avg).
   useEffect(() => {
-    if (!selectedStudentId) { setInsightWeakTopics([]); return; }
+    // Clear synchronously so the previous student's table never flashes
+    // while the new student's fetch is in flight.
+    setInsightWeakTopics([]);
+    if (!selectedStudentId) return;
     let cancelled = false;
     fetch(`/api/student/weak-topics?studentId=${selectedStudentId}&limit=5`)
       .then(r => r.ok ? r.json() : { rows: [] })
