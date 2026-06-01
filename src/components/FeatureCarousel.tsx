@@ -123,17 +123,21 @@ export default function FeatureCarousel({ items }: { items: FeatureItem[] }) {
             <article
               key={i}
               aria-hidden={isClone}
-              className="relative bg-surface-container-low rounded-3xl shadow-lg overflow-hidden snap-center shrink-0 w-[60vw] sm:w-[300px] md:w-[380px] lg:w-[510px] aspect-[4/3]"
+              className="relative bg-surface-container-low rounded-3xl shadow-lg overflow-hidden snap-center shrink-0 w-[80vw] sm:w-[320px] md:w-[400px] lg:w-[520px] aspect-square"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt={it.alt}
-                className="absolute inset-0 w-full h-full object-contain p-4 pt-32 lg:pt-36"
+                className="absolute inset-0 w-full h-full object-contain p-3 pt-28 lg:pt-40"
                 src={it.src}
               />
-              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-6 py-5 lg:px-8 lg:py-6 z-10">
-                <h3 className="font-headline text-lg md:text-xl lg:text-2xl font-bold mb-1 leading-tight">{it.title}</h3>
-                <p className="text-white/85 text-sm lg:text-base leading-snug">{it.description}</p>
+              {/* Fixed-height header so every card's title block sits at
+                  the same vertical position. line-clamp keeps overflow
+                  silent on longer descriptions. Smaller header on
+                  mobile so the image area isn't crushed. */}
+              <div className="absolute top-0 left-0 right-0 bg-primary text-white px-5 py-3 lg:px-8 lg:py-5 z-10 h-28 lg:h-40 overflow-hidden flex flex-col justify-center">
+                <h3 className="font-headline text-base md:text-lg lg:text-xl font-bold mb-0.5 leading-tight line-clamp-1">{it.title}</h3>
+                <p className="text-white/85 text-xs md:text-sm lg:text-base leading-snug line-clamp-3">{it.description}</p>
               </div>
             </article>
           );

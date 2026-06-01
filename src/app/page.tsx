@@ -52,7 +52,7 @@ const FEATURES = [
     src: "/weaktopics.png",
     alt: "Weak topics dashboard with focused practice",
     title: "Pinpoints weak topics — and what to do next",
-    description: "No more hunting for “more like this”. The dashboard tells you which topics are weak and queues a focused practice on each.",
+    description: "No more hunting for “more like this”. The dashboard tells you which topics are weak and creates a focused practice.",
   },
   {
     src: "/accuracy.png",
