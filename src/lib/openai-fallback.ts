@@ -36,17 +36,19 @@ function getOpenAI() {
   return _openai;
 }
 
-// Tier mapping ("Option B" — newest GA tiers with no announced
-// deprecation): flash family → gpt-5-mini, pro family → gpt-5.4.
-// gpt-5-mini was 404-blocked until OpenAI org verification cleared
-// (2026-05-31); now back as the flash-tier primary. Both support
-// vision + JSON. If a caller specifies a model not in this map,
-// default to gpt-5.4 for safety.
+// Tier mapping. Flash tier uses gpt-4.1-mini (NOT gpt-5-mini): a
+// 2026-06-01 eval probe showed gpt-5-mini's vision call returns
+// null/empty when asked to OCR handwritten student answers in our
+// Phase 1 detection step. Phase 2 then correctly refuses to mark a
+// blank input → every OEQ scored 0. gpt-4.1-mini handles the same
+// prompt+image fine (90.8% match vs Gemini baseline). Re-evaluate
+// gpt-5-mini whenever its vision quality moves. Pro tier stays
+// gpt-5.4 — drawable / multi-step marking that already worked.
 const MODEL_MAP: Record<string, string> = {
-  "gemini-2.5-flash": "gpt-5-mini",
-  "gemini-2.5-flash-lite": "gpt-5-mini",
-  "gemini-3.1-flash-lite-preview": "gpt-5-mini",
-  "gemini-3-flash-preview": "gpt-5-mini",
+  "gemini-2.5-flash": "gpt-4.1-mini",
+  "gemini-2.5-flash-lite": "gpt-4.1-mini",
+  "gemini-3.1-flash-lite-preview": "gpt-4.1-mini",
+  "gemini-3-flash-preview": "gpt-4.1-mini",
   "gemini-2.5-pro": "gpt-5.4",
   "gemini-3.1-pro-preview": "gpt-5.4",
   "gemini-3-pro-preview": "gpt-5.4",
