@@ -38,6 +38,34 @@ async function getHandFontBytes(): Promise<Buffer> {
   return _handFontBytes;
 }
 
+// Hand-extracted tick + cross PNGs (public/Marking/tick-*.png and
+// cross-*.png). Each stamp picks one at random per question so the
+// resulting PDF has natural ink variation, not four identical
+// vector glyphs. Loaded once per process.
+const TICK_FILES = ["tick-01.png","tick-02.png","tick-03.png","tick-04.png","tick-05.png","tick-06.png","tick-07.png","tick-08.png","tick-09.png","tick-10.png","tick-13.png","tick-14.png","tick-15.png","tick-16.png"] as const;
+const CROSS_FILES = ["cross-01.png","cross-02.png","cross-03.png","cross-04.png"] as const;
+type MarkImageBytes = { bytes: Buffer; widthPx: number; heightPx: number };
+let _tickImages: MarkImageBytes[] | null = null;
+let _crossImages: MarkImageBytes[] | null = null;
+async function loadMarkImages(files: readonly string[]): Promise<MarkImageBytes[]> {
+  const out: MarkImageBytes[] = [];
+  for (const f of files) {
+    const fp = path.join(process.cwd(), "public", "Marking", f);
+    const bytes = await fs.readFile(fp);
+    const meta = await sharp(bytes).metadata();
+    out.push({ bytes, widthPx: meta.width ?? 1, heightPx: meta.height ?? 1 });
+  }
+  return out;
+}
+async function getTickImages(): Promise<MarkImageBytes[]> {
+  if (!_tickImages) _tickImages = await loadMarkImages(TICK_FILES);
+  return _tickImages;
+}
+async function getCrossImages(): Promise<MarkImageBytes[]> {
+  if (!_crossImages) _crossImages = await loadMarkImages(CROSS_FILES);
+  return _crossImages;
+}
+
 let _ai: GoogleGenAI | null = null;
 function getAI() {
   if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
@@ -396,6 +424,39 @@ async function handle(
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
   const RED = rgb(0.85, 0.10, 0.10);
 
+  // Pre-embed every tick/cross PNG ONCE per document so the per-question
+  // stamp can pick randomly without re-embedding.
+  type EmbeddedMark = { img: Awaited<ReturnType<typeof doc.embedPng>>; widthPx: number; heightPx: number };
+  const tickImageData = await getTickImages();
+  const crossImageData = await getCrossImages();
+  const embeddedTicks: EmbeddedMark[] = [];
+  for (const t of tickImageData) {
+    embeddedTicks.push({ img: await doc.embedPng(t.bytes), widthPx: t.widthPx, heightPx: t.heightPx });
+  }
+  const embeddedCrosses: EmbeddedMark[] = [];
+  for (const c of crossImageData) {
+    embeddedCrosses.push({ img: await doc.embedPng(c.bytes), widthPx: c.widthPx, heightPx: c.heightPx });
+  }
+  function pickRandom<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  // Stamp a tick or cross centred on (cx, cy). Each glyph's natural
+  // aspect is preserved — height = targetSize, width scales to match.
+  function stampMark(page: Page, kind: "tick" | "cross", cx: number, cy: number, targetSize: number) {
+    const pool = kind === "tick" ? embeddedTicks : embeddedCrosses;
+    if (pool.length === 0) return;
+    const pick = pickRandom(pool);
+    const aspect = pick.widthPx / pick.heightPx;
+    const drawH = targetSize;
+    const drawW = drawH * aspect;
+    page.drawImage(pick.img, {
+      x: cx - drawW / 2,
+      y: cy - drawH / 2,
+      width: drawW,
+      height: drawH,
+    });
+  }
+
   for (let i = 0; i < pageFiles.length; i++) {
     const jpgPath = path.join(subDir, pageFiles[i]);
     const jpgBytes = await fs.readFile(jpgPath);
@@ -438,12 +499,12 @@ async function handle(
         if (status === "blank") continue;
 
         if (status === "correct") {
-          drawTick(page, markX, markY, markSize, RED);
+          stampMark(page, "tick", markX, markY, markSize);
           continue;
         }
 
         // status === "wrong" (covers full-wrong AND partial credit)
-        drawCross(page, markX, markY, markSize, RED);
+        stampMark(page, "cross", markX, markY, markSize);
 
         // "-N" deduction badge to the RIGHT of the cross, sized close
         // to the cross itself so the deduction is the loudest signal
@@ -459,24 +520,23 @@ async function handle(
           color: RED,
         });
 
-        // Note in handwriting, right-aligned to the mark column,
-        // sitting just below the cross. Math notes use ' / ' as a line
-        // break so step-by-step calculations stack vertically; other
-        // subjects pass through as a single line.
+        // Note placement: sits BELOW the question's bounding box rather
+        // than next to the cross. Wider per-line budget (~55% of page
+        // width) and capped at 2 lines so longer comments fit cleanly.
+        // Right-aligned to the mark column for a teacher-paper feel.
         if (m.note) {
-          // Safety net: even with the prompt forbidding LaTeX, the
-          // model still occasionally emits "$\\frac{a}{b}$". pdf-lib
-          // renders that literally — convert to plain "a/b" before
-          // drawing.
           const stripped = stripLatex(m.note);
-          const maxW = pageW * 0.32;
+          const maxW = pageW * 0.55;
           const rawLines = stripped.split(" / ").map(s => s.trim()).filter(Boolean);
           const wrapped: string[] = [];
           for (const line of rawLines) {
             for (const w of wrapText(line, handFont, noteSize, maxW)) wrapped.push(w);
           }
-          let yCursor = markY - markSize * 0.6 - noteSize;
-          for (const line of wrapped) {
+          const capped = wrapped.slice(0, 2);
+          // Question-region bottom in PDF coords (y increases upward).
+          const regionBottomY = pageH - (entry.pageRegion.topPx + entry.pageRegion.heightPx);
+          let yCursor = regionBottomY - noteSize * 0.4;
+          for (const line of capped) {
             const lineW = handFont.widthOfTextAtSize(line, noteSize);
             page.drawText(line, {
               x: markRightX - lineW,
@@ -522,17 +582,8 @@ async function handle(
   });
 }
 
-// ── Glyph helpers ────────────────────────────────────────────────────
-
+// ── Page type ────────────────────────────────────────────────────────
+// stampMark inside handle() takes a Page argument; declared here so the
+// reference is in scope. (Vector drawTick/drawCross helpers replaced by
+// hand-stamped PNGs from public/Marking/tick-*.png + cross-*.png.)
 type Page = ReturnType<PDFDocument["addPage"]>;
-function drawTick(page: Page, cx: number, cy: number, size: number, color: ReturnType<typeof rgb>) {
-  // A simple V-shape: short stroke down-right, long stroke up-right.
-  const lw = Math.max(2, size * 0.12);
-  page.drawLine({ start: { x: cx - size * 0.35, y: cy + size * 0.05 }, end: { x: cx - size * 0.05, y: cy - size * 0.30 }, thickness: lw, color });
-  page.drawLine({ start: { x: cx - size * 0.05, y: cy - size * 0.30 }, end: { x: cx + size * 0.45, y: cy + size * 0.40 }, thickness: lw, color });
-}
-function drawCross(page: Page, cx: number, cy: number, size: number, color: ReturnType<typeof rgb>) {
-  const lw = Math.max(2, size * 0.12);
-  page.drawLine({ start: { x: cx - size * 0.30, y: cy + size * 0.30 }, end: { x: cx + size * 0.30, y: cy - size * 0.30 }, thickness: lw, color });
-  page.drawLine({ start: { x: cx - size * 0.30, y: cy - size * 0.30 }, end: { x: cx + size * 0.30, y: cy + size * 0.30 }, thickness: lw, color });
-}
