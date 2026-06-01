@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import sharp from "sharp";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, PDFFont, rgb, StandardFonts, degrees } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
@@ -524,21 +524,31 @@ async function handle(
         // than next to the cross. Wider per-line budget (~55% of page
         // width) and capped at 2 lines so longer comments fit cleanly.
         // Right-aligned to the mark column for a teacher-paper feel.
+        // Drawn character-by-character with tiny random rotation and
+        // y-offset per glyph so the same letter doesn't render
+        // identically each time — looks closer to actual handwriting.
         if (m.note) {
           const stripped = stripLatex(m.note);
-          const maxW = pageW * 0.55;
           const rawLines = stripped.split(" / ").map(s => s.trim()).filter(Boolean);
-          const wrapped: string[] = [];
-          for (const line of rawLines) {
-            for (const w of wrapText(line, handFont, noteSize, maxW)) wrapped.push(w);
-          }
+          // Adaptive width: try a tight 55% first so short notes stay
+          // compact. If that forces a wrap, give the note 75% so the
+          // second line gets more horizontal room before we cap at 2.
+          const wrapAt = (maxW: number) => {
+            const out: string[] = [];
+            for (const line of rawLines) {
+              for (const w of wrapText(line, handFont, noteSize, maxW)) out.push(w);
+            }
+            return out;
+          };
+          let wrapped = wrapAt(pageW * 0.55);
+          if (wrapped.length > 1) wrapped = wrapAt(pageW * 0.75);
           const capped = wrapped.slice(0, 2);
           // Question-region bottom in PDF coords (y increases upward).
           const regionBottomY = pageH - (entry.pageRegion.topPx + entry.pageRegion.heightPx);
           let yCursor = regionBottomY - noteSize * 0.4;
           for (const line of capped) {
             const lineW = handFont.widthOfTextAtSize(line, noteSize);
-            page.drawText(line, {
+            drawJitteredText(page, line, {
               x: markRightX - lineW,
               y: yCursor,
               size: noteSize,
@@ -587,3 +597,39 @@ async function handle(
 // reference is in scope. (Vector drawTick/drawCross helpers replaced by
 // hand-stamped PNGs from public/Marking/tick-*.png + cross-*.png.)
 type Page = ReturnType<PDFDocument["addPage"]>;
+
+// Render text character-by-character with small per-glyph rotation
+// and y-offset so the same letter never renders identically. Closer to
+// real handwriting than a single straight drawText call. Spaces are
+// skipped (no visible jitter on whitespace).
+type JitterOpts = {
+  x: number;
+  y: number;
+  size: number;
+  font: PDFFont;
+  color: ReturnType<typeof rgb>;
+};
+function drawJitteredText(page: Page, text: string, opts: JitterOpts) {
+  let cx = opts.x;
+  for (const ch of text) {
+    const w = opts.font.widthOfTextAtSize(ch, opts.size);
+    if (ch.trim().length === 0) {
+      cx += w;
+      continue;
+    }
+    // ±1.4° rotation, ±opts.size*0.04 y-offset (roughly ±0.6pt at
+    // noteSize 18). Subtle enough that letters stay readable but
+    // perceptibly hand-drawn.
+    const rotDeg = (Math.random() - 0.5) * 2.8;
+    const dy = (Math.random() - 0.5) * opts.size * 0.08;
+    page.drawText(ch, {
+      x: cx,
+      y: opts.y + dy,
+      size: opts.size,
+      font: opts.font,
+      color: opts.color,
+      rotate: degrees(rotDeg),
+    });
+    cx += w;
+  }
+}
