@@ -893,11 +893,17 @@ Return JSON exactly:
 }
 
 Rules for the stem's answer area (canonical Singapore P6 format):
-- Keyword at START of the answer → TWO lines of 32 underscores AFTER the keyword:
+- Keyword at START of the answer → TWO lines of 32 underscores AFTER the keyword. The keyword's first letter is CAPITALISED because it begins the answer sentence:
     **<Keyword>** ________________________________
     ________________________________
-- Keyword in the MIDDLE of the answer → ONE line with 32 underscores before AND after the keyword:
+- Keyword in the MIDDLE of the answer → ONE line with 32 underscores before AND after the keyword. The keyword's first letter is LOWERCASE because it is NOT at the start of the answer sentence:
     ________________________________ **<keyword>** ________________________________
+
+CAPITALISATION RULE (NON-NEGOTIABLE):
+- If the answer sentence begins with the keyword (e.g. "Unless you study, you will fail"), the stem must use the START template AND capitalise the keyword inside the asterisks (e.g. **Unless**).
+- If the answer sentence has the keyword mid-sentence (e.g. "You will fail unless you study"), the stem must use the MIDDLE template AND keep the keyword lowercase inside the asterisks (e.g. **unless**, **instead of**, **despite**).
+- A capitalised keyword inside a MIDDLE template is ALWAYS wrong. Match the keyword's case in the stem to its position in the answer.
+- Proper nouns inside the keyword span (e.g. "I" in **after I**) stay capitalised; only the first letter of the keyword phrase follows the position rule.
 
 General rules:
 - BOTH variants must test the SAME grammar rule as the original.
@@ -906,7 +912,7 @@ General rules:
 - "simple": gentler (shorter sentences, easier vocabulary).
 - "similar": same difficulty/complexity as the original.
 - The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the combined meaning of both input sentences. No quotation marks around it.
-- The "keyword" field should be the bare word(s) without asterisks.
+- The "keyword" field should be the bare word(s) without asterisks (case matches the stem — capitalised when at start of answer, lowercase when mid-sentence).
 - Exactly 32 underscores per blank. Do NOT use 20 or any other count.
 - Do NOT reuse the original sentences verbatim.
 - No double spaces (except the single space between segments), no trailing punctuation errors.
