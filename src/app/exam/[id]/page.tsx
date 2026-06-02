@@ -261,6 +261,21 @@ function ExamPracticeContent({ id }: { id: string }) {
         const res = await fetch(`/api/exam/${id}`);
         if (!res.ok) throw new Error("Not found");
         const data: ExamPaperDetail = await res.json();
+        // Typed-quiz paper types (quiz / focused / mastery) belong on
+        // /quiz/[id], not on this scan-back upload page. If the
+        // viewer is the assigned student (not an admin inspecting),
+        // bounce them to the right route. Old bookmarks + email links
+        // pointing at /exam/[id] used to drop students on the wrong
+        // UI; this redirect catches them. requesterIsAdmin is set by
+        // /api/exam/[id] based on session, not the URL.
+        const isTypedQuizType = data.paperType === "quiz" || data.paperType === "focused" || data.paperType === "mastery";
+        const viewerIsAssignedStudent = !!data.assignedToId && userId === data.assignedToId;
+        const viewerIsAdmin = !!(data as { requesterIsAdmin?: boolean }).requesterIsAdmin;
+        if (isTypedQuizType && viewerIsAssignedStudent && !viewerIsAdmin) {
+          const quizId = id;
+          router.replace(`/quiz/${quizId}${userId ? `?userId=${userId}` : ""}`);
+          return;
+        }
         setPaper(data);
         if (data.completedAt) setSubmitStatus("submitted");
         if (data.pdfPath) {
