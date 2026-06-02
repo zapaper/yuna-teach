@@ -1936,18 +1936,29 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
                 // Step 2: Mark normally with cropped image.
                 // Cloze + Editing force a specific lite model (strict
-                // letter checks); everything else lets markBatch pick
-                // its subject-aware default — science gets
-                // gemini-3.1-pro-preview, math/english get flash-2.5.
+                // letter checks); Science + Chinese OEQ get the pro
+                // model for reliable handwriting detection (Chinese
+                // confusable look-alikes 己/已/巳, 末/未, etc. trip the
+                // flash model). Math/English OEQs use flash.
                 const isCloze = q.syllabusTopic === "Grammar Cloze" || q.syllabusTopic === "Comprehension Cloze";
                 const isEditing = q.syllabusTopic === "Editing (Spelling & Grammar)";
                 const isSci = (paper?.subject ?? "").toLowerCase().includes("science");
-                const effectiveModel = (isCloze || isEditing)
-                  ? "gemini-3.1-flash-lite-preview"
-                  : isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+                const subjLower = (paper?.subject ?? "").toLowerCase();
+                const subjRaw = paper?.subject ?? "";
+                const isChineseSubject = subjLower.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
+                // Chinese OEQ = Q33 onwards on a Chinese paper (the
+                // 阅读理解 sections). Strip non-digits from questionNum
+                // since the field may be "33a" / "33." / etc.
+                const qNumDigit = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
+                const isChineseOeq = isChineseSubject && Number.isFinite(qNumDigit) && qNumDigit >= 33;
+                let modelOverride: string | undefined;
+                if (isCloze || isEditing) modelOverride = "gemini-3.1-flash-lite-preview";
+                else if (isChineseOeq) modelOverride = "gemini-3.1-pro-preview";
+                const effectiveModel = modelOverride ?? (isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash");
                 if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
+                if (isChineseOeq) console.log(`[marking] Q${q.questionNum} is Chinese OEQ (Q33+) — using pro model for reliable character detection`);
                 console.log(`[marking] Q${q.questionNum} using model: ${effectiveModel} (syllabusTopic="${q.syllabusTopic ?? "none"}", subject="${paper?.subject ?? "?"}")`);
-                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : undefined);
+                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
                 return [];
@@ -2161,10 +2172,21 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
           try {
             const orig = resultMap.get(q.id)!;
-            console.log(`[marking] Verify Q${q.questionNum} (${q.id}) — original: ${orig.marksAwarded}/${orig.marksAvailable}`);
+            // Chinese OEQ verify pass uses pro too — otherwise the pro
+            // primary marker's detection of a wrong character gets
+            // "upgraded" back to a credit by a flash verify (same
+            // failure mode we already see on Science, which is why
+            // Science skips verify entirely above).
+            const vSubjLower = (paper.subject ?? "").toLowerCase();
+            const vSubjRaw = paper.subject ?? "";
+            const vIsChinese = vSubjLower.includes("chinese") || vSubjRaw.includes("华文") || vSubjRaw.includes("中文") || vSubjRaw.includes("华语");
+            const vQNum = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
+            const vIsChineseOeq = vIsChinese && Number.isFinite(vQNum) && vQNum >= 33;
+            const verifyModel = vIsChineseOeq ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+            console.log(`[marking] Verify Q${q.questionNum} (${q.id}) — original: ${orig.marksAwarded}/${orig.marksAvailable}, model: ${verifyModel}`);
             const response = await withTimeout(
               getAI().models.generateContent({
-                model: "gemini-2.5-flash",
+                model: verifyModel,
                 contents: [{ role: "user", parts }],
                 config: { responseMimeType: "application/json", temperature: 0.1 },
               }),
