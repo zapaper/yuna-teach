@@ -301,7 +301,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
-  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null; cleanExtracted: boolean } | null>(null);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null; cleanExtracted: boolean; hasNormalExtractEnglish?: boolean } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
 
   async function reschedulePaper(paperId: string, newDay: Date) {
@@ -3051,7 +3051,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {unstartedPapers.map(paper => (
                     <div
                       key={paper.id}
-                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null, cleanExtracted: paper.cleanExtracted })}
+                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null, cleanExtracted: paper.cleanExtracted, hasNormalExtractEnglish: paper.hasNormalExtractEnglish })}
                       className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
                     >
                       <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
@@ -3301,7 +3301,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted, hasNormalExtractEnglish: p.hasNormalExtractEnglish });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
@@ -3634,7 +3634,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted, hasNormalExtractEnglish: p.hasNormalExtractEnglish });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
@@ -3946,7 +3946,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // writing-comprehension / 短文填空 layouts don't translate
         // cleanly to lined/boxed A4. Hide both Print and Scan in the
         // popup for those subjects.
-        const popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser);
+        let popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser);
+        // English Normal Extract gate: even for admin (who CAN print
+        // English), require at least one Normal Extract section flag
+        // to be set on the master. Without bounds the scan-back
+        // marker has nothing to crop with, so hide the controls
+        // entirely instead of letting admin print → scan → get empty
+        // marks.
+        const popupSubjLc = (popup.subject ?? "").toLowerCase();
+        if (popupSubjLc.includes("english") && !popup.hasNormalExtractEnglish) {
+          popupBlocked = true;
+        }
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
