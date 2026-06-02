@@ -424,9 +424,15 @@ Return ONLY valid JSON (no markdown fences):
   //   - "1"-hint on the first pass: still bump to 2.5-pro (thin
   //     vertical stroke is easy to miss for flash).
   const isRetryPass = label.startsWith("mcqRetry") || label.startsWith("remarkSingle");
-  const mcqModel = isRetryPass
-    ? "gemini-3.1-pro-preview"
-    : hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
+  // Second-opinion pass on a wrong MCQ — re-detect with a different
+  // model (3.1 flash) to double-confirm the digit. Routed here when
+  // the first pass said wrong but we want to verify the read.
+  const isVerifyPass = label.startsWith("mcqVerify");
+  const mcqModel = isVerifyPass
+    ? "gemini-3.1-flash-preview"
+    : isRetryPass
+      ? "gemini-3.1-pro-preview"
+      : hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
 
   try {
     const response = await withTimeout(
@@ -1965,7 +1971,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 // model for reliable handwriting detection (Chinese
                 // confusable look-alikes 己/已/巳, 末/未, etc. trip the
                 // flash model). Math/English OEQs use flash.
-                const isCloze = q.syllabusTopic === "Grammar Cloze" || q.syllabusTopic === "Comprehension Cloze";
+                const isGrammarCloze = q.syllabusTopic === "Grammar Cloze";
+                const isCompCloze = q.syllabusTopic === "Comprehension Cloze";
                 const isEditing = q.syllabusTopic === "Editing (Spelling & Grammar)";
                 const isSci = (paper?.subject ?? "").toLowerCase().includes("science");
                 const subjLower = (paper?.subject ?? "").toLowerCase();
@@ -1981,7 +1988,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 const qNumDigit = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
                 const isChineseOeq = isChineseSubject && (qNumDigit === 33 || qNumDigit === 40);
                 let modelOverride: string | undefined;
-                if (isCloze || isEditing) modelOverride = "gemini-3.1-flash-lite-preview";
+                // Grammar Cloze + Editing: small/strict model for
+                // single-letter / single-word checks.
+                // Comp Cloze: 2.5-flash so it can reason about
+                // synonyms/context and explain accept/reject — the
+                // lite model was silently accepting near-misses
+                // (e.g. "between" for "among") with no rationale.
+                if (isGrammarCloze || isEditing) modelOverride = "gemini-3.1-flash-lite-preview";
+                else if (isCompCloze) modelOverride = "gemini-2.5-flash";
                 else if (isChineseOeq) modelOverride = "gemini-3.1-pro-preview";
                 const effectiveModel = modelOverride ?? (isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash");
                 if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
@@ -2360,6 +2374,74 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         else { allResults.push(r); mcqUpgraded++; }
       }
       console.log(`[marking] MCQ retry complete: ${mcqUpgraded}/${mcqToRetry.length} upgraded`);
+    }
+
+    // ── MCQ verify-on-wrong pass ──────────────────────────────────
+    // Double-confirm scanned MCQ detections that came back wrong.
+    // Re-crop tight to the question and re-detect with 3.1-flash
+    // (a different model from the primary 2.5-flash, for a true
+    // second opinion). If the verify reads a different digit AND
+    // that digit matches the expected answer, accept it. If verify
+    // confirms the original (or reads something else still wrong),
+    // keep the original mark.
+    const verifyResultMap = new Map<string, QuestionMarkResult>();
+    for (const r of allResults) verifyResultMap.set(r.questionId, r);
+    const mcqToVerify = paper.questions.filter((q) => {
+      if (!isMcqAnswer(q.answer) || isClozeQuestion(q.syllabusTopic)) return false;
+      if (q.yStartPct == null || q.yEndPct == null) return false;
+      const r = verifyResultMap.get(q.id);
+      if (!r) return false;
+      // Only verify when marked wrong AND something was detected
+      if ((r.marksAwarded ?? 0) > 0) return false;
+      if (!r.studentAnswer || r.studentAnswer === "No answer detected") return false;
+      const expected = normalizeMcq(q.answer ?? "");
+      const got = normalizeMcq(r.studentAnswer);
+      return !!expected && !!got && expected !== got;
+    });
+    if (mcqToVerify.length > 0) {
+      console.log(`[marking] MCQ verify pass: ${mcqToVerify.length} wrong MCQs to second-opinion (3.1-flash)`);
+      const verifyResults = await Promise.all(
+        mcqToVerify.map(async (q) => {
+          const submissionPage = submissionIndexMap.get(q.pageIndex);
+          if (submissionPage === undefined) return null;
+          const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
+          let pageBuffer: Buffer;
+          try { pageBuffer = await fs.readFile(pagePath); }
+          catch { return null; }
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `mcqVerify Q${q.questionNum}`);
+          const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
+          const detected = await detectMcqAnswers(
+            imageBuffer.toString("base64"),
+            [croppedQ],
+            `mcqVerify Q${q.questionNum}`,
+            0
+          );
+          const verifyAns = detected.get(q.id) ?? null;
+          if (!verifyAns) return null;
+          const orig = verifyResultMap.get(q.id)!;
+          const expected = q.answer?.trim() ?? "";
+          const verifyMatch = normalizeMcq(verifyAns) === normalizeMcq(expected);
+          const origAns = orig.studentAnswer ?? "";
+          console.log(`[marking] MCQ verify Q${q.questionNum}: original="${origAns}", verify="${verifyAns}", expected="${expected}", verifyMatch=${verifyMatch}`);
+          if (verifyMatch && normalizeMcq(verifyAns) !== normalizeMcq(origAns)) {
+            return {
+              questionId: q.id,
+              marksAvailable: q.marksAvailable ?? 1,
+              marksAwarded: q.marksAvailable ?? 1,
+              studentAnswer: verifyAns,
+              notes: `Detected (verified): ${verifyAns} | Correct (original read "${origAns}" — second-opinion 3.1-flash confirmed "${verifyAns}")`,
+            } as QuestionMarkResult;
+          }
+          return null;
+        })
+      );
+      let verifiedUpgraded = 0;
+      for (const vr of verifyResults) {
+        if (!vr) continue;
+        const idx = allResults.findIndex((x) => x.questionId === vr.questionId);
+        if (idx !== -1) { allResults[idx] = vr; verifiedUpgraded++; }
+      }
+      console.log(`[marking] MCQ verify complete: ${verifiedUpgraded}/${mcqToVerify.length} corrected`);
     }
 
     // ── Batch DB updates in a single transaction ──────────────────────────────

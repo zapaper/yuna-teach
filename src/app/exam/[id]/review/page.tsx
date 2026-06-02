@@ -39,33 +39,6 @@ function cleanOneWordAnswer(answer: string): string {
   return s;
 }
 
-/** Inline MCQ scan-crop viewer for the review page. Loads the exact
- *  crop the marker sent to Gemini for this question (saved as
- *  /api/exam/[paperId]/submission?mcq=<questionNum>&pass=pass1
- *  during scan-back marking). If the crop is missing — typed quiz,
- *  no scan submission, marker hasn't run yet — silently renders
- *  nothing instead of a broken-image box. Used to verify the AI's
- *  reading against the student's actual handwriting. */
-function ScanMcqCrop({ paperId, questionNum }: { paperId: string; questionNum: string }) {
-  const [src, setSrc] = useState<string | null>(`/api/exam/${paperId}/submission?mcq=${encodeURIComponent(questionNum)}&pass=pass1`);
-  // Reset when the question changes (carousel navigation).
-  useEffect(() => {
-    setSrc(`/api/exam/${paperId}/submission?mcq=${encodeURIComponent(questionNum)}&pass=pass1`);
-  }, [paperId, questionNum]);
-  if (!src) return null;
-  return (
-    <div className="mt-3 rounded-xl border border-[#e5eeff] bg-[#f8f9ff] p-3">
-      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Scan — Q{questionNum} (what Gemini saw)</p>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={`Scanned crop for Q${questionNum}`}
-        className="max-w-full h-auto rounded-md border border-[#e5eeff]"
-        onError={() => setSrc(null)}
-      />
-    </div>
-  );
-}
 
 /** Speak a Chinese MCQ sentence with the correct option substituted
  *  for the blank / underlined phrase. Browser TTS only — no network
@@ -3458,33 +3431,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                   })}
                                 </div>
                               )}
-                              {/* Scan-back MCQ verification: show the exact
-                                  crop the marker sent to Gemini for this
-                                  question (saved as
-                                  /submissions/<paperId>/mcq_q<num>_pass1.jpg
-                                  during marking). Lets the parent eyeball
-                                  whether the AI's reading matches the
-                                  student's actual handwriting. Hides
-                                  itself silently when there's no crop
-                                  on disk (typed-quiz, no scan back, etc).
-                                  Gated on having transcribedOptions OR a
-                                  numeric-digit answer — i.e. MCQ-shaped. */}
-                              {(() => {
-                                // MCQ shape check: answer is a single 1-4 digit
-                                // OR the question has transcribedOptions / table /
-                                // option-images set. Covers visual text MCQ, vocab
-                                // MCQ, table MCQ — anything where Gemini would
-                                // have run the digit-detection pass on the scan
-                                // and saved a debug crop.
-                                const ans = (currentQ.answer ?? "").trim().replace(/[().]/g, "");
-                                const ansIsDigit = ans === "1" || ans === "2" || ans === "3" || ans === "4";
-                                const looksLikeMcq = ansIsDigit
-                                  || !!currentQ.transcribedOptionTable
-                                  || (Array.isArray(currentQ.transcribedOptions) && currentQ.transcribedOptions.length >= 2)
-                                  || (Array.isArray(currentQ.transcribedOptionImages) && currentQ.transcribedOptionImages.some(o => !!o));
-                                if (!looksLikeMcq) return null;
-                                return <ScanMcqCrop paperId={id} questionNum={currentQ.questionNum} />;
-                              })()}
                               {/* Subparts with per-part answers */}
                               {realSubs && realSubs.length > 0 && (() => {
                                 const spLabels = realSubs.map(s => s.label.toLowerCase());
