@@ -452,21 +452,37 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     // Pre-fetch the FULL question list for each (paperId, topic) the
     // picker chose, sorted by questionNum. Each picked question's
     // index in this sorted list = its blank position in the original
-    // passage.
+    // passage. The answer + transcribedOptions are also pulled so
+    // unpicked blanks can be substituted with their correct answer
+    // in the displayed passage (instead of leaving them as plain
+    // ______ which confuses the student).
+    type FullListEntry = { id: string; questionNum: string; answer: string | null; transcribedOptions: unknown };
     const sectionKeyOf = (paperId: string, topic: string) => `${paperId}::${topic}`;
-    const fullSectionLists = new Map<string, Array<{ id: string; questionNum: string }>>();
+    const fullSectionLists = new Map<string, FullListEntry[]>();
     for (const g of pickedGroups) {
       const key = sectionKeyOf(g.paperId, g.topic);
       if (fullSectionLists.has(key)) continue;
       const allQs = await prisma.examQuestion.findMany({
         where: { examPaperId: g.paperId, syllabusTopic: g.topic },
         orderBy: { orderIndex: "asc" },
-        select: { id: true, questionNum: true },
+        select: { id: true, questionNum: true, answer: true, transcribedOptions: true },
       });
       // Sort by questionNum NATURALLY so Q16 < Q17 < ... < Q21 (string
       // sort would put Q19 before Q2).
       allQs.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
       fullSectionLists.set(key, allQs);
+    }
+
+    // Helper: get the correct-answer text for a question. Returns
+    // null when answer or options are missing (caller falls back to
+    // leaving the blank empty rather than showing "(no answer)").
+    function correctAnswerText(q: FullListEntry): string | null {
+      const digit = q.answer?.match(/\d/)?.[0];
+      if (!digit) return null;
+      const opts = q.transcribedOptions as string[] | null;
+      if (!Array.isArray(opts)) return null;
+      const idx = parseInt(digit, 10) - 1;
+      return opts[idx] ?? null;
     }
 
     for (const g of pickedGroups) {
@@ -500,6 +516,25 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           const s = ot?.[g.topic];
           passage = s?.passageOcrText ?? s?.passageDisplayText ?? s?.ocrText;
         }
+        // Substitute blanks for which the picker DIDN'T take the
+        // question with the correct answer text. Only applies to
+        // 短文填空 (visual-text-mcq with passage). Other passage
+        // shapes leave the passage untouched. The renderer still
+        // sees `**______**` markers for the picked blanks; the
+        // substituted ones become plain prose and aren't treated
+        // as blanks.
+        if (passage && g.topic === "短文填空") {
+          const fullList = fullSectionLists.get(sectionKeyOf(g.paperId, g.topic)) ?? [];
+          const pickedIds = new Set(g.questions.map(q => q.id));
+          let blankCounter = 0;
+          passage = passage.replace(/\*\*[^*]*\*\*/g, (match) => {
+            const idx = blankCounter++;
+            const sourceQ = fullList[idx];
+            if (!sourceQ || pickedIds.has(sourceQ.id)) return match;
+            const answer = correctAnswerText(sourceQ);
+            return answer ? answer : match;
+          });
+        }
       } else {
         const ocrTexts = meta?.sectionOcrTexts as Record<string, {
           ocrText?: string;
@@ -528,13 +563,23 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       }
       // Compute blank index per picked question. Index = the question's
       // position when ALL same-section questions in the source paper
-      // are sorted by questionNum. Falls back to sequential if the
-      // full-list lookup turned up empty (shouldn't happen, but
-      // defensive — the renderer treats -1 as "place sequentially").
+      // are sorted by questionNum.
+      //
+      // For 短文填空 we already substituted unpicked blanks with their
+      // correct answer above — that turns the passage into one where
+      // the remaining blank count exactly equals the picked question
+      // count, in the same order. So sequential mapping works and we
+      // do NOT emit blankIndices (the renderer's sequential fallback
+      // is correct; emitting original positions would mis-match the
+      // post-substitution blank-counter).
+      //
+      // For other passage-bound shapes (Comp Cloze, etc.) blankIndices
+      // is still the right hint when the picker took a sparse subset.
       const fullList = fullSectionLists.get(sectionKeyOf(g.paperId, g.topic)) ?? [];
       const blankIdxByQid = new Map<string, number>();
       for (let i = 0; i < fullList.length; i++) blankIdxByQid.set(fullList[i].id, i);
       const blankIndices = g.questions.map(q => blankIdxByQid.get(q.id) ?? -1);
+      const substitutedShortCloze = isChinesePG && g.topic === "短文填空";
 
       // Label includes source paper year/topic so a student doing 3
       // PSLE Comp Cloze passages in one quiz sees them distinguished.
@@ -544,7 +589,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         startIndex: startIdx,
         endIndex: flatItems.length - 1,
         ...(passage ? { passage } : {}),
-        ...(blankIndices.some(i => i >= 0) ? { blankIndices } : {}),
+        ...(!substitutedShortCloze && blankIndices.some(i => i >= 0) ? { blankIndices } : {}),
       };
       if (isChinesePG) chineseSections.push(entry);
       else englishSections.push(entry);

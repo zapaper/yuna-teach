@@ -14,6 +14,11 @@ subject: chinese
 level: P5-P6
 topicLabel: 短文填空
 title: "PSLE 华文 — Cloze 短文填空 (Q16-Q20, 10 分)"
+# Don't filter on subTopic: not all PSLE 短文填空 questions are tagged
+# (e.g. 2017 Q20 has subTopic=null) and dropping them leaves the
+# passage with N blanks but N-1 questions, which the renderer shows
+# as orphan ______.
+noSubTopicFilter: true
 
 stats:
   headline: >-
