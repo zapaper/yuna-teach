@@ -521,8 +521,12 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Comprehension Cloze — numbered blanks inline within a passage",
-        // Same heuristic as Grammar Cloze.
-        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 0, yBottomDelta: 5,
+        // Comp Cloze answers usually live ABOVE the blank (context
+        // from earlier in the paragraph), so anchor the crop at the
+        // Q-number's top and extend UPWARD by 10% (y goes from
+        // yTop-10 to yTop). x: -5 on the left, +10 on the right
+        // gives more room for surrounding context.
+        xLeftDelta: 5, xRightDelta: 10, yTopDelta: 10, yBottomDelta: 0,
       });
       break;
     case "editing":
