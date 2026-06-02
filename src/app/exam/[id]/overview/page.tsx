@@ -1158,7 +1158,7 @@ function ExamOverviewContent({ id }: { id: string }) {
             Lives on its own page to avoid overview re-renders.
           </p>
           <Link
-            href={`/exam/${id}/normal-extract`}
+            href={`/exam/${id}/normal-extract${userId ? `?userId=${userId}` : ""}`}
             className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
           >
             Open Normal Extract →

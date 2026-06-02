@@ -530,7 +530,11 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
   // sees section headers + grouped questions.
   const isSectionedPaper = isEnglishPaper || isChinesePaper;
   const isTaggablePaper = isMathPaper || subjectLower.includes("science") || isEnglishPaper || isChinesePaper;
-  const backPath = `/exam/${id}/overview?userId=${userId}`;
+  // Back path: prefer ?userId= when present so the overview stays
+  // scoped to the same admin/view-as session, but drop the empty
+  // param when it's missing — bare /exam/[id]/overview keeps the
+  // overview page from bouncing to an "unknown user" home route.
+  const backPath = userId ? `/exam/${id}/overview?userId=${userId}` : `/exam/${id}/overview`;
 
   if (loading) {
     return (
