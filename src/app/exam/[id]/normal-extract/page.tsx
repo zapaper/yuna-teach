@@ -645,6 +645,19 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
         onFile={handlePdfLoad}
       />
 
+      {/* Per-section "Normal Extract" trigger row. Re-runs the
+          gemini-3.1-pro-preview bounds extractor for one section at a
+          time; on success, refetches the paper so the per-question
+          QuestionEditCard list below picks up the new yStartPct /
+          yEndPct (and x bounds for Booklet B sections). Useful when
+          the initial Booklet-A extraction was sloppy and individual
+          questions don't crop right. */}
+      <NormalExtractTriggerRow
+        paperId={id}
+        state={(paper.metadata as { normalExtractEnglish?: Record<string, unknown> } | null)?.normalExtractEnglish ?? {}}
+        onExtracted={fetchPaper}
+      />
+
       {/* /normal-extract intentionally forces the per-question card
           path even for English papers. The /edit page switches English
           papers to the section-based EnglishEditView; this page does
@@ -1692,5 +1705,108 @@ function DifficultyBadge({
       {source ? `Lv ${d} · ${label}` : label}
       {source === "empirical" && <span className="ml-1 opacity-60">◉</span>}
     </button>
+  );
+}
+
+// ─── NormalExtractTriggerRow ─────────────────────────────────────────────────
+// Sectioned re-extraction trigger. Hits the existing
+// /api/admin/exam/[id]/normal-extract-english POST endpoint per
+// section, then calls onExtracted() so the parent page refetches the
+// paper and the per-question card list redraws with the new bounds.
+
+const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "comp-oeq"; label: string; stateKey: string }> = [
+  { type: "booklet-a", label: "Booklet A (Sequential MCQ)", stateKey: "bookletA" },
+  { type: "grammar-cloze", label: "Booklet B — Grammar Cloze", stateKey: "grammarCloze" },
+  { type: "editing", label: "Booklet B — Editing", stateKey: "editing" },
+  { type: "comp-cloze", label: "Booklet B — Comprehension Cloze", stateKey: "compCloze" },
+  { type: "comp-oeq", label: "Booklet B — Comprehension OEQ", stateKey: "compOeq" },
+];
+
+function NormalExtractTriggerRow({
+  paperId,
+  state,
+  onExtracted,
+}: {
+  paperId: string;
+  state: Record<string, unknown>;
+  onExtracted: () => void | Promise<unknown>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
+
+  async function run(sectionType: string, label: string) {
+    setBusy(sectionType);
+    setLastResult(null);
+    try {
+      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType }),
+      });
+      const text = await res.text();
+      let json: Record<string, unknown> = {};
+      try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; } catch { /* tolerated */ }
+      if (!res.ok) {
+        setLastResult({ section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` });
+        return;
+      }
+      setLastResult({
+        section: label,
+        ok: true,
+        updated: typeof json.updated === "number" ? json.updated : 0,
+        warnings: Array.isArray(json.warnings) ? json.warnings as string[] : [],
+      });
+      await onExtracted();
+    } catch (err) {
+      setLastResult({ section: label, ok: false, error: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="mt-5 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Re-extract bounds (admin)</p>
+      <p className="text-[11px] text-slate-500 mb-3">
+        Re-run gemini-3.1-pro-preview to recompute per-question y/x bounds for one section. The
+        question cards below refresh on success so the new crops show up immediately.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {NORMAL_EXTRACT_SECTIONS.map(sec => {
+          const isDone = !!state[sec.stateKey];
+          const isBusy = busy === sec.type;
+          return (
+            <button
+              key={sec.type}
+              type="button"
+              onClick={() => run(sec.type, sec.label)}
+              disabled={busy !== null}
+              className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+                isDone
+                  ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
+                  : "bg-violet-500 text-white hover:bg-violet-600"
+              }`}
+            >
+              {isBusy ? "Running…" : isDone ? `Re-extract ${sec.label}` : `Extract ${sec.label}`}
+            </button>
+          );
+        })}
+      </div>
+      {lastResult && (
+        <div className={`mt-3 p-3 rounded-xl border text-xs ${lastResult.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+          <p className="font-semibold">
+            {lastResult.section}: {lastResult.ok ? `${lastResult.updated ?? 0} questions updated` : `Failed — ${lastResult.error}`}
+          </p>
+          {lastResult.ok && lastResult.warnings && lastResult.warnings.length > 0 && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-amber-700">{lastResult.warnings.length} warning(s)</summary>
+              <ul className="mt-1 space-y-0.5 pl-3">
+                {lastResult.warnings.map((w, i) => <li key={i} className="text-[11px] text-amber-700">• {w}</li>)}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
