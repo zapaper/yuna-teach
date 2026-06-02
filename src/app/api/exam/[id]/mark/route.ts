@@ -148,7 +148,7 @@ export async function POST(
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
-    select: { markingStatus: true, completedAt: true, paperType: true },
+    select: { markingStatus: true, completedAt: true, paperType: true, subject: true },
   });
 
   if (!paper) {
@@ -198,7 +198,19 @@ export async function POST(
 
   // Full paper mark — set status then fire and forget
   // (allow re-triggering even if previously in_progress, to recover from stuck jobs)
-  if (paper.paperType === "quiz") {
+  //
+  // English Test Quiz: routes through markExamPaper (the bounds-based
+  // scan-back marker) instead of markQuizPaper. Same override that
+  // lives in lib/scan-submit — Re-mark from the review page needs to
+  // pick the same fork so existing scanned English papers can be
+  // re-marked under the new flow without re-scanning.
+  const subjectLc = (paper.subject ?? "").toLowerCase();
+  const isEnglishTestQuiz = paper.paperType === "quiz" && subjectLc.includes("english");
+  if (isEnglishTestQuiz) {
+    markExamPaper(id).catch((err) =>
+      console.error(`English test-quiz marking for ${id} failed:`, err)
+    );
+  } else if (paper.paperType === "quiz") {
     markQuizPaper(id).catch((err) =>
       console.error(`Quiz marking for ${id} failed:`, err)
     );
