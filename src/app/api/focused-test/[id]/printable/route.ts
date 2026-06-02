@@ -188,9 +188,11 @@ export async function GET(
   const isMath = (paper.subject ?? "").toLowerCase().includes("math");
   const isScience = (paper.subject ?? "").toLowerCase().includes("sci");
   const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
-  // English printable disabled for now — writing-comprehension layout
-  // doesn't translate cleanly to lined / boxed A4 yet.
-  if (isEnglish) {
+  // English printable is rough (writing-comprehension layout doesn't
+  // translate cleanly to lined / boxed A4 yet) — keep blocked for
+  // parents but let admins through so they can run print + scan QA
+  // on the English flow end-to-end.
+  if (isEnglish && !auth.isAdmin) {
     return NextResponse.json({ error: "Printable not available for English yet" }, { status: 400 });
   }
   const code = `MFY-${paper.id.slice(0, 8)}-${student.id.slice(0, 8)}`;
