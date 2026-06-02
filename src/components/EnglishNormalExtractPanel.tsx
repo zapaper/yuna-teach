@@ -12,16 +12,106 @@ const SECTIONS: { type: SectionType; label: string; note: string; ready: boolean
   { type: "comp-oeq", label: "Comprehension OEQ", note: "Sequential — yEnd derived from next question", ready: true },
 ];
 
+type Bound = {
+  id: string;
+  questionNum: string;
+  pageIndex: number | null;
+  yStartPct: number | null;
+  yEndPct: number | null;
+  xStartPct: number | null;
+  xEndPct: number | null;
+  status: "updated" | "not_detected" | "no_page";
+};
+
 type RunResult = {
   ok: boolean;
   updated?: number;
   warnings?: string[];
   perSection?: Array<{ label: string; updated: number }>;
+  bounds?: Bound[];
   error?: string;
   state?: Record<string, unknown>;
 };
 
 type State = Record<string, unknown>;
+
+// Aspect ratio used for sizing crop previews. Real images may differ
+// slightly but A4 (1:1.414) is correct for almost all PSLE scans we
+// see. Off-aspect papers will show crops shifted by a small amount;
+// the visible bbox numbers still come from the actual data.
+const PAGE_ASPECT = 1.414;
+
+function CropPreview({
+  pageUrl,
+  yStartPct, yEndPct,
+  xStartPct, xEndPct,
+  baseWidth = 220,
+}: {
+  pageUrl: string;
+  yStartPct: number; yEndPct: number;
+  xStartPct: number | null; xEndPct: number | null;
+  baseWidth?: number;
+}) {
+  const xS = xStartPct ?? 0;
+  const xE = xEndPct ?? 100;
+  const xRange = Math.max(1, xE - xS);
+  const yRange = Math.max(0.5, yEndPct - yStartPct);
+  // Scale the full image up so the cropped x-range fills baseWidth.
+  const renderedW = baseWidth * 100 / xRange;
+  const renderedH = renderedW * PAGE_ASPECT;
+  const cropH = renderedH * yRange / 100;
+  const offsetTop = -renderedH * yStartPct / 100;
+  const offsetLeft = -renderedW * xS / 100;
+  return (
+    <div style={{ width: baseWidth, height: cropH, overflow: "hidden", position: "relative", background: "#f1f5f9" }}>
+      <img
+        src={pageUrl}
+        alt=""
+        style={{ width: renderedW, height: renderedH, position: "absolute", top: offsetTop, left: offsetLeft, maxWidth: "none" }}
+      />
+    </div>
+  );
+}
+
+function BoundsGrid({ paperId, bounds }: { paperId: string; bounds: Bound[] }) {
+  if (bounds.length === 0) return null;
+  return (
+    <div className="mt-3">
+      <p className="text-xs font-semibold text-slate-600 mb-2">Per-question crops</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {bounds.map(b => {
+          const ok = b.status === "updated" && b.pageIndex != null && b.yStartPct != null && b.yEndPct != null;
+          const pageUrl = b.pageIndex != null ? `/api/exam/${paperId}/pages?page=${b.pageIndex}` : "";
+          return (
+            <div key={b.id} className={`rounded-lg border ${ok ? "border-slate-200 bg-white" : "border-red-200 bg-red-50"} overflow-hidden`}>
+              <div className="px-2 py-1 flex items-center justify-between gap-1">
+                <span className="text-xs font-bold text-slate-700">Q{b.questionNum}</span>
+                <span className="text-[10px] text-slate-500">{b.pageIndex != null ? `p${b.pageIndex + 1}` : "—"}</span>
+              </div>
+              {ok ? (
+                <CropPreview
+                  pageUrl={pageUrl}
+                  yStartPct={b.yStartPct as number}
+                  yEndPct={b.yEndPct as number}
+                  xStartPct={b.xStartPct}
+                  xEndPct={b.xEndPct}
+                />
+              ) : (
+                <div className="px-2 py-3 text-[11px] text-red-700">
+                  {b.status === "not_detected" ? "Not detected" : "No page"}
+                </div>
+              )}
+              <div className="px-2 py-1 text-[10px] text-slate-500 font-mono">
+                {b.yStartPct != null && b.yEndPct != null ? `y ${b.yStartPct.toFixed(1)}–${b.yEndPct.toFixed(1)}` : "—"}
+                {b.xStartPct != null && b.xEndPct != null && ` · x ${b.xStartPct.toFixed(1)}–${b.xEndPct.toFixed(1)}`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function EnglishNormalExtractPanel({ paperId, initialState }: { paperId: string; initialState: State }) {
   const [state, setState] = useState<State>(initialState);
@@ -130,6 +220,9 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
                 ))}
               </ul>
             </details>
+          )}
+          {lastResult.result.bounds && lastResult.result.bounds.length > 0 && (
+            <BoundsGrid paperId={paperId} bounds={lastResult.result.bounds} />
           )}
         </div>
       )}

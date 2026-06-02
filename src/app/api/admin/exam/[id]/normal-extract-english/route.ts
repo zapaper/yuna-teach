@@ -45,7 +45,22 @@ type NormalExtractState = {
 };
 type QuestionRow = { id: string; questionNum: string; pageIndex: number | null };
 type Detection = { questionNum: string; xPctLeft: number; yPctTop: number };
-type RunOutput = { updated: number; warnings: string[]; perSection: Array<{ label: string; updated: number }> };
+type QuestionBound = {
+  id: string;
+  questionNum: string;
+  pageIndex: number | null;
+  yStartPct: number | null;
+  yEndPct: number | null;
+  xStartPct: number | null;
+  xEndPct: number | null;
+  status: "updated" | "not_detected" | "no_page";
+};
+type RunOutput = {
+  updated: number;
+  warnings: string[];
+  perSection: Array<{ label: string; updated: number }>;
+  bounds: QuestionBound[];
+};
 
 // Patterns are based on the labels actually used in prod's
 // metadata.englishSections (snapshot 2026-06-02). Schools format the
@@ -189,6 +204,22 @@ function collectSectionQuestionIds(sections: SecMeta[], allQuestions: QuestionRo
   return ids;
 }
 
+// Build a global { questionNum -> { pageIdx, yPctTop, xPctLeft } } map
+// from all per-page Gemini detections. Trusts whichever page detected
+// the question rather than the question's stored pageIndex — heals
+// papers where Clean Extract assigned the wrong page.
+function flattenDetections(detectionsByPage: Map<number, Detection[]>): Map<string, { pageIdx: number; yPctTop: number; xPctLeft: number }> {
+  const out = new Map<string, { pageIdx: number; yPctTop: number; xPctLeft: number }>();
+  for (const [pageIdx, dets] of detectionsByPage.entries()) {
+    for (const d of dets) {
+      if (!out.has(d.questionNum)) {
+        out.set(d.questionNum, { pageIdx, yPctTop: d.yPctTop, xPctLeft: d.xPctLeft });
+      }
+    }
+  }
+  return out;
+}
+
 // Sequential-numbering extractor used by Booklet A and Comp OEQ.
 // yEndPct = next question's yTop on the same page (or 100% if last).
 // No x bounds — questions span full page width.
@@ -202,7 +233,7 @@ async function extractSequential(args: {
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
 
   if (sectionQuestionIds.size === 0) {
-    return { updated: 0, warnings: ["No questions found in metadata.englishSections for this section."], perSection: [] };
+    return { updated: 0, warnings: ["No questions found in metadata.englishSections for this section."], perSection: [], bounds: [] };
   }
 
   const { detectionsByPage, warnings } = await detectAcrossSectionPages({
@@ -214,38 +245,53 @@ async function extractSequential(args: {
 
   if (detectionsByPage.size === 0) {
     warnings.push("No pages with detectable question numbers — has Clean Extract run on this paper?");
-    return { updated: 0, warnings, perSection: [] };
+    return { updated: 0, warnings, perSection: [], bounds: [] };
   }
+
+  const detByNum = flattenDetections(detectionsByPage);
 
   let updated = 0;
   const perSection: Array<{ label: string; updated: number }> = [];
+  const bounds: QuestionBound[] = [];
 
   for (const sec of sections) {
-    let sectionUpdated = 0;
+    // For yEnd lookup we need the page-local sort: questions in this
+    // section that landed on the same page, sorted by yPctTop.
+    const sectionQuestions: QuestionRow[] = [];
     for (let qi = sec.startIndex; qi <= sec.endIndex && qi < allQuestions.length; qi++) {
-      const q = allQuestions[qi];
-      const pageIdx = q.pageIndex;
-      if (pageIdx == null) continue;
-      const detections = detectionsByPage.get(pageIdx) ?? [];
-      const sorted = [...detections].sort((a, b) => a.yPctTop - b.yPctTop);
-      const myIdx = sorted.findIndex(d => d.questionNum === q.questionNum);
-      if (myIdx < 0) {
-        warnings.push(`Q${q.questionNum} (page ${pageIdx + 1}) not detected by Gemini.`);
+      sectionQuestions.push(allQuestions[qi]);
+    }
+
+    let sectionUpdated = 0;
+    for (const q of sectionQuestions) {
+      const det = detByNum.get(q.questionNum);
+      if (!det) {
+        warnings.push(`Q${q.questionNum} not detected by Gemini on any scanned page.`);
+        bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: q.pageIndex, yStartPct: null, yEndPct: null, xStartPct: null, xEndPct: null, status: "not_detected" });
         continue;
       }
-      const yStart = sorted[myIdx].yPctTop;
-      const yEnd = myIdx + 1 < sorted.length ? sorted[myIdx + 1].yPctTop : 100;
+      const samePageSorted = sectionQuestions
+        .map(qq => {
+          const d = detByNum.get(qq.questionNum);
+          return d && d.pageIdx === det.pageIdx ? { qq, d } : null;
+        })
+        .filter((x): x is { qq: QuestionRow; d: NonNullable<typeof det> } => x != null)
+        .sort((a, b) => a.d.yPctTop - b.d.yPctTop);
+      const myIdx = samePageSorted.findIndex(x => x.qq.id === q.id);
+      const yStart = det.yPctTop;
+      const yEnd = myIdx + 1 < samePageSorted.length ? samePageSorted[myIdx + 1].d.yPctTop : 100;
       await prisma.examQuestion.update({
         where: { id: q.id },
-        data: { yStartPct: yStart, yEndPct: yEnd, xStartPct: null, xEndPct: null },
+        data: { yStartPct: yStart, yEndPct: yEnd, xStartPct: null, xEndPct: null, pageIndex: det.pageIdx },
       });
       sectionUpdated++;
       updated++;
+      bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: det.pageIdx, yStartPct: yStart, yEndPct: yEnd, xStartPct: null, xEndPct: null, status: "updated" });
     }
     perSection.push({ label: sec.label, updated: sectionUpdated });
   }
 
-  return { updated, warnings, perSection };
+  return { updated, warnings, perSection, bounds };
 }
 
 // Anchored-crop extractor used by Grammar Cloze, Editing, Comp Cloze.
@@ -265,7 +311,7 @@ async function extractAnchoredCrop(args: {
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
 
   if (sectionQuestionIds.size === 0) {
-    return { updated: 0, warnings: ["No questions found in metadata.englishSections for this section."], perSection: [] };
+    return { updated: 0, warnings: ["No questions found in metadata.englishSections for this section."], perSection: [], bounds: [] };
   }
 
   const { detectionsByPage, warnings } = await detectAcrossSectionPages({
@@ -277,40 +323,41 @@ async function extractAnchoredCrop(args: {
 
   if (detectionsByPage.size === 0) {
     warnings.push("No pages with detectable question numbers — has Clean Extract run on this paper?");
-    return { updated: 0, warnings, perSection: [] };
+    return { updated: 0, warnings, perSection: [], bounds: [] };
   }
+
+  const detByNum = flattenDetections(detectionsByPage);
 
   let updated = 0;
   const perSection: Array<{ label: string; updated: number }> = [];
+  const bounds: QuestionBound[] = [];
 
   for (const sec of sections) {
     let sectionUpdated = 0;
     for (let qi = sec.startIndex; qi <= sec.endIndex && qi < allQuestions.length; qi++) {
       const q = allQuestions[qi];
-      const pageIdx = q.pageIndex;
-      if (pageIdx == null) continue;
-      const detections = detectionsByPage.get(pageIdx) ?? [];
-      const hit = detections.find(d => d.questionNum === q.questionNum);
-      if (!hit) {
-        warnings.push(`Q${q.questionNum} (page ${pageIdx + 1}) not detected by Gemini.`);
+      const det = detByNum.get(q.questionNum);
+      if (!det) {
+        warnings.push(`Q${q.questionNum} not detected by Gemini on any scanned page.`);
+        bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: q.pageIndex, yStartPct: null, yEndPct: null, xStartPct: null, xEndPct: null, status: "not_detected" });
         continue;
       }
+      const yStart = clampPct(det.yPctTop - yTopDelta);
+      const yEnd = clampPct(det.yPctTop + yBottomDelta);
+      const xStart = clampPct(det.xPctLeft - xLeftDelta);
+      const xEnd = clampPct(det.xPctLeft + xRightDelta);
       await prisma.examQuestion.update({
         where: { id: q.id },
-        data: {
-          yStartPct: clampPct(hit.yPctTop - yTopDelta),
-          yEndPct: clampPct(hit.yPctTop + yBottomDelta),
-          xStartPct: clampPct(hit.xPctLeft - xLeftDelta),
-          xEndPct: clampPct(hit.xPctLeft + xRightDelta),
-        },
+        data: { yStartPct: yStart, yEndPct: yEnd, xStartPct: xStart, xEndPct: xEnd, pageIndex: det.pageIdx },
       });
       sectionUpdated++;
       updated++;
+      bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: det.pageIdx, yStartPct: yStart, yEndPct: yEnd, xStartPct: xStart, xEndPct: xEnd, status: "updated" });
     }
     perSection.push({ label: sec.label, updated: sectionUpdated });
   }
 
-  return { updated, warnings, perSection };
+  return { updated, warnings, perSection, bounds };
 }
 
 export async function POST(
@@ -461,6 +508,7 @@ export async function POST(
     updated: result.updated,
     perSection: result.perSection,
     warnings: result.warnings,
+    bounds: result.bounds,
     state: updatedState,
   });
 }
