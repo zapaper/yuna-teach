@@ -196,17 +196,25 @@ async function detectAcrossSectionPages(args: {
     .map(id => allQuestions.find(q => q.id === id)?.questionNum)
     .filter(Boolean) as string[];
 
-  for (const pageIdx of pagesToScan) {
+  // Scan pages in parallel. With page-range expansion this can be 10+
+  // pages — sequential calls (~8s each) blow past Cloudflare's 100s
+  // proxy timeout. Parallel keeps total time bounded by the slowest
+  // single Gemini call (~10s).
+  const results = await Promise.all(pagesToScan.map(async (pageIdx) => {
     const pagePath = path.join(PAGES_DIR, paperId, `page_${pageIdx}.jpg`);
     let pageBytes: Buffer;
     try {
       pageBytes = await fs.readFile(pagePath);
     } catch {
-      warnings.push(`Page image not found on disk: page_${pageIdx}.jpg`);
-      continue;
+      return { pageIdx, warning: `Page image not found on disk: page_${pageIdx}.jpg`, detections: null as Detection[] | null };
     }
     const detections = await findQuestionPositionsOnPage(pageBytes, pageIdx, expectedNums, sectionHint);
-    detectionsByPage.set(pageIdx, detections);
+    return { pageIdx, warning: null as string | null, detections };
+  }));
+
+  for (const r of results) {
+    if (r.warning) warnings.push(r.warning);
+    if (r.detections) detectionsByPage.set(r.pageIdx, r.detections);
   }
   return { detectionsByPage, warnings };
 }
