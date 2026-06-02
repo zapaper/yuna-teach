@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
+import { startOfWeekSG } from "@/lib/sg-time";
 
 export async function GET(request: NextRequest) {
   const studentId = request.nextUrl.searchParams.get("studentId");
@@ -9,12 +10,11 @@ export async function GET(request: NextRequest) {
   const auth = await requireAccessToStudent(studentId);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  // Get current week's Monday 00:00
-  const now = new Date();
-  const day = now.getDay(); // 0=Sun
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  monday.setHours(0, 0, 0, 0);
+  // Get current week's Monday 00:00 in Singapore time. Container
+  // runs UTC so naive .getDay()/.setHours bucket by UTC midnight,
+  // which is 8am SGT — Sunday-night activity in Singapore would
+  // wrongly count toward the previous week.
+  const monday = startOfWeekSG();
 
   // Find all students with pvp enabled
   const pvpStudents = await prisma.user.findMany({

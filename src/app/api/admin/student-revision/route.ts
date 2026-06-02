@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
   }
 
   const totalMarks = questionCreates.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
-  const dateLabel = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  const dateLabel = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Singapore" });
   const levelLabel = student.level ? `P${student.level} ` : "";
   const title = `${levelLabel}${SUBJECT_LABEL[subject]} Revision ${dateLabel}`;
 

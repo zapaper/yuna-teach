@@ -907,7 +907,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: Cov
   }
 
   // ── Date line, centred ────────────────────────────────────────
-  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Singapore" });
   const dateLine = `Printed: ${today}`;
   const dateW = regular.widthOfTextAtSize(dateLine, 11);
   page.drawText(dateLine, { x: (A4_W - dateW) / 2, y: y - 11, size: 11, font: regular, color: rgb(0.45, 0.45, 0.45) });

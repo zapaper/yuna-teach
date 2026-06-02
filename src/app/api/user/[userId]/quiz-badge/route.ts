@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { startOfDaySG } from "@/lib/sg-time";
 
 /**
  * GET /api/user/:userId/quiz-badge
@@ -85,18 +86,16 @@ export async function GET(
 
   const newBadge = milestones.find(m => m.count === count) ?? null;
 
-  // Calculate streak — count consecutive days with at least one completed quiz
+  // Calculate streak — count consecutive days with at least one completed quiz.
+  // Day buckets use Singapore midnight, not server UTC midnight, so a
+  // quiz completed at 01:00 SGT counts toward the current Singapore day
+  // instead of the previous one.
   let streak = 0;
   if (completedQuizzes.length > 0) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = startOfDaySG();
     const dayMs = 86400000;
     const quizDays = new Set(
-      completedQuizzes.map(q => {
-        const d = new Date(q.completedAt!);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime();
-      })
+      completedQuizzes.map(q => startOfDaySG(new Date(q.completedAt!)).getTime())
     );
     // Check if today or yesterday has a quiz (to start the streak)
     let checkDay = today.getTime();
