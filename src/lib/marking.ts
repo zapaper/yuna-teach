@@ -1946,17 +1946,21 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 const subjLower = (paper?.subject ?? "").toLowerCase();
                 const subjRaw = paper?.subject ?? "";
                 const isChineseSubject = subjLower.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
-                // Chinese OEQ = Q33 onwards on a Chinese paper (the
-                // 阅读理解 sections). Strip non-digits from questionNum
-                // since the field may be "33a" / "33." / etc.
+                // Chinese OEQ pro-model routing is narrowed to Q33 +
+                // Q40 specifically (the comprehension lead-in and the
+                // 4-mark opinion question — where confusable
+                // characters carry the most weight). All other
+                // Chinese OEQs stay on flash to keep cost in check.
+                // Strip non-digits from questionNum since the field
+                // may be "33a" / "33." / etc.
                 const qNumDigit = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
-                const isChineseOeq = isChineseSubject && Number.isFinite(qNumDigit) && qNumDigit >= 33;
+                const isChineseOeq = isChineseSubject && (qNumDigit === 33 || qNumDigit === 40);
                 let modelOverride: string | undefined;
                 if (isCloze || isEditing) modelOverride = "gemini-3.1-flash-lite-preview";
                 else if (isChineseOeq) modelOverride = "gemini-3.1-pro-preview";
                 const effectiveModel = modelOverride ?? (isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash");
                 if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
-                if (isChineseOeq) console.log(`[marking] Q${q.questionNum} is Chinese OEQ (Q33+) — using pro model for reliable character detection`);
+                if (isChineseOeq) console.log(`[marking] Q${q.questionNum} is Chinese OEQ Q33/Q40 — using pro model for reliable character detection`);
                 console.log(`[marking] Q${q.questionNum} using model: ${effectiveModel} (syllabusTopic="${q.syllabusTopic ?? "none"}", subject="${paper?.subject ?? "?"}")`);
                 return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride);
               } catch (err) {
@@ -2181,7 +2185,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             const vSubjRaw = paper.subject ?? "";
             const vIsChinese = vSubjLower.includes("chinese") || vSubjRaw.includes("华文") || vSubjRaw.includes("中文") || vSubjRaw.includes("华语");
             const vQNum = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
-            const vIsChineseOeq = vIsChinese && Number.isFinite(vQNum) && vQNum >= 33;
+            // Mirror the primary marker's narrow Q33/Q40-only routing.
+            const vIsChineseOeq = vIsChinese && (vQNum === 33 || vQNum === 40);
             const verifyModel = vIsChineseOeq ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
             console.log(`[marking] Verify Q${q.questionNum} (${q.id}) — original: ${orig.marksAwarded}/${orig.marksAvailable}, model: ${verifyModel}`);
             const response = await withTimeout(
