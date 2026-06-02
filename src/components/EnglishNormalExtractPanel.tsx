@@ -6,10 +6,10 @@ type SectionType = "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "c
 
 const SECTIONS: { type: SectionType; label: string; note: string; ready: boolean }[] = [
   { type: "booklet-a", label: "Booklet A (Sequential MCQ)", note: "Grammar / Vocab / Vocab Cloze / Visual Text MCQs — sequential numbering", ready: true },
-  { type: "grammar-cloze", label: "Grammar Cloze", note: "Inline with passage. Crop +5% top, ±6% L/R (stub)", ready: false },
-  { type: "editing", label: "Editing", note: "Q number → +15% right, ±5% top/bottom (stub)", ready: false },
-  { type: "comp-cloze", label: "Comprehension Cloze", note: "Similar to Grammar Cloze (stub)", ready: false },
-  { type: "comp-oeq", label: "Comprehension OEQ", note: "Similar to Booklet A MCQ boundaries (stub)", ready: false },
+  { type: "grammar-cloze", label: "Grammar Cloze", note: "Inline blanks. Box = ±5% top/bottom, ±6% L/R around the Q number", ready: true },
+  { type: "editing", label: "Editing", note: "Q number → +15% right, ±5% top/bottom", ready: true },
+  { type: "comp-cloze", label: "Comprehension Cloze", note: "Same as Grammar Cloze (±5% top/bottom, ±6% L/R)", ready: true },
+  { type: "comp-oeq", label: "Comprehension OEQ", note: "Sequential — yEnd derived from next question", ready: true },
 ];
 
 type RunResult = {

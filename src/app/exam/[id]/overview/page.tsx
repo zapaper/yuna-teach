@@ -7,6 +7,7 @@ import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
+import EnglishNormalExtractPanel from "@/components/EnglishNormalExtractPanel";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 
 // AI-explainer cache reader. Newer entries are JSON ({solution,

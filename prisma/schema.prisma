@@ -181,6 +181,12 @@ model ExamQuestion {
   orderIndex      Int
   yStartPct       Float?
   yEndPct         Float?
+  // Horizontal crop bounds in the original paper. Populated by the
+  // English "Normal Extract" pipeline for sections where the question
+  // occupies only part of a page row (Grammar Cloze / Editing / Comp
+  // Cloze). Left null for sections that span the full page width.
+  xStartPct       Float?
+  xEndPct         Float?
   // Printable-PDF writing-area bounds. Populated when a quiz /
   // focused-test paper is rendered to a clean-extract printable
   // PDF — the marker uses these to crop the student's answer
