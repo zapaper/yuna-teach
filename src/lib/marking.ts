@@ -857,21 +857,14 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - STEP 1 — Verify question number: locate the parenthesised number e.g. "(34)" in the crop and confirm it matches the question you are marking. If multiple question numbers are visible, only read the answer for the matching number.
   - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank line that is directly above the matching parenthesised number. If no blue ink is found there, award 0 marks.
   - STEP 3 — Read answer: the student's answer is the word written in blue ink on/above the blank paired with the matching number. Do NOT read a word from a different blank belonging to a different number.
-  - Accept the exact word from the answer key. Accept clear synonyms ONLY if semantically equivalent in context and grammatically correct in the sentence.
+  - Accept the exact word from the answer key. Accept other words ONLY if they are BOTH grammatically correct in the sentence AND semantically equivalent to the key in context.
   - Do NOT accept answers that change the grammar of the sentence.
   - Spelling must be correct. A misspelled word = 0 marks.
-  - CRITICAL — function words are NOT interchangeable: prepositions, conjunctions, articles, determiners and pronouns each carry a precise meaning. The student MUST write the exact word from the key (or one explicitly listed in the key as "X / Y"). Do NOT accept any of the following as synonyms:
-    * "between" ↔ "among"  (two vs many)
-    * "in" ↔ "on" ↔ "at"   (different relations)
-    * "all" ↔ "every" ↔ "each"  (different scope)
-    * "fewer" ↔ "less"     (count vs mass)
-    * "who" ↔ "whom" ↔ "which" ↔ "that"
-    * "since" ↔ "for" ↔ "from" (time relations)
-    * "and" ↔ "or" ↔ "but"
-    * "many" ↔ "much"  (count vs mass)
-    * "this" ↔ "that" ↔ "these" ↔ "those"
-    * "a" ↔ "an" ↔ "the"
-    These are PRECISE grammatical choices, not interchangeable synonyms. Even if the student's word makes the sentence sound plausible, score 0 if it is not the exact word in the key.
+  - Be careful with function-word swaps — prepositions, conjunctions, determiners and quantifiers each carry a precise meaning and are often NOT interchangeable even when they sound plausible: "between" vs "among" (two vs many), "in" vs "on" vs "at", "all" vs "every" vs "each", "fewer" vs "less", "many" vs "much", "this/that/these/those", "a" vs "an" vs "the", "since" vs "for", "and" vs "or" vs "but", "who" vs "whom" vs "which" vs "that". Examine the context before accepting any of these as a synonym for the key.
+  - MANDATORY notes when the student's word is NOT the exact word in the key (whether you accept it or reject it):
+      * If accepting: explain WHY the student's word is grammatically and semantically equivalent in this context. State the key word, the student's word, and the reason. Example: "Accepted 'understand' for key 'grasp' — both mean 'comprehend' here and fit the grammar."
+      * If rejecting: state the key word, the student's word, and the reason. Example: "Rejected 'between' for key 'among' — 'between' is used for two items, the passage describes many."
+    Notes are REQUIRED whenever student ≠ key. Do not return an empty notes string in that case.
 
   (d) SYNTHESIS & TRANSFORMATION (sentence rewriting):
   - There is usually one correct rewritten sentence or one accepted form.
@@ -2431,40 +2424,6 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detectedKey}" matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
           finalAwarded = finalAvailable;
           finalNotes = `Detected: ${detected} | Correct`;
-        }
-      }
-      // Deterministic override for Comprehension Cloze function-word
-      // swaps: prepositions / conjunctions / determiners / quantifiers
-      // are NOT interchangeable, but Gemini keeps accepting them as
-      // synonyms (e.g. "between" for "among"). When the student wrote
-      // a known-wrong-pair word AND the marker awarded full marks,
-      // demote to 0 with an explanation. Cleared confusion pairs
-      // only — anything outside the list still defers to Gemini.
-      const isCompClozeQ = topic.includes("comprehension") && topic.includes("cloze");
-      if (isCompClozeQ && detected && finalAvailable > 0 && finalAwarded >= finalAvailable) {
-        const studentLower = detected.trim().toLowerCase().replace(/[^a-z]/g, "");
-        const keyLower = stripExplanationFromAnswer(q?.answer ?? "")?.trim().toLowerCase().replace(/[^a-z]/g, "") ?? "";
-        // Only fire when student and key differ — if they match, the
-        // marker was right to award full marks regardless.
-        if (studentLower && keyLower && studentLower !== keyLower) {
-          const WRONG_PAIRS: ReadonlyArray<readonly [string, string]> = [
-            ["between", "among"], ["among", "between"],
-            ["in", "on"], ["in", "at"], ["on", "in"], ["on", "at"], ["at", "in"], ["at", "on"],
-            ["all", "every"], ["all", "each"], ["every", "all"], ["every", "each"], ["each", "all"], ["each", "every"],
-            ["fewer", "less"], ["less", "fewer"],
-            ["who", "whom"], ["whom", "who"], ["who", "which"], ["which", "who"], ["who", "that"], ["that", "who"],
-            ["many", "much"], ["much", "many"],
-            ["this", "that"], ["that", "this"], ["these", "those"], ["those", "these"],
-            ["a", "an"], ["an", "a"], ["a", "the"], ["the", "a"], ["an", "the"], ["the", "an"],
-            ["since", "for"], ["for", "since"], ["from", "since"], ["since", "from"],
-            ["and", "or"], ["or", "and"], ["and", "but"], ["but", "and"], ["or", "but"], ["but", "or"],
-          ];
-          const isWrongPair = WRONG_PAIRS.some(([s, k]) => studentLower === s && keyLower === k);
-          if (isWrongPair) {
-            console.log(`[marking] Comp Cloze function-word override Q${q?.questionNum}: "${studentLower}" is not interchangeable with "${keyLower}" — demoting ${finalAwarded} → 0`);
-            finalAwarded = 0;
-            finalNotes = `Detected: ${detected} | "${detected}" is not interchangeable with "${stripExplanationFromAnswer(q?.answer ?? "")}". These are precise grammatical choices, not synonyms.`;
-          }
         }
       }
       totalAwarded += finalAwarded;
