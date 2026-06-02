@@ -3,5 +3,5 @@
 -- crop into 2D for Booklet B sections (Grammar Cloze, Editing,
 -- Comp Cloze) where a single question doesn't span the full page.
 
-ALTER TABLE "ExamQuestion" ADD COLUMN "xStartPct" DOUBLE PRECISION;
-ALTER TABLE "ExamQuestion" ADD COLUMN "xEndPct" DOUBLE PRECISION;
+ALTER TABLE "exam_questions" ADD COLUMN "xStartPct" DOUBLE PRECISION;
+ALTER TABLE "exam_questions" ADD COLUMN "xEndPct" DOUBLE PRECISION;
