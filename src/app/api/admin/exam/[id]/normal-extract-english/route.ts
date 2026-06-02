@@ -510,9 +510,9 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Grammar Cloze — numbered blanks inline within a passage",
-        // Grammar Cloze: yStart 5% above Q-number top, yEnd at top.
-        // xLeft -5%, xRight +11% (was 6, added 5 for trailing text).
-        xLeftDelta: 5, xRightDelta: 11, yTopDelta: 5, yBottomDelta: 0,
+        // Grammar Cloze: yStart 3% above Q-number top, yEnd at top.
+        // xLeft -5%, xRight +11%.
+        xLeftDelta: 5, xRightDelta: 11, yTopDelta: 3, yBottomDelta: 0,
       });
       break;
     case "comp-cloze":
