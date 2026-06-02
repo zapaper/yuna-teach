@@ -670,6 +670,7 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
           <div key={q.id} id={`q-${q.id}`}>
           <QuestionEditCard
             key={q.id}
+            paperId={id}
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
@@ -956,6 +957,7 @@ const CHINESE_TOPICS = [
 ];
 
 function QuestionEditCard({
+  paperId,
   question,
   saving,
   pdfLoaded,
@@ -966,6 +968,7 @@ function QuestionEditCard({
   onAddAfter,
   onSelectArea,
 }: {
+  paperId: string;
   question: ExamQuestionItem;
   saving: keyof ExamQuestionItem | "redo" | null;
   pdfLoaded: boolean;
@@ -1083,6 +1086,17 @@ function QuestionEditCard({
                 </p>
               </>
             );
+          }
+          // No imageData and no diagram, but if bounds + pageIndex are
+          // set (Normal Extract for English populates these) we render
+          // the crop on the fly from the page JPEG on Railway disk.
+          // Cheaper than storing a base64 imageData on every row.
+          if (
+            question.pageIndex != null &&
+            question.yStartPct != null &&
+            question.yEndPct != null
+          ) {
+            return <BoundsCropPreview paperId={paperId} question={question} />;
           }
           return (
             <div className="px-4 py-6 text-center text-xs text-slate-400 italic">
@@ -1721,6 +1735,80 @@ const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "ed
   { type: "comp-cloze", label: "Booklet B — Comprehension Cloze", stateKey: "compCloze" },
   { type: "comp-oeq", label: "Booklet B — Comprehension OEQ", stateKey: "compOeq" },
 ];
+
+// ─── BoundsCropPreview ───────────────────────────────────────────────────────
+// Render a question's region directly from /api/exam/[id]/pages?page=N
+// (Railway disk) using the question's stored bounds. No imageData
+// base64 in Neon required — keeps the egress bill flat. The display
+// renders at the card's natural width; we wait for the page image to
+// load to read its true natural width/height so the crop math works
+// even if the scan isn't A4.
+function BoundsCropPreview({
+  paperId,
+  question,
+}: {
+  paperId: string;
+  question: { pageIndex: number | null; yStartPct: number | null; yEndPct: number | null; xStartPct?: number | null; xEndPct?: number | null; questionNum: string };
+}) {
+  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
+  const yS = question.yStartPct ?? 0;
+  const yE = question.yEndPct ?? 100;
+  const xS = question.xStartPct ?? 0;
+  const xE = question.xEndPct ?? 100;
+  const url = `/api/exam/${paperId}/pages?page=${question.pageIndex}`;
+
+  // Hidden img to capture natural dimensions, then a styled clone for
+  // display. The container width is whatever the card gives us; we
+  // scale the page image so the [xS, xE] band fills that width.
+  return (
+    <div className="relative w-full overflow-hidden bg-slate-100">
+      {/* sizing probe */}
+      <img
+        src={url}
+        alt=""
+        className="hidden"
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          if (img.naturalWidth > 0) setNatural({ w: img.naturalWidth, h: img.naturalHeight });
+        }}
+      />
+      {natural ? (() => {
+        const xRange = Math.max(0.1, xE - xS);
+        const yRange = Math.max(0.1, yE - yS);
+        const aspect = natural.h / natural.w; // natural image h/w
+        // Container is full card width. Crop fills container width;
+        // its CSS height (as % of container width via paddingBottom)
+        // works out to (yRange/xRange) * aspect.
+        const paddingPct = (yRange / xRange) * aspect * 100;
+        return (
+          <div className="relative w-full" style={{ paddingBottom: `${paddingPct}%` }}>
+            <img
+              src={url}
+              alt={`Question ${question.questionNum}`}
+              className="absolute"
+              style={{
+                // Image width 100/xRange times container width — so a
+                // band of width xRange% of the natural image fills
+                // the container exactly.
+                width: `${10000 / xRange}%`,
+                // Shift the natural xS column to the container's
+                // left edge. left is % of container width.
+                left: `${-(xS / xRange) * 100}%`,
+                // Same idea for y, but top is % of CONTAINER HEIGHT
+                // (CSS quirk). The cancelled-out aspect ratio means
+                // it's simply -(yS / yRange) * 100%.
+                top: `${-(yS / yRange) * 100}%`,
+                maxWidth: "none",
+              }}
+            />
+          </div>
+        );
+      })() : (
+        <div className="px-4 py-6 text-center text-xs text-slate-400 italic">Loading crop…</div>
+      )}
+    </div>
+  );
+}
 
 function NormalExtractTriggerRow({
   paperId,
