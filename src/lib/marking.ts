@@ -885,7 +885,10 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - Award full marks if all key points are present in the student's answer.
   - Award PARTIAL marks if some key points are present — even for 1-mark questions, award 0 if the key idea is missing or too vague.
   - Accept synonyms and paraphrases as long as the meaning is preserved.
-  - In notes, state which key point was present or missing.`;
+  - In notes, state which key point was present or missing.
+  - NAMED-NOUN STRICTNESS (high failure mode — read carefully): every concrete noun, proper noun, story-specific object, place, and event named in the answer key is a REQUIRED marking point. The student's answer MUST contain that exact noun (or a clear single-word synonym — NOT a vague paraphrase). Missing a named noun = MISSING for that key point.
+    Examples of named nouns: "recipe book", "surprise", "birthday party", "the letter", "Mr Tan", "the kitchen", "the gift". A student who writes "she wanted to distract him" instead of "to hide the recipe book / the surprise" has lost BOTH named nouns and scores 0 on a 1-mark question. Award marks ONLY when the named noun (or its direct synonym) is literally present.
+    Before awarding any marks: STEP A — list every concrete/named noun in the key. STEP B — for each, check whether it (or a direct synonym) appears in the student's answer. STEP C — if any are missing for a 1-mark question, award 0; for a 2-mark question, deduct one mark per missing named noun.`;
 }
 
 /**

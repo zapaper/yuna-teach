@@ -2002,7 +2002,7 @@ function ExamReviewContent({ id }: { id: string }) {
               const cardCls = useSplitScreen
                 ? (isChineseComp
                   ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:min-h-[calc(100vh-160px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
-                  : "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]")
+                  : "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr_auto] lg:min-h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]")
                 : "bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]";
               const headerInCardCls = useSplitScreen ? "lg:col-span-2" : "";
               const passageColCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
@@ -2973,29 +2973,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                       this branch) — no per-branch copy
                                       here, otherwise synthesis / comp OEQ
                                       showed the feedback twice. */}
-                                  {/* Comp-OEQ: scanned crop at the
-                                      bottom of each question card so the
-                                      parent can verify what Gemini
-                                      detected. Split-screen layout
-                                      means we can't drop a single
-                                      section-bottom scan like grammar
-                                      cloze does. Hidden for synthesis
-                                      (the section-bottom scan already
-                                      covers it). */}
-                                  {isCompOeq && q.pageIndex >= 0 && (() => {
-                                    const sub = getSubmissionPage(q.pageIndex);
-                                    return (
-                                      <div className="mt-3 pt-3 border-t border-[#e5eeff]">
-                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Scanned page — Q{q.questionNum}</p>
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                          src={`/api/exam/${id}/submission?page=${sub}`}
-                                          alt={`Scanned page for Q${q.questionNum}`}
-                                          className="w-full h-auto rounded-lg border border-[#e5eeff]"
-                                        />
-                                      </div>
-                                    );
-                                  })()}
                                 </div>
                               ) : (isVocabCloze || isVisualText) && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
                                 /* Vocab Cloze / Visual Text — MCQ-style with stem + options */
@@ -3175,13 +3152,13 @@ function ExamReviewContent({ id }: { id: string }) {
                     })}
                   </div>
                   </div>
-                  {/* Scanned page(s) at the bottom — lets the parent
-                      verify what Gemini saw against the inline marking
-                      above. Covers grammar cloze / editing / comp cloze
-                      / synthesis. Comp-OEQ uses a split-screen
-                      fixed-height layout and shows the scan inside each
-                      per-question card instead. */}
-                  {(isGrammarCloze || isEditing || isCompCloze || isSynthesis) && (() => {
+                  {/* Scanned page(s) at the bottom of the section
+                      panel — lets the parent verify what Gemini saw
+                      against the inline marking above. Covers every
+                      typed English section. Comp-OEQ's split-screen
+                      grid grows past its fixed-height stop in the lg
+                      viewport — that's accepted; the page scrolls. */}
+                  {(isGrammarCloze || isEditing || isCompCloze || isSynthesis || isCompOeq) && (() => {
                     const uniquePages = Array.from(
                       new Set(
                         sectionQuestions
@@ -3191,7 +3168,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     ).sort((a, b) => a - b);
                     if (uniquePages.length === 0) return null;
                     return (
-                      <div className="mt-6 pt-6 border-t border-[#e5eeff]">
+                      <div className={`mt-6 pt-6 border-t border-[#e5eeff] ${useSplitScreen ? "lg:col-span-2 lg:row-start-3" : ""}`}>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-3">
                           Scanned page{uniquePages.length > 1 ? "s" : ""} — what Gemini saw
                         </p>
