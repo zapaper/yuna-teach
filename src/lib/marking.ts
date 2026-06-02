@@ -2433,6 +2433,40 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           finalNotes = `Detected: ${detected} | Correct`;
         }
       }
+      // Deterministic override for Comprehension Cloze function-word
+      // swaps: prepositions / conjunctions / determiners / quantifiers
+      // are NOT interchangeable, but Gemini keeps accepting them as
+      // synonyms (e.g. "between" for "among"). When the student wrote
+      // a known-wrong-pair word AND the marker awarded full marks,
+      // demote to 0 with an explanation. Cleared confusion pairs
+      // only — anything outside the list still defers to Gemini.
+      const isCompClozeQ = topic.includes("comprehension") && topic.includes("cloze");
+      if (isCompClozeQ && detected && finalAvailable > 0 && finalAwarded >= finalAvailable) {
+        const studentLower = detected.trim().toLowerCase().replace(/[^a-z]/g, "");
+        const keyLower = stripExplanationFromAnswer(q?.answer ?? "")?.trim().toLowerCase().replace(/[^a-z]/g, "") ?? "";
+        // Only fire when student and key differ — if they match, the
+        // marker was right to award full marks regardless.
+        if (studentLower && keyLower && studentLower !== keyLower) {
+          const WRONG_PAIRS: ReadonlyArray<readonly [string, string]> = [
+            ["between", "among"], ["among", "between"],
+            ["in", "on"], ["in", "at"], ["on", "in"], ["on", "at"], ["at", "in"], ["at", "on"],
+            ["all", "every"], ["all", "each"], ["every", "all"], ["every", "each"], ["each", "all"], ["each", "every"],
+            ["fewer", "less"], ["less", "fewer"],
+            ["who", "whom"], ["whom", "who"], ["who", "which"], ["which", "who"], ["who", "that"], ["that", "who"],
+            ["many", "much"], ["much", "many"],
+            ["this", "that"], ["that", "this"], ["these", "those"], ["those", "these"],
+            ["a", "an"], ["an", "a"], ["a", "the"], ["the", "a"], ["an", "the"], ["the", "an"],
+            ["since", "for"], ["for", "since"], ["from", "since"], ["since", "from"],
+            ["and", "or"], ["or", "and"], ["and", "but"], ["but", "and"], ["or", "but"], ["but", "or"],
+          ];
+          const isWrongPair = WRONG_PAIRS.some(([s, k]) => studentLower === s && keyLower === k);
+          if (isWrongPair) {
+            console.log(`[marking] Comp Cloze function-word override Q${q?.questionNum}: "${studentLower}" is not interchangeable with "${keyLower}" — demoting ${finalAwarded} → 0`);
+            finalAwarded = 0;
+            finalNotes = `Detected: ${detected} | "${detected}" is not interchangeable with "${stripExplanationFromAnswer(q?.answer ?? "")}". These are precise grammatical choices, not synonyms.`;
+          }
+        }
+      }
       totalAwarded += finalAwarded;
       return prisma.examQuestion.update({
         where: { id: result.questionId },
