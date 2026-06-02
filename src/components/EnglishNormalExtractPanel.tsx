@@ -31,17 +31,26 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
   async function run(sectionType: SectionType) {
     setBusy(sectionType);
     setLastResult(null);
+    const url = `/api/admin/exam/${paperId}/normal-extract-english`;
+    console.log("[normal-extract] POST", url, { sectionType });
     try {
-      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sectionType }),
       });
-      const json = await res.json();
-      const result: RunResult = res.ok ? { ok: true, ...json } : { ok: false, error: json.error ?? `HTTP ${res.status}`, ...json };
+      const text = await res.text();
+      let json: Record<string, unknown> = {};
+      try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; }
+      catch { json = { error: `Non-JSON response (${res.status}): ${text.slice(0, 200)}` }; }
+      console.log("[normal-extract] response", res.status, json);
+      const result: RunResult = res.ok
+        ? { ok: true, ...json }
+        : { ok: false, error: (json.error as string) ?? `HTTP ${res.status}`, ...json };
       setLastResult({ sectionType, result });
       if (json.state) setState(json.state as State);
     } catch (err) {
+      console.error("[normal-extract] fetch failed", err);
       setLastResult({ sectionType, result: { ok: false, error: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(null);
@@ -76,6 +85,7 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
               <p className="text-xs text-slate-500 mt-0.5">{sec.note}</p>
             </div>
             <button
+              type="button"
               onClick={() => run(sec.type)}
               disabled={isBusy || busy !== null}
               className={`shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${

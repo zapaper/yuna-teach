@@ -3,11 +3,11 @@
 import { Suspense, useEffect, useRef, useState, use } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
-import EnglishNormalExtractPanel from "@/components/EnglishNormalExtractPanel";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 
 // AI-explainer cache reader. Newer entries are JSON ({solution,
@@ -1149,18 +1149,21 @@ function ExamOverviewContent({ id }: { id: string }) {
         </Section>
       )}
 
-      {/* Admin: English Normal Extract (per-section) — produces
-          per-question bounding boxes so the paper can render as a
-          PDF-format quiz like math/science instead of the typed
-          quiz-format. Kept separate from math/science. */}
+      {/* Admin: link to the dedicated English Normal Extract page.
+          Lives on its own route so the per-section Extract buttons
+          aren't interfered with by this page's refetches. */}
       {isAdmin && paper.subject?.toLowerCase().includes("english") && (
         <Section title="Normal Extract — English (Admin)">
           <p className="text-xs text-slate-500 mb-3">
-            Generates per-question bounding boxes per section. Booklet A
-            is implemented; Booklet B sections are stubs and will return
-            501 until their crop heuristics are tuned.
+            Per-section bounding-box extractor for English papers.
+            Lives on its own page to avoid overview re-renders.
           </p>
-          <EnglishNormalExtractPanel paperId={id} initialState={(paper as { metadata?: { normalExtractEnglish?: Record<string, unknown> } }).metadata?.normalExtractEnglish ?? {}} />
+          <Link
+            href={`/exam/${id}/normal-extract`}
+            className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
+          >
+            Open Normal Extract →
+          </Link>
         </Section>
       )}
 
