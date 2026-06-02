@@ -230,10 +230,10 @@ Co-Founder, MarkForYou`,
   {
     id: "onboarding-day03-b",
     emailNumber: 2,
-    title: "Email 2B \u00b7 Day 3 \u00b7 Not sure where to start with {{childName}}? Here's the data that decides for you.",
+    title: "Email 2B \u00b7 Day 3 \u00b7 Half of every PSLE Science paper is 5 topics. Here's where to point {{childName}} next.",
     variant: 'b',
     trigger: { kind: 'signup_age', days: 3 },
-    subject: "Not sure where to start with {{childName}}? Here's the data that decides for you.",
+    subject: "Half of every PSLE Science paper is 5 topics. Here's where to point {{childName}} next.",
     htmlBody: `<style>body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Calibri, sans-serif;
        color: #1F2A37; max-width: 640px; margin: 24px auto; padding: 0 16px;
        line-height: 1.55; font-size: 16px; background: #FFFFFF; }
