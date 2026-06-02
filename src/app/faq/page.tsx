@@ -9,7 +9,7 @@ const tutorials: Tutorial[] = [
   {
     id: "assigning-first-quiz",
     title: "Assigning your first quiz",
-    description: "A 30-second walkthrough of creating a child profile and sending their first quiz.",
+    description: "A 30-second walkthrough of creating your first quiz, and starting it on your child's account.",
     videoSrc: "/tutorials/assigning-first-quiz.mp4",
   },
 ];
