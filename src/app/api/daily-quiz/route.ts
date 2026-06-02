@@ -186,7 +186,12 @@ export async function POST(request: NextRequest) {
     const sourceQuizTargetStudent = studentId ?? userId;
     const testQuiz = await prisma.examPaper.create({
       data: {
-        title: `Test Quiz — ${paper.title}`,
+        // Drop the "Test Quiz — " prefix; the student/parent should see
+        // the original paper title (e.g. "PSLE English 2024") on their
+        // dashboard, not "Test Quiz — PSLE English 2024". paperType
+        // already distinguishes test quizzes from regular assignments
+        // for any code that needs to.
+        title: paper.title,
         subject: paper.subject,
         level: paper.level,
         userId,
