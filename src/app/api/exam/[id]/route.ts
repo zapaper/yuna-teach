@@ -153,16 +153,26 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  // Caller must have access to the paper (owner, assigned student,
-  // linked parent, or admin). Closes the prior gap where any
-  // authenticated user could PATCH any paper by id — e.g. setting
-  // score/markingStatus or reassigning a paper they don't own.
-  const auth = await requireAccessToPaper(id);
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
-
-  // --- Clone-on-assign: when assignedToId is provided, create a clone ---
+  // --- Clone-on-assign: gated on the student being assigned to,
+  // not on master-paper ownership. Master papers in the catalogue
+  // are owned by the admin user; any parent should be able to clone
+  // one onto their own linked student. A separate (stricter) check
+  // runs further down for non-assign field updates.
   if ("assignedToId" in body && body.assignedToId) {
     const studentId = body.assignedToId as string;
+    const session = await requireSession();
+    if (!session.ok) return NextResponse.json({ error: session.error }, { status: session.status });
+    let allowed = session.isAdmin || session.userId === studentId;
+    if (!allowed) {
+      const link = await prisma.parentStudent.findUnique({
+        where: { parentId_studentId: { parentId: session.userId, studentId } },
+        select: { id: true },
+      });
+      allowed = !!link;
+    }
+    if (!allowed) {
+      return NextResponse.json({ error: "Not authorized to assign this paper to this student." }, { status: 403 });
+    }
     // Track the parent's activity for the admin "Last active" stamp.
     const masterForBump = await prisma.examPaper.findUnique({ where: { id }, select: { userId: true, subject: true } });
     bumpUserActivity(masterForBump?.userId ?? null);
@@ -173,7 +183,7 @@ export async function PATCH(
     // belt-and-braces guard. Admin role is determined from the
     // session, not the URL.
     const isChineseSubject = (masterForBump?.subject ?? "").toLowerCase().includes("chinese");
-    if (isChineseSubject && !auth.isAdmin) {
+    if (isChineseSubject && !session.isAdmin) {
       return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
     }
     // Trial / subscription gate. The assigner is the master paper's
@@ -363,6 +373,14 @@ export async function PATCH(
 
     return NextResponse.json({ success: true, id: clone.id });
   }
+
+  // Non-assign branches (retry extraction + field updates) still
+  // require full paper access: ownership, assignee, linked parent of
+  // the assignee, or admin. This is the original tightening from
+  // commit e635fbeb — preserved here because score/markingStatus
+  // edits etc. shouldn't be open to any signed-in user.
+  const auth = await requireAccessToPaper(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   // --- Retry extraction ---
   if (body.retryExtraction) {
