@@ -1,6 +1,18 @@
 import MarketingNav from "@/components/MarketingNav";
+import TutorialDetails from "@/components/TutorialDetails";
 
 type FaqSection = { heading: string; items: { q: string; a: string }[] };
+
+type Tutorial = { id: string; title: string; description?: string; videoSrc: string };
+
+const tutorials: Tutorial[] = [
+  {
+    id: "assigning-first-quiz",
+    title: "Assigning your first quiz",
+    description: "A 2-minute walkthrough of creating a child profile and sending their first quiz.",
+    videoSrc: "/tutorials/assigning-first-quiz.mp4",
+  },
+];
 
 const faqSections: FaqSection[] = [
   {
@@ -91,6 +103,14 @@ export default function FAQPage() {
         </div>
 
         <div className="space-y-10">
+          <div>
+            <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] mb-4">Tutorials</h2>
+            <div className="space-y-3">
+              {tutorials.map((t) => (
+                <TutorialDetails key={t.id} id={t.id} title={t.title} description={t.description} videoSrc={t.videoSrc} />
+              ))}
+            </div>
+          </div>
           {faqSections.map((section, si) => (
             <div key={si}>
               <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] mb-4">{section.heading}</h2>
