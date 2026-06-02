@@ -64,6 +64,7 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
       sourceExamId: true,
       assignedToId: true,
       paperType: true,
+      subject: true,
     },
   });
   if (!target) throw new Error("paper not found");
@@ -229,11 +230,22 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   // Dispatch marker by paperType: quiz/focused use markQuizPaper /
   // markFocusedTest (different prompts, per-subpart canvas reading,
   // etc.); regular paper clones use markExamPaper.
-  const markFn = target.paperType === "quiz"
-    ? markQuizPaper
-    : target.paperType === "focused"
-      ? markFocusedTest
-      : markExamPaper;
+  //
+  // English Test Quiz override: the user prints English Test Quizzes
+  // from the original master PDF and writes on the paper directly
+  // (we route /print -> source pdfPath for the English Test Quiz
+  // case). markExamPaper is the bounds-based reader that handles
+  // that layout — same code path math/science regular masters use —
+  // so dispatch through it instead of markQuizPaper for English.
+  const subjLc = (target.subject ?? "").toLowerCase();
+  const isEnglishTestQuiz = target.paperType === "quiz" && subjLc.includes("english");
+  const markFn = isEnglishTestQuiz
+    ? markExamPaper
+    : target.paperType === "quiz"
+      ? markQuizPaper
+      : target.paperType === "focused"
+        ? markFocusedTest
+        : markExamPaper;
   markFn(cloneId).catch((err) => {
     console.error(`[scan-submit] mark (${target.paperType ?? "regular"}) failed for ${cloneId}:`, err);
   });

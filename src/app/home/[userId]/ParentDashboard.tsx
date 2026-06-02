@@ -3959,11 +3959,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     onClick={() => {
                       setSchedulerPopup(null);
                       // Quiz / focused use the focused-test printable
-                      // route (which works for any paper id with
-                      // clean-extracted questions); regular papers use
-                      // the original print route that stamps a
+                      // route (clean-extract layout); regular papers
+                      // use the original print route that stamps a
                       // student-specific code for the email-scan path.
-                      const printUrl = popup.paperType === "quiz" || popup.paperType === "focused"
+                      //
+                      // English Test Quiz override: the clean-extract
+                      // printable for English doesn't render properly
+                      // (writing-comprehension layout doesn't fit A4),
+                      // so we route English Test Quizzes through the
+                      // original-PDF print path — same as regular
+                      // master papers — and the marker will use the
+                      // normal-extract bounds to crop + read answers.
+                      const subjLc = (popup.subject ?? "").toLowerCase();
+                      const isEnglishTestQuiz = popup.paperType === "quiz" && subjLc.includes("english");
+                      const useFocusedPrintable = (popup.paperType === "quiz" || popup.paperType === "focused") && !isEnglishTestQuiz;
+                      const printUrl = useFocusedPrintable
                         ? `/api/focused-test/${popup.id}/printable?studentId=${selectedStudentId}&userId=${userId}`
                         : `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
                       printPdf(printUrl);

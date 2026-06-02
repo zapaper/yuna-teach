@@ -39,17 +39,56 @@ export async function GET(
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
-    select: { id: true, title: true, pdfPath: true, metadata: true },
+    select: { id: true, title: true, subject: true, pdfPath: true, metadata: true, sourceExamId: true },
   });
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
-  if (!paper.pdfPath) {
+
+  // Clone fallback: Test Quiz clones (paperType="quiz") inherit
+  // metadata from the master but don't carry their own pdfPath.
+  // When the print route is asked to serve such a clone — happens
+  // for English Test Quizzes routed here so the scan-back marker
+  // can use the master's PDF layout + the clone's normal-extract
+  // bounds — fall back to the source paper's PDF.
+  let pdfPath = paper.pdfPath;
+  let metaForDrop = paper.metadata;
+  let sourceMeta: { normalExtractEnglish?: Record<string, unknown> } | null = null;
+  if (!pdfPath && paper.sourceExamId) {
+    const source = await prisma.examPaper.findUnique({
+      where: { id: paper.sourceExamId },
+      select: { pdfPath: true, metadata: true },
+    });
+    if (source?.pdfPath) {
+      pdfPath = source.pdfPath;
+      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown> } | null;
+      // Inherit answer/skip page metadata from source too — the clone
+      // doesn't carry these per-paper settings.
+      if (!(paper.metadata as { answerPages?: unknown } | null)?.answerPages) metaForDrop = source.metadata;
+    }
+  }
+  if (!pdfPath) {
     return NextResponse.json({ error: "No source PDF for this paper" }, { status: 400 });
   }
 
+  // English gate: only allow Print on papers that have at least one
+  // Normal Extract section flagged Done. Without bounds on the
+  // questions the scan-back marker would just produce empty marks.
+  const subjectLc = (paper.subject ?? "").toLowerCase();
+  if (subjectLc.includes("english")) {
+    const fromSource = sourceMeta?.normalExtractEnglish;
+    const fromOwn = (paper.metadata as { normalExtractEnglish?: Record<string, unknown> } | null)?.normalExtractEnglish;
+    const extractState = (fromSource ?? fromOwn) as Record<string, unknown> | undefined;
+    const hasAnyExtract = !!extractState && Object.entries(extractState).some(([k, v]) => k !== "lastRunAt" && v === true);
+    if (!hasAnyExtract) {
+      return NextResponse.json({
+        error: "This English paper hasn't run Normal Extract yet. Open /normal-extract on the master and run at least one section before printing.",
+      }, { status: 400 });
+    }
+  }
+
   // Resolve the PDF path. Stored as a relative path under VOLUME_PATH.
-  const absPath = path.isAbsolute(paper.pdfPath)
-    ? paper.pdfPath
-    : path.join(VOLUME_PATH, paper.pdfPath);
+  const absPath = path.isAbsolute(pdfPath)
+    ? pdfPath
+    : path.join(VOLUME_PATH, pdfPath);
   let pdfBytes: Buffer;
   try {
     pdfBytes = await fs.readFile(absPath);
@@ -63,7 +102,7 @@ export async function GET(
   // 0-based, so we shift and remove from highest → lowest index to keep
   // earlier indices stable.
   const doc = await PDFDocument.load(pdfBytes);
-  const meta = (paper.metadata ?? null) as { answerPages?: number[]; skipPages?: number[] } | null;
+  const meta = (metaForDrop ?? null) as { answerPages?: number[]; skipPages?: number[] } | null;
   const pagesToDrop = new Set<number>([
     ...(meta?.answerPages ?? []).map(p => p - 1),
     ...(meta?.skipPages ?? []).map(p => p - 1),
