@@ -253,7 +253,7 @@ ul li { margin: 0 0 6px 0; }
 <p>Hi {{parentName}},</p>
 <p>Welcome again to MarkForYou.</p>
 <p>We noticed that {{childName}} has not completed a quiz or paper yet. If you have forgotten your password, you may reset it at <a href="{{parentHomepageUrl}}" style="color:#0E6B6B;font-weight:600;">your homepage</a>.</p>
-<p>You may also watch a 30sec video about how to set a Focused Practice or Quiz for your child.</p>
+<p>You may also watch a <a href="https://www.markforyou.com/faq#assigning-first-quiz" style="color:#0E6B6B;font-weight:600;">30sec video</a> about how to set a Focused Practice or Quiz for your child.</p>
 <p>To maximise {{childName}}'s time on the platform, we thought to provide some information on the topic breakdown for PSLE. After all, we're not here just to study <strong>HARD</strong>, we want to study <strong>SMART</strong>.</p>
 <p>We broke down every PSLE Science question over the last decade (2016-2025). These are the top 5 topics by share of marks:</p>
 <p><img src="https://www.markforyou.com/email-images/day03-psle-science-top5.png" alt="Top 5 PSLE Science topics by share of marks (2016-2025)" style="max-width:100%; height:auto; display:block; margin:12px auto; border-radius:6px;"></p>
@@ -277,7 +277,7 @@ Welcome again to MarkForYou.
 
 We noticed that {{childName}} has not completed a quiz or paper yet. If you have forgotten your password, you may reset it at your homepage: {{parentHomepageUrl}}
 
-You may also watch a 30sec video about how to set a Focused Practice or Quiz for your child.
+You may also watch a 30sec video about how to set a Focused Practice or Quiz for your child: https://www.markforyou.com/faq#assigning-first-quiz
 
 To maximise {{childName}}'s time on the platform, we thought to provide some information on the topic breakdown for PSLE. After all, we're not here just to study HARD, we want to study SMART.
 
