@@ -508,9 +508,11 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Grammar Cloze — numbered blanks inline within a passage",
-        // Grammar Cloze blanks are short single-line; ±2.5% y (5% total)
-        // hugs the line; ±6% x covers the blank + a couple words context.
-        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 2.5, yBottomDelta: 2.5,
+        // Grammar Cloze: anchor at the Q-number's top edge, extend
+        // 5% DOWN only (no upward extension — the blank is on the
+        // same line as the number, anything above is the previous
+        // line of passage). ±6% x covers the blank + a couple words.
+        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 0, yBottomDelta: 5,
       });
       break;
     case "comp-cloze":
@@ -520,7 +522,7 @@ export async function POST(
         allQuestions: paper.questions,
         sectionHint: "Comprehension Cloze — numbered blanks inline within a passage",
         // Same heuristic as Grammar Cloze.
-        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 2.5, yBottomDelta: 2.5,
+        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 0, yBottomDelta: 5,
       });
       break;
     case "editing":
