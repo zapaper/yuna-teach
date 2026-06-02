@@ -1745,11 +1745,12 @@ function DifficultyBadge({
 // section, then calls onExtracted() so the parent page refetches the
 // paper and the per-question card list redraws with the new bounds.
 
-const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "comp-oeq"; label: string; stateKey: string }> = [
+const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "synthesis" | "comp-oeq"; label: string; stateKey: string }> = [
   { type: "booklet-a", label: "Booklet A (Sequential MCQ)", stateKey: "bookletA" },
   { type: "grammar-cloze", label: "Booklet B — Grammar Cloze", stateKey: "grammarCloze" },
   { type: "editing", label: "Booklet B — Editing", stateKey: "editing" },
   { type: "comp-cloze", label: "Booklet B — Comprehension Cloze", stateKey: "compCloze" },
+  { type: "synthesis", label: "Booklet B — Synthesis / Transformation", stateKey: "synthesis" },
   { type: "comp-oeq", label: "Booklet B — Comprehension OEQ", stateKey: "compOeq" },
 ];
 

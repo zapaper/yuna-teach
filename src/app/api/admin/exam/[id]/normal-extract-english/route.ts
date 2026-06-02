@@ -33,13 +33,14 @@ import { isSessionAdmin } from "@/lib/session";
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 
-type SectionType = "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "comp-oeq";
+type SectionType = "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "synthesis" | "comp-oeq";
 type SecMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
 type NormalExtractState = {
   bookletA?: boolean;
   grammarCloze?: boolean;
   editing?: boolean;
   compCloze?: boolean;
+  synthesis?: boolean;
   compOeq?: boolean;
   lastRunAt?: string;
 };
@@ -78,6 +79,7 @@ const SECTION_LABELS: Record<SectionType, RegExp[]> = {
   "grammar-cloze": [/grammar cloze/i],
   "editing": [/editing/i],
   "comp-cloze": [/comprehension cloze/i],
+  "synthesis": [/synthesis/i, /transformation/i],
   "comp-oeq": [/comprehension open ended/i, /comprehension oeq/i],
 };
 
@@ -397,7 +399,7 @@ export async function POST(
   const body = await request.json().catch(() => ({})) as { sectionType?: SectionType };
   const sectionType = body.sectionType;
   if (!sectionType || !SECTION_LABELS[sectionType]) {
-    return NextResponse.json({ error: "Body { sectionType } must be one of: booklet-a, grammar-cloze, editing, comp-cloze, comp-oeq" }, { status: 400 });
+    return NextResponse.json({ error: "Body { sectionType } must be one of: booklet-a, grammar-cloze, editing, comp-cloze, synthesis, comp-oeq" }, { status: 400 });
   }
 
   const paper = await prisma.examPaper.findUnique({
@@ -508,11 +510,10 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Grammar Cloze — numbered blanks inline within a passage",
-        // Grammar Cloze: anchor at the Q-number's top edge, extend
-        // 5% DOWN only (no upward extension — the blank is on the
-        // same line as the number, anything above is the previous
-        // line of passage). ±6% x covers the blank + a couple words.
-        xLeftDelta: 6, xRightDelta: 6, yTopDelta: 0, yBottomDelta: 5,
+        // Grammar Cloze (revised): yStart 10% ABOVE the Q-number,
+        // yEnd anchored at the Q-number's top (yBottomDelta=0).
+        // xStart -5% gives a little left context; xEnd +6%.
+        xLeftDelta: 5, xRightDelta: 6, yTopDelta: 10, yBottomDelta: 0,
       });
       break;
     case "comp-cloze":
@@ -541,6 +542,21 @@ export async function POST(
         xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5,
       });
       break;
+    case "synthesis":
+      result = await extractAnchoredCrop({
+        paperId: paper.id,
+        sections,
+        allQuestions: paper.questions,
+        sectionHint: "Synthesis / Transformation — combine the two sentences using the bolded keyword; student writes 2-3 lines below",
+        // Synthesis questions need the source sentences ABOVE and the
+        // writing lines BELOW the Q-number. yStart at 5% above
+        // (half of a 10% default), yEnd at 15% below (10% default +5).
+        // Wide x to capture the full writing area (xRight large so
+        // the right-side lines aren't truncated; xLeft moderate so
+        // we don't lose Q-number margin).
+        xLeftDelta: 10, xRightDelta: 70, yTopDelta: 5, yBottomDelta: 15,
+      });
+      break;
   }
 
   // Map sectionType -> the corresponding metadata flag.
@@ -549,6 +565,7 @@ export async function POST(
     "grammar-cloze": "grammarCloze",
     "editing": "editing",
     "comp-cloze": "compCloze",
+    "synthesis": "synthesis",
     "comp-oeq": "compOeq",
   };
   const updatedState: NormalExtractState = {
