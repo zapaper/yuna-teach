@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type SectionType = "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "comp-oeq";
 
@@ -261,6 +261,58 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
   const [busy, setBusy] = useState<SectionType | null>(null);
   const [lastResult, setLastResult] = useState<{ sectionType: SectionType; result: RunResult } | null>(null);
 
+  // On mount, auto-load bounds for the first section that's already
+  // marked Done so the user sees the per-question crops without
+  // having to hit Extract again. (Extract is destructive — it
+  // overwrites any prior manual recrops.) If multiple sections are
+  // Done, the user can switch between them with the View button.
+  useEffect(() => {
+    const sectionKeyMap: Record<SectionType, string> = {
+      "booklet-a": "bookletA",
+      "grammar-cloze": "grammarCloze",
+      "editing": "editing",
+      "comp-cloze": "compCloze",
+      "comp-oeq": "compOeq",
+    };
+    const doneSection = SECTIONS.find(s => !!initialState[sectionKeyMap[s.type]]);
+    if (!doneSection) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english?sectionType=${doneSection.type}`);
+        if (!res.ok) return;
+        const json = await res.json() as { bounds?: Bound[] };
+        if (cancelled || !json.bounds || json.bounds.length === 0) return;
+        setLastResult({
+          sectionType: doneSection.type,
+          result: { ok: true, bounds: json.bounds, updated: json.bounds.filter(b => b.status === "updated").length },
+        });
+      } catch { /* silent — the user can still hit Extract */ }
+    })();
+    return () => { cancelled = true; };
+  }, [paperId, initialState]);
+
+  async function viewSection(sectionType: SectionType) {
+    setBusy(sectionType);
+    setLastResult(null);
+    try {
+      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english?sectionType=${sectionType}`);
+      const json = await res.json() as { bounds?: Bound[]; error?: string };
+      if (!res.ok) {
+        setLastResult({ sectionType, result: { ok: false, error: json.error ?? `HTTP ${res.status}` } });
+        return;
+      }
+      setLastResult({
+        sectionType,
+        result: { ok: true, bounds: json.bounds ?? [], updated: (json.bounds ?? []).filter(b => b.status === "updated").length },
+      });
+    } catch (err) {
+      setLastResult({ sectionType, result: { ok: false, error: err instanceof Error ? err.message : String(err) } });
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function run(sectionType: SectionType) {
     setBusy(sectionType);
     setLastResult(null);
@@ -317,18 +369,30 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
               </div>
               <p className="text-xs text-slate-500 mt-0.5">{sec.note}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => run(sec.type)}
-              disabled={isBusy || busy !== null}
-              className={`shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                isDone
-                  ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
-                  : "bg-violet-500 text-white hover:bg-violet-600"
-              } disabled:opacity-50`}
-            >
-              {isBusy ? "Running…" : isDone ? "Re-extract" : "Extract"}
-            </button>
+            <div className="flex gap-2 shrink-0">
+              {isDone && (
+                <button
+                  type="button"
+                  onClick={() => viewSection(sec.type)}
+                  disabled={busy !== null}
+                  className="px-3 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+                >
+                  View
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => run(sec.type)}
+                disabled={isBusy || busy !== null}
+                className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isDone
+                    ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
+                    : "bg-violet-500 text-white hover:bg-violet-600"
+                } disabled:opacity-50`}
+              >
+                {isBusy ? "Running…" : isDone ? "Re-extract" : "Extract"}
+              </button>
+            </div>
           </div>
         );
       })}

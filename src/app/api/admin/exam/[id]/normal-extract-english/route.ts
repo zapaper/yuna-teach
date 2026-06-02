@@ -538,6 +538,100 @@ export async function POST(
   });
 }
 
+// Read-only view of the currently-stored bounds for a section.
+// Lets the admin page render the per-question crop grid on initial
+// load without re-running extraction (extraction is expensive and
+// destructive — it overwrites any manual recrops). Used by the
+// /exam/[id]/normal-extract page on mount.
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await isSessionAdmin())) {
+    return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });
+  }
+  const { id } = await params;
+  const sectionType = request.nextUrl.searchParams.get("sectionType") as SectionType | null;
+  if (!sectionType || !SECTION_LABELS[sectionType]) {
+    return NextResponse.json({ error: "Query ?sectionType= must be one of: booklet-a, grammar-cloze, editing, comp-cloze, comp-oeq" }, { status: 400 });
+  }
+
+  const paper = await prisma.examPaper.findUnique({
+    where: { id },
+    select: {
+      id: true, subject: true, metadata: true,
+      questions: {
+        select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true },
+        orderBy: { orderIndex: "asc" },
+      },
+    },
+  });
+  if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+  if (!(paper.subject ?? "").toLowerCase().includes("english")) {
+    return NextResponse.json({ error: "This route is English-only." }, { status: 400 });
+  }
+
+  type PapersEntry = { label: string; questionsStartPage?: number; expectedQuestions?: number };
+  const meta = (paper.metadata ?? {}) as {
+    englishSections?: SecMeta[];
+    papers?: PapersEntry[];
+  };
+  let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+
+  // Same Booklet A fallback as POST: use metadata.papers when
+  // englishSections isn't populated.
+  if (sections.length === 0 && sectionType === "booklet-a" && Array.isArray(meta.papers)) {
+    const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
+    const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
+    if (bookletA?.questionsStartPage) {
+      const startPage = bookletA.questionsStartPage - 1;
+      const endPage = bookletB?.questionsStartPage ? bookletB.questionsStartPage - 1 : Infinity;
+      const matchingIndices: number[] = [];
+      for (let i = 0; i < paper.questions.length; i++) {
+        const q = paper.questions[i];
+        if (q.pageIndex != null && q.pageIndex >= startPage && q.pageIndex < endPage) {
+          matchingIndices.push(i);
+        }
+      }
+      if (matchingIndices.length > 0) {
+        sections = [{
+          label: bookletA.label,
+          startIndex: matchingIndices[0],
+          endIndex: matchingIndices[matchingIndices.length - 1],
+        }];
+      }
+    }
+  }
+
+  if (sections.length === 0) {
+    return NextResponse.json({ bounds: [], sections: [] });
+  }
+
+  const bounds: QuestionBound[] = [];
+  const perSection: Array<{ label: string; count: number }> = [];
+  for (const sec of sections) {
+    let count = 0;
+    for (let qi = sec.startIndex; qi <= sec.endIndex && qi < paper.questions.length; qi++) {
+      const q = paper.questions[qi];
+      const hasBounds = q.yStartPct != null && q.yEndPct != null && q.pageIndex != null;
+      bounds.push({
+        id: q.id,
+        questionNum: q.questionNum,
+        pageIndex: q.pageIndex,
+        yStartPct: q.yStartPct,
+        yEndPct: q.yEndPct,
+        xStartPct: q.xStartPct,
+        xEndPct: q.xEndPct,
+        status: hasBounds ? "updated" : "not_detected",
+      });
+      count++;
+    }
+    perSection.push({ label: sec.label, count });
+  }
+
+  return NextResponse.json({ bounds, sections: perSection });
+}
+
 // Manual recrop — update a single question's bounds when extraction
 // missed it or wrong-bucketed it (e.g. Q26-Q28 in PSLE English 2024
 // where Clean Extract tagged them onto a Booklet A page but they're
