@@ -2353,21 +2353,25 @@ function ExamReviewContent({ id }: { id: string }) {
                               // pick up obvious matches.
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
-                              const isMatch = !isBlank && (earned >= available || norm(studentAns) === norm(correctAns));
+                              // Marker is authoritative: full marks → green even
+                              // if studentAns is empty (scan-back English may
+                              // not have populated the typed text).
+                              const fullMarks = earned >= available && available > 0;
+                              const isMatch = fullMarks || (!isBlank && norm(studentAns) === norm(correctAns));
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
                                   <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{word}</span>
-                                  {isBlank ? (
-                                    // Student left blank — show correct in red
+                                  {isMatch ? (
+                                    <>
+                                      <span className="font-bold text-[#006c49] text-sm">[{studentAns || correctAns}]</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
+                                  ) : isBlank ? (
+                                    // Blank AND not awarded — show correct in red
                                     <>
                                       <span className="font-bold text-[#ba1a1a] text-sm">[{correctAns}]</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
-                                    </>
-                                  ) : isMatch ? (
-                                    <>
-                                      <span className="font-bold text-[#006c49] text-sm">[{studentAns}]</span>
-                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
                                     </>
                                   ) : (
                                     <>
@@ -2388,35 +2392,31 @@ function ExamReviewContent({ id }: { id: string }) {
                               );
                             } else if (isCompCloze) {
                               // Comprehension Cloze: student types the missing
-                              // word directly (no word bank). Show their typed
-                              // answer in green if the AI marker awarded full
-                              // marks for it (which can happen even if the
-                              // word doesn't exactly match the answer key —
-                              // a synonym or acceptable variant), in red
-                              // (followed by the correct answer in green) if
-                              // wrong, or just the correct answer in red if
-                              // they left it blank.
+                              // word directly (no word bank). Trust the AI
+                              // marker — if full marks earned, render green
+                              // even if studentAns is empty (scan-back may
+                              // have detected from the bounded crop without
+                              // populating the typed-text field).
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentAns = (q?.studentAnswer ?? "").trim();
                               const correctAns = cleanOneWordAnswer(q?.answer ?? "");
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
-                              // Trust the marker — full marks earned means
-                              // green even if string doesn't exactly match.
-                              const isMatch = !isBlank && earned >= available;
+                              const fullMarks = earned >= available && available > 0;
+                              const isMatch = fullMarks || (!isBlank && studentAns.toLowerCase() === correctAns.toLowerCase());
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
-                                  {isBlank ? (
+                                  {isMatch ? (
+                                    <>
+                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentAns || correctAns}</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
+                                  ) : isBlank ? (
                                     <>
                                       <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctAns}</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
-                                    </>
-                                  ) : isMatch ? (
-                                    <>
-                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentAns}</span>
-                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
                                     </>
                                   ) : (
                                     <>
@@ -2453,7 +2453,13 @@ function ExamReviewContent({ id }: { id: string }) {
                               // fall back to letter comparison.
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
-                              const isCorrect = !isBlank && (earned >= available || studentLetter === correctLetter);
+                              // The marker is authoritative. If it awarded full
+                              // marks, render green even if studentLetter is
+                              // empty (scan-back may have detected the answer
+                              // from the bounded crop without populating the
+                              // typed-text studentAnswer field).
+                              const fullMarks = earned >= available && available > 0;
+                              const isCorrect = fullMarks || (!isBlank && studentLetter === correctLetter);
                               // Chinese 完成对话 uses a stricter user-spec
                               // review treatment: blank → red [Blank] + ✗,
                               // correct → green answer only, wrong → red
@@ -2479,16 +2485,22 @@ function ExamReviewContent({ id }: { id: string }) {
                                         <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
                                       </>
                                     )
+                                  ) : isCorrect ? (
+                                    // English grammar cloze — marker says correct.
+                                    // Tick green even if studentWord is empty (scan
+                                    // path may have skipped populating the typed
+                                    // text). Display the correct word in green
+                                    // so the parent still sees what the answer is.
+                                    <>
+                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord || correctWord}</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
                                   ) : isBlank ? (
-                                    // English grammar cloze — original colour scheme
+                                    // Student left blank AND marker didn't award
+                                    // full marks — red cross + correct in red.
                                     <>
                                       <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
-                                    </>
-                                  ) : isCorrect ? (
-                                    <>
-                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord}</span>
-                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
                                     </>
                                   ) : (
                                     <>
@@ -3085,6 +3097,42 @@ function ExamReviewContent({ id }: { id: string }) {
                     })}
                   </div>
                   </div>
+                  {/* Scanned page(s) at the bottom — lets the parent
+                      verify what Gemini saw against the inline marking
+                      above. Grammar cloze / editing / comp cloze only;
+                      synthesis and comp-OEQ already show per-question
+                      scan crops. */}
+                  {(isGrammarCloze || isEditing || isCompCloze) && (() => {
+                    const uniquePages = Array.from(
+                      new Set(
+                        sectionQuestions
+                          .map(q => q.pageIndex)
+                          .filter((p): p is number => typeof p === "number" && p >= 0)
+                      )
+                    ).sort((a, b) => a - b);
+                    if (uniquePages.length === 0) return null;
+                    return (
+                      <div className="mt-6 pt-6 border-t border-[#e5eeff]">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-3">
+                          Scanned page{uniquePages.length > 1 ? "s" : ""} — what Gemini saw
+                        </p>
+                        <div className="space-y-3">
+                          {uniquePages.map(pi => {
+                            const sub = getSubmissionPage(pi);
+                            return (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                key={pi}
+                                src={`/api/exam/${id}/submission?page=${sub}`}
+                                alt={`Scanned page ${sub + 1}`}
+                                className="w-full h-auto rounded-xl border border-[#e5eeff]"
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}
