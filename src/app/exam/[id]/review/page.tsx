@@ -3896,6 +3896,29 @@ function ExamReviewContent({ id }: { id: string }) {
                     </div>
                     )}
 
+                    {/* English quiz: scanned page at the bottom of every
+                        question card (MCQ + OEQ) so the parent can verify
+                        the detected answer against what the student
+                        actually wrote. Non-English papers already get a
+                        side-by-side submission image up top for OEQ; we
+                        skip here to avoid double-showing. */}
+                    {isQuiz && (paperSubject ?? "").toLowerCase().includes("english") && currentQ.pageIndex >= 0 && (() => {
+                      const sub = getSubmissionPage(currentQ.pageIndex);
+                      return (
+                        <div className="mt-6 pt-5 border-t border-[#e5eeff]">
+                          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-3">
+                            Scanned page — Q{currentQ.questionNum}
+                          </p>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/exam/${id}/submission?page=${sub}`}
+                            alt={`Scanned page for Q${currentQ.questionNum}`}
+                            className="w-full h-auto rounded-xl border border-[#e5eeff]"
+                          />
+                        </div>
+                      );
+                    })()}
+
                     {/* Flag toggle — bottom center */}
                     <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
                       <button
