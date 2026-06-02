@@ -268,11 +268,13 @@ keyConcepts:
       label: 点这里开始练习
       quizSpec:
         title: "Mastery: 华文 Cloze 短文填空"
-        mcq: 4
+        # Each mastery quiz spans 3 passages so the student rotates
+        # across question shapes (verb / idiom / adjective / linker /
+        # noun-form). mcq target is set high enough that the picker
+        # keeps adding groups until minPassages is satisfied.
+        mcq: 12
         oeq: 0
-        # User feedback: "3-4 will do, not 5". One passage covers the
-        # target without piling on 2-3 unrelated passages.
-        minPassages: 1
+        minPassages: 3
 
 commonMistakes: []
 
