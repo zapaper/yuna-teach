@@ -1056,8 +1056,12 @@ function QuestionEditCard({
           is present, show a clean empty-state. */}
       <div className="bg-slate-50">
         {(() => {
-          const hasImage = !!question.imageData && question.imageData.length > 0;
-          const hasDiagram = !!question.diagramImageData && question.diagramImageData.length > 0;
+          // English papers stash a ~600-byte placeholder JPEG in
+          // imageData during upload; a real per-question crop is
+          // ALWAYS >10KB. Treat anything under 3KB as "no real crop"
+          // so the bounds-based fallback gets a chance to render.
+          const hasImage = !!question.imageData && question.imageData.length > 3000;
+          const hasDiagram = !!question.diagramImageData && question.diagramImageData.length > 3000;
           if (hasImage) {
             return (
               <Image
