@@ -544,13 +544,10 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Synthesis / Transformation — combine the two sentences using the bolded keyword; student writes 2-3 lines below",
-        // Synthesis questions need the source sentences ABOVE and the
-        // writing lines BELOW the Q-number. yStart at 5% above
-        // (half of a 10% default), yEnd at 15% below (10% default +5).
-        // Wide x to capture the full writing area (xRight large so
-        // the right-side lines aren't truncated; xLeft moderate so
-        // we don't lose Q-number margin).
-        xLeftDelta: 10, xRightDelta: 70, yTopDelta: 5, yBottomDelta: 15,
+        // Synthesis: yStart at the Q-number top, yEnd 10% below.
+        // Wide x: -5 left to keep some margin, +75 right for the
+        // full writing area.
+        xLeftDelta: 5, xRightDelta: 75, yTopDelta: 0, yBottomDelta: 10,
       });
       break;
   }
