@@ -3071,9 +3071,13 @@ function ExamReviewContent({ id }: { id: string }) {
               // Check if this question has subparts with per-part answers shown inline
               const subs = currentQ.transcribedSubparts as { label: string }[] | null;
               const realSubLabels = subs?.filter(s => !s.label.startsWith("_")) ?? [];
-              // Try studentAnswer first; fallback: extract from markingNotes "Detected: ..."
+              // Try studentAnswer first; fallback: extract from markingNotes
+              // "Detected: ..." up to the first " | " section break, or end.
+              // [\s\S] (not .) so multi-part OEQ detections that span newlines
+              // ("(a) ...\n(b) ...") survive intact — the previous . variant
+              // truncated at the first newline and lost part (b).
               const studentAnswerText = currentQ.studentAnswer
-                || currentQ.markingNotes?.match(/^Detected:\s*(.+?)(?:\s*\||$)/)?.[1]
+                || currentQ.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim()
                 || null;
               const subLabels = realSubLabels.map(s => s.label.toLowerCase());
               const hasInlinePartAnswers = realSubLabels.length > 0 && (

@@ -412,12 +412,21 @@ Return ONLY valid JSON (no markdown fences):
   ]
 }`;
 
-  // Use a stronger model when any question on this page has expected answer "1"
-  // (thin vertical stroke — easily missed by 2.5 Flash). Avoid the
-  // gemini-3-flash-preview tier — Google's been returning 504s on
-  // most calls when that backend is loaded; 2.5-pro is the reliable
-  // step up.
-  const mcqModel = hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
+  // Model selection.
+  //   - First pass on the full page: gemini-2.5-flash (cheap, good
+  //     enough when handwriting is clear).
+  //   - MCQ retry pass (called with label that starts with "mcqRetry"):
+  //     always bump to gemini-3.1-pro-preview. Retry only fires when
+  //     the first pass returned null, so by definition this is a hard
+  //     case — print+scan workflow, faint ink, scan glare. The pro
+  //     model is worth the extra cost on this narrow subset, and
+  //     handles non-"1" answers (which previously stayed on flash).
+  //   - "1"-hint on the first pass: still bump to 2.5-pro (thin
+  //     vertical stroke is easy to miss for flash).
+  const isRetryPass = label.startsWith("mcqRetry") || label.startsWith("remarkSingle");
+  const mcqModel = isRetryPass
+    ? "gemini-3.1-pro-preview"
+    : hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
 
   try {
     const response = await withTimeout(
@@ -4827,7 +4836,7 @@ CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke �
 LATEX MATH: stems and expected answers may contain LaTeX inline math wrapped in single dollar signs, e.g. '$4\\frac{5}{6}$', '$\\frac{29}{6}$'. Treat these semantically — '$4\\frac{5}{6}$' IS the mixed number 4 5/6, '$\\frac{29}{6}$' IS twenty-nine over six. A student who writes "4 5/6" or "29/6" in plain text is giving the same answer; mark accordingly. In YOUR feedback text, write fractions in the SAME LaTeX form (e.g. '$\\frac{5}{6}$' or '$4\\frac{5}{6}$') — the parent UI renders them as proper stacked fractions. Do NOT write bare '4 5/6' or '\\frac{5}{6}' without the surrounding '$' delimiters; either causes the parent to see raw text instead of a rendered fraction.
 ${drawableMarkRule}${mathAnswerFirstRule}${sciencePartialRule}
 ANSWER-KEY GAPS — FAIL-SAFE (IMPORTANT):
-Sometimes the expected answer above doesn't cover every part of the question. Examples: a multi-part (a)(b)(c) question whose answer key only mentions part (c); an answer field that's empty, "?", or just "see image" with no usable text; a per-part breakdown where one part says "(no answer key — …)". In those cases:
+Sometimes the expected answer above doesn't cover every part of the question. Examples: a multi-part (a)(b)(c) question whose answer key only mentions part (c); an answer field that's empty, "?", or LITERALLY just "see image" / "see answer image" with no other content (a phrase like "(b) See answer image. The two extra light bulbs must be in parallel..." DOES contain usable text — the sentence after "See answer image." is the key, USE IT, do not fall back); a per-part breakdown where one part says "(no answer key — …)". In those cases:
 - For parts that ARE covered by the expected answer: apply the ABSOLUTE RULE strictly — the provided answer is ground truth.
 - For parts NOT covered by the expected answer: mark on the student's own merit using your subject knowledge. A scientifically / mathematically valid, on-topic answer that directly addresses that part earns the mark(s) for that part. A blank or off-topic answer earns 0.
 - Prefix every per-part note where you applied this fallback with "[AI-judged, no key provided]" so the parent can spot it during review and override if needed.
