@@ -242,87 +242,66 @@ strong { font-weight: 700; color: #0E1F2A; }
 em { color: #4B5563; }
 img { max-width: 100%; height: auto; display: block; margin: 12px auto;
       border-radius: 6px; }
-.caption { text-align: center; color: #6B7280; font-size: 13px;
-           font-style: italic; margin: -6px auto 18px auto; }
+ul { margin: 0 0 14px 24px; padding: 0; }
+ul li { margin: 0 0 6px 0; }
 .cta { background: #F0F8F7; border-left: 4px solid #0E6B6B; padding: 12px 16px;
        border-radius: 4px; font-size: 18px; font-weight: 600; margin: 16px 0; }
 .cta strong { color: #0E6B6B; }
-blockquote { margin: 14px 0; padding: 10px 16px; background: #FAF7F0;
-             border-left: 3px solid #C9C5BC; color: #1F2A37; font-style: italic; }
-.todo { background: #FFF4EC; border: 2px dashed #D96B1F; padding: 12px 16px;
-        border-radius: 6px; color: #D96B1F; margin: 16px 0; font-size: 18px; }
-.todo b { font-weight: 700; }
 .signoff { margin: 18px 0 4px 0; }
 .signoff-name { font-weight: 600; margin: 0; }
-.signoff-role { color: #6B7280; font-style: italic; font-size: 14px; margin: 0; }
-.ps { margin-top: 18px; padding-top: 14px; border-top: 1px solid #E5E7EB;
-      font-size: 14px; color: #374151; }
-.ps b { font-weight: 700; }</style>
+.signoff-role { color: #6B7280; font-style: italic; font-size: 14px; margin: 0; }</style>
 <p>Hi {{parentName}},</p>
-<p>Day 3. Life's busy, and we're not going to nag.</p>
-<p>If {{childName}} hasn't done their first quiz or focused practice with us yet, the honest reason is usually one of these: you weren't sure where to begin, you forgot, or it didn't feel urgent yet. Whichever — fair.</p>
-<p>What we can do is make the <strong>first decision</strong> easier. Here's the data that turns "where do I even start?" into a clear next step.</p>
-<p>We broke down every PSLE Science question from 2022, 2023 and 2024 — 122 questions, 297 marks. The top 5 topics by share of marks tested:</p>
-<img src="day02-psle-science-top5.png" alt="PSLE Science 2022–2024: top 5 topics by share of total marks.">
-<p class="caption">PSLE Science 2022–2024: top 5 topics by share of total marks.</p>
-<p>1.  <strong>Interactions within the environment</strong> (e.g. adaptation, food webs) — 13%</p>
-<p>2.  <strong>Electrical systems &amp; circuits</strong> — 10%</p>
-<p>3.  <strong>Forces</strong> (friction + gravity + spring) — 10%</p>
-<p>3.  <strong>Heat energy &amp; uses</strong> — 10%</p>
-<p>5.  <strong>Diversity of living &amp; non-living</strong> — 8%</p>
-<p>Together these five make up roughly <strong>half</strong> of every PSLE Science paper. That's where to point {{childName}} first — specifically <strong>Interactions</strong> or <strong>Heat</strong>, since both are 10%+ of marks AND OEQ-heavy (where the marks-recovery upside is largest).</p>
-<p>Here's the smallest possible step: <strong>10 minutes of Focused Practice tonight on Heat.</strong> The system needs one signal to start from. After that, every recommendation gets sharper.</p>
-<p>Our marker scores per-subpart against the same examiner rubric used at PSLE — so {{childName}} gets back specific language feedback ("you said <em>the tile is colder</em> — the expected phrasing is <em>the tile is a better conductor; heat is transferred faster</em>"). Specific. Actionable.</p>
-<p class="cta">👉 <strong>Set a 10-min Focused Practice on Heat tonight → {{childHomepageUrl}} → Focused Practice → choose "Heat energy &amp; uses"</strong></p>
-<p>If 10 minutes is still too much tonight — that's also fine. Just open {{childName}}'s homepage and pick any Daily Quiz in any subject. 10–15 minutes, any subject, system learns from whatever they do.</p>
-<p><strong>Quick brain-stretch for {{childName}} over breakfast — a classic Heat OEQ:</strong></p>
-<blockquote>Why does the tiled floor feel colder than the wooden floor, even though both are at room temperature?</blockquote>
-<p>Most kids (and most adults) say: "tiles are colder." They're not — they're at the same temperature as the wood. The correct answer names <strong>conduction</strong>: tiles are better conductors of heat, so heat is transferred from the foot to the tile faster. The foot loses heat quicker and feels colder.</p>
-<p>The language fix that rescues half-marks across every PSLE Heat OEQ: don't say "X is colder" — say "<strong>X is a better conductor; heat is transferred faster.</strong>" One language swap, a whole sub-topic's worth of marks back.</p>
-<p>Have a good week,</p>
-<p class="signoff-name">Jessica</p>
-<p class="signoff-role">Co-Founder, MarkForYou</p>`,
+<p>Welcome again to MarkForYou.</p>
+<p>We noticed that {{childName}} has not completed a quiz or paper yet. If you have forgotten your password, you may reset it at <a href="{{parentHomepageUrl}}" style="color:#0E6B6B;font-weight:600;">your homepage</a>.</p>
+<p>You may also watch a 30sec video about how to set a Focused Practice or Quiz for your child.</p>
+<p>To maximise {{childName}}'s time on the platform, we thought to provide some information on the topic breakdown for PSLE. After all, we're not here just to study <strong>HARD</strong>, we want to study <strong>SMART</strong>.</p>
+<p>We broke down every PSLE Science question over the last decade (2016-2025). These are the top 5 topics by share of marks:</p>
+<p><img src="https://www.markforyou.com/email-images/day03-psle-science-top5.png" alt="Top 5 PSLE Science topics by share of marks (2016-2025)" style="max-width:100%; height:auto; display:block; margin:12px auto; border-radius:6px;"></p>
+<p>These five topics make up <strong>half of every PSLE Science paper</strong>. A few key insights:</p>
+<ul>
+  <li>These topics are dominated by open-ended questions (OEQ); <strong>keywords are important</strong>.</li>
+  <li>"Interactions within the environment" is often one of the last topics taught before PSLE, yet carries one of the heaviest marks.</li>
+  <li>Lastly, OEQ also means that <strong>handwriting is important!</strong></li>
+</ul>
+<p>Another insight: "Interactions" and "Heat" are dominated by OEQs — and students often bleed half-marks for imprecise language here.</p>
+<p>Knowing the breakdown of topics is the easy part. <strong>Knowing how {{childName}}'s written answers score against the MOE scoring rubrics is what closes the gap.</strong> This is why we created the Focused Practice function.</p>
+<p>From {{childName}}'s homepage, set a 10-question drill on any one of these highly-tested topics. Our marker scores per-subpart against the same examiner rubric used at PSLE. We don't give vague feedback. We give concrete, actionable feedback that highlights missing scientific keywords and concepts.</p>
+<p>What next? Let's get {{childName}} started on Focused Practice.</p>
+<p class="cta" style="background:#F0F8F7;border-left:4px solid #0E6B6B;padding:12px 16px;border-radius:4px;font-size:18px;font-weight:600;margin:16px 0;">👉 <a href="{{childHomepageUrl}}" style="color:#0E6B6B;text-decoration:none;"><strong style="color:#0E6B6B;">Set a topical Focused Practice via {{childName}}'s homepage</strong></a> → Focused Practice → choose topic.</p>
+<p>Have a productive week,</p>
+<p class="signoff-name" style="font-weight:600;margin:0;">Jessica</p>
+<p class="signoff-role" style="color:#6B7280;font-style:italic;font-size:14px;margin:0;">Co-Founder, MarkForYou</p>`,
     textBody: `Hi {{parentName}},
 
-Day 3. Life's busy, and we're not going to nag.
+Welcome again to MarkForYou.
 
-If {{childName}} hasn't done their first quiz or focused practice with us yet, the honest reason is usually one of these: you weren't sure where to begin, you forgot, or it didn't feel urgent yet. Whichever — fair.
+We noticed that {{childName}} has not completed a quiz or paper yet. If you have forgotten your password, you may reset it at your homepage: {{parentHomepageUrl}}
 
-What we can do is make the first decision easier. Here's the data that turns "where do I even start?" into a clear next step.
+You may also watch a 30sec video about how to set a Focused Practice or Quiz for your child.
 
-We broke down every PSLE Science question from 2022, 2023 and 2024 — 122 questions, 297 marks. The top 5 topics by share of marks tested:
+To maximise {{childName}}'s time on the platform, we thought to provide some information on the topic breakdown for PSLE. After all, we're not here just to study HARD, we want to study SMART.
 
-[Image: day02-psle-science-top5.png — PSLE Science 2022–2024: top 5 topics by share of total marks.]
+We broke down every PSLE Science question over the last decade (2016-2025). These are the top 5 topics by share of marks:
 
-1.  Interactions within the environment (e.g. adaptation, food webs) — 13%
+[chart: Top 5 PSLE Science topics by share of marks (2016-2025) — see https://www.markforyou.com/email-images/day03-psle-science-top5.png]
 
-2.  Electrical systems & circuits — 10%
+These five topics make up half of every PSLE Science paper. A few key insights:
 
-3.  Forces (friction + gravity + spring) — 10%
+  - These topics are dominated by open-ended questions (OEQ); keywords are important.
+  - "Interactions within the environment" is often one of the last topics taught before PSLE, yet carries one of the heaviest marks.
+  - Lastly, OEQ also means that handwriting is important!
 
-3.  Heat energy & uses — 10%
+Another insight: "Interactions" and "Heat" are dominated by OEQs — and students often bleed half-marks for imprecise language here.
 
-5.  Diversity of living & non-living — 8%
+Knowing the breakdown of topics is the easy part. Knowing how {{childName}}'s written answers score against the MOE scoring rubrics is what closes the gap. This is why we created the Focused Practice function.
 
-Together these five make up roughly half of every PSLE Science paper. That's where to point {{childName}} first — specifically Interactions or Heat, since both are 10%+ of marks AND OEQ-heavy (where the marks-recovery upside is largest).
+From {{childName}}'s homepage, set a 10-question drill on any one of these highly-tested topics. Our marker scores per-subpart against the same examiner rubric used at PSLE. We don't give vague feedback. We give concrete, actionable feedback that highlights missing scientific keywords and concepts.
 
-Here's the smallest possible step: 10 minutes of Focused Practice tonight on Heat. The system needs one signal to start from. After that, every recommendation gets sharper.
+What next? Let's get {{childName}} started on Focused Practice.
 
-Our marker scores per-subpart against the same examiner rubric used at PSLE — so {{childName}} gets back specific language feedback ("you said the tile is colder — the expected phrasing is the tile is a better conductor; heat is transferred faster"). Specific. Actionable.
+👉 Set a topical Focused Practice via {{childName}}'s homepage: {{childHomepageUrl}} → Focused Practice → choose topic.
 
-👉 Set a 10-min Focused Practice on Heat tonight → {{childHomepageUrl}} → Focused Practice → choose "Heat energy & uses"
-
-If 10 minutes is still too much tonight — that's also fine. Just open {{childName}}'s homepage and pick any Daily Quiz in any subject. 10–15 minutes, any subject, system learns from whatever they do.
-
-Quick brain-stretch for {{childName}} over breakfast — a classic Heat OEQ:
-
-> Why does the tiled floor feel colder than the wooden floor, even though both are at room temperature?
-
-Most kids (and most adults) say: "tiles are colder." They're not — they're at the same temperature as the wood. The correct answer names conduction: tiles are better conductors of heat, so heat is transferred from the foot to the tile faster. The foot loses heat quicker and feels colder.
-
-The language fix that rescues half-marks across every PSLE Heat OEQ: don't say "X is colder" — say "X is a better conductor; heat is transferred faster." One language swap, a whole sub-topic's worth of marks back.
-
-Have a good week,
+Have a productive week,
 
 Jessica
 Co-Founder, MarkForYou`,
