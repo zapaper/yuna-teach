@@ -1056,12 +1056,18 @@ function QuestionEditCard({
           is present, show a clean empty-state. */}
       <div className="bg-slate-50">
         {(() => {
-          // English papers stash a ~600-byte placeholder JPEG in
-          // imageData during upload; a real per-question crop is
-          // ALWAYS >10KB. Treat anything under 3KB as "no real crop"
-          // so the bounds-based fallback gets a chance to render.
-          const hasImage = !!question.imageData && question.imageData.length > 3000;
-          const hasDiagram = !!question.diagramImageData && question.diagramImageData.length > 3000;
+          // /normal-extract is bounds-focused: if y/x bounds are set
+          // we ALWAYS prefer the page-with-overlay preview, even when
+          // a prior manual Select-area crop is stored on imageData.
+          // Re-extracting bounds doesn't clear imageData, and the
+          // small-crop view hid changes from the new bounds. Bounds
+          // win.
+          const hasBounds =
+            question.pageIndex != null &&
+            question.yStartPct != null &&
+            question.yEndPct != null;
+          const hasImage = !hasBounds && !!question.imageData && question.imageData.length > 3000;
+          const hasDiagram = !hasBounds && !!question.diagramImageData && question.diagramImageData.length > 3000;
           if (hasImage) {
             return (
               <Image

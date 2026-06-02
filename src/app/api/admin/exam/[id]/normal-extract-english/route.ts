@@ -510,10 +510,9 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Grammar Cloze — numbered blanks inline within a passage",
-        // Grammar Cloze (revised): yStart 10% ABOVE the Q-number,
-        // yEnd anchored at the Q-number's top (yBottomDelta=0).
-        // xStart -5% gives a little left context; xEnd +6%.
-        xLeftDelta: 5, xRightDelta: 6, yTopDelta: 10, yBottomDelta: 0,
+        // Grammar Cloze: yStart 5% above Q-number top, yEnd at top.
+        // xLeft -5%, xRight +11% (was 6, added 5 for trailing text).
+        xLeftDelta: 5, xRightDelta: 11, yTopDelta: 5, yBottomDelta: 0,
       });
       break;
     case "comp-cloze":
@@ -522,12 +521,10 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Comprehension Cloze — numbered blanks inline within a passage",
-        // Comp Cloze answers usually live ABOVE the blank (context
-        // from earlier in the paragraph), so anchor the crop at the
-        // Q-number's top and extend UPWARD by 10% (y goes from
-        // yTop-10 to yTop). x: -5 on the left, +10 on the right
-        // gives more room for surrounding context.
-        xLeftDelta: 5, xRightDelta: 10, yTopDelta: 10, yBottomDelta: 0,
+        // Comp Cloze: yStart 2% above Q-number (was 10, +8 lowered
+        // the top); yEnd 5% below Q-number (was 0). x: -10 left
+        // (was 5, +5 to widen), +10 right.
+        xLeftDelta: 10, xRightDelta: 10, yTopDelta: 2, yBottomDelta: 5,
       });
       break;
     case "editing":
