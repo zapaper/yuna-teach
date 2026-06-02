@@ -40,6 +40,12 @@ interface QuizQuestion {
 interface Props {
   sectionLabel: string;
   passage: string | null;
+  // Original passage-blank position for each question in `questions`,
+  // parallel array. Set when the picker took a subset of the source
+  // section (e.g. 3 of 6 short-cloze questions, others were used as
+  // slide examples). When present, the renderer maps blank K to the
+  // question whose blankIndex === K instead of mapping sequentially.
+  blankIndices?: number[];
   questions: QuizQuestion[];
   sectionType: "grammar-cloze" | "editing" | "comprehension-cloze" | "visual-text-mcq" | "synthesis" | "comprehension-oeq";
   answers: Record<string, string>;
@@ -74,7 +80,7 @@ interface Props {
  * Editing and Synthesis renderers are present but unused for Chinese
  * (no equivalent sections in 华文); kept for shape compatibility.
  */
-export default function ChineseQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen, readingAssist }: Props) {
+export default function ChineseQuizSection({ sectionLabel, passage, blankIndices, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen, readingAssist }: Props) {
   // Split-screen renders the passage column and the questions column
   // side-by-side in a 50/50 grid that fills the viewport on lg+
   // (tablet/desktop). Each column scrolls independently. Only applied
@@ -485,7 +491,20 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                 if (seg.kind === "text") {
                   return <span key={i} className="whitespace-pre-wrap">{seg.text}</span>;
                 }
-                const q = sortedQs[seg.qIdx];
+                // Place each picked question at its original blank
+                // position when blankIndices is set (parallel to the
+                // ORIGINAL `questions` prop order, not the sorted
+                // copy — picked questions are renumbered Q1-Q3 in
+                // the mastery quiz so numeric-sort doesn't preserve
+                // the source ordering). Without blankIndices, fall
+                // back to sequential mapping.
+                let q: QuizQuestion | undefined;
+                if (blankIndices && blankIndices.length > 0) {
+                  const qPos = blankIndices.indexOf(seg.qIdx);
+                  if (qPos >= 0) q = questions[qPos];
+                } else {
+                  q = sortedQs[seg.qIdx];
+                }
                 if (!q) return <span key={i} className="text-slate-400 border-b border-slate-400 px-3">______</span>;
                 const opts = (q.transcribedOptions as string[] | null) ?? ["", "", "", ""];
                 const selected = answers[q.id] ?? null;

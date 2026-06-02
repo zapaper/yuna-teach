@@ -1694,6 +1694,7 @@ function QuizContent({ id }: { id: string }) {
                         <ChineseQuizSection
                           sectionLabel={sec.label}
                           passage={sec.passage ?? null}
+                          blankIndices={(sec as { blankIndices?: number[] }).blankIndices}
                           questions={secQuestions}
                           sectionType={sectionType}
                           answers={mcqAnswers}

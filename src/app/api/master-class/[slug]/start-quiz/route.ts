@@ -432,11 +432,40 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     const pgSourceMap = new Map(pgSourcePapers.map(p => [p.id, p]));
 
     // 4. Flatten the picked groups in section order + build sections metadata.
-    type SectionEntry = { label: string; startIndex: number; endIndex: number; passage?: string };
+    // blankIndices = the ORIGINAL passage blank position for each
+    // picked question (parallel to the section's flatItems range).
+    // Needed so the renderer can place option pickers at the right
+    // blank when the picker took a subset of the original section's
+    // questions (e.g. 3 of 6 from PSLE 2014 短文填空 because 3 were
+    // slide examples). Without this, the renderer assigned picked
+    // questions sequentially to blanks 0..N-1, leaving later blanks
+    // unrendered and shifting options to the wrong sentences.
+    type SectionEntry = { label: string; startIndex: number; endIndex: number; passage?: string; blankIndices?: number[] };
     type FlatItem = { source: PCandidate; sourcePaperId: string };
     const flatItems: FlatItem[] = [];
     const englishSections: SectionEntry[] = [];
     const chineseSections: SectionEntry[] = [];
+
+    // Pre-fetch the FULL question list for each (paperId, topic) the
+    // picker chose, sorted by questionNum. Each picked question's
+    // index in this sorted list = its blank position in the original
+    // passage.
+    const sectionKeyOf = (paperId: string, topic: string) => `${paperId}::${topic}`;
+    const fullSectionLists = new Map<string, Array<{ id: string; questionNum: string }>>();
+    for (const g of pickedGroups) {
+      const key = sectionKeyOf(g.paperId, g.topic);
+      if (fullSectionLists.has(key)) continue;
+      const allQs = await prisma.examQuestion.findMany({
+        where: { examPaperId: g.paperId, syllabusTopic: g.topic },
+        orderBy: { orderIndex: "asc" },
+        select: { id: true, questionNum: true },
+      });
+      // Sort by questionNum NATURALLY so Q16 < Q17 < ... < Q21 (string
+      // sort would put Q19 before Q2).
+      allQs.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+      fullSectionLists.set(key, allQs);
+    }
+
     for (const g of pickedGroups) {
       const startIdx = flatItems.length;
       const src = pgSourceMap.get(g.paperId);
@@ -494,6 +523,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       for (const q of g.questions) {
         flatItems.push({ source: q, sourcePaperId: g.paperId });
       }
+      // Compute blank index per picked question. Index = the question's
+      // position when ALL same-section questions in the source paper
+      // are sorted by questionNum. Falls back to sequential if the
+      // full-list lookup turned up empty (shouldn't happen, but
+      // defensive — the renderer treats -1 as "place sequentially").
+      const fullList = fullSectionLists.get(sectionKeyOf(g.paperId, g.topic)) ?? [];
+      const blankIdxByQid = new Map<string, number>();
+      for (let i = 0; i < fullList.length; i++) blankIdxByQid.set(fullList[i].id, i);
+      const blankIndices = g.questions.map(q => blankIdxByQid.get(q.id) ?? -1);
+
       // Label includes source paper year/topic so a student doing 3
       // PSLE Comp Cloze passages in one quiz sees them distinguished.
       const labelSuffix = src?.year ? ` — ${src.year}` : "";
@@ -502,6 +541,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         startIndex: startIdx,
         endIndex: flatItems.length - 1,
         ...(passage ? { passage } : {}),
+        ...(blankIndices.some(i => i >= 0) ? { blankIndices } : {}),
       };
       if (isChinesePG) chineseSections.push(entry);
       else englishSections.push(entry);
