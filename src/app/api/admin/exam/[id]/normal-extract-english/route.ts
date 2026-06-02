@@ -405,7 +405,7 @@ export async function POST(
     select: {
       id: true, title: true, subject: true, pageCount: true, metadata: true,
       questions: {
-        select: { id: true, questionNum: true, pageIndex: true, orderIndex: true },
+        select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
       },
     },
@@ -423,10 +423,7 @@ export async function POST(
   };
   let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
 
-  // Fallback for PSLE-style papers that only have the coarse booklet split
-  // (metadata.papers) but no per-section englishSections. The whole of
-  // Booklet A is sequential MCQ, so we can treat it as one section by
-  // mapping the booklet's page range onto the question array.
+  // Fallback 1: PSLE-style Booklet A using metadata.papers page ranges.
   if (sections.length === 0 && sectionType === "booklet-a" && Array.isArray(meta.papers)) {
     const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
     const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
@@ -450,14 +447,40 @@ export async function POST(
     }
   }
 
+  // Fallback 2: derive sections from question.syllabusTopic groupings.
+  // Clean Extract tags each question with its section name (e.g. "Grammar
+  // Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze",
+  // "Comprehension Open Ended") even on PSLE papers that don't carry
+  // englishSections metadata. Group consecutive questions by topic, then
+  // keep groups whose topic matches the requested sectionType.
   if (sections.length === 0) {
+    const groups: Array<{ topic: string; startIndex: number; endIndex: number }> = [];
+    let currentTopic: string | null = null;
+    for (let i = 0; i < paper.questions.length; i++) {
+      const t = paper.questions[i].syllabusTopic;
+      if (!t) { currentTopic = null; continue; }
+      if (t !== currentTopic) {
+        groups.push({ topic: t, startIndex: i, endIndex: i });
+        currentTopic = t;
+      } else {
+        groups[groups.length - 1].endIndex = i;
+      }
+    }
+    sections = groups
+      .filter(g => sectionMatches(g.topic, sectionType))
+      .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
+  }
+
+  if (sections.length === 0) {
+    const availableTopics = [...new Set(paper.questions.map(q => q.syllabusTopic).filter(Boolean))];
     const detail = sectionType === "booklet-a"
-      ? "Couldn't resolve Booklet A from englishSections or metadata.papers. Make sure Clean Extract has run on this paper."
-      : `No matching sections in metadata.englishSections for sectionType="${sectionType}". Booklet B sub-sections need englishSections populated by Clean Extract first.`;
+      ? "Couldn't resolve Booklet A from englishSections, metadata.papers, or per-question syllabusTopic. Make sure Clean Extract has run on this paper."
+      : `No matching section for sectionType="${sectionType}". Checked metadata.englishSections, metadata.papers, and per-question syllabusTopic — nothing matched.`;
     return NextResponse.json({
       error: detail,
       availableSectionLabels: (meta.englishSections ?? []).map(s => s.label),
       availablePapers: (meta.papers ?? []).map(p => ({ label: p.label, expectedQuestions: p.expectedQuestions, questionsStartPage: p.questionsStartPage })),
+      availableSyllabusTopics: availableTopics,
     }, { status: 400 });
   }
 
@@ -561,7 +584,7 @@ export async function GET(
     select: {
       id: true, subject: true, metadata: true,
       questions: {
-        select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true },
+        select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
       },
     },
@@ -578,8 +601,7 @@ export async function GET(
   };
   let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
 
-  // Same Booklet A fallback as POST: use metadata.papers when
-  // englishSections isn't populated.
+  // Fallback 1: PSLE-style Booklet A using metadata.papers page ranges.
   if (sections.length === 0 && sectionType === "booklet-a" && Array.isArray(meta.papers)) {
     const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
     const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
@@ -601,6 +623,26 @@ export async function GET(
         }];
       }
     }
+  }
+
+  // Fallback 2: derive sections from question.syllabusTopic groupings
+  // (same as POST). Lets Booklet B view-bounds work on PSLE papers.
+  if (sections.length === 0) {
+    const groups: Array<{ topic: string; startIndex: number; endIndex: number }> = [];
+    let currentTopic: string | null = null;
+    for (let i = 0; i < paper.questions.length; i++) {
+      const t = paper.questions[i].syllabusTopic;
+      if (!t) { currentTopic = null; continue; }
+      if (t !== currentTopic) {
+        groups.push({ topic: t, startIndex: i, endIndex: i });
+        currentTopic = t;
+      } else {
+        groups[groups.length - 1].endIndex = i;
+      }
+    }
+    sections = groups
+      .filter(g => sectionMatches(g.topic, sectionType))
+      .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
   }
 
   if (sections.length === 0) {
