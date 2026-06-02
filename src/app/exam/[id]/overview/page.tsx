@@ -1149,17 +1149,20 @@ function ExamOverviewContent({ id }: { id: string }) {
         </Section>
       )}
 
-      {/* Admin: link to the dedicated English Normal Extract page.
-          Lives on its own route so the per-section Extract buttons
-          aren't interfered with by this page's refetches. */}
+      {/* Admin: English Normal Extract — language-isolated clone of
+          the /edit page. Same per-question card UX (large crop,
+          Redo extract, Select area, Delete, marks/difficulty form)
+          but on a separate /english-edit route per the "languages
+          must be kept separate" rule. */}
       {isAdmin && paper.subject?.toLowerCase().includes("english") && (
         <Section title="Normal Extract — English (Admin)">
           <p className="text-xs text-slate-500 mb-3">
-            Per-section bounding-box extractor for English papers.
-            Lives on its own page to avoid overview re-renders.
+            Per-question card view for English papers: large crop,
+            Redo extract, Select area, Delete, add question. Mirrors
+            the math/science Edit UX.
           </p>
           <Link
-            href={`/exam/${id}/normal-extract`}
+            href={`/exam/${id}/english-edit${userId ? `?userId=${userId}` : ""}`}
             className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
           >
             Open Normal Extract →
