@@ -555,9 +555,21 @@ function ExamReviewContent({ id }: { id: string }) {
   useEffect(() => {
     const status = data?.markingStatus;
     if (!status || status === "complete" || status === "released") return;
+    let cancelled = false;
     const tick = setInterval(async () => {
       try {
         const r = await fetch(`/api/exam/${id}/mark`);
+        if (r.status === 401 || r.status === 403) {
+          // Session expired (or tab left open across a logout). Stop
+          // polling — otherwise this tab hammers /mark every 5s
+          // forever and floods the middleware logs. The user can
+          // refresh after re-login to resume.
+          if (!cancelled) {
+            cancelled = true;
+            clearInterval(tick);
+          }
+          return;
+        }
         if (!r.ok) return;
         const fresh = await r.json();
         if (fresh?.markingStatus === "complete" || fresh?.markingStatus === "released") {
@@ -615,6 +627,13 @@ function ExamReviewContent({ id }: { id: string }) {
     try {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
       console.log(`[review] Re-mark POST → status ${res.status}`);
+      if (res.status === 401 || res.status === 403) {
+        // Session expired in this tab. Friendlier than "HTTP 401".
+        alert("Your session has expired. Please sign in again and retry the Re-mark.");
+        setRemarking(false);
+        router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
+        return;
+      }
       if (!res.ok) {
         const body = await res.text().catch(() => "");
         alert(`Re-mark failed (HTTP ${res.status}): ${body || "no body"}`);
