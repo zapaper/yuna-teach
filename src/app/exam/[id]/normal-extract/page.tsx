@@ -1105,7 +1105,20 @@ function QuestionEditCard({
           );
         })()}
         <p className="px-3 py-0.5 text-[10px] text-blue-500 font-mono">
-          page {question.pageIndex ?? "—"} · yStart {question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "—"} · yEnd {question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "—"}
+          page {question.pageIndex ?? "—"}
+          {" · y "}
+          {question.yStartPct != null ? `${question.yStartPct.toFixed(1)}` : "—"}
+          {"–"}
+          {question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "—"}
+          {(question as { xStartPct?: number | null; xEndPct?: number | null }).xStartPct != null && (question as { xStartPct?: number | null; xEndPct?: number | null }).xEndPct != null && (
+            <>
+              {" · x "}
+              {((question as { xStartPct?: number | null }).xStartPct as number).toFixed(1)}
+              {"–"}
+              {((question as { xEndPct?: number | null }).xEndPct as number).toFixed(1)}
+              {"%"}
+            </>
+          )}
         </p>
       </div>
 
