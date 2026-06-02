@@ -449,7 +449,7 @@ Return ONLY valid JSON (no markdown fences):
       // Discard low-confidence detections — treat as null (no answer)
       const val = a.confidence === "low" ? null : a.detected;
       result.set(a.questionId, val);
-      console.log(`[marking] MCQ DETECT ${label} Q-ID ${a.questionId}: detected="${a.detected}", confidence=${a.confidence ?? "?"}, using="${val}"`);
+      console.log(`[marking] MCQ DETECT ${label} (${mcqModel}) Q-ID ${a.questionId}: detected="${a.detected}", confidence=${a.confidence ?? "?"}, using="${val}"`);
     }
     return result;
   } catch (err) {
