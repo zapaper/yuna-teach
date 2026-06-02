@@ -2579,12 +2579,39 @@ function ExamReviewContent({ id }: { id: string }) {
                       // tick was green there but the per-question card was
                       // red. Keep both in agreement.
                       const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+                      // Detected-from-notes fallback so string match also
+                      // works on older marks where studentAnswer was never
+                      // persisted (Detected: X was only in notes).
+                      const detectedFromNotesEarly = !q.studentAnswer
+                        ? (q.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim() ?? "")
+                        : "";
                       const stringMatchOk = (isEditing || isCompCloze) && (() => {
-                        const stu = (q.studentAnswer ?? "").trim();
+                        const stu = (q.studentAnswer ?? detectedFromNotesEarly).trim();
                         if (!stu || stu === "__SKIPPED__") return false;
                         return norm(stu) === norm(cleanOneWordAnswer(q.answer ?? ""));
                       })();
-                      const qCorrect = markerCorrect || stringMatchOk;
+                      // Grammar Cloze: the answer is a single letter from
+                      // the word bank (A–Q). If the student's letter
+                      // matches the answer key letter, it is correct —
+                      // full stop. The AI marker has historically been
+                      // unreliable here (mis-classifying as comp cloze and
+                      // rejecting the letter as "not a word"), so trust
+                      // the letter match the same way we trust a string
+                      // match for editing / comp cloze.
+                      const grammarLetterMatchOk = isGrammarCloze && (() => {
+                        const extractLetter = (raw: string) => {
+                          const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z]|\d+)\b/);
+                          return m ? m[1] : raw.trim().toUpperCase();
+                        };
+                        const stu = extractLetter(q.studentAnswer ?? detectedFromNotesEarly);
+                        const cor = extractLetter(q.answer ?? "");
+                        if (!stu || stu === "__SKIPPED__" || !cor) return false;
+                        // Accept "K or P" / "L/P" alternates in the key.
+                        const acceptable = new Set((q.answer ?? "").toUpperCase().match(/\b[A-Z]\b/g) ?? []);
+                        if (acceptable.size > 0) return acceptable.has(stu);
+                        return stu === cor;
+                      })();
+                      const qCorrect = markerCorrect || stringMatchOk || grammarLetterMatchOk;
                       const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
                       // For Grammar Cloze the answer key is sometimes stored
                       // as "(C)" or "(C) HIS" instead of the bare letter "C".

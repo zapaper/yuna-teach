@@ -860,6 +860,18 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - Accept the exact word from the answer key. Accept clear synonyms ONLY if semantically equivalent in context and grammatically correct in the sentence.
   - Do NOT accept answers that change the grammar of the sentence.
   - Spelling must be correct. A misspelled word = 0 marks.
+  - CRITICAL — function words are NOT interchangeable: prepositions, conjunctions, articles, determiners and pronouns each carry a precise meaning. The student MUST write the exact word from the key (or one explicitly listed in the key as "X / Y"). Do NOT accept any of the following as synonyms:
+    * "between" ↔ "among"  (two vs many)
+    * "in" ↔ "on" ↔ "at"   (different relations)
+    * "all" ↔ "every" ↔ "each"  (different scope)
+    * "fewer" ↔ "less"     (count vs mass)
+    * "who" ↔ "whom" ↔ "which" ↔ "that"
+    * "since" ↔ "for" ↔ "from" (time relations)
+    * "and" ↔ "or" ↔ "but"
+    * "many" ↔ "much"  (count vs mass)
+    * "this" ↔ "that" ↔ "these" ↔ "those"
+    * "a" ↔ "an" ↔ "the"
+    These are PRECISE grammatical choices, not interchangeable synonyms. Even if the student's word makes the sentence sound plausible, score 0 if it is not the exact word in the key.
 
   (d) SYNTHESIS & TRANSFORMATION (sentence rewriting):
   - There is usually one correct rewritten sentence or one accepted form.
@@ -2371,10 +2383,10 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
     // Build a lookup of pre-set marksAvailable from DB
     const presetMarks = new Map(paper.questions.map(q => [q.id, q.marksAvailable]));
+    const qById = new Map(paper.questions.map(q => [q.id, q]));
 
     let totalAwarded = 0;
     const questionUpdates = [...validResults.values()].map((result) => {
-      totalAwarded += result.marksAwarded ?? 0;
       // Keep pre-set marksAvailable if it exists; otherwise use Gemini's detected value
       const existingMarks = presetMarks.get(result.questionId);
       // Persist the detected studentAnswer so the review page can show
@@ -2385,12 +2397,46 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       const detected = result.studentAnswer && result.studentAnswer !== "No answer detected"
         ? result.studentAnswer
         : null;
+      // Deterministic override for Grammar Cloze: the answer is a
+      // single letter (A–Q) from the word bank, so once Gemini has
+      // detected the letter, the score is decided purely by string
+      // match against the key. Gemini has historically rejected
+      // correct single-letter answers ("'G' is not a valid word")
+      // when it falls back to comp-cloze rules from the image alone.
+      // Force-correct here so a confidently-detected letter that
+      // matches the key always scores full marks. Same for Chinese
+      // 完成对话 which uses digit keys 1–8.
+      const q = qById.get(result.questionId);
+      const topic = (q?.syllabusTopic ?? "").toLowerCase();
+      const rawTopic = q?.syllabusTopic ?? "";
+      const isChineseDialogueCloze = rawTopic.includes("完成对话") || rawTopic.includes("对话填空");
+      const isGrammarClozeQ = (topic.includes("grammar") && topic.includes("cloze")) || isChineseDialogueCloze;
+      let finalAwarded = result.marksAwarded ?? 0;
+      let finalNotes = buildMarkingNotes(result);
+      const finalAvailable = (existingMarks ?? result.marksAvailable) ?? 0;
+      if (isGrammarClozeQ && detected && finalAvailable > 0 && finalAwarded < finalAvailable) {
+        const keyRaw = q?.answer ?? "";
+        const acceptable = new Set(
+          (isChineseDialogueCloze
+            ? (keyRaw.match(/\b[1-9]\b/g) ?? [])
+            : (keyRaw.match(/\b[A-Za-z]\b/g) ?? []).map(l => l.toUpperCase()))
+        );
+        const detectedKey = isChineseDialogueCloze
+          ? (detected.match(/\b[1-9]\b/) ?? [""])[0]
+          : (detected.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
+        if (detectedKey && acceptable.has(detectedKey)) {
+          console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detectedKey}" matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
+          finalAwarded = finalAvailable;
+          finalNotes = `Detected: ${detected} | Correct`;
+        }
+      }
+      totalAwarded += finalAwarded;
       return prisma.examQuestion.update({
         where: { id: result.questionId },
         data: {
-          marksAwarded: result.marksAwarded,
+          marksAwarded: finalAwarded,
           marksAvailable: existingMarks ?? result.marksAvailable,
-          markingNotes: buildMarkingNotes(result),
+          markingNotes: finalNotes,
           ...(detected ? { studentAnswer: detected } : {}),
         },
       });
