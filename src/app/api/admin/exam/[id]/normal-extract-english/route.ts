@@ -187,7 +187,13 @@ async function detectAcrossSectionPages(args: {
     if (stored.length > 0) {
       const min = Math.min(...stored);
       const max = Math.max(...stored);
-      for (let i = min; i <= max; i++) pagesToScan.push(i);
+      // Forward buffer: scan 2 extra pages beyond the last stored
+      // pageIndex. Catches the case where the LAST question of a
+      // section (often Comp OEQ tail) was tagged on page N by Clean
+      // Extract but actually starts on page N+1 — without the buffer
+      // Gemini never sees that page and the detection silently fails.
+      // Two pages handles the common drift; more would just add cost.
+      for (let i = min; i <= max + 2; i++) pagesToScan.push(i);
     }
   }
 
