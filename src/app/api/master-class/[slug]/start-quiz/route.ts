@@ -403,9 +403,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     //       only one passage shape doesn't transfer; rotating across
     //       two passages each quiz is the minimum educational unit.
     //    If the pool only has 1 passage, fall back to that one.
-    const MIN_PASSAGES = 2;
+    //    Per-class override: quizSpec.minPassages lets a master class
+    //    say "one passage is enough" (e.g. 短文填空 master quiz is
+    //    only ~4 questions and 2 passages would balloon it).
     const allSlidesPG = [...content.keyConcepts, ...content.commonMistakes];
     const pgSpec = allSlidesPG.map(s => s.cta?.quizSpec).find(Boolean);
+    const MIN_PASSAGES = (pgSpec as { minPassages?: number } | undefined)?.minPassages ?? 2;
     const pgTarget = (pgSpec?.mcq ?? QUIZ_MCQ_COUNT) + (pgSpec?.oeq ?? QUIZ_OEQ_COUNT);
     const shuffledGroups = shuffle(allPassageGroups);
     const pickedGroups: PassageGroup[] = [];
