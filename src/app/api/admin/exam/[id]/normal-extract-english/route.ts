@@ -527,9 +527,9 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Comprehension Cloze — numbered blanks inline within a passage",
-        // Comp Cloze: yStart 5.5% above Q-number; yEnd at Q-number top.
+        // Comp Cloze: yStart 4.7% above Q-number; yEnd at Q-number top.
         // xLeft -8, xRight +12.
-        xLeftDelta: 8, xRightDelta: 12, yTopDelta: 5.5, yBottomDelta: 0,
+        xLeftDelta: 8, xRightDelta: 12, yTopDelta: 4.7, yBottomDelta: 0,
       });
       break;
     case "editing":
