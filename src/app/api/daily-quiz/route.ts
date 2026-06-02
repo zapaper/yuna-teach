@@ -199,7 +199,16 @@ export async function POST(request: NextRequest) {
         ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: "quiz",
         instantFeedback: true,
-        pageCount: 0,
+        // English Test Quizzes are scan-back marked via markExamPaper
+        // (bounds-based, reads scan pages from disk). For that path to
+        // work, the clone needs the master's pageCount, the original
+        // pageIndex per question, the y/x bounds, AND a sourceExamId
+        // pointing back at the master so /print can fall back to the
+        // master's PDF. Math/Science Test Quizzes are typed quizzes
+        // marked via markQuizPaper; they keep the legacy
+        // pageCount=0 + pageIndex=0 shape since their canvas reader
+        // doesn't use these fields.
+        ...(isEnglish ? { sourceExamId: paper.id, pageCount: paper.pageCount } : { pageCount: 0 }),
         extractionStatus: "ready",
         totalMarks: String(totalMarks),
         metadata: {
@@ -207,6 +216,13 @@ export async function POST(request: NextRequest) {
           ...(englishSectionsMeta ? { englishSections: englishSectionsMeta } : {}),
           ...(chineseSectionsMeta ? { chineseSections: chineseSectionsMeta } : {}),
           sourceLabels: Object.fromEntries(allQs.map((q, i) => [String(i + 1), [paper.year, paper.examType, paper.school].filter(Boolean).join(" ") || null])),
+          // English-only: inherit page-hide metadata so markExamPaper's
+          // submission-index map matches the master's print layout
+          // (answer pages dropped, skip pages dropped).
+          ...(isEnglish ? {
+            answerPages: (paper.metadata as { answerPages?: number[] } | null)?.answerPages ?? [],
+            skipPages: (paper.metadata as { skipPages?: number[] } | null)?.skipPages ?? [],
+          } : {}),
         },
         questions: {
           create: allQs.map((q, i) => ({
@@ -216,7 +232,16 @@ export async function POST(request: NextRequest) {
             answerImageData: q.answerImageData,
             marksAvailable: q.marksAvailable ?? 1,
             syllabusTopic: q.syllabusTopic,
-            pageIndex: 0,
+            // English: preserve master pageIndex + bounds so the
+            // scan-back marker can group + crop. Math/Science: keep
+            // pageIndex=0 (canvas marker doesn't use it).
+            ...(isEnglish ? {
+              pageIndex: q.pageIndex,
+              yStartPct: q.yStartPct,
+              yEndPct: q.yEndPct,
+              xStartPct: q.xStartPct,
+              xEndPct: q.xEndPct,
+            } : { pageIndex: 0 }),
             orderIndex: i,
             transcribedStem: q.transcribedStem,
             transcribedOptions: q.transcribedOptions ?? undefined,
