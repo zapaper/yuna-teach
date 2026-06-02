@@ -13,7 +13,6 @@ import { ExamPaperDetail, ExamQuestionItem } from "@/types";
 import Image from "next/image";
 import { renderPdfToImages } from "@/lib/pdf";
 import AdminNav from "@/components/AdminNav";
-import EnglishEditView from "@/components/EnglishEditView";
 
 export default function EnglishNormalExtractPage({
   params,
@@ -646,98 +645,13 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
         onFile={handlePdfLoad}
       />
 
-      {/* Question cards — English uses section-based view. Also used for
-          Synthetic Bank English papers, which don't carry sectionOcrTexts
-          but still need the synthesis-aware question rendering. */}
-      {isSectionedPaper && (paper.metadata?.sectionOcrTexts || paper.title?.startsWith("[Synthetic Bank]")) ? (
-        <div className="mt-5">
-          <EnglishEditView
-            paper={paper}
-            pageImages={pageImages}
-            onSave={async (questionId, data) => {
-              for (const [key, value] of Object.entries(data)) {
-                await saveQuestion(questionId, key as keyof ExamQuestionItem, value as string | number | null);
-              }
-            }}
-            onDelete={(questionId) => deleteQuestion(questionId)}
-            onSaveOcr={async (sectionName, ocrText) => {
-              // 1. Update the sectionOcrTexts in paper metadata
-              const metadata = paper.metadata ?? {} as Record<string, unknown>;
-              const ocrTexts = (metadata as { sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }> }).sectionOcrTexts ?? {};
-              ocrTexts[sectionName] = { ...ocrTexts[sectionName], ocrText };
-              const res = await fetch(`/api/exam/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ metadata: { ...metadata, sectionOcrTexts: ocrTexts } }),
-              });
-              if (!res.ok) {
-                alert("Failed to save OCR text");
-                return;
-              }
-
-              // 2. Re-parse question numbers from the edited text (for cloze/editing)
-              const isEmbedded = sectionName.toLowerCase().includes("cloze") || sectionName.toLowerCase().includes("editing");
-              if (isEmbedded) {
-                // Extract question numbers from bold patterns **(39) word** or plain (39) in passage
-                const qNums: number[] = [];
-                // Match: **(N) ...** or *(N) ...* or (N)________ or just (N) at start of bold
-                const allNumRegex = /\*{0,2}\((\d+)\)[^*\n]*\*{0,2}|\((\d+)\)_{2,}/g;
-                let m;
-                while ((m = allNumRegex.exec(ocrText)) !== null) {
-                  const n = parseInt(m[1] ?? m[2]);
-                  if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
-                }
-                qNums.sort((a, b) => a - b);
-                console.log(`[Update] ${sectionName}: found question numbers:`, qNums);
-
-                if (qNums.length > 0) {
-                  const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
-                  const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
-
-                  // Clear clean extraction data for questions not in the new set (don't delete)
-                  for (const q of sectionQuestions) {
-                    const n = parseInt(q.questionNum, 10);
-                    if (!isNaN(n) && !qNums.includes(n)) {
-                      await fetch(`/api/exam/questions/${q.id}`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ transcribedStem: null, transcribedOptions: null, transcribedSubparts: null }),
-                      });
-                    }
-                  }
-                  // Add missing questions
-                  for (const n of qNums) {
-                    if (!existingNums.has(n)) {
-                      await fetch(`/api/exam/${id}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "addQuestion", questionNum: String(n), syllabusTopic: sectionName, marksAvailable: 1 }),
-                      });
-                    }
-                  }
-                  // Sort: update orderIndex for all questions in this section
-                  const updatedPaper = await fetchPaper();
-                  if (updatedPaper) {
-                    const secQs = updatedPaper.questions
-                      .filter(q => q.syllabusTopic === sectionName)
-                      .sort((a, b) => parseInt(a.questionNum, 10) - parseInt(b.questionNum, 10));
-                    for (let i = 0; i < secQs.length; i++) {
-                      await fetch(`/api/exam/questions/${secQs[i].id}`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ orderIndex: secQs[i].orderIndex }),
-                      });
-                    }
-                  }
-                }
-              }
-
-              await fetchPaper();
-            }}
-            saving={saving?.split(/(?<=^[a-z0-9]+)/i)[0] ?? null}
-          />
-        </div>
-      ) : (
+      {/* /normal-extract intentionally forces the per-question card
+          path even for English papers. The /edit page switches English
+          papers to the section-based EnglishEditView; this page does
+          NOT — the whole point is to mirror the math/science Normal
+          Extract layout (QuestionEditCard with crop + Redo extract +
+          Select area + Delete + Add question). EnglishEditView is
+          still reachable from /edit if needed. */}
       <div className="space-y-4 mt-5">
         {paper.questions.map((q) => (
           <div key={q.id} id={`q-${q.id}`}>
@@ -762,7 +676,6 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
           </div>
         ))}
       </div>
-      )}
 
       {/* Save Clean Questions — English only */}
       {isEnglishPaper && paper.metadata?.sectionOcrTexts && (
