@@ -170,12 +170,16 @@ export async function GET(
     }
   }
 
-  // Debug crop viewer for scanned-back MCQ detection. The marker
-  // writes the exact crops it sent to Gemini to
-  // submissions/<cloneId>/mcq_q<questionNum>_pass1.jpg (and pass2
-  // on retry). Query:
+  // Debug crop viewer for scanned-back MCQ detection. Query:
   //   ?mcq=5           → serves mcq_q5_pass1.jpg
   //   ?mcq=5&pass=pass2 → serves the retry crop
+  //
+  // markQuizPaper saves these crops eagerly. markExamPaper (English
+  // Test Quiz path) does not — so when the file is missing we
+  // generate it lazily here from the question's y/x bounds and the
+  // submission page JPEG. Lets the parent inspect what Gemini saw on
+  // any MCQ without re-marking, including questions whose pass-1
+  // crop was never saved.
   const mcqQ = request.nextUrl.searchParams.get("mcq");
   if (mcqQ !== null) {
     const pass = request.nextUrl.searchParams.get("pass") || "pass1";
@@ -186,7 +190,75 @@ export async function GET(
         headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, no-cache" },
       });
     } catch {
-      return NextResponse.json({ error: "MCQ crop not found (run a re-mark to regenerate)" }, { status: 404 });
+      // Lazy generation: only for pass1 (pass2 is a specific retry
+      // crop that we can't reproduce without re-running the marker).
+      if (pass !== "pass1") {
+        return NextResponse.json({ error: "MCQ crop not found (run a re-mark to regenerate)" }, { status: 404 });
+      }
+      try {
+        const q = await prisma.examQuestion.findFirst({
+          where: { examPaperId: id, questionNum: mcqQ },
+          select: { pageIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true },
+        });
+        if (!q || q.yStartPct == null || q.yEndPct == null) {
+          return NextResponse.json({ error: "MCQ crop not found (no bounds on question)" }, { status: 404 });
+        }
+        // Map the master page index to the submission page index
+        // using answerPages/skipPages from the paper metadata —
+        // same scheme as the review page's getSubmissionPage.
+        const meta = await prisma.examPaper.findUnique({
+          where: { id },
+          select: { metadata: true, pageCount: true, sourceExamId: true },
+        });
+        const masterMeta = meta?.sourceExamId
+          ? await prisma.examPaper.findUnique({
+              where: { id: meta.sourceExamId },
+              select: { metadata: true, pageCount: true },
+            })
+          : null;
+        const m = (meta?.metadata ?? masterMeta?.metadata ?? null) as { answerPages?: number[]; skipPages?: number[] } | null;
+        const totalPages = (meta?.pageCount && meta.pageCount > 0 ? meta.pageCount : masterMeta?.pageCount) ?? 0;
+        const hidden = new Set<number>([
+          ...((m?.answerPages ?? []).map(p => p - 1)),
+          ...((m?.skipPages ?? []).map(p => p - 1)),
+        ]);
+        let subIdx = -1;
+        let counter = 0;
+        for (let i = 0; i < totalPages; i++) {
+          if (!hidden.has(i)) {
+            if (i === q.pageIndex) { subIdx = counter; break; }
+            counter++;
+          }
+        }
+        if (subIdx < 0) {
+          return NextResponse.json({ error: "MCQ crop not found (page mapping failed)" }, { status: 404 });
+        }
+        const pagePath = path.join(dir, `page_${subIdx}.jpg`);
+        const pageBuf = await fs.readFile(pagePath);
+        const sharpMeta = await sharp(pageBuf).metadata();
+        if (!sharpMeta.width || !sharpMeta.height) {
+          return NextResponse.json({ error: "MCQ crop not found (page metadata)" }, { status: 404 });
+        }
+        const W = sharpMeta.width;
+        const H = sharpMeta.height;
+        const top = Math.max(0, Math.floor(H * (q.yStartPct / 100)));
+        const bot = Math.min(H, Math.ceil(H * (q.yEndPct / 100)));
+        const left = q.xStartPct != null ? Math.max(0, Math.floor(W * (q.xStartPct / 100))) : 0;
+        const right = q.xEndPct != null ? Math.min(W, Math.ceil(W * (q.xEndPct / 100))) : W;
+        const cropW = Math.max(1, right - left);
+        const cropH = Math.max(1, bot - top);
+        const cropped = await sharp(pageBuf)
+          .extract({ left, top, width: cropW, height: cropH })
+          .jpeg({ quality: 88 })
+          .toBuffer();
+        try { await fs.writeFile(filePath, cropped); } catch { /* best-effort cache */ }
+        return new NextResponse(new Uint8Array(cropped), {
+          headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, no-cache" },
+        });
+      } catch (err) {
+        console.warn(`[submission] lazy MCQ crop failed for ${id}/${mcqQ}:`, err);
+        return NextResponse.json({ error: "MCQ crop not found (run a re-mark to regenerate)" }, { status: 404 });
+      }
     }
   }
 
