@@ -1737,17 +1737,15 @@ const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "ed
 ];
 
 // ─── BoundsCropPreview ───────────────────────────────────────────────────────
-// Render a question's region directly from /api/exam/[id]/pages?page=N
-// (Railway disk) using the question's stored bounds. No imageData
-// base64 in Neon required — keeps the egress bill flat.
+// Show the page JPEG from Railway disk with a highlighted box over
+// the question's stored bounds. Cheaper than storing a base64 crop
+// in Neon, and gives the admin spatial context for recropping (see
+// the question + surrounding passage, not just an isolated band).
 //
-// CSS approach (no JS measuring required):
-//   - container: aspect-ratio chosen so the crop fits within it.
-//     Before the natural image loads we assume A4 (1.414), then
-//     adjust on the img's onLoad if it differs.
-//   - img inside is positioned and width-scaled so the band
-//     [xS, xE] x [yS, yE] of the natural image lines up edge-to-edge
-//     with the container.
+// Why not render an actual scaled-up crop? Tailwind's preflight
+// `img { max-width: 100% }` outranks inline `width` percentages in
+// at least one prod browser, which made the earlier crop approach
+// silently render nothing.
 function BoundsCropPreview({
   paperId,
   question,
@@ -1755,36 +1753,27 @@ function BoundsCropPreview({
   paperId: string;
   question: { pageIndex: number | null; yStartPct: number | null; yEndPct: number | null; xStartPct?: number | null; xEndPct?: number | null; questionNum: string };
 }) {
-  // Default to A4 (most PSLE scans). Replaced on first onLoad if the
-  // actual scan differs.
-  const [aspect, setAspect] = useState(1.414);
   const url = `/api/exam/${paperId}/pages?page=${question.pageIndex}`;
   const yS = question.yStartPct ?? 0;
   const yE = question.yEndPct ?? 100;
   const xS = question.xStartPct ?? 0;
   const xE = question.xEndPct ?? 100;
-  const xRange = Math.max(0.1, xE - xS);
-  const yRange = Math.max(0.1, yE - yS);
-  const paddingPct = (yRange / xRange) * aspect * 100;
+  const w = Math.max(0.5, xE - xS);
+  const h = Math.max(0.5, yE - yS);
   return (
-    <div className="relative w-full overflow-hidden bg-slate-100" style={{ paddingBottom: `${paddingPct}%` }}>
-      <img
-        src={url}
-        alt={`Question ${question.questionNum}`}
-        onLoad={(e) => {
-          const img = e.currentTarget;
-          if (img.naturalWidth > 0) {
-            const a = img.naturalHeight / img.naturalWidth;
-            if (Math.abs(a - aspect) > 0.01) setAspect(a);
-          }
-        }}
+    <div className="relative w-full bg-slate-100">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={`Question ${question.questionNum} page`} className="block w-full h-auto" />
+      <div
+        className="absolute pointer-events-none border-2 border-red-500/70 rounded-sm"
         style={{
-          position: "absolute",
-          width: `${10000 / xRange}%`,
-          left: `${-(xS / xRange) * 100}%`,
-          top: `${-(yS / yRange) * 100}%`,
-          maxWidth: "none",
+          left: `${xS}%`,
+          top: `${yS}%`,
+          width: `${w}%`,
+          height: `${h}%`,
+          background: "rgba(255, 235, 59, 0.18)",
         }}
+        aria-hidden
       />
     </div>
   );
