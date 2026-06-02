@@ -657,7 +657,7 @@ export default function DocumentScanner({
             {!edgeLocked && !errorMsg && retakeIdx == null ? (
               <div className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs font-medium px-3 py-1.5 rounded-full max-w-[80vw] text-center pointer-events-none">
                 {noEdgeSec >= 20
-                  ? "Hold steady at an angle so we can find the page edges"
+                  ? "Tilt the camera slightly — we can't see the page edges yet"
                   : "Hold steady so we can find the page edges"}
               </div>
             ) : null}
