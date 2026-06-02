@@ -2341,7 +2341,16 @@ function ExamReviewContent({ id }: { id: string }) {
                               // green so reader sees the right word). Same
                               // rendering for parent and student.
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
-                              const studentAns = (q?.studentAnswer ?? "").trim();
+                              // English Test Quiz marks written before the
+                              // markExamPaper persist-studentAnswer fix only
+                              // recorded the detected text in markingNotes
+                              // ("Detected: X | ..."). Pull it back out as
+                              // a fallback so the inline editing view shows
+                              // the wrong word instead of "No answer".
+                              const detectedFromNotes = !q?.studentAnswer
+                                ? (q?.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim() ?? "")
+                                : "";
+                              const studentAns = (q?.studentAnswer ?? detectedFromNotes).trim();
                               const correctAns = cleanOneWordAnswer(q?.answer ?? "");
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
@@ -2398,7 +2407,12 @@ function ExamReviewContent({ id }: { id: string }) {
                               // have detected from the bounded crop without
                               // populating the typed-text field).
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
-                              const studentAns = (q?.studentAnswer ?? "").trim();
+                              // Detected-from-notes fallback (see editing
+                              // branch above for the why).
+                              const detectedFromNotes = !q?.studentAnswer
+                                ? (q?.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim() ?? "")
+                                : "";
+                              const studentAns = (q?.studentAnswer ?? detectedFromNotes).trim();
                               const correctAns = cleanOneWordAnswer(q?.answer ?? "");
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const earned = q?.marksAwarded ?? 0;
@@ -2444,7 +2458,12 @@ function ExamReviewContent({ id }: { id: string }) {
                                 return m ? m[1] : raw.trim().toUpperCase();
                               };
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
-                              const studentLetter = extractLetter(q?.studentAnswer ?? "");
+                              // Detected-from-notes fallback (see editing
+                              // branch above for the why).
+                              const detectedFromNotes = !q?.studentAnswer
+                                ? (q?.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim() ?? "")
+                                : "";
+                              const studentLetter = extractLetter(q?.studentAnswer ?? detectedFromNotes);
                               const correctLetter = extractLetter(q?.answer ?? "");
                               const studentWord = wordBank.get(studentLetter) ?? "";
                               const correctWord = wordBank.get(correctLetter) ?? correctLetter;
@@ -2578,7 +2597,16 @@ function ExamReviewContent({ id }: { id: string }) {
                         const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z]|\d+)\b/);
                         return m ? m[1] : raw.trim().toUpperCase();
                       };
-                      const rawStudent = q.studentAnswer ?? "";
+                      // Fallback to the marker's "Detected: X" prefix in
+                      // markingNotes when studentAnswer is empty —
+                      // older English Test Quiz marks never wrote the
+                      // detected text into studentAnswer, only into
+                      // notes. New marks save studentAnswer directly so
+                      // this branch goes away as papers re-mark.
+                      const detectedFromNotes = !q.studentAnswer
+                        ? (q.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim() ?? "")
+                        : "";
+                      const rawStudent = q.studentAnswer ?? detectedFromNotes;
                       const rawCorrect = q.answer ?? "";
                       const studentAns = isGrammarCloze ? extractClozeLetter(rawStudent) : rawStudent;
                       // Comp Cloze + Editing answer keys may carry an
@@ -2918,6 +2946,29 @@ function ExamReviewContent({ id }: { id: string }) {
                                       this branch) — no per-branch copy
                                       here, otherwise synthesis / comp OEQ
                                       showed the feedback twice. */}
+                                  {/* Comp-OEQ: scanned crop at the
+                                      bottom of each question card so the
+                                      parent can verify what Gemini
+                                      detected. Split-screen layout
+                                      means we can't drop a single
+                                      section-bottom scan like grammar
+                                      cloze does. Hidden for synthesis
+                                      (the section-bottom scan already
+                                      covers it). */}
+                                  {isCompOeq && q.pageIndex >= 0 && (() => {
+                                    const sub = getSubmissionPage(q.pageIndex);
+                                    return (
+                                      <div className="mt-3 pt-3 border-t border-[#e5eeff]">
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Scanned page — Q{q.questionNum}</p>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          src={`/api/exam/${id}/submission?page=${sub}`}
+                                          alt={`Scanned page for Q${q.questionNum}`}
+                                          className="w-full h-auto rounded-lg border border-[#e5eeff]"
+                                        />
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               ) : (isVocabCloze || isVisualText) && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
                                 /* Vocab Cloze / Visual Text — MCQ-style with stem + options */
@@ -3099,10 +3150,11 @@ function ExamReviewContent({ id }: { id: string }) {
                   </div>
                   {/* Scanned page(s) at the bottom — lets the parent
                       verify what Gemini saw against the inline marking
-                      above. Grammar cloze / editing / comp cloze only;
-                      synthesis and comp-OEQ already show per-question
-                      scan crops. */}
-                  {(isGrammarCloze || isEditing || isCompCloze) && (() => {
+                      above. Covers grammar cloze / editing / comp cloze
+                      / synthesis. Comp-OEQ uses a split-screen
+                      fixed-height layout and shows the scan inside each
+                      per-question card instead. */}
+                  {(isGrammarCloze || isEditing || isCompCloze || isSynthesis) && (() => {
                     const uniquePages = Array.from(
                       new Set(
                         sectionQuestions

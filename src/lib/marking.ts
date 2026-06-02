@@ -1540,7 +1540,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     ? ` ⚠️ WARNING: The text "${answerForPrompt}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
     : "";
   const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
-  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
+  const topicHint = question.syllabusTopic ? ` Section: ${question.syllabusTopic}.` : "";
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}.${topicHint} Expected answer: ${answerDesc}${printWarning}${cropNote}`;
 
   let answerImagesNote = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1747,7 +1748,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             ? ` [PRINTED TEXT "${answerForPrompt}" may appear on page — IGNORE unless handwritten in BLUE ink]`
             : "";
           const cropNote = isCropped ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
-          return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
+          // Give Gemini the section/topic explicitly so it doesn't have
+          // to guess the question type from the cropped image. Grammar
+          // Cloze in particular has been mis-classified as Comprehension
+          // Cloze, with Gemini rejecting a correct single-letter answer
+          // ("'G' is not a valid word") because it applied the wrong
+          // rule block. Empty / missing topic falls back to old behaviour.
+          const topicHint = q.syllabusTopic ? ` Section: ${q.syllabusTopic}.` : "";
+          return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}.${topicHint} Expected answer: ${answerDesc}${printWarning}${cropNote}`;
         })
         .join("\n");
 
@@ -2050,7 +2058,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           const answerDesc = buildAnswerDesc(answerForPrompt, !!q.answerImageData);
           const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}${cropNote}`;
+          const topicHint = q.syllabusTopic ? ` Section: ${q.syllabusTopic}.` : "";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}.${topicHint} Expected answer: ${answerDesc}${cropNote}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2166,7 +2175,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
             : "";
           const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${retryAnswerOneHint}${cropNote}`;
+          const topicHint = q.syllabusTopic ? ` Section: ${q.syllabusTopic}.` : "";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}.${topicHint} Expected answer: ${answerDesc}${retryAnswerOneHint}${cropNote}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2367,12 +2377,21 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       totalAwarded += result.marksAwarded ?? 0;
       // Keep pre-set marksAvailable if it exists; otherwise use Gemini's detected value
       const existingMarks = presetMarks.get(result.questionId);
+      // Persist the detected studentAnswer so the review page can show
+      // "Your answer: X" without having to scrape Detected: out of the
+      // notes. Skip the marker's "No answer detected" sentinel — we
+      // want the field to stay null in that case so the inline
+      // renderers treat it as blank.
+      const detected = result.studentAnswer && result.studentAnswer !== "No answer detected"
+        ? result.studentAnswer
+        : null;
       return prisma.examQuestion.update({
         where: { id: result.questionId },
         data: {
           marksAwarded: result.marksAwarded,
           marksAvailable: existingMarks ?? result.marksAvailable,
           markingNotes: buildMarkingNotes(result),
+          ...(detected ? { studentAnswer: detected } : {}),
         },
       });
     });
