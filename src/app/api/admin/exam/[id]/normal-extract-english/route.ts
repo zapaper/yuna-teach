@@ -157,29 +157,46 @@ Output STRICTLY this JSON shape — no markdown, no commentary:
   }
 }
 
-// Collect detections for every page that holds at least one of the
-// section's questions. Returns a map pageIndex -> detections, plus
-// any warnings about missing page images.
+// Collect detections for every page in the section's page range.
+// Uses a CONTIGUOUS range from min(stored pageIndex) to max(stored
+// pageIndex) so we don't miss pages where every question's
+// pageIndex was tagged wrong by Clean Extract (e.g. all Q6-Q10
+// pointing at page 2 when they're really on page 3). An explicit
+// pageRange override is honoured when the caller knows better
+// (metadata.papers fallback for Booklet A).
 async function detectAcrossSectionPages(args: {
   paperId: string;
   sectionQuestionIds: Set<string>;
   allQuestions: QuestionRow[];
   sectionHint: string;
+  pageRange?: { start: number; endExclusive: number };
 }): Promise<{ detectionsByPage: Map<number, Detection[]>; warnings: string[] }> {
-  const { paperId, sectionQuestionIds, allQuestions, sectionHint } = args;
+  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange } = args;
   const warnings: string[] = [];
-  const sectionPages = new Set<number>();
-  for (const q of allQuestions) {
-    if (sectionQuestionIds.has(q.id) && q.pageIndex != null) sectionPages.add(q.pageIndex);
+
+  let pagesToScan: number[] = [];
+  if (pageRange) {
+    for (let i = pageRange.start; i < pageRange.endExclusive; i++) pagesToScan.push(i);
+  } else {
+    const stored: number[] = [];
+    for (const q of allQuestions) {
+      if (sectionQuestionIds.has(q.id) && q.pageIndex != null) stored.push(q.pageIndex);
+    }
+    if (stored.length > 0) {
+      const min = Math.min(...stored);
+      const max = Math.max(...stored);
+      for (let i = min; i <= max; i++) pagesToScan.push(i);
+    }
   }
+
   const detectionsByPage = new Map<number, Detection[]>();
-  if (sectionPages.size === 0) return { detectionsByPage, warnings };
+  if (pagesToScan.length === 0) return { detectionsByPage, warnings };
 
   const expectedNums = [...sectionQuestionIds]
     .map(id => allQuestions.find(q => q.id === id)?.questionNum)
     .filter(Boolean) as string[];
 
-  for (const pageIdx of [...sectionPages].sort((a, b) => a - b)) {
+  for (const pageIdx of pagesToScan) {
     const pagePath = path.join(PAGES_DIR, paperId, `page_${pageIdx}.jpg`);
     let pageBytes: Buffer;
     try {
@@ -511,4 +528,47 @@ export async function POST(
     bounds: result.bounds,
     state: updatedState,
   });
+}
+
+// Manual recrop — update a single question's bounds when extraction
+// missed it or wrong-bucketed it (e.g. Q26-Q28 in PSLE English 2024
+// where Clean Extract tagged them onto a Booklet A page but they're
+// really Booklet B OEQs on a later page).
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await isSessionAdmin())) {
+    return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });
+  }
+  const { id } = await params;
+  const body = await request.json().catch(() => ({})) as {
+    questionId?: string;
+    pageIndex?: number | null;
+    yStartPct?: number | null;
+    yEndPct?: number | null;
+    xStartPct?: number | null;
+    xEndPct?: number | null;
+  };
+  if (!body.questionId) return NextResponse.json({ error: "questionId required" }, { status: 400 });
+  const q = await prisma.examQuestion.findUnique({
+    where: { id: body.questionId },
+    select: { examPaperId: true, questionNum: true },
+  });
+  if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  if (q.examPaperId !== id) return NextResponse.json({ error: "Question does not belong to this paper" }, { status: 400 });
+
+  const data: Record<string, number | null> = {};
+  if (body.pageIndex !== undefined && body.pageIndex !== null) data.pageIndex = body.pageIndex;
+  if (body.yStartPct !== undefined) data.yStartPct = body.yStartPct === null ? null : clampPct(body.yStartPct);
+  if (body.yEndPct !== undefined) data.yEndPct = body.yEndPct === null ? null : clampPct(body.yEndPct);
+  if (body.xStartPct !== undefined) data.xStartPct = body.xStartPct === null ? null : clampPct(body.xStartPct);
+  if (body.xEndPct !== undefined) data.xEndPct = body.xEndPct === null ? null : clampPct(body.xEndPct);
+
+  const updated = await prisma.examQuestion.update({
+    where: { id: body.questionId },
+    data,
+    select: { id: true, questionNum: true, pageIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true },
+  });
+  return NextResponse.json({ ok: true, bound: { ...updated, status: "updated" } });
 }

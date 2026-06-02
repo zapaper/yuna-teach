@@ -73,41 +73,184 @@ function CropPreview({
   );
 }
 
-function BoundsGrid({ paperId, bounds }: { paperId: string; bounds: Bound[] }) {
+function BoundCard({ paperId, bound, hasXBounds, onUpdated }: {
+  paperId: string;
+  bound: Bound;
+  hasXBounds: boolean;
+  onUpdated: (updated: Bound) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    pageIndex: bound.pageIndex != null ? String(bound.pageIndex + 1) : "",
+    yStartPct: bound.yStartPct != null ? bound.yStartPct.toFixed(1) : "",
+    yEndPct: bound.yEndPct != null ? bound.yEndPct.toFixed(1) : "",
+    xStartPct: bound.xStartPct != null ? bound.xStartPct.toFixed(1) : "",
+    xEndPct: bound.xEndPct != null ? bound.xEndPct.toFixed(1) : "",
+  });
+
+  async function save() {
+    setSaving(true);
+    setErr(null);
+    try {
+      const body: Record<string, number | null> = { };
+      const pg = parseInt(form.pageIndex, 10);
+      if (Number.isFinite(pg) && pg > 0) (body as Record<string, number>).pageIndex = pg - 1; // 1-based input → 0-based store
+      const yS = parseFloat(form.yStartPct);
+      const yE = parseFloat(form.yEndPct);
+      if (Number.isFinite(yS)) body.yStartPct = yS;
+      if (Number.isFinite(yE)) body.yEndPct = yE;
+      if (hasXBounds) {
+        const xS = parseFloat(form.xStartPct);
+        const xE = parseFloat(form.xEndPct);
+        body.xStartPct = Number.isFinite(xS) ? xS : null;
+        body.xEndPct = Number.isFinite(xE) ? xE : null;
+      }
+      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: bound.id, ...body }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
+      onUpdated({ ...bound, ...json.bound, status: "updated" });
+      setEditing(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const ok = bound.status === "updated" && bound.pageIndex != null && bound.yStartPct != null && bound.yEndPct != null;
+  const pageUrl = bound.pageIndex != null ? `/api/exam/${paperId}/pages?page=${bound.pageIndex}` : "";
+
+  return (
+    <div className={`rounded-lg border ${ok ? "border-slate-200 bg-white" : "border-red-200 bg-red-50"} overflow-hidden`}>
+      <div className="px-2 py-1 flex items-center justify-between gap-1">
+        <span className="text-xs font-bold text-slate-700">Q{bound.questionNum}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-slate-500">{bound.pageIndex != null ? `p${bound.pageIndex + 1}` : "—"}</span>
+          <button
+            type="button"
+            onClick={() => setEditing(e => !e)}
+            className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700"
+          >
+            {editing ? "Cancel" : "Edit"}
+          </button>
+        </div>
+      </div>
+      {ok ? (
+        <CropPreview
+          pageUrl={pageUrl}
+          yStartPct={bound.yStartPct as number}
+          yEndPct={bound.yEndPct as number}
+          xStartPct={bound.xStartPct}
+          xEndPct={bound.xEndPct}
+        />
+      ) : (
+        <div className="px-2 py-3 text-[11px] text-red-700">
+          {bound.status === "not_detected" ? "Not detected" : "No page"}
+        </div>
+      )}
+      <div className="px-2 py-1 text-[10px] text-slate-500 font-mono">
+        {bound.yStartPct != null && bound.yEndPct != null ? `y ${bound.yStartPct.toFixed(1)}–${bound.yEndPct.toFixed(1)}` : "—"}
+        {bound.xStartPct != null && bound.xEndPct != null && ` · x ${bound.xStartPct.toFixed(1)}–${bound.xEndPct.toFixed(1)}`}
+      </div>
+      {editing && (
+        <div className="px-2 py-2 border-t border-slate-200 bg-slate-50 space-y-1">
+          <div className="grid grid-cols-3 gap-1">
+            <label className="text-[10px] text-slate-600">
+              Page
+              <input
+                type="number"
+                value={form.pageIndex}
+                onChange={e => setForm(f => ({ ...f, pageIndex: e.target.value }))}
+                className="block w-full mt-0.5 px-1 py-0.5 text-[11px] border border-slate-300 rounded"
+              />
+            </label>
+            <label className="text-[10px] text-slate-600">
+              yStart %
+              <input
+                type="number" step="0.1"
+                value={form.yStartPct}
+                onChange={e => setForm(f => ({ ...f, yStartPct: e.target.value }))}
+                className="block w-full mt-0.5 px-1 py-0.5 text-[11px] border border-slate-300 rounded"
+              />
+            </label>
+            <label className="text-[10px] text-slate-600">
+              yEnd %
+              <input
+                type="number" step="0.1"
+                value={form.yEndPct}
+                onChange={e => setForm(f => ({ ...f, yEndPct: e.target.value }))}
+                className="block w-full mt-0.5 px-1 py-0.5 text-[11px] border border-slate-300 rounded"
+              />
+            </label>
+            {hasXBounds && (
+              <>
+                <div />
+                <label className="text-[10px] text-slate-600">
+                  xStart %
+                  <input
+                    type="number" step="0.1"
+                    value={form.xStartPct}
+                    onChange={e => setForm(f => ({ ...f, xStartPct: e.target.value }))}
+                    className="block w-full mt-0.5 px-1 py-0.5 text-[11px] border border-slate-300 rounded"
+                  />
+                </label>
+                <label className="text-[10px] text-slate-600">
+                  xEnd %
+                  <input
+                    type="number" step="0.1"
+                    value={form.xEndPct}
+                    onChange={e => setForm(f => ({ ...f, xEndPct: e.target.value }))}
+                    className="block w-full mt-0.5 px-1 py-0.5 text-[11px] border border-slate-300 rounded"
+                  />
+                </label>
+              </>
+            )}
+          </div>
+          {err && <p className="text-[10px] text-red-700">{err}</p>}
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="w-full px-2 py-1 text-[11px] font-medium rounded bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BoundsGrid({ paperId, bounds, hasXBounds, onBoundsChange }: {
+  paperId: string;
+  bounds: Bound[];
+  hasXBounds: boolean;
+  onBoundsChange: (next: Bound[]) => void;
+}) {
   if (bounds.length === 0) return null;
   return (
     <div className="mt-3">
-      <p className="text-xs font-semibold text-slate-600 mb-2">Per-question crops</p>
+      <p className="text-xs font-semibold text-slate-600 mb-2">Per-question crops — click Edit to recrop any question manually</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {bounds.map(b => {
-          const ok = b.status === "updated" && b.pageIndex != null && b.yStartPct != null && b.yEndPct != null;
-          const pageUrl = b.pageIndex != null ? `/api/exam/${paperId}/pages?page=${b.pageIndex}` : "";
-          return (
-            <div key={b.id} className={`rounded-lg border ${ok ? "border-slate-200 bg-white" : "border-red-200 bg-red-50"} overflow-hidden`}>
-              <div className="px-2 py-1 flex items-center justify-between gap-1">
-                <span className="text-xs font-bold text-slate-700">Q{b.questionNum}</span>
-                <span className="text-[10px] text-slate-500">{b.pageIndex != null ? `p${b.pageIndex + 1}` : "—"}</span>
-              </div>
-              {ok ? (
-                <CropPreview
-                  pageUrl={pageUrl}
-                  yStartPct={b.yStartPct as number}
-                  yEndPct={b.yEndPct as number}
-                  xStartPct={b.xStartPct}
-                  xEndPct={b.xEndPct}
-                />
-              ) : (
-                <div className="px-2 py-3 text-[11px] text-red-700">
-                  {b.status === "not_detected" ? "Not detected" : "No page"}
-                </div>
-              )}
-              <div className="px-2 py-1 text-[10px] text-slate-500 font-mono">
-                {b.yStartPct != null && b.yEndPct != null ? `y ${b.yStartPct.toFixed(1)}–${b.yEndPct.toFixed(1)}` : "—"}
-                {b.xStartPct != null && b.xEndPct != null && ` · x ${b.xStartPct.toFixed(1)}–${b.xEndPct.toFixed(1)}`}
-              </div>
-            </div>
-          );
-        })}
+        {bounds.map((b, idx) => (
+          <BoundCard
+            key={b.id}
+            paperId={paperId}
+            bound={b}
+            hasXBounds={hasXBounds}
+            onUpdated={(updated) => {
+              const next = [...bounds];
+              next[idx] = updated;
+              onBoundsChange(next);
+            }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -222,7 +365,17 @@ export default function EnglishNormalExtractPanel({ paperId, initialState }: { p
             </details>
           )}
           {lastResult.result.bounds && lastResult.result.bounds.length > 0 && (
-            <BoundsGrid paperId={paperId} bounds={lastResult.result.bounds} />
+            <BoundsGrid
+              paperId={paperId}
+              bounds={lastResult.result.bounds}
+              hasXBounds={lastResult.sectionType !== "booklet-a" && lastResult.sectionType !== "comp-oeq"}
+              onBoundsChange={(next) => {
+                setLastResult({
+                  sectionType: lastResult.sectionType,
+                  result: { ...lastResult.result, bounds: next },
+                });
+              }}
+            />
           )}
         </div>
       )}
