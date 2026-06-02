@@ -47,12 +47,18 @@ type QuestionRow = { id: string; questionNum: string; pageIndex: number | null }
 type Detection = { questionNum: string; xPctLeft: number; yPctTop: number };
 type RunOutput = { updated: number; warnings: string[]; perSection: Array<{ label: string; updated: number }> };
 
+// Patterns are based on the labels actually used in prod's
+// metadata.englishSections (snapshot 2026-06-02). Schools format the
+// labels inconsistently — sometimes the MCQ suffix is dropped, and
+// "Section A: Grammar and Vocab MCQ" lumps Grammar + Vocab into one.
+// We match liberally on the obvious tokens.
 const SECTION_LABELS: Record<SectionType, RegExp[]> = {
   "booklet-a": [
-    /grammar mcq/i,
-    /vocabulary mcq$/i,
-    /vocabulary cloze mcq/i,
-    /visual text comprehension mcq/i,
+    /grammar mcq/i,                  // "Grammar MCQ"
+    /grammar and vocab/i,            // "Section A: Grammar and Vocab MCQ"
+    /vocabulary mcq/i,               // "Vocabulary MCQ"
+    /vocab(?:ulary)? cloze/i,        // "Vocabulary Cloze MCQ", "Section A/B: Vocab Cloze"
+    /visual text/i,                  // "Visual Text Comprehension MCQ", "Section B/C: Visual Text"
   ],
   "grammar-cloze": [/grammar cloze/i],
   "editing": [/editing/i],
@@ -337,10 +343,50 @@ export async function POST(
     return NextResponse.json({ error: "This route is English-only. Use the math/science pipeline for other subjects." }, { status: 400 });
   }
 
-  const meta = (paper.metadata ?? {}) as { englishSections?: SecMeta[]; normalExtractEnglish?: NormalExtractState };
-  const sections = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+  type PapersEntry = { label: string; questionsStartPage?: number; expectedQuestions?: number };
+  const meta = (paper.metadata ?? {}) as {
+    englishSections?: SecMeta[];
+    normalExtractEnglish?: NormalExtractState;
+    papers?: PapersEntry[];
+  };
+  let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+
+  // Fallback for PSLE-style papers that only have the coarse booklet split
+  // (metadata.papers) but no per-section englishSections. The whole of
+  // Booklet A is sequential MCQ, so we can treat it as one section by
+  // mapping the booklet's page range onto the question array.
+  if (sections.length === 0 && sectionType === "booklet-a" && Array.isArray(meta.papers)) {
+    const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
+    const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
+    if (bookletA?.questionsStartPage) {
+      const startPage = bookletA.questionsStartPage - 1; // 1-based → 0-based
+      const endPage = bookletB?.questionsStartPage ? bookletB.questionsStartPage - 1 : Infinity;
+      const matchingIndices: number[] = [];
+      for (let i = 0; i < paper.questions.length; i++) {
+        const q = paper.questions[i];
+        if (q.pageIndex != null && q.pageIndex >= startPage && q.pageIndex < endPage) {
+          matchingIndices.push(i);
+        }
+      }
+      if (matchingIndices.length > 0) {
+        sections = [{
+          label: bookletA.label,
+          startIndex: matchingIndices[0],
+          endIndex: matchingIndices[matchingIndices.length - 1],
+        }];
+      }
+    }
+  }
+
   if (sections.length === 0) {
-    return NextResponse.json({ error: `No matching sections in metadata.englishSections for sectionType="${sectionType}"`, availableLabels: (meta.englishSections ?? []).map(s => s.label) }, { status: 400 });
+    const detail = sectionType === "booklet-a"
+      ? "Couldn't resolve Booklet A from englishSections or metadata.papers. Make sure Clean Extract has run on this paper."
+      : `No matching sections in metadata.englishSections for sectionType="${sectionType}". Booklet B sub-sections need englishSections populated by Clean Extract first.`;
+    return NextResponse.json({
+      error: detail,
+      availableSectionLabels: (meta.englishSections ?? []).map(s => s.label),
+      availablePapers: (meta.papers ?? []).map(p => ({ label: p.label, expectedQuestions: p.expectedQuestions, questionsStartPage: p.questionsStartPage })),
+    }, { status: 400 });
   }
 
   let result: RunOutput;
