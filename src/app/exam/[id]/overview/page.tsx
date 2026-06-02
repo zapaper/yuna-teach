@@ -1047,7 +1047,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                 disabled={mcqTranscribing}
                 className="flex-1 py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
               >
-                {mcqTranscribing ? "Transcribing questions…" : "Extract Clean Questions"}
+                {mcqTranscribing ? "Transcribing questions…" : "Clean Extract"}
               </button>
             )}
             <button
@@ -1145,6 +1145,21 @@ function ExamOverviewContent({ id }: { id: string }) {
               ))}
             </div>
           )}
+        </Section>
+      )}
+
+      {/* Admin: English Normal Extract (per-section) — produces
+          per-question bounding boxes so the paper can render as a
+          PDF-format quiz like math/science instead of the typed
+          quiz-format. Kept separate from math/science. */}
+      {isAdmin && paper.subject?.toLowerCase().includes("english") && (
+        <Section title="Normal Extract — English (Admin)">
+          <p className="text-xs text-slate-500 mb-3">
+            Generates per-question bounding boxes per section. Booklet A
+            is implemented; Booklet B sections are stubs and will return
+            501 until their crop heuristics are tuned.
+          </p>
+          <EnglishNormalExtractPanel paperId={id} initialState={(paper as { metadata?: { normalExtractEnglish?: Record<string, unknown> } }).metadata?.normalExtractEnglish ?? {}} />
         </Section>
       )}
 
