@@ -531,10 +531,10 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Editing — numbered errors in a passage, question number sits to the left of the word being corrected",
-        // Halved the y deltas (was ±5 → now ±2.5) — editing rows are
-        // single-line. Pushed xRight further (was +15 → now +20) so
-        // longer error words / clause fragments stay inside the crop.
-        xLeftDelta: 0, xRightDelta: 20, yTopDelta: 2.5, yBottomDelta: 2.5,
+        // y deltas at ±2.5% (5% total) — editing rows are single-line.
+        // xRight pushed out to +25% so the full corrected word /
+        // clause + a comfortable margin to the right fits in the crop.
+        xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5,
       });
       break;
   }
