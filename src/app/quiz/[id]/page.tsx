@@ -9,6 +9,7 @@ import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playPointChime, playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 import { isCompOeqLabel } from "@/lib/english-sections";
+import { patchJsonWithRetry, postFormWithRetry, drainOutboxForPaper } from "@/lib/save-with-retry";
 
 /* ────────────── types ────────────── */
 
@@ -459,6 +460,13 @@ function QuizContent({ id }: { id: string }) {
         setLoading(false);
       }
     })();
+    // Drain any pending saves that didn't reach the server last
+    // session (deploy outage, network blip, tab closed mid-fetch).
+    // Fire-and-forget — the user's quiz UI keeps loading either way.
+    drainOutboxForPaper(id).then(r => {
+      if (r.replayed > 0) console.log(`[quiz] drained ${r.replayed} stale saves from outbox (paper=${id})`);
+      if (r.remaining > 0) console.warn(`[quiz] ${r.remaining} saves still pending in outbox (paper=${id}) — will retry next load`);
+    }).catch(err => console.warn("[quiz] outbox drain failed:", err));
   }, [id]);
 
   // Timer
@@ -608,10 +616,15 @@ function QuizContent({ id }: { id: string }) {
     if (!q) return;
     const correctLetter = normalizeMcqKey(q.answer);
     const marksAwarded = option === correctLetter ? (q.marksAvailable ?? 1) : 0;
-    fetch(`/api/exam/questions/${questionId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentAnswer: option, marksAwarded }),
+    // Retry-with-backoff + localStorage outbox: a deploy outage or
+    // brief network blip won't silently drop the click. Successive
+    // clicks on the same MCQ collapse onto one outbox entry via
+    // cacheId.
+    patchJsonWithRetry({
+      paperId: id,
+      url: `/api/exam/questions/${questionId}`,
+      body: { studentAnswer: option, marksAwarded },
+      cacheId: `mcq:${id}:${questionId}`,
     }).catch(err => console.warn("[quiz] MCQ persist failed:", err));
   }
 
@@ -631,22 +644,20 @@ function QuizContent({ id }: { id: string }) {
         )
       );
 
-      // Save OEQ drawings (all questions with canvas handles)
+      // Save OEQ drawings (all questions with canvas handles). Each
+      // blob is also mirrored to a localStorage outbox before we
+      // POST — if the request fails (deploy outage, network), the
+      // drawings survive a tab refresh and get replayed on next load.
       const saveOeqQs = (paper?.questions ?? []).filter(q => oeqCanvasHandles.current[q.id]);
       if (saveOeqQs.length > 0) {
-        const form = new FormData();
-        form.append("action", "save");
+        const blobs: Record<string, { blob: Blob; filename: string }> = {};
         for (let i = 0; i < saveOeqQs.length; i++) {
           const q = saveOeqQs[i];
           const handle = oeqCanvasHandles.current[q.id];
           if (handle) {
             const [composite, ink] = await Promise.all([handle.exportImage(), handle.exportInk()]);
-            form.append(`page_${i}`, composite, `page_${i}.jpg`);
-            form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
-            // Trim canvasHeights to actual ink-bottom — student may
-            // have dragged the canvas tall but only written near the
-            // top. Capped at the visible height so we never claim
-            // they wrote further than they could see.
+            blobs[`page_${i}`] = { blob: composite, filename: `page_${i}.jpg` };
+            blobs[`page_${i}_ink`] = { blob: ink, filename: `page_${i}_ink.png` };
             const visible = canvasHeights.current[q.id] ?? 360;
             const trimmed = await inkBottomCss(ink, visible);
             canvasHeights.current[q.id] = trimmed;
@@ -656,8 +667,8 @@ function QuizContent({ id }: { id: string }) {
             for (const [label, spHandle] of Object.entries(spRefs)) {
               if (spHandle) {
                 const [spComposite, spInk] = await Promise.all([spHandle.exportImage(), spHandle.exportInk()]);
-                form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
-                form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+                blobs[`page_${i}_${label}`] = { blob: spComposite, filename: `page_${i}_${label}.jpg` };
+                blobs[`page_${i}_${label}_ink`] = { blob: spInk, filename: `page_${i}_${label}_ink.png` };
                 const spKey = `${q.id}_${label}`;
                 const spVisible = canvasHeights.current[spKey] ?? 260;
                 const spTrimmed = await inkBottomCss(spInk, spVisible);
@@ -666,7 +677,13 @@ function QuizContent({ id }: { id: string }) {
             }
           }
         }
-        await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+        await postFormWithRetry({
+          paperId: id,
+          url: `/api/exam/${id}/submission`,
+          fields: { action: "save" },
+          blobs,
+          cacheId: `oeq-save-progress:${id}`,
+        });
       }
 
       // Save elapsed time, canvas heights, and OEQ page mapping
@@ -890,11 +907,13 @@ function QuizContent({ id }: { id: string }) {
           })
         ));
       }
-      // Save ALL OEQ drawings (skip the ones the student marked as skipped)
+      // Save ALL OEQ drawings (skip the ones the student marked as
+      // skipped). Mirrored to localStorage outbox before the POST so a
+      // deploy outage during submit doesn't drop the canvas data on
+      // the floor — it'll replay on next page load.
       const allOeqWithHandles = paper!.questions.filter(q => oeqCanvasHandles.current[q.id] && !skippedIds.has(q.id));
       if (allOeqWithHandles.length > 0) {
-        const form = new FormData();
-        form.append("action", "save");
+        const blobs: Record<string, { blob: Blob; filename: string }> = {};
         for (let i = 0; i < allOeqWithHandles.length; i++) {
           const q = allOeqWithHandles[i];
           const handle = oeqCanvasHandles.current[q.id];
@@ -903,20 +922,12 @@ function QuizContent({ id }: { id: string }) {
               handle.exportImage(),
               handle.exportInk(),
             ]);
-            // Save combined image
-            form.append(`page_${i}`, composite, `page_${i}.jpg`);
-            form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
-            // Trim canvasHeights to ink content (see saveProgress comment).
+            blobs[`page_${i}`] = { blob: composite, filename: `page_${i}.jpg` };
+            blobs[`page_${i}_ink`] = { blob: ink, filename: `page_${i}_ink.png` };
             const visible = canvasHeights.current[q.id] ?? 360;
             canvasHeights.current[q.id] = await inkBottomCss(ink, visible);
           }
-          // Save individual subpart images.
-          //
-          // Sanity-check: when q.transcribedSubparts has real labels but
-          // oeqSubpartHandles is missing/empty, no per-subpart ink files
-          // will be POSTed → the server marker can't tell blank subparts
-          // from ink-present ones and can hallucinate (especially on
-          // drawable diagrams). Log loudly so production traces flag it.
+          // Subpart sanity check (see comment in saveProgress branch).
           const expectedSubLabels = ((q.transcribedSubparts as Array<{ label: string }> | null) ?? [])
             .map(sp => sp.label)
             .filter(l => !l.startsWith("_"));
@@ -933,8 +944,8 @@ function QuizContent({ id }: { id: string }) {
                   spHandle.exportImage(),
                   spHandle.exportInk(),
                 ]);
-                form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
-                form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+                blobs[`page_${i}_${label}`] = { blob: spComposite, filename: `page_${i}_${label}.jpg` };
+                blobs[`page_${i}_${label}_ink`] = { blob: spInk, filename: `page_${i}_${label}_ink.png` };
                 const spKey = `${q.id}_${label}`;
                 const spVisible = canvasHeights.current[spKey] ?? 260;
                 canvasHeights.current[spKey] = await inkBottomCss(spInk, spVisible);
@@ -942,7 +953,13 @@ function QuizContent({ id }: { id: string }) {
             }
           }
         }
-        await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+        await postFormWithRetry({
+          paperId: id,
+          url: `/api/exam/${id}/submission`,
+          fields: { action: "save" },
+          blobs,
+          cacheId: `oeq-submit:${id}`,
+        });
       }
 
       // Rewrite oeqPageMap to match what we just uploaded. The autosave
