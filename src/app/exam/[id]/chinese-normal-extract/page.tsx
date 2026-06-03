@@ -558,21 +558,30 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
     );
   }
 
-  // English-only guard. /normal-extract is the language-isolated copy
-  // of /edit; if a non-English paper ends up here, bounce to /edit
-  // (the canonical multi-subject page).
-  if (!(paper.subject ?? "").toLowerCase().includes("english")) {
-    return (
-      <div className="p-6 text-center py-24">
-        <p className="text-slate-500">Normal Extract is English-only. This paper is &ldquo;{paper.subject}&rdquo;.</p>
-        <button
-          onClick={() => router.push(`/exam/${id}/edit${userId ? `?userId=${userId}` : ""}`)}
-          className="mt-4 text-primary-500 underline"
-        >
-          Open /edit
-        </button>
-      </div>
-    );
+  // Chinese-only guard. If a non-Chinese paper ends up here, bounce
+  // to /normal-extract (English) or /edit (everything else).
+  {
+    const subjRaw = paper.subject ?? "";
+    const subjLower = subjRaw.toLowerCase();
+    const isChineseSubject = subjLower.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
+    if (!isChineseSubject) {
+      return (
+        <div className="p-6 text-center py-24">
+          <p className="text-slate-500">Chinese Normal Extract is Chinese-only. This paper is &ldquo;{paper.subject}&rdquo;.</p>
+          <button
+            onClick={() => {
+              const fallback = subjLower.includes("english")
+                ? `/exam/${id}/normal-extract${userId ? `?userId=${userId}` : ""}`
+                : `/exam/${id}/edit${userId ? `?userId=${userId}` : ""}`;
+              router.push(fallback);
+            }}
+            className="mt-4 text-primary-500 underline"
+          >
+            Open the right page
+          </button>
+        </div>
+      );
+    }
   }
 
   return (
@@ -658,7 +667,7 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
           questions don't crop right. */}
       <NormalExtractTriggerRow
         paperId={id}
-        state={(paper.metadata as { normalExtractEnglish?: Record<string, unknown> } | null)?.normalExtractEnglish ?? {}}
+        state={(paper.metadata as { normalExtractChinese?: Record<string, unknown> } | null)?.normalExtractChinese ?? {}}
         onExtracted={fetchPaper}
       />
 
@@ -1755,13 +1764,12 @@ function DifficultyBadge({
 // section, then calls onExtracted() so the parent page refetches the
 // paper and the per-question card list redraws with the new bounds.
 
-const NORMAL_EXTRACT_SECTIONS: Array<{ type: "booklet-a" | "grammar-cloze" | "editing" | "comp-cloze" | "synthesis" | "comp-oeq"; label: string; stateKey: string }> = [
-  { type: "booklet-a", label: "Booklet A (Sequential MCQ)", stateKey: "bookletA" },
-  { type: "grammar-cloze", label: "Booklet B — Grammar Cloze", stateKey: "grammarCloze" },
-  { type: "editing", label: "Booklet B — Editing", stateKey: "editing" },
-  { type: "comp-cloze", label: "Booklet B — Comprehension Cloze", stateKey: "compCloze" },
-  { type: "synthesis", label: "Booklet B — Synthesis / Transformation", stateKey: "synthesis" },
-  { type: "comp-oeq", label: "Booklet B — Comprehension OEQ", stateKey: "compOeq" },
+const NORMAL_EXTRACT_SECTIONS: Array<{ type: "yuwen-mcq" | "duanwen" | "comp-mcq" | "duihua" | "comp-oeq"; label: string; stateKey: string }> = [
+  { type: "yuwen-mcq", label: "语文应用 MCQ", stateKey: "yuwenMcq" },
+  { type: "duanwen", label: "短文填空", stateKey: "duanwen" },
+  { type: "comp-mcq", label: "阅读理解 MCQ", stateKey: "compMcq" },
+  { type: "duihua", label: "完成对话", stateKey: "duihua" },
+  { type: "comp-oeq", label: "阅读理解 OEQ", stateKey: "compOeq" },
 ];
 
 // ─── BoundsCropPreview ───────────────────────────────────────────────────────
@@ -1818,22 +1826,12 @@ function NormalExtractTriggerRow({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
-  // Some school papers place the Q-number to the RIGHT of the answer
-  // box for Grammar Cloze / Comp Cloze (editing-style layout) instead
-  // of the standard PSLE format where the (N) sits BELOW the blank.
-  // The "right" mode swaps the cloze crop to editing's wider yRange
-  // + x-right extension. Default to "above" (standard PSLE).
-  const [clozeQPosition, setClozeQPosition] = useState<"above" | "right">("above");
-
   async function run(sectionType: string, label: string) {
     setBusy(sectionType);
     setLastResult(null);
     try {
       const body: Record<string, unknown> = { sectionType };
-      if ((sectionType === "grammar-cloze" || sectionType === "comp-cloze") && clozeQPosition === "right") {
-        body.qNumPosition = "right";
-      }
-      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
+      const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-chinese`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -1866,30 +1864,6 @@ function NormalExtractTriggerRow({
         Re-run gemini-3.1-pro-preview to recompute per-question y/x bounds for one section. The
         question cards below refresh on success so the new crops show up immediately.
       </p>
-      {/* Per-paper cloze layout toggle. PSLE: (N) sits BELOW the blank.
-          Some school papers: (N) sits to the RIGHT of the blank, like
-          editing. Toggle applies to Grammar Cloze + Comp Cloze only. */}
-      <div className="mb-3 flex items-center gap-2 text-[11px] text-slate-600">
-        <span className="font-semibold">Cloze Q-number position:</span>
-        <div className="inline-flex rounded-md border border-slate-300 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setClozeQPosition("above")}
-            className={`px-2.5 py-1 transition-colors ${clozeQPosition === "above" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="Standard PSLE: (N) printed below the blank"
-          >
-            Above blank (PSLE)
-          </button>
-          <button
-            type="button"
-            onClick={() => setClozeQPosition("right")}
-            className={`px-2.5 py-1 transition-colors border-l border-slate-300 ${clozeQPosition === "right" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="School-paper variant: (N) printed to the right, like editing"
-          >
-            Right of blank (school)
-          </button>
-        </div>
-      </div>
       <div className="flex flex-wrap gap-2">
         {NORMAL_EXTRACT_SECTIONS.map(sec => {
           const isDone = !!state[sec.stateKey];

@@ -1149,10 +1149,9 @@ function ExamOverviewContent({ id }: { id: string }) {
         </Section>
       )}
 
-      {/* Admin: link to the dedicated Normal Extract page (section
-          buttons + bounds grid + manual recrop). Shows on English
-          papers AND Chinese papers — the page detects subject and
-          switches to the right section list + endpoint. */}
+      {/* Admin: link to the dedicated Normal Extract page. English
+          and Chinese have SEPARATE pages so each language can be
+          tuned independently without affecting the other. */}
       {isAdmin && (() => {
         const subj = (paper.subject ?? "").toLowerCase();
         const subjRaw = paper.subject ?? "";
@@ -1160,6 +1159,7 @@ function ExamOverviewContent({ id }: { id: string }) {
         const isChinesePaper = subj.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
         if (!isEnglishPaper && !isChinesePaper) return null;
         const subjLabel = isChinesePaper ? "Chinese" : "English";
+        const targetPath = isChinesePaper ? "chinese-normal-extract" : "normal-extract";
         return (
           <Section title={`Normal Extract — ${subjLabel} (Admin)`}>
             <p className="text-xs text-slate-500 mb-3">
@@ -1167,7 +1167,7 @@ function ExamOverviewContent({ id }: { id: string }) {
               Lives on its own page to avoid overview re-renders.
             </p>
             <Link
-              href={`/exam/${id}/normal-extract${userId ? `?userId=${userId}` : ""}`}
+              href={`/exam/${id}/${targetPath}${userId ? `?userId=${userId}` : ""}`}
               className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
             >
               Open Normal Extract →
