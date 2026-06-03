@@ -1826,10 +1826,38 @@ function NormalExtractTriggerRow({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
+  // 阅读理解 OEQ skips Gemini bounds extraction entirely — it
+  // generates a 2-page PDF writing pad that gets appended to Paper 2
+  // at print time. We show the freshly-generated PDF inline below the
+  // trigger row so the admin can verify the layout before assigning.
+  // Initial cache-bust is 1 if the pad was already generated previously
+  // (state.compOeq flag). 0 means never generated → iframe hidden.
+  const [oeqPadCacheBust, setOeqPadCacheBust] = useState<number>(state.compOeq ? 1 : 0);
+  const initialOeqCount = typeof state.oeqPadPages === "number" ? state.oeqPadPages as number : null;
+  const [oeqPadInfo, setOeqPadInfo] = useState<{ questionCount: number } | null>(initialOeqCount ? { questionCount: initialOeqCount } : null);
   async function run(sectionType: string, label: string) {
     setBusy(sectionType);
     setLastResult(null);
     try {
+      if (sectionType === "comp-oeq") {
+        // OEQ goes to the writing-pad generator, not the bounds
+        // extractor. Endpoint creates oeq_pad.pdf on the master
+        // paper's pages dir and returns a preview URL.
+        const res = await fetch(`/api/admin/exam/${paperId}/chinese-oeq-pad`, { method: "POST" });
+        const text = await res.text();
+        let json: Record<string, unknown> = {};
+        try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; } catch { /* tolerated */ }
+        if (!res.ok) {
+          setLastResult({ section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` });
+          return;
+        }
+        const qCount = typeof json.questionCount === "number" ? json.questionCount : 0;
+        setOeqPadInfo({ questionCount: qCount });
+        setOeqPadCacheBust(Date.now());
+        setLastResult({ section: label, ok: true, updated: qCount, warnings: [] });
+        await onExtracted();
+        return;
+      }
       const body: Record<string, unknown> = { sectionType };
       const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-chinese`, {
         method: "POST",
@@ -1898,6 +1926,25 @@ function NormalExtractTriggerRow({
               </ul>
             </details>
           )}
+        </div>
+      )}
+      {/* OEQ writing-pad preview. Shows after a successful POST to
+          /chinese-oeq-pad. PDF gets cached on disk so the print
+          flow can pick it up; cache-bust qs key the iframe so a
+          regeneration reloads. */}
+      {oeqPadCacheBust > 0 && (
+        <div className="mt-4 p-3 rounded-xl border border-violet-200 bg-violet-50">
+          <p className="text-xs font-bold text-violet-700 mb-2">
+            阅读理解 OEQ writing pad{oeqPadInfo ? ` (${oeqPadInfo.questionCount} questions)` : ""} — preview
+          </p>
+          <p className="text-[11px] text-violet-600 mb-2">
+            Gets appended to the end of Paper 2 at print time. Re-click 阅读理解 OEQ to regenerate.
+          </p>
+          <iframe
+            src={`/api/admin/exam/${paperId}/chinese-oeq-pad?cb=${oeqPadCacheBust}`}
+            className="w-full h-[800px] rounded-lg border border-violet-200 bg-white"
+            title="阅读理解 OEQ writing pad preview"
+          />
         </div>
       )}
     </div>
