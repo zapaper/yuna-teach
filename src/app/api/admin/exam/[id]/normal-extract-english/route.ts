@@ -106,16 +106,32 @@ async function findQuestionPositionsOnPage(
   expectedQuestionNums: string[],
   sectionHint: string,
 ): Promise<Detection[]> {
+  // Detect whether the expected list contains subpart-style numbers
+  // (66a / 66 (a) / etc). When it does, the page likely shows the main
+  // number "66." on its own line with "(a)" and "(b)" beneath as
+  // separate writing rows — each is a distinct answer location and
+  // must be reported as its own entry.
+  const expectsSubparts = expectedQuestionNums.some(n => /^\d+\s*[(\s]\s*[a-z]\b|\d+\s*[a-z]$/i.test(n.trim()));
+  const subpartGuidance = expectsSubparts ? `
+
+CRITICAL — SUBPARTS: this section contains questions with sub-labels (a), (b), (c). When a question is printed like:
+    66.
+    (a) _____________
+    (b) _____________
+…report EACH subpart as its own entry: questionNum "66a" (or "66 (a)") at the y of the "(a)" line, AND questionNum "66b" at the y of the "(b)" line. Do NOT report just "66" alone in that case — the parent number is not a writable answer slot.
+
+Match flexibly against the expected list: "66a" / "66(a)" / "66 (a)" are all the same question. Pick whichever exact form appears in the expected list and use it as your questionNum.` : "";
+
   const prompt = `You are reading page ${pageIndex + 1} of a Singapore PSLE English paper. The section on this page is: ${sectionHint}.
 
 Identify EVERY question number that is the START of a question on this page (a numbered question stem or numbered blank, NOT a page number, NOT a reference inside text).
 
 For each one, report:
-- "questionNum": the bare number as it appears (e.g. "1", "12", "21")
+- "questionNum": the bare number as it appears (e.g. "1", "12", "21", "66 (a)", "66 (b)")
 - "xPctLeft": horizontal position of the LEFT edge of the question number, as a percentage of the page width from the left (0 = far left, 100 = far right)
 - "yPctTop": vertical position of the TOP edge of the question number, as a percentage of the page height from the top (0 = very top, 100 = very bottom)
 
-Expected question numbers in this paper: ${expectedQuestionNums.join(", ")}. Match the printed number against this list and IGNORE any number on the page that isn't in the expected list.
+Expected question numbers in this paper: ${expectedQuestionNums.join(", ")}. Match the printed number against this list and IGNORE any number on the page that isn't in the expected list.${subpartGuidance}
 
 Output STRICTLY this JSON shape — no markdown, no commentary:
 {
