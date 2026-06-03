@@ -80,7 +80,7 @@ const SECTION_LABELS: Record<SectionType, RegExp[]> = {
   "editing": [/editing/i],
   "comp-cloze": [/comprehension cloze/i],
   "synthesis": [/synthesis/i, /transformation/i],
-  "comp-oeq": [/comprehension open ended/i, /comprehension oeq/i],
+  "comp-oeq": [/comprehension open[\s-]?ended/i, /comprehension \(open[\s-]?ended\)/i, /comprehension oeq/i],
 };
 
 function sectionMatches(label: string, type: SectionType): boolean {
