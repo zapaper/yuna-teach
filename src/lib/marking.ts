@@ -5440,25 +5440,6 @@ Return ONLY valid JSON:
       })()));
     }
 
-    // Zero-mark any SKIPPED OEQ questions that the marker filtered
-    // out earlier (line 3220 explicitly drops studentAnswer ===
-    // "__SKIPPED__" from the OEQ list — the marker never runs on
-    // them so marksAwarded stays null). A null mark hides the
-    // question from /api/practice/revision and the parent
-    // dashboard's mistake counters, so an empty/skipped answer is
-    // silently lost. Treat it as wrong (0 marks) with a clear note
-    // so revise-work + the dashboard both pick it up.
-    for (const q of paper.questions) {
-      if (q.studentAnswer !== "__SKIPPED__") continue;
-      if (q.marksAwarded != null) continue;
-      updates.push(
-        prisma.examQuestion.update({
-          where: { id: q.id },
-          data: { marksAwarded: 0, markingNotes: "Skipped" },
-        })
-      );
-    }
-
     // Batch update OEQ marks + set paper score/status
     await prisma.$transaction([
       ...updates,
