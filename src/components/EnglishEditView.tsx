@@ -654,14 +654,17 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
 
                 {/* OCR text. Some older papers (e.g. PSLE English 2017
                     Comprehension Cloze) have the passage stored in
-                    passageOcrText with an empty ocrText. Fall back so
-                    the panel isn't blank in that case. */}
-                {(() => {
-                  if (!ocrData) return null;
+                    passageOcrText with an empty ocrText. Fall back to
+                    passageOcrText for display so the panel isn't blank.
+                    Always render the panel when the section is part of
+                    sectionOcrTexts — even if both fields are empty —
+                    so the admin still has an Edit textarea to paste
+                    the passage into (grammar cloze where both OCR
+                    fields came back empty). */}
+                {ocrData && (() => {
                   const displayOcr = ocrData.ocrText && ocrData.ocrText.trim().length > 0
                     ? ocrData.ocrText
                     : (ocrData.passageOcrText ?? "");
-                  if (!displayOcr) return null;
                   return (
                     <div className="p-4 border-b border-slate-100">
                       <div className="flex items-center justify-between mb-2">
@@ -677,7 +680,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                           }}
                           className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                         >
-                          {editingOcr === sec.name ? "Cancel" : "Edit"}
+                          {editingOcr === sec.name ? "Cancel" : (displayOcr ? "Edit" : "Add OCR")}
                         </button>
                       </div>
                       {editingOcr === sec.name ? (
@@ -686,6 +689,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                             value={ocrDrafts[sec.name] ?? displayOcr}
                             onChange={e => setOcrDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
                             rows={12}
+                            placeholder={displayOcr ? "" : "Paste the section's OCR text here. For grammar cloze: passage with the inline word bank (A-Q) and numbered blanks (29)–(38)."}
                             className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
                           />
                           <div className="flex gap-2 mt-2">
@@ -708,8 +712,10 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                             </button>
                           </div>
                         </div>
-                      ) : (
+                      ) : displayOcr ? (
                         <OcrRichText text={displayOcr} isMcq={sec.name.toLowerCase().includes("mcq")} />
+                      ) : (
+                        <p className="text-xs italic text-slate-400 py-2">No OCR text. Click <span className="font-semibold">Add OCR</span> to paste it manually.</p>
                       )}
                     </div>
                   );
