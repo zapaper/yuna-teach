@@ -1149,22 +1149,32 @@ function ExamOverviewContent({ id }: { id: string }) {
         </Section>
       )}
 
-      {/* Admin: link to the dedicated English Normal Extract page
-          (Booklet A/B section panel + bounds grid + manual recrop). */}
-      {isAdmin && paper.subject?.toLowerCase().includes("english") && (
-        <Section title="Normal Extract — English (Admin)">
-          <p className="text-xs text-slate-500 mb-3">
-            Per-section bounding-box extractor for English papers.
-            Lives on its own page to avoid overview re-renders.
-          </p>
-          <Link
-            href={`/exam/${id}/normal-extract${userId ? `?userId=${userId}` : ""}`}
-            className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
-          >
-            Open Normal Extract →
-          </Link>
-        </Section>
-      )}
+      {/* Admin: link to the dedicated Normal Extract page (section
+          buttons + bounds grid + manual recrop). Shows on English
+          papers AND Chinese papers — the page detects subject and
+          switches to the right section list + endpoint. */}
+      {isAdmin && (() => {
+        const subj = (paper.subject ?? "").toLowerCase();
+        const subjRaw = paper.subject ?? "";
+        const isEnglishPaper = subj.includes("english");
+        const isChinesePaper = subj.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
+        if (!isEnglishPaper && !isChinesePaper) return null;
+        const subjLabel = isChinesePaper ? "Chinese" : "English";
+        return (
+          <Section title={`Normal Extract — ${subjLabel} (Admin)`}>
+            <p className="text-xs text-slate-500 mb-3">
+              Per-section bounding-box extractor for {subjLabel} papers.
+              Lives on its own page to avoid overview re-renders.
+            </p>
+            <Link
+              href={`/exam/${id}/normal-extract${userId ? `?userId=${userId}` : ""}`}
+              className="inline-block px-4 py-2 rounded-lg text-sm font-medium bg-violet-500 text-white hover:bg-violet-600"
+            >
+              Open Normal Extract →
+            </Link>
+          </Section>
+        );
+      })()}
 
       {/* Assignment */}
       <Section title="Assignment">
