@@ -21,6 +21,11 @@ interface Paper {
   creatorId: string;
   creatorName: string | null;
   creatorEmail: string | null;
+  // English-only badge: null for non-English papers.
+  // "complete" = all 6 sections done, "partial" = some, "none" = none.
+  normalExtractStatus: "complete" | "partial" | "none" | null;
+  normalExtractDoneCount: number;
+  normalExtractTotalCount: number;
 }
 
 export default function AdminPapersPage() {
@@ -264,6 +269,30 @@ function AdminPapersContent() {
                     }`}>
                       {paper.visible ? "Visible" : "Hidden"}
                     </span>
+                    {paper.normalExtractStatus && (
+                      <span
+                        title={
+                          paper.normalExtractStatus === "complete"
+                            ? "Normal extract complete (all 6 sections)"
+                            : paper.normalExtractStatus === "partial"
+                              ? `Normal extract: ${paper.normalExtractDoneCount}/${paper.normalExtractTotalCount} sections done`
+                              : "Normal extract not started"
+                        }
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${
+                          paper.normalExtractStatus === "complete" ? "bg-emerald-50 text-emerald-700" :
+                          paper.normalExtractStatus === "partial" ? "bg-amber-50 text-amber-700" :
+                          "bg-rose-50 text-rose-700"
+                        }`}
+                      >
+                        <span aria-hidden>{paper.normalExtractStatus === "complete" ? "✓" : paper.normalExtractStatus === "partial" ? "◐" : "✗"}</span>
+                        Normal extract
+                        {paper.normalExtractStatus !== "complete" && (
+                          <span className="opacity-70">
+                            {paper.normalExtractDoneCount}/{paper.normalExtractTotalCount}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
 
