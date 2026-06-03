@@ -107,14 +107,20 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 // Single helper keeps the gate consistent across the three UI spots
 // (Set Papers list, scheduler popup, per-paper card scan icon).
 //
-// Admin override: admins can print + scan English papers even though
-// the regular parent flow blocks it (English/Chinese normal extract
-// + scan-back isn't tuned for non-admin parents yet, but admins
-// running QA need the print + scan affordances available so they can
-// test the workflow end-to-end). Chinese stays blocked for everyone.
-function subjectBlocksPrintScan(subject: string | null | undefined, isAdmin = false): boolean {
+// Per-paper print + scan gate. English papers with normal extract
+// completed (all 6 sections — checked at the API via metadata.
+// normalExtractEnglish) are unblocked for any parent. Admins can
+// always print + scan (for QA). English papers without normal extract
+// are still gated to admin (P3 / synthetic — extraction unfinished).
+// Chinese stays blocked for everyone — its normal-extract + scan-back
+// pipeline isn't tuned yet.
+function subjectBlocksPrintScan(
+  subject: string | null | undefined,
+  isAdmin = false,
+  hasNormalExtractEnglish = false,
+): boolean {
   const s = (subject ?? "").toLowerCase();
-  if (s.includes("english")) return !isAdmin;
+  if (s.includes("english")) return !(isAdmin || hasNormalExtractEnglish);
   if (s.includes("chinese")) return true;
   // Chinese-script subject strings sometimes survive normalisation.
   const raw = subject ?? "";
@@ -2957,7 +2963,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
-                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser) && (
+                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser, p.hasNormalExtractEnglish) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3072,7 +3078,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             clean-extract content with bounds, the
                             scan-back marking flow works uniformly
                             for regular / quiz / focused. */}
-                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser) && (
+                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser, paper.hasNormalExtractEnglish) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3946,7 +3952,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // writing-comprehension / 短文填空 layouts don't translate
         // cleanly to lined/boxed A4. Hide both Print and Scan in the
         // popup for those subjects.
-        let popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser);
+        let popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser, popup.hasNormalExtractEnglish);
         // English Normal Extract gate: even for admin (who CAN print
         // English), require at least one Normal Extract section flag
         // to be set on the master. Without bounds the scan-back
