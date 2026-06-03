@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MarkForYou — Back in a few minutes</title>
+  <meta name="description" content="MarkForYou is updating. We'll be back shortly." />
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+      color: #001e40;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 480px;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #e5eeff;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0, 30, 64, 0.06);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .wordmark {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: #003366;
+      margin-bottom: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 12px;
+      line-height: 1.2;
+      color: #001e40;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.55;
+      color: #43474f;
+      margin: 0 0 12px;
+    }
+    .small {
+      font-size: 13px;
+      color: #737780;
+      margin-top: 24px;
+    }
+    a {
+      color: #003366;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(0, 51, 102, 0.3);
+      transition: border-color 0.15s ease;
+    }
+    a:hover { border-bottom-color: #003366; }
+    .retry {
+      margin-top: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #003366;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .retry:hover { background: #001e40; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="wordmark">
+      <span class="dot" aria-hidden="true"></span>
+      MarkForYou
+    </div>
+    <h1>We&rsquo;ll be back shortly</h1>
+    <p>MarkForYou is updating &mdash; this usually takes a few minutes.</p>
+    <p>Your child&rsquo;s work and progress are safe. Please try again soon.</p>
+    <button class="retry" onclick="location.reload()" type="button">
+      Try again
+    </button>
+    <p class="small">
+      Still down after 10 minutes? Email
+      <a href="mailto:peter.lzy@gmail.com">peter.lzy@gmail.com</a>.
+    </p>
+  </main>
+</body>
+</html>
