@@ -478,8 +478,14 @@ export async function POST(
   }
 
   const { id } = await params;
-  const body = await request.json().catch(() => ({})) as { sectionType?: SectionType };
+  const body = await request.json().catch(() => ({})) as { sectionType?: SectionType; qNumPosition?: "above" | "right" };
   const sectionType = body.sectionType;
+  // Cloze Q-number position. "above" (default) = standard PSLE
+  // layout where (N) is printed below the blank in the passage.
+  // "right" = school-paper variant where (N) sits to the right of
+  // the blank, like editing. Swaps the crop deltas to editing-style
+  // when "right". Ignored for non-cloze sections.
+  const qNumPosition: "above" | "right" = body.qNumPosition === "right" ? "right" : "above";
   if (!sectionType || !SECTION_LABELS[sectionType]) {
     return NextResponse.json({ error: "Body { sectionType } must be one of: booklet-a, grammar-cloze, editing, comp-cloze, synthesis, comp-oeq" }, { status: 400 });
   }
@@ -627,10 +633,16 @@ export async function POST(
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
-        sectionHint: "Grammar Cloze — numbered blanks inline within a passage",
-        // Grammar Cloze: yStart 3% above Q-number top, yEnd at top.
-        // xLeft -5%, xRight +11%.
-        xLeftDelta: 5, xRightDelta: 11, yTopDelta: 3, yBottomDelta: 0,
+        sectionHint: qNumPosition === "right"
+          ? "Grammar Cloze (school variant) — Q-number sits to the RIGHT of the answer blank, like editing"
+          : "Grammar Cloze — numbered blanks inline within a passage",
+        // PSLE (above): Q-number printed BELOW the blank — yStart 3% above
+        // the Q-number top, xLeft -5, xRight +11.
+        // School (right): Q-number printed RIGHT of the blank — fall back
+        // to editing's wider yRange + far-right x extension.
+        ...(qNumPosition === "right"
+          ? { xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5 }
+          : { xLeftDelta: 5, xRightDelta: 11, yTopDelta: 3, yBottomDelta: 0 }),
         pageCount: paper.pageCount ?? undefined,
       });
       break;
@@ -639,10 +651,13 @@ export async function POST(
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
-        sectionHint: "Comprehension Cloze — numbered blanks inline within a passage",
-        // Comp Cloze: yStart 4.5% above Q-number; yEnd at Q-number top.
-        // xLeft -8, xRight +12.
-        xLeftDelta: 8, xRightDelta: 12, yTopDelta: 4.5, yBottomDelta: 0,
+        sectionHint: qNumPosition === "right"
+          ? "Comprehension Cloze (school variant) — Q-number sits to the RIGHT of the answer blank, like editing"
+          : "Comprehension Cloze — numbered blanks inline within a passage",
+        // Same dual-layout split as Grammar Cloze above.
+        ...(qNumPosition === "right"
+          ? { xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5 }
+          : { xLeftDelta: 8, xRightDelta: 12, yTopDelta: 4.5, yBottomDelta: 0 }),
         pageCount: paper.pageCount ?? undefined,
       });
       break;

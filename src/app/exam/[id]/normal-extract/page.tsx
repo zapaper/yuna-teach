@@ -1818,15 +1818,25 @@ function NormalExtractTriggerRow({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
+  // Some school papers place the Q-number to the RIGHT of the answer
+  // box for Grammar Cloze / Comp Cloze (editing-style layout) instead
+  // of the standard PSLE format where the (N) sits BELOW the blank.
+  // The "right" mode swaps the cloze crop to editing's wider yRange
+  // + x-right extension. Default to "above" (standard PSLE).
+  const [clozeQPosition, setClozeQPosition] = useState<"above" | "right">("above");
 
   async function run(sectionType: string, label: string) {
     setBusy(sectionType);
     setLastResult(null);
     try {
+      const body: Record<string, unknown> = { sectionType };
+      if ((sectionType === "grammar-cloze" || sectionType === "comp-cloze") && clozeQPosition === "right") {
+        body.qNumPosition = "right";
+      }
       const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sectionType }),
+        body: JSON.stringify(body),
       });
       const text = await res.text();
       let json: Record<string, unknown> = {};
@@ -1856,6 +1866,30 @@ function NormalExtractTriggerRow({
         Re-run gemini-3.1-pro-preview to recompute per-question y/x bounds for one section. The
         question cards below refresh on success so the new crops show up immediately.
       </p>
+      {/* Per-paper cloze layout toggle. PSLE: (N) sits BELOW the blank.
+          Some school papers: (N) sits to the RIGHT of the blank, like
+          editing. Toggle applies to Grammar Cloze + Comp Cloze only. */}
+      <div className="mb-3 flex items-center gap-2 text-[11px] text-slate-600">
+        <span className="font-semibold">Cloze Q-number position:</span>
+        <div className="inline-flex rounded-md border border-slate-300 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setClozeQPosition("above")}
+            className={`px-2.5 py-1 transition-colors ${clozeQPosition === "above" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
+            title="Standard PSLE: (N) printed below the blank"
+          >
+            Above blank (PSLE)
+          </button>
+          <button
+            type="button"
+            onClick={() => setClozeQPosition("right")}
+            className={`px-2.5 py-1 transition-colors border-l border-slate-300 ${clozeQPosition === "right" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
+            title="School-paper variant: (N) printed to the right, like editing"
+          >
+            Right of blank (school)
+          </button>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2">
         {NORMAL_EXTRACT_SECTIONS.map(sec => {
           const isDone = !!state[sec.stateKey];
