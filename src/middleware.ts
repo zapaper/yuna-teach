@@ -37,6 +37,10 @@ const PUBLIC_REGEXES: RegExp[] = [
   // Webhooks (each has its own shared-secret auth).
   /^\/api\/inbound-email\/?$/,           // SendGrid Basic Auth (route-level)
   /^\/api\/iap\/asn-webhook\/?$/,        // RevenueCat signed header (route-level)
+  // markforyou-mailer cron pulls daily user data from here. Route
+  // handler verifies Bearer ${NURTURE_API_TOKEN} OR an admin session,
+  // so the middleware bypass is safe.
+  /^\/api\/admin\/parent-progress\/?$/,
 ];
 
 // Some paths are public for ONE method but auth'd for others.
