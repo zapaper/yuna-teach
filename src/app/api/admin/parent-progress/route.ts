@@ -45,7 +45,16 @@ type ParentRow = {
 };
 
 export async function GET(request: NextRequest) {
-  if (!(await isSessionAdmin())) {
+  // Two auth paths: browser admin session (existing CSV export button)
+  // OR a Bearer token (markforyou-mailer's daily nurture cron, which
+  // doesn't carry a browser session). Either lets the request through.
+  const authHeader = request.headers.get("authorization") ?? "";
+  const bearerToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  const expectedToken = process.env.NURTURE_API_TOKEN ?? "";
+  const tokenOk = expectedToken !== "" && bearerToken === expectedToken;
+  if (!tokenOk && !(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   // Build absolute homepage URLs from the request origin. Forwarded
