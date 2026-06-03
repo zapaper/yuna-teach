@@ -35,7 +35,59 @@ const Q33_ROW_HEIGHT = 52;   // ~half-page worth for 9 rows
 const SHORT_ROW_HEIGHT = 24;
 const SHORT_Q_GAP = 12;
 
-type OeqQuestion = { questionNum: string; marksAvailable: number | null };
+type OeqQuestion = { id: string; questionNum: string; marksAvailable: number | null };
+type PadBound = { id: string; padPageOffset: number; yStartPct: number; yEndPct: number };
+
+// Same layout logic as the PDF generator. Used to write bounds back
+// to each OEQ question after generation so the scan-back marker
+// knows to crop from the pad page rather than the original paper.
+function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
+  const sorted = [...oeqQuestions].sort((a, b) => {
+    const an = parseInt(a.questionNum, 10);
+    const bn = parseInt(b.questionNum, 10);
+    return (Number.isFinite(an) ? an : 999) - (Number.isFinite(bn) ? bn : 999);
+  });
+  const q33 = sorted.find(q => q.questionNum === "33");
+  const others = sorted.filter(q => q.questionNum !== "33");
+  const out: PadBound[] = [];
+
+  // ─── Page 0 of pad: Q33 — entire writing area ──────────────
+  if (q33) {
+    // Writing area starts at PAGE_H - MARGIN - HEADER_HEIGHT and
+    // covers 9 rows × Q33_ROW_HEIGHT = 468pt. From top pct:
+    const topPdf = PAGE_H - MARGIN - HEADER_HEIGHT;
+    const bottomPdf = topPdf - 9 * Q33_ROW_HEIGHT;
+    out.push({
+      id: q33.id,
+      padPageOffset: 0,
+      yStartPct: ((PAGE_H - topPdf) / PAGE_H) * 100,
+      yEndPct: ((PAGE_H - bottomPdf) / PAGE_H) * 100,
+    });
+  }
+
+  // ─── Page 1+ of pad: Q34-Q40 ───────────────────────────────
+  let padPageOffset = q33 ? 1 : 0;
+  let cursorPdf = PAGE_H - MARGIN;
+  for (const q of others) {
+    const marks = q.marksAvailable ?? 1;
+    const rows = Math.max(1, marks * 2);
+    const blockHeight = HEADER_HEIGHT + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
+    if (cursorPdf - blockHeight < MARGIN) {
+      padPageOffset++;
+      cursorPdf = PAGE_H - MARGIN;
+    }
+    const topPdf = cursorPdf;
+    const bottomPdf = cursorPdf - HEADER_HEIGHT - rows * SHORT_ROW_HEIGHT;
+    out.push({
+      id: q.id,
+      padPageOffset,
+      yStartPct: ((PAGE_H - topPdf) / PAGE_H) * 100,
+      yEndPct: ((PAGE_H - bottomPdf) / PAGE_H) * 100,
+    });
+    cursorPdf -= blockHeight;
+  }
+  return out;
+}
 
 async function generatePadPdf(oeqQuestions: OeqQuestion[]): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -109,9 +161,9 @@ export async function POST(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, subject: true, metadata: true,
+      id: true, subject: true, pageCount: true, metadata: true,
       questions: {
-        select: { questionNum: true, marksAvailable: true, syllabusTopic: true },
+        select: { id: true, questionNum: true, marksAvailable: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
       },
     },
@@ -127,7 +179,7 @@ export async function POST(
   // Pull OEQ questions — anything tagged 阅读理解 OEQ (any A/B split).
   const oeqQuestions: OeqQuestion[] = paper.questions
     .filter(q => /阅读理解.*OEQ/i.test(q.syllabusTopic ?? ""))
-    .map(q => ({ questionNum: q.questionNum, marksAvailable: q.marksAvailable }));
+    .map(q => ({ id: q.id, questionNum: q.questionNum, marksAvailable: q.marksAvailable }));
   if (oeqQuestions.length === 0) {
     return NextResponse.json({
       error: "No 阅读理解 OEQ questions found on this paper. Run Clean Extract first so each OEQ is tagged with its syllabusTopic.",
@@ -143,28 +195,58 @@ export async function POST(
   const filePath = path.join(dir, "oeq_pad.pdf");
   await fs.writeFile(filePath, pdfBytes);
 
+  // Write bounds back to each OEQ question so the scan-back marker
+  // knows to crop from the PAD page rather than the original paper.
+  // pageIndex = master.pageCount + padPageOffset (the pad pages
+  // are appended after the master paper at print time, and the
+  // marker reads them at those positions in the submission).
+  // x range is full-width (writing rows span the printable area
+  // minus left/right margin); y range is the writing strip of each
+  // question on its pad page.
+  const masterPageCount = paper.pageCount ?? 0;
+  const bounds = computePadBounds(oeqQuestions);
+  const updates = bounds.map(b => prisma.examQuestion.update({
+    where: { id: b.id },
+    data: {
+      pageIndex: masterPageCount + b.padPageOffset,
+      yStartPct: b.yStartPct,
+      yEndPct: b.yEndPct,
+      xStartPct: (MARGIN / PAGE_W) * 100,
+      xEndPct: ((PAGE_W - MARGIN) / PAGE_W) * 100,
+    },
+  }));
+
+  // Total pad page count = max padPageOffset + 1.
+  const totalPadPages = bounds.length > 0 ? Math.max(...bounds.map(b => b.padPageOffset)) + 1 : 0;
+
   // Flag the section as done so the admin papers badge picks it up.
   const meta = (paper.metadata ?? {}) as Record<string, unknown>;
   const ne = (meta.normalExtractChinese ?? {}) as Record<string, unknown>;
-  await prisma.examPaper.update({
-    where: { id },
-    data: {
-      metadata: {
-        ...meta,
-        normalExtractChinese: {
-          ...ne,
-          compOeq: true,
-          oeqPadPages: oeqQuestions.length > 0 ? Math.max(1, Math.ceil((oeqQuestions.length - 1) / 4) + 1) : 0,
-          lastRunAt: new Date().toISOString(),
-        },
-      } as object,
-    },
-  });
+  await prisma.$transaction([
+    ...updates,
+    prisma.examPaper.update({
+      where: { id },
+      data: {
+        metadata: {
+          ...meta,
+          normalExtractChinese: {
+            ...ne,
+            compOeq: true,
+            oeqPadPages: totalPadPages,
+            oeqPadFirstPageIndex: masterPageCount,
+            lastRunAt: new Date().toISOString(),
+          },
+        } as object,
+      },
+    }),
+  ]);
 
   return NextResponse.json({
     ok: true,
     questionCount: oeqQuestions.length,
     questions: oeqQuestions,
+    padPages: totalPadPages,
+    masterPageCount,
     bytes: pdfBytes.length,
     previewUrl: `/api/admin/exam/${id}/chinese-oeq-pad`,
   });
