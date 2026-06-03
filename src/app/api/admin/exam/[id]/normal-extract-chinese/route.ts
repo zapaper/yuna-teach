@@ -614,15 +614,16 @@ export async function POST(
       });
       break;
     case "duihua":
-      // 完成对话 — crop the full horizontal speaker line where the
-      // Q-number sits. yTop/yBottom modest (single-line dialogue),
-      // xRight extended to capture the entire utterance + blank.
+      // 完成对话 — extract ONLY the row containing the Q-number.
+      // Each numbered blank sits in a single speaker line; no need
+      // to extend to the next row (unlike 短文填空 where the answer
+      // can wrap). Wide horizontal strip, single-line height.
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
-        sectionHint: "完成对话 — dialogue completion. Each numbered blank sits inside a speaker's line; crop the whole line.",
-        xLeftDelta: 5, xRightDelta: 80, yTopDelta: 3, yBottomDelta: 3,
+        sectionHint: "完成对话 — dialogue completion. Each numbered blank sits inside one speaker line; crop just that row.",
+        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 3,
         pageCount: paper.pageCount ?? undefined,
       });
       break;
