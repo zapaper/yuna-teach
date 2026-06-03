@@ -187,13 +187,18 @@ async function detectAcrossSectionPages(args: {
     if (stored.length > 0) {
       const min = Math.min(...stored);
       const max = Math.max(...stored);
-      // Forward buffer: scan 2 extra pages beyond the last stored
+      // Forward buffer: scan 6 extra pages beyond the last stored
       // pageIndex. Catches the case where the LAST question of a
       // section (often Comp OEQ tail) was tagged on page N by Clean
       // Extract but actually starts on page N+1 — without the buffer
       // Gemini never sees that page and the detection silently fails.
-      // Two pages handles the common drift; more would just add cost.
-      for (let i = min; i <= max + 2; i++) pagesToScan.push(i);
+      // Larger buffer (6 vs the old 2) is also needed for P5 school
+      // papers where Clean Extract sometimes assigns ALL Vocab MCQ /
+      // Vocab Cloze MCQ / Visual Text MCQ questions to page 0 (the
+      // cover) instead of their real pages — Q11+ end up unreachable
+      // within a tight buffer. Six extra pages covers any P5/P6
+      // Booklet A drift without being unreasonably costly.
+      for (let i = min; i <= max + 6; i++) pagesToScan.push(i);
     }
   }
 
