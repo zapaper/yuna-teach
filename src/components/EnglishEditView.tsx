@@ -652,58 +652,68 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   );
                 })()}
 
-                {/* OCR text */}
-                {ocrData && (
-                  <div className="p-4 border-b border-slate-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">OCR Text</p>
-                      <button
-                        onClick={() => {
-                          if (editingOcr === sec.name) {
-                            setEditingOcr(null);
-                          } else {
-                            setOcrDrafts(prev => ({ ...prev, [sec.name]: ocrData.ocrText }));
-                            setEditingOcr(sec.name);
-                          }
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        {editingOcr === sec.name ? "Cancel" : "Edit"}
-                      </button>
-                    </div>
-                    {editingOcr === sec.name ? (
-                      <div>
-                        <textarea
-                          value={ocrDrafts[sec.name] ?? ocrData.ocrText}
-                          onChange={e => setOcrDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
-                          rows={12}
-                          className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          {onSaveOcr && (
-                            <button
-                              onClick={async () => {
-                                await onSaveOcr(sec.name, ocrDrafts[sec.name] ?? ocrData.ocrText);
-                                setEditingOcr(null);
-                              }}
-                              className="px-4 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold hover:bg-[#001e40] transition-colors"
-                            >
-                              Update
-                            </button>
-                          )}
-                          <button
-                            onClick={() => setEditingOcr(null)}
-                            className="px-4 py-1.5 rounded-lg text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                {/* OCR text. Some older papers (e.g. PSLE English 2017
+                    Comprehension Cloze) have the passage stored in
+                    passageOcrText with an empty ocrText. Fall back so
+                    the panel isn't blank in that case. */}
+                {(() => {
+                  if (!ocrData) return null;
+                  const displayOcr = ocrData.ocrText && ocrData.ocrText.trim().length > 0
+                    ? ocrData.ocrText
+                    : (ocrData.passageOcrText ?? "");
+                  if (!displayOcr) return null;
+                  return (
+                    <div className="p-4 border-b border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">OCR Text</p>
+                        <button
+                          onClick={() => {
+                            if (editingOcr === sec.name) {
+                              setEditingOcr(null);
+                            } else {
+                              setOcrDrafts(prev => ({ ...prev, [sec.name]: displayOcr }));
+                              setEditingOcr(sec.name);
+                            }
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {editingOcr === sec.name ? "Cancel" : "Edit"}
+                        </button>
                       </div>
-                    ) : (
-                      <OcrRichText text={ocrData.ocrText} isMcq={sec.name.toLowerCase().includes("mcq")} />
-                    )}
-                  </div>
-                )}
+                      {editingOcr === sec.name ? (
+                        <div>
+                          <textarea
+                            value={ocrDrafts[sec.name] ?? displayOcr}
+                            onChange={e => setOcrDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
+                            rows={12}
+                            className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
+                          />
+                          <div className="flex gap-2 mt-2">
+                            {onSaveOcr && (
+                              <button
+                                onClick={async () => {
+                                  await onSaveOcr(sec.name, ocrDrafts[sec.name] ?? displayOcr);
+                                  setEditingOcr(null);
+                                }}
+                                className="px-4 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold hover:bg-[#001e40] transition-colors"
+                              >
+                                Update
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setEditingOcr(null)}
+                              className="px-4 py-1.5 rounded-lg text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <OcrRichText text={displayOcr} isMcq={sec.name.toLowerCase().includes("mcq")} />
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Chinese 短文填空 quiz preview — mirrors the quiz
                     player's inline 4-option pickers so admins can
