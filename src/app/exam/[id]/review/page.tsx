@@ -3603,20 +3603,20 @@ function ExamReviewContent({ id }: { id: string }) {
                                             if (isBlankAnswer && !sp.diagramBase64 && !sp.refImageBase64) return null;
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             // Both drawable AND non-drawable subparts now use
-                                            // natural image aspect. The submission endpoint
-                                            // auto-trims white margins for non-drawable canvases
-                                            // (writing scratchpad with no background diagram),
-                                            // so a tall canvas where the student only wrote a
-                                            // few lines no longer renders as a half-blank
-                                            // rectangle. Drawable subparts (background diagram
-                                            // present) skip trim since we want to preserve
-                                            // the printed diagram intact.
+                                            // natural image aspect AND auto-trim. The trim only
+                                            // collapses uniform white edges, so printed diagrams
+                                            // survive intact while trailing blank scratchpad
+                                            // below the diagram (or below the student's writing)
+                                            // gets cropped off. Previously drawable subparts
+                                            // skipped trim out of caution, but in practice the
+                                            // diagram has enough non-white content for sharp.trim
+                                            // to recognise its bounds.
                                             return (
                                               <div
                                                 className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative"
                                               >
                                                 <SubmissionImage
-                                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}${sp.diagramBase64 ? "&trim=0" : ""}`}
+                                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
                                                   imgStyle={{ width: "100%", height: "auto", display: "block" }}
@@ -3739,18 +3739,18 @@ function ExamReviewContent({ id }: { id: string }) {
                           if (isBlankAnswer && !hasDrawable) return null;
                           const overlayKey = `question:${currentQ.id}`;
                           // Wrapper height comes from the trimmed image's
-                          // natural aspect (height: auto). Drawable
-                          // (background diagram) answers skip server-side
-                          // trim so the printed diagram stays whole;
-                          // non-drawable writing canvases trim to ink
-                          // bounds + 10 px padding, killing the trailing
-                          // blank space the student didn't write into.
+                          // natural aspect (height: auto). Server-side
+                          // trim runs for both drawable and non-drawable
+                          // canvases — the threshold-30 sharp.trim only
+                          // collapses uniform white edges, so a printed
+                          // background diagram survives intact while the
+                          // trailing blank scratchpad below it gets cropped.
                           return (
                             <div>
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
                               <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative">
                                 <SubmissionImage
-                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}${hasDrawable ? "&trim=0" : ""}`}
+                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="block"
                                   imgStyle={{ width: "100%", height: "auto", display: "block" }}
