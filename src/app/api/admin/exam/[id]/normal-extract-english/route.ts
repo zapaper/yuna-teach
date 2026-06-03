@@ -186,24 +186,49 @@ async function detectAcrossSectionPages(args: {
       if (sectionQuestionIds.has(q.id) && q.pageIndex != null) stored.push(q.pageIndex);
     }
     if (stored.length > 0) {
-      const min = Math.min(...stored);
+      let min = Math.min(...stored);
       const max = Math.max(...stored);
+      // If every question in this section was tagged with pageIndex=0
+      // (Clean Extract's most common failure mode — assigns the cover
+      // page when it can't resolve a real page), use the previous
+      // question's pageIndex as the floor. Same logic for any other
+      // section whose stored pageIndex is clearly too low: trust the
+      // question that came BEFORE this section's first question.
+      //
+      // Without this, comp-OEQ sections at the end of Booklet B
+      // (Q66-Q75) all pageIndex=0 → scan range 0..6 → real content on
+      // pages 16-17 never reached.
+      const firstSectionOrderIdx = (() => {
+        let lo = Infinity;
+        for (let i = 0; i < allQuestions.length; i++) {
+          if (sectionQuestionIds.has(allQuestions[i].id)) { lo = i; break; }
+        }
+        return Number.isFinite(lo) ? lo : -1;
+      })();
+      if (firstSectionOrderIdx > 0) {
+        // Walk backwards until we find a question with a higher pageIndex.
+        for (let i = firstSectionOrderIdx - 1; i >= 0; i--) {
+          const priorPg = allQuestions[i].pageIndex;
+          if (priorPg != null && priorPg > min) {
+            const newMin = priorPg + 1;
+            if (newMin > min) {
+              console.log(`[normal-extract] ${sectionHint}: stored min=${min} looks too low; using prior question's pageIndex+1 = ${newMin}`);
+              min = newMin;
+            }
+            break;
+          }
+        }
+      }
       // Forward buffer: scan 6 extra pages beyond the last stored
       // pageIndex. Catches the case where the LAST question of a
       // section (often Comp OEQ tail) was tagged on page N by Clean
       // Extract but actually starts on page N+1 — without the buffer
       // Gemini never sees that page and the detection silently fails.
-      // Larger buffer (6 vs the old 2) is also needed for P5 school
-      // papers where Clean Extract sometimes assigns ALL Vocab MCQ /
-      // Vocab Cloze MCQ / Visual Text MCQ questions to page 0 (the
-      // cover) instead of their real pages — Q11+ end up unreachable
-      // within a tight buffer. Six extra pages covers any P5/P6
-      // Booklet A drift without being unreasonably costly.
       //
       // Cap at pageCount-1 so we don't try to read page_18 on an
-      // 18-page paper (Synthesis at the tail end + forward buffer
-      // would have warned about non-existent pages otherwise).
-      const upper = pageCount != null ? Math.min(max + 6, pageCount - 1) : max + 6;
+      // 18-page paper.
+      const lookAhead = Math.max(max + 6, min + 8); // ensure at least 8 pages forward from new min
+      const upper = pageCount != null ? Math.min(lookAhead, pageCount - 1) : lookAhead;
       for (let i = min; i <= upper; i++) pagesToScan.push(i);
       console.log(`[normal-extract] ${sectionHint}: pageIndex range [${min},${max}] → scanning pages ${pagesToScan.join(",")} (upper cap=${upper}, pageCount=${pageCount ?? "?"})`);
     }
@@ -239,10 +264,15 @@ async function detectAcrossSectionPages(args: {
     if (r.warning) warnings.push(r.warning);
     if (r.detections) detectionsByPage.set(r.pageIdx, r.detections);
   }
-  // Summary: which expected nums DIDN'T turn up anywhere.
+  // Summary: which expected nums DIDN'T turn up anywhere (normalized).
   const allDetectedNums = new Set<string>();
-  for (const dets of detectionsByPage.values()) for (const d of dets) allDetectedNums.add(d.questionNum);
-  const missing = expectedNums.filter(n => !allDetectedNums.has(n));
+  for (const dets of detectionsByPage.values()) {
+    for (const d of dets) {
+      allDetectedNums.add(d.questionNum);
+      allDetectedNums.add(normalizeQuestionNum(d.questionNum));
+    }
+  }
+  const missing = expectedNums.filter(n => !allDetectedNums.has(n) && !allDetectedNums.has(normalizeQuestionNum(n)));
   if (missing.length > 0) {
     console.log(`[normal-extract] ${sectionHint}: ${missing.length} expected nums NOT detected on any scanned page: ${missing.join(",")}`);
   }
@@ -259,15 +289,33 @@ function collectSectionQuestionIds(sections: SecMeta[], allQuestions: QuestionRo
   return ids;
 }
 
+// Normalize a question number so "69 (a)" / "69(a)" / "69 a" / "69a"
+// all map to the same key. Clean Extract stores PSLE subpart numbers
+// as "69 (a)" with spaces + parens; Gemini reports them as just "69"
+// or "69a" depending on what it sees on the page. Without
+// normalization, expected "69 (a)" never matches detected "69a".
+function normalizeQuestionNum(num: string): string {
+  return num.trim().toLowerCase().replace(/[\s()]+/g, "");
+}
+
 // Build a global { questionNum -> { pageIdx, yPctTop, xPctLeft } } map
 // from all per-page Gemini detections. Trusts whichever page detected
 // the question rather than the question's stored pageIndex — heals
 // papers where Clean Extract assigned the wrong page.
+//
+// Keyed by the NORMALIZED form so detection lookups by either format
+// ("69 (a)" or "69a") both hit. flattenDetections also stores each
+// detection under its raw key for backward-compat with callers that
+// happen to pass the exact same string Gemini returned.
 function flattenDetections(detectionsByPage: Map<number, Detection[]>): Map<string, { pageIdx: number; yPctTop: number; xPctLeft: number }> {
   const out = new Map<string, { pageIdx: number; yPctTop: number; xPctLeft: number }>();
   for (const [pageIdx, dets] of detectionsByPage.entries()) {
     for (const d of dets) {
-      if (!out.has(d.questionNum)) {
+      const norm = normalizeQuestionNum(d.questionNum);
+      if (!out.has(norm)) {
+        out.set(norm, { pageIdx, yPctTop: d.yPctTop, xPctLeft: d.xPctLeft });
+      }
+      if (d.questionNum !== norm && !out.has(d.questionNum)) {
         out.set(d.questionNum, { pageIdx, yPctTop: d.yPctTop, xPctLeft: d.xPctLeft });
       }
     }
@@ -321,7 +369,7 @@ async function extractSequential(args: {
 
     let sectionUpdated = 0;
     for (const q of sectionQuestions) {
-      const det = detByNum.get(q.questionNum);
+      const det = detByNum.get(q.questionNum) ?? detByNum.get(normalizeQuestionNum(q.questionNum));
       if (!det) {
         warnings.push(`Q${q.questionNum} not detected by Gemini on any scanned page.`);
         bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: q.pageIndex, yStartPct: null, yEndPct: null, xStartPct: null, xEndPct: null, status: "not_detected" });
@@ -329,7 +377,7 @@ async function extractSequential(args: {
       }
       const samePageSorted = sectionQuestions
         .map(qq => {
-          const d = detByNum.get(qq.questionNum);
+          const d = detByNum.get(qq.questionNum) ?? detByNum.get(normalizeQuestionNum(qq.questionNum));
           return d && d.pageIdx === det.pageIdx ? { qq, d } : null;
         })
         .filter((x): x is { qq: QuestionRow; d: NonNullable<typeof det> } => x != null)
@@ -395,7 +443,7 @@ async function extractAnchoredCrop(args: {
     let sectionUpdated = 0;
     for (let qi = sec.startIndex; qi <= sec.endIndex && qi < allQuestions.length; qi++) {
       const q = allQuestions[qi];
-      const det = detByNum.get(q.questionNum);
+      const det = detByNum.get(q.questionNum) ?? detByNum.get(normalizeQuestionNum(q.questionNum));
       if (!det) {
         warnings.push(`Q${q.questionNum} not detected by Gemini on any scanned page.`);
         bounds.push({ id: q.id, questionNum: q.questionNum, pageIndex: q.pageIndex, yStartPct: null, yEndPct: null, xStartPct: null, xEndPct: null, status: "not_detected" });
