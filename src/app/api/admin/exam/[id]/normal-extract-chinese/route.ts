@@ -598,16 +598,18 @@ export async function POST(
       });
       break;
     case "duanwen":
-      // 短文填空 — like English grammar cloze but the Chinese passage
-      // wraps differently and a single blank often sits between two
-      // visual lines. Slightly wider y window than English grammar
-      // cloze (yTop 5 instead of 3, yBottom 3 below the marker).
+      // 短文填空 — extract the WHOLE ROW containing the question
+      // number, and if the answer/options wrap to the next line,
+      // include that too. Crop is a wide horizontal strip:
+      //   x = leftish margin → right edge (full row width)
+      //   y = ~1.5% above the Q-number → ~6% below (covers
+      //       the Q's row + most of the following row for wrap).
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
         sectionHint: "短文填空 — Chinese passage with numbered blanks. Word bank labels 一/二/.../八 (or 1-8) selected to fill each blank.",
-        xLeftDelta: 6, xRightDelta: 14, yTopDelta: 5, yBottomDelta: 3,
+        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 6,
         pageCount: paper.pageCount ?? undefined,
       });
       break;
