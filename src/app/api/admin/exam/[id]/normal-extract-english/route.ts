@@ -332,6 +332,7 @@ async function extractSequential(args: {
   allQuestions: QuestionRow[];
   sectionHint: string;
   pageCount?: number;
+  pageRange?: { start: number; endExclusive: number };
 }): Promise<RunOutput> {
   const { sections, allQuestions } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
@@ -346,6 +347,7 @@ async function extractSequential(args: {
     allQuestions,
     sectionHint: args.sectionHint,
     pageCount: args.pageCount,
+    pageRange: args.pageRange,
   });
 
   if (detectionsByPage.size === 0) {
@@ -580,6 +582,25 @@ export async function POST(
     }, { status: 400 });
   }
 
+  // For booklet-a, prefer the metadata.papers booklet range as the
+  // explicit scan range. Clean Extract sometimes assigns wildly wrong
+  // pageIndex values to MCQ questions (e.g. Listening Comp pages,
+  // page 0 cover); the booklet's known startPage from metadata is
+  // far more reliable than the question-level pageIndex.
+  let bookletAPageRange: { start: number; endExclusive: number } | undefined;
+  if (sectionType === "booklet-a" && Array.isArray(meta.papers)) {
+    const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
+    const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
+    if (bookletA?.questionsStartPage) {
+      const start = Math.max(0, bookletA.questionsStartPage - 1); // 1-based → 0-based
+      const endExclusive = bookletB?.questionsStartPage
+        ? Math.max(start + 1, bookletB.questionsStartPage - 1)
+        : Math.min((paper.pageCount ?? Infinity), start + 12); // 12-page cap if Booklet B unknown
+      bookletAPageRange = { start, endExclusive };
+      console.log(`[normal-extract] booklet-a pageRange from metadata.papers = [${start}, ${endExclusive})`);
+    }
+  }
+
   let result: RunOutput;
   switch (sectionType) {
     case "booklet-a":
@@ -589,6 +610,7 @@ export async function POST(
         allQuestions: paper.questions,
         sectionHint: "Booklet A MCQ stack (Grammar / Vocab / Vocab Cloze / Visual Text), sequential numbering",
         pageCount: paper.pageCount ?? undefined,
+        pageRange: bookletAPageRange,
       });
       break;
     case "comp-oeq":
