@@ -1,0 +1,220 @@
+# Master Class: PSLE Math — Geometry Mastery (Shape Properties, Symmetry & Nets)
+# -------------------------------------------------------------------------------
+# Sequel to math-geometry-angles. That class taught the 5 generic angle
+# patterns (basics, parallel lines, isosceles, two-shape glue, folded
+# paper). This class drills the three specific PSLE workloads that the
+# generic patterns don't fully cover:
+#
+#   1) Shape-property angle hunts — parallelogram, rhombus, trapezium,
+#      isosceles. The "know the shape rules cold" topic.
+#   2) Symmetry + reflection — lines of symmetry, folded-paper angles
+#      (folding = reflection in action).
+#   3) Nets of solids — cuboid, triangular prism, pyramid, cylinder.
+#
+# Pool reality (PSLE + P6 prelims, Geometry-tagged):
+#   - shape-property angle hunts: 96 questions (7 MCQ, 89 OEQ)
+#   - symmetry / reflection / fold: 31 questions (12 MCQ, 19 OEQ)
+#   - nets of solids: 16 questions (7 MCQ, 9 OEQ)
+#
+# Quiz spec (18 questions):
+#   - 6 MCQ — 2 from each subtopic (round-robin)
+#   - 12 OEQ — 8 shape-property + 2 symmetry-reflection + 2 nets
+#
+# Slide flow (8 slides):
+#   0  Welcome — 3 workloads
+#   1  Shape-property cheat sheet (the rules for each shape)
+#   2  Shape-property worked example A — parallelogram + isosceles
+#   3  Shape-property worked example B — trapezium angle hunt
+#   4  Symmetry & reflection basics + folded-paper trick
+#   5  Symmetry/reflection worked example
+#   6  Nets of solids — read the net, count faces, fold mentally
+#   7  Practice CTA
+
+slug: math-geometry-mastery
+subject: math
+level: P5-P6
+topicLabel: Geometry Mastery (Shapes, Symmetry & Nets)
+# Pulls from "Geometry" tagged questions across PSLE + P6 papers; the
+# stem classifier above routes each to one of the three subtopics.
+topicLabelExtras: ["Geometry"]
+practiceStemRegex: "(parallelogram|rhombus|trapezium|isosceles|symmetr|reflect|folded|fold\\s+along|net\\s+(?:of|was|is|can|cannot|could|below|above|shown))"
+paperLevels: [PSLE, P6]
+noSubTopicFilter: true
+title: "PSLE Math — Geometry Mastery"
+
+stats:
+  psleQuestions: 143
+  psleSubjectPercent: 12
+  totalPracticePool: 143
+  psleQuestionsInPool: 143
+  schoolQuestionsInPool: 0
+  pctOeq: 82
+  headline: >-
+    Across PSLE 2016-2025 plus top-school P6 prelims, geometry pulls
+    **~12% of the Math paper**. Three workloads dominate: shape-property
+    angle hunts, symmetry/reflection (incl. folded paper), and nets of
+    solids. Each has a fixed recipe — memorise the rules per shape,
+    apply them mechanically, and the marks fall out.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Geometry Mastery"
+    mascotImage: /master-class/patterns/panda-welcome.png
+    body: >-
+      Three workloads carry most of the geometry marks. Each one is a
+      recipe — once you know the shape's rules, the question solves
+      itself. We'll cover all three, then drill them together.
+    bullets:
+      - "**Workload 1 — Shape-property angle hunts.** Parallelogram, rhombus, trapezium, isosceles. Each shape has its own angle rules (opposite angles equal, adjacent sum to 180°, etc). Most heavy 4-mark Paper 2 questions live here."
+      - "**Workload 2 — Symmetry & reflection.** Lines of symmetry on a 2D figure. Folded-paper questions are reflection in action — the fold preserves both side length AND angles."
+      - "**Workload 3 — Nets of solids.** Cuboid, triangular prism, pyramid. Read the net, count the faces, mentally fold to check opposite-face pairs."
+
+  # ─── Slide 1: Shape-property cheat sheet ─────────────────────
+  - title: "Workload 1 — Shape-property cheat sheet"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      Memorise these rules. When the question says "ABCD is a
+      parallelogram / rhombus / trapezium", the rules below unlock
+      immediately — don't try to re-derive them in the exam.
+    bullets:
+      - "**Parallelogram** — opposite sides parallel & equal; opposite angles equal; adjacent angles sum to 180°; diagonals bisect each other (not at 90°)."
+      - "**Rhombus** — all 4 sides equal; opposite angles equal; adjacent angles sum to 180°; diagonals bisect at 90° AND bisect the corner angles. Each diagonal splits the rhombus into TWO isosceles triangles."
+      - "**Trapezium** — exactly one pair of parallel sides. NOT usually isosceles in PSLE — only assume equal legs if the figure marks them as equal."
+      - "**Isosceles triangle** — 2 sides equal (the equal-side marks tell you which). The 2 base angles (opposite the equal sides) are EQUAL. Sum of all 3 angles = 180°."
+      - "**Equilateral triangle** — 3 sides equal, all 3 angles 60°. Treat as a free anchor whenever you see one."
+      - "**Cheat sheet drill:** before any angle hunt, write down every rule from the shape's row above. Then look at the figure and pick which rule applies first."
+
+  # ─── Slide 2: Worked example — parallelogram + isosceles ────
+  - title: "Worked example A — parallelogram + hidden isosceles"
+    mascotImage: /master-class/patterns/panda-teaching-action.png
+    body: >-
+      The most common heavy 4-mark Paper 2 layout: named parallelogram
+      or rhombus + an equal-side mark = a hidden isosceles triangle.
+      Chain shape-rule → isosceles → triangle sum → straight line.
+    bullets:
+      - "**Real PSLE 2017 Q27 (2 marks):** ABCD is a parallelogram. AED and BFC are straight lines. ∠DEF = 108°, ∠BFA = 90°. Find ∠AFE."
+      - "Step 1 — ∠CFE = 180° − 108° = 72° (co-interior angles, DE // CF using AB // DC and the transversal EF)."
+      - "Step 2 — ∠AFE = 180° − 90° − 72° = **18°** (angles on straight line BFC, with ∠BFA = 90°)."
+      - "**Real PSLE 2021 QP2-13 (4 marks):** ABCD is a trapezium with AB // DC. AFB and EFC are straight lines, AE = EB, ∠EBC = 94°. Find ∠AEF."
+      - "Step 1 — ∠EAB = 180° − 94° = 86° (co-interior, EF transversal across AB // DC)."
+      - "Step 2 — ∠EBA = ∠EAB = 86° (isosceles AEB, AE = EB → base angles equal)."
+      - "Step 3 — ∠AEB = 180° − 86° − 86° = 8° (sum of angles in triangle AEB)."
+      - "Step 4 — ∠AEF = 180° − 8° = **172°** (angles on straight line AFB)."
+
+  # ─── Slide 3: Worked example — trapezium / rhombus pair ─────
+  - title: "Worked example B — rhombus + parallelogram chain"
+    mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
+    body: >-
+      Two named shapes sharing a side or a vertex. Chase the angle by
+      hopping between the two shape rules — opposite angles equal,
+      adjacent sum to 180° — until you land on the asked angle.
+    bullets:
+      - "**Real PSLE 2016 QP2-7 (4 marks, part b):** ABCD is a parallelogram, DEFG is a rhombus, CDE is a straight line. ∠ABC = 51°, ∠GAD = 25°, ∠FGE = 35°. Find ∠AGF."
+      - "Step 1 — ∠GEF = ∠FGE = 35° (rhombus side EF = GF → isosceles EFG, base angles equal)."
+      - "Step 2 — ∠GFE = 180° − 35° − 35° = 110° (triangle EFG sum)."
+      - "Step 3 — ∠GDE = ∠GFE = 110° (opposite angles of a rhombus)."
+      - "Step 4 — ∠CDA = ∠CBA = 51° (opposite angles of parallelogram ABCD)."
+      - "Step 5 — ∠ADG = 180° − 51° − 110° = 19° (angles on straight line CDE)."
+      - "Step 6 — ∠AGD = 180° − 25° − 19° = 136° (triangle ADG sum)."
+      - "Step 7 — ∠DGE = (180° − 110°) ÷ 2 = 35° (diagonal of rhombus splits into two equal isosceles halves)."
+      - "Step 8 — ∠AGF = 360° − 136° − 35° − 35° = **154°** (angles at a point G)."
+
+  # ─── Slide 4: Symmetry & reflection ──────────────────────────
+  - title: "Workload 2 — Symmetry & reflection (incl. folded paper)"
+    mascotImage: /master-class/patterns/panda-teaching-differences.png
+    body: >-
+      Reflection (and folding) preserves TWO things: (1) side length —
+      the reflected side is the same length as the original; (2) angle
+      — the reflected angle equals the original angle. Most PSLE
+      symmetry questions exploit one of these two preservations.
+    bullets:
+      - "**Line of symmetry** — fold the figure along that line and the two halves match exactly. Equilateral triangle: 3 lines. Square: 4 lines. Rectangle: 2 lines. Rhombus (non-square): 2 lines (the diagonals). Parallelogram (non-rhombus): 0 lines."
+      - "**Reflection rule for angles:** the angle on each side of the mirror line is identical. So if a folded edge makes a 30° angle with the fold line, the unfolded edge also makes 30°."
+      - "**Folded paper trick:** when a corner of a square / rectangle is folded so it lands on another point on the paper, the fold creates equal sides (folding preserves length). Two equal sides → look for an isosceles triangle. If THREE sides are equal → equilateral triangle, all angles 60° (this is the unlock)."
+      - "**Common PSLE move:** identify the fold line, mark every equal side it creates, then ask 'do I have an isosceles or equilateral triangle hidden here?'"
+
+  # ─── Slide 5: Folded-paper worked example ────────────────────
+  - title: "Worked example C — folded-paper angle"
+    mascotImage: /master-class/patterns/panda-teaching-nth-term.png
+    body: >-
+      Folded-paper PSLE question. The fold creates a hidden equilateral
+      triangle; the original right-angle corners of the square finish
+      the angle-chase.
+    bullets:
+      - "**Real PSLE 2025 Q14 (2 marks):** Square PQRS. Line GH divides the paper into two equal halves. Paper is folded so corners P and Q meet at point E on GH. Which statements are true: A) ∠MRE = 30°, B) ∠RMG = 105°, C) RSE is equilateral?"
+      - "Step 1 — ER = ES = RS (folding preserves length: P → E means ER = PR = RS; Q → E means ES = QS = RS). All three sides of triangle RSE are equal."
+      - "→ Triangle RSE is equilateral, so **statement C is true**."
+      - "Step 2 — ∠ERS = 60° (angle of equilateral triangle). The square's corner is ∠SRH = 90°, so ∠ERH = 90° − 60° = 30°."
+      - "Step 3 — ∠MRE = 30° ÷ 2 = **15°** (M is the midpoint where the fold crease meets ER, so ∠MRE bisects ∠ERH). So **statement A is FALSE** (the question says 30°)."
+      - "Step 4 — In triangle MRH: 180° − 90° − 15° = 75°."
+      - "Step 5 — ∠RMG = 180° − 75° = **105°** (angles on a straight line). So **statement B is true**."
+      - "**Answer: B and C only.**"
+
+  # ─── Slide 6: Nets of solids ─────────────────────────────────
+  - title: "Workload 3 — Nets of solids"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
+    body: >-
+      A net is the solid 'unfolded' onto a flat sheet. Mentally fold
+      the net back up to check what solid it makes, which face is
+      opposite which, and where a labelled vertex / edge ends up.
+    bullets:
+      - "**Cuboid net** — 6 rectangles. Opposite faces are EQUAL. Count: 3 pairs of equal rectangles."
+      - "**Cube net** — 6 squares, all equal. There are exactly 11 distinct cube nets — but you don't need to memorise them, just check by mental folding."
+      - "**Triangular prism** — 2 triangles (the ends) + 3 rectangles (the sides). The 2 triangles are CONGRUENT (same shape and size)."
+      - "**Pyramid (square base)** — 1 square + 4 congruent triangles meeting at a single apex."
+      - "**Cylinder** — 2 circles (top & bottom) + 1 rectangle that wraps around (the rectangle's longer side = circumference of the circle = π × diameter)."
+      - "**Net-check drill:** (1) count the faces — do they match the solid? (2) which face is opposite which after folding? (3) does an edge length on one face match the edge of the face it folds against?"
+      - "**Watch out:** in a question like 'which face is opposite the shaded face when the net is folded?', shade or label the opposite pair in your mind BEFORE you tick an answer."
+
+  # ─── Slide 7: Practice CTA ───────────────────────────────────
+  - title: "Let's get some practice!"
+    mascotImage: /master-class/patterns/panda-cta.png
+    body: >-
+      Time to drill all three workloads. This quiz pulls real
+      PSLE-style questions across shape-property, symmetry/reflection,
+      and nets — weighted to where the PSLE marks actually are.
+    bullets:
+      - "**6 MCQ + 12 OEQ** — heavier on shape-property OEQ (the dominant Paper 2 workload), with symmetry and nets sampled to keep them sharp."
+      - "After you submit, the AI looks at which workload you struggled most on and offers a focused follow-up quiz on just that workload."
+      - "Mistakes auto-saved — we'll come back to them in 1 week."
+    cta:
+      label: Click here to start your practice quiz
+      quizSpec:
+        title: "Mastery: Geometry Quiz 2"
+        mcq: 6
+        oeq: 12
+        # 12 OEQ split across the 3 subtopics. shape-property is the
+        # PSLE Paper 2 heavy-lifter; symmetry and nets are sampled.
+        # MCQ (6) defaults to round-robin → 2 per subtopic.
+        subTopicOeqMin:
+          shape-property: 8
+          symmetry-reflection: 2
+          nets: 2
+
+commonMistakes: []
+
+keyWords:
+  - { word: "parallelogram", definition: "Four-sided shape with both pairs of opposite sides parallel. Opposite sides equal, opposite angles equal, adjacent angles sum to 180°. Diagonals bisect each other (NOT at 90° in general)." }
+  - { word: "rhombus", definition: "Four-sided shape with ALL 4 sides equal. Opposite angles equal, adjacent angles sum to 180°. Diagonals bisect at 90° AND bisect each corner angle." }
+  - { word: "trapezium", definition: "Four-sided shape with exactly ONE pair of parallel sides. In PSLE, not usually isosceles unless the figure explicitly marks the equal legs." }
+  - { word: "isosceles triangle", definition: "Triangle with 2 sides equal. The 2 base angles (across from the equal sides) are EQUAL. Sum of all 3 angles = 180°." }
+  - { word: "equilateral triangle", definition: "Triangle with all 3 sides equal. All 3 angles are 60°. Use as a 'free anchor' whenever it appears in a figure." }
+  - { word: "line of symmetry", definition: "A line along which a figure can be folded so the two halves match exactly. Square has 4 lines of symmetry; rectangle 2; equilateral triangle 3; parallelogram (non-rhombus) 0." }
+  - { word: "reflection", definition: "A mirror image of a figure across a line. Reflection preserves length AND angle — the reflected side is the same length and the reflected angle is the same size." }
+  - { word: "folded paper", definition: "PSLE technique where a corner is folded so it lands on another point. The fold creates equal sides (folding preserves length), which often makes a hidden isosceles or equilateral triangle." }
+  - { word: "net of a solid", definition: "The solid 'unfolded' onto a flat sheet. Cuboid has 6 rectangles (3 pairs). Cube has 6 squares (11 distinct nets). Triangular prism has 2 triangles + 3 rectangles. Square pyramid has 1 square + 4 triangles." }
+
+subTopics:
+  - id: shape-property
+    label: Shape-property angle hunts (parallelogram, rhombus, trapezium, isosceles)
+    description: "Heavy 4-mark Paper 2 workload. Named quadrilateral + equal-side mark → hidden isosceles → chain the shape rules. Most-tested geometry pattern in PSLE 2016-2025."
+    slideIdx: 1
+  - id: symmetry-reflection
+    label: Symmetry, reflection & folded-paper angles
+    description: "Folding = reflection. Folded sides equal original sides, folded angles equal original angles. Look for hidden isosceles / equilateral triangles created by the fold."
+    slideIdx: 4
+  - id: nets
+    label: Nets of solids (cuboid, prism, pyramid, cylinder)
+    description: "Read the net, count the faces, mentally fold to check opposite-face pairs and edge lengths. Cuboid: 6 rectangles in 3 pairs. Triangular prism: 2 triangles + 3 rectangles. Square pyramid: 1 square + 4 triangles."
+    slideIdx: 6
