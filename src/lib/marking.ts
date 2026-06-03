@@ -850,7 +850,13 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - STEP 1 — Verify question number: locate the printed question number and confirm it matches the question you are marking.
   - STEP 2 — Read the underlined error word: find the underlined/marked word in the printed passage near this question number. Read it carefully. This tells you WHAT KIND of error the student was asked to fix (e.g. a misspelling, wrong tense, wrong form). Log it: "Error word: [word]".
   - STEP 3 — Blue ink check: confirm there is blue ink written INSIDE the answer box. If no blue ink, award 0 marks.
-  - STEP 4 — Transcribe letter by letter: spell out EVERY letter of the handwritten blue-ink word, one at a time. Write as "x-x-x-x-x". Do NOT infer or guess the word — transcribe only what the ink physically shows, stroke by stroke. Log it: "Transcription: [x-x-x-x-x]".
+  - STEP 4 — Transcribe letter by letter, stroke by stroke. THIS IS THE MOST CRITICAL STEP — get this right or the whole question is mis-marked. Look at each letter shape carefully and write it down: "x-x-x-x-x".
+      * Common handwriting confusions to resolve before deciding: a vs o (closed top loop is "a"; oval is "o"), e vs i (loop with a tail is "e"; single short stroke is "i"), n vs h (two humps no tail is "n"; tall first stroke is "h"), u vs v (rounded base is "u"; pointed V is "v"), c vs e (open curve is "c"; closed loop is "e"), s vs 5, l vs 1 vs I, t vs f, m vs n vs nn, double letters (ll, tt, rr, pp, mm, nn) vs single.
+      * Look at letter HEIGHT: ascenders (b, d, f, h, k, l, t) rise above x-height; descenders (g, j, p, q, y) drop below baseline.
+      * Look at CONNECTIONS: in cursive, letters may run together — count the humps/loops, don't lose a letter.
+      * Do NOT guess the word from the error word or expected answer — transcribe only what the ink physically shows. The whole point of marking is to catch a real spelling slip.
+      * If a letter is genuinely ambiguous AND only one reading produces a correctly-spelled word that matches the expected answer, pick that reading and note "Letter X ambiguous between Y and Z — read as Y." Do NOT do this when the ambiguous letter could also be a wrong letter; only when picking gives the student the benefit of the doubt on a legitimately unreadable stroke.
+      Log it: "Transcription: [x-x-x-x-x]".
   - STEP 5 — Cross-check against the error word: if the error word looks like a misspelling of the expected answer (e.g. error word is "beleive", expected is "believe"), the student's answer is VERY LIKELY a near-miss spelling attempt. In this case, apply MAXIMUM strictness — even one wrong or missing letter = 0.
   - STEP 6 — Count letters: count letters in your transcription vs expected answer. If counts differ, immediately award 0 (do NOT show letter count in notes).
   - STEP 7 — Compare position by position: for each position, confirm the letter matches exactly. One mismatch = 0.
@@ -876,8 +882,9 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - There is usually one correct rewritten sentence or one accepted form.
   - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
   - Award 0 if meaning is changed, tense is wrong, or key words are missing.
-  - Minor spelling errors that do not change the word: still award marks.
   - The given word/phrase MUST be used in the rewritten sentence. If the student did not use the given word, award 0.
+  - SPELLING (this is a HANDWRITTEN scanned answer — every word is a deliberate spelling choice by the student). Synthesis is all-or-nothing — no partial marks. ANY misspelled word in the rewritten sentence = 0. Do this AFTER you have transcribed the student's writing exactly. Apply the same letter-by-letter handwriting reading discipline as (b) Editing — don't infer a correctly-spelled word from context, transcribe what the ink physically shows. Ignore punctuation mistakes (missing commas, full stops, missing/extra apostrophes, capitalisation in the middle of the sentence) for now — those don't affect the spelling check.
+  - In notes when awarding 0 for spelling: state the misspelled word and the correct spelling. Example: "Misspelled 'recieved' (should be 'received') — 0 marks."
 
   (e) COMPREHENSION OEQ (open-ended, short answer):
   - The answer key gives the expected key point(s).
@@ -887,7 +894,9 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - In notes, state which key point was present or missing.
   - NAMED-NOUN STRICTNESS (high failure mode — read carefully): every concrete noun, proper noun, story-specific object, place, and event named in the answer key is a REQUIRED marking point. The student's answer MUST contain that exact noun (or a clear single-word synonym — NOT a vague paraphrase). Missing a named noun = MISSING for that key point.
     Examples of named nouns: "recipe book", "surprise", "birthday party", "the letter", "Mr Tan", "the kitchen", "the gift". A student who writes "she wanted to distract him" instead of "to hide the recipe book / the surprise" has lost BOTH named nouns and scores 0 on a 1-mark question. Award marks ONLY when the named noun (or its direct synonym) is literally present.
-    Before awarding any marks: STEP A — list every concrete/named noun in the key. STEP B — for each, check whether it (or a direct synonym) appears in the student's answer. STEP C — if any are missing for a 1-mark question, award 0; for a 2-mark question, deduct one mark per missing named noun.`;
+    Before awarding any marks: STEP A — list every concrete/named noun in the key. STEP B — for each, check whether it (or a direct synonym) appears in the student's answer. STEP C — if any are missing for a 1-mark question, award 0; for a 2-mark question, deduct one mark per missing named noun.
+  - SPELLING (this is a HANDWRITTEN scanned answer). After deciding marks on content, scan the student's answer for misspelled English words. Deduct 0.5 marks for EACH misspelled word, with a floor of 0 (can't go negative). Apply the same letter-by-letter handwriting reading discipline as (b) Editing — transcribe what the ink physically shows, don't infer a correct spelling from context. Ignore punctuation mistakes (missing commas, full stops, apostrophes, mid-sentence capitalisation) for now — punctuation does NOT count as a spelling mistake.
+  - In notes when deducting for spelling: list each misspelled word and the correct spelling. Example: "Content full marks (2). Spelling: 'recieved' → 'received', 'beleived' → 'believed'. −1.0 for two spelling mistakes. Final: 1.0."`;
 }
 
 /**
