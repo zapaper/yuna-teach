@@ -118,6 +118,31 @@ export async function sendWelcomeEmail(p: WelcomeEmailParams): Promise<void> {
     console.log(
       `[welcome-email] sent to=${p.parentEmail} parentId=${p.parentId} childId=${p.childId} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`,
     );
+    // Report this send back to the markforyou-mailer so it shows up in
+    // the Users tab's history alongside the cron-sent nurture emails.
+    // Fire-and-forget — never block signup on this.
+    const mailerUrl = process.env.MAILER_URL;
+    const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
+    if (mailerUrl && mailerToken) {
+      fetch(`${mailerUrl.replace(/\/$/, "")}/api/sent_log`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${mailerToken}`,
+        },
+        body: JSON.stringify({
+          to: p.parentEmail,
+          to_name: p.parentDisplayName,
+          subject: rendered.subject,
+          body: rendered.html,
+          source: "welcome",
+          campaign_id: "onboarding-day00",
+          days_offset: 0,
+        }),
+      }).catch((err) => {
+        console.warn(`[welcome-email] mailer log failed: ${err?.message ?? err}`);
+      });
+    }
   } catch (err) {
     const e = err as { response?: { body?: unknown; statusCode?: number } } & Error;
     console.error(
