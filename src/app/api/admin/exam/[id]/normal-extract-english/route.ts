@@ -122,9 +122,23 @@ CRITICAL — SUBPARTS: this section contains questions with sub-labels (a), (b),
 
 Match flexibly against the expected list: "66a" / "66(a)" / "66 (a)" are all the same question. Pick whichever exact form appears in the expected list and use it as your questionNum.` : "";
 
+  // Cloze sections (grammar / comp cloze) have the question number
+  // INLINE WITHIN the passage text — e.g. "oysters (46) ______ are
+  // important". The generic "NOT a reference inside text" rule below
+  // makes Gemini skip these. Override that for cloze sections so it
+  // reports every (N) that sits next to a writable blank.
+  const isClozeSection = /cloze/i.test(sectionHint);
+  const clozeGuidance = isClozeSection ? `
+
+CLOZE INLINE QUESTION NUMBERS: this is a cloze section. Each question number is printed INLINE WITHIN the passage text, in parentheses like "(46)", "(47)", placed IMMEDIATELY BEFORE or AFTER a blank line. Examples:
+    "oysters (46) ______________ environmental 'superstars'"
+    "She knew (50) ______________ nothing about oysters"
+    "the cages out (55) ______________ from the water"
+These INLINE (N) markers ARE the question numbers — report each one. The general rule "NOT a reference inside text" does NOT apply here; in a cloze section every (N) inside the passage IS a question marker, and you must report all of them.` : "";
+
   const prompt = `You are reading page ${pageIndex + 1} of a Singapore PSLE English paper. The section on this page is: ${sectionHint}.
 
-Identify EVERY question number that is the START of a question on this page (a numbered question stem or numbered blank, NOT a page number, NOT a reference inside text).
+Identify EVERY question number that is the START of a question on this page (a numbered question stem or numbered blank, NOT a page number, NOT a reference inside text).${clozeGuidance}
 
 For each one, report:
 - "questionNum": the bare number as it appears (e.g. "1", "12", "21", "66 (a)", "66 (b)")
