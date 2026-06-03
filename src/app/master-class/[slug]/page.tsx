@@ -294,11 +294,31 @@ function SlideCard({
   return (
     // Slide sizing — fixed height + width on tablet/desktop so every
     // slide feels uniform. min-h fallback on phones. Card is a flex
-    // column: header (TTS controls) at top, scrollable body in the
-    // middle, Prev/Next nav PINNED to the bottom regardless of how
-    // much content the slide has. Without this, the Next button
-    // would jump up and down as slide content varies.
+    // column: slide nav (Prev/Next) PINNED at the top so its position
+    // is identical across every slide regardless of body length,
+    // TTS controls under it, scrollable body in the middle.
     <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:min-h-[860px] flex flex-col">
+      {/* Slide nav — pinned at top so the Next button never jumps
+          around as slides have different content lengths. */}
+      <div className="mb-4 pb-3 border-b border-slate-100 flex items-center justify-between gap-3">
+        <button
+          onClick={onPrev}
+          disabled={slideIdx === 0}
+          className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 disabled:opacity-40"
+        >
+          ← Prev
+        </button>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Slide {slideIdx + 1} / {totalSlides}
+        </span>
+        <button
+          onClick={onNext}
+          disabled={slideIdx === totalSlides - 1}
+          className="px-4 py-2 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] disabled:opacity-40"
+        >
+          Next →
+        </button>
+      </div>
       {/* TTS controls */}
       <div className="flex items-center justify-between mb-4 gap-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
@@ -435,25 +455,6 @@ function SlideCard({
         </div>
       )}
 
-      </div>
-
-      {/* Slide nav — pinned to the bottom of the card (outside the
-          scroll area), so position is fixed regardless of content. */}
-      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-        <button
-          onClick={onPrev}
-          disabled={slideIdx === 0}
-          className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 disabled:opacity-40"
-        >
-          ← Prev
-        </button>
-        <button
-          onClick={onNext}
-          disabled={slideIdx === totalSlides - 1}
-          className="px-4 py-2 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] disabled:opacity-40"
-        >
-          Next →
-        </button>
       </div>
     </div>
   );
