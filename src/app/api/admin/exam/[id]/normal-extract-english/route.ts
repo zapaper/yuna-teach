@@ -199,6 +199,7 @@ async function detectAcrossSectionPages(args: {
       // within a tight buffer. Six extra pages covers any P5/P6
       // Booklet A drift without being unreasonably costly.
       for (let i = min; i <= max + 6; i++) pagesToScan.push(i);
+      console.log(`[normal-extract] ${sectionHint}: pageIndex range [${min},${max}] → scanning pages ${pagesToScan.join(",")}`);
     }
   }
 
@@ -213,21 +214,31 @@ async function detectAcrossSectionPages(args: {
   // pages — sequential calls (~8s each) blow past Cloudflare's 100s
   // proxy timeout. Parallel keeps total time bounded by the slowest
   // single Gemini call (~10s).
+  console.log(`[normal-extract] ${sectionHint}: expected question numbers = ${expectedNums.join(",")}`);
   const results = await Promise.all(pagesToScan.map(async (pageIdx) => {
     const pagePath = path.join(PAGES_DIR, paperId, `page_${pageIdx}.jpg`);
     let pageBytes: Buffer;
     try {
       pageBytes = await fs.readFile(pagePath);
     } catch {
+      console.log(`[normal-extract] page_${pageIdx}.jpg NOT FOUND on disk`);
       return { pageIdx, warning: `Page image not found on disk: page_${pageIdx}.jpg`, detections: null as Detection[] | null };
     }
     const detections = await findQuestionPositionsOnPage(pageBytes, pageIdx, expectedNums, sectionHint);
+    console.log(`[normal-extract] page ${pageIdx}: detected ${detections.length} question numbers: ${detections.map(d => `Q${d.questionNum}@y${d.yPctTop.toFixed(1)}`).join(", ") || "(none)"}`);
     return { pageIdx, warning: null as string | null, detections };
   }));
 
   for (const r of results) {
     if (r.warning) warnings.push(r.warning);
     if (r.detections) detectionsByPage.set(r.pageIdx, r.detections);
+  }
+  // Summary: which expected nums DIDN'T turn up anywhere.
+  const allDetectedNums = new Set<string>();
+  for (const dets of detectionsByPage.values()) for (const d of dets) allDetectedNums.add(d.questionNum);
+  const missing = expectedNums.filter(n => !allDetectedNums.has(n));
+  if (missing.length > 0) {
+    console.log(`[normal-extract] ${sectionHint}: ${missing.length} expected nums NOT detected on any scanned page: ${missing.join(",")}`);
   }
   return { detectionsByPage, warnings };
 }
@@ -435,8 +446,45 @@ export async function POST(
     papers?: PapersEntry[];
   };
   let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+  console.log(`[normal-extract] sectionType=${sectionType}, englishSections matched: ${sections.length}`);
 
-  // Fallback 1: PSLE-style Booklet A using metadata.papers page ranges.
+  // Fallback 1: per-syllabusTopic groupings. Clean Extract tags every
+  // question with its section name (e.g. "Grammar Cloze", "Vocabulary
+  // MCQ", "Comprehension Open Ended") even on PSLE / school papers
+  // that don't carry englishSections metadata. Group consecutive
+  // questions by topic, then keep groups whose topic matches the
+  // requested sectionType.
+  //
+  // This used to be Fallback 2, behind a metadata.papers-based
+  // pageIndex-range filter for booklet-a. That broke on P5 school
+  // papers where Clean Extract tagged Vocab MCQ / Vocab Cloze /
+  // Visual Text MCQ all with pageIndex=0 (the cover), excluding
+  // Q11-Q25 from the section entirely. Topic groupings are immune
+  // to pageIndex drift since they use the explicit topic label.
+  if (sections.length === 0) {
+    const groups: Array<{ topic: string; startIndex: number; endIndex: number }> = [];
+    let currentTopic: string | null = null;
+    for (let i = 0; i < paper.questions.length; i++) {
+      const t = paper.questions[i].syllabusTopic;
+      if (!t) { currentTopic = null; continue; }
+      if (t !== currentTopic) {
+        groups.push({ topic: t, startIndex: i, endIndex: i });
+        currentTopic = t;
+      } else {
+        groups[groups.length - 1].endIndex = i;
+      }
+    }
+    sections = groups
+      .filter(g => sectionMatches(g.topic, sectionType))
+      .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
+    console.log(`[normal-extract] topic fallback → ${sections.length} sections: ${sections.map(s => `"${s.label}"[${s.startIndex}..${s.endIndex}]`).join(", ")}`);
+  }
+
+  // Fallback 2: PSLE-style Booklet A using metadata.papers page ranges.
+  // Last resort when neither englishSections nor syllabusTopic groupings
+  // produced anything. Uses the booklet's printed page range and pulls
+  // every question whose pageIndex falls in it — fragile because Clean
+  // Extract can tag questions with the wrong page.
   if (sections.length === 0 && sectionType === "booklet-a" && Array.isArray(meta.papers)) {
     const bookletA = meta.papers.find(p => /booklet a/i.test(p.label));
     const bookletB = meta.papers.find(p => /booklet b/i.test(p.label));
@@ -456,32 +504,9 @@ export async function POST(
           startIndex: matchingIndices[0],
           endIndex: matchingIndices[matchingIndices.length - 1],
         }];
+        console.log(`[normal-extract] metadata.papers fallback → 1 section "${bookletA.label}"[${matchingIndices[0]}..${matchingIndices[matchingIndices.length - 1]}] (${matchingIndices.length} questions in page range [${startPage},${endPage}))`);
       }
     }
-  }
-
-  // Fallback 2: derive sections from question.syllabusTopic groupings.
-  // Clean Extract tags each question with its section name (e.g. "Grammar
-  // Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze",
-  // "Comprehension Open Ended") even on PSLE papers that don't carry
-  // englishSections metadata. Group consecutive questions by topic, then
-  // keep groups whose topic matches the requested sectionType.
-  if (sections.length === 0) {
-    const groups: Array<{ topic: string; startIndex: number; endIndex: number }> = [];
-    let currentTopic: string | null = null;
-    for (let i = 0; i < paper.questions.length; i++) {
-      const t = paper.questions[i].syllabusTopic;
-      if (!t) { currentTopic = null; continue; }
-      if (t !== currentTopic) {
-        groups.push({ topic: t, startIndex: i, endIndex: i });
-        currentTopic = t;
-      } else {
-        groups[groups.length - 1].endIndex = i;
-      }
-    }
-    sections = groups
-      .filter(g => sectionMatches(g.topic, sectionType))
-      .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
   }
 
   if (sections.length === 0) {
