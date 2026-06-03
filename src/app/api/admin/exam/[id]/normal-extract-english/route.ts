@@ -218,34 +218,36 @@ async function detectAcrossSectionPages(args: {
     if (stored.length > 0) {
       let min = Math.min(...stored);
       const max = Math.max(...stored);
-      // If every question in this section was tagged with pageIndex=0
-      // (Clean Extract's most common failure mode — assigns the cover
-      // page when it can't resolve a real page), use the previous
-      // question's pageIndex as the floor. Same logic for any other
-      // section whose stored pageIndex is clearly too low: trust the
-      // question that came BEFORE this section's first question.
+      // Cover-page rescue: when EVERY question in this section was
+      // tagged with pageIndex=0 (Clean Extract's most common failure
+      // mode — assigns the cover when it can't resolve a real page),
+      // look back to the question BEFORE this section and use its
+      // pageIndex+1 as the floor.
       //
-      // Without this, comp-OEQ sections at the end of Booklet B
-      // (Q66-Q75) all pageIndex=0 → scan range 0..6 → real content on
-      // pages 16-17 never reached.
-      const firstSectionOrderIdx = (() => {
-        let lo = Infinity;
-        for (let i = 0; i < allQuestions.length; i++) {
-          if (sectionQuestionIds.has(allQuestions[i].id)) { lo = i; break; }
-        }
-        return Number.isFinite(lo) ? lo : -1;
-      })();
-      if (firstSectionOrderIdx > 0) {
-        // Walk backwards until we find a question with a higher pageIndex.
-        for (let i = firstSectionOrderIdx - 1; i >= 0; i--) {
-          const priorPg = allQuestions[i].pageIndex;
-          if (priorPg != null && priorPg > min) {
-            const newMin = priorPg + 1;
-            if (newMin > min) {
-              console.log(`[normal-extract] ${sectionHint}: stored min=${min} looks too low; using prior question's pageIndex+1 = ${newMin}`);
+      // Only fires when stored min === 0 to avoid being triggered by
+      // a single mis-tagged question elsewhere — e.g. Henry Park's
+      // Q27 (grammar cloze) was tagged at p23 while the rest of the
+      // section sat at p15, which used to fool the heuristic into
+      // bumping the editing section's floor from 16 to 24.
+      if (min === 0) {
+        const firstSectionOrderIdx = (() => {
+          let lo = Infinity;
+          for (let i = 0; i < allQuestions.length; i++) {
+            if (sectionQuestionIds.has(allQuestions[i].id)) { lo = i; break; }
+          }
+          return Number.isFinite(lo) ? lo : -1;
+        })();
+        if (firstSectionOrderIdx > 0) {
+          // Walk backwards until we find a question with a non-zero
+          // pageIndex. Use that question's page + 1 as the floor.
+          for (let i = firstSectionOrderIdx - 1; i >= 0; i--) {
+            const priorPg = allQuestions[i].pageIndex;
+            if (priorPg != null && priorPg > 0) {
+              const newMin = priorPg + 1;
+              console.log(`[normal-extract] ${sectionHint}: stored min=0 (cover-tagged); using prior question's pageIndex+1 = ${newMin}`);
               min = newMin;
+              break;
             }
-            break;
           }
         }
       }
