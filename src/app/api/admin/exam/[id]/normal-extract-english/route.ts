@@ -172,8 +172,9 @@ async function detectAcrossSectionPages(args: {
   allQuestions: QuestionRow[];
   sectionHint: string;
   pageRange?: { start: number; endExclusive: number };
+  pageCount?: number;
 }): Promise<{ detectionsByPage: Map<number, Detection[]>; warnings: string[] }> {
-  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange } = args;
+  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange, pageCount } = args;
   const warnings: string[] = [];
 
   let pagesToScan: number[] = [];
@@ -198,8 +199,13 @@ async function detectAcrossSectionPages(args: {
       // cover) instead of their real pages — Q11+ end up unreachable
       // within a tight buffer. Six extra pages covers any P5/P6
       // Booklet A drift without being unreasonably costly.
-      for (let i = min; i <= max + 6; i++) pagesToScan.push(i);
-      console.log(`[normal-extract] ${sectionHint}: pageIndex range [${min},${max}] → scanning pages ${pagesToScan.join(",")}`);
+      //
+      // Cap at pageCount-1 so we don't try to read page_18 on an
+      // 18-page paper (Synthesis at the tail end + forward buffer
+      // would have warned about non-existent pages otherwise).
+      const upper = pageCount != null ? Math.min(max + 6, pageCount - 1) : max + 6;
+      for (let i = min; i <= upper; i++) pagesToScan.push(i);
+      console.log(`[normal-extract] ${sectionHint}: pageIndex range [${min},${max}] → scanning pages ${pagesToScan.join(",")} (upper cap=${upper}, pageCount=${pageCount ?? "?"})`);
     }
   }
 
@@ -277,6 +283,7 @@ async function extractSequential(args: {
   sections: SecMeta[];
   allQuestions: QuestionRow[];
   sectionHint: string;
+  pageCount?: number;
 }): Promise<RunOutput> {
   const { sections, allQuestions } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
@@ -290,6 +297,7 @@ async function extractSequential(args: {
     sectionQuestionIds,
     allQuestions,
     sectionHint: args.sectionHint,
+    pageCount: args.pageCount,
   });
 
   if (detectionsByPage.size === 0) {
@@ -355,6 +363,7 @@ async function extractAnchoredCrop(args: {
   xRightDelta: number;
   yTopDelta: number;
   yBottomDelta: number;
+  pageCount?: number;
 }): Promise<RunOutput> {
   const { sections, allQuestions, xLeftDelta, xRightDelta, yTopDelta, yBottomDelta } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
@@ -368,6 +377,7 @@ async function extractAnchoredCrop(args: {
     sectionQuestionIds,
     allQuestions,
     sectionHint: args.sectionHint,
+    pageCount: args.pageCount,
   });
 
   if (detectionsByPage.size === 0) {
@@ -530,6 +540,7 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Booklet A MCQ stack (Grammar / Vocab / Vocab Cloze / Visual Text), sequential numbering",
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
     case "comp-oeq":
@@ -538,6 +549,7 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "Comprehension open-ended questions, sequential numbering, multi-line stems",
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
     case "grammar-cloze":
@@ -549,6 +561,7 @@ export async function POST(
         // Grammar Cloze: yStart 3% above Q-number top, yEnd at top.
         // xLeft -5%, xRight +11%.
         xLeftDelta: 5, xRightDelta: 11, yTopDelta: 3, yBottomDelta: 0,
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
     case "comp-cloze":
@@ -560,6 +573,7 @@ export async function POST(
         // Comp Cloze: yStart 4.5% above Q-number; yEnd at Q-number top.
         // xLeft -8, xRight +12.
         xLeftDelta: 8, xRightDelta: 12, yTopDelta: 4.5, yBottomDelta: 0,
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
     case "editing":
@@ -572,6 +586,7 @@ export async function POST(
         // xRight pushed out to +25% so the full corrected word /
         // clause + a comfortable margin to the right fits in the crop.
         xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5,
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
     case "synthesis":
@@ -584,6 +599,7 @@ export async function POST(
         // Wide x: -5 left to keep some margin, +75 right for the
         // full writing area.
         xLeftDelta: 5, xRightDelta: 75, yTopDelta: 0, yBottomDelta: 10,
+        pageCount: paper.pageCount ?? undefined,
       });
       break;
   }
