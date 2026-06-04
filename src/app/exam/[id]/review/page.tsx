@@ -2812,7 +2812,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                           <div className="space-y-0.5 mt-1">
                                             {stemLines.map((sl: string, sli: number) => {
                                               const tr = sl.trim();
-                                              if (tr.match(/^\|[\s-:|]+\|$/)) return null;
+                                              // Separator must contain at least one '-' — otherwise
+                                              // blank input rows like "| | |" get swallowed here and
+                                              // every student-answer cell below them lands on the
+                                              // wrong rowIdx (Q72 in Ruthie's quiz).
+                                              if (tr.match(/^\|[\s:|]*-+[\s:|-]*\|$/)) return null;
                                               if (tr.startsWith("|") && tr.endsWith("|")) {
                                                 const tableCells = tr.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c.trim());
                                                 const ri = rowIdx++;
@@ -4075,7 +4079,9 @@ function ReviewRichText({ text }: { text: string }) {
       {lines.map((line, li) => {
         const trimmed = line.trim();
         if (!trimmed) return <br key={li} />;
-        if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
+        // Same fix as the table renderer above: real separators need a '-'
+        // so blank rows ("| | |") aren't swallowed.
+        if (trimmed.match(/^\|[\s:|]*-+[\s:|-]*\|$/)) return null;
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
           const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           return (
