@@ -58,6 +58,13 @@ function Content() {
   const [results, setResults] = useState<AuditResult[]>([]);
   const [hideMatches, setHideMatches] = useState(true);
   const [hideMinor, setHideMinor] = useState(false);
+  // Default: hide official PSLE papers (their MOE answer keys are
+  // already vetted; the older school papers are where typos creep
+  // in). Toggle off to include PSLE.
+  const [hidePsle, setHidePsle] = useState(true);
+  // Sort order — earliest scanned first by default so the admin can
+  // sweep older scans where the bulk of stored-key issues live.
+  const [sortOrder, setSortOrder] = useState<"earliest" | "latest">("earliest");
 
   useEffect(() => {
     fetch(`/api/admin/papers?userId=${userId}`)
@@ -77,8 +84,15 @@ function Content() {
       .filter(p => p.paperType === null) // masters only
       .filter(p => !subjectFilter || p.subject === subjectFilter)
       .filter(p => !term || p.title.toLowerCase().includes(term))
+      .filter(p => !hidePsle || !/psle/i.test(p.title))
+      .slice()
+      .sort((a, b) => {
+        const aT = new Date(a.createdAt).getTime();
+        const bT = new Date(b.createdAt).getTime();
+        return sortOrder === "earliest" ? aT - bT : bT - aT;
+      })
       .slice(0, 200);
-  }, [papers, search, subjectFilter]);
+  }, [papers, search, subjectFilter, hidePsle, sortOrder]);
 
   function toggle(id: string) {
     setSelectedIds(prev => {
@@ -115,7 +129,10 @@ function Content() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
-      <div className="max-w-5xl mx-auto px-5 lg:px-8 py-8">
+      {/* lg:ml-56 clears the fixed-width admin sidebar so the content
+          isn't hidden behind it (same pattern as /admin/papers). */}
+      <div className="lg:ml-56 pb-24 lg:pb-0">
+        <div className="max-w-5xl mx-auto px-5 lg:px-8 py-8">
         <h1 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">Audit answer keys</h1>
         <p className="text-sm text-slate-500 mb-6">
           Pick 1-3 papers and run an audit. Each paper&apos;s answer-key pages are re-extracted with gemini-3.1-pro-preview and diffed against the stored question.answer rows. Takes ~30s per paper.
@@ -139,6 +156,15 @@ function Content() {
               <option value="">All subjects</option>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            <select
+              value={sortOrder}
+              onChange={e => setSortOrder(e.target.value as "earliest" | "latest")}
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-400"
+              title="Sort by scanned/created date"
+            >
+              <option value="earliest">Earliest first</option>
+              <option value="latest">Latest first</option>
+            </select>
             <button
               onClick={runAudit}
               disabled={selectedIds.size === 0 || auditing}
@@ -146,6 +172,17 @@ function Content() {
             >
               {auditing ? "Running…" : `Run audit (${selectedIds.size})`}
             </button>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hidePsle}
+                onChange={e => setHidePsle(e.target.checked)}
+                className="w-4 h-4 accent-violet-500"
+              />
+              Hide official PSLE papers (focus on school-paper scans)
+            </label>
           </div>
         </div>
 
@@ -210,6 +247,7 @@ function Content() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

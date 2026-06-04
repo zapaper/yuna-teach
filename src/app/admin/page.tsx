@@ -134,6 +134,20 @@ function AdminContent() {
       color: "bg-rose-50 text-rose-600",
     },
     {
+      icon: "fact_check",
+      label: "Audit Answer Keys",
+      description: "Re-extract answer-key pages with gemini-3.1-pro and diff against stored question.answer rows. Pick 1-3 papers; results stream in as cards with per-question status.",
+      href: `/admin/audit-answer-keys?userId=${userId}`,
+      color: "bg-violet-50 text-violet-600",
+    },
+    {
+      icon: "image_search",
+      label: "\"See Answer Image\" Sweep",
+      description: "Questions whose stored answer is just a pointer to a diagram (so the AI marker has nothing to match against). Grouped by paper, drill in to add a written description on /edit.",
+      href: `/admin/see-answer-image?userId=${userId}`,
+      color: "bg-orange-50 text-orange-600",
+    },
+    {
       icon: "ink_eraser",
       label: "Remask CamScanner Watermarks",
       description: "Paint a white box over the bottom-right of every page + the top-left of page 1, across every master paper. Idempotent.",
