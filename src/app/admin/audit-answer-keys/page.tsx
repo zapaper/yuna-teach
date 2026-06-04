@@ -294,32 +294,109 @@ function ResultCard({ result, hideMatches, hideMinor, userId }: { result: AuditR
           {filteredDiffs.length === 0 ? (
             <p className="text-xs text-emerald-700 italic">All clear (no rows match the visible filters).</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-500">
-                    <th className="px-2 py-1.5 text-left font-semibold">Q</th>
-                    <th className="px-2 py-1.5 text-left font-semibold">Status</th>
-                    <th className="px-2 py-1.5 text-left font-semibold">Stored</th>
-                    <th className="px-2 py-1.5 text-left font-semibold">Extracted</th>
-                    <th className="px-2 py-1.5 text-left font-semibold">Topic</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDiffs.map(d => (
-                    <tr key={d.qId} className="border-b border-slate-100 align-top">
-                      <td className="px-2 py-1.5 font-bold text-slate-700 whitespace-nowrap">Q{d.qNum}</td>
-                      <td className="px-2 py-1.5"><StatusBadge status={d.status} /></td>
-                      <td className="px-2 py-1.5 text-slate-700">{truncate(d.stored, 220)}</td>
-                      <td className="px-2 py-1.5 text-slate-700">{truncate(d.extracted, 220)}</td>
-                      <td className="px-2 py-1.5 text-slate-400 text-[11px]">{d.topic ?? ""}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              {filteredDiffs.map(d => <DiffRow key={d.qId} diff={d} userId={userId} />)}
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+function DiffRow({ diff, userId }: { diff: Diff; userId: string }) {
+  // Local action state so the row can be marked as applied / kept /
+  // failed without re-fetching the whole audit. Stays sticky after
+  // the action so the admin can see what they just did.
+  const [action, setAction] = useState<"idle" | "saving" | "applied" | "kept" | "error">("idle");
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+
+  async function applyExtracted() {
+    setAction("saving");
+    setErrMsg(null);
+    try {
+      const r = await fetch(`/api/exam/questions/${diff.qId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answer: diff.extracted }),
+      });
+      if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        setErrMsg(`HTTP ${r.status}${body ? `: ${body.slice(0, 120)}` : ""}`);
+        setAction("error");
+        return;
+      }
+      setAction("applied");
+    } catch (err) {
+      setErrMsg(err instanceof Error ? err.message : String(err));
+      setAction("error");
+    }
+  }
+
+  const editUrl = `/exam/${""}`; // not used here — kept for parity; per-Q open uses the qId.
+
+  return (
+    <div className={`rounded-xl border ${action === "applied" ? "border-emerald-200 bg-emerald-50/40" : action === "kept" ? "border-slate-200 bg-slate-50/60" : "border-slate-200 bg-white"} p-3`}>
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-700">Q{diff.qNum}</span>
+          <StatusBadge status={diff.status} />
+          {diff.marks != null && <span className="text-[10px] text-slate-400">{diff.marks} mark{diff.marks === 1 ? "" : "s"}</span>}
+          {diff.topic && <span className="text-[10px] text-slate-400 truncate max-w-[160px]" title={diff.topic}>· {diff.topic}</span>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {action === "idle" && (
+            <>
+              <button
+                onClick={applyExtracted}
+                disabled={!diff.extracted || diff.status === "missing-extracted"}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title={diff.status === "missing-extracted" ? "Nothing to apply — extractor didn't return a row" : "Replace the stored answer with the extracted version"}
+              >
+                ✓ Use extracted
+              </button>
+              <button
+                onClick={() => setAction("kept")}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                title="Keep the stored answer, mark this row as reviewed"
+              >
+                ✗ Keep stored
+              </button>
+            </>
+          )}
+          {action === "saving" && <span className="text-[11px] font-bold text-slate-500">Saving…</span>}
+          {action === "applied" && <span className="text-[11px] font-bold text-emerald-700">✓ Applied</span>}
+          {action === "kept" && (
+            <button
+              onClick={() => setAction("idle")}
+              className="text-[11px] font-bold text-slate-500 hover:text-slate-700 underline"
+              title="Undo — bring the buttons back"
+            >Kept · undo</button>
+          )}
+          {action === "error" && (
+            <button onClick={applyExtracted} className="text-[11px] font-bold text-rose-700 underline">Retry</button>
+          )}
+          <a
+            href={`/exam/questions/${diff.qId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-slate-400 hover:text-slate-600"
+            title="Open question in a new tab"
+          >open</a>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Currently stored</p>
+          <p className="text-xs text-slate-800 whitespace-pre-wrap break-words">{diff.stored || "—"}</p>
+        </div>
+        <div className="rounded-lg border border-violet-200 bg-violet-50/50 p-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600 mb-1">Extracted (3.1-pro)</p>
+          <p className="text-xs text-slate-800 whitespace-pre-wrap break-words">{diff.extracted || "—"}</p>
+        </div>
+      </div>
+      {errMsg && action === "error" && (
+        <p className="text-[11px] text-rose-700 mt-2">Save failed: {errMsg}</p>
       )}
     </div>
   );
