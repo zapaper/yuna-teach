@@ -195,6 +195,11 @@ interface ReviewData {
   // revision paper IS a curated set of past mistakes, so a 0% on
   // the ring is just demoralising).
   isRevision?: boolean;
+  // True only when this paper was printed and the student wrote on the
+  // printable PDF (signal: any question has printableBounds). In-app
+  // typed quizzes never have submission images on disk, so we hide
+  // the "Scanned page — what Gemini saw" blocks for them.
+  isPrintedAndScanned?: boolean;
 }
 
 export default function ExamReviewPage({
@@ -3131,7 +3136,7 @@ function ExamReviewContent({ id }: { id: string }) {
                       typed English section. Comp-OEQ's split-screen
                       grid grows past its fixed-height stop in the lg
                       viewport — that's accepted; the page scrolls. */}
-                  {(isGrammarCloze || isEditing || isCompCloze || isSynthesis || isCompOeq) && (() => {
+                  {data.isPrintedAndScanned && (isGrammarCloze || isEditing || isCompCloze || isSynthesis || isCompOeq) && (() => {
                     const uniquePages = Array.from(
                       new Set(
                         sectionQuestions
@@ -3904,7 +3909,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         actually wrote. Non-English papers already get a
                         side-by-side submission image up top for OEQ; we
                         skip here to avoid double-showing. */}
-                    {isQuiz && (paperSubject ?? "").toLowerCase().includes("english") && currentQ.pageIndex >= 0 && (() => {
+                    {isQuiz && data.isPrintedAndScanned && (paperSubject ?? "").toLowerCase().includes("english") && currentQ.pageIndex >= 0 && (() => {
                       const sub = getSubmissionPage(currentQ.pageIndex);
                       return (
                         <div className="mt-6 pt-5 border-t border-[#e5eeff]">
@@ -4048,7 +4053,23 @@ function ExamReviewContent({ id }: { id: string }) {
 
 /** Renders rich text with tables, bold, tick boxes for review */
 function ReviewRichText({ text }: { text: string }) {
-  const lines = text.split("\n");
+  // Comp-OEQ + multi-part answer keys store parts joined by " | "
+  // (space-pipe-space) on a single line: "(a) ... | (b) ... | (c) ...".
+  // Split those out so each part gets its own paragraph and the reader
+  // can scan the (a)-(d) breakdown instead of staring at one giant blob.
+  // We only split " | " on lines that DON'T look like a Markdown table
+  // row ("|...|") — those still go through the table renderer below.
+  const rawLines = text.split("\n");
+  const lines: string[] = [];
+  for (const ln of rawLines) {
+    const trimmed = ln.trim();
+    const looksLikeTableRow = trimmed.startsWith("|") && trimmed.endsWith("|");
+    if (!looksLikeTableRow && ln.includes(" | ")) {
+      for (const seg of ln.split(" | ")) lines.push(seg);
+    } else {
+      lines.push(ln);
+    }
+  }
   return (
     <div className="space-y-0.5">
       {lines.map((line, li) => {

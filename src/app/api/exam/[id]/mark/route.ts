@@ -71,6 +71,16 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Was this paper actually printed-and-scanned? printableBounds gets
+  // populated when the printable PDF is generated; in-app typed quizzes
+  // never have it. The review UI uses this to decide whether to show
+  // "Scanned page — what Gemini saw" — otherwise the broken <img> shows
+  // up under every section of a typed quiz (no submission files on disk).
+  const printableCount = await prisma.examQuestion.count({
+    where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
+  });
+  const isPrintedAndScanned = printableCount > 0;
+
   // If this is a clone, use the master's question structure as the source of
   // truth for questionNum, answer, marksAvailable, and pageIndex. Pull marking
   // results (marksAwarded, markingNotes) from the clone by questionNum match.
@@ -124,7 +134,7 @@ export async function GET(
       // Surface isRevision so the review UI can suppress the score
       // ring on compiled-revision papers (would otherwise read 0%).
       const isRevision = !!(cloneMeta as { revisionMode?: string } | null)?.revisionMode;
-      return NextResponse.json({ ...rest, questions: merged, isRevision, ...(bookletScores ? { bookletScores } : {}) });
+      return NextResponse.json({ ...rest, questions: merged, isRevision, isPrintedAndScanned, ...(bookletScores ? { bookletScores } : {}) });
     }
   }
 
@@ -132,7 +142,7 @@ export async function GET(
   const { sourceExamId: _, metadata: paperMeta, ...response } = paper;
   const bookletScores = computeBookletScores(paper.metadata, paper.questions);
   const isRevision = !!(paperMeta as { revisionMode?: string } | null)?.revisionMode;
-  return NextResponse.json({ ...response, isRevision, ...(bookletScores ? { bookletScores } : {}) });
+  return NextResponse.json({ ...response, isRevision, isPrintedAndScanned, ...(bookletScores ? { bookletScores } : {}) });
 }
 
 // POST /api/exam/[id]/mark
