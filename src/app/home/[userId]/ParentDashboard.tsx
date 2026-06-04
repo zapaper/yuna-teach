@@ -110,21 +110,20 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 // Per-paper print + scan gate. English papers with normal extract
 // completed (all 6 sections — checked at the API via metadata.
 // normalExtractEnglish) are unblocked for any parent. Admins can
-// always print + scan (for QA). English papers without normal extract
-// are still gated to admin (P3 / synthetic — extraction unfinished).
-// Chinese stays blocked for everyone — its normal-extract + scan-back
-// pipeline isn't tuned yet.
+// always print + scan (for QA + Chinese rollout).
+// English papers without normal extract are still gated to admin
+// (P3 / synthetic — extraction unfinished). Chinese is admin-only
+// for now — the pipeline ships per-section.
 function subjectBlocksPrintScan(
   subject: string | null | undefined,
   isAdmin = false,
   hasNormalExtractEnglish = false,
 ): boolean {
   const s = (subject ?? "").toLowerCase();
-  if (s.includes("english")) return !(isAdmin || hasNormalExtractEnglish);
-  if (s.includes("chinese")) return true;
-  // Chinese-script subject strings sometimes survive normalisation.
   const raw = subject ?? "";
-  if (raw.includes("华文") || raw.includes("中文") || raw.includes("华语")) return true;
+  const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
+  if (s.includes("english")) return !(isAdmin || hasNormalExtractEnglish);
+  if (isChinese) return !isAdmin;
   return false;
 }
 
