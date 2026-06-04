@@ -192,15 +192,16 @@ export async function POST(request: NextRequest) {
     marks: number | null;
     error?: string;
   };
-  const diffs: Diff[] = new Array(paper.questions.length);
+  const questions = paper.questions;
+  const diffs: Diff[] = new Array(questions.length);
 
   // Bounded concurrency — N workers walking a shared cursor.
   let cursor = 0;
   async function worker() {
     while (true) {
       const idx = cursor++;
-      if (idx >= paper.questions.length) return;
-      const q = paper.questions[idx];
+      if (idx >= questions.length) return;
+      const q = questions[idx];
       const perQ: PerQ = {
         questionId: q.id,
         questionNum: q.questionNum,

@@ -7,7 +7,7 @@ import path from "path";
 import { extractExamPaperBackground } from "@/lib/extraction";
 import { tagSyllabusTopics } from "@/lib/gemini";
 import { bumpUserActivity } from "@/lib/track-activity";
-import { markQuizPaper, markFocusedTest } from "@/lib/marking";
+import { markQuizPaper, markFocusedTest, markExamPaper } from "@/lib/marking";
 import { guardCanAssign } from "@/lib/subscription";
 import { requireAccessToPaper, requireSession } from "@/lib/auth-guard";
 
@@ -121,7 +121,15 @@ export async function GET(
         });
         if (!hasStaleMcqMarks(staleCheck)) return;
         console.warn(`[exam GET] paper=${id} has stale MCQ marks — triggering background re-mark`);
-        const remark = paper.paperType === "quiz" ? markQuizPaper(id) : markFocusedTest(id);
+        // Same routing rule as /api/exam/[id]/mark: a paper is "printed
+        // and scanned" iff at least one question has printableBounds.
+        // That decides scan-back marker vs in-app marker, NOT subject.
+        const printableCount = await prisma.examQuestion.count({
+          where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
+        });
+        const remark = printableCount > 0
+          ? markExamPaper(id)
+          : paper.paperType === "quiz" ? markQuizPaper(id) : markFocusedTest(id);
         await remark;
       } catch (err) {
         console.warn(`[exam GET] auto-heal failed for ${id}:`, err);

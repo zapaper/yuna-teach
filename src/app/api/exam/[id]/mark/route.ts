@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { markExamPaper, remarkSingleQuestion, markFocusedTest, markQuizPaper } from "@/lib/marking";
 
@@ -210,16 +211,21 @@ export async function POST(
     data: { markingStatus: "in_progress" },
   });
 
-  // English Test Quiz: routes through markExamPaper (the bounds-based
-  // scan-back marker) instead of markQuizPaper. Same override that
-  // lives in lib/scan-submit — Re-mark from the review page needs to
-  // pick the same fork so existing scanned English papers can be
-  // re-marked under the new flow without re-scanning.
-  const subjectLc = (paper.subject ?? "").toLowerCase();
-  const isEnglishTestQuiz = paper.paperType === "quiz" && subjectLc.includes("english");
-  if (isEnglishTestQuiz) {
+  // Routing key: was this a PRINTED-AND-SCANNED submission, or an in-app
+  // typed/canvas one? The bounds-based scan-back marker (markExamPaper)
+  // is ONLY for the printed-and-scanned flow. printableBounds gets
+  // populated on every question when the printable PDF is generated,
+  // so its presence is the authoritative signal — never the subject.
+  // Earlier we routed all English quizzes here, which silently killed
+  // OEQ marking for in-app typed English quizzes (the scan-back marker
+  // has no typed-OEQ branch). See Ruthie's Q61–Q75 incident.
+  const printableCount = await prisma.examQuestion.count({
+    where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
+  });
+  const isPrintedAndScanned = printableCount > 0;
+  if (isPrintedAndScanned) {
     markExamPaper(id).catch((err) =>
-      console.error(`English test-quiz marking for ${id} failed:`, err)
+      console.error(`Printed-and-scanned marking for ${id} failed:`, err)
     );
   } else if (paper.paperType === "quiz") {
     markQuizPaper(id).catch((err) =>

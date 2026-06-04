@@ -2529,13 +2529,33 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       });
     });
 
-    await prisma.$transaction([
-      ...questionUpdates,
-      prisma.examPaper.update({
+    // Commit per-question updates first, then derive score + completeness
+    // from the freshly-committed state. Same guard as markQuizPaper —
+    // never trust the in-memory totalAwarded counter, and refuse to claim
+    // "complete" if any non-skipped question is missing a verdict.
+    if (questionUpdates.length > 0) await prisma.$transaction(questionUpdates);
+
+    const finalState = await prisma.examQuestion.findMany({
+      where: { examPaperId: paperId },
+      select: { id: true, questionNum: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
+    });
+    const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+    const unmarked = finalState.filter(q =>
+      q.studentAnswer !== "__SKIPPED__" &&
+      (q.marksAwarded == null || q.markingNotes == null)
+    );
+    if (unmarked.length > 0) {
+      console.error(`[marking] Paper ${paperId} has ${unmarked.length} questions with no marking output: ${unmarked.map(q => `Q${q.questionNum}`).join(", ")} — marking as failed`);
+      await prisma.examPaper.update({
         where: { id: paperId },
-        data: { score: totalAwarded, markingStatus: "complete" },
-      }),
-    ]);
+        data: { score: finalScore, markingStatus: "failed" },
+      });
+      return;
+    }
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { score: finalScore, markingStatus: "complete" },
+    });
     // Validate marks total
     if (paper.totalMarks) {
       const expectedTotal = parseFloat(paper.totalMarks);
@@ -2546,7 +2566,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         console.warn(`[marking] Marks validation: sum of marksAvailable (${actualAvailable}) != paper totalMarks (${expectedTotal})`);
       }
     }
-    console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
+    console.log(`[marking] Paper ${paperId} marked complete. Score: ${finalScore}`);
 
     // Auto-generate summary if instantFeedback is enabled (paper stays "complete" for parent review)
     if (paper.instantFeedback) {
@@ -2560,7 +2580,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
     // Auto-release if 100% score and student has skipReviewPerfect enabled
     const examTotalAvailable = [...validResults.values()].reduce((s, r) => s + (r.marksAvailable ?? 0), 0);
-    if (examTotalAvailable > 0 && totalAwarded >= examTotalAvailable && paper.assignedToId) {
+    if (examTotalAvailable > 0 && finalScore >= examTotalAvailable && paper.assignedToId) {
       const student = await prisma.user.findUnique({ where: { id: paper.assignedToId }, select: { settings: true } });
       const sSettings = (student?.settings ?? {}) as Record<string, unknown>;
       if (sSettings.skipReviewPerfect === true) {
@@ -5440,21 +5460,44 @@ Return ONLY valid JSON:
       })()));
     }
 
-    // Batch update OEQ marks + set paper score/status
-    await prisma.$transaction([
-      ...updates,
-      prisma.examPaper.update({
+    // Commit per-question updates first so the verification pass below
+    // sees the latest state, then derive score + status from that — never
+    // from the in-memory totalAwarded counter, which silently drifted to
+    // 0 on the Ruthie incident when OEQ updates were lost mid-transaction.
+    if (updates.length > 0) await prisma.$transaction(updates);
+
+    const finalState = await prisma.examQuestion.findMany({
+      where: { examPaperId: paperId },
+      select: { id: true, questionNum: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
+    });
+    const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+    // A question is "unmarked" when it has neither a written verdict
+    // (markingNotes) nor an awarded mark and the student didn't
+    // explicitly skip it. Refuse to claim "complete" in that state —
+    // dashboard will show the failed state and re-mark is available.
+    const unmarked = finalState.filter(q =>
+      q.studentAnswer !== "__SKIPPED__" &&
+      (q.marksAwarded == null || q.markingNotes == null)
+    );
+    if (unmarked.length > 0) {
+      console.error(`[quiz-marking] Paper ${paperId} has ${unmarked.length} questions with no marking output: ${unmarked.map(q => `Q${q.questionNum}`).join(", ")} — marking as failed`);
+      await prisma.examPaper.update({
         where: { id: paperId },
-        data: { score: totalAwarded, markingStatus: "complete" },
-      }),
-    ]);
+        data: { score: finalScore, markingStatus: "failed" },
+      });
+      return;
+    }
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { score: finalScore, markingStatus: "complete" },
+    });
 
     // Generate feedback
     await generateFeedbackSummary(paperId);
 
     // Auto-release if 100% score and student has skipReviewPerfect enabled
     const totalAvailable = paper.questions.reduce((sum, q) => sum + (q.marksAvailable ?? 0), 0);
-    if (totalAvailable > 0 && totalAwarded >= totalAvailable && paper.assignedToId) {
+    if (totalAvailable > 0 && finalScore >= totalAvailable && paper.assignedToId) {
       const student = await prisma.user.findUnique({ where: { id: paper.assignedToId }, select: { settings: true } });
       const settings = (student?.settings ?? {}) as Record<string, unknown>;
       if (settings.skipReviewPerfect === true) {
@@ -5463,7 +5506,7 @@ Return ONLY valid JSON:
       }
     }
 
-    console.log(`[quiz-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
+    console.log(`[quiz-marking] Paper ${paperId} done. Score: ${finalScore}`);
   } catch (err) {
     const current = await prisma.examPaper.findUnique({
       where: { id: paperId }, select: { markingStatus: true },
