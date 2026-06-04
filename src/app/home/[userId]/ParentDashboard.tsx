@@ -2211,6 +2211,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {recentActivities.map(paper => {
         const pct = scorePct(paper);
         const isMarking = paper.markingStatus === "in_progress";
+        // Show "Re-marking…" instead of "Marking…" when this is a
+        // re-mark of a previously completed paper (signalled by a
+        // non-null score from the previous marking pass). Same gate
+        // as the click-block — both fall out of isMarking.
+        const markingLabel = paper.score !== null ? "Re-marking…" : "Marking…";
         return (
           <div key={paper.id} onClick={() => {
               // Don't navigate while the AI marker is still running —
@@ -2233,7 +2238,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <div className="flex-1 min-w-0">
               <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
               <p className="text-xs text-[#43474f]">
-                {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                {isMarking ? markingLabel : relativeDate(paper.completedAt!)}
                 {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
               </p>
             </div>
@@ -2246,7 +2251,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               )}
               {isMarking ? (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                  <span className="text-xs font-extrabold text-blue-500">{markingLabel}</span>
                   <button
                     onClick={(e) => handleRemarkPaper(e, paper.id)}
                     title="Force re-mark"
@@ -3114,6 +3119,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     .map(paper => {
                       const pct = scorePct(paper);
                       const isMarking = paper.markingStatus === "in_progress";
+                      const markingLabel = paper.score !== null ? "Re-marking…" : "Marking…";
                       // iOS WebView has been unreliable with
                       // <div onClick> as a tap target — parents
                       // reported having to press many times to open a
@@ -3156,7 +3162,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
                             <p className="text-xs text-[#43474f]">
-                              {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                              {isMarking ? markingLabel : relativeDate(paper.completedAt!)}
                               {paper.subject && <> &middot; {paper.subject}</>}
                               {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
                             </p>
@@ -3170,7 +3176,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             )}
                             {isMarking ? (
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                                <span className="text-xs font-extrabold text-blue-500">{markingLabel}</span>
                                 <button
                                   onClick={(e) => handleRemarkPaper(e, paper.id)}
                                   title="Force re-mark"
@@ -3757,6 +3763,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       ) : recentActivities.map(paper => {
                         const pct = scorePct(paper);
                         const isMarking = paper.markingStatus === "in_progress";
+                        const markingLabel = paper.score !== null ? "Re-marking…" : "Marking…";
                         return (
                           <div key={paper.id} onClick={() => {
                               if (isMarking) return;
@@ -3768,21 +3775,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
                               }
                             }}
-                            className={`flex items-center gap-5 transition-opacity ${isMarking ? "opacity-60" : "cursor-pointer group hover:opacity-80"}`}>
+                            className={`flex items-center gap-5 transition-opacity ${isMarking ? "opacity-60 cursor-not-allowed" : "cursor-pointer group hover:opacity-80"}`}>
                             <div className="w-12 h-12 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#003366] shrink-0">
                               <span className="material-symbols-outlined">{activityIcon(paper)}</span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="font-bold text-[#001e40] truncate">{paper.title}</h5>
                               <p className="text-sm text-[#43474f]">
-                                {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                                {isMarking ? markingLabel : relativeDate(paper.completedAt!)}
                                 {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
                               {isMarking ? (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                                  <span className="text-xs font-extrabold text-blue-500">{markingLabel}</span>
                                   <button
                                     onClick={(e) => handleRemarkPaper(e, paper.id)}
                                     title="Force re-mark"

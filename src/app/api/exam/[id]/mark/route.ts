@@ -199,6 +199,17 @@ export async function POST(
   // Full paper mark — set status then fire and forget
   // (allow re-triggering even if previously in_progress, to recover from stuck jobs)
   //
+  // Mark status BEFORE firing so a re-mark from a completed/released
+  // paper immediately reflects in the dashboard (parent sees the
+  // "Marking…" placeholder + card becomes non-clickable). Without
+  // this the card would keep showing the OLD score while the marker
+  // re-runs in the background, which the user can then click into
+  // and see stale data.
+  await prisma.examPaper.update({
+    where: { id },
+    data: { markingStatus: "in_progress" },
+  });
+
   // English Test Quiz: routes through markExamPaper (the bounds-based
   // scan-back marker) instead of markQuizPaper. Same override that
   // lives in lib/scan-submit — Re-mark from the review page needs to
