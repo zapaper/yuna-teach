@@ -151,6 +151,10 @@ function Content() {
                         <p className="text-xs text-slate-400 mt-0.5">
                           {[p.subject, p.year, new Date(p.createdAt).toLocaleDateString()].filter(Boolean).join(" · ")}
                         </p>
+                        <p className="text-[11px] text-slate-500 mt-1 truncate" title={p.questions.map(q => `Q${q.questionNum}`).join(", ")}>
+                          {p.questions.slice(0, 12).map(q => `Q${q.questionNum}`).join(", ")}
+                          {p.questions.length > 12 ? `, +${p.questions.length - 12} more` : ""}
+                        </p>
                       </div>
                       <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded">{p.questions.length} flagged</span>
                       <a
@@ -176,7 +180,15 @@ function Content() {
                         <tbody>
                           {p.questions.map(q => (
                             <tr key={q.id} className="border-b border-slate-100 align-top">
-                              <td className="px-3 py-2 font-bold text-slate-700 whitespace-nowrap">Q{q.questionNum}</td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <a
+                                  href={`/exam/${p.id}/edit${userId ? `?userId=${userId}` : ""}#q-${q.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-bold text-violet-600 hover:underline"
+                                  title="Open this question on the /edit page"
+                                >Q{q.questionNum} →</a>
+                              </td>
                               <td className="px-3 py-2 text-slate-500">{q.marks ?? "—"}</td>
                               <td className="px-3 py-2">{q.hasImage ? <span className="text-emerald-600">✓</span> : <span className="text-rose-600">✗</span>}</td>
                               <td className="px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-slate-400">{q.matchType}</td>
