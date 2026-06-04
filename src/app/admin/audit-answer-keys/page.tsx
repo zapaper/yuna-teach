@@ -22,6 +22,7 @@ type Diff = {
   extracted: string;
   topic: string | null;
   marks: number | null;
+  error?: string;
 };
 
 type AuditResult = {
@@ -30,7 +31,7 @@ type AuditResult = {
   subject: string | null;
   year: string | null;
   answerPages?: number[];
-  pageResults?: Array<{ pageOneBased: number; count: number; error?: string }>;
+  pageReadErrors?: string[];
   questionCount?: number;
   counts?: { match: number; minor: number; diff: number; missingStored: number; missingExtracted: number };
   diffs?: Diff[];
@@ -286,9 +287,9 @@ function ResultCard({ result, hideMatches, hideMinor, userId }: { result: AuditR
             <Pill label="missing-extracted" count={counts.missingExtracted} bg="bg-blue-100" fg="text-blue-700" />
             <Pill label="match" count={counts.match} bg="bg-emerald-50" fg="text-emerald-700" />
           </div>
-          {result.pageResults && (
-            <p className="text-[11px] text-slate-400 mb-2">
-              Extracted: {result.pageResults.map(p => `p${p.pageOneBased}=${p.count}`).join(", ")}
+          {result.pageReadErrors && result.pageReadErrors.length > 0 && (
+            <p className="text-[11px] text-rose-500 mb-2">
+              Page read errors: {result.pageReadErrors.join(", ")}
             </p>
           )}
           {filteredDiffs.length === 0 ? (
@@ -397,6 +398,9 @@ function DiffRow({ diff, userId }: { diff: Diff; userId: string }) {
       </div>
       {errMsg && action === "error" && (
         <p className="text-[11px] text-rose-700 mt-2">Save failed: {errMsg}</p>
+      )}
+      {diff.error && (
+        <p className="text-[11px] text-rose-500 mt-2">Extract error: {diff.error}</p>
       )}
     </div>
   );
