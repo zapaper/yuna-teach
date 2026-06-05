@@ -271,6 +271,35 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     masterPaperId: string;
     paperTitle: string;
   } | null>(null);
+  // Admin viewer escape hatch: an admin looking at a student's home
+  // needs to be able to force a re-mark on a paper whose marker got
+  // stuck in_progress. The card itself stays inert for the student;
+  // this just toggles whether the small Re-mark pill renders next to
+  // "MARKING…". Authoritative session-cookie check on the API.
+  const [isAdminViewer, setIsAdminViewer] = useState(false);
+  useEffect(() => {
+    fetch("/api/admin/check").then(r => setIsAdminViewer(r.ok)).catch(() => setIsAdminViewer(false));
+  }, []);
+  const [forcingRemark, setForcingRemark] = useState<string | null>(null);
+  async function forceRemark(paperId: string) {
+    if (!confirm("Force a re-mark on this paper?")) return;
+    setForcingRemark(paperId);
+    try {
+      const res = await fetch(`/api/exam/${paperId}/mark`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        alert(`Re-mark failed (HTTP ${res.status}): ${body || "no body"}`);
+        return;
+      }
+      // Refetch the papers so the card flips back to "Marking…" with
+      // a fresh timestamp; the user sees the request landed.
+      fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
+    } catch (err) {
+      alert(`Re-mark failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setForcingRemark(null);
+    }
+  }
   // Admin/test overrides: extra points/crystals added on top of earned ones.
   const bonusPoints = ((user.settings as Record<string, unknown> | null)?.bonusPoints as number | undefined) ?? 0;
   const bonusCrystals = ((user.settings as Record<string, unknown> | null)?.bonusCrystals as number | undefined) ?? 0;
@@ -1254,7 +1283,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         </div>
                         <span className="flex items-center gap-1.5 shrink-0">
                           {stillMarking ? (
-                            <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                            <>
+                              <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                              {isAdminViewer && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); forceRemark(p.id); }}
+                                  disabled={forcingRemark === p.id}
+                                  title="Force re-mark (admin)"
+                                  className="text-[10px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors disabled:opacity-50"
+                                >{forcingRemark === p.id ? "…" : "Re-mark"}</button>
+                              )}
+                            </>
                           ) : (
                             <>
                               <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
@@ -1332,9 +1371,19 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         >
                           <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-lg">{paperIcon(p)}</span></div>
                           <div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{stillMarking ? "Marking your answers…" : relativeDate(p.completedAt!)}</p></div>
-                          {stillMarking
-                            ? <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full shrink-0">MARKING…</span>
-                            : pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
+                          {stillMarking ? (
+                            <span className="flex items-center gap-1 shrink-0">
+                              <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                              {isAdminViewer && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); forceRemark(p.id); }}
+                                  disabled={forcingRemark === p.id}
+                                  title="Force re-mark (admin)"
+                                  className="text-[9px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors disabled:opacity-50"
+                                >{forcingRemark === p.id ? "…" : "Re-mark"}</button>
+                              )}
+                            </span>
+                          ) : pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
                         </div>
                       );
                     })}
@@ -1557,7 +1606,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </div>
                     <span className="flex items-center gap-1 shrink-0">
                       {stillMarking ? (
-                        <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                        <>
+                          <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                          {isAdminViewer && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); forceRemark(p.id); }}
+                              disabled={forcingRemark === p.id}
+                              title="Force re-mark (admin)"
+                              className="text-[9px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors disabled:opacity-50"
+                            >{forcingRemark === p.id ? "…" : "Re-mark"}</button>
+                          )}
+                        </>
                       ) : (
                         <>
                           <span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
