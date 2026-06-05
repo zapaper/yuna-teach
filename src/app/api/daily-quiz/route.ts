@@ -199,16 +199,16 @@ export async function POST(request: NextRequest) {
         ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: "quiz",
         instantFeedback: true,
-        // English Test Quizzes are scan-back marked via markExamPaper
-        // (bounds-based, reads scan pages from disk). For that path to
-        // work, the clone needs the master's pageCount, the original
-        // pageIndex per question, the y/x bounds, AND a sourceExamId
-        // pointing back at the master so /print can fall back to the
-        // master's PDF. Math/Science Test Quizzes are typed quizzes
+        // English + Chinese Test Quizzes are scan-back markable: the
+        // parent can print → student writes on the paper → scan back.
+        // For that path to work, the clone needs the master's
+        // pageCount, original pageIndex per question, y/x bounds, AND
+        // a sourceExamId so /print can fall back to the master's PDF
+        // (or page JPEGs). Math/Science Test Quizzes are typed quizzes
         // marked via markQuizPaper; they keep the legacy
         // pageCount=0 + pageIndex=0 shape since their canvas reader
         // doesn't use these fields.
-        ...(isEnglish ? { sourceExamId: paper.id, pageCount: paper.pageCount } : { pageCount: 0 }),
+        ...((isEnglish || isChinese) ? { sourceExamId: paper.id, pageCount: paper.pageCount } : { pageCount: 0 }),
         extractionStatus: "ready",
         totalMarks: String(totalMarks),
         metadata: {
@@ -216,12 +216,17 @@ export async function POST(request: NextRequest) {
           ...(englishSectionsMeta ? { englishSections: englishSectionsMeta } : {}),
           ...(chineseSectionsMeta ? { chineseSections: chineseSectionsMeta } : {}),
           sourceLabels: Object.fromEntries(allQs.map((q, i) => [String(i + 1), [paper.year, paper.examType, paper.school].filter(Boolean).join(" ") || null])),
-          // English-only: inherit page-hide metadata so markExamPaper's
+          // English/Chinese: inherit page-hide metadata so the marker's
           // submission-index map matches the master's print layout
-          // (answer pages dropped, skip pages dropped).
-          ...(isEnglish ? {
+          // (answer pages dropped, skip pages dropped). Chinese also
+          // inherits the OEQ-pad page index range so the scan-back
+          // marker knows the Q33-Q40 strips live on appended pages.
+          ...((isEnglish || isChinese) ? {
             answerPages: (paper.metadata as { answerPages?: number[] } | null)?.answerPages ?? [],
             skipPages: (paper.metadata as { skipPages?: number[] } | null)?.skipPages ?? [],
+          } : {}),
+          ...(isChinese ? {
+            normalExtractChinese: (paper.metadata as { normalExtractChinese?: Record<string, unknown> } | null)?.normalExtractChinese ?? {},
           } : {}),
         },
         questions: {

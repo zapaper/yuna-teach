@@ -52,10 +52,14 @@ export async function GET(
   let pdfPath = paper.pdfPath;
   let metaForDrop = paper.metadata;
   let sourceMeta: { normalExtractEnglish?: Record<string, unknown> } | null = null;
+  // The "owner" id whose /pages/<id>/page_N.jpg files we'll fall back
+  // to if no PDF exists on disk. Defaults to this paper, but if it's
+  // a clone (or its source master has the JPEGs), we'll prefer that.
+  let pageImagesOwnerId = id;
   if (!pdfPath && paper.sourceExamId) {
     const source = await prisma.examPaper.findUnique({
       where: { id: paper.sourceExamId },
-      select: { pdfPath: true, metadata: true },
+      select: { id: true, pdfPath: true, metadata: true, pageCount: true },
     });
     if (source?.pdfPath) {
       pdfPath = source.pdfPath;
@@ -64,9 +68,13 @@ export async function GET(
       // doesn't carry these per-paper settings.
       if (!(paper.metadata as { answerPages?: unknown } | null)?.answerPages) metaForDrop = source.metadata;
     }
-  }
-  if (!pdfPath) {
-    return NextResponse.json({ error: "No source PDF for this paper" }, { status: 400 });
+    if (source?.id && !pdfPath) {
+      // No source PDF either, but the source's page JPEGs may still
+      // be on disk — use those for the fallback below.
+      pageImagesOwnerId = source.id;
+      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown> } | null;
+      if (!(paper.metadata as { answerPages?: unknown } | null)?.answerPages) metaForDrop = source.metadata;
+    }
   }
 
   // English gate: only allow Print on papers that have at least one
@@ -88,15 +96,46 @@ export async function GET(
   }
 
   // Resolve the PDF path. Stored as a relative path under VOLUME_PATH.
-  const absPath = path.isAbsolute(pdfPath)
-    ? pdfPath
-    : path.join(VOLUME_PATH, pdfPath);
-  let pdfBytes: Buffer;
-  try {
-    pdfBytes = await fs.readFile(absPath);
-  } catch (err) {
-    console.error("[print] PDF read failed:", absPath, err);
-    return NextResponse.json({ error: "PDF file missing on server" }, { status: 500 });
+  let pdfBytes: Buffer | null = null;
+  if (pdfPath) {
+    const absPath = path.isAbsolute(pdfPath)
+      ? pdfPath
+      : path.join(VOLUME_PATH, pdfPath);
+    try {
+      pdfBytes = await fs.readFile(absPath);
+    } catch (err) {
+      console.warn(`[print] PDF read failed, will fall back to page JPEGs: ${absPath}`, err);
+    }
+  }
+  // Fallback: assemble a PDF from per-page JPEGs at /pages/<id>/page_N.jpg.
+  // extract-background creates these on every upload but doesn't persist
+  // the original PDF, so for those papers we round-trip image → PDF
+  // here. The output is image-only (no selectable text) but visually
+  // matches the source paper.
+  if (!pdfBytes) {
+    const pagesDir = path.join(VOLUME_PATH, "pages", pageImagesOwnerId);
+    try {
+      const files = (await fs.readdir(pagesDir))
+        .filter(f => /^page_\d+\.jpg$/i.test(f))
+        .sort((a, b) => {
+          const an = parseInt(a.match(/^page_(\d+)/)![1], 10);
+          const bn = parseInt(b.match(/^page_(\d+)/)![1], 10);
+          return an - bn;
+        });
+      if (files.length === 0) throw new Error("no page JPEGs on disk");
+      const assembled = await PDFDocument.create();
+      for (const f of files) {
+        const jpg = await fs.readFile(path.join(pagesDir, f));
+        const img = await assembled.embedJpg(jpg);
+        const p = assembled.addPage([img.width, img.height]);
+        p.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      }
+      pdfBytes = Buffer.from(await assembled.save());
+      console.log(`[print] assembled ${files.length}-page PDF from JPEGs for owner=${pageImagesOwnerId} (this paper had no pdfPath)`);
+    } catch (err) {
+      console.error(`[print] page-JPEG fallback failed for owner=${pageImagesOwnerId}:`, err);
+      return NextResponse.json({ error: "No source PDF and no page images on disk for this paper" }, { status: 400 });
+    }
   }
 
   // Drop answer-key + skip pages so the parent only prints the question
