@@ -29,7 +29,13 @@ export async function POST(request: NextRequest) {
   const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: userId },
-      select: { settings: true, examPapers: { select: { markingStatus: true } } },
+      // assignedExamPapers — papers ASSIGNED TO this student, which is
+      // what the habitats UI counts toward earned crystals. Previously
+      // this used `examPapers` (UploadedPapers relation), which is
+      // empty for students (they don't upload), so the server saw 0
+      // earned and rejected every purchase with "insufficient
+      // crystals" even when the UI showed a healthy balance.
+      select: { settings: true, assignedExamPapers: { select: { markingStatus: true, metadata: true } } },
     });
     if (!user) return { ok: false as const, error: "user not found" };
 
@@ -44,7 +50,13 @@ export async function POST(request: NextRequest) {
       return { ok: true as const, alreadyOwned: true, settings };
     }
 
-    const earned = user.examPapers.filter((p) => p.markingStatus === "released").length;
+    // Mirror the client: only released, non-revision papers count
+    // toward earned crystals. revisionMode is stored in metadata.
+    const earned = user.assignedExamPapers.filter((p) => {
+      if (p.markingStatus !== "released") return false;
+      const meta = (p.metadata ?? {}) as { revisionMode?: string } | null;
+      return !meta?.revisionMode;
+    }).length;
     const bonus = (settings.bonusCrystals as number | undefined) ?? 0;
     const spent = (settings.spentCrystals as number | undefined) ?? 0;
     const balance = earned + bonus - spent;
