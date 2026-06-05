@@ -98,6 +98,10 @@ function ProgressContent({ studentId }: { studentId: string }) {
   // session cookie (the API ignores ?userId=), so a parent typing
   // ?parentId=<admin-id> in the URL won't unlock it.
   const [isAdmin, setIsAdmin] = useState(false);
+  // Selected topic in the admin chart — drives bar highlighting and
+  // the moving-average detail panel below. Cleared on subject change.
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  useEffect(() => { setSelectedTopic(null); }, [activeSubject]);
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -360,11 +364,20 @@ function ProgressContent({ studentId }: { studentId: string }) {
 
             {/* ── Admin-only column chart: per-topic accuracy with subject avg line ── */}
             {isAdmin && currentSubject && view === "topic" && activeSubject && (
-              <AdminTopicChart subject={activeSubject} subjectData={currentSubject} studentName={data?.student?.name ?? "Student"} />
+              <AdminTopicChart
+                subject={activeSubject}
+                subjectData={currentSubject}
+                timeline={Array.isArray(currentTimeline) ? currentTimeline : []}
+                studentName={data?.student?.name ?? "Student"}
+                selectedTopic={selectedTopic}
+                onSelectTopic={setSelectedTopic}
+                onAssignFocus={topic => createFocusedTest(activeSubject, topic)}
+                creating={creating}
+              />
             )}
 
-            {/* ── Topic view ── */}
-            {currentSubject && view === "topic" && (
+            {/* ── Topic view (cards) — hidden for admin: the chart + detail panel above replaces them ── */}
+            {!isAdmin && currentSubject && view === "topic" && (
               <div className="space-y-4">
                 {Object.entries(currentSubject.topics)
                   .filter(([topic]) => topic !== "Untagged")
@@ -708,11 +721,21 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
 function AdminTopicChart({
   subject,
   subjectData,
+  timeline,
   studentName,
+  selectedTopic,
+  onSelectTopic,
+  onAssignFocus,
+  creating,
 }: {
   subject: string;
   subjectData: SubjectData;
+  timeline: TimelineEntry[];
   studentName: string;
+  selectedTopic: string | null;
+  onSelectTopic: (topic: string | null) => void;
+  onAssignFocus: (topic: string) => void;
+  creating: string | null;
 }) {
   const MIN_QS = 3;
   const topics = Object.entries(subjectData.topics)
@@ -765,7 +788,10 @@ function AdminTopicChart({
       <p className="text-xs text-[#43474f] mb-3">
         {studentName} — {subject}. {topics.length} topic{topics.length === 1 ? "" : "s"} with ≥{MIN_QS} attempts · {totalAttempts.toLocaleString()} total attempts · subject avg <span className="font-bold text-rose-600">{avg.toFixed(1)}%</span>
       </p>
-      {/* Desktop / tablet: vertical column chart with rotated x-labels. */}
+      {/* Desktop / tablet: vertical column chart with rotated x-labels.
+          Both the bar AND the x-axis label are clickable — clicking
+          either selects the topic, highlighting the bar and surfacing
+          the moving-average detail panel below. */}
       <div className="hidden md:block w-full">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto">
           {/* y-axis gridlines */}
@@ -780,19 +806,27 @@ function AdminTopicChart({
             const x = padL + slot * i + (slot - barW) / 2;
             const by = y(t.pct);
             const h = (padT + plotH) - by;
-            const fill = t.pct >= avg ? "#10B981" : "#94A3B8";
+            const isSel = selectedTopic === t.topic;
+            const fill = isSel
+              ? "#7C3AED"
+              : t.pct >= avg ? "#10B981" : "#94A3B8";
+            const handleClick = () => onSelectTopic(isSel ? null : t.topic);
             return (
-              <g key={t.topic}>
-                <rect x={x} y={by} width={barW} height={h} fill={fill} rx={3} />
+              <g key={t.topic} style={{ cursor: "pointer" }} onClick={handleClick}>
+                {/* Larger transparent hit area so taps near the bar
+                    or label also count. */}
+                <rect x={x - slot * 0.05} y={padT} width={barW + slot * 0.1} height={plotH + padB - 20} fill="transparent" />
+                <rect x={x} y={by} width={barW} height={h} fill={fill} rx={3}
+                  stroke={isSel ? "#5B21B6" : "transparent"} strokeWidth={isSel ? 2 : 0} />
                 <text x={x + barW / 2} y={by - 18} textAnchor="middle" fill="#001E40" fontSize={16} fontWeight="bold">{t.pct.toFixed(0)}%</text>
                 <text x={x + barW / 2} y={by - 4} textAnchor="middle" fill="#737780" fontSize={11}>n={t.attempts}</text>
                 {/* x-axis label rotated -40° */}
                 <text
                   x={x + barW / 2}
                   y={padT + plotH + 10}
-                  fill="#43474f"
+                  fill={isSel ? "#5B21B6" : "#43474f"}
                   fontSize={13}
-                  fontWeight="600"
+                  fontWeight={isSel ? "bold" : "600"}
                   textAnchor="end"
                   transform={`rotate(-40 ${x + barW / 2} ${padT + plotH + 10})`}
                 >{t.topic.length > 28 ? t.topic.slice(0, 27) + "…" : t.topic}</text>
@@ -812,14 +846,20 @@ function AdminTopicChart({
         {(() => {
           const avgFrac = (Math.max(yMin, Math.min(100, avg)) - yMin) / (100 - yMin);
           return (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               {topics.map(t => {
-                const colorBar = t.pct >= avg ? "bg-emerald-500" : "bg-slate-400";
-                const colorPct = t.pct >= avg ? "text-emerald-700" : "text-slate-600";
+                const isSel = selectedTopic === t.topic;
+                const colorBar = isSel ? "bg-violet-600" : t.pct >= avg ? "bg-emerald-500" : "bg-slate-400";
+                const colorPct = isSel ? "text-violet-700" : t.pct >= avg ? "text-emerald-700" : "text-slate-600";
                 const barFrac = (Math.max(yMin, Math.min(100, t.pct)) - yMin) / (100 - yMin);
                 return (
-                  <div key={t.topic} className="grid grid-cols-[40%_1fr_3rem] gap-2 items-center text-[12px]">
-                    <div className="truncate text-[#001e40] font-semibold" title={t.topic}>
+                  <button
+                    type="button"
+                    key={t.topic}
+                    onClick={() => onSelectTopic(isSel ? null : t.topic)}
+                    className={`w-full text-left grid grid-cols-[40%_1fr_3rem] gap-2 items-center text-[12px] py-1 px-1 -mx-1 rounded transition-colors ${isSel ? "bg-violet-50 ring-1 ring-violet-200" : "hover:bg-slate-50"}`}
+                  >
+                    <div className={`truncate font-semibold ${isSel ? "text-violet-800" : "text-[#001e40]"}`} title={t.topic}>
                       {t.topic}
                       <span className="ml-1 text-[10px] text-[#737780] font-medium">n={t.attempts}</span>
                     </div>
@@ -828,7 +868,7 @@ function AdminTopicChart({
                         exact same coordinate space the colored bar's
                         width uses — so they always line up vertically
                         across rows regardless of label-column width. */}
-                    <div className="relative h-6 bg-slate-100 rounded">
+                    <div className="relative h-8 bg-slate-100 rounded">
                       <div className="absolute inset-0 rounded overflow-hidden">
                         <div className={`h-full ${colorBar}`} style={{ width: `${barFrac * 100}%` }} />
                       </div>
@@ -838,8 +878,8 @@ function AdminTopicChart({
                         aria-hidden
                       />
                     </div>
-                    <span className={`text-[13px] font-extrabold tabular-nums ${colorPct} text-right`}>{t.pct.toFixed(0)}%</span>
-                  </div>
+                    <span className={`text-[14px] font-extrabold tabular-nums ${colorPct} text-right`}>{t.pct.toFixed(0)}%</span>
+                  </button>
                 );
               })}
             </div>
@@ -853,6 +893,150 @@ function AdminTopicChart({
           {yMin > 0 && <span className="text-[#737780]">bars start at {yMin}%</span>}
         </div>
       </div>
+
+      {/* Detail panel — appears when a topic bar/label is tapped. Plots
+          the rolling-3-paper average of that topic's accuracy over the
+          student's timeline, plus a one-tap Assign Focus Practice button
+          for the same topic. */}
+      {selectedTopic && (
+        <SelectedTopicPanel
+          subject={subject}
+          topic={selectedTopic}
+          timeline={timeline}
+          onClose={() => onSelectTopic(null)}
+          onAssignFocus={() => onAssignFocus(selectedTopic)}
+          creating={creating === selectedTopic}
+        />
+      )}
+      {!selectedTopic && (
+        <p className="mt-4 text-[11px] text-slate-400 italic text-center">Tap any bar or label to see the topic's history and assign focused practice.</p>
+      )}
+    </div>
+  );
+}
+
+// Detail panel shown beneath the admin bar chart when a topic is
+// selected. Plots the rolling-3-paper average of the topic's accuracy
+// over time and offers an Assign Focus Practice button for the same
+// topic. Hidden until a bar/label is tapped.
+function SelectedTopicPanel({
+  subject,
+  topic,
+  timeline,
+  onClose,
+  onAssignFocus,
+  creating,
+}: {
+  subject: string;
+  topic: string;
+  timeline: TimelineEntry[];
+  onClose: () => void;
+  onAssignFocus: () => void;
+  creating: boolean;
+}) {
+  // Per-paper accuracy for this topic, in chronological order. Skip
+  // papers that didn't touch the topic at all.
+  const series = timeline
+    .map(e => {
+      const t = e.topicTotals?.[topic];
+      if (!t || t.available <= 0) return null;
+      return { date: e.date, title: e.title, pct: (t.earned / t.available) * 100 };
+    })
+    .filter((x): x is { date: string; title: string; pct: number } => x !== null);
+
+  if (series.length === 0) {
+    return (
+      <div className="mt-5 pt-5 border-t border-violet-100">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <p className="text-sm font-extrabold text-violet-800">{topic}</p>
+          <button onClick={onClose} className="text-[10px] text-slate-400 hover:text-slate-700">close</button>
+        </div>
+        <p className="text-xs text-slate-500 italic">No paper-level history for this topic yet.</p>
+        <button
+          onClick={onAssignFocus}
+          disabled={creating}
+          className="mt-3 w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50"
+        >
+          {creating ? "Creating…" : "Assign Focus Practice"}
+        </button>
+      </div>
+    );
+  }
+
+  // Rolling 3-paper window average.
+  const WIN = 3;
+  const rolling = series.map((_, i) => {
+    const start = Math.max(0, i - WIN + 1);
+    const window = series.slice(start, i + 1);
+    return window.reduce((s, p) => s + p.pct, 0) / window.length;
+  });
+  const subjAvg = series.reduce((s, p) => s + p.pct, 0) / series.length;
+  const trendDelta = rolling.length >= 2 ? rolling[rolling.length - 1] - rolling[0] : 0;
+  const latest = series[series.length - 1];
+
+  // SVG geometry — short stacked chart that reads on a phone.
+  const W = 600, H = 200;
+  const padL = 36, padR = 12, padT = 14, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const yMin = Math.min(50, Math.floor(Math.min(...rolling, ...series.map(s => s.pct), subjAvg) / 10) * 10);
+  const y = (pct: number) => padT + plotH - ((Math.max(yMin, Math.min(100, pct)) - yMin) / (100 - yMin)) * plotH;
+  const x = (idx: number) => series.length === 1 ? padL + plotW / 2 : padL + (idx / (series.length - 1)) * plotW;
+
+  return (
+    <div className="mt-5 pt-5 border-t border-violet-100">
+      <div className="flex items-baseline justify-between gap-3 mb-2">
+        <div className="min-w-0">
+          <p className="text-sm font-extrabold text-violet-800 truncate">{topic}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            {series.length} paper{series.length === 1 ? "" : "s"} · rolling avg {rolling[rolling.length - 1].toFixed(1)}% · latest {latest.pct.toFixed(0)}% ·{" "}
+            <span className={trendDelta >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>
+              {trendDelta >= 0 ? "▲" : "▼"} {Math.abs(trendDelta).toFixed(1)}pp
+            </span>
+          </p>
+        </div>
+        <button onClick={onClose} className="text-[10px] text-slate-400 hover:text-slate-700 shrink-0">close</button>
+      </div>
+      <div className="w-full overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto min-h-[160px]">
+          {[yMin, Math.round((yMin + 100) / 2), 100].map(pct => (
+            <g key={pct}>
+              <line x1={padL} y1={y(pct)} x2={padL + plotW} y2={y(pct)} stroke="#E5E7EB" strokeWidth={1} />
+              <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
+            </g>
+          ))}
+          {/* Per-paper dots (lighter, behind the line). */}
+          {series.map((p, i) => (
+            <circle key={i} cx={x(i)} cy={y(p.pct)} r={3} fill="#C4B5FD" />
+          ))}
+          {/* Rolling-3 average line — the main signal. */}
+          {rolling.length > 1 && (
+            <path
+              d={rolling.map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`).join(" ")}
+              fill="none"
+              stroke="#7C3AED"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+          {rolling.map((v, i) => (
+            <circle key={`r${i}`} cx={x(i)} cy={y(v)} r={4} fill="#7C3AED" stroke="white" strokeWidth={1.5} />
+          ))}
+          {/* Topic's overall average across these papers — dashed grey. */}
+          <line x1={padL} y1={y(subjAvg)} x2={padL + plotW} y2={y(subjAvg)} stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="6 4" />
+          <text x={padL + plotW - 4} y={y(subjAvg) - 4} textAnchor="end" fill="#94A3B8" fontSize={10} fontWeight="bold">topic avg {subjAvg.toFixed(0)}%</text>
+        </svg>
+      </div>
+      <p className="text-[10px] text-slate-400 mt-1 text-center italic">Rolling 3-paper average · purple dots are individual papers</p>
+      <button
+        onClick={onAssignFocus}
+        disabled={creating}
+        className="mt-3 w-full sm:w-auto sm:ml-auto sm:flex sm:items-center sm:justify-center px-5 py-3 rounded-xl font-bold text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+      >
+        <span className="material-symbols-outlined text-base">target</span>
+        {creating ? `Creating ${subject} focus…` : `Assign Focus Practice — ${topic}`}
+      </button>
     </div>
   );
 }
