@@ -738,8 +738,23 @@ function AdminTopicChart({
   const plotH = H - padT - padB;
   const n = topics.length;
   const slot = plotW / Math.max(1, n);
-  const barW = Math.min(56, slot * 0.65);
-  const y = (pct: number) => padT + plotH - (pct / 100) * plotH;
+  // Bars occupy 90% of their slot — denser layout so the visual
+  // sweep across topics reads as a continuous shape rather than a
+  // sparse row of skinny bars.
+  const barW = Math.min(70, slot * 0.9);
+  // Auto-zoom: if every topic AND the avg sit at ≥50%, drop the y-axis
+  // floor to 50 so the differences between strong topics are easier to
+  // see. Otherwise keep the full 0–100 range so any genuinely weak
+  // topic still reads correctly.
+  const minTopicPct = Math.min(...topics.map(t => t.pct));
+  const yMin = (minTopicPct >= 50 && avg >= 50) ? 50 : 0;
+  const yStep = yMin === 50 ? 10 : 25;
+  const yTicks: number[] = [];
+  for (let v = yMin; v <= 100; v += yStep) yTicks.push(v);
+  const y = (pct: number) => {
+    const clamped = Math.max(yMin, Math.min(100, pct));
+    return padT + plotH - ((clamped - yMin) / (100 - yMin)) * plotH;
+  };
 
   return (
     <div className="bg-white rounded-2xl border-2 border-violet-200 p-5 mb-4 shadow-sm">
@@ -754,7 +769,7 @@ function AdminTopicChart({
       <div className="hidden md:block w-full">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto">
           {/* y-axis gridlines */}
-          {[0, 25, 50, 75, 100].map(pct => (
+          {yTicks.map(pct => (
             <g key={pct}>
               <line x1={padL} y1={y(pct)} x2={padL + plotW} y2={y(pct)} stroke="#E5E7EB" strokeWidth={1} />
               <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
@@ -763,8 +778,8 @@ function AdminTopicChart({
           {/* bars */}
           {topics.map((t, i) => {
             const x = padL + slot * i + (slot - barW) / 2;
-            const h = (t.pct / 100) * plotH;
             const by = y(t.pct);
+            const h = (padT + plotH) - by;
             const fill = t.pct >= avg ? "#10B981" : "#94A3B8";
             return (
               <g key={t.topic}>
@@ -794,18 +809,26 @@ function AdminTopicChart({
           dashed red line sits across all bars at the subject average. */}
       <div className="md:hidden relative pl-1 pr-3">
         <div className="relative">
-          {/* Vertical avg line — absolute over the bar column. The bar
-              column starts after the topic label width (40% of row) and
-              spans the remaining 60%; line sits at avg% of that span. */}
-          <div
-            className="absolute top-0 bottom-0 border-l-2 border-dashed border-rose-600 pointer-events-none"
-            style={{ left: `calc(40% + (60% * ${avg / 100}))` }}
-            aria-hidden
-          />
-          <div className="flex flex-col gap-1.5">
+          {/* Vertical avg line — absolute over the bar column. Bar
+              column starts after the topic-label width (40%) and spans
+              the remaining 60%; line position is the avg mapped onto
+              the same yMin–100 range the bar widths use, so the line
+              stays in sync when the chart is zoomed to 50–100. */}
+          {(() => {
+            const avgFrac = (Math.max(yMin, Math.min(100, avg)) - yMin) / (100 - yMin);
+            return (
+              <div
+                className="absolute top-0 bottom-0 border-l-2 border-dashed border-rose-600 pointer-events-none"
+                style={{ left: `calc(40% + (60% * ${avgFrac}))` }}
+                aria-hidden
+              />
+            );
+          })()}
+          <div className="flex flex-col gap-0.5">
             {topics.map(t => {
               const colorBar = t.pct >= avg ? "bg-emerald-500" : "bg-slate-400";
               const colorPct = t.pct >= avg ? "text-emerald-700" : "text-slate-600";
+              const barFrac = (Math.max(yMin, Math.min(100, t.pct)) - yMin) / (100 - yMin);
               return (
                 <div key={t.topic} className="flex items-center gap-2 text-[11px]">
                   <div className="w-[40%] shrink-0 pr-2 truncate text-[#001e40] font-semibold" title={t.topic}>
@@ -813,7 +836,7 @@ function AdminTopicChart({
                     <span className="ml-1 text-[9px] text-[#737780] font-medium">n={t.attempts}</span>
                   </div>
                   <div className="w-[60%] relative h-5 bg-slate-100 rounded overflow-hidden">
-                    <div className={`h-full rounded ${colorBar}`} style={{ width: `${t.pct}%` }} />
+                    <div className={`h-full rounded ${colorBar}`} style={{ width: `${barFrac * 100}%` }} />
                   </div>
                   <span className={`ml-1 text-[11px] font-bold tabular-nums ${colorPct} w-9 text-right shrink-0`}>{t.pct.toFixed(0)}%</span>
                 </div>
@@ -821,9 +844,12 @@ function AdminTopicChart({
             })}
           </div>
         </div>
-        <div className="flex items-center gap-2 mt-3 text-[10px] text-rose-600 font-bold">
-          <span className="inline-block w-4 border-t-2 border-dashed border-rose-600" />
-          subject avg {avg.toFixed(1)}%
+        <div className="flex items-center justify-between gap-2 mt-3 text-[10px] font-bold">
+          <span className="flex items-center gap-2 text-rose-600">
+            <span className="inline-block w-4 border-t-2 border-dashed border-rose-600" />
+            subject avg {avg.toFixed(1)}%
+          </span>
+          {yMin > 0 && <span className="text-[#737780]">bars start at {yMin}%</span>}
         </div>
       </div>
     </div>
