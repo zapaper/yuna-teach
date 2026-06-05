@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
@@ -226,9 +227,9 @@ export async function POST(request: NextRequest) {
             skipPages: (paper.metadata as { skipPages?: number[] } | null)?.skipPages ?? [],
           } : {}),
           ...(isChinese ? {
-            normalExtractChinese: (paper.metadata as { normalExtractChinese?: Record<string, unknown> } | null)?.normalExtractChinese ?? {},
+            normalExtractChinese: ((paper.metadata as { normalExtractChinese?: Record<string, unknown> } | null)?.normalExtractChinese ?? {}),
           } : {}),
-        },
+        } as Prisma.InputJsonValue,
         questions: {
           create: allQs.map((q, i) => ({
             questionNum: String(i + 1),
