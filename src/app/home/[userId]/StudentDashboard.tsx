@@ -1225,17 +1225,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
                         <span className="text-[10px] text-[#43474f]">Due today</span>
                       </div>
-                      {p.printedAt && (
-                        <button
-                          type="button"
-                          onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }}
-                          title="Scan your printed pages"
-                          aria-label={`Scan printed pages for ${p.title}`}
-                          className="shrink-0 w-9 h-9 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-lg">photo_camera</span>
-                        </button>
-                      )}
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${p.timeSpentSeconds > 0 ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dce9ff] text-[#737780]"}`}>{p.timeSpentSeconds > 0 ? "IN PROGRESS" : "TODO"}</span>
                     </div>
                   ))}
@@ -1271,26 +1260,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {weekHomework.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {weekHomework.map(p => (
-                      <div key={p.id} className="relative">
-                        <button type="button" onClick={() => goToPaper(p)} className="w-full text-left bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
-                          <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
-                            <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
-                          </div>
-                          <h3 className="font-bold text-lg leading-tight mb-2 pr-10">{p.title}</h3>
-                          <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
-                        </button>
-                        {p.printedAt && (
-                          <button
-                            type="button"
-                            onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }}
-                            title="Scan your printed pages"
-                            aria-label={`Scan printed pages for ${p.title}`}
-                            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-xl">photo_camera</span>
-                          </button>
-                        )}
-                      </div>
+                      <button key={p.id} type="button" onClick={() => goToPaper(p)} className="text-left bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
+                          <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
+                        </div>
+                        <h3 className="font-bold text-lg leading-tight mb-2">{p.title}</h3>
+                        <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
+                      </button>
                     ))}
                   </div>
                 ) : (
