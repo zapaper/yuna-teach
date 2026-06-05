@@ -750,8 +750,9 @@ function AdminTopicChart({
       <p className="text-xs text-[#43474f] mb-3">
         {studentName} — {subject}. {topics.length} topic{topics.length === 1 ? "" : "s"} with ≥{MIN_QS} attempts · {totalAttempts.toLocaleString()} total attempts · subject avg <span className="font-bold text-rose-600">{avg.toFixed(1)}%</span>
       </p>
-      <div className="w-full overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="block min-w-[700px] w-full h-auto">
+      {/* Desktop / tablet: vertical column chart with rotated x-labels. */}
+      <div className="hidden md:block w-full">
+        <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto">
           {/* y-axis gridlines */}
           {[0, 25, 50, 75, 100].map(pct => (
             <g key={pct}>
@@ -786,6 +787,44 @@ function AdminTopicChart({
           <line x1={padL} y1={y(avg)} x2={padL + plotW} y2={y(avg)} stroke="#DC2626" strokeWidth={2} strokeDasharray="8 6" />
           <text x={padL + plotW - 4} y={y(avg) - 6} textAnchor="end" fill="#DC2626" fontSize={11} fontWeight="bold">avg {avg.toFixed(1)}%</text>
         </svg>
+      </div>
+
+      {/* Mobile (<md): horizontal-bar list. Each row = topic; the bar
+          runs left-to-right, % shown at the end. A single vertical
+          dashed red line sits across all bars at the subject average. */}
+      <div className="md:hidden relative pl-1 pr-3">
+        <div className="relative">
+          {/* Vertical avg line — absolute over the bar column. The bar
+              column starts after the topic label width (40% of row) and
+              spans the remaining 60%; line sits at avg% of that span. */}
+          <div
+            className="absolute top-0 bottom-0 border-l-2 border-dashed border-rose-600 pointer-events-none"
+            style={{ left: `calc(40% + (60% * ${avg / 100}))` }}
+            aria-hidden
+          />
+          <div className="flex flex-col gap-1.5">
+            {topics.map(t => {
+              const colorBar = t.pct >= avg ? "bg-emerald-500" : "bg-slate-400";
+              const colorPct = t.pct >= avg ? "text-emerald-700" : "text-slate-600";
+              return (
+                <div key={t.topic} className="flex items-center gap-2 text-[11px]">
+                  <div className="w-[40%] shrink-0 pr-2 truncate text-[#001e40] font-semibold" title={t.topic}>
+                    {t.topic}
+                    <span className="ml-1 text-[9px] text-[#737780] font-medium">n={t.attempts}</span>
+                  </div>
+                  <div className="w-[60%] relative h-5 bg-slate-100 rounded overflow-hidden">
+                    <div className={`h-full rounded ${colorBar}`} style={{ width: `${t.pct}%` }} />
+                  </div>
+                  <span className={`ml-1 text-[11px] font-bold tabular-nums ${colorPct} w-9 text-right shrink-0`}>{t.pct.toFixed(0)}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 mt-3 text-[10px] text-rose-600 font-bold">
+          <span className="inline-block w-4 border-t-2 border-dashed border-rose-600" />
+          subject avg {avg.toFixed(1)}%
+        </div>
       </div>
     </div>
   );
