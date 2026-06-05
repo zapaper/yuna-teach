@@ -94,23 +94,33 @@ function ExamEditContent({ id }: { id: string }) {
   }, [fetchPaper]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to the question targeted by the URL hash (e.g. #q-abc123 when
-  // arriving from the Flagged Q&A page). Runs once paper.questions renders.
+  // arriving from the Flagged Q&A or See-Answer-Image sweep). Earlier
+  // version waited a single 150ms then gave up — on large master papers
+  // (PSLE Chinese 2025: 75+ questions) the target node wasn't mounted
+  // yet at 150ms and the scroll silently no-op'd, leaving the user at
+  // Q1. Now polls every 100ms until the element appears or 3s elapses.
   useEffect(() => {
     if (!paper?.questions?.length) return;
     const hash = typeof window !== "undefined" ? window.location.hash : "";
     if (!hash.startsWith("#q-")) return;
-    // Allow one paint so the target node exists.
-    const t = setTimeout(() => {
-      const el = document.getElementById(hash.slice(1));
+    const targetId = hash.slice(1);
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      const el = document.getElementById(targetId);
       if (el) {
+        clearInterval(interval);
         el.scrollIntoView({ behavior: "smooth", block: "start" });
         el.style.transition = "box-shadow 0.6s ease-out";
         el.style.boxShadow = "0 0 0 4px rgba(0, 108, 73, 0.35)";
         setTimeout(() => { el.style.boxShadow = ""; }, 2000);
+      } else if (attempts >= 30) {
+        clearInterval(interval);
+        console.warn(`[edit] hash target ${targetId} not found after 3s`);
       }
-    }, 150);
-    return () => clearTimeout(t);
-  }, [paper?.questions]);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [paper?.questions?.length]);
 
   // Poll while extraction is in progress
   useEffect(() => {

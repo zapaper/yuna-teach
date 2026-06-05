@@ -36,6 +36,29 @@ const MATH_TOPICS = loadTopicFile("math-topics.txt");
 const SCIENCE_TOPICS = loadTopicFile("science-topics.txt");
 const ENGLISH_TOPICS = loadTopicFile("english-topics.txt");
 
+// Used when the email-parsed header doesn't carry a subject —
+// match the extracted question topics against canonical lists and
+// return whichever subject ≥50% of tagged questions point at.
+// Mirrors scripts/backfill-null-subject-papers.ts so going-forward
+// + backfill paths agree.
+function inferSubjectFromTopics(topics: (string | null)[]): string | null {
+  const tagged = topics.filter((t): t is string => !!t && t.trim() !== "").map(t => t.toLowerCase());
+  if (tagged.length === 0) return null;
+  const HINTS: Array<{ subject: string; needles: string[] }> = [
+    { subject: "Science", needles: ["respirat", "circulatory", "digest", "reproduc", "interaction", "cycle", "diversity", "ecosystem", "habitat", "circuit", "magnet", "energy", "heat", "light", "sound", "force", "matter", "evaporation", "condensation", "photosyn", "chlorophyll", "organism", "plant", "animal", "human"] },
+    { subject: "Math", needles: ["fraction", "ratio", "percent", "decimal", "algebra", "geometry", "perimeter", "area", "volume", "angle", "graph", "speed", "money", "measurement", "number pattern", "average", "rate"] },
+    { subject: "English", needles: ["grammar", "vocab", "comprehension", "synthesis", "transformation", "editing", "cloze", "visual text"] },
+    { subject: "Chinese", needles: ["华文", "中文", "汉字", "成语", "病句", "造句", "完成对话", "阅读理解", "短文填空", "字音", "字形", "词语"] },
+  ];
+  let best: string | null = null, bestHits = 0;
+  for (const { subject, needles } of HINTS) {
+    let hits = 0;
+    for (const t of tagged) if (needles.some(n => t.includes(n.toLowerCase()))) hits++;
+    if (hits > bestHits) { bestHits = hits; best = subject; }
+  }
+  return (bestHits / tagged.length >= 0.5) ? best : null;
+}
+
 function topicListForSubject(subject: string): string[] {
   const s = subject.toLowerCase();
   if (s.includes("math")) return MATH_TOPICS;
@@ -1319,7 +1342,12 @@ async function runDiagnosisInBackground(
       data: {
         markingStatus: "complete",
         title: structure.header?.title || `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
-        subject: structure.header?.subject ?? null,
+        // If the email-parsed header doesn't carry a subject, infer
+        // it from the question topics so the progress page doesn't
+        // dump everything under "Others" (it buckets on paper.subject,
+        // not on syllabusTopic). Falls back to null only when there's
+        // no topic signal.
+        subject: structure.header?.subject || inferSubjectFromTopics(flat.map(q => q.topic ?? null)),
         level: structure.header?.level ?? (student.level ? `Primary ${student.level}` : null),
         totalMarks: String(totalAvailable),
         score: totalEarned,
