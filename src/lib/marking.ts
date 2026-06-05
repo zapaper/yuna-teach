@@ -5247,19 +5247,40 @@ Return ONLY valid JSON:
                 awarded = newAwarded;
               }
 
-              // Source of truth for multi-part marks is the structured
-              // parts[] sum above. The previous "grep 'Awarded N marks'
-              // out of the prose notes" reconciliation chain has been
-              // removed — it produced silent disagreements between the
-              // stored marksAwarded and the per-part wording (see Q10
-              // incident, Jun 2026), and its only purpose was patching
-              // around models that omitted parts[]. If parts[] is
-              // missing on a multi-part question we log it and trust
-              // the AI's top-level marksAwarded as-is; the prompt
-              // already mandates parts[] so this is a model-regression
-              // alarm, not a normal path.
-              if (!usePartsSum && hasFullPartMaxes) {
-                console.warn(`[quiz-marking] Q${q.questionNum}: multi-part question but AI returned no parts[] — using top-level marksAwarded=${awarded} without prose reconciliation. Inspect the response if this trips often.`);
+              // Deterministic per-part SUM from the notes prose. This
+              // overrides whatever marksAwarded the AI returned at the
+              // top level — that number has repeatedly disagreed with
+              // the per-part wording (Q9: top=3 with notes "Part (a):
+              // 1, Part (b): 0"; Q10: top=0 with notes "Part (a): 1,
+              // Part (b): 1"). The prompt asks the AI to write
+              // "Part (x): … Awarded N mark(s)." for every part, so
+              // we just parse those out and sum them server-side.
+              // Triggers only when ≥2 per-part chunks each carry an
+              // "Awarded N mark(s)" line — single-part questions and
+              // headerless prose fall through to the parts[]/top-level
+              // value already in `awarded`.
+              if (parsed.notes) {
+                const notesStr = String(parsed.notes);
+                const partRe = /(?:^|[\n|])\s*(?:Part\s*)?\(([a-z])\)\s*:?\s*([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+                const partAwards: { label: string; awarded: number }[] = [];
+                for (const m of notesStr.matchAll(partRe)) {
+                  const label = m[1].toLowerCase();
+                  const chunk = m[2];
+                  const awardMatch = chunk.match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\b/i);
+                  if (!awardMatch) continue;
+                  partAwards.push({ label, awarded: parseFloat(awardMatch[1]) });
+                }
+                if (partAwards.length >= 2) {
+                  const proseSum = partAwards.reduce((s, p) => {
+                    const cap = partMaxMarks.get(p.label);
+                    return s + (cap != null ? Math.min(cap, Math.max(0, p.awarded)) : Math.max(0, p.awarded));
+                  }, 0);
+                  const newAwarded = Math.min(marksAvailable, proseSum);
+                  if (Math.abs(newAwarded - awarded) > 0.0001) {
+                    console.log(`[quiz-marking] Q${q.questionNum} prose-sum override: ${awarded} → ${newAwarded}/${marksAvailable} (${partAwards.map(p => `(${p.label})=${p.awarded}`).join(", ")})`);
+                  }
+                  awarded = newAwarded;
+                }
               }
 
               // Blank-subpart clamp. blankSubparts came from a
