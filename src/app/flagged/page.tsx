@@ -185,9 +185,16 @@ function FlaggedContent() {
                         const examId = item.cloneId ?? item.paperId;
                         const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                         const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
+                        // For a completed clone of a regular paper
+                        // (scanned-back submission, paperType=null),
+                        // route to /review so the marker sees the
+                        // student's actual scanned answers + marks
+                        // instead of /overview (which shows the
+                        // master's catalogue view).
+                        const isCompletedClone = !!item.cloneId && !!item.paperCompletedAt;
                         const path = isMastery
                           ? `/quiz/${examId}`
-                          : isQuizOrFocused
+                          : isQuizOrFocused || isCompletedClone
                             ? `/exam/${examId}/review`
                             : `/exam/${examId}/overview`;
                         window.open(`${path}?userId=${userId}`, "_blank");
