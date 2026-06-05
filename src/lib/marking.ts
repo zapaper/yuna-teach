@@ -5147,13 +5147,18 @@ Return ONLY valid JSON:
         // loop instead of silently dead-ending at "Failed to parse AI
         // response" — the retry prepends a stricter JSON-only reminder so
         // the next attempt is much more likely to return parseable output.
-        // Drawable questions with an answer image need stronger visual
-        // reasoning than flash can reliably provide (flash was marking
-        // "7 shaded blocks vs 5 expected" as correct). Pinned to
-        // 3.1-pro with no fallback — silently degrading to flash on
-        // a drawable swaps a correct mark for a wrong one. The
-        // per-attempt retry loop below still covers transient 5xx.
-        const needsPro = isDrawableAny && !!q.answerImageData;
+        // Drawable questions need stronger visual reasoning than flash can
+        // reliably provide (flash was marking "7 shaded blocks vs 5
+        // expected" as correct). Pinned to 3.1-pro:
+        //  - any drawable + answerImageData (every subject) — text key
+        //    can mark via prose comparison, image key needs pro vision.
+        //  - any drawable science OEQ (even when the key is text only) —
+        //    flash kept passing structurally wrong circuit / particle
+        //    diagrams whose intent is described in the answer key but
+        //    needs spatial reasoning to verify. Science marking already
+        //    skews stricter so the cost increase is bounded.
+        const paperIsScienceLocal = (paper.subject ?? "").toLowerCase().includes("science");
+        const needsPro = isDrawableAny && (!!q.answerImageData || paperIsScienceLocal);
         const QUIZ_MODELS = needsPro
           ? ["gemini-3.1-pro-preview"]
           // Non-drawable OEQ: start cheap, escalate on each retry.
