@@ -964,18 +964,44 @@ function SelectedTopicPanel({
     );
   }
 
-  // Running topical score: at each point N, what's the student's
-  // cumulative topic accuracy across papers 1..N. Mark-weighted, so
-  // a paper with a lot of topic questions counts more than a paper
-  // with one — same formula the subject overall uses.
-  let cumEarned = 0, cumAvailable = 0;
-  const rolling = series.map(p => {
-    cumEarned += p.earned;
-    cumAvailable += p.available;
-    return (cumEarned / cumAvailable) * 100;
-  });
-  const subjAvg = rolling[rolling.length - 1]; // running and final are the same point
-  const trendDelta = rolling.length >= 2 ? rolling[rolling.length - 1] - rolling[0] : 0;
+  // Bucket into groups of 3 chronological papers ONCE we have enough
+  // points for at least two full buckets (≥6 papers). Each bucket
+  // becomes one mark-weighted dot — sum(earned across the 3) divided
+  // by sum(available across the 3) — so noisy single-paper swings
+  // smooth out. Below 6 papers we plot every paper as its own dot,
+  // since aggregating 3 with only ~4 total points hides the trend.
+  const BUCKET = 3;
+  const bucketed = series.length >= 2 * BUCKET;
+  const buckets: { from: number; to: number; pct: number; earned: number; available: number; label: string }[] = [];
+  if (bucketed) {
+    for (let i = 0; i < series.length; i += BUCKET) {
+      const window = series.slice(i, i + BUCKET);
+      const e = window.reduce((s, p) => s + p.earned, 0);
+      const a = window.reduce((s, p) => s + p.available, 0);
+      if (a <= 0) continue;
+      buckets.push({
+        from: i,
+        to: Math.min(i + BUCKET - 1, series.length - 1),
+        pct: (e / a) * 100,
+        earned: e,
+        available: a,
+        label: `papers ${i + 1}-${Math.min(i + BUCKET, series.length)}`,
+      });
+    }
+  } else {
+    series.forEach((p, i) => buckets.push({ from: i, to: i, pct: p.pct, earned: p.earned, available: p.available, label: `paper ${i + 1}` }));
+  }
+  // Trend = where the student is NOW vs the topic's overall average.
+  // "Now" = last bucket (avg of last 3 papers when we have enough
+  // data, else just the latest paper). Positive = ahead of their
+  // own average, negative = below.
+  const subjAvg = (() => {
+    const e = series.reduce((s, p) => s + p.earned, 0);
+    const a = series.reduce((s, p) => s + p.available, 0);
+    return a > 0 ? (e / a) * 100 : 0;
+  })();
+  const lastDataPoint = buckets.length > 0 ? buckets[buckets.length - 1].pct : 0;
+  const trendDelta = lastDataPoint - subjAvg;
   const latest = series[series.length - 1];
 
   // SVG geometry — short stacked chart that reads on a phone.
@@ -983,9 +1009,14 @@ function SelectedTopicPanel({
   const padL = 36, padR = 12, padT = 14, padB = 28;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
-  const yMin = Math.min(50, Math.floor(Math.min(...rolling, ...series.map(s => s.pct), subjAvg) / 10) * 10);
+  const allPcts = [...buckets.map(b => b.pct), ...series.map(s => s.pct), subjAvg];
+  const yMin = Math.min(50, Math.floor(Math.min(...allPcts) / 10) * 10);
   const y = (pct: number) => padT + plotH - ((Math.max(yMin, Math.min(100, pct)) - yMin) / (100 - yMin)) * plotH;
-  const x = (idx: number) => series.length === 1 ? padL + plotW / 2 : padL + (idx / (series.length - 1)) * plotW;
+  // X uses the midpoint of each bucket's underlying papers so the
+  // dots sit at the time-centroid of their group.
+  const seriesLast = Math.max(1, series.length - 1);
+  const xForSeriesIdx = (idx: number) => series.length === 1 ? padL + plotW / 2 : padL + (idx / seriesLast) * plotW;
+  const xForBucket = (b: { from: number; to: number }) => xForSeriesIdx((b.from + b.to) / 2);
 
   return (
     <div className="mt-5 pt-5 border-t border-violet-100">
@@ -993,10 +1024,18 @@ function SelectedTopicPanel({
         <div className="min-w-0">
           <p className="text-sm font-extrabold text-violet-800 truncate">{topic}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            {series.length} paper{series.length === 1 ? "" : "s"} · running topic score {subjAvg.toFixed(1)}% · latest paper {latest.pct.toFixed(0)}% ·{" "}
-            <span className={trendDelta >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>
-              {trendDelta >= 0 ? "▲" : "▼"} {Math.abs(trendDelta).toFixed(1)}pp
-            </span>
+            {series.length} paper{series.length === 1 ? "" : "s"} · topic avg {subjAvg.toFixed(1)}% · latest paper {latest.pct.toFixed(0)}%
+            {buckets.length >= 2 && (
+              <>
+                {" · "}
+                <span
+                  className={trendDelta >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}
+                  title={bucketed ? "Latest 3-paper window vs topic average" : "Latest paper vs topic average"}
+                >
+                  {trendDelta >= 0 ? "▲" : "▼"} {Math.abs(trendDelta).toFixed(1)}pp vs topic avg
+                </span>
+              </>
+            )}
           </p>
         </div>
         <button onClick={onClose} className="text-[10px] text-slate-400 hover:text-slate-700 shrink-0">close</button>
@@ -1009,14 +1048,15 @@ function SelectedTopicPanel({
               <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
             </g>
           ))}
-          {/* Per-paper dots (lighter, behind the line). */}
+          {/* Per-paper dots — always shown faintly so the underlying
+              points are visible even when buckets aggregate them. */}
           {series.map((p, i) => (
-            <circle key={i} cx={x(i)} cy={y(p.pct)} r={3} fill="#C4B5FD" />
+            <circle key={i} cx={xForSeriesIdx(i)} cy={y(p.pct)} r={2.5} fill="#C4B5FD" />
           ))}
-          {/* Rolling-3 average line — the main signal. */}
-          {rolling.length > 1 && (
+          {/* Bucket dots + connecting line — the main signal. */}
+          {buckets.length > 1 && (
             <path
-              d={rolling.map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`).join(" ")}
+              d={buckets.map((b, i) => `${i === 0 ? "M" : "L"} ${xForBucket(b)} ${y(b.pct)}`).join(" ")}
               fill="none"
               stroke="#7C3AED"
               strokeWidth={3}
@@ -1024,12 +1064,18 @@ function SelectedTopicPanel({
               strokeLinejoin="round"
             />
           )}
-          {rolling.map((v, i) => (
-            <circle key={`r${i}`} cx={x(i)} cy={y(v)} r={4} fill="#7C3AED" stroke="white" strokeWidth={1.5} />
+          {buckets.map((b, i) => (
+            <circle key={`b${i}`} cx={xForBucket(b)} cy={y(b.pct)} r={5} fill="#7C3AED" stroke="white" strokeWidth={2}>
+              <title>{`${b.label} · ${b.pct.toFixed(1)}% (${b.earned}/${b.available})`}</title>
+            </circle>
           ))}
         </svg>
       </div>
-      <p className="text-[10px] text-slate-400 mt-1 text-center italic">Running topic score (mark-weighted, cumulative) · light dots are individual paper scores</p>
+      <p className="text-[10px] text-slate-400 mt-1 text-center italic">
+        {bucketed
+          ? `Each dark dot = mark-weighted accuracy over a window of 3 papers · light dots = individual papers`
+          : `Each dot = one paper · need ≥6 papers before 3-paper grouping kicks in`}
+      </p>
       <button
         onClick={onAssignFocus}
         disabled={creating}
