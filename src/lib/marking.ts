@@ -1187,6 +1187,34 @@ function mathMarkingRules(subject: string | null | undefined): string {
     phrases like "as a fraction", "in the form a/b", "in
     simplest form").
 
+  - SIMPLEST FORM (PSLE convention):
+    Fraction answers must be given in SIMPLEST FORM (numerator and
+    denominator share no common factor) unless the question text
+    explicitly says otherwise. If the expected answer is a fraction
+    that is already in simplest form and the student writes a
+    NUMERICALLY EQUIVALENT but UNSIMPLIFIED fraction, that's a
+    representation error — apply the wrong-answer cap.
+      · expected "1/2", student "2/4"  → wrong-answer cap (NOT full marks).
+      · expected "3/4", student "9/12" → wrong-answer cap.
+      · expected "2/5", student "4/10" → wrong-answer cap.
+    Working that visibly arrives at the unsimplified fraction can
+    still earn partial credit up to the cap; the missing simplification
+    is the only thing keeping it from full marks.
+    In the notes, wrap the unsimplified answer in **double asterisks**:
+    e.g. "Student wrote **2/4** instead of **1/2** (PSLE expects the
+    fraction in simplest form)."
+    Two exceptions:
+      (i) The question text explicitly relaxes the rule (e.g. "Give
+          your answer as a fraction", "Any equivalent fraction is
+          accepted") — then accept the equivalent unsimplified form.
+      (ii) The expected answer in the answer key is itself NOT in
+           simplest form (e.g. key says "2/4") — then the answer key
+           sets the bar; accept the student's matching form without
+           penalty.
+    Mixed numbers in simplest form are also acceptable (e.g. "1 1/2"
+    for "3/2") unless the question requires an improper fraction
+    specifically.
+
   UNITS — equivalent units are accepted when the question
   does NOT specify a required unit:
 
