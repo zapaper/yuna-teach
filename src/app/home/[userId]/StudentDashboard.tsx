@@ -1230,19 +1230,38 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   ))}
                   {todayDone.map(p => {
                     const pct = scorePct(p);
+                    // Block clicks while the marker is still running —
+                    // the partial score and missing notes show up as
+                    // "Q1-Q60 graded, Q61+ blank" and confuse students.
+                    // Card stays visible but inert until status becomes
+                    // complete/released.
+                    const stillMarking = !!p.completedAt && p.markingStatus !== "complete" && p.markingStatus !== "released";
                     return (
-                      <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-5 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                        <div className="w-6 h-6 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center">
-                          <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                      <div
+                        key={p.id}
+                        onClick={stillMarking ? undefined : () => router.push(`/exam/${p.id}/review?userId=${userId}`)}
+                        aria-disabled={stillMarking}
+                        className={`flex items-center gap-4 p-5 rounded-2xl shadow-sm transition-shadow ${stillMarking ? "bg-[#eff4ff] border border-[#dce9ff] cursor-not-allowed" : "bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 hover:shadow-md cursor-pointer"}`}
+                      >
+                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${stillMarking ? "border-[#737780]" : "border-[#006c49] bg-[#006c49]"}`}>
+                          {stillMarking
+                            ? <span className="animate-spin material-symbols-outlined text-[#737780] text-sm">progress_activity</span>
+                            : <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>}
                         </div>
                         <div className="flex-1 min-w-0">
                           <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
-                          <span className="text-[10px] text-[#43474f]">Due today</span>
+                          <span className="text-[10px] text-[#43474f]">{stillMarking ? "Marking your answers…" : "Due today"}</span>
                         </div>
                         <span className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
-                          {pct !== null && (
-                            <span className={`text-sm font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+                          {stillMarking ? (
+                            <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                          ) : (
+                            <>
+                              <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
+                              {pct !== null && (
+                                <span className={`text-sm font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+                              )}
+                            </>
                           )}
                         </span>
                       </div>
@@ -1301,13 +1320,24 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 </button>
                 {showPastWork && (
                   <div className="space-y-3">
-                    {completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return (
-                      <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                        <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-lg">{paperIcon(p)}</span></div>
-                        <div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>
-                        {pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
-                      </div>
-                    ); })}
+                    {completedPapers.slice(0, pastWorkLimit).map(p => {
+                      const pct = scorePct(p);
+                      const stillMarking = p.markingStatus !== "complete" && p.markingStatus !== "released";
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={stillMarking ? undefined : () => router.push(`/exam/${p.id}/review?userId=${userId}`)}
+                          aria-disabled={stillMarking}
+                          className={`flex items-center gap-4 p-4 rounded-2xl shadow-sm transition-shadow ${stillMarking ? "bg-[#eff4ff] cursor-not-allowed" : "bg-white hover:shadow-md cursor-pointer"}`}
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-lg">{paperIcon(p)}</span></div>
+                          <div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{stillMarking ? "Marking your answers…" : relativeDate(p.completedAt!)}</p></div>
+                          {stillMarking
+                            ? <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full shrink-0">MARKING…</span>
+                            : pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
+                        </div>
+                      );
+                    })}
                     {completedPapers.length > pastWorkLimit && (
                       <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-3 text-sm font-bold text-[#003366] bg-[#eff4ff] rounded-2xl hover:bg-[#dce9ff] transition-colors">
                         See more ({completedPapers.length - pastWorkLimit} remaining)
@@ -1506,7 +1536,38 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
             <div className="space-y-3">
               {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div>{p.printedAt && <button type="button" onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }} aria-label={`Scan printed pages for ${p.title}`} className="shrink-0 w-8 h-8 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-base">photo_camera</span></button>}<span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
-              {todayDone.map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="flex items-center gap-1 shrink-0"><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>{pct !== null && <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</span></div>; })}
+              {todayDone.map(p => {
+                const pct = scorePct(p);
+                const stillMarking = !!p.completedAt && p.markingStatus !== "complete" && p.markingStatus !== "released";
+                return (
+                  <div
+                    key={p.id}
+                    onClick={stillMarking ? undefined : () => router.push(`/exam/${p.id}/review?userId=${userId}`)}
+                    aria-disabled={stillMarking}
+                    className={`flex items-center gap-3 p-4 rounded-2xl ${stillMarking ? "bg-[#eff4ff] border border-[#dce9ff] cursor-not-allowed" : "bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 cursor-pointer"}`}
+                  >
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${stillMarking ? "border-[#737780]" : "border-[#006c49] bg-[#006c49]"}`}>
+                      {stillMarking
+                        ? <span className="animate-spin material-symbols-outlined text-[#737780] text-xs">progress_activity</span>
+                        : <span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span>
+                      <span className="text-[10px] text-[#43474f]">{stillMarking ? "Marking your answers…" : "Due today"}</span>
+                    </div>
+                    <span className="flex items-center gap-1 shrink-0">
+                      {stillMarking ? (
+                        <span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#001e40] rounded-full">MARKING…</span>
+                      ) : (
+                        <>
+                          <span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
+                          {pct !== null && <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
