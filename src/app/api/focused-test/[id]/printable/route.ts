@@ -700,6 +700,13 @@ export async function GET(
   const bytes = await doc.save();
   const safeTitle = (paper.title ?? "Focused Practice").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Focused Practice";
   const filename = `${safeTitle} (printable).pdf`;
+  // Stamp printedAt on first print so the student homepage can show
+  // the self-serve scan-back camera icon for this assignment. Best-
+  // effort — never block the PDF response if the update errors.
+  prisma.examPaper.updateMany({
+    where: { id: paper.id, printedAt: null },
+    data: { printedAt: new Date() },
+  }).catch(err => console.warn(`[focused-printable] failed to stamp printedAt for ${paper.id}:`, err));
   return new NextResponse(Buffer.from(bytes), {
     status: 200,
     headers: {

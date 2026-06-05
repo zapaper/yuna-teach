@@ -148,6 +148,12 @@ model ExamPaper {
   markingStatus    String?   // "pending" | "in_progress" | "complete" | "released" | "failed"
   extractionStatus String?   // "processing" | "ready" | "failed"
   feedbackSummary  String?
+  // Set the first time a parent (or student) hits a print endpoint
+  // for this paper. The student homepage uses presence of this field
+  // to surface a self-serve camera-scan icon on the assignment card —
+  // i.e. "you've got a printed copy, snap pages to submit". Idempotent
+  // — never overwritten on subsequent prints.
+  printedAt        DateTime?
   sourceExamId     String?
   paperType        String?   // null = regular, "focused" = focused test
   examType         String?   // "Preliminary" | "WA1" | "WA2" | "WA3" | "End of Year"

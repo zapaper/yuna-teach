@@ -88,6 +88,9 @@ export interface ExamPaperSummary {
   skippedMarks?: number;
   paperType: string | null;
   examType: string | null;
+  // Set the first time a print endpoint serves this paper. Drives the
+  // student-homepage camera icon for self-serve scan-back submission.
+  printedAt?: string | null;
   syllabusTagged: boolean;
   cleanExtracted: boolean;
   hasNormalExtractEnglish?: boolean;

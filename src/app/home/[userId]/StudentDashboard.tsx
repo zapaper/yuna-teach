@@ -7,6 +7,8 @@ import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 import { playClick, playExp } from "@/lib/sfx";
 import { canSeeMasterClass } from "@/lib/master-class-access";
 import TrialReminder from "@/components/TrialReminder";
+import DocumentScanner from "@/components/DocumentScanner";
+import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
@@ -262,6 +264,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
+  // In-app scanner target — opens the DocumentScanner overlay for
+  // self-serve scan-back of a paper the parent already printed. Only
+  // appears on assignments whose printedAt is set.
+  const [scannerTarget, setScannerTarget] = useState<{
+    masterPaperId: string;
+    paperTitle: string;
+  } | null>(null);
   // Admin/test overrides: extra points/crystals added on top of earned ones.
   const bonusPoints = ((user.settings as Record<string, unknown> | null)?.bonusPoints as number | undefined) ?? 0;
   const bonusCrystals = ((user.settings as Record<string, unknown> | null)?.bonusCrystals as number | undefined) ?? 0;
@@ -1216,6 +1225,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
                         <span className="text-[10px] text-[#43474f]">Due today</span>
                       </div>
+                      {p.printedAt && (
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }}
+                          title="Scan your printed pages"
+                          aria-label={`Scan printed pages for ${p.title}`}
+                          className="shrink-0 w-9 h-9 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-lg">photo_camera</span>
+                        </button>
+                      )}
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${p.timeSpentSeconds > 0 ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dce9ff] text-[#737780]"}`}>{p.timeSpentSeconds > 0 ? "IN PROGRESS" : "TODO"}</span>
                     </div>
                   ))}
@@ -1251,13 +1271,26 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {weekHomework.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {weekHomework.map(p => (
-                      <button key={p.id} type="button" onClick={() => goToPaper(p)} className="text-left bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
-                        <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
-                          <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
-                        </div>
-                        <h3 className="font-bold text-lg leading-tight mb-2">{p.title}</h3>
-                        <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
-                      </button>
+                      <div key={p.id} className="relative">
+                        <button type="button" onClick={() => goToPaper(p)} className="w-full text-left bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
+                          <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
+                            <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
+                          </div>
+                          <h3 className="font-bold text-lg leading-tight mb-2 pr-10">{p.title}</h3>
+                          <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
+                        </button>
+                        {p.printedAt && (
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }}
+                            title="Scan your printed pages"
+                            aria-label={`Scan printed pages for ${p.title}`}
+                            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-xl">photo_camera</span>
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -1496,7 +1529,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
             <div className="space-y-3">
-              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
+              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div>{p.printedAt && <button type="button" onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }} aria-label={`Scan printed pages for ${p.title}`} className="shrink-0 w-8 h-8 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-base">photo_camera</span></button>}<span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
               {todayDone.map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="flex items-center gap-1 shrink-0"><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>{pct !== null && <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</span></div>; })}
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
@@ -1506,15 +1539,27 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {weekHomework.length > 0 ? (
               <div className="space-y-3">
                 {weekHomework.map(p => (
-                  <button key={p.id} type="button" onClick={() => goToPaper(p)} className="w-full text-left flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer">
-                    <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p>
-                      <p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p>
-                    </div>
-                  </button>
+                  <div key={p.id} className="relative flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm">
+                    <button type="button" onClick={() => goToPaper(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer">
+                      <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p>
+                        <p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p>
+                      </div>
+                    </button>
+                    {p.printedAt && (
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); playClick(); setScannerTarget({ masterPaperId: p.id, paperTitle: p.title }); }}
+                        aria-label={`Scan printed pages for ${p.title}`}
+                        className="shrink-0 w-9 h-9 rounded-full bg-[#006c49]/10 hover:bg-[#006c49]/20 text-[#006c49] flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-base">photo_camera</span>
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             ) : (
@@ -1932,6 +1977,26 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </div>
           </div>
         </div>
+      )}
+
+      {/* In-app document scanner overlay. Opens when the student taps
+          the camera icon on an assignment the parent already printed —
+          self-serve scan-back. Wrapped in an error boundary so a
+          single render crash inside the scanner doesn't blow up the
+          whole homepage. parentId is the student's own id because
+          /api/exam/[id]/scan-submit reads the actor from the session
+          cookie, not the param. */}
+      {scannerTarget && (
+        <ScannerErrorBoundary onReset={() => { setScannerTarget(null); fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {}); }}>
+          <DocumentScanner
+            parentId={userId}
+            masterPaperId={scannerTarget.masterPaperId}
+            studentId={userId}
+            studentName={user.name}
+            paperTitle={scannerTarget.paperTitle}
+            onClose={() => { setScannerTarget(null); fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {}); }}
+          />
+        </ScannerErrorBoundary>
       )}
 
     </div>

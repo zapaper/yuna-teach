@@ -275,6 +275,7 @@ export async function GET(request: NextRequest) {
       skippedMarks: skippedMarksById.get(p.id) ?? 0,
       paperType: p.paperType ?? null,
       examType: p.examType ?? null,
+      printedAt: p.printedAt?.toISOString() ?? null,
       sourceExamId: p.sourceExamId ?? null,
       syllabusTagged: p.questions.length > 0,
       cleanExtracted: p.questions.some(q => !!q.transcribedStem),

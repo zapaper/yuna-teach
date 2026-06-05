@@ -208,6 +208,14 @@ export async function GET(
   const safeTitle = (paper.title ?? "Exam").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Exam";
   const filename = `${safeTitle} (print).pdf`;
 
+  // Stamp printedAt on first print so the student homepage can show
+  // the self-serve scan-back camera icon for this assignment. Best-
+  // effort — never block the PDF response if the update errors.
+  prisma.examPaper.updateMany({
+    where: { id, printedAt: null },
+    data: { printedAt: new Date() },
+  }).catch(err => console.warn(`[print] failed to stamp printedAt for ${id}:`, err));
+
   return new NextResponse(Buffer.from(out), {
     status: 200,
     headers: {
