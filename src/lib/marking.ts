@@ -1503,7 +1503,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const subDir = path.join(SUBMISSIONS_DIR, paper.id);
 
   // Compute submissionIndexMap the same way as markExamPaper
-  const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[] } | null;
+  const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[]; normalExtractChinese?: { oeqPadFirstPageIndex?: number; oeqPadPages?: number } } | null;
   const hiddenPageSet = new Set([
     ...(metadata?.answerPages ?? []).map((p: number) => p - 1),
     ...(metadata?.skipPages ?? []).map((p: number) => p - 1),
@@ -1514,6 +1514,17 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     if (!hiddenPageSet.has(i)) {
       if (i === question.pageIndex) { submissionPage = submissionIdx; break; }
       submissionIdx++;
+    }
+  }
+  // Chinese OEQ pad: questions on the appended pad pages have
+  // pageIndex >= paper.pageCount. Map those to the post-master
+  // submission indices.
+  if (submissionPage === -1) {
+    const oeqPadFirst = metadata?.normalExtractChinese?.oeqPadFirstPageIndex;
+    const oeqPadCount = metadata?.normalExtractChinese?.oeqPadPages ?? 0;
+    if (typeof oeqPadFirst === "number" && oeqPadCount > 0) {
+      const off = question.pageIndex - oeqPadFirst;
+      if (off >= 0 && off < oeqPadCount) submissionPage = submissionIdx + off;
     }
   }
   if (submissionPage === -1) {
@@ -1788,7 +1799,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
     // Build mapping: original PDF page index → submission file index
     // Answer pages and skip pages (from metadata) are not included in the submission files
-    const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[] } | null;
+    const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[]; normalExtractChinese?: { oeqPadFirstPageIndex?: number; oeqPadPages?: number } } | null;
     const hiddenPageSet = new Set([
       ...(metadata?.answerPages ?? []).map((p: number) => p - 1),
       ...(metadata?.skipPages ?? []).map((p: number) => p - 1),
@@ -1797,6 +1808,18 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
     let submissionIdx = 0;
     for (let i = 0; i < paper.pageCount; i++) {
       if (!hiddenPageSet.has(i)) submissionIndexMap.set(i, submissionIdx++);
+    }
+    // Chinese 阅读理解 OEQ pad: when the print flow appended the
+    // pad PDF at the end, the scanned submission will contain those
+    // pages right after the (non-hidden) master pages. Q33-Q40 have
+    // pageIndex = masterPageCount + padPageOffset, so extend the map
+    // with those entries so the marker can locate them.
+    const oeqPadFirst = metadata?.normalExtractChinese?.oeqPadFirstPageIndex;
+    const oeqPadCount = metadata?.normalExtractChinese?.oeqPadPages ?? 0;
+    if (typeof oeqPadFirst === "number" && oeqPadCount > 0) {
+      for (let off = 0; off < oeqPadCount; off++) {
+        submissionIndexMap.set(oeqPadFirst + off, submissionIdx++);
+      }
     }
 
     // Group questions by original page index

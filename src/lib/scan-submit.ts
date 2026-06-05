@@ -238,8 +238,17 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   // that layout — same code path math/science regular masters use —
   // so dispatch through it instead of markQuizPaper for English.
   const subjLc = (target.subject ?? "").toLowerCase();
+  const subjRaw = target.subject ?? "";
   const isEnglishTestQuiz = target.paperType === "quiz" && subjLc.includes("english");
-  const markFn = isEnglishTestQuiz
+  // Chinese Test Quiz mirrors the English override: the print flow
+  // uses the original PDF + appended oeq_pad.pdf, and the scan-back
+  // marker reads per-question pageIndex/yStart/yEnd from the DB
+  // (the OEQ pad generator wrote those when the pad was created).
+  // Route through markExamPaper so the bounds-based pipeline runs.
+  const isChineseTestQuiz = target.paperType === "quiz" && (
+    subjLc.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语")
+  );
+  const markFn = (isEnglishTestQuiz || isChineseTestQuiz)
     ? markExamPaper
     : target.paperType === "quiz"
       ? markQuizPaper
