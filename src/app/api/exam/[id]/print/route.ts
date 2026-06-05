@@ -124,11 +124,30 @@ export async function GET(
         });
       if (files.length === 0) throw new Error("no page JPEGs on disk");
       const assembled = await PDFDocument.create();
+      // Fit each JPEG to A4, preserving aspect ratio. Setting the
+      // page size to the JPEG's pixel dimensions (~2000×2800 for a
+      // typical scan) produced an oversized page that home printers
+      // truncated to letter-width — symptom: right half of every page
+      // cut off. Standard A4 + scale-to-fit means home / mobile
+      // printers print the whole page at the expected scale.
+      const A4_W = 595;
+      const A4_H = 842;
       for (const f of files) {
         const jpg = await fs.readFile(path.join(pagesDir, f));
         const img = await assembled.embedJpg(jpg);
-        const p = assembled.addPage([img.width, img.height]);
-        p.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        // Pick page orientation by image aspect ratio so wide scans
+        // (e.g. two facing pages rendered together) get a landscape A4
+        // and aren't squashed into portrait.
+        const landscape = img.width > img.height;
+        const pageW = landscape ? A4_H : A4_W;
+        const pageH = landscape ? A4_W : A4_H;
+        const scale = Math.min(pageW / img.width, pageH / img.height);
+        const drawW = img.width * scale;
+        const drawH = img.height * scale;
+        const drawX = (pageW - drawW) / 2;
+        const drawY = (pageH - drawH) / 2;
+        const p = assembled.addPage([pageW, pageH]);
+        p.drawImage(img, { x: drawX, y: drawY, width: drawW, height: drawH });
       }
       pdfBytes = Buffer.from(await assembled.save());
       console.log(`[print] assembled ${files.length}-page PDF from JPEGs for owner=${pageImagesOwnerId} (this paper had no pdfPath)`);
