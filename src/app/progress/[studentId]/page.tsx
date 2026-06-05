@@ -94,6 +94,10 @@ function ProgressContent({ studentId }: { studentId: string }) {
   const [assignedToast, setAssignedToast] = useState<string | null>(null);
   const [view, setView] = useState<"topic" | "time">("topic");
   const [sharing, setSharing] = useState(false);
+  // Admin-only column-chart block. Authoritative check uses the signed
+  // session cookie (the API ignores ?userId=), so a parent typing
+  // ?parentId=<admin-id> in the URL won't unlock it.
+  const [isAdmin, setIsAdmin] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -112,6 +116,12 @@ function ProgressContent({ studentId }: { studentId: string }) {
       }
     })();
   }, [parentId, studentId]);
+
+  useEffect(() => {
+    fetch("/api/admin/check")
+      .then(r => setIsAdmin(r.ok))
+      .catch(() => setIsAdmin(false));
+  }, []);
 
   // English syllabus topic → daily-quiz section key (matches the parent-
   // dashboard Assign English Focus flow). Anything not in this map falls
@@ -347,6 +357,11 @@ function ProgressContent({ studentId }: { studentId: string }) {
                 >Time</button>
               </div>
             </div>
+
+            {/* ── Admin-only column chart: per-topic accuracy with subject avg line ── */}
+            {isAdmin && currentSubject && view === "topic" && activeSubject && (
+              <AdminTopicChart subject={activeSubject} subjectData={currentSubject} studentName={data?.student?.name ?? "Student"} />
+            )}
 
             {/* ── Topic view ── */}
             {currentSubject && view === "topic" && (
@@ -681,6 +696,97 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
         </svg>
       </div>
       <p className="text-[10px] text-[#c3c6d1] mt-2 text-right italic">Each data point is average of three quizzes/papers</p>
+    </div>
+  );
+}
+
+// Admin-only chart: per-topic accuracy column chart with the student's
+// own subject average as a dashed horizontal line. Bars sorted high → low
+// so strongest topics surface first; topics with <3 questions filtered out
+// to suppress single-question noise. Uses the same SubjectData feeding the
+// existing topic cards below, so no extra API.
+function AdminTopicChart({
+  subject,
+  subjectData,
+  studentName,
+}: {
+  subject: string;
+  subjectData: SubjectData;
+  studentName: string;
+}) {
+  const MIN_QS = 3;
+  const topics = Object.entries(subjectData.topics)
+    .filter(([t, td]) => t !== "Untagged" && td.available > 0 && td.count >= MIN_QS)
+    .map(([t, td]) => ({
+      topic: t,
+      pct: (td.earned / td.available) * 100,
+      attempts: td.count,
+      earned: td.earned,
+      available: td.available,
+    }))
+    .sort((a, b) => b.pct - a.pct);
+  if (topics.length === 0) return null;
+  const totalEarned = topics.reduce((s, t) => s + t.earned, 0);
+  const totalAvailable = topics.reduce((s, t) => s + t.available, 0);
+  const totalAttempts = topics.reduce((s, t) => s + t.attempts, 0);
+  const avg = totalAvailable > 0 ? (totalEarned / totalAvailable) * 100 : 0;
+
+  const W = 1100;
+  const H = 360;
+  const padL = 50, padR = 20, padT = 30, padB = 110;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const n = topics.length;
+  const slot = plotW / Math.max(1, n);
+  const barW = Math.min(56, slot * 0.65);
+  const y = (pct: number) => padT + plotH - (pct / 100) * plotH;
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-violet-200 p-5 mb-4 shadow-sm">
+      <div className="flex items-baseline justify-between gap-3 mb-1">
+        <h3 className="text-sm font-extrabold text-violet-700 uppercase tracking-widest">Admin view · per-topic accuracy</h3>
+        <span className="text-[10px] text-violet-400 font-bold uppercase tracking-wider">Admin only</span>
+      </div>
+      <p className="text-xs text-[#43474f] mb-3">
+        {studentName} — {subject}. {topics.length} topic{topics.length === 1 ? "" : "s"} with ≥{MIN_QS} attempts · {totalAttempts.toLocaleString()} total attempts · subject avg <span className="font-bold text-rose-600">{avg.toFixed(1)}%</span>
+      </p>
+      <div className="w-full overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} className="block min-w-[700px] w-full h-auto">
+          {/* y-axis gridlines */}
+          {[0, 25, 50, 75, 100].map(pct => (
+            <g key={pct}>
+              <line x1={padL} y1={y(pct)} x2={padL + plotW} y2={y(pct)} stroke="#E5E7EB" strokeWidth={1} />
+              <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
+            </g>
+          ))}
+          {/* bars */}
+          {topics.map((t, i) => {
+            const x = padL + slot * i + (slot - barW) / 2;
+            const h = (t.pct / 100) * plotH;
+            const by = y(t.pct);
+            const fill = t.pct >= avg ? "#10B981" : "#94A3B8";
+            return (
+              <g key={t.topic}>
+                <rect x={x} y={by} width={barW} height={h} fill={fill} rx={3} />
+                <text x={x + barW / 2} y={by - 14} textAnchor="middle" fill="#001E40" fontSize={11} fontWeight="bold">{t.pct.toFixed(0)}%</text>
+                <text x={x + barW / 2} y={by - 4} textAnchor="middle" fill="#737780" fontSize={9}>n={t.attempts}</text>
+                {/* x-axis label rotated -40° */}
+                <text
+                  x={x + barW / 2}
+                  y={padT + plotH + 10}
+                  fill="#43474f"
+                  fontSize={10}
+                  textAnchor="end"
+                  transform={`rotate(-40 ${x + barW / 2} ${padT + plotH + 10})`}
+                >{t.topic.length > 28 ? t.topic.slice(0, 27) + "…" : t.topic}</text>
+              </g>
+            );
+          })}
+          {/* dashed avg line, drawn after bars so it sits on top */}
+          <line x1={padL} y1={y(avg)} x2={padL + plotW} y2={y(avg)} stroke="#DC2626" strokeWidth={2} strokeDasharray="8 6" />
+          <text x={padL + plotW - 4} y={y(avg) - 6} textAnchor="end" fill="#DC2626" fontSize={11} fontWeight="bold">avg {avg.toFixed(1)}%</text>
+        </svg>
+      </div>
     </div>
   );
 }
