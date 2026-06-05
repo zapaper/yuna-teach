@@ -1024,7 +1024,14 @@ function SelectedTopicPanel({
         <div className="min-w-0">
           <p className="text-sm font-extrabold text-violet-800 truncate">{topic}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            {series.length} paper{series.length === 1 ? "" : "s"} · topic avg {subjAvg.toFixed(1)}% · latest paper {latest.pct.toFixed(0)}%
+            {(() => {
+              if (!bucketed) {
+                return `${series.length} paper${series.length === 1 ? "" : "s"} · topic avg ${subjAvg.toFixed(1)}% · latest paper ${latest.pct.toFixed(0)}%`;
+              }
+              const lastBucket = buckets[buckets.length - 1];
+              const lastCount = lastBucket.to - lastBucket.from + 1;
+              return `${series.length} papers · topic avg ${subjAvg.toFixed(1)}% · last ${lastCount} paper${lastCount === 1 ? "" : "s"} avg ${lastDataPoint.toFixed(0)}%`;
+            })()}
             {buckets.length >= 2 && (
               <>
                 {" · "}
