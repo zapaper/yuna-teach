@@ -3992,19 +3992,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       // original-PDF print path — same as regular
                       // master papers — and the marker will use the
                       // normal-extract bounds to crop + read answers.
-                      const subjRaw = popup.subject ?? "";
-                      const subjLc = subjRaw.toLowerCase();
+                      const subjLc = (popup.subject ?? "").toLowerCase();
                       const isEnglishTestQuiz = popup.paperType === "quiz" && subjLc.includes("english");
-                      // Chinese Test Quiz override (same rationale as
-                      // English): the clean-extract printable mangles
-                      // the Chinese layout and Q33-Q40 should print
-                      // the raw paper + the 2-page OEQ writing pad.
-                      // Route through /print which appends oeq_pad.pdf
-                      // automatically for Chinese subjects.
-                      const isChineseTestQuiz = popup.paperType === "quiz" && (
-                        subjLc.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语")
-                      );
-                      const useFocusedPrintable = (popup.paperType === "quiz" || popup.paperType === "focused") && !isEnglishTestQuiz && !isChineseTestQuiz;
+                      // (Chinese Test Quizzes route through the focused
+                      // printable for now — they're generated rather
+                      // than cloned, so they carry no sourceExamId and
+                      // /print can't fall back to a master PDF. Fix
+                      // separately by setting sourceExamId at Test Quiz
+                      // creation, then revisit this routing.)
+                      const useFocusedPrintable = (popup.paperType === "quiz" || popup.paperType === "focused") && !isEnglishTestQuiz;
                       const printUrl = useFocusedPrintable
                         ? `/api/focused-test/${popup.id}/printable?studentId=${selectedStudentId}&userId=${userId}`
                         : `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
