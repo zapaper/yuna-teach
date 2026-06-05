@@ -754,9 +754,15 @@ function AdminTopicChart({
   const totalAttempts = topics.reduce((s, t) => s + t.attempts, 0);
   const avg = totalAvailable > 0 ? (totalEarned / totalAvailable) * 100 : 0;
 
+  // Chart is sized to fit the longest topic label at the rotated
+  // -40° x-axis position without truncation. Each character is ~7.5px
+  // at fontSize=13; at -40° the vertical footprint of a label is
+  // length × sin(40°) ≈ 0.64 × label width plus a baseline buffer.
+  const longest = topics.reduce((m, t) => Math.max(m, t.topic.length), 0);
   const W = 1100;
-  const H = 360;
-  const padL = 50, padR = 20, padT = 30, padB = 110;
+  const labelHeight = Math.ceil(longest * 7.5 * 0.64) + 24; // px
+  const padL = 50, padR = 20, padT = 30, padB = Math.max(110, labelHeight);
+  const H = 30 + 250 + padB; // padT + plot + padB so the plot stays ≥250px tall
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const n = topics.length;
@@ -829,7 +835,7 @@ function AdminTopicChart({
                   fontWeight={isSel ? "bold" : "600"}
                   textAnchor="end"
                   transform={`rotate(-40 ${x + barW / 2} ${padT + plotH + 10})`}
-                >{t.topic.length > 28 ? t.topic.slice(0, 27) + "…" : t.topic}</text>
+                >{t.topic}</text>
               </g>
             );
           })}
