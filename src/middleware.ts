@@ -79,6 +79,20 @@ function verifyYunaSession(cookieValue: string | undefined): SessionCheck {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // ── Apex → www canonicalisation ──────────────────────────────────
+  // Google OAuth + NEXTAUTH_URL are wired to www.markforyou.com.
+  // Hitting apex (markforyou.com) breaks the Google callback because
+  // the redirect_uri allow-list + the pkceCodeVerifier cookie are
+  // bound to the www origin. Permanently redirect every apex request
+  // to www before any other logic runs.
+  const host = request.headers.get("host") ?? "";
+  if (host === "markforyou.com") {
+    const url = request.nextUrl.clone();
+    url.host = "www.markforyou.com";
+    url.protocol = "https:";
+    return NextResponse.redirect(url, 308);
+  }
+
   // Only enforce auth on /api/* — every other path (pages,
   // _next/*, public assets) is unaffected.
   if (!pathname.startsWith("/api/")) return NextResponse.next();
@@ -121,7 +135,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on every /api/* path. The "/api/:path*" form is the
-  // matcher syntax Next.js middleware understands.
-  matcher: "/api/:path*",
+  // Two layered concerns: (a) the apex→www redirect needs to fire on
+  // every page route too (login, home, /api, etc.), and (b) the
+  // /api/* auth gate runs on every API call. The negative-lookahead
+  // matcher catches everything except Next's own static asset paths
+  // and a handful of public root-level files we serve from /public.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|icon\\.png|apple-icon\\.png|opengraph-image\\.png|email-images/).*)",
+  ],
 };
