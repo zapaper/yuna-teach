@@ -5242,231 +5242,88 @@ Return ONLY valid JSON:
                 awarded = newAwarded;
               }
 
-              // Per-part clamp. Multi-mark questions ask the AI to put
-              // an explicit "Awarded N mark(s)" line per part in the
-              // notes (see prompt instruction 3 above). Split into
-              // per-part chunks first, then sum mark-earning verbs
-              // (Awarded / earning / earned / scoring / gaining)
-              // within each chunk — a part with sub-elements may
-              // mention each separately ("earning 1 mark" for sub-1,
-              // "Awarded 0 marks for the explanation" for sub-2);
-              // summing recovers the intended part total. Clamp to
-              // each part's cap from [N marks] suffixes in the
-              // subpart text where known. Only clamp the overall
-              // marksAwarded if the per-part total is strictly less
-              // than what the AI returned — never inflate.
-              //
-              // Skipped when parts[] is the source of truth — the prose
-              // reconciliation only exists for the case the AI omits
-              // the structured breakdown (single-part, or model regression).
-              if (!usePartsSum && parsed.notes && marksAvailable > 1 && awarded > 0) {
-                const notesStr = String(parsed.notes);
-                const verbRe = /\b(?:awarded|earning|earned|scoring|scored|gaining|gained|given)\s+(\d+(?:\.\d+)?)\s*marks?\b/gi;
-                // Chunk by "Part (x):" / "(x):" headers. Anything
-                // before the first header is unlabelled — skipped.
-                const headerRe = /(?:^|[\n|]|\.\s+|;\s+)\s*(?:Part\s+)?\(([a-z])\)\s*:/gi;
-                const headers = [...notesStr.matchAll(headerRe)];
-                let partSum = 0;
-                let chunkCount = 0;
-                if (headers.length >= 2) {
-                  for (let h = 0; h < headers.length; h++) {
-                    const chunkStart = headers[h].index! + headers[h][0].length;
-                    const chunkEnd = h + 1 < headers.length ? headers[h + 1].index! : notesStr.length;
-                    const chunk = notesStr.slice(chunkStart, chunkEnd);
-                    const matches = [...chunk.matchAll(verbRe)];
-                    if (matches.length === 0) continue;
-                    const partLabel = headers[h][1].toLowerCase();
-                    let chunkSum = matches.reduce((s, m) => s + parseFloat(m[1]), 0);
-                    const cap = partMaxMarks.get(partLabel);
-                    if (cap != null) chunkSum = Math.min(chunkSum, cap);
-                    partSum += chunkSum;
-                    chunkCount++;
-                  }
-                } else {
-                  // No per-part headers — fall back to summing all
-                  // award verbs across the whole notes (legacy
-                  // behaviour, kept for backward-compat with markers
-                  // that emit single-line per-part awards).
-                  const all = [...notesStr.matchAll(verbRe)];
-                  if (all.length >= 2) {
-                    partSum = all.reduce((s, m) => s + parseFloat(m[1]), 0);
-                    chunkCount = all.length;
-                  }
-                }
-                if (chunkCount >= 2) {
-                  const sumClamp = Math.min(marksAvailable, Math.max(0, partSum));
-                  if (sumClamp < awarded) {
-                    console.log(`[quiz-marking] Q${q.questionNum} per-part clamp: ${chunkCount} chunks sum=${partSum} → ${sumClamp}/${marksAvailable} (was ${awarded})`);
-                    awarded = sumClamp;
-                  }
-                }
-              }
-
-              // Per-part HARD CAP: if the subpart text carries an
-              // explicit "[N marks]" cap (parsed into partMaxMarks),
-              // the AI's awarded mark for that part can't exceed
-              // it. Reported case: a P5 Math Q5 with (a)=2 marks +
-              // (b)=3 marks where flash awarded part (b) 4 marks
-              // (above its 3-mark cap), giving 4/5 instead of the
-              // clamped 3/5. Parses per-part awards from the notes
-              // field (the marker is already prompted to write
-              // them), clamps each to its cap, and re-sums.
-              //
-              // Guard intentionally does NOT include `awarded > 0`:
-              // the upward-reconcile branch below has to fire when
-              // AI returns top-level 0 but writes "Awarded 1 mark"
-              // in a part chunk — saw this on a Science circuit-
-              // drawing Q where part (a) = 0 and part (b) = 1 but
-              // marksAwarded stayed at 0.
-              //
-              // Skipped when parts[] is the source of truth — each
-              // part was already clamped to its cap in the sum path.
-              if (!usePartsSum && parsed.notes && hasFullPartMaxes) {
-                const notesStr = String(parsed.notes);
-                // Match "Part (a): … Awarded N mark(s)" or "(a) … Awarded N mark(s)"
-                // — split notes into per-part chunks first, then read each chunk's
-                // last "awarded N marks" hit. Multi-line. Case-insensitive.
-                const partRe = /(?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
-                let cappedSum = 0;
-                let appliedCap = false;
-                let usedAnyChunk = false;
-                for (const m of notesStr.matchAll(partRe)) {
-                  const label = m[1].toLowerCase();
-                  const chunk = m[2];
-                  const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
-                  if (awardMatches.length === 0) continue;
-                  const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
-                  const cap = partMaxMarks.get(label);
-                  if (cap == null) { cappedSum += partAwarded; usedAnyChunk = true; continue; }
-                  const clamped = Math.min(cap, Math.max(0, partAwarded));
-                  if (clamped < partAwarded) {
-                    appliedCap = true;
-                    console.log(`[quiz-marking] Q${q.questionNum} part (${label}) cap: AI awarded ${partAwarded} > max ${cap} → ${clamped}`);
-                  }
-                  cappedSum += clamped;
-                  usedAnyChunk = true;
-                }
-                if (usedAnyChunk && appliedCap) {
-                  const newAwarded = Math.min(marksAvailable, Math.max(0, cappedSum));
-                  if (newAwarded < awarded) {
-                    console.log(`[quiz-marking] Q${q.questionNum} per-part hard-cap clamp: ${awarded} → ${newAwarded}/${marksAvailable}`);
-                    awarded = newAwarded;
-                  }
-                }
-                // Reconcile UPWARD too. The AI sometimes sets the
-                // top-level marksAwarded to 0 but writes per-part
-                // marks > 0 in the notes (e.g. "Part (c): … Awarded
-                // 1.5 mark(s).") — the question then displayed 0/5
-                // even though the parent sees 1.5 against (c). When
-                // every subpart accounted for has a per-part award
-                // and the sum exceeds the AI's stated total, trust
-                // the sum (capped at marksAvailable).
-                if (usedAnyChunk && cappedSum > awarded) {
-                  const newAwarded = Math.min(marksAvailable, cappedSum);
-                  console.log(`[quiz-marking] Q${q.questionNum} per-part sum upgrade: AI total ${awarded} → ${newAwarded}/${marksAvailable} (sum of per-part marks)`);
-                  awarded = newAwarded;
-                }
-              }
-
-              // Single-part / drawable trailing-award upgrade.
-              //
-              // Per-part chunking above only fires when the notes carry
-              // "(a):" / "(b):" headers — multi-part questions. Drawable
-              // single-subpart Qs ("_drawable" sentinel) and other
-              // headerless OEQs return ONE narrative block ending in
-              // "... Awarded N mark(s)." We've seen drawables where AI
-              // says marksAwarded:0.5 at the JSON top but writes
-              // "Awarded 2 mark(s)" in the trailing notes summary —
-              // trust the trailing total. Capped at marksAvailable.
-              //
-              // Skipped when parts[] is the source of truth — for
-              // single-part questions parts[] is empty, so usePartsSum
-              // is false and this still runs as before.
-              if (!usePartsSum && parsed.notes) {
-                const notesStr = String(parsed.notes).trim();
-                // Match "Awarded N mark(s)." or "Awarded N marks." at end.
-                // The (s) literal-paren form is what the marker prompt
-                // emits — easy to forget when writing the regex.
-                const trailing = notesStr.match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\s*\.?\s*$/i);
-                if (trailing) {
-                  const fromNotes = parseFloat(trailing[1]);
-                  const clamped = Math.min(marksAvailable, Math.max(0, fromNotes));
-                  if (clamped > awarded + 0.0001) {
-                    console.log(`[quiz-marking] Q${q.questionNum} trailing-award upgrade: AI total ${awarded} → ${clamped}/${marksAvailable} (from "Awarded N mark(s)" trailing summary)`);
-                    awarded = clamped;
-                  }
-                }
+              // Source of truth for multi-part marks is the structured
+              // parts[] sum above. The previous "grep 'Awarded N marks'
+              // out of the prose notes" reconciliation chain has been
+              // removed — it produced silent disagreements between the
+              // stored marksAwarded and the per-part wording (see Q10
+              // incident, Jun 2026), and its only purpose was patching
+              // around models that omitted parts[]. If parts[] is
+              // missing on a multi-part question we log it and trust
+              // the AI's top-level marksAwarded as-is; the prompt
+              // already mandates parts[] so this is a model-regression
+              // alarm, not a normal path.
+              if (!usePartsSum && hasFullPartMaxes) {
+                console.warn(`[quiz-marking] Q${q.questionNum}: multi-part question but AI returned no parts[] — using top-level marksAwarded=${awarded} without prose reconciliation. Inspect the response if this trips often.`);
               }
 
               // Blank-subpart clamp. blankSubparts came from a
               // pixel-level inspection of the ink layer — it's a hard
               // physical fact that those parts had zero pen strokes.
-              // We've still seen the marker hallucinate marks for them
-              // (e.g. detected="(b) :" → notes claim student "filled
-              // in A, B, C, D, E" → awarded 2/2). Strip any per-part
-              // mark on a confirmed-blank label, rewrite the notes
-              // chunk's "Awarded N mark(s)" to 0, AND override the
-              // structured parts[] entry when present.
+              // Original failure mode: AI hallucinated marks on empty
+              // canvases ("filled in A, B, C, D, E" with no ink ->
+              // 2/2). But the blanket "zero any nonzero per-part mark
+              // on a blank label" override has the opposite failure
+              // mode: when the pixel check misfires on a part that
+              // DID have ink (Q10's circuit diagram), it wipes valid
+              // 1-mark / 0.5-mark scores. Tightened: only override a
+              // per-part award when AI gave FULL marks for that part.
+              // Conservative AI scores (<full) are kept — those are
+              // already cautious so the only thing zeroing them would
+              // do is bake in a pixel-check mistake.
               if (blankSubparts.size > 0 && awarded > 0) {
-                // 1. parts[] override (when usePartsSum) — re-sum with blanks zeroed.
-                let partsOverrode = false;
+                const partsToZero = new Set<string>();
                 if (usePartsSum && partsBreakdown) {
-                  let resum = 0;
                   for (const p of partsBreakdown) {
                     const label = String(p?.label ?? "").toLowerCase();
+                    if (!blankSubparts.has(label)) continue;
                     const rawAwarded = Math.max(0, Number(p?.awarded) || 0);
-                    if (blankSubparts.has(label) && rawAwarded > 0) {
-                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart parts[] override: (${label}) AI awarded ${rawAwarded} but canvas was blank → 0`);
-                      partsOverrode = true;
-                      continue;
-                    }
-                    // Reapply the same cap logic as the original sum.
+                    if (rawAwarded === 0) continue;
                     const declaredMax = Number(p?.max);
                     const knownMax = partMaxMarks.get(label);
                     const cap = Number.isFinite(declaredMax) && declaredMax > 0
                       ? Math.min(declaredMax, knownMax ?? declaredMax)
                       : (knownMax ?? marksAvailable);
-                    resum += Math.min(rawAwarded, cap);
+                    if (rawAwarded >= cap - 0.0001) {
+                      partsToZero.add(label);
+                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart override: (${label}) AI awarded ${rawAwarded}/${cap} (full) but canvas blank → 0`);
+                    } else {
+                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart KEPT: (${label}) AI awarded ${rawAwarded}/${cap} (conservative) — pixel check disagrees but AI score is already cautious, trusting AI`);
+                    }
                   }
-                  if (partsOverrode) {
+                  if (partsToZero.size > 0) {
+                    let resum = 0;
+                    for (const p of partsBreakdown) {
+                      const label = String(p?.label ?? "").toLowerCase();
+                      if (partsToZero.has(label)) continue;
+                      const rawAwarded = Math.max(0, Number(p?.awarded) || 0);
+                      const declaredMax = Number(p?.max);
+                      const knownMax = partMaxMarks.get(label);
+                      const cap = Number.isFinite(declaredMax) && declaredMax > 0
+                        ? Math.min(declaredMax, knownMax ?? declaredMax)
+                        : (knownMax ?? marksAvailable);
+                      resum += Math.min(rawAwarded, cap);
+                    }
                     const newAwarded = Math.min(marksAvailable, resum);
                     console.log(`[quiz-marking] Q${q.questionNum} blank-subpart parts[] total: ${awarded} → ${newAwarded}/${marksAvailable}`);
                     awarded = newAwarded;
                   }
                 }
-                // 2. Notes rewrite (always — displayed prose stays in sync).
-                if (parsed.notes) {
+                // Notes rewrite: only for parts we actually zeroed,
+                // so the displayed prose stays in sync with stored
+                // marks. Conservative parts we kept keep their original
+                // "Awarded N mark(s)" text.
+                if (partsToZero.size > 0 && parsed.notes) {
                   const notesStr = String(parsed.notes);
                   const partRe = /((?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*)([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
-                  let deducted = 0;
                   let rewritten = notesStr;
                   for (const m of notesStr.matchAll(partRe)) {
                     const label = m[2].toLowerCase();
-                    if (!blankSubparts.has(label)) continue;
-                    const chunk = m[3];
-                    const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
-                    if (awardMatches.length === 0) continue;
-                    const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
-                    if (partAwarded > 0) {
-                      deducted += partAwarded;
-                      const replacement = ` The student left this part blank — confirmed by ink check. Awarded 0 mark(s).`;
-                      rewritten = rewritten.replace(m[0], m[1] + replacement);
-                      if (!partsOverrode) {
-                        console.log(`[quiz-marking] Q${q.questionNum} blank-subpart notes clamp: (${label}) AI awarded ${partAwarded} but canvas was blank → 0`);
-                      }
-                    }
+                    if (!partsToZero.has(label)) continue;
+                    const replacement = ` The student left this part blank — confirmed by ink check. Awarded 0 mark(s).`;
+                    rewritten = rewritten.replace(m[0], m[1] + replacement);
                   }
-                  if (deducted > 0) {
-                    parsed.notes = rewritten;
-                    // Legacy path (parts[] not present): also deduct from
-                    // the running `awarded` since it came from the AI's
-                    // top-level marksAwarded number, not from a sum.
-                    if (!usePartsSum) {
-                      const newAwarded = Math.max(0, awarded - deducted);
-                      console.log(`[quiz-marking] Q${q.questionNum} blank-subpart total clamp: ${awarded} → ${newAwarded}/${marksAvailable} (deducted ${deducted})`);
-                      awarded = newAwarded;
-                    }
-                  }
+                  if (rewritten !== notesStr) parsed.notes = rewritten;
                 }
               }
 
