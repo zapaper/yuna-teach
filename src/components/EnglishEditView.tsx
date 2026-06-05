@@ -780,8 +780,12 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         const allowImageCrop = isLongOeqQuestion;
                         const allowReextractAnswer = isLongOeqQuestion || isCompBOeqQuestion;
                         return (
+                          // Anchor wrapper so /edit's #q-<id> hash
+                          // navigation (from See-Answer-Image sweep,
+                          // Flagged Q&A) can scroll to this specific
+                          // row even inside the sectioned EnglishEditView.
+                          <div key={q.id} id={`q-${q.id}`}>
                           <QuestionRow
-                            key={q.id}
                             question={q}
                             onSave={onSave}
                             onDelete={onDelete}
@@ -792,6 +796,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                             allowReextractAnswer={allowReextractAnswer}
                             pageImage={allowImageCrop && q.pageIndex != null ? pageImages[q.pageIndex] : undefined}
                           />
+                          </div>
                         );
                       });
                     })()}

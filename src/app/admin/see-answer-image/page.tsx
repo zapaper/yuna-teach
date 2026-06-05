@@ -45,6 +45,28 @@ function Content() {
   const [hideExact, setHideExact] = useState(false);
   const [hideInline, setHideInline] = useState(false);
   const [sortOrder, setSortOrder] = useState<"earliest" | "latest">("earliest");
+  // Per-question "Clear from sweep" state. clearing[id] === true while
+  // the POST is in flight; clearedIds removes it from the visible
+  // list immediately so the user sees the action without waiting for
+  // a full refetch.
+  const [clearing, setClearing] = useState<Record<string, boolean>>({});
+  const [clearedIds, setClearedIds] = useState<Set<string>>(new Set());
+  async function clearQuestion(qId: string) {
+    setClearing(s => ({ ...s, [qId]: true }));
+    try {
+      const r = await fetch("/api/admin/see-answer-image/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: qId }),
+      });
+      if (r.ok) setClearedIds(prev => { const n = new Set(prev); n.add(qId); return n; });
+      else alert(`Clear failed (HTTP ${r.status})`);
+    } catch (err) {
+      alert(`Clear failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setClearing(s => { const n = { ...s }; delete n[qId]; return n; });
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/admin/see-answer-image`)
@@ -67,6 +89,7 @@ function Content() {
       .map(p => ({
         ...p,
         questions: p.questions.filter(q => {
+          if (clearedIds.has(q.id)) return false;
           if (hideExact && q.matchType === "exact") return false;
           if (hideInline && q.matchType === "inline") return false;
           return true;
@@ -79,7 +102,7 @@ function Content() {
         const bT = new Date(b.createdAt).getTime();
         return sortOrder === "earliest" ? aT - bT : bT - aT;
       });
-  }, [papers, search, subjectFilter, hidePsle, hideExact, hideInline, sortOrder]);
+  }, [papers, search, subjectFilter, hidePsle, hideExact, hideInline, sortOrder, clearedIds]);
 
   const visibleQuestions = filtered.reduce((s, p) => s + p.questions.length, 0);
 
@@ -175,6 +198,7 @@ function Content() {
                             <th className="px-3 py-2 text-left font-semibold">Type</th>
                             <th className="px-3 py-2 text-left font-semibold">Topic</th>
                             <th className="px-3 py-2 text-left font-semibold">Stored answer</th>
+                            <th className="px-3 py-2 text-left font-semibold w-12">&nbsp;</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -194,6 +218,14 @@ function Content() {
                               <td className="px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-slate-400">{q.matchType}</td>
                               <td className="px-3 py-2 text-slate-500 text-[11px]">{q.topic ?? ""}</td>
                               <td className="px-3 py-2 text-slate-600 max-w-md">{q.answer.length > 200 ? q.answer.slice(0, 200) + "…" : q.answer}</td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <button
+                                  onClick={() => clearQuestion(q.id)}
+                                  disabled={clearing[q.id]}
+                                  title="Remove this question from the sweep (no answer change)"
+                                  className="text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded disabled:opacity-50"
+                                >{clearing[q.id] ? "…" : "Clear"}</button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>

@@ -26,6 +26,7 @@ export async function GET(_request: NextRequest) {
       year: true,
       createdAt: true,
       questions: {
+        where: { seeAnswerImageCleared: false },
         select: {
           id: true,
           questionNum: true,

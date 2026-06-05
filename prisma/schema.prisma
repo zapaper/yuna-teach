@@ -240,6 +240,12 @@ model ExamQuestion {
   // /admin/convert-mcq-tables tool, so it never reappears in the
   // candidate list. Has no effect outside that tool.
   mcqTableSkipped         Boolean  @default(false)
+  // Set to TRUE when an admin clicks "Clear" in the
+  // /admin/see-answer-image sweep, so the question is removed from
+  // future sweeps even though its answer still matches "see answer
+  // image" / "refer to diagram" patterns. Has no effect outside that
+  // tool.
+  seeAnswerImageCleared   Boolean  @default(false)
   transcribedSubparts     Json?    // {label: string, text: string}[]
   diagramBounds           Json?    // {top, left, bottom, right} percentages
   diagramImageData        String?  // base64 cropped diagram
