@@ -89,7 +89,7 @@ function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
   return out;
 }
 
-async function generatePadPdf(oeqQuestions: OeqQuestion[]): Promise<Uint8Array> {
+async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const helv = await doc.embedFont(StandardFonts.Helvetica);
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -144,6 +144,44 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[]): Promise<Uint8Array> 
       });
     }
     cursorY -= rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
+  }
+
+  // Overlay: dashed violet rectangles around each question's scan-back
+  // bounds, with a "Q33 → bounds" label. Lets admin sanity-check that
+  // the writing rows the scan-back marker will crop actually cover the
+  // ruled rows the student will write on. Not part of the printed PDF
+  // (the print flow uses the cached no-overlay version).
+  if (overlayBounds) {
+    const bounds = computePadBounds(oeqQuestions);
+    const pages = doc.getPages();
+    const byQId = new Map(sorted.map(q => [q.id, q]));
+    for (const b of bounds) {
+      const page = pages[b.padPageOffset];
+      if (!page) continue;
+      const yTopPdf = PAGE_H - (b.yStartPct / 100) * PAGE_H;
+      const yBottomPdf = PAGE_H - (b.yEndPct / 100) * PAGE_H;
+      page.drawRectangle({
+        x: MARGIN,
+        y: yBottomPdf,
+        width: PAGE_W - MARGIN * 2,
+        height: yTopPdf - yBottomPdf,
+        borderColor: rgb(0.55, 0.18, 0.91),
+        borderWidth: 1.4,
+        borderDashArray: [5, 3],
+        opacity: 0,
+        borderOpacity: 1,
+      });
+      const q = byQId.get(b.id);
+      if (q) {
+        page.drawText(`Q${q.questionNum} scan area`, {
+          x: PAGE_W - MARGIN - 96,
+          y: yTopPdf - 11,
+          size: 8,
+          font: helvBold,
+          color: rgb(0.55, 0.18, 0.91),
+        });
+      }
+    }
   }
 
   return await doc.save();
@@ -253,14 +291,48 @@ export async function POST(
 }
 
 // GET — serve the cached pad PDF for preview / for the print flow.
+// ?overlay=1 regenerates a one-off copy with question-bound boxes
+// drawn over the writing rows so the admin can sanity-check the
+// scan-back crop bounds. Overlay version is NEVER cached so the
+// print flow still picks up the clean pad.
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });
   }
   const { id } = await params;
+  const overlay = request.nextUrl.searchParams.get("overlay") === "1";
+
+  if (overlay) {
+    const paper = await prisma.examPaper.findUnique({
+      where: { id },
+      select: {
+        questions: {
+          select: { id: true, questionNum: true, marksAvailable: true, syllabusTopic: true },
+          orderBy: { orderIndex: "asc" },
+        },
+      },
+    });
+    if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+    const oeqQuestions: OeqQuestion[] = paper.questions
+      .filter(q => /阅读理解.*OEQ/i.test(q.syllabusTopic ?? ""))
+      .map(q => ({ id: q.id, questionNum: q.questionNum, marksAvailable: q.marksAvailable }));
+    if (oeqQuestions.length === 0) {
+      return NextResponse.json({ error: "No 阅读理解 OEQ questions on this paper." }, { status: 400 });
+    }
+    const pdfBytes = await generatePadPdf(oeqQuestions, true);
+    return new NextResponse(new Uint8Array(pdfBytes), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="oeq_pad_overlay.pdf"`,
+        "Cache-Control": "private, no-cache",
+      },
+    });
+  }
+
   const filePath = path.join(PAGES_DIR, id, "oeq_pad.pdf");
   try {
     const buf = await fs.readFile(filePath);

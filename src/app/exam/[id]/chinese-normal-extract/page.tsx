@@ -1935,13 +1935,13 @@ function NormalExtractTriggerRow({
       {oeqPadCacheBust > 0 && (
         <div className="mt-4 p-3 rounded-xl border border-violet-200 bg-violet-50">
           <p className="text-xs font-bold text-violet-700 mb-2">
-            阅读理解 OEQ writing pad{oeqPadInfo ? ` (${oeqPadInfo.questionCount} questions)` : ""} — preview
+            阅读理解 OEQ writing pad{oeqPadInfo ? ` (${oeqPadInfo.questionCount} questions)` : ""} — preview (with scan bounds)
           </p>
           <p className="text-[11px] text-violet-600 mb-2">
-            Gets appended to the end of Paper 2 at print time. Re-click 阅读理解 OEQ to regenerate.
+            Dashed violet boxes show each question&apos;s scan-back bounds (Q33–Q40). The printed PDF that gets appended to Paper 2 does NOT include these — they&apos;re overlay-only so you can confirm the marker will crop the right rows.
           </p>
           <iframe
-            src={`/api/admin/exam/${paperId}/chinese-oeq-pad?cb=${oeqPadCacheBust}`}
+            src={`/api/admin/exam/${paperId}/chinese-oeq-pad?overlay=1&cb=${oeqPadCacheBust}`}
             className="w-full h-[800px] rounded-lg border border-violet-200 bg-white"
             title="阅读理解 OEQ writing pad preview"
           />
