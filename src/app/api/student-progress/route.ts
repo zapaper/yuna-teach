@@ -2,19 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
 
-// Normalise the messy paper.subject strings into the three canonical
+// Normalise the messy paper.subject strings into the canonical
 // bucket labels used everywhere else in the app. Without this, any
 // case difference (e.g. "science" vs "Science"), prefix ("P5
 // Science"), or null subject produced its own bucket — the parent
 // dashboard would show e.g. "Math", "Science", "English" AND "Other"
 // with the science-tagged questions of the last bucket bleeding
 // into "Other". Mirrors the helper in src/lib/revision.ts so both
-// paths classify the same way.
-function bucketSubject(raw: string | null | undefined): "Math" | "Science" | "English" | "Other" {
+// paths classify the same way. Chinese added now that the Chinese
+// fork ships — previously its papers fell into "Other".
+function bucketSubject(raw: string | null | undefined): "Math" | "Science" | "English" | "Chinese" | "Other" {
   const lower = (raw ?? "").toLowerCase();
   if (lower.includes("math")) return "Math";
   if (lower.includes("science") || lower.includes("sci")) return "Science";
   if (lower.includes("english") || lower.includes("eng")) return "English";
+  if (lower.includes("chinese") || raw?.includes("华文") || raw?.includes("中文") || raw?.includes("华语")) return "Chinese";
   return "Other";
 }
 
