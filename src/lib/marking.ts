@@ -5152,13 +5152,14 @@ Return ONLY valid JSON:
         // expected" as correct). Pinned to 3.1-pro:
         //  - any drawable + answerImageData (every subject) — text key
         //    can mark via prose comparison, image key needs pro vision.
-        //  - any drawable science OEQ (even when the key is text only) —
-        //    flash kept passing structurally wrong circuit / particle
-        //    diagrams whose intent is described in the answer key but
-        //    needs spatial reasoning to verify. Science marking already
-        //    skews stricter so the cost increase is bounded.
-        const paperIsScienceLocal = (paper.subject ?? "").toLowerCase().includes("science");
-        const needsPro = isDrawableAny && (!!q.answerImageData || paperIsScienceLocal);
+        //  - any drawable science OR math OEQ (even when the key is text
+        //    only) — flash kept passing structurally wrong circuit /
+        //    particle diagrams in science and miscounted shaded units /
+        //    misread geometric labels in math. Both subjects need
+        //    spatial reasoning the flash tier can't deliver reliably.
+        const paperSubjLc = (paper.subject ?? "").toLowerCase();
+        const paperIsScienceOrMath = paperSubjLc.includes("science") || paperSubjLc.includes("math");
+        const needsPro = isDrawableAny && (!!q.answerImageData || paperIsScienceOrMath);
         const QUIZ_MODELS = needsPro
           ? ["gemini-3.1-pro-preview"]
           // Non-drawable OEQ: start cheap, escalate on each retry.
