@@ -244,7 +244,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
       <header className="sticky top-0 z-50 bg-[#f8f9ff]/90 backdrop-blur-lg border-b border-[#e5eeff]">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 py-4 flex items-center justify-between gap-4">
           <button
-            onClick={() => parentId ? router.push(`/home/${parentId}?student=${studentId}`) : router.back()}
+            onClick={() => parentId ? router.push(`/home/${parentId}?student=${studentId}`) : router.push(`/home/${studentId}`)}
             className="flex items-center gap-1.5 text-sm font-semibold text-[#43474f] hover:text-[#001e40] transition-colors"
           >
             <span className="material-symbols-outlined text-lg">arrow_back</span>
