@@ -1012,7 +1012,7 @@ function SelectedTopicPanel({
 
   // SVG geometry — short stacked chart that reads on a phone.
   const W = 600, H = 200;
-  const padL = 36, padR = 12, padT = 14, padB = 28;
+  const padL = 50, padR = 12, padT = 14, padB = 28;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const allPcts = [...buckets.map(b => b.pct), ...series.map(s => s.pct), subjAvg];
@@ -1058,13 +1058,13 @@ function SelectedTopicPanel({
           {[yMin, Math.round((yMin + 100) / 2), 100].map(pct => (
             <g key={pct}>
               <line x1={padL} y1={y(pct)} x2={padL + plotW} y2={y(pct)} stroke="#E5E7EB" strokeWidth={1} />
-              <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
+              <text x={padL - 8} y={y(pct) + 6} textAnchor="end" fill="#43474f" fontSize={16} fontWeight="600">{pct}%</text>
             </g>
           ))}
           {/* Per-paper dots — always shown faintly so the underlying
               points are visible even when buckets aggregate them. */}
           {series.map((p, i) => (
-            <circle key={i} cx={xForSeriesIdx(i)} cy={y(p.pct)} r={2.5} fill="#C4B5FD" />
+            <circle key={i} cx={xForSeriesIdx(i)} cy={y(p.pct)} r={5} fill="#C4B5FD" />
           ))}
           {/* Bucket dots + connecting line — the main signal. */}
           {buckets.length > 1 && (
@@ -1072,13 +1072,13 @@ function SelectedTopicPanel({
               d={buckets.map((b, i) => `${i === 0 ? "M" : "L"} ${xForBucket(b)} ${y(b.pct)}`).join(" ")}
               fill="none"
               stroke="#7C3AED"
-              strokeWidth={3}
+              strokeWidth={3.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           )}
           {buckets.map((b, i) => (
-            <circle key={`b${i}`} cx={xForBucket(b)} cy={y(b.pct)} r={5} fill="#7C3AED" stroke="white" strokeWidth={2}>
+            <circle key={`b${i}`} cx={xForBucket(b)} cy={y(b.pct)} r={8} fill="#7C3AED" stroke="white" strokeWidth={2.5}>
               <title>{`${b.label} · ${b.pct.toFixed(1)}% (${b.earned}/${b.available})`}</title>
             </circle>
           ))}
