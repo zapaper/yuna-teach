@@ -1142,9 +1142,42 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - For each written (non-MCQ) question, FIRST locate the "Ans:" or "Answer:" line at the BOTTOM-RIGHT of the question's answer region.
     This is a printed line followed by a blank — the student writes their final answer on or above this line in blue ink.
   - Read the blue ink written on/above the "Ans:" line as the student's FINAL ANSWER.
-  - If the final answer matches the expected answer → award FULL MARKS immediately. Do NOT check or penalise working steps. Working is NOT required when the final answer is right — a student who writes only the correct final answer with no working at all still gets full marks.
-  - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
-    Award partial marks if some steps or methods are correct, proportional to marksAvailable.
+
+  - SHORT QUESTIONS (marksAvailable ≤ 2): if the final answer matches
+    the expected answer → award FULL MARKS immediately. Working is
+    NOT required; a student who writes only the correct final answer
+    with no working at all still gets full marks. Don't inspect
+    working steps unless the final answer is wrong.
+
+  - LONG QUESTIONS (marksAvailable ≥ 3): if the final answer matches
+    the expected answer, inspect the working before awarding full
+    marks. PSLE awards method marks for the working as well as the
+    answer mark — a right answer reached via wrong reasoning is not
+    full marks. Use judgment about HOW WRONG the working is:
+      · Working is correct, just unusually compact / written
+        differently → full marks. Don't penalise neat or terse
+        working when it's mathematically sound.
+      · One small slip in an intermediate step that the student
+        self-corrected later → full marks (the slip didn't change
+        the answer).
+      · Wrong method or conceptual error in one stage, but the
+        student happened to land on the right answer (e.g. arithmetic
+        coincidence, lucky guess at the last step, working that
+        doesn't connect to the final number) → deduct 1 mark for a
+        3- or 4-mark question, up to 2 marks for a 5-mark question.
+      · Most of the working is wrong / unrelated and the right
+        answer looks plucked from nowhere → deduct up to 2 marks
+        (3-mark Qs: cap deduction at 1; 4-mark: up to 2; 5-mark: up to 2).
+      · A student who shows NO working at all on a 3+ mark question
+        but writes the correct final answer falls under this branch
+        too — deduct the same way (method marks weren't earned).
+    Always state the working issue in the notes, wrapping the
+    specific mistake in **double asterisks**.
+
+  - WRONG FINAL ANSWER (any marksAvailable): scan the student's
+    working steps for partial credit. Award partial marks if some
+    steps or methods are correct, proportional to marksAvailable.
+
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
 
   ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — enforce after computing partial credit above):
