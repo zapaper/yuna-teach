@@ -934,15 +934,16 @@ function SelectedTopicPanel({
   onAssignFocus: () => void;
   creating: boolean;
 }) {
-  // Per-paper accuracy for this topic, in chronological order. Skip
-  // papers that didn't touch the topic at all.
+  // Per-paper topic contribution in chronological order. Each entry
+  // carries the earned + available marks the topic contributed on
+  // that paper. Skip papers that didn't touch the topic.
   const series = timeline
     .map(e => {
       const t = e.topicTotals?.[topic];
       if (!t || t.available <= 0) return null;
-      return { date: e.date, title: e.title, pct: (t.earned / t.available) * 100 };
+      return { date: e.date, title: e.title, earned: t.earned, available: t.available, pct: (t.earned / t.available) * 100 };
     })
-    .filter((x): x is { date: string; title: string; pct: number } => x !== null);
+    .filter((x): x is { date: string; title: string; earned: number; available: number; pct: number } => x !== null);
 
   if (series.length === 0) {
     return (
@@ -963,14 +964,17 @@ function SelectedTopicPanel({
     );
   }
 
-  // Rolling 3-paper window average.
-  const WIN = 3;
-  const rolling = series.map((_, i) => {
-    const start = Math.max(0, i - WIN + 1);
-    const window = series.slice(start, i + 1);
-    return window.reduce((s, p) => s + p.pct, 0) / window.length;
+  // Running topical score: at each point N, what's the student's
+  // cumulative topic accuracy across papers 1..N. Mark-weighted, so
+  // a paper with a lot of topic questions counts more than a paper
+  // with one — same formula the subject overall uses.
+  let cumEarned = 0, cumAvailable = 0;
+  const rolling = series.map(p => {
+    cumEarned += p.earned;
+    cumAvailable += p.available;
+    return (cumEarned / cumAvailable) * 100;
   });
-  const subjAvg = series.reduce((s, p) => s + p.pct, 0) / series.length;
+  const subjAvg = rolling[rolling.length - 1]; // running and final are the same point
   const trendDelta = rolling.length >= 2 ? rolling[rolling.length - 1] - rolling[0] : 0;
   const latest = series[series.length - 1];
 
@@ -989,7 +993,7 @@ function SelectedTopicPanel({
         <div className="min-w-0">
           <p className="text-sm font-extrabold text-violet-800 truncate">{topic}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            {series.length} paper{series.length === 1 ? "" : "s"} · rolling avg {rolling[rolling.length - 1].toFixed(1)}% · latest {latest.pct.toFixed(0)}% ·{" "}
+            {series.length} paper{series.length === 1 ? "" : "s"} · running topic score {subjAvg.toFixed(1)}% · latest paper {latest.pct.toFixed(0)}% ·{" "}
             <span className={trendDelta >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>
               {trendDelta >= 0 ? "▲" : "▼"} {Math.abs(trendDelta).toFixed(1)}pp
             </span>
@@ -1023,12 +1027,9 @@ function SelectedTopicPanel({
           {rolling.map((v, i) => (
             <circle key={`r${i}`} cx={x(i)} cy={y(v)} r={4} fill="#7C3AED" stroke="white" strokeWidth={1.5} />
           ))}
-          {/* Topic's overall average across these papers — dashed grey. */}
-          <line x1={padL} y1={y(subjAvg)} x2={padL + plotW} y2={y(subjAvg)} stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="6 4" />
-          <text x={padL + plotW - 4} y={y(subjAvg) - 4} textAnchor="end" fill="#94A3B8" fontSize={10} fontWeight="bold">topic avg {subjAvg.toFixed(0)}%</text>
         </svg>
       </div>
-      <p className="text-[10px] text-slate-400 mt-1 text-center italic">Rolling 3-paper average · purple dots are individual papers</p>
+      <p className="text-[10px] text-slate-400 mt-1 text-center italic">Running topic score (mark-weighted, cumulative) · light dots are individual paper scores</p>
       <button
         onClick={onAssignFocus}
         disabled={creating}
