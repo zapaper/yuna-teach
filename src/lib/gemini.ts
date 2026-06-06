@@ -1104,6 +1104,11 @@ async function transcribeViaGeminiOrWavespeed(
   label: string,
   isUsable: (parsed: Record<string, unknown>) => boolean,
 ): Promise<Record<string, unknown>> {
+  // Track WHY Gemini fell through so the final error (if Wavespeed
+  // also fails) names both providers — otherwise the toast just says
+  // "401 invalid token" and the admin can't tell which API key is bad.
+  let geminiFallbackReason: string | null = null;
+
   // 1. Primary: Gemini 3.1 pro preview (already has its own retry +
   //    2.5-flash transport fallback via generateContentWithRetry).
   try {
@@ -1132,6 +1137,7 @@ async function transcribeViaGeminiOrWavespeed(
       try {
         parsed = JSON.parse(sanitizeJsonString(stripped)) as Record<string, unknown>;
       } catch (parseErr) {
+        geminiFallbackReason = `unparseable JSON (${(parseErr as Error).message?.slice(0, 80)})`;
         console.warn(`[transcribe:${label}] Gemini returned ${stripped.length} chars that couldn't be parsed as JSON (${(parseErr as Error).message}). Raw start: ${stripped.slice(0, 200)}. Falling back to Wavespeed (GPT-5.5).`);
       }
       if (parsed) {
@@ -1139,22 +1145,33 @@ async function transcribeViaGeminiOrWavespeed(
           console.log(`[transcribe:${label}] provider=gemini-3.1-pro-preview`);
           return parsed;
         }
+        geminiFallbackReason = "200 OK but unusable content";
         console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to Wavespeed (GPT-5.5).`);
       }
     } else {
+      geminiFallbackReason = "empty text";
       console.warn(`[transcribe:${label}] Gemini returned empty text. Falling back to Wavespeed (GPT-5.5).`);
     }
   } catch (err) {
+    geminiFallbackReason = `threw (${(err as Error).message?.slice(0, 80)})`;
     console.warn(`[transcribe:${label}] Gemini threw (${(err as Error).message?.slice(0, 200)}). Falling back to Wavespeed (GPT-5.5).`);
   }
 
   // 2. Fallback: Wavespeed GPT-5.5. Hard-throw on failure — the
   //    /api/admin/broken-questions/transcribe route already converts
-  //    that to a 502 + "try again" alert.
+  //    that to a 502 + "try again" alert. Tag the error with the
+  //    provider name + the gemini fallback reason so the upstream
+  //    toast tells the admin which API key to check.
   const { wavespeedTranscribe } = await import("./wavespeed");
-  const parsed = await wavespeedTranscribe<Record<string, unknown>>(imageBase64, prompt, label);
-  console.log(`[transcribe:${label}] provider=wavespeed:openai/gpt-5.5 (gemini was empty/failed)`);
-  return parsed;
+  try {
+    const parsed = await wavespeedTranscribe<Record<string, unknown>>(imageBase64, prompt, label);
+    console.log(`[transcribe:${label}] provider=wavespeed:openai/gpt-5.5 (gemini was empty/failed)`);
+    return parsed;
+  } catch (err) {
+    const msg = (err as Error).message ?? String(err);
+    const geminiNote = geminiFallbackReason ? ` (gemini fell back: ${geminiFallbackReason})` : "";
+    throw new Error(`wavespeed: ${msg}${geminiNote}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
