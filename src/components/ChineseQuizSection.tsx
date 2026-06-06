@@ -40,6 +40,12 @@ interface QuizQuestion {
 interface Props {
   sectionLabel: string;
   passage: string | null;
+  // 阅读理解 passages that contain charts / posters / infographics are
+  // captured as a cropped image from the PDF. When set, it replaces
+  // the OCR-text `passage` for rendering in passage-bound sections
+  // (visual-text-mcq / comprehension-oeq). When null/empty, render
+  // the OCR passage text as before.
+  passageImageData?: string | null;
   // Original passage-blank position for each question in `questions`,
   // parallel array. Set when the picker took a subset of the source
   // section (e.g. 3 of 6 short-cloze questions, others were used as
@@ -80,7 +86,7 @@ interface Props {
  * Editing and Synthesis renderers are present but unused for Chinese
  * (no equivalent sections in 华文); kept for shape compatibility.
  */
-export default function ChineseQuizSection({ sectionLabel, passage, blankIndices, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen, readingAssist }: Props) {
+export default function ChineseQuizSection({ sectionLabel, passage, passageImageData, blankIndices, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen, readingAssist }: Props) {
   // Split-screen renders the passage column and the questions column
   // side-by-side in a 50/50 grid that fills the viewport on lg+
   // (tablet/desktop). Each column scrolls independently. Only applied
@@ -139,14 +145,31 @@ export default function ChineseQuizSection({ sectionLabel, passage, blankIndices
       </div>
       </div>
 
+      {/* Cropped passage image override (visual-text-mcq).
+          When the admin uploaded a PDF crop for this 阅读理解 section
+          (e.g. a passage with a poster / chart / infographic that OCR
+          can't capture), prefer the image over the OCR-text passage.
+          Hidden for 短文填空 — that section embeds blanks inline in
+          the OCR'd passage and would render incorrectly as an image. */}
+      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && !!passageImageData && (
+        <div className={`relative ${splitPassageCls}`}>
+          <PassageScratchOverlay enabled={tool === "pen"} />
+          <div className="bg-white rounded-2xl p-3 lg:p-4 shadow-sm border border-slate-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={passageImageData} alt={`${sectionLabel} passage`} className="w-full rounded-lg" />
+          </div>
+        </div>
+      )}
+
       {/* Passage column for visual-text-mcq. Two flavours:
           - True Visual Text (poster / 漫画): passage is a sentinel
             "[VISUAL_PAGES:…]" or an image data URL; render as page
             images with the existing VisualTextImages component.
           - Chinese 阅读理解 MCQ: passage is plain Chinese text. Render
             it as paragraphs with a tab-indent on each new line so the
-            student reads it as a normal passage. */}
-      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && !!passage && (() => {
+            student reads it as a normal passage.
+          Skipped entirely when passageImageData is set above. */}
+      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && !passageImageData && !!passage && (() => {
         // Guarded on `!!passage` — 语文应用 MCQ has no passage and
         // was previously falling into the VisualTextImages branch,
         // which then rendered Q1's cropped page image as a
@@ -228,8 +251,18 @@ export default function ChineseQuizSection({ sectionLabel, passage, blankIndices
         />
       )}
 
-      {/* Comprehension OEQ: reading passage with drawing overlay */}
-      {sectionType === "comprehension-oeq" && passage && (
+      {/* Comprehension OEQ: reading passage. Cropped image takes
+          precedence over OCR text when the admin set one. */}
+      {sectionType === "comprehension-oeq" && passageImageData && (
+        <div className={`relative ${splitPassageCls}`}>
+          <PassageScratchOverlay enabled={tool === "pen"} />
+          <div className="bg-white rounded-2xl p-3 lg:p-4 shadow-sm border border-slate-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={passageImageData} alt={`${sectionLabel} passage`} className="w-full rounded-lg" />
+          </div>
+        </div>
+      )}
+      {sectionType === "comprehension-oeq" && !passageImageData && passage && (
         <div className={`relative ${splitPassageCls}`}>
           <PassageScratchOverlay enabled={tool === "pen"} />
           <ReadingPassage text={passage} />

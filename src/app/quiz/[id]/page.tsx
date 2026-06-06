@@ -793,7 +793,7 @@ function QuizContent({ id }: { id: string }) {
   // Chinese typed-section detection — parallel to the English block
   // above. Kept separate so changes to the Chinese mapping never
   // ripple into the English path.
-  const chineseSectionsMeta = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> })?.chineseSections;
+  const chineseSectionsMeta = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> })?.chineseSections;
   if (chineseSectionsMeta) {
     for (const sec of chineseSectionsMeta) {
       const label = sec.label.toLowerCase();
@@ -1905,6 +1905,7 @@ function QuizContent({ id }: { id: string }) {
                         <ChineseQuizSection
                           sectionLabel={sec.label}
                           passage={sec.passage ?? null}
+                          passageImageData={sec.passageImageData ?? null}
                           blankIndices={(sec as { blankIndices?: number[] }).blankIndices}
                           questions={secQuestions}
                           sectionType={sectionType}
