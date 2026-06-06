@@ -30,6 +30,11 @@ const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 const PAGE_W = 595;
 const PAGE_H = 842;
 const MARGIN = 50;
+// Extra top inset on the writing-pad pages. These get printed and
+// stapled along the top edge with the rest of the paper, so the first
+// few writing rows were running into the staple / hole-punch area.
+// Only applies to the pad pages, not the main paper.
+const TOP_INSET = 36;
 const HEADER_HEIGHT = 24;
 const Q33_ROW_HEIGHT = 52;   // ~half-page worth for 9 rows
 const SHORT_ROW_HEIGHT = 24;
@@ -53,9 +58,9 @@ function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
 
   // ─── Page 0 of pad: Q33 — entire writing area ──────────────
   if (q33) {
-    // Writing area starts at PAGE_H - MARGIN - HEADER_HEIGHT and
+    // Writing area starts at PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT and
     // covers 9 rows × Q33_ROW_HEIGHT = 468pt. From top pct:
-    const topPdf = PAGE_H - MARGIN - HEADER_HEIGHT;
+    const topPdf = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
     const bottomPdf = topPdf - 9 * Q33_ROW_HEIGHT;
     out.push({
       id: q33.id,
@@ -67,14 +72,14 @@ function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
 
   // ─── Page 1+ of pad: Q34-Q40 ───────────────────────────────
   let padPageOffset = q33 ? 1 : 0;
-  let cursorPdf = PAGE_H - MARGIN;
+  let cursorPdf = PAGE_H - MARGIN - TOP_INSET;
   for (const q of others) {
     const marks = q.marksAvailable ?? 1;
     const rows = Math.max(1, marks * 2);
     const blockHeight = HEADER_HEIGHT + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
     if (cursorPdf - blockHeight < MARGIN) {
       padPageOffset++;
-      cursorPdf = PAGE_H - MARGIN;
+      cursorPdf = PAGE_H - MARGIN - TOP_INSET;
     }
     const topPdf = cursorPdf;
     const bottomPdf = cursorPdf - HEADER_HEIGHT - rows * SHORT_ROW_HEIGHT;
@@ -106,9 +111,9 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false
   // ─── Page 1: Q33 ───────────────────────────────────────────
   const p1 = doc.addPage([PAGE_W, PAGE_H]);
   const marks33 = q33?.marksAvailable ?? 10;
-  p1.drawText("33.", { x: MARGIN, y: PAGE_H - MARGIN, size: 14, font: helvBold });
-  p1.drawText(`[${marks33} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
-  const startY1 = PAGE_H - MARGIN - HEADER_HEIGHT;
+  p1.drawText("33.", { x: MARGIN, y: PAGE_H - MARGIN - TOP_INSET, size: 14, font: helvBold });
+  p1.drawText(`[${marks33} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN - TOP_INSET, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
+  const startY1 = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
   for (let i = 0; i < 9; i++) {
     const y = startY1 - i * Q33_ROW_HEIGHT;
     p1.drawLine({
@@ -121,7 +126,7 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false
 
   // ─── Page 2 (and overflow if needed): Q34-Q40 ──────────────
   let page = doc.addPage([PAGE_W, PAGE_H]);
-  let cursorY = PAGE_H - MARGIN;
+  let cursorY = PAGE_H - MARGIN - TOP_INSET;
   for (const q of others) {
     const marks = q.marksAvailable ?? 1;
     const rows = Math.max(1, marks * 2);
@@ -129,7 +134,7 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false
     // New page when this block won't fit.
     if (cursorY - blockHeight < MARGIN) {
       page = doc.addPage([PAGE_W, PAGE_H]);
-      cursorY = PAGE_H - MARGIN;
+      cursorY = PAGE_H - MARGIN - TOP_INSET;
     }
     page.drawText(`${q.questionNum}.`, { x: MARGIN, y: cursorY - 12, size: 12, font: helvBold });
     page.drawText(`[${marks} mark${marks === 1 ? "" : "s"}]`, { x: MARGIN + 34, y: cursorY - 12, size: 10, font: helv, color: rgb(0.4, 0.4, 0.4) });

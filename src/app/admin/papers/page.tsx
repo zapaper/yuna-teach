@@ -89,14 +89,25 @@ function AdminPapersContent() {
     }
   }
 
-  // Hide redundant subject aliases from the filter chip row — only
-  // the canonical pill should appear for each subject. The aliases
-  // are still present on papers in the DB; we just don't render a
-  // duplicate filter button for them.
-  const SUBJECT_ALIASES_TO_HIDE = new Set(["English Language", "Math", "science"]);
-  const subjects = (Array.from(new Set(papers.map(p => p.subject).filter(Boolean))) as string[])
-    .filter(s => !SUBJECT_ALIASES_TO_HIDE.has(s))
-    .sort();
+  // The DB has historical case-variant subjects ("english" / "English
+  // Language", "math" / "Math" / "Mathematics", "science" / "Science",
+  // "chinese" / "Chinese"). Hide all non-canonical pills from the
+  // chip row and treat clicks on the canonical pill as matching every
+  // alias underneath. Without this, clicking "english" filtered to
+  // just the 54 lowercase rows while the 686 "English Language" rows
+  // disappeared — looked broken even though the filter was working.
+  function canonicalSubject(raw: string | null | undefined): string | null {
+    const lc = (raw ?? "").trim().toLowerCase();
+    if (!lc) return null;
+    if (lc.includes("math")) return "Mathematics";
+    if (lc.includes("science") || lc === "sci") return "Science";
+    if (lc.includes("english") || lc === "eng") return "English";
+    if (lc.includes("chinese") || raw?.includes("华文") || raw?.includes("中文") || raw?.includes("华语")) return "Chinese";
+    return raw?.trim() ?? null;
+  }
+  const subjects = (Array.from(new Set(
+    papers.map(p => canonicalSubject(p.subject)).filter((s): s is string => !!s)
+  )) as string[]).sort();
   const years = Array.from(new Set(papers.map(p => p.year).filter(Boolean))).sort((a, b) => b!.localeCompare(a!)) as string[];
   const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
@@ -119,7 +130,7 @@ function AdminPapersContent() {
       if (t.includes("daily quiz")) return false;
       if (/\bfocused?\b/i.test(p.title)) return false;
     }
-    if (subjectFilter && p.subject !== subjectFilter) return false;
+    if (subjectFilter && canonicalSubject(p.subject) !== subjectFilter) return false;
     if (yearFilter && p.year !== yearFilter) return false;
     if (typeFilter && p.examType !== typeFilter) return false;
     if (search.trim()) {
