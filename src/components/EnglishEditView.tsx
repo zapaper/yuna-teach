@@ -12,6 +12,11 @@ interface Props {
   onSaveOcr?: (sectionName: string, ocrText: string) => Promise<void>;
   onRegenerateOcr?: (sectionName: string) => Promise<void>;
   saving: string | null;
+  // Open the parent page's PageSelectionModal scoped to a Chinese
+  // 阅读理解 section. The parent posts the resulting crop to
+  // /api/admin/exam/[id]/section-passage-image. When undefined the
+  // crop-from-PDF button is hidden (legacy / non-edit usages).
+  onCropSectionPassage?: (sectionLabel: string) => void;
 }
 
 // Group questions by syllabusTopic into sections
@@ -149,7 +154,7 @@ function groupFromChineseMetadata(
   return out;
 }
 
-export default function EnglishEditView({ paper, pageImages, onSave, onDelete, onSaveOcr, onRegenerateOcr, saving }: Props) {
+export default function EnglishEditView({ paper, pageImages, onSave, onDelete, onSaveOcr, onRegenerateOcr, saving, onCropSectionPassage }: Props) {
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
   const auditFlags = ((metadata as { auditFlags?: Record<string, string> } | null)?.auditFlags ?? {}) as Record<string, string>;
@@ -415,8 +420,11 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
 
                 {/* Cropped passage image (with charts / infographics)
                     — Chinese 阅读理解 only. When set, takes the place
-                    of the OCR-text panel below. */}
-                {sec.name.includes("阅读理解") && (() => {
+                    of the OCR-text panel below. The crop is opened
+                    through the parent page's existing PageSelectionModal
+                    (same UX as cropping a question diagram) via the
+                    onCropSectionPassage callback. */}
+                {sec.name.includes("阅读理解") && onCropSectionPassage && (() => {
                   const passageImageData = chineseSections?.find(c => c.label === sec.name)?.passageImageData;
                   return (
                     <div className="p-4 bg-violet-50/60 border-b border-violet-100">
@@ -428,49 +436,14 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         <img src={passageImageData} alt={`${sec.name} cropped passage`} className="max-w-full mb-2 rounded-lg border border-violet-200 shadow-sm" />
                       )}
                       <div className="flex items-center gap-2">
-                        <label className={`px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors ${uploadingPassageImage === sec.name ? "bg-violet-300 text-white" : "bg-violet-600 text-white hover:bg-violet-700"}`}>
-                          {uploadingPassageImage === sec.name ? "Uploading…" : (passageImageData ? "Replace image" : "Upload cropped image")}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            disabled={uploadingPassageImage === sec.name}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              setUploadingPassageImage(sec.name);
-                              setPassageImageError(prev => ({ ...prev, [sec.name]: "" }));
-                              try {
-                                // Read as data URL.
-                                const dataUrl = await new Promise<string>((resolve, reject) => {
-                                  const r = new FileReader();
-                                  r.onload = () => resolve(String(r.result ?? ""));
-                                  r.onerror = () => reject(new Error("Failed to read file"));
-                                  r.readAsDataURL(file);
-                                });
-                                const res = await fetch(`/api/admin/exam/${paper.id}/section-passage-image`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ sectionLabel: sec.name, imageBase64: dataUrl }),
-                                });
-                                if (!res.ok) {
-                                  const body = await res.json().catch(() => ({}));
-                                  setPassageImageError(prev => ({ ...prev, [sec.name]: body.error ?? `HTTP ${res.status}` }));
-                                } else {
-                                  // Reload so the new image renders + the
-                                  // OCR text panel hides on next mount.
-                                  window.location.reload();
-                                }
-                              } catch (err) {
-                                setPassageImageError(prev => ({ ...prev, [sec.name]: (err as Error).message }));
-                              } finally {
-                                setUploadingPassageImage(null);
-                                // Reset the file input so re-uploading the same file works.
-                                e.target.value = "";
-                              }
-                            }}
-                          />
-                        </label>
+                        <button
+                          onClick={() => onCropSectionPassage(sec.name)}
+                          disabled={uploadingPassageImage === sec.name}
+                          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${uploadingPassageImage === sec.name ? "bg-violet-300 text-white" : "bg-violet-600 text-white hover:bg-violet-700"}`}
+                        >
+                          <span className="material-symbols-outlined text-sm">crop</span>
+                          {uploadingPassageImage === sec.name ? "Saving…" : (passageImageData ? "Re-crop from PDF" : "Crop passage from PDF")}
+                        </button>
                         {passageImageData && (
                           <button
                             onClick={async () => {
@@ -494,7 +467,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         )}
                       </div>
                       <p className="text-[10px] text-violet-600 mt-2">
-                        For 阅读理解 sections whose passage contains charts / posters / infographics that OCR can&apos;t capture. When set, this image replaces the OCR-text passage in the quiz and review screens.
+                        For 阅读理解 sections whose passage contains charts / posters / infographics that OCR can&apos;t capture. Crop the area straight from the PDF — same modal as cropping a question diagram. When set, this image replaces the OCR-text passage in the quiz and review screens.
                       </p>
                       {passageImageError[sec.name] && (
                         <p className="text-xs mt-2 font-medium text-rose-600">Error: {passageImageError[sec.name]}</p>

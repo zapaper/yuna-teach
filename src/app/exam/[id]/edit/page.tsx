@@ -31,11 +31,22 @@ export default function ExamEditPage({
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type SelectTarget = {
-  questionId: string;
-  field: "imageData" | "answerImageData";
-  defaultPageIndex: number;
-};
+type SelectTarget =
+  | {
+      kind?: "question"; // default
+      questionId: string;
+      field: "imageData" | "answerImageData";
+      defaultPageIndex: number;
+    }
+  | {
+      kind: "sectionPassage";
+      // For Chinese 阅读理解 sections: crop a passage region (often
+      // containing a poster / chart / infographic) and POST it to
+      // /api/admin/exam/[id]/section-passage-image so the quiz/review
+      // renderers can show the image in place of the OCR-text passage.
+      sectionLabel: string;
+      defaultPageIndex: number;
+    };
 
 // ─── Main content ─────────────────────────────────────────────────────────────
 
@@ -729,6 +740,17 @@ function ExamEditContent({ id }: { id: string }) {
               await fetchPaper();
             }}
             saving={saving?.split(/(?<=^[a-z0-9]+)/i)[0] ?? null}
+            onCropSectionPassage={(sectionLabel) => {
+              // Reuse the existing PageSelectionModal — open it scoped
+              // to a Chinese 阅读理解 section instead of a question.
+              // Default to page 1; the admin can scroll inside the
+              // modal once the PDF is loaded.
+              if (pageImages.length === 0) {
+                alert("Load the PDF first using the box above so the crop modal has pages to show.");
+                return;
+              }
+              setSelectTarget({ kind: "sectionPassage", sectionLabel, defaultPageIndex: 0 });
+            }}
           />
         </div>
       ) : (
@@ -835,6 +857,33 @@ function ExamEditContent({ id }: { id: string }) {
           pageImages={pageImages}
           defaultPageIndex={selectTarget.defaultPageIndex}
           onConfirm={async (croppedDataUrl, selectedPage, yStartPct, yEndPct) => {
+            // Branch A: cropping a Chinese 阅读理解 passage region.
+            // Posts the crop to /api/admin/exam/[id]/section-passage-image
+            // and reloads so the new image renders + OCR-text hides.
+            if (selectTarget.kind === "sectionPassage") {
+              const sectionLabel = selectTarget.sectionLabel;
+              setSelectTarget(null);
+              setSaveError(null);
+              try {
+                const res = await fetch(`/api/admin/exam/${id}/section-passage-image`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ sectionLabel, imageBase64: croppedDataUrl }),
+                });
+                if (!res.ok) {
+                  const errData = await res.json().catch(() => ({}));
+                  setSaveError(`Save failed (${res.status}): ${errData.error ?? "Unknown error"}`);
+                } else {
+                  window.location.reload();
+                }
+              } catch (err) {
+                setSaveError(`Save failed: ${err instanceof Error ? err.message : "Network error"}`);
+              }
+              return;
+            }
+
+            // Branch B (default): cropping a question diagram /
+            // answer-key region.
             const qId = selectTarget.questionId;
             const field = selectTarget.field;
             setSelectTarget(null);
