@@ -2043,23 +2043,32 @@ function McqQuestionCard({
             // Wrap the stem in a relative container so the pen-mode
             // ScratchOverlay can sit on top — students working on a
             // tablet often want to circle key words / cross out
-            // distractors right on the printed question text. The
-            // overlay is pointer-events-none unless tool === pen /
+            // distractors right on the printed question text. Phone
+            // viewport excluded because pen-mode capture over the
+            // stem text would steal touches from highlight + scroll
+            // gestures on a small screen; the toolbar label is
+            // "Draw on diagrams" precisely to set this expectation.
+            // The overlay is pointer-events-none unless tool === pen /
             // eraser, so normal stem reading + scrolling is untouched.
             <div className="relative mb-5 lg:mb-6">
               <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
                 <MathText text={question.transcribedStem} />
               </p>
-              <ScratchOverlay tool={tool} />
+              <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
             </div>
           )}
 
-          {/* Fallback: show question image if no stem text */}
+          {/* Fallback: show question image if no stem text. Even though
+              the image is a picture (so it might look like a diagram),
+              it usually contains the printed question text — same
+              tablet+ gate as the transcribed stem above so phone users
+              draw on the *actual* diagram below, not on the question
+              picture. */}
           {!hideStem && !question.transcribedStem && question.imageData && question.imageData.length > 100 && (
             <div className="mb-5 lg:mb-6 rounded-xl overflow-hidden border border-[#e5eeff] relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={question.imageData} alt={`Question ${numStr}`} className="w-full h-auto" />
-              <ScratchOverlay tool={tool} />
+              <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
             </div>
           )}
 
