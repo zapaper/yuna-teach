@@ -2889,6 +2889,18 @@ CRITICAL — GRID / DIAGRAM DRAWINGS:
 ║  the answer key says "True", you MUST report "False".               ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
+CONTEXT-FROM-STEM RULE (Science OEQ — applies before any deduction):
+The question stem (text + image) is provided to you. Anything the stem ALREADY ESTABLISHES — named objects, scope ("two plants", "both balls"), the experimental setup, observable givens ("water level X after plasticine is added") — is CONTEXT, not something the student must re-state to score.
+
+The marking point is the NEW assertion / inference the student must produce. Do NOT deduct for missing words that the stem already gave.
+
+Examples:
+- Stem: "The diagram shows two plants." Key: "Part X of both plants absorbs water and mineral salts." Student: "Part X absorbs water and mineral salts." → "both plants" is established scope. Award full credit; the student's statement applies to the same Part X already named.
+- Stem names a beaker / a circuit / "the boy" → student answers without re-naming it → do NOT deduct for the missing noun; the referent is unambiguous.
+- Stem describes an observable setup ("X shows the water level after plasticine is added"). Key: "The water level dropped." → "water level" is stem context; the INFERENCE the student must produce is "dropped / decreased". If the student concludes the level dropped (in any wording), award the point. Only deduct if the student's reasoning never addresses the level's change. Frame any deduction as "the level-change inference was missing", NOT "did not say water level".
+
+Default: when borderline between stem-context and new-inference, lean ACCEPT. Penalising students for omitting words the question already gave them is a common false-positive — avoid it.
+
 Instructions:
 1. FIRST — Read the student's blue-ink handwritten answer from Image 2. Write down EXACTLY what you see. Do NOT look at the expected answer yet.
 2. If the question has multiple sub-parts labelled (a), (b), (c) etc., you MUST mark EACH sub-part separately. The expected answer may contain all parts on one line (e.g. "(a) 12 cm (b) 25 cm") or separated — extract each sub-part from it. For every labelled sub-part in the question, give a separate award and note. If the expected answer only lists one sub-part, still report on the other sub-parts as "(x) no answer key provided" and award them 0 — never skip them silently. Split the total marks across sub-parts as fairly as possible.
