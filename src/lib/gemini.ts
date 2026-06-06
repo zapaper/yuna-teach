@@ -306,12 +306,12 @@ export async function transcribeMathMcqQuestion(
   diagram: DiagramBounds | null;
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
-  // Route through the shared Gemini+Wavespeed wrapper so a JSON-only-
+  // Route through the shared Gemini+OpenAI wrapper so a JSON-only-
   // fences response from Gemini doesn't throw SyntaxError straight to
   // the caller — the wrapper logs it cleanly and falls through to
-  // Wavespeed. The Science MCQ variant already does this; the Math
+  // OpenAI. The Science MCQ variant already does this; the Math
   // MCQ one was the last direct-call holdout.
-  const parsed = await transcribeViaGeminiOrWavespeed(
+  const parsed = await transcribeViaGeminiOrOpenAI(
     imageBase64, MATH_MCQ_TRANSCRIPTION_PROMPT, "math-mcq",
     (raw) => Boolean(raw && raw.stem),
   );
@@ -1076,7 +1076,7 @@ Rules:
 export async function transcribeMathOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
-  const parsed = await transcribeViaGeminiOrWavespeed(
+  const parsed = await transcribeViaGeminiOrOpenAI(
     imageBase64, MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT, "math-oeq",
     (raw) => Boolean(raw && (raw.stem || (Array.isArray(raw.subparts) && raw.subparts.length > 0))),
   );
@@ -1095,18 +1095,19 @@ export async function transcribeMathOpenEndedQuestion(
 
 // Run a transcribe prompt against Gemini-3.1-pro-preview; if the
 // model returns 200 OK with empty / unusable JSON, fall back to
-// Wavespeed (GPT-5.5). Hard-throws when both fail so the caller's
-// outer retry path can react. Logs which provider produced the
-// final answer so fallback rate is observable.
-async function transcribeViaGeminiOrWavespeed(
+// OpenAI (gpt-5 via runOpenAIFallback). Hard-throws when both fail
+// so the caller's outer retry path can react. Logs which provider
+// produced the final answer so fallback rate is observable.
+async function transcribeViaGeminiOrOpenAI(
   imageBase64: string,
   prompt: string,
   label: string,
   isUsable: (parsed: Record<string, unknown>) => boolean,
 ): Promise<Record<string, unknown>> {
-  // Track WHY Gemini fell through so the final error (if Wavespeed
-  // also fails) names both providers — otherwise the toast just says
-  // "401 invalid token" and the admin can't tell which API key is bad.
+  // Track WHY Gemini fell through so the final error (if the
+  // fallback also fails) names both providers — otherwise the toast
+  // just says e.g. "401 invalid token" and the admin can't tell which
+  // API key is bad.
   let geminiFallbackReason: string | null = null;
 
   // 1. Primary: Gemini 3.1 pro preview (already has its own retry +
@@ -1131,14 +1132,14 @@ async function transcribeViaGeminiOrWavespeed(
       // JSON.parse can still throw if the model wrapped its response
       // in fences with no actual JSON inside (just ```json\n```) or
       // returned a truncated payload. Treat parse failure the same as
-      // "unusable" — fall through to Wavespeed instead of letting the
+      // "unusable" — fall through to OpenAI instead of letting the
       // SyntaxError bubble to the caller.
       let parsed: Record<string, unknown> | null = null;
       try {
         parsed = JSON.parse(sanitizeJsonString(stripped)) as Record<string, unknown>;
       } catch (parseErr) {
         geminiFallbackReason = `unparseable JSON (${(parseErr as Error).message?.slice(0, 80)})`;
-        console.warn(`[transcribe:${label}] Gemini returned ${stripped.length} chars that couldn't be parsed as JSON (${(parseErr as Error).message}). Raw start: ${stripped.slice(0, 200)}. Falling back to Wavespeed (GPT-5.5).`);
+        console.warn(`[transcribe:${label}] Gemini returned ${stripped.length} chars that couldn't be parsed as JSON (${(parseErr as Error).message}). Raw start: ${stripped.slice(0, 200)}. Falling back to OpenAI.`);
       }
       if (parsed) {
         if (isUsable(parsed)) {
@@ -1146,31 +1147,48 @@ async function transcribeViaGeminiOrWavespeed(
           return parsed;
         }
         geminiFallbackReason = "200 OK but unusable content";
-        console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to Wavespeed (GPT-5.5).`);
+        console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to OpenAI.`);
       }
     } else {
       geminiFallbackReason = "empty text";
-      console.warn(`[transcribe:${label}] Gemini returned empty text. Falling back to Wavespeed (GPT-5.5).`);
+      console.warn(`[transcribe:${label}] Gemini returned empty text. Falling back to OpenAI.`);
     }
   } catch (err) {
     geminiFallbackReason = `threw (${(err as Error).message?.slice(0, 80)})`;
-    console.warn(`[transcribe:${label}] Gemini threw (${(err as Error).message?.slice(0, 200)}). Falling back to Wavespeed (GPT-5.5).`);
+    console.warn(`[transcribe:${label}] Gemini threw (${(err as Error).message?.slice(0, 200)}). Falling back to OpenAI.`);
   }
 
-  // 2. Fallback: Wavespeed GPT-5.5. Hard-throw on failure — the
-  //    /api/admin/broken-questions/transcribe route already converts
-  //    that to a 502 + "try again" alert. Tag the error with the
-  //    provider name + the gemini fallback reason so the upstream
-  //    toast tells the admin which API key to check.
-  const { wavespeedTranscribe } = await import("./wavespeed");
+  // 2. Fallback: OpenAI (gpt-5 via runOpenAIFallback). Re-use the same
+  //    Gemini-shape params so runOpenAIFallback's translator handles
+  //    image + JSON mode. Hard-throw with both providers' tags on
+  //    failure so the upstream toast names the failing API key.
+  const fallbackParams = {
+    // gemini-2.5-flash maps to gpt-5 in openai-fallback MODEL_MAP —
+    // the right tier for a transcription/OCR task.
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  };
   try {
-    const parsed = await wavespeedTranscribe<Record<string, unknown>>(imageBase64, prompt, label);
-    console.log(`[transcribe:${label}] provider=wavespeed:openai/gpt-5.5 (gemini was empty/failed)`);
+    const result = await runOpenAIFallback(fallbackParams, label);
+    const raw = (result.text ?? "").trim();
+    if (!raw) throw new Error("OpenAI returned empty content");
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+    const parsed = JSON.parse(sanitizeJsonString(cleaned)) as Record<string, unknown>;
+    console.log(`[transcribe:${label}] provider=openai (gemini was empty/failed)`);
     return parsed;
   } catch (err) {
     const msg = (err as Error).message ?? String(err);
     const geminiNote = geminiFallbackReason ? ` (gemini fell back: ${geminiFallbackReason})` : "";
-    throw new Error(`wavespeed: ${msg}${geminiNote}`);
+    throw new Error(`openai: ${msg}${geminiNote}`);
   }
 }
 
@@ -1238,7 +1256,7 @@ export async function transcribeScienceMcqQuestion(
   diagram: DiagramBounds | null;
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
-  const parsed = await transcribeViaGeminiOrWavespeed(
+  const parsed = await transcribeViaGeminiOrOpenAI(
     imageBase64, SCIENCE_MCQ_TRANSCRIPTION_PROMPT, "science-mcq",
     (raw) => Boolean(raw && raw.stem),
   );
@@ -1347,7 +1365,7 @@ For "stem", use the shared preamble (the lead-in text that applies to the whole 
 
 ${SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT}`;
   }
-  const parsed = await transcribeViaGeminiOrWavespeed(
+  const parsed = await transcribeViaGeminiOrOpenAI(
     imageBase64, prompt, "science-oeq",
     (raw) => Boolean(raw && (raw.stem || (Array.isArray(raw.subparts) && raw.subparts.length > 0))),
   );
