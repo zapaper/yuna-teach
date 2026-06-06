@@ -4138,6 +4138,20 @@ export async function analyzeExamBatch(
             // Last-resort default: OEQ (matches the safer marking path)
             return "阅读理解 OEQ";
           }
+          // "Situational Writing" / 情景写作 — this isn't a separate
+          // section. It's the open-ended "write a letter/message based
+          // on the passage" question (e.g. PSLE 2019 Q33, where the
+          // student writes a phone message to a friend about the
+          // recruitment notice). It belongs in 阅读理解 OEQ.
+          if (name.includes("情景写作") || name.includes("情境写作")
+              || nLower.includes("situational writing") || nLower.includes("situation writing")) return "阅读理解 OEQ";
+          // CHINESE PATHWAY ISOLATION (memory: feedback_chinese_isolation):
+          // The Chinese branch MUST NOT fall through to the English-paper
+          // normaliser below. If we got here, the name is an unknown
+          // Chinese-paper section we haven't catalogued yet — return it
+          // as-is rather than leaking it into English-grammar / English-
+          // comprehension matchers, which produce nonsense labels.
+          return name;
         }
         // ── English section names (existing logic) ─────────────────
         // Check editing FIRST — "editing for spelling and grammar" contains "grammar" but is NOT Grammar MCQ
