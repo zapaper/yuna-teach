@@ -6,6 +6,7 @@ import Link from "next/link";
 import DiagramEditor from "@/components/DiagramEditor";
 import AdminNav from "@/components/AdminNav";
 import FormattedText from "@/components/FormattedText";
+import { formatQNum } from "@/lib/format";
 
 type Subject = "math" | "science" | "english";
 type QuestionType = "mcq" | "oeq";
@@ -616,7 +617,7 @@ function SyntheticContent() {
               <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original · {q.paperYear ?? ""} {q.paperSchool ?? ""}</p>
-                  <p className="text-[10px] text-slate-400">{q.paperTitle} · Q{q.questionNum}</p>
+                  <p className="text-[10px] text-slate-400">{q.paperTitle} · {formatQNum(q.questionNum)}</p>
                 </div>
                 {questionType === "oeq" ? (
                   <div className="mb-3">

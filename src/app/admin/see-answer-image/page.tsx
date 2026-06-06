@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
+import { formatQNum } from "@/lib/format";
 
 type Q = {
   id: string;
@@ -211,7 +212,7 @@ function Content() {
                                   rel="noreferrer"
                                   className="font-bold text-violet-600 hover:underline"
                                   title="Open this question on the /edit page"
-                                >Q{q.questionNum} →</a>
+                                >{formatQNum(q.questionNum)} →</a>
                               </td>
                               <td className="px-3 py-2 text-slate-500">{q.marks ?? "—"}</td>
                               <td className="px-3 py-2">{q.hasImage ? <span className="text-emerald-600">✓</span> : <span className="text-rose-600">✗</span>}</td>

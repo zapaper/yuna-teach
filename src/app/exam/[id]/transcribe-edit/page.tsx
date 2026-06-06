@@ -4,6 +4,7 @@ import { Suspense, use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DiagramEditor from "@/components/DiagramEditor";
 import { formatSubpartLabel } from "@/lib/subpart-label";
+import { formatQNum } from "@/lib/format";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1052,7 +1053,7 @@ function QuestionCard({
     <div id={id} className={`rounded-2xl border p-4 ${cardBg}`}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <span className="text-sm font-bold text-slate-700">Q{q.questionNum}</span>
+        <span className="text-sm font-bold text-slate-700">{formatQNum(q.questionNum)}</span>
         <button
           onClick={onToggleType}
           title={isMcq ? "Switch to Open-ended" : "Switch to MCQ"}

@@ -7,6 +7,7 @@ import AdminNav from "@/components/AdminNav";
 import type { MasterClassContent, MasterClassSlide } from "@/data/master-class";
 import { parseSlideScript } from "@/lib/master-class/parse-script";
 import { renderInlineMd } from "@/lib/master-class/render";
+import { formatQNum } from "@/lib/format";
 
 export default function Page() {
   return (
@@ -863,7 +864,7 @@ function PracticeCard({ q, idx }: { q: PracticeQuestion; idx: number }) {
     <div className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">
       <div className="flex items-baseline justify-between gap-2 mb-1">
         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-          {idx}. Q{q.questionNum} · {q.marksAvailable ?? "?"}m · {q.examPaper.title.slice(0, 50)} {q.examPaper.year ?? ""}
+          {idx}. {formatQNum(q.questionNum)} · {q.marksAvailable ?? "?"}m · {q.examPaper.title.slice(0, 50)} {q.examPaper.year ?? ""}
         </p>
         {isPsle && <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">PSLE</span>}
       </div>

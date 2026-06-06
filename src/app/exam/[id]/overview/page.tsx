@@ -9,6 +9,7 @@ import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
 import { formatSubpartLabel } from "@/lib/subpart-label";
+import { formatQNum } from "@/lib/format";
 
 // AI-explainer cache reader. Newer entries are JSON ({solution,
 // diagrams}); older ones are bare text. Returns shape both consumers
@@ -1096,7 +1097,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                 <div key={q.questionNum} className={`rounded-xl border p-3 ${q.type === "mcq" ? "bg-slate-50 border-slate-200" : "bg-amber-50 border-amber-200"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700">Q{q.questionNum}</span>
+                      <span className="text-xs font-bold text-slate-700">{formatQNum(q.questionNum)}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.type === "mcq" ? "bg-slate-200 text-slate-600" : "bg-amber-200 text-amber-700"}`}>
                         {q.type === "mcq" ? "MCQ" : "Open"}
                       </span>

@@ -14,6 +14,7 @@ import Image from "next/image";
 import { renderPdfToImages } from "@/lib/pdf";
 import AdminNav from "@/components/AdminNav";
 import EnglishEditView from "@/components/EnglishEditView";
+import { formatQNum } from "@/lib/format";
 
 export default function ExamEditPage({
   params,
@@ -1398,7 +1399,7 @@ function QuestionEditCard({
       {showDeleteConfirm && (
         <div className="px-4 pb-4">
           <div className="rounded-xl border border-red-200 bg-red-50 p-3 flex items-center justify-between">
-            <p className="text-xs text-red-700">Delete Q{question.questionNum}?</p>
+            <p className="text-xs text-red-700">Delete {formatQNum(question.questionNum)}?</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}

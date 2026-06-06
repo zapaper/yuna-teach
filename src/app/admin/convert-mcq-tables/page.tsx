@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import MathText from "@/components/MathText";
+import { formatQNum } from "@/lib/format";
 
 type Candidate = {
   id: string;
@@ -204,7 +205,7 @@ function ConvertContent() {
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] font-bold text-slate-400">{offset + i + 1} of {total}</p>
                     <p className="text-xs font-semibold text-slate-500">{q.paperTitle}</p>
-                    <p className="text-sm font-bold text-slate-800">Q{q.questionNum} · ans={q.answer}{q.topic ? ` · ${q.topic}` : ""}</p>
+                    <p className="text-sm font-bold text-slate-800">{formatQNum(q.questionNum)} · ans={q.answer}{q.topic ? ` · ${q.topic}` : ""}</p>
                   </div>
                   <a href={`/exam/${q.paperId}/transcribe-edit?userId=${userId}`} target="_blank" rel="noopener"
                     className="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:underline shrink-0">Open paper ↗</a>
