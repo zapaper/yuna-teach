@@ -855,11 +855,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     try {
       const res = await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
       if (!res.ok) {
-        // Surface the failure instead of silently dropping the row —
-        // the previous catch-all hid 403s on revision papers etc and
-        // the parent had no idea why nothing changed.
+        // Surface the failure instead of silently dropping the row.
+        // Detect HTML responses (Cloudflare 502 / gateway timeouts) and
+        // show a clean message instead of dumping the IE-conditional
+        // error page into the alert. 502/504 often means the server
+        // still completed the cascade — tell the user to refresh.
         const body = await res.text().catch(() => "");
-        alert(`Delete failed (HTTP ${res.status}): ${body || "no message"}`);
+        const looksLikeHtml = body.trimStart().startsWith("<");
+        if (looksLikeHtml && (res.status === 502 || res.status === 504)) {
+          alert(`The server took too long to respond (HTTP ${res.status}). The delete may have completed — refresh the page to check.`);
+        } else if (looksLikeHtml) {
+          alert(`Delete failed (HTTP ${res.status}): server returned an error page instead of JSON. Refresh and try again.`);
+        } else {
+          // Try to parse JSON error message; fall through to raw body.
+          let msg = body || "no message";
+          try { const j = JSON.parse(body); if (j?.error) msg = j.error; } catch { /* not JSON */ }
+          alert(`Delete failed (HTTP ${res.status}): ${msg}`);
+        }
         return;
       }
       setExamPapers(prev => prev.filter(p => p.id !== paperId));
