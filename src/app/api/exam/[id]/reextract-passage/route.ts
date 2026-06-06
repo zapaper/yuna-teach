@@ -5,6 +5,8 @@ import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
 import fs from "fs";
 import path from "path";
 
+type ChineseSec = { label: string; startIndex: number; endIndex: number; passage?: string };
+
 const VOLUME_PATH = process.env.VOLUME_PATH || "/data";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -169,19 +171,45 @@ Output ONLY the table.` });
     }
   }
 
-  // For Chinese papers, rebuild chineseSections so the freshly OCR'd
-  // passage immediately shows up in the quiz / edit / review UI
-  // without a separate backfill step. (isChinese already declared
-  // above to switch the OCR prompt.)
+  // For Chinese papers, surgically update only THIS section's passage
+  // in metadata.chineseSections — do NOT rebuild the whole array.
+  //
+  // The previous code called buildChineseSections() to rebuild from
+  // scratch, but its findOcrKey + "borrow previous comp passage"
+  // fallback caused chain corruption when re-extracting one of several
+  // 阅读理解 sub-sections: peer sections that share the same
+  // syllabusTopic couldn't find their own OCR entry, fell through to
+  // the "borrow previous comp section's passage" rule, and ended up
+  // inheriting the JUST-WRITTEN passage. Re-extracting MCQ wiped A's
+  // and B's passages.
+  //
+  // The fix: leave every other section alone. Match the one section by
+  // its existing label and overwrite ONLY its `passage` field. If the
+  // initial sections array is missing (legacy paper that never had
+  // chineseSections written), fall back to a one-time rebuild.
   let chineseSectionsUpdate: Record<string, unknown> = {};
   if (isChinese) {
-    const qs = await prisma.examQuestion.findMany({
-      where: { examPaperId: id },
-      orderBy: { orderIndex: "asc" },
-      select: { pageIndex: true, syllabusTopic: true },
-    });
-    const built = buildChineseSections(qs, allOcr as Record<string, OcrEntry>);
-    chineseSectionsUpdate = { chineseSections: built };
+    const existing = (meta as { chineseSections?: ChineseSec[] }).chineseSections;
+    if (Array.isArray(existing) && existing.length > 0) {
+      // Match by label (normalised — whitespace-insensitive).
+      const norm = (s: string) => s.toLowerCase().replace(/\s+/g, "");
+      const targetNorm = norm(canonicalSectionName);
+      const updated = existing.map(sec =>
+        norm(sec.label) === targetNorm
+          ? { ...sec, passage: passageOcrText }
+          : sec,
+      );
+      chineseSectionsUpdate = { chineseSections: updated };
+    } else {
+      // No existing array — first time. Do the full build.
+      const qs = await prisma.examQuestion.findMany({
+        where: { examPaperId: id },
+        orderBy: { orderIndex: "asc" },
+        select: { pageIndex: true, syllabusTopic: true },
+      });
+      const built = buildChineseSections(qs, allOcr as Record<string, OcrEntry>);
+      chineseSectionsUpdate = { chineseSections: built };
+    }
   }
 
   await prisma.examPaper.update({
