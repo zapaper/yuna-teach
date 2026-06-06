@@ -161,7 +161,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
     ? groupFromChineseMetadata(paper.questions, chineseSections, ocrTexts)
     : groupBySection(paper.questions, ocrTexts);
 
-  const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.ocrKey ?? null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.name ?? null);
   const [editingOcr, setEditingOcr] = useState<string | null>(null);
   const [ocrDrafts, setOcrDrafts] = useState<Record<string, string>>({});
   const [editingPassage, setEditingPassage] = useState<string | null>(null);
@@ -277,17 +277,23 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
         // so duplicate-name topics each get their own ocrData entry.
         // Fall back to fuzzy match for legacy data that doesn't have
         // the suffixed keys yet.
-        const isExpanded = expandedSection === sec.ocrKey;
+        // Expand key MUST be per-section-row, not per-ocrKey. Chinese
+        // papers can have two rows ("阅读理解 MCQ" + "阅读理解 A") that
+        // resolve to the same ocrKey because the questions share a
+        // syllabusTopic — keying expand on ocrKey would flip both rows
+        // together. sec.name is unique per row.
+        const expandKey = sec.name;
+        const isExpanded = expandedSection === expandKey;
         const ocrData = ocrTexts[sec.ocrKey] ?? ocrTexts[sec.name] ?? Object.entries(ocrTexts).find(([k]) =>
           k.toLowerCase().replace(/\s+/g, "").includes(sec.name.toLowerCase().replace(/\s+/g, "").slice(0, 10))
         )?.[1] ?? null;
         const sectionPageIndices = ocrData?.pageIndices ?? [];
 
         return (
-          <div key={sec.ocrKey} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div key={expandKey} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Section header */}
             <button
-              onClick={() => setExpandedSection(isExpanded ? null : sec.ocrKey)}
+              onClick={() => setExpandedSection(isExpanded ? null : expandKey)}
               className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-center gap-3">
@@ -331,7 +337,11 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                 )}
 
                 {/* Re-extract passage from pages */}
-                {sec.name.toLowerCase().includes("comprehension") && (
+                {/* English "comprehension" sections + Chinese 阅读理解
+                    sections. The latter share a single syllabusTopic
+                    across multiple passage-bound sections, so the admin
+                    needs the per-section button to re-OCR each one. */}
+                {(sec.name.toLowerCase().includes("comprehension") || sec.name.includes("阅读理解")) && (
                   <div className="p-4 bg-amber-50/50 border-b border-amber-100">
                     <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-2">Re-extract Passage</p>
                     <div className="flex items-center gap-2">
