@@ -2765,8 +2765,12 @@ function OeqQuestionCard({
                 </span>
               )}
             </div>
-            {/* Scratch overlay — desktop only */}
-            <div className="hidden lg:block"><ScratchOverlay tool={tool} /></div>
+            {/* Scratch overlay — tablet + desktop. Phones excluded so the
+                pen-mode capture doesn't fight the already-tight scroll
+                gestures on a small screen. Apple Pencil / S Pen on a
+                tablet activates the overlay only when the student is
+                in pen / eraser mode (otherwise pointer-events:none). */}
+            <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
           </div>
 
           {/* Sub-parts with individual canvases */}
