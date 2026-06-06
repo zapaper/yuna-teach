@@ -152,14 +152,31 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [mcqError, setMcqError] = useState<string | null>(null);
   const [mcqExtracted, setMcqExtracted] = useState(false);
 
+  // Read a response body as JSON, but if the body is HTML (e.g. a
+  // Next.js dev-overlay returned mid-recompile, or a tunnel/proxy
+  // timeout page), surface a clear error naming the call + status
+  // instead of "Unexpected token '<' is not valid JSON".
+  async function safeJson<T = unknown>(res: Response, callLabel: string): Promise<T> {
+    const text = await res.text();
+    const trimmed = text.trimStart();
+    if (trimmed.startsWith("<")) {
+      throw new Error(`${callLabel} returned HTML, not JSON (status ${res.status}). First 120 chars: ${text.slice(0, 120).replace(/\s+/g, " ")}`);
+    }
+    try {
+      return JSON.parse(text) as T;
+    } catch (err) {
+      throw new Error(`${callLabel} returned unparseable JSON (status ${res.status}): ${(err as Error).message}. First 120 chars: ${text.slice(0, 120)}`);
+    }
+  }
+
   async function generateMcqPreview() {
     setMcqTranscribing(true);
     setMcqResults(null);
     setMcqError(null);
     try {
       const res = await fetch(`/api/exam/${id}/transcribe-mcq`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed");
+      const data = await safeJson<{ error?: string; questions: TranscribedQuestion[] }>(res, "POST /transcribe-mcq");
+      if (!res.ok) throw new Error(data.error ?? `POST /transcribe-mcq failed (status ${res.status})`);
       setMcqResults(data.questions);
       // Auto-save to DB so Edit & Save page can load it
       const saveRes = await fetch(`/api/exam/${id}/transcribe-mcq`, {
@@ -185,7 +202,15 @@ function ExamOverviewContent({ id }: { id: string }) {
           })),
         }),
       });
-      if (saveRes.ok) setMcqExtracted(true);
+      if (!saveRes.ok) {
+        // Surface save errors with the same diagnostic detail —
+        // previously a 500 here silently dropped the transcription.
+        const saveData = await safeJson<{ error?: string }>(saveRes, "PUT /transcribe-mcq").catch((e: Error) => {
+          throw new Error(`Save failed: ${e.message}`);
+        });
+        throw new Error(saveData.error ?? `Save failed (status ${saveRes.status})`);
+      }
+      setMcqExtracted(true);
     } catch (e) {
       setMcqError(e instanceof Error ? e.message : "Unknown error");
     } finally {
