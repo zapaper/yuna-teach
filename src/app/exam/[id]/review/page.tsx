@@ -229,6 +229,13 @@ function ExamReviewContent({ id }: { id: string }) {
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [skipPages, setSkipPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
+  // Chinese 阅读理解 OEQ writing pad — questions on appended pad
+  // pages carry pageIndex = oeqPadFirstPageIndex + padOffset which is
+  // PAST the master's pageCount. getSubmissionPage needs both values
+  // to map them onto the post-master positions in the submission
+  // file list.
+  const [oeqPadFirst, setOeqPadFirst] = useState<number | null>(null);
+  const [oeqPadCount, setOeqPadCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [submissionPageOverride, setSubmissionPageOverride] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -412,6 +419,11 @@ function ExamReviewContent({ id }: { id: string }) {
           }
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
+          {
+            const ne = (paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number; oeqPadPages?: number } } | undefined)?.normalExtractChinese;
+            setOeqPadFirst(typeof ne?.oeqPadFirstPageIndex === "number" ? ne.oeqPadFirstPageIndex : null);
+            setOeqPadCount(typeof ne?.oeqPadPages === "number" ? ne.oeqPadPages : 0);
+          }
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
           // Chinese sections feed the same review state as English —
           // both shapes are identical so the existing render path
@@ -622,6 +634,14 @@ function ExamReviewContent({ id }: { id: string }) {
         if (i === originalPageIdx) return idx;
         idx++;
       }
+    }
+    // OEQ-pad pages live AFTER the master in the submission file
+    // sequence: page_<idx> where idx counts every non-hidden master
+    // page first, then each pad page.
+    if (oeqPadFirst !== null && oeqPadCount > 0
+        && originalPageIdx >= oeqPadFirst
+        && originalPageIdx < oeqPadFirst + oeqPadCount) {
+      return idx + (originalPageIdx - oeqPadFirst);
     }
     return originalPageIdx;
   }

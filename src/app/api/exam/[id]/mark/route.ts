@@ -174,7 +174,7 @@ export async function POST(
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
-    select: { markingStatus: true, completedAt: true, paperType: true, subject: true },
+    select: { markingStatus: true, completedAt: true, paperType: true, subject: true, metadata: true, sourceExamId: true },
   });
 
   if (!paper) {
@@ -247,7 +247,21 @@ export async function POST(
   const printableCount = await prisma.examQuestion.count({
     where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
   });
-  const isPrintedAndScanned = printableCount > 0;
+  // Chinese papers don't use printableBounds — they signal "this was
+  // printed & scanned" via the OEQ-pad metadata the print flow writes
+  // onto the master. Mirror the same check the GET handler uses for
+  // the review-page flag.
+  const ownMetaForRoute = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+  let chineseScanBack = !!ownMetaForRoute?.normalExtractChinese?.oeqPadFirstPageIndex;
+  if (!chineseScanBack && paper.sourceExamId) {
+    const srcMeta2 = await prisma.examPaper.findUnique({
+      where: { id: paper.sourceExamId },
+      select: { metadata: true },
+    });
+    const sm = srcMeta2?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+    chineseScanBack = !!sm?.normalExtractChinese?.oeqPadFirstPageIndex;
+  }
+  const isPrintedAndScanned = printableCount > 0 || chineseScanBack;
   if (isPrintedAndScanned) {
     markExamPaper(id).catch((err) =>
       console.error(`Printed-and-scanned marking for ${id} failed:`, err)

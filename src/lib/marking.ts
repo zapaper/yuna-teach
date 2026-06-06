@@ -4177,7 +4177,7 @@ CHINESE 阅读理解 OEQ — PHRASE-BASED RUBRIC (applies when the answer key co
   · MISSING — the student doesn't address this phrase at all. → 0 marks for this phrase.
 - DO NOT round UP. A student who captures one half of a (2)-mark phrase gets 1 mark, NOT 2. Restraint here is the difference between a fair score and an inflated one.
 - Sum the per-phrase marks. Clamp to [0, marksAvailable]. Spelling penalty (0.5 per misspelling) is applied LAST on top of the sum.
-- In the feedback, name each phrase and state which were fully covered, partially covered, or missing. Worked example: "Phrase 1 (聪明 + 注重家庭幸福, 2 marks): only 聪明 captured — partial → 1 mark. Phrase 2 (...): full → 1 mark. Phrase 3 (...): missing → 0."
+- Feedback style: just NAME the missing or partially captured idea(s) in 中文. Do NOT use "Phrase 1 / Phrase 2 / Phrase 3" labels. Do NOT walk through every phrase. Only call out what's missing or partial. Example for a student who captured "聪明" but missed "注重家庭幸福" and "相亲相爱": "学生只提到妈妈聪明,未提及她注重家庭幸福或希望全家人相亲相爱,扣 2 分。" — concise, names the missing ideas, states the deduction.
 
 The minimum marks awarded is 0 (do not go negative).
 
