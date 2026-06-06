@@ -16,7 +16,6 @@ const STEM_CLASSIFIERS: Record<string, (stem: string | null) => string | null> =
   "math-hidden-constant-total": classifyHiddenConstantTotal,
   "math-geometry-mastery": classifyGeometryMastery,
 };
-import { getWrongSourceQuestionIds } from "@/lib/master-class/mastery";
 
 // POST /api/master-class/[slug]/start-quiz
 //   body: { studentId: string, parentMasteryId?: string }
@@ -713,11 +712,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       select: { id: true },
     });
 
-    // Re-use the same review-paper scheduler the standard path uses.
-    await upsertPendingReviewPaper({
-      slug, content, studentId, sessionUserId,
-      studentLevel: student?.level ?? null,
-    });
     return NextResponse.json({ paperId: pgPaper.id, warnings: [], quizNumber: pgQuizNumber });
   }
 
@@ -1101,177 +1095,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     select: { id: true },
   });
 
-  // ─── Auto-review scheduling ────────────────────────────────────────
-  // Every new mastery quiz resets the 7-day review timer. We delete
-  // any existing PENDING (uncompleted) review paper for (student,
-  // slug), then create a fresh one with scheduledFor = now + 7 days,
-  // containing every wrong source-question from past completed quizzes.
-  // Skipped if the student has no wrong questions on record.
-  await upsertPendingReviewPaper({ slug, content, studentId, sessionUserId, studentLevel: student?.level ?? null });
-
   return NextResponse.json({ paperId: paper.id, warnings, quizNumber });
 }
 
-// Delete any uncompleted "Master Class X Review" paper for the
-// student × slug, then create a fresh one if there are wrong source
-// questions on record. Idempotent — safe to call after every quiz.
-async function upsertPendingReviewPaper(params: {
-  slug: string;
-  content: { title: string; subject: string };
-  studentId: string;
-  sessionUserId: string;
-  studentLevel: number | null;
-}) {
-  const { slug, content, studentId, sessionUserId, studentLevel } = params;
-
-  // 1. Delete pending reviews for this (student, slug) — never delete
-  //    a completed one (preserves history). "Pending" = no completedAt.
-  await prisma.examPaper.deleteMany({
-    where: {
-      assignedToId: studentId,
-      paperType: "mastery-review",
-      completedAt: null,
-      metadata: { path: ["masterClassSlug"], equals: slug } as never,
-    },
-  });
-
-  // 2. Collect wrong source-question IDs.
-  const sourceIds = await getWrongSourceQuestionIds(slug, studentId);
-  if (sourceIds.length === 0) return;
-
-  // 3. Fetch full source questions so the cloned review has the same
-  //    fields as a normal mastery quiz.
-  const sourceSelect = {
-    id: true,
-    questionNum: true,
-    examPaperId: true,
-    imageData: true,
-    answer: true,
-    answerImageData: true,
-    marksAvailable: true,
-    syllabusTopic: true,
-    subTopic: true,
-    transcribedStem: true,
-    transcribedOptions: true,
-    transcribedOptionImages: true,
-    transcribedOptionTable: true,
-    transcribedSubparts: true,
-    diagramImageData: true,
-    diagramBounds: true,
-    elaboration: true,
-  } as const;
-  const sourceQuestions = await prisma.examQuestion.findMany({
-    where: { id: { in: sourceIds } },
-    select: sourceSelect,
-  });
-  type SourceQ = typeof sourceQuestions[number];
-
-  // Pull in siblings of every source row by (examPaperId, baseNum) so
-  // multi-part questions render in the review with all sub-parts, not
-  // just the lead row the mastery clone pointed at. Without this, a
-  // student who got "Q14 (c)" wrong would see only the (c) stem on the
-  // review paper — same bug the main mastery picker had pre-fix.
-  const reviewGroupKeys = new Set<string>(
-    sourceQuestions.map(q => `${q.examPaperId}::${baseNum(q.questionNum)}`),
-  );
-  const reviewSiblingWheres = [...reviewGroupKeys].map(k => {
-    const [examPaperId, base] = k.split("::");
-    return { examPaperId, questionNum: { startsWith: base } };
-  });
-  const reviewSiblings: SourceQ[] = reviewSiblingWheres.length > 0
-    ? await prisma.examQuestion.findMany({
-        where: {
-          OR: reviewSiblingWheres,
-          examPaper: { sourceExamId: null, paperType: null },
-        },
-        select: sourceSelect,
-      })
-    : [];
-  const reviewById = new Map<string, SourceQ>();
-  for (const q of sourceQuestions) reviewById.set(q.id, q);
-  for (const q of reviewSiblings) if (!reviewById.has(q.id)) reviewById.set(q.id, q);
-  const reviewGroupMap = new Map<string, SourceQ[]>();
-  for (const q of reviewById.values()) {
-    const key = `${q.examPaperId}::${baseNum(q.questionNum)}`;
-    if (!reviewGroupMap.has(key)) reviewGroupMap.set(key, []);
-    reviewGroupMap.get(key)!.push(q);
-  }
-  for (const g of reviewGroupMap.values()) {
-    g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
-  }
-  // Walk sourceIds in their original (most-recent-wrong-first) order
-  // and emit one merged group per unique key. Multiple wrong clones
-  // pointing to siblings of the same source group collapse into one
-  // review entry rather than repeating the same combined question.
-  const sourceById = new Map(sourceQuestions.map(q => [q.id, q]));
-  const seenReviewKeys = new Set<string>();
-  const orderedSources: SourceQ[] = [];
-  for (const id of sourceIds) {
-    const trigger = sourceById.get(id);
-    if (!trigger) continue;
-    const key = `${trigger.examPaperId}::${baseNum(trigger.questionNum)}`;
-    if (seenReviewKeys.has(key)) continue;
-    const group = reviewGroupMap.get(key);
-    if (!group) continue;
-    seenReviewKeys.add(key);
-    orderedSources.push(mergeOeqGroup(group));
-  }
-
-  // 4. Create the review paper, scheduledFor = now + 7 days.
-  const scheduledFor = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const isMcq = (q: typeof orderedSources[number]) => {
-    if (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) return true;
-    if (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o)) return true;
-    const t = q.transcribedOptionTable;
-    if (t && typeof t === "object" && Array.isArray((t as { rows?: unknown }).rows) && (t as { rows: unknown[] }).rows.length === 4) return true;
-    return false;
-  };
-  const totalMarks = orderedSources.reduce(
-    (s, q) => s + (isMcq(q) ? 2 : (q.marksAvailable ?? 1)),
-    0,
-  );
-
-  await prisma.examPaper.create({
-    data: {
-      title: `Master Class: ${content.title} — Review`,
-      subject: content.subject,
-      level: studentLevel != null ? `P${studentLevel}` : null,
-      userId: sessionUserId,
-      assignedToId: studentId,
-      paperType: "mastery-review",
-      instantFeedback: true,
-      pageCount: 0,
-      extractionStatus: "ready",
-      scheduledFor,
-      totalMarks: String(totalMarks),
-      metadata: {
-        masterClassSlug: slug,
-        masterClassTitle: content.title,
-        kind: "auto-review",
-        wrongCount: orderedSources.length,
-      } as never,
-      questions: {
-        create: orderedSources.map((q, i) => ({
-          questionNum: String(i + 1),
-          imageData: q.imageData,
-          answer: q.answer,
-          answerImageData: q.answerImageData,
-          marksAvailable: isMcq(q) ? 2 : (q.marksAvailable ?? 1),
-          syllabusTopic: q.syllabusTopic,
-          subTopic: q.subTopic,
-          pageIndex: 0,
-          orderIndex: i,
-          transcribedStem: q.transcribedStem,
-          transcribedOptions: q.transcribedOptions ?? undefined,
-          transcribedOptionImages: q.transcribedOptionImages ?? undefined,
-          transcribedOptionTable: q.transcribedOptionTable ?? undefined,
-          transcribedSubparts: q.transcribedSubparts ?? undefined,
-          diagramImageData: q.diagramImageData ?? undefined,
-          diagramBounds: q.diagramBounds ?? undefined,
-          elaboration: q.elaboration ?? undefined,
-          sourceQuestionId: q.id,
-        })),
-      },
-    },
-  });
-}

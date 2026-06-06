@@ -284,7 +284,7 @@ function AdminPapersContent() {
                       <span
                         title={
                           paper.normalExtractStatus === "complete"
-                            ? "Normal extract complete (all 6 sections)"
+                            ? `Normal extract complete (all ${paper.normalExtractTotalCount} sections)`
                             : paper.normalExtractStatus === "partial"
                               ? `Normal extract: ${paper.normalExtractDoneCount}/${paper.normalExtractTotalCount} sections done`
                               : "Normal extract not started"

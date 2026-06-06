@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-25T00:54:48.053Z",
+  "generatedAt": "2026-06-06T02:00:42.558Z",
   "papers": [
     {
       "id": "cmp1aebd00001ftsttx409h23",
@@ -8,7 +8,7 @@
       "level": "P4",
       "paperType": "focused",
       "totalMarks": "23",
-      "score": 20.5,
+      "score": 19.5,
       "questionCount": 10,
       "questions": [
         {
@@ -44,7 +44,7 @@
         {
           "questionNum": "6",
           "marksAvailable": 2,
-          "marksAwarded": 2,
+          "marksAwarded": 1,
           "syllabusTopic": "Cycles in matter"
         },
         {
@@ -72,7 +72,7 @@
           "syllabusTopic": "Cycles in matter"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.519Z",
+      "capturedAt": "2026-06-06T02:00:41.534Z",
       "note": "Reference paper #1 — confirmed marked correctly"
     },
     {
@@ -82,7 +82,7 @@
       "level": "P4",
       "paperType": "focused",
       "totalMarks": "20",
-      "score": 17,
+      "score": 16,
       "questionCount": 10,
       "questions": [
         {
@@ -130,7 +130,7 @@
         {
           "questionNum": "8",
           "marksAvailable": 2,
-          "marksAwarded": 2,
+          "marksAwarded": 1,
           "syllabusTopic": "Geometry"
         },
         {
@@ -146,8 +146,8 @@
           "syllabusTopic": "Geometry"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.585Z",
-      "note": "Reference paper #2 — confirmed marked correctly. Q9 stays at 2 (3-mark question with wrong final answer; loose cap allows 1 or 2 depending on how much working is right — student got the method mostly right so 2 is the judgment)."
+      "capturedAt": "2026-06-06T02:00:41.648Z",
+      "note": "Reference paper #2 — confirmed marked correctly"
     },
     {
       "id": "cmpgb1zq0001d10h27r3nsudm",
@@ -256,7 +256,7 @@
           "syllabusTopic": "Interactions within the environment"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.652Z",
+      "capturedAt": "2026-06-06T02:00:41.749Z",
       "note": "Reference paper #3 — confirmed marked correctly"
     },
     {
@@ -432,7 +432,7 @@
           "syllabusTopic": "Editing (Spelling & Grammar)"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.723Z",
+      "capturedAt": "2026-06-06T02:00:41.853Z",
       "note": "Reference paper #4 — confirmed marked correctly"
     },
     {
@@ -608,7 +608,7 @@
           "syllabusTopic": "Editing (Spelling & Grammar)"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.798Z",
+      "capturedAt": "2026-06-06T02:00:41.969Z",
       "note": "Reference paper #5 — confirmed marked correctly"
     },
     {
@@ -618,7 +618,7 @@
       "level": "P6",
       "paperType": "focused",
       "totalMarks": "25",
-      "score": 15,
+      "score": 14,
       "questionCount": 10,
       "questions": [
         {
@@ -672,7 +672,7 @@
         {
           "questionNum": "9",
           "marksAvailable": 5,
-          "marksAwarded": 1.5,
+          "marksAwarded": 1,
           "syllabusTopic": "Fractions"
         },
         {
@@ -682,8 +682,8 @@
           "syllabusTopic": "Fractions"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.862Z",
-      "note": "Reference paper #6 — Q9 acceptable range 1-2 marks (set to 1.5 so ±0.5 tolerance accepts {1, 1.5, 2})"
+      "capturedAt": "2026-06-06T02:00:42.079Z",
+      "note": "Reference paper #6 — confirmed marked correctly"
     },
     {
       "id": "cmozcbl4e001d11l7dro13hbp",
@@ -756,7 +756,7 @@
           "syllabusTopic": "Geometry"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.928Z",
+      "capturedAt": "2026-06-06T02:00:42.194Z",
       "note": "Reference paper #7 — confirmed marked correctly"
     },
     {
@@ -766,7 +766,7 @@
       "level": "P6",
       "paperType": "focused",
       "totalMarks": "23",
-      "score": 17,
+      "score": 19,
       "questionCount": 10,
       "questions": [
         {
@@ -826,12 +826,12 @@
         {
           "questionNum": "10",
           "marksAvailable": 2,
-          "marksAwarded": 1,
+          "marksAwarded": 2,
           "syllabusTopic": "Ratio"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:47.989Z",
-      "note": "Reference paper #8 — Q9 acceptable range 0.5-1.5 marks (partial working credit; set to 1.0 so ±0.5 tolerance accepts {0.5, 1, 1.5})"
+      "capturedAt": "2026-06-06T02:00:42.312Z",
+      "note": "Reference paper #8 — confirmed marked correctly"
     },
     {
       "id": "cmoqkmwxa000pwu99qiiwf74x",
@@ -840,37 +840,37 @@
       "level": "P6",
       "paperType": "focused",
       "totalMarks": "27",
-      "score": 13,
+      "score": 12.5,
       "questionCount": 10,
       "questions": [
         {
           "questionNum": "1",
           "marksAvailable": 2,
-          "marksAwarded": null,
+          "marksAwarded": 0,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
           "questionNum": "2",
           "marksAvailable": 2,
-          "marksAwarded": null,
+          "marksAwarded": 0,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
           "questionNum": "3",
           "marksAvailable": 2,
-          "marksAwarded": null,
+          "marksAwarded": 0,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
           "questionNum": "4",
           "marksAvailable": 2,
-          "marksAwarded": null,
+          "marksAwarded": 0,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
           "questionNum": "5",
           "marksAvailable": 2,
-          "marksAwarded": null,
+          "marksAwarded": 0,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
@@ -888,13 +888,13 @@
         {
           "questionNum": "8",
           "marksAvailable": 3,
-          "marksAwarded": 2,
+          "marksAwarded": 1,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
           "questionNum": "9",
           "marksAvailable": 3,
-          "marksAwarded": 1,
+          "marksAwarded": 1.5,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
@@ -904,8 +904,262 @@
           "syllabusTopic": "Human respiratory and circulatory systems"
         }
       ],
-      "capturedAt": "2026-05-25T00:54:48.051Z",
-      "note": "Reference paper #9 — confirmed marked correctly (Q1-Q5 set to null on 2026-05-25: student didn't answer those MCQs; Q6 corrected from 4 → 2.5; then 2.5 → 3 on 2026-05-28: missing key vocab nose/lungs in part (c) is a deduction)"
+      "capturedAt": "2026-06-06T02:00:42.433Z",
+      "note": "Reference paper #9 — confirmed marked correctly"
+    },
+    {
+      "id": "cmq0tgcuc00011e0qqv3pfcjc",
+      "title": "PSLE Chinese 2025",
+      "subject": "Chinese",
+      "level": "PSLE",
+      "paperType": "quiz",
+      "totalMarks": "90",
+      "score": 84,
+      "questionCount": 40,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "11",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "12",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "13",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "14",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "15",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "语文应用 MCQ"
+        },
+        {
+          "questionNum": "16",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "短文填空"
+        },
+        {
+          "questionNum": "17",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "短文填空"
+        },
+        {
+          "questionNum": "18",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "短文填空"
+        },
+        {
+          "questionNum": "19",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "短文填空"
+        },
+        {
+          "questionNum": "20",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "短文填空"
+        },
+        {
+          "questionNum": "21",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "22",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "23",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "24",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "25",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "26",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "完成对话"
+        },
+        {
+          "questionNum": "27",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "完成对话"
+        },
+        {
+          "questionNum": "28",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "完成对话"
+        },
+        {
+          "questionNum": "29",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "完成对话"
+        },
+        {
+          "questionNum": "30",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "31",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "32",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 MCQ"
+        },
+        {
+          "questionNum": "33",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "34",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "35",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "36",
+          "marksAvailable": 3,
+          "marksAwarded": 3,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "37",
+          "marksAvailable": 3,
+          "marksAwarded": 3,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "38",
+          "marksAvailable": 4,
+          "marksAwarded": 3,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "39",
+          "marksAvailable": 4,
+          "marksAwarded": 3,
+          "syllabusTopic": "阅读理解 OEQ"
+        },
+        {
+          "questionNum": "40",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "阅读理解 OEQ"
+        }
+      ],
+      "capturedAt": "2026-06-06T02:00:42.557Z",
+      "note": "Reference paper #10 — Chinese, confirmed marked correctly"
     }
   ],
   "errors": []

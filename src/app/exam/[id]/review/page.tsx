@@ -1599,7 +1599,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
                 </details>
               )}
-              {data.bookletScores && data.bookletScores.length > 0 && (
+              {data.bookletScores && data.bookletScores.length > 0 && !(paperSubject ?? "").toLowerCase().includes("chinese") && (
                 <div className="flex flex-wrap gap-3">
                   {data.bookletScores.map((b) => (
                     <span key={b.label} className="px-3 py-1 bg-[#eff4ff] rounded-full text-xs font-bold text-[#001e40]">
