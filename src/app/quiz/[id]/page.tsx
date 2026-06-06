@@ -2265,7 +2265,7 @@ function McqQuestionCard({
               <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
                 <MathText text={question.transcribedStem} />
               </p>
-              <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
+              <ScratchOverlay tool={tool} tabletOnly />
             </div>
           )}
 
@@ -2279,7 +2279,7 @@ function McqQuestionCard({
             <div className="mb-5 lg:mb-6 rounded-xl overflow-hidden border border-[#e5eeff] relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={question.imageData} alt={`Question ${numStr}`} className="w-full h-auto" />
-              <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
+              <ScratchOverlay tool={tool} tabletOnly />
             </div>
           )}
 
@@ -2642,7 +2642,7 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
 /* ────────────── OEQ Question Card ────────────── */
 
 /* Scratch overlay — transparent drawing layer on question area (not saved) */
-function ScratchOverlay({ tool }: { tool: DrawTool }) {
+function ScratchOverlay({ tool, tabletOnly = false }: { tool: DrawTool; tabletOnly?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
@@ -2788,11 +2788,19 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
   // so clicks fall through to the page text underneath (where the browser
   // can pick up the user's drag-selection).
   const isActive = tool === "pen" || tool === "eraser" || tool === "eraser-large";
+  // tabletOnly: hide the canvas on phones (< md breakpoint). Apply
+  // the gate ON THE CANVAS itself rather than via a wrapper div —
+  // wrappers had no content of their own and ResizeObserver measured
+  // their offsetHeight as 0, so the canvas ended up 0×0 and couldn't
+  // be drawn on. Keeping the canvas as the direct child of the
+  // sized relative-positioned ancestor preserves the inset-0 layout
+  // and makes parentElement.offsetHeight resolve correctly.
+  const visibilityGate = tabletOnly ? "hidden md:block" : "";
   return (
     <>
       <canvas
         ref={canvasRef}
-        className={`absolute inset-0 z-10 ${isActive ? "cursor-crosshair" : "pointer-events-none"}`}
+        className={`absolute inset-0 z-10 ${visibilityGate} ${isActive ? "cursor-crosshair" : "pointer-events-none"}`}
         style={{ touchAction: "none" }}
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -2990,7 +2998,7 @@ function OeqQuestionCard({
                 gestures on a small screen. Apple Pencil / S Pen on a
                 tablet activates the overlay only when the student is
                 in pen / eraser mode (otherwise pointer-events:none). */}
-            <div className="hidden md:block"><ScratchOverlay tool={tool} /></div>
+            <ScratchOverlay tool={tool} tabletOnly />
           </div>
 
           {/* Sub-parts with individual canvases */}
