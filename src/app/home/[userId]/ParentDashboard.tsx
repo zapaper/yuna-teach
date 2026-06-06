@@ -1924,12 +1924,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {/* Student self-learning */}
           <div className="py-3">
             <p className="text-sm font-bold text-[#001e40] mb-1">Student self-learning</p>
-            <p className="text-xs text-[#43474f] mb-3">Control whether the student can create their own quizzes</p>
+            <p className="text-xs text-[#43474f] mb-3">Control whether the student can create their own Daily Quizzes and Focused Practice</p>
             <div className="space-y-2">
               {([
-                { key: "none", label: "Student cannot create quizzes" },
-                { key: "oeq-only", label: "Student can create MCQ+OEQ quizzes only" },
-                { key: "all", label: "Student can create MCQ or MCQ+OEQ quizzes" },
+                { key: "none", label: "Student cannot create quizzes or focused practice" },
+                { key: "oeq-only", label: "Student can create MCQ+OEQ quizzes and focused practice" },
+                { key: "all", label: "Student can create MCQ / MCQ+OEQ quizzes and focused practice" },
               ] as const).map(opt => (
                 <button
                   key={opt.key}

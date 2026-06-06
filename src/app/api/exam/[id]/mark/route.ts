@@ -71,15 +71,30 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Was this paper actually printed-and-scanned? printableBounds gets
-  // populated when the printable PDF is generated; in-app typed quizzes
-  // never have it. The review UI uses this to decide whether to show
-  // "Scanned page — what Gemini saw" — otherwise the broken <img> shows
-  // up under every section of a typed quiz (no submission files on disk).
+  // Was this paper actually printed-and-scanned?
+  // Two signals:
+  //   - English Test Quiz: printableBounds populated on every question
+  //     when the printable PDF was generated.
+  //   - Chinese: the OEQ pad generator writes
+  //     metadata.normalExtractChinese.oeqPadFirstPageIndex on the
+  //     MASTER (clones inherit it) and the pad page indices land on
+  //     questions whose pageIndex >= paper.pageCount. We treat that
+  //     metadata being present as the "Chinese printed" signal so
+  //     the review UI surfaces scanned pages alongside Q33-Q40 etc.
   const printableCount = await prisma.examQuestion.count({
     where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
   });
-  const isPrintedAndScanned = printableCount > 0;
+  const ownMeta = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+  let chinesePadFlag = !!ownMeta?.normalExtractChinese?.oeqPadFirstPageIndex;
+  if (!chinesePadFlag && paper.sourceExamId) {
+    const src = await prisma.examPaper.findUnique({
+      where: { id: paper.sourceExamId },
+      select: { metadata: true },
+    });
+    const srcMeta = src?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+    chinesePadFlag = !!srcMeta?.normalExtractChinese?.oeqPadFirstPageIndex;
+  }
+  const isPrintedAndScanned = printableCount > 0 || chinesePadFlag;
 
   // If this is a clone, use the master's question structure as the source of
   // truth for questionNum, answer, marksAvailable, and pageIndex. Pull marking

@@ -323,6 +323,58 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
+  // Self-serve Focused Practice modal (gated by same studentQuizMode
+  // setting as Daily Quiz). Subject picker + topic list fetched from
+  // /api/student-progress so students see their actual studied topics.
+  const [showFocusedSetup, setShowFocusedSetup] = useState(false);
+  const [focusedSubject, setFocusedSubject] = useState<"math" | "science">("math");
+  const [focusedTopic, setFocusedTopic] = useState<string>("");
+  const [focusedTopics, setFocusedTopics] = useState<{ topic: string; pct: number; sample: number }[]>([]);
+  const [creatingFocused, setCreatingFocused] = useState(false);
+  useEffect(() => {
+    if (!showFocusedSetup) return;
+    fetch(`/api/student-progress?studentId=${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d) return;
+        const subjBucket = focusedSubject === "math" ? "Math" : "Science";
+        const subjData = d.subjects?.[subjBucket];
+        if (!subjData) { setFocusedTopics([]); return; }
+        const rows = Object.entries(subjData.topics as Record<string, { earned: number; available: number; count: number }>)
+          .filter(([t]) => t !== "Untagged")
+          .map(([t, v]) => ({ topic: t, pct: v.available > 0 ? Math.round((v.earned / v.available) * 100) : 0, sample: v.count }))
+          .sort((a, b) => a.pct - b.pct);
+        setFocusedTopics(rows);
+        if (rows.length > 0 && !focusedTopic) setFocusedTopic(rows[0].topic);
+      })
+      .catch(() => setFocusedTopics([]));
+  }, [showFocusedSetup, focusedSubject, userId, focusedTopic]);
+  async function createFocusedPractice() {
+    if (!focusedTopic) return;
+    setCreatingFocused(true);
+    try {
+      const subject = focusedSubject === "math" ? "Mathematics" : "Science";
+      const res = await fetch("/api/focused-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId: userId, studentId: userId, subject, topic: focusedTopic }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error ?? `Create failed (HTTP ${res.status})`);
+        return;
+      }
+      setShowFocusedSetup(false);
+      setFocusedTopic("");
+      // Refresh papers so the new focused test shows in Today's
+      // Activities immediately.
+      fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
+    } catch (err) {
+      alert(`Create failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setCreatingFocused(false);
+    }
+  }
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
@@ -1169,9 +1221,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <span className="inline lg:hidden">听写</span>
             </button>
             {canCreateQuiz && (
-              <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
-                <span className="material-symbols-outlined">quiz</span>Quiz
-              </button>
+              <>
+                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                  <span className="material-symbols-outlined">quiz</span>Quiz
+                </button>
+                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                  <span className="material-symbols-outlined">psychology</span>Focused Practice
+                </button>
+              </>
             )}
             {/* Master Class — gated to a small allow-list for now
                 until we ship to all students. Allow-list lives in
@@ -1335,12 +1392,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {canCreateQuiz && (
             <section className="mb-12">
               <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Self-learning</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">rocket_launch</span>
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Daily 20min Quiz</h3>
                   <p className="text-[#6cf8bb]/90 font-medium">Power up your memory today</p>
+                </button>
+                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#003366] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#003366]/20">
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
+                  <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">psychology</span>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Focused Practice</h3>
+                  <p className="text-white/80 font-medium">Drill a topic you want to improve on</p>
                 </button>
                 <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative group h-48 rounded-[2.5rem] bg-[#001e40] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#001e40]/20">
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">spellcheck</span>
@@ -1903,6 +1966,44 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {creatingQuiz ? "Creating..." : "Start Quiz"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Focused Practice Setup Modal ─────────────────────────────────── */}
+      {showFocusedSetup && canCreateQuiz && (
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowFocusedSetup(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Focused Practice</h3>
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
+            <div className="flex gap-2 mb-4">
+              {(["math", "science"] as const).map(s => (
+                <button key={s} onClick={() => { setFocusedSubject(s); setFocusedTopic(""); }}
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${focusedSubject === s ? "border-[#006c49] bg-[#006c49]/5 text-[#006c49]" : "border-slate-200 text-slate-600"}`}>
+                  {s === "math" ? "Math" : "Science"}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Topic <span className="text-slate-400 normal-case font-medium">(weak topics first)</span></p>
+            {focusedTopics.length === 0 ? (
+              <p className="text-sm text-slate-500 italic mb-6 py-4 text-center">No topic history yet for {focusedSubject === "math" ? "Math" : "Science"}. Try a Daily Quiz first.</p>
+            ) : (
+              <div className="space-y-1.5 max-h-72 overflow-y-auto mb-6 pr-1">
+                {focusedTopics.map(t => (
+                  <button key={t.topic} onClick={() => setFocusedTopic(t.topic)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border-2 text-sm transition-all text-left ${focusedTopic === t.topic ? "border-[#006c49] bg-[#6cf8bb]/20" : "border-slate-200 text-slate-700"}`}>
+                    <span className={`flex-1 min-w-0 truncate ${focusedTopic === t.topic ? "font-bold text-[#001e40]" : ""}`}>{t.topic}</span>
+                    <span className={`text-xs font-bold shrink-0 ${t.pct >= 75 ? "text-[#006c49]" : t.pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.pct}%</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button onClick={createFocusedPractice}
+              disabled={!focusedTopic || creatingFocused}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold disabled:opacity-50">
+              {creatingFocused ? "Creating…" : focusedTopic ? `Start: ${focusedTopic}` : "Pick a topic"}
+            </button>
+            <button onClick={() => setShowFocusedSetup(false)} className="w-full mt-2 py-2.5 text-sm text-slate-500">Cancel</button>
           </div>
         </div>
       )}
