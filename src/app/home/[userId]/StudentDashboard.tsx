@@ -1731,7 +1731,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
             {canCreateQuiz && (
-              <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+              <>
+                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="relative h-32 rounded-2xl bg-[#003366] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">psychology</span><h3 className="text-sm font-extrabold text-white font-headline">Focused Practice</h3><p className="text-[10px] text-white/70">Drill a topic</p></button>
+              </>
             )}
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end">
               <span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span>
@@ -2093,13 +2096,22 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <span className="text-[10px] font-medium">听写</span>
         </button>
         {canCreateQuiz && (
-          <button
-            onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
-            className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "quiz" ? "text-[#006c49]" : "text-slate-400"}`}
-          >
-            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
-            <span className="text-[10px] font-medium">Quiz</span>
-          </button>
+          <>
+            <button
+              onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
+              className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "quiz" ? "text-[#006c49]" : "text-slate-400"}`}
+            >
+              <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
+              <span className="text-[10px] font-medium">Quiz</span>
+            </button>
+            <button
+              onClick={() => { setShowFocusedSetup(true); }}
+              className="flex flex-col items-center gap-0.5 transition-all text-slate-400"
+            >
+              <span className="material-symbols-outlined text-2xl">psychology</span>
+              <span className="text-[10px] font-medium">Focused</span>
+            </button>
+          </>
         )}
         {/* Master Class — mirrors the desktop nav gate. */}
         {canSeeMasterClass(user.name) && (
