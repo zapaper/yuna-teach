@@ -162,19 +162,22 @@ export async function POST(request: NextRequest) {
     // forks here. Source: paper.metadata.chineseSections is already
     // built by the extraction pipeline; copy it over and re-anchor
     // the indices to the test quiz's reordered allQs array.
-    let chineseSectionsMeta: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | undefined;
+    let chineseSectionsMeta: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> | undefined;
     if (isChinese) {
-      const masterCs = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> } | null)?.chineseSections;
+      const masterCs = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> } | null)?.chineseSections;
       if (masterCs) {
         // The test quiz keeps allQs in paper order (no reordering for
         // Chinese — Chinese papers don't have an English-style sortable
         // section order). Each master section's [start..end] range
         // already aligns with allQs indices, so we can copy directly.
+        // passageImageData carries the cropped PDF image admins upload
+        // for 阅读理解 sections that contain charts / posters / etc.
         chineseSectionsMeta = masterCs.map(s => ({
           label: s.label,
           startIndex: s.startIndex,
           endIndex: s.endIndex,
           ...(s.passage ? { passage: s.passage } : {}),
+          ...(s.passageImageData ? { passageImageData: s.passageImageData } : {}),
         }));
       }
     }

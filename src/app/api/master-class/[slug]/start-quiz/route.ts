@@ -444,7 +444,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     // slide examples). Without this, the renderer assigned picked
     // questions sequentially to blanks 0..N-1, leaving later blanks
     // unrendered and shifting options to the wrong sentences.
-    type SectionEntry = { label: string; startIndex: number; endIndex: number; passage?: string; blankIndices?: number[] };
+    type SectionEntry = { label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string; blankIndices?: number[] };
     type FlatItem = { source: PCandidate; sourcePaperId: string };
     const flatItems: FlatItem[] = [];
     const englishSections: SectionEntry[] = [];
@@ -498,12 +498,20 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       // texts that we synthesise into a passage using the same rules
       // Daily Quiz uses.
       let passage: string | undefined;
+      let passageImageDataForEntry: string | undefined;
       if (isChinesePG) {
         // 1st-choice: chineseSections array carries the cleaned
         // passage Daily Quiz prefers (set during extraction for
         // 短文填空 and 阅读理解 MCQ).
-        const cs = (meta?.chineseSections as Array<{ label: string; passage?: string }> | undefined) ?? [];
-        passage = cs.find(s => s.label === g.topic)?.passage;
+        const cs = (meta?.chineseSections as Array<{ label: string; passage?: string; passageImageData?: string }> | undefined) ?? [];
+        const csEntry = cs.find(s => s.label === g.topic);
+        passage = csEntry?.passage;
+        // Carry the cropped PDF image (charts / posters / infographics)
+        // forward via the outer-scope variable so the entry assembled
+        // ~120 lines below can attach it. Mastery sections that don't
+        // have a chineseSections entry (e.g. 阅读理解 OEQ assembled
+        // from raw OCR) get no image, which is the existing behaviour.
+        passageImageDataForEntry = csEntry?.passageImageData;
         // Fallback: 阅读理解 OEQ doesn't always make it into
         // chineseSections, but the OCR text for the section IS in
         // sectionOcrTexts. Use it as the passage so the quiz can
@@ -590,6 +598,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         startIndex: startIdx,
         endIndex: flatItems.length - 1,
         ...(passage ? { passage } : {}),
+        ...(passageImageDataForEntry ? { passageImageData: passageImageDataForEntry } : {}),
         ...(!substitutedShortCloze && blankIndices.some(i => i >= 0) ? { blankIndices } : {}),
       };
       if (isChinesePG) chineseSections.push(entry);
