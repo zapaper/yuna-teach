@@ -459,18 +459,25 @@ async function extractExamPaperCore(
 
       // Sort questions by question number to maintain paper order.
       //
-      // The old regex (/^[A-Z]\d*-/) stripped prefixes like "P2-" but
-      // NOT a bare "Q" prefix. Gemini occasionally emits "Q30"/"Q31"
-      // instead of "30"/"31" for some sections (e.g. the 阅读理解
-      // A 组 MCQ block) — parseInt("Q30") → NaN → (aNum || 0) → 0 →
-      // those questions all sort to the TOP of the list, ahead of
-      // Q1-Q29. New regex covers both shapes:
-      //   "P2-15" → strip "P2-" → "15"
-      //   "Q30"   → strip "Q"   → "30"
-      //   "15"    → unchanged   → "15"
-      // Also normalise the stored questionNum so the bare "Q" prefix
-      // doesn't appear in the UI or in answer-key lookups.
-      const stripPrefix = (qn: string) => qn.replace(/^[A-Za-z]+\d*[-:_]?/, "").trim() || qn;
+      // Strip leading prefixes that Gemini occasionally injects:
+      //   "P2-15"  → strip "P2-" → "15"   (booklet prefix with separator)
+      //   "Q30"    → strip "Q"   → "30"   (bare Q prefix)
+      //   "QQ30"   → strip "QQ"  → "30"   (doubled Q from missing-retry path)
+      //   "15"     → unchanged   → "15"
+      //   "3a"     → unchanged   → "3a"
+      //   "QP2-12a" → strip "QP2-" → "12a"
+      // The previous one-line regex `^[A-Za-z]+\d*[-:_]?` was greedy and
+      // ate "Q30" → "" → fell back to original. Result: "Q30"/"QQ30"
+      // questions parsed as NaN, sorted to orderIndex 0, formed a ghost
+      // section at the top of the question list (observed on PSLE 2019
+      // Chinese 阅读理解 MCQ Q30-Q32). Split into two passes: separator-
+      // anchored booklet prefix first, then bare Q-runs that precede a
+      // digit (so legitimate "Qa" wouldn't be touched).
+      const stripPrefix = (qn: string) => {
+        let s = qn.replace(/^[A-Za-z]+\d*[-:_]/, ""); // "P2-", "B-", etc.
+        s = s.replace(/^Q+(?=\d)/i, "");              // "Q30", "QQ30" → digits
+        return s.trim() || qn;
+      };
       for (const q of questions) q.questionNum = stripPrefix(q.questionNum);
       questions.sort((a, b) => {
         const aNum = parseInt(a.questionNum, 10);
