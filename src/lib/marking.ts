@@ -4167,6 +4167,18 @@ For Comprehension OEQ: This tests READING COMPREHENSION. Be LENIENT on language,
 - If the answer captures the key point but uses different words, award full marks.
 - If the answer is in TABLE format, do NOT penalise for punctuation at all.
 
+CHINESE 阅读理解 OEQ — PHRASE-BASED RUBRIC (applies when the answer key contains 中文 phrases separated by " | "):
+- EACH " | "-separated phrase is a separate scoring point. Score each phrase independently against the student's answer.
+- DEFAULT mark per phrase: marksAvailable / (number of phrases). E.g. 4-mark answer with 3 phrases tagged (2)/(1)/(1) → phrase 1 = 2 marks, phrase 2 = 1 mark, phrase 3 = 1 mark.
+- ⭐ PARENTHETICAL POINT VALUES — when a phrase ends with "(N)" (e.g. "(0.5)", "(1)", "(2)"), that N is the EXPLICIT mark allocation for that point. Override the default. Sum of all (N) tags equals marksAvailable.
+- For each phrase, classify the student's coverage:
+  · FULL coverage — the student captures BOTH the topic AND the substance (e.g. "聪明 又 注重家庭幸福" requires BOTH "clever" AND "treasures family happiness"). Synonyms / paraphrases accepted. → award N marks (the full value of that phrase).
+  · PARTIAL coverage — the student mentions only PART of the phrase's idea (e.g. captures "聪明" but misses "注重家庭幸福"). → award N/2 rounded to the nearest 0.5. So a (2)-phrase partial = 1 mark; a (1)-phrase partial = 0.5; a (0.5)-phrase partial = 0.
+  · MISSING — the student doesn't address this phrase at all. → 0 marks for this phrase.
+- DO NOT round UP. A student who captures one half of a (2)-mark phrase gets 1 mark, NOT 2. Restraint here is the difference between a fair score and an inflated one.
+- Sum the per-phrase marks. Clamp to [0, marksAvailable]. Spelling penalty (0.5 per misspelling) is applied LAST on top of the sum.
+- In the feedback, name each phrase and state which were fully covered, partially covered, or missing. Worked example: "Phrase 1 (聪明 + 注重家庭幸福, 2 marks): only 聪明 captured — partial → 1 mark. Phrase 2 (...): full → 1 mark. Phrase 3 (...): missing → 0."
+
 The minimum marks awarded is 0 (do not go negative).
 
 Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "feedback": "<brief feedback including any spelling/grammar errors found>"}]}`
