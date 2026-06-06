@@ -5077,14 +5077,6 @@ In the notes field, wrap every key scientific term or phrase from the expected a
 - Only bold actual key terms/phrases — do not bold ordinary connector words.
 ` : "";
 
-        // TEMP LOG: verify the science context-from-stem rule is in the
-        // prompt at marking time (delete once Q12b/Q13 false-positives
-        // are confirmed gone).
-        if (isScience) {
-          const hasContextRule = sciencePartialRule.includes("CONTEXT-FROM-STEM RULE");
-          console.log(`[quiz-marking] Q${q.questionNum}: science prompt rules — context-from-stem=${hasContextRule}, sciencePartialRule.length=${sciencePartialRule.length}`);
-        }
-
         // Anti-hallucination guard: when Phase 1 detection (which has
         // already retried with pro if pixel-confirmed ink looked like
         // it might be misread) reports the student's answer as blank,
