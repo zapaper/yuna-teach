@@ -1022,6 +1022,16 @@ The general principle: if clause B is the direct mechanical / observational cons
 
 Apply this BEFORE deciding PRESENT / MISSING. The deduction count is over DISTINCT concepts, not raw "|" segments.
 
+CONTEXT-FROM-STEM RULE (IMPORTANT — applies before deduction):
+If the question stem already introduces an entity, setup, scope, or named object, the student does NOT need to repeat it in their answer to score that marking point. The marking point is the NEW assertion / inference / function the student must produce, NOT a re-statement of context already supplied.
+
+Concretely:
+  - Stem mentions "two plants" + key says "Part X of both plants absorbs water and mineral salts" → student writes "Part X absorbs water and mineral salts". The phrase "both plants" is established scope from the stem. Do NOT deduct for it — the student's statement applies to the same Part X already named in the stem. ACCEPT as full credit for that point.
+  - Stem names the experimental subject (a beaker, a circuit, "the plant", "the boy") and the key repeats it → student answers without re-naming it. Do NOT deduct for the missing subject noun; the referent is unambiguous.
+  - Stem describes an observable setup ("X shows the water level after the plasticine is added") + key says "the water level dropped" → the noun "water level" is context; the inference "dropped / decreased / went down" is what the student must produce. If the student concludes the level dropped (in any wording, or via a clear implication), that point is PRESENT. If they reason about something entirely different and never address the level's change, the inference is MISSING — but frame the deduction as "the level-change inference was missing", NOT as "did not say water level".
+
+Default: when in doubt about whether a phrase is stem-context vs new-inference, lean ACCEPT. Penalising students for omitting words the question already gave them is a common false-positive — avoid it.
+
 STEP C: Compute the score:
   marksAwarded = max(0, marksAvailable - 0.5 × numberOfMissingPoints)
   Award 0 outright if NO marking points are PRESENT.
