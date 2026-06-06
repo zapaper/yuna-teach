@@ -664,10 +664,10 @@ export async function POST(
         sections,
         allQuestions: paper.questions,
         sectionHint: "短文填空 — Chinese passage with numbered blanks. Word bank labels 一/二/.../八 (or 1-8) selected to fill each blank.",
-        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 3,
+        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1, yBottomDelta: 2,
         pageCount: paper.pageCount ?? undefined,
         xStartZeroIfMultiLine: true,
-        yBottomDeltaMultiLine: 7,
+        yBottomDeltaMultiLine: 6,
       });
       break;
     case "duihua":
