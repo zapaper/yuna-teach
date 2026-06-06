@@ -1815,6 +1815,8 @@ function BoundsCropPreview({
   );
 }
 
+type ExtractResult = { section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] };
+
 function NormalExtractTriggerRow({
   paperId,
   state,
@@ -1825,7 +1827,10 @@ function NormalExtractTriggerRow({
   onExtracted: () => void | Promise<unknown>;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
-  const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
+  // Map keyed by section type so Extract All accumulates a row per
+  // section, and a single Extract button replaces only that section's
+  // row instead of wiping the whole panel.
+  const [results, setResults] = useState<Record<string, ExtractResult>>({});
   // 阅读理解 OEQ skips Gemini bounds extraction entirely — it
   // generates a 2-page PDF writing pad that gets appended to Paper 2
   // at print time. We show the freshly-generated PDF inline below the
@@ -1835,55 +1840,73 @@ function NormalExtractTriggerRow({
   const [oeqPadCacheBust, setOeqPadCacheBust] = useState<number>(state.compOeq ? 1 : 0);
   const initialOeqCount = typeof state.oeqPadPages === "number" ? state.oeqPadPages as number : null;
   const [oeqPadInfo, setOeqPadInfo] = useState<{ questionCount: number } | null>(initialOeqCount ? { questionCount: initialOeqCount } : null);
-  async function run(sectionType: string, label: string) {
-    setBusy(sectionType);
-    setLastResult(null);
+
+  // Run one section, return the result. Used by both the per-section
+  // button and the Extract All loop. Does not refetch the paper —
+  // caller decides when to call onExtracted() so Extract All can
+  // refetch once at the end.
+  async function runOne(sectionType: string, label: string): Promise<ExtractResult> {
     try {
       if (sectionType === "comp-oeq") {
-        // OEQ goes to the writing-pad generator, not the bounds
-        // extractor. Endpoint creates oeq_pad.pdf on the master
-        // paper's pages dir and returns a preview URL.
         const res = await fetch(`/api/admin/exam/${paperId}/chinese-oeq-pad`, { method: "POST" });
         const text = await res.text();
         let json: Record<string, unknown> = {};
         try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; } catch { /* tolerated */ }
         if (!res.ok) {
-          setLastResult({ section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` });
-          return;
+          return { section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` };
         }
         const qCount = typeof json.questionCount === "number" ? json.questionCount : 0;
         setOeqPadInfo({ questionCount: qCount });
         setOeqPadCacheBust(Date.now());
-        setLastResult({ section: label, ok: true, updated: qCount, warnings: [] });
-        await onExtracted();
-        return;
+        return { section: label, ok: true, updated: qCount, warnings: [] };
       }
-      const body: Record<string, unknown> = { sectionType };
       const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-chinese`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ sectionType }),
       });
       const text = await res.text();
       let json: Record<string, unknown> = {};
       try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; } catch { /* tolerated */ }
       if (!res.ok) {
-        setLastResult({ section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` });
-        return;
+        return { section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` };
       }
-      setLastResult({
+      return {
         section: label,
         ok: true,
         updated: typeof json.updated === "number" ? json.updated : 0,
         warnings: Array.isArray(json.warnings) ? json.warnings as string[] : [],
-      });
-      await onExtracted();
+      };
     } catch (err) {
-      setLastResult({ section: label, ok: false, error: err instanceof Error ? err.message : String(err) });
-    } finally {
-      setBusy(null);
+      return { section: label, ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
+
+  async function run(sectionType: string, label: string) {
+    setBusy(sectionType);
+    const res = await runOne(sectionType, label);
+    setResults(prev => ({ ...prev, [sectionType]: res }));
+    setBusy(null);
+    if (res.ok) await onExtracted();
+  }
+
+  async function runAll() {
+    setBusy("__all__");
+    setResults({});
+    let anyOk = false;
+    for (const sec of NORMAL_EXTRACT_SECTIONS) {
+      setBusy(sec.type);
+      const res = await runOne(sec.type, sec.label);
+      setResults(prev => ({ ...prev, [sec.type]: res }));
+      if (res.ok) anyOk = true;
+    }
+    setBusy(null);
+    if (anyOk) await onExtracted();
+  }
+
+  const resultRows = NORMAL_EXTRACT_SECTIONS
+    .map(sec => ({ sec, r: results[sec.type] }))
+    .filter(({ r }) => !!r);
 
   return (
     <div className="mt-5 p-4 rounded-2xl border border-slate-200 bg-slate-50">
@@ -1893,6 +1916,16 @@ function NormalExtractTriggerRow({
         question cards below refresh on success so the new crops show up immediately.
       </p>
       <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={runAll}
+          disabled={busy !== null}
+          className="px-3 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {busy && busy !== null && NORMAL_EXTRACT_SECTIONS.some(s => s.type === busy)
+            ? `Extracting ${NORMAL_EXTRACT_SECTIONS.find(s => s.type === busy)?.label ?? ""}…`
+            : "Extract All"}
+        </button>
         {NORMAL_EXTRACT_SECTIONS.map(sec => {
           const isDone = !!state[sec.stateKey];
           const isBusy = busy === sec.type;
@@ -1913,19 +1946,26 @@ function NormalExtractTriggerRow({
           );
         })}
       </div>
-      {lastResult && (
-        <div className={`mt-3 p-3 rounded-xl border text-xs ${lastResult.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
-          <p className="font-semibold">
-            {lastResult.section}: {lastResult.ok ? `${lastResult.updated ?? 0} questions updated` : `Failed — ${lastResult.error}`}
-          </p>
-          {lastResult.ok && lastResult.warnings && lastResult.warnings.length > 0 && (
-            <details className="mt-2">
-              <summary className="cursor-pointer text-amber-700">{lastResult.warnings.length} warning(s)</summary>
-              <ul className="mt-1 space-y-0.5 pl-3">
-                {lastResult.warnings.map((w, i) => <li key={i} className="text-[11px] text-amber-700">• {w}</li>)}
-              </ul>
-            </details>
-          )}
+      {resultRows.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {resultRows.map(({ sec, r }) => r && (
+            <div
+              key={sec.type}
+              className={`p-3 rounded-xl border text-xs ${r.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}
+            >
+              <p className="font-semibold">
+                {r.section}: {r.ok ? `${r.updated ?? 0} questions updated` : `Failed — ${r.error}`}
+              </p>
+              {r.ok && r.warnings && r.warnings.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-amber-700">{r.warnings.length} warning(s)</summary>
+                  <ul className="mt-1 space-y-0.5 pl-3">
+                    {r.warnings.map((w, i) => <li key={i} className="text-[11px] text-amber-700">• {w}</li>)}
+                  </ul>
+                </details>
+              )}
+            </div>
+          ))}
         </div>
       )}
       {/* OEQ writing-pad preview. Shows after a successful POST to
