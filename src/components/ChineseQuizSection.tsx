@@ -223,7 +223,11 @@ export default function ChineseQuizSection({ sectionLabel, passage, passageImage
           <div className={`relative ${splitPassageCls}`}>
             <PassageScratchOverlay enabled={tool === "pen"} />
             {hasTextPassage ? (
-              <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
+              // data-question-id doubles as the highlight scope id —
+              // any unique string lets the quiz-page persistence layer
+              // re-anchor highlights within this passage box after
+              // navigation.
+              <div data-question-id={`passage:${sectionLabel}`} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
                 {paragraphs.map((para, pi) => (
                   <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
                     <FormattedText text={para} />
@@ -263,7 +267,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, passageImage
         </div>
       )}
       {sectionType === "comprehension-oeq" && !passageImageData && passage && (
-        <div className={`relative ${splitPassageCls}`}>
+        <div data-question-id={`passage:${sectionLabel}`} className={`relative ${splitPassageCls}`}>
           <PassageScratchOverlay enabled={tool === "pen"} />
           <ReadingPassage text={passage} />
         </div>
@@ -341,7 +345,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, passageImage
             }
 
             return (
-              <div key={q.id} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
+              <div key={q.id} data-question-id={q.id} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="flex flex-col items-center gap-1 shrink-0">
                     <span className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-bold text-sm">
@@ -595,7 +599,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, passageImage
             const stored = answers[q.id] ?? "";
             const initialInk = stored.startsWith("data:image") ? stored : null;
             return (
-              <div key={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
+              <div key={q.id} data-question-id={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-bold text-sm text-[#001e40]">Question {parseInt(q.questionNum)}</p>
                   {q.marksAvailable != null && (
