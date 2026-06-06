@@ -415,11 +415,14 @@ async function extractSequential(args: {
 // Builds a fixed-size box around each question number using offsets
 // supplied per section type.
 //
-// xStartZeroIfMultiLine: when true, detect multi-line questions by
-// comparing each Q's yPctTop against the next Q on the same page.
-// If the gap exceeds ONE_LINE_PCT (~one row of text), the answer
-// has wrapped to the next line which starts at the left margin —
-// so xStart is pinned to 0 to include that wrap. Used by 短文填空.
+// Multi-line override (used by 短文填空): when xStartZeroIfMultiLine
+// is true, compare each Q's yPctTop against the next Q on the same
+// page. If the gap exceeds ONE_LINE_PCT (~one row of text), the
+// answer has wrapped to the next line which starts at the left
+// margin — so xStart is pinned to 0 to include that wrap, and
+// yBottomDelta swaps to yBottomDeltaMultiLine so the wider crop
+// captures the wrap row too. Single-line Qs stay at the (tight)
+// default yBottomDelta and keep their indented xStart.
 async function extractAnchoredCrop(args: {
   paperId: string;
   sections: SecMeta[];
@@ -431,8 +434,9 @@ async function extractAnchoredCrop(args: {
   yBottomDelta: number;
   pageCount?: number;
   xStartZeroIfMultiLine?: boolean;
+  yBottomDeltaMultiLine?: number;
 }): Promise<RunOutput> {
-  const { sections, allQuestions, xLeftDelta, xRightDelta, yTopDelta, yBottomDelta, xStartZeroIfMultiLine } = args;
+  const { sections, allQuestions, xLeftDelta, xRightDelta, yTopDelta, yBottomDelta, xStartZeroIfMultiLine, yBottomDeltaMultiLine } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
 
   if (sectionQuestionIds.size === 0) {
@@ -454,12 +458,11 @@ async function extractAnchoredCrop(args: {
 
   const detByNum = flattenDetections(detectionsByPage);
 
-  // A single-line Q on PSLE Chinese ≈ 4-5% gap to the next Q (line
-  // height + inter-question spacing). A 2-line wrap ≈ 7-8% gap. Set
-  // the threshold at 6.5% — comfortably above single-line spacing,
-  // safely under a real wrap. Anything beyond means the current Q
-  // wraps to the next line which starts at the left margin.
-  const ONE_LINE_PCT = 6.5;
+  // A single-line Q on PSLE Chinese ≈ 4% gap to the next Q (one row
+  // of text). A 2-line wrap ≈ 8% gap. Threshold at 5.5% sits cleanly
+  // between them. Anything beyond means the current Q wraps to the
+  // next line which starts at the left margin.
+  const ONE_LINE_PCT = 5.5;
 
   let updated = 0;
   const perSection: Array<{ label: string; updated: number }> = [];
@@ -493,13 +496,14 @@ async function extractAnchoredCrop(args: {
         continue;
       }
       const yStart = clampPct(det.yPctTop - yTopDelta);
-      const yEnd = clampPct(det.yPctTop + yBottomDelta);
       let xStart = clampPct(det.xPctLeft - xLeftDelta);
       const xEnd = clampPct(det.xPctLeft + xRightDelta);
 
       // Multi-line override: if the next Q on this page sits more
       // than one line below, the current Q's answer wraps and the
-      // wrap line begins at the left margin (x=0).
+      // wrap line begins at the left margin (x=0). The bottom of
+      // the crop also extends so the wrap row is included.
+      let effectiveYBottomDelta = yBottomDelta;
       if (xStartZeroIfMultiLine) {
         const arr = samePageSortedByPage.get(det.pageIdx);
         if (arr) {
@@ -508,9 +512,13 @@ async function extractAnchoredCrop(args: {
           const isMultiLine = nextY === null
             ? true // last Q on page — assume multi-line so we don't clip the answer
             : (nextY - det.yPctTop) > ONE_LINE_PCT;
-          if (isMultiLine) xStart = 0;
+          if (isMultiLine) {
+            xStart = 0;
+            if (yBottomDeltaMultiLine !== undefined) effectiveYBottomDelta = yBottomDeltaMultiLine;
+          }
         }
       }
+      const yEnd = clampPct(det.yPctTop + effectiveYBottomDelta);
 
       await prisma.examQuestion.update({
         where: { id: q.id },
@@ -645,24 +653,21 @@ export async function POST(
       });
       break;
     case "duanwen":
-      // 短文填空 — extract the WHOLE ROW containing the question
-      // number, and if the answer/options wrap to the next line,
-      // include that too. Crop is a wide horizontal strip:
-      //   x = leftish margin → right edge (full row width)
-      //   y = ~1.5% above the Q-number → ~6% below (covers
-      //       the Q's row + most of the following row for wrap).
-      // xStartZeroIfMultiLine: when the next Q on the same page is
-      // > one line away, this Q wraps; the wrap line starts at the
-      // left margin so xStart is pinned to 0 (otherwise the circled
-      // answer at the start of the wrap row gets cut off).
+      // 短文填空 — Chinese passage with numbered blanks. Default
+      // crop is one row tall (yBottomDelta=3 covers the Q-number's
+      // own row at ~4% line height). If the next Q on the same
+      // page is > one line away, the answer has wrapped; the
+      // override pins xStart=0 (wrap row starts at left margin)
+      // and bumps yBottomDelta to 7 so the wrap row is included.
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
         sectionHint: "短文填空 — Chinese passage with numbered blanks. Word bank labels 一/二/.../八 (or 1-8) selected to fill each blank.",
-        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 6,
+        xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 3,
         pageCount: paper.pageCount ?? undefined,
         xStartZeroIfMultiLine: true,
+        yBottomDeltaMultiLine: 7,
       });
       break;
     case "duihua":
