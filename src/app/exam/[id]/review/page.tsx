@@ -3913,7 +3913,11 @@ function ExamReviewContent({ id }: { id: string }) {
                         actually wrote. Non-English papers already get a
                         side-by-side submission image up top for OEQ; we
                         skip here to avoid double-showing. */}
-                    {isQuiz && data.isPrintedAndScanned && (paperSubject ?? "").toLowerCase().includes("english") && currentQ.pageIndex >= 0 && (() => {
+                    {isQuiz && data.isPrintedAndScanned && currentQ.pageIndex >= 0 && (() => {
+                      const subjLc = (paperSubject ?? "").toLowerCase();
+                      const isEng = subjLc.includes("english");
+                      const isChn = subjLc.includes("chinese") || (paperSubject ?? "").includes("华文") || (paperSubject ?? "").includes("中文") || (paperSubject ?? "").includes("华语");
+                      if (!isEng && !isChn) return null;
                       const sub = getSubmissionPage(currentQ.pageIndex);
                       return (
                         <div className="mt-6 pt-5 border-t border-[#e5eeff]">

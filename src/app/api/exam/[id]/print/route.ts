@@ -266,13 +266,35 @@ export async function GET(
   const safeTitle = (paper.title ?? "Exam").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Exam";
   const filename = `${safeTitle} (print).pdf`;
 
-  // Stamp printedAt on first print so the student homepage can show
-  // the self-serve scan-back camera icon for this assignment. Best-
-  // effort — never block the PDF response if the update errors.
+  // Stamp printedAt so the student homepage can show the self-serve
+  // scan-back camera icon for this assignment. Best-effort — never
+  // block the PDF response if the update errors.
+  //
+  // Two writes when the print was scoped to a specific student:
+  //   1. the paper in the URL (master or a clone) — backwards
+  //      compatible with the original camera-icon flow.
+  //   2. the student's actual assigned clone of this paper — that's
+  //      the row the StudentDashboard renders, so without this stamp
+  //      the camera stayed hidden even after a parent printed from
+  //      the master papers list.
   prisma.examPaper.updateMany({
     where: { id, printedAt: null },
     data: { printedAt: new Date() },
   }).catch(err => console.warn(`[print] failed to stamp printedAt for ${id}:`, err));
+  if (studentId) {
+    // Find the student's assigned clone whose source is this paper
+    // (or whose own id is this paper if printing directly from a
+    // pre-assigned clone). Match defensively in case of duplicate
+    // assignments — updateMany is idempotent.
+    prisma.examPaper.updateMany({
+      where: {
+        assignedToId: studentId,
+        printedAt: null,
+        OR: [{ sourceExamId: id }, { id }],
+      },
+      data: { printedAt: new Date() },
+    }).catch(err => console.warn(`[print] failed to stamp student clone printedAt for student=${studentId} src=${id}:`, err));
+  }
 
   return new NextResponse(Buffer.from(out), {
     status: 200,

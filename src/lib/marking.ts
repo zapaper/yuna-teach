@@ -1083,16 +1083,33 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   CHINESE 阅读理解 OEQ MARKING — PHRASE-BASED RUBRIC:
   - Answer keys for 阅读理解 OEQ list the expected answer as a series
     of phrases separated by " | " (pipe). EACH SEPARATED PHRASE IS 1
-    MARK. The phrase count should equal marksAvailable.
+    MARK by default. The phrase count should equal marksAvailable.
     Example: 4-mark answer "在11月29日上午十点 | 在东海岸海滩 | 学习保护环境 | 了解小海龟出生条件"
     → 4 phrases, 1 mark each.
-  - Score: for each rubric phrase, check if the student's answer
-    contains that phrase OR an equivalent idea (synonyms / paraphrases
-    accepted). Award 1 per phrase matched; 0.5 if partially captured.
-  - LEGACY (0.5) / (1) NOTATIONS — when the answer key still uses
-    older "(0.5)" parenthetical notations after phrases, honour the
-    notation: each "(0.5)" tag is worth 0.5, each "(1)" tag worth 1.
-    Phrases without explicit tags default to 1 mark.
+
+  - ⭐ PARENTHETICAL POINT VALUES — (0.5) / (1) / (2): when a phrase
+    in the answer key is followed by "(N)", that N is the MARK
+    ALLOCATION for that specific point. The total should sum to
+    marksAvailable. Honour these EXACTLY — never override with the
+    default "1 mark per phrase" rule.
+      "解释关键 (2) | 给出例子 (1) | 总结 (1)" → 4 marks total:
+        point 1 worth 2, point 2 worth 1, point 3 worth 1.
+      "原因A (0.5) | 原因B (0.5) | 影响 (1)" → 2 marks total:
+        first two points 0.5 each, third point 1.
+    For each annotated phrase:
+      · Student captures it (synonyms / paraphrases accepted) → full
+        N marks.
+      · Partially captured (mentions the topic but misses the
+        substance) → N/2 marks rounded to the nearest 0.5 (so a
+        (2)-point phrase partial gets 1; a (1)-point phrase partial
+        gets 0.5; a (0.5)-point phrase partial gets 0).
+      · Not captured → 0.
+    Phrases WITHOUT a "(N)" tag default to 1 mark each (legacy rule).
+
+  - Score (when NO parenthetical tags are present): for each rubric
+    phrase, check if the student's answer contains that phrase OR an
+    equivalent idea (synonyms / paraphrases accepted). Award 1 per
+    phrase matched; 0.5 if partially captured.
 
   CHINESE 长 OEQ — OPINION / 你同意吗 QUESTION (4 marks, typically the LAST OEQ in 阅读理解二B):
   - When the question asks for the student's opinion (e.g. "你同意吗？
