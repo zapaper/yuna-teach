@@ -105,7 +105,7 @@ function groupBySection(
 // OEQ on shared passage A). Per-question syllabusTopic would split
 // Q33 into its own 阅读理解 OEQ block, which doesn't match what the
 // quiz renders.
-type ChineseSecMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
+type ChineseSecMeta = { label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string };
 function groupFromChineseMetadata(
   questions: ExamQuestionItem[],
   chineseSections: ChineseSecMeta[],
@@ -172,6 +172,12 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   const [passagePages, setPassagePages] = useState<Record<string, string>>({});
   const [reextractingPassage, setReextractingPassage] = useState<string | null>(null);
   const [passageResult, setPassageResult] = useState<Record<string, string>>({});
+  // Cropped-passage-image upload (Chinese 阅读理解 sections with
+  // infographics that don't OCR well as text). When set, the section's
+  // metadata.chineseSections[i].passageImageData carries a data URL
+  // and the OCR-text panel hides in favour of the image.
+  const [uploadingPassageImage, setUploadingPassageImage] = useState<string | null>(null);
+  const [passageImageError, setPassageImageError] = useState<Record<string, string>>({});
 
   // OCR audit (Chinese papers only): client kicks /api/exam/[id]/audit-ocr
   // which re-OCRs each section's first page with 2.5-pro and asks a vision
@@ -407,8 +413,100 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   </div>
                 )}
 
-                {/* Passage OCR text (line-numbered table) — editable */}
-                {ocrData?.passageOcrText && (
+                {/* Cropped passage image (with charts / infographics)
+                    — Chinese 阅读理解 only. When set, takes the place
+                    of the OCR-text panel below. */}
+                {sec.name.includes("阅读理解") && (() => {
+                  const passageImageData = chineseSections?.find(c => c.label === sec.name)?.passageImageData;
+                  return (
+                    <div className="p-4 bg-violet-50/60 border-b border-violet-100">
+                      <p className="text-[10px] font-bold text-violet-600 uppercase tracking-wider mb-2">
+                        Cropped Passage Image{passageImageData ? " (in use)" : ""}
+                      </p>
+                      {passageImageData && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={passageImageData} alt={`${sec.name} cropped passage`} className="max-w-full mb-2 rounded-lg border border-violet-200 shadow-sm" />
+                      )}
+                      <div className="flex items-center gap-2">
+                        <label className={`px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors ${uploadingPassageImage === sec.name ? "bg-violet-300 text-white" : "bg-violet-600 text-white hover:bg-violet-700"}`}>
+                          {uploadingPassageImage === sec.name ? "Uploading…" : (passageImageData ? "Replace image" : "Upload cropped image")}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingPassageImage === sec.name}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingPassageImage(sec.name);
+                              setPassageImageError(prev => ({ ...prev, [sec.name]: "" }));
+                              try {
+                                // Read as data URL.
+                                const dataUrl = await new Promise<string>((resolve, reject) => {
+                                  const r = new FileReader();
+                                  r.onload = () => resolve(String(r.result ?? ""));
+                                  r.onerror = () => reject(new Error("Failed to read file"));
+                                  r.readAsDataURL(file);
+                                });
+                                const res = await fetch(`/api/admin/exam/${paper.id}/section-passage-image`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ sectionLabel: sec.name, imageBase64: dataUrl }),
+                                });
+                                if (!res.ok) {
+                                  const body = await res.json().catch(() => ({}));
+                                  setPassageImageError(prev => ({ ...prev, [sec.name]: body.error ?? `HTTP ${res.status}` }));
+                                } else {
+                                  // Reload so the new image renders + the
+                                  // OCR text panel hides on next mount.
+                                  window.location.reload();
+                                }
+                              } catch (err) {
+                                setPassageImageError(prev => ({ ...prev, [sec.name]: (err as Error).message }));
+                              } finally {
+                                setUploadingPassageImage(null);
+                                // Reset the file input so re-uploading the same file works.
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                        </label>
+                        {passageImageData && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Clear the cropped passage image for "${sec.name}"? The OCR-text passage will be shown again.`)) return;
+                              setUploadingPassageImage(sec.name);
+                              try {
+                                const res = await fetch(`/api/admin/exam/${paper.id}/section-passage-image`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ sectionLabel: sec.name, imageBase64: null }),
+                                });
+                                if (res.ok) window.location.reload();
+                              } finally {
+                                setUploadingPassageImage(null);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-violet-700 hover:bg-violet-100 transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-violet-600 mt-2">
+                        For 阅读理解 sections whose passage contains charts / posters / infographics that OCR can&apos;t capture. When set, this image replaces the OCR-text passage in the quiz and review screens.
+                      </p>
+                      {passageImageError[sec.name] && (
+                        <p className="text-xs mt-2 font-medium text-rose-600">Error: {passageImageError[sec.name]}</p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Passage OCR text (line-numbered table) — editable.
+                    Hidden when a cropped passage image is set for this
+                    Chinese 阅读理解 section. */}
+                {ocrData?.passageOcrText && !(sec.name.includes("阅读理解") && chineseSections?.find(c => c.label === sec.name)?.passageImageData) && (
                   <div className="p-4 bg-amber-50/50 border-b border-amber-100">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">
