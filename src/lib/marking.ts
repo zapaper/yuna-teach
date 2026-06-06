@@ -4932,6 +4932,17 @@ Only insist on the relationship word / qualifier when the question EXPLICITLY as
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
         const sciencePartialRule = isScience ? `
 
+CONTEXT-FROM-STEM RULE (Science — applies BEFORE phrase deduction below):
+The question stem (text + image) was provided above. Anything the stem ALREADY ESTABLISHES — named objects, scope ("two plants", "both balls"), the experimental setup, observable givens ("water level X after plasticine is added") — is CONTEXT, not something the student must re-state to score.
+
+The marking point is the NEW assertion / inference the student must produce. Do NOT deduct for missing words that the stem already gave.
+
+Examples:
+- Stem: "The diagram shows two plants." Key: "Part X of both plants absorbs water and mineral salts." Student: "Part X absorbs water and mineral salts." → "both plants" is established scope. Award full credit; the student's statement applies to the same Part X already named in the stem.
+- Stem describes an observable setup ("X shows the water level after plasticine is added"). Key: "The water level dropped." → "water level" is stem context; the INFERENCE the student must produce is "dropped / decreased". If the student concludes the level dropped (in any wording), award the point. Only deduct if the student's reasoning never addresses the level's change. Frame any deduction as "the level-change inference was missing", NOT "did not say water level".
+
+Default: when borderline between stem-context and new-inference, lean ACCEPT. Penalising students for omitting words the question already gave them is a common false-positive — avoid it.
+
 SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (IMPORTANT):
 Primary-school Science answers are marked against the SPECIFIC phrases in the answer key, not against a vague concept. The answer key has been written by a human marker and EVERY phrase in it is load-bearing — it tests a discrete piece of knowledge the student is expected to demonstrate.
 
@@ -5065,6 +5076,14 @@ In the notes field, wrap every key scientific term or phrase from the expected a
 - If the student got a key term right, you may also bold it when calling it out positively.
 - Only bold actual key terms/phrases — do not bold ordinary connector words.
 ` : "";
+
+        // TEMP LOG: verify the science context-from-stem rule is in the
+        // prompt at marking time (delete once Q12b/Q13 false-positives
+        // are confirmed gone).
+        if (isScience) {
+          const hasContextRule = sciencePartialRule.includes("CONTEXT-FROM-STEM RULE");
+          console.log(`[quiz-marking] Q${q.questionNum}: science prompt rules — context-from-stem=${hasContextRule}, sciencePartialRule.length=${sciencePartialRule.length}`);
+        }
 
         // Anti-hallucination guard: when Phase 1 detection (which has
         // already retried with pro if pixel-confirmed ink looked like
