@@ -350,7 +350,16 @@ export async function detectMcqAnswers(
   questions: Array<{ id: string; questionNum: string; yStartPct: number | null; yEndPct: number | null }>,
   label: string,
   temperature = 0.4,
-  hintAnswer1QuestionIds: Set<string> = new Set()
+  hintAnswer1QuestionIds: Set<string> = new Set(),
+  // True for Chinese cloze sections (短文填空 / 完成对话) where the
+  // student CIRCLES one of the printed option labels (1)/(2)/(3)/(4)
+  // inline with the question, instead of writing a digit in a right-
+  // margin "Answer:" box. The default prompt looks at the rightmost
+  // 10% only and ignores anything in the centre — fine for English
+  // Test Quiz scanned back, useless for Chinese cloze. The flag swaps
+  // to a "find which printed option label has a hand-drawn loop /
+  // ring / underline / cross over it" instruction.
+  isCircledChinese = false,
 ): Promise<Map<string, string | null>> {
   const qLines = questions.map((q) => {
     const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
@@ -361,7 +370,36 @@ export async function detectMcqAnswers(
     return `- Question ${q.questionNum} (ID: ${q.id}): answer region ${yStart}–${yEnd} from top of image${hint}`;
   }).join("\n");
 
-  const prompt = `You are reading a student's handwritten MCQ answers from an exam paper.
+  const prompt = isCircledChinese ? `你正在阅读学生在新加坡 PSLE 华文试卷的「短文填空」/「完成对话」部分所做的选择题答案。
+
+颜色区分 — 至关重要:
+- 试卷上的印刷文字是 黑色 或 深灰色: 题目、印刷的选项标号 "(1)" / "(2)" / "(3)" / "(4)" / "(5)" 等、问号、所有印好的字。一律忽略所有黑色印刷文字。
+- 学生用 蓝色墨水 在印刷的选项标号上画圈 / 圆圈 / 椭圆 / 划线 / 打勾来选择答案。仅识别明显的蓝色手写痕迹。
+
+在每题指定的纵向范围内 (yStart% 到 yEnd%) 寻找:
+- 哪一个印刷的选项标号被学生用蓝色墨水「圈」起来或标记?
+- 选项标号通常是 "(1)" "(2)" "(3)" "(4)" 这种形式 (短文填空有 4 个; 完成对话可能有 1-8 个)。
+- 学生的标记形式可能是: 在数字外画一个圆圈、椭圆、方框、底线、划掉非选答案、或者在选项旁打勾 (✓)。
+
+判断规则:
+1. 只识别明显的蓝色手写痕迹 (而非印刷的黑色文字)。
+2. 如果某一个选项标号 (例如 "(2)") 周围有蓝色圆圈 / 椭圆 / 任何蓝色环绕标记 — 这就是答案。返回该数字 "2"。
+3. 如果有蓝色划线在选项数字下面 — 这也是答案。
+4. 如果完全看不见任何蓝色手写标记 — 报 null (学生没作答)。
+5. 不要把印刷的 "(1)"、"(2)" 等本身当成答案。
+6. 不要把题目中无关位置的蓝色涂改 / 旁注当作答案 — 只看印刷的选项标号附近。
+7. 如果有多个选项都被圈了,选最明显的那一个;如果一样明显,返回 null。
+
+题目列表:
+${qLines}
+
+只返回有效的 JSON (不要 markdown 代码围栏):
+{
+  "answers": [
+    {"questionId": "ID", "detected": "2", "confidence": "high"},
+    {"questionId": "ID", "detected": null, "confidence": "high"}
+  ]
+}` : `You are reading a student's handwritten MCQ answers from an exam paper.
 
 COLOR DISTINCTION — THIS IS CRITICAL:
 - PRINTED text on the page is BLACK or DARK GREY ink. This includes question numbers, option labels "(1)", "(2)", "(3)", "(4)", answer keys, and all printed text. COMPLETELY IGNORE all black/dark printed text.
@@ -2013,13 +2051,28 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             mcqQs.map(async (q) => {
               // Crop to question region to prevent adjacent question answers bleeding in
               const hasBounds = q.yStartPct != null && q.yEndPct != null;
+              const topic = q.syllabusTopic ?? "";
+              const isChineseCloze = topic.includes("短文填空") || topic.includes("完成对话") || topic.includes("对话填空");
+              const isTightCloze = topic.includes("完成对话") || topic.includes("对话填空");
               const imageBuffer = hasBounds
                 ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`)
                 : pageBuffer;
               const imageBase64 = imageBuffer.toString("base64");
               const qForDetect = hasBounds ? { ...q, yStartPct: 0, yEndPct: 100 } : q;
-              const detected = await detectMcqAnswers(imageBase64, [qForDetect], `page ${pageIndex} Q${q.questionNum}`);
-              const studentAnswer = detected.get(q.id) ?? null;
+              let detected = await detectMcqAnswers(imageBase64, [qForDetect], `page ${pageIndex} Q${q.questionNum}${isChineseCloze ? " (cn-cloze)" : ""}`, 0.4, new Set(), isChineseCloze);
+              let studentAnswer = detected.get(q.id) ?? null;
+              // 完成对话 (Chinese dialogue cloze) has very tight printed
+              // bounds — sometimes the student's circle / digit sits on
+              // the edge and gets clipped. Retry once with the crop
+              // padded 3% above + 3% below before giving up.
+              if (!studentAnswer && isTightCloze && hasBounds) {
+                const yStartPad = Math.max(0, q.yStartPct! - 3);
+                const yEndPad = Math.min(100, q.yEndPct! + 3);
+                const padded = await cropPageRegion(pageBuffer, yStartPad, yEndPad, `MCQ page ${pageIndex} Q${q.questionNum} +3%`);
+                console.log(`[marking] MCQ Q${q.questionNum}: 完成对话 first pass null — retry with bounds expanded 3% (${yStartPad.toFixed(1)}% → ${yEndPad.toFixed(1)}%)`);
+                detected = await detectMcqAnswers(padded.toString("base64"), [qForDetect], `page ${pageIndex} Q${q.questionNum} retry +3%`, 0.3, new Set(), isChineseCloze);
+                studentAnswer = detected.get(q.id) ?? null;
+              }
               const expected = q.answer?.trim() ?? "";
               if (!studentAnswer) {
                 console.log(`[marking] MCQ Q${q.questionNum}: detected=null, expected="${expected}", awarded=0`);
