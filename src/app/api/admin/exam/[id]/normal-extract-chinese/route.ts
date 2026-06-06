@@ -454,10 +454,12 @@ async function extractAnchoredCrop(args: {
 
   const detByNum = flattenDetections(detectionsByPage);
 
-  // One line of Chinese text on a PSLE-A4 page is ~3% of page height.
-  // Anything beyond ~4.5% gap to the next Q means the current Q has
-  // at least two lines (its own row + a wrap row).
-  const ONE_LINE_PCT = 4.5;
+  // A single-line Q on PSLE Chinese ≈ 4-5% gap to the next Q (line
+  // height + inter-question spacing). A 2-line wrap ≈ 7-8% gap. Set
+  // the threshold at 6.5% — comfortably above single-line spacing,
+  // safely under a real wrap. Anything beyond means the current Q
+  // wraps to the next line which starts at the left margin.
+  const ONE_LINE_PCT = 6.5;
 
   let updated = 0;
   const perSection: Array<{ label: string; updated: number }> = [];
