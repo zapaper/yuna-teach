@@ -199,20 +199,158 @@ function QuizContent({ id }: { id: string }) {
     document.head.appendChild(style);
   }, []);
 
+  // Persisted-across-navigation form: { questionId, text, occurrence }.
+  // Active form: live Range objects published to CSS.highlights. The
+  // active list is rebuilt from the persisted list whenever the
+  // question cards re-mount (e.g. student navigates to Q2 and back).
+  type SerializedHighlight = { questionId: string; text: string; occurrence: number };
   const highlightRangesRef = useRef<Range[]>([]);
+  const serializedHighlightsRef = useRef<SerializedHighlight[]>([]);
+
+  function storageKey() { return `quiz-highlights:${id}`; }
+  function loadFromStorage(): SerializedHighlight[] {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = window.localStorage.getItem(storageKey());
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((h): h is SerializedHighlight =>
+        !!h && typeof (h as SerializedHighlight).questionId === "string"
+        && typeof (h as SerializedHighlight).text === "string"
+        && typeof (h as SerializedHighlight).occurrence === "number"
+      );
+    } catch { return []; }
+  }
+  function saveToStorage() {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem(storageKey(), JSON.stringify(serializedHighlightsRef.current)); }
+    catch { /* quota / private mode — ignore */ }
+  }
+
   function applyCssHighlights() {
     const cssAny = CSS as unknown as { highlights?: Map<string, unknown>; Highlight?: unknown };
     const HighlightCtor = (typeof window !== "undefined" ? (window as unknown as { Highlight?: new (...r: Range[]) => unknown }).Highlight : undefined);
     if (!cssAny.highlights || !HighlightCtor) return;
-    // Drop invalidated ranges (collapsed because their text node was
-    // removed) before publishing — Highlight() with a dead Range
-    // throws in some engines.
     const live = highlightRangesRef.current.filter(r => !r.collapsed);
     highlightRangesRef.current = live;
     try {
       cssAny.highlights.set("quiz-yellow", new HighlightCtor(...live));
     } catch { /* ignore — highlight set best-effort */ }
   }
+
+  // Walk up to the closest [data-question-id] ancestor. Returns null
+  // if the node sits outside any question card (e.g. header, sidebar).
+  function findQuestionCard(node: Node | null): { card: HTMLElement; questionId: string } | null {
+    let n: Node | null = node;
+    while (n && n.nodeType !== 1) n = n.parentNode;
+    let el = n as HTMLElement | null;
+    while (el) {
+      const qid = el.getAttribute?.("data-question-id");
+      if (qid) return { card: el, questionId: qid };
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  // For an anchor (text, occurrence) in a question card, walk the
+  // card's text nodes and build a Range pointing at the Nth match.
+  // Returns null if the text isn't present.
+  function rangeForAnchor(card: HTMLElement, text: string, occurrence: number): Range | null {
+    if (!text) return null;
+    const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
+    type Seg = { node: Text; start: number; end: number };
+    const segs: Seg[] = [];
+    let cursor = 0;
+    let cur: Node | null = walker.nextNode();
+    while (cur) {
+      const t = cur as Text;
+      const len = t.data.length;
+      segs.push({ node: t, start: cursor, end: cursor + len });
+      cursor += len;
+      cur = walker.nextNode();
+    }
+    const haystack = segs.map(s => s.node.data).join("");
+    // Find the Nth occurrence of `text`.
+    let idx = -1;
+    let from = 0;
+    for (let i = 0; i <= occurrence; i++) {
+      idx = haystack.indexOf(text, from);
+      if (idx < 0) return null;
+      from = idx + 1;
+    }
+    const startGlobal = idx;
+    const endGlobal = idx + text.length;
+    function findSeg(globalOffset: number) {
+      for (const s of segs) if (globalOffset >= s.start && globalOffset <= s.end) return s;
+      return null;
+    }
+    const sStart = findSeg(startGlobal);
+    const sEnd = findSeg(endGlobal);
+    if (!sStart || !sEnd) return null;
+    const r = document.createRange();
+    r.setStart(sStart.node, startGlobal - sStart.start);
+    r.setEnd(sEnd.node, endGlobal - sEnd.start);
+    return r.collapsed ? null : r;
+  }
+
+  // Rebuild highlightRangesRef from serializedHighlightsRef by walking
+  // the live DOM. Safe to call any time — used both on mount and after
+  // navigating questions.
+  function rehydrateHighlights() {
+    const rebuilt: Range[] = [];
+    for (const h of serializedHighlightsRef.current) {
+      const card = document.querySelector(`[data-question-id="${h.questionId}"]`) as HTMLElement | null;
+      if (!card) continue; // Card not mounted right now (different page) — skip; entry stays in serialized list.
+      const r = rangeForAnchor(card, h.text, h.occurrence);
+      if (r) rebuilt.push(r);
+    }
+    highlightRangesRef.current = rebuilt;
+    applyCssHighlights();
+  }
+
+  // Initial load — read from localStorage once on mount.
+  useEffect(() => {
+    serializedHighlightsRef.current = loadFromStorage();
+    // Defer one tick so React has committed the first question card.
+    const t = setTimeout(() => rehydrateHighlights(), 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Re-hydrate when question cards mount/unmount (e.g. student
+  // navigates between questions, or paginated quizzes swap pages).
+  // The MutationObserver fires for any DOM subtree change; we only
+  // care about ones that added/removed [data-question-id] elements.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let pending = false;
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      // requestAnimationFrame lets React commit the new card first.
+      requestAnimationFrame(() => {
+        pending = false;
+        rehydrateHighlights();
+      });
+    };
+    const obs = new MutationObserver(mutations => {
+      for (const m of mutations) {
+        for (const n of [...Array.from(m.addedNodes), ...Array.from(m.removedNodes)]) {
+          if (n.nodeType !== 1) continue;
+          const el = n as HTMLElement;
+          if (el.hasAttribute?.("data-question-id") || el.querySelector?.("[data-question-id]")) {
+            schedule();
+            return;
+          }
+        }
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (tool !== "highlight") return;
     function persist() {
@@ -220,15 +358,52 @@ function QuizContent({ id }: { id: string }) {
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
       const range = sel.getRangeAt(0);
       if (range.collapsed) return;
-      // Only highlight inside the question card — bail if range spans
-      // a button / canvas / input / header.
-      let node: Node | null = range.commonAncestorContainer;
-      while (node && node.nodeType !== 1) node = node.parentNode;
-      let el = node as HTMLElement | null;
-      while (el) {
+      // Locate the question card the selection belongs to. Bail if the
+      // selection straddles multiple cards or sits outside any card.
+      const startCard = findQuestionCard(range.startContainer);
+      const endCard = findQuestionCard(range.endContainer);
+      if (!startCard || !endCard || startCard.questionId !== endCard.questionId) return;
+      // Bail if the selection is inside an interactive element.
+      let el: HTMLElement | null = range.commonAncestorContainer.nodeType === 1
+        ? (range.commonAncestorContainer as HTMLElement)
+        : (range.commonAncestorContainer.parentElement);
+      while (el && el !== startCard.card) {
         const tag = el.tagName?.toLowerCase();
         if (tag === "button" || tag === "input" || tag === "canvas" || tag === "header") return;
         el = el.parentElement;
+      }
+      const text = sel.toString();
+      if (!text.trim()) return;
+      // Count occurrences of `text` in the card's textContent up to the
+      // start of the selection — that's the occurrence index we save.
+      const cardText = startCard.card.textContent ?? "";
+      // Where is the selection start globally inside the card's textContent?
+      const walker = document.createTreeWalker(startCard.card, NodeFilter.SHOW_TEXT);
+      let cursor = 0;
+      let startGlobal = -1;
+      let n: Node | null = walker.nextNode();
+      while (n) {
+        const t = n as Text;
+        if (t === range.startContainer) { startGlobal = cursor + range.startOffset; break; }
+        cursor += t.data.length;
+        n = walker.nextNode();
+      }
+      if (startGlobal < 0) return;
+      let occurrence = 0;
+      let from = 0;
+      while (true) {
+        const idx = cardText.indexOf(text, from);
+        if (idx < 0 || idx >= startGlobal) break;
+        occurrence++;
+        from = idx + 1;
+      }
+      // De-dup: don't push the same anchor twice.
+      const exists = serializedHighlightsRef.current.some(h =>
+        h.questionId === startCard.questionId && h.text === text && h.occurrence === occurrence
+      );
+      if (!exists) {
+        serializedHighlightsRef.current.push({ questionId: startCard.questionId, text, occurrence });
+        saveToStorage();
       }
       highlightRangesRef.current.push(range.cloneRange());
       applyCssHighlights();
@@ -258,6 +433,42 @@ function QuizContent({ id }: { id: string }) {
         catch { return false; }
       });
       if (idx >= 0) {
+        // Find the matching serialized anchor by walking the highlight's
+        // start/end positions in its question card. Same coordinate
+        // system the persist() function uses, so the lookup is exact.
+        const removedRange = highlightRangesRef.current[idx];
+        const card = findQuestionCard(removedRange.startContainer);
+        if (card) {
+          const cardText = card.card.textContent ?? "";
+          // Compute the global start offset of the removed range inside
+          // card.textContent so we can map back to (text, occurrence).
+          const walker = document.createTreeWalker(card.card, NodeFilter.SHOW_TEXT);
+          let cursor = 0;
+          let startGlobal = -1;
+          let nn: Node | null = walker.nextNode();
+          while (nn) {
+            const t = nn as Text;
+            if (t === removedRange.startContainer) { startGlobal = cursor + removedRange.startOffset; break; }
+            cursor += t.data.length;
+            nn = walker.nextNode();
+          }
+          const removedText = removedRange.toString();
+          if (startGlobal >= 0 && removedText) {
+            let occ = 0, from = 0;
+            while (true) {
+              const at = cardText.indexOf(removedText, from);
+              if (at < 0 || at >= startGlobal) break;
+              occ++; from = at + 1;
+            }
+            const sIdx = serializedHighlightsRef.current.findIndex(h =>
+              h.questionId === card.questionId && h.text === removedText && h.occurrence === occ
+            );
+            if (sIdx >= 0) {
+              serializedHighlightsRef.current.splice(sIdx, 1);
+              saveToStorage();
+            }
+          }
+        }
         highlightRangesRef.current.splice(idx, 1);
         applyCssHighlights();
         e.preventDefault();
@@ -2009,7 +2220,7 @@ function McqQuestionCard({
 
   return (
     /* Desktop: relative with big background number; mobile: simple card */
-    <article className="relative group">
+    <article className="relative group" data-question-id={question.id}>
       {/* Card */}
       <div className="bg-white lg:rounded-xl rounded-3xl shadow-sm lg:shadow-[0_20px_40px_rgba(11,28,48,0.04)] overflow-hidden transition-all hover:shadow-lg relative">
         {/* Mobile: left accent bar */}
@@ -2692,7 +2903,7 @@ function OeqQuestionCard({
   const numStr = String(index + 1).padStart(2, "0");
 
   return (
-    <section className="group">
+    <section className="group" data-question-id={question.id}>
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-start">
         {/* Mobile: number + marks + flag in one row */}
         <div className="lg:hidden flex items-center gap-2 mb-1">
