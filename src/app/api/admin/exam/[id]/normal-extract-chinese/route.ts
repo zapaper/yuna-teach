@@ -414,6 +414,12 @@ async function extractSequential(args: {
 // Anchored-crop extractor used by Grammar Cloze, Editing, Comp Cloze.
 // Builds a fixed-size box around each question number using offsets
 // supplied per section type.
+//
+// xStartZeroIfMultiLine: when true, detect multi-line questions by
+// comparing each Q's yPctTop against the next Q on the same page.
+// If the gap exceeds ONE_LINE_PCT (~one row of text), the answer
+// has wrapped to the next line which starts at the left margin —
+// so xStart is pinned to 0 to include that wrap. Used by 短文填空.
 async function extractAnchoredCrop(args: {
   paperId: string;
   sections: SecMeta[];
@@ -424,8 +430,9 @@ async function extractAnchoredCrop(args: {
   yTopDelta: number;
   yBottomDelta: number;
   pageCount?: number;
+  xStartZeroIfMultiLine?: boolean;
 }): Promise<RunOutput> {
-  const { sections, allQuestions, xLeftDelta, xRightDelta, yTopDelta, yBottomDelta } = args;
+  const { sections, allQuestions, xLeftDelta, xRightDelta, yTopDelta, yBottomDelta, xStartZeroIfMultiLine } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
 
   if (sectionQuestionIds.size === 0) {
@@ -447,12 +454,34 @@ async function extractAnchoredCrop(args: {
 
   const detByNum = flattenDetections(detectionsByPage);
 
+  // One line of Chinese text on a PSLE-A4 page is ~3% of page height.
+  // Anything beyond ~4.5% gap to the next Q means the current Q has
+  // at least two lines (its own row + a wrap row).
+  const ONE_LINE_PCT = 4.5;
+
   let updated = 0;
   const perSection: Array<{ label: string; updated: number }> = [];
   const bounds: QuestionBound[] = [];
 
   for (const sec of sections) {
     let sectionUpdated = 0;
+
+    // Build a same-page sorted list once per section so multi-line
+    // detection can look up each Q's successor without re-sorting.
+    type DetEntry = { qq: QuestionRow; d: { pageIdx: number; yPctTop: number; xPctLeft: number } };
+    const samePageSortedByPage = new Map<number, DetEntry[]>();
+    if (xStartZeroIfMultiLine) {
+      for (let qi = sec.startIndex; qi <= sec.endIndex && qi < allQuestions.length; qi++) {
+        const qq = allQuestions[qi];
+        const d = detByNum.get(qq.questionNum) ?? detByNum.get(normalizeQuestionNum(qq.questionNum));
+        if (!d) continue;
+        const arr = samePageSortedByPage.get(d.pageIdx) ?? [];
+        arr.push({ qq, d });
+        samePageSortedByPage.set(d.pageIdx, arr);
+      }
+      for (const arr of samePageSortedByPage.values()) arr.sort((a, b) => a.d.yPctTop - b.d.yPctTop);
+    }
+
     for (let qi = sec.startIndex; qi <= sec.endIndex && qi < allQuestions.length; qi++) {
       const q = allQuestions[qi];
       const det = detByNum.get(q.questionNum) ?? detByNum.get(normalizeQuestionNum(q.questionNum));
@@ -463,8 +492,24 @@ async function extractAnchoredCrop(args: {
       }
       const yStart = clampPct(det.yPctTop - yTopDelta);
       const yEnd = clampPct(det.yPctTop + yBottomDelta);
-      const xStart = clampPct(det.xPctLeft - xLeftDelta);
+      let xStart = clampPct(det.xPctLeft - xLeftDelta);
       const xEnd = clampPct(det.xPctLeft + xRightDelta);
+
+      // Multi-line override: if the next Q on this page sits more
+      // than one line below, the current Q's answer wraps and the
+      // wrap line begins at the left margin (x=0).
+      if (xStartZeroIfMultiLine) {
+        const arr = samePageSortedByPage.get(det.pageIdx);
+        if (arr) {
+          const idx = arr.findIndex(e => e.qq.id === q.id);
+          const nextY = idx >= 0 && idx + 1 < arr.length ? arr[idx + 1].d.yPctTop : null;
+          const isMultiLine = nextY === null
+            ? true // last Q on page — assume multi-line so we don't clip the answer
+            : (nextY - det.yPctTop) > ONE_LINE_PCT;
+          if (isMultiLine) xStart = 0;
+        }
+      }
+
       await prisma.examQuestion.update({
         where: { id: q.id },
         data: { yStartPct: yStart, yEndPct: yEnd, xStartPct: xStart, xEndPct: xEnd, pageIndex: det.pageIdx },
@@ -604,6 +649,10 @@ export async function POST(
       //   x = leftish margin → right edge (full row width)
       //   y = ~1.5% above the Q-number → ~6% below (covers
       //       the Q's row + most of the following row for wrap).
+      // xStartZeroIfMultiLine: when the next Q on the same page is
+      // > one line away, this Q wraps; the wrap line starts at the
+      // left margin so xStart is pinned to 0 (otherwise the circled
+      // answer at the start of the wrap row gets cut off).
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
@@ -611,6 +660,7 @@ export async function POST(
         sectionHint: "短文填空 — Chinese passage with numbered blanks. Word bank labels 一/二/.../八 (or 1-8) selected to fill each blank.",
         xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 6,
         pageCount: paper.pageCount ?? undefined,
+        xStartZeroIfMultiLine: true,
       });
       break;
     case "duihua":
