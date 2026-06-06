@@ -4102,10 +4102,20 @@ export async function analyzeExamBatch(
         const n = name.toLowerCase().replace(/^section\s*[a-z][\s:.-]*/i, "").trim();
         // ── Chinese section names ───────────────────────────────────
         if (isChineseBooklet) {
-          if (name.includes("语文应用") || name.includes("语文运用")) return "语文应用 MCQ";
+          // Also accept English aliases the structure-analyser sometimes
+          // emits in place of the Chinese name (observed on PSLE 2019:
+          // "Short Passage Cloze" instead of "短文填空"). Without these
+          // the fallback returns the English string unchanged and the
+          // section's syllabusTopic ends up in English on every question.
+          const nLower = name.toLowerCase();
+          if (name.includes("语文应用") || name.includes("语文运用")
+              || /chinese\s*language\s*use/i.test(name)) return "语文应用 MCQ";
           // 短文填空 / 短文填写 / 完形填空 — all the same passage-cloze MCQ section.
-          if (name.includes("短文填空") || name.includes("短文填写") || name.includes("完形填空")) return "短文填空";
-          if (name.includes("完成对话") || name.includes("对话填空")) return "完成对话";
+          if (name.includes("短文填空") || name.includes("短文填写") || name.includes("完形填空")
+              || nLower.includes("short passage cloze") || nLower.includes("passage cloze")) return "短文填空";
+          if (name.includes("完成对话") || name.includes("对话填空")
+              || nLower.includes("dialogue completion") || nLower.includes("complete dialogue")
+              || nLower.includes("dialogue cloze")) return "完成对话";
           // Visual text 漫画 / 看图 / 图表 / 视觉文本
           if (name.includes("漫画") || name.includes("视觉文本") || name.includes("图表理解") || (name.includes("看") && name.includes("图"))) return "Visual Text Comprehension MCQ";
           if (name.includes("阅读理解") || name.includes("理解")) {
