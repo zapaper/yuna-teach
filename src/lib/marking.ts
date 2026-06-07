@@ -2208,8 +2208,20 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null);
                 const croppedBase64 = cropped.toString("base64");
 
-                // Step 1: Pre-check for blue ink
-                const inkFound = await hasBlueInk(croppedBase64, `Q${q.questionNum}`);
+                // Step 1: Pre-check for blue ink. Skip when this is a
+                // per-blank crop (x-bounds set) — the crop is too
+                // narrow for the ink detector to find enough pixels
+                // to confidently say "ink present", so it false-
+                // negatives and the question gets marked 0 even when
+                // the student wrote the right letter. Real failure:
+                // PSLE English 2025 Grammar Cloze Q28/Q30/Q32 all
+                // had clear single-letter writing but the cropped-to-
+                // x-bound ink check returned no-ink → marks 0,
+                // studentAnswer "No answer detected". Defer to the
+                // AI marker which sees the crop directly and can
+                // decide "blank vs filled" with full context.
+                const hasXBounds = q.xStartPct != null && q.xEndPct != null;
+                const inkFound = hasXBounds ? true : await hasBlueInk(croppedBase64, `Q${q.questionNum}`);
                 if (!inkFound) {
                   // No blue ink — skip marking, return 0
                   return [{
@@ -2878,6 +2890,97 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       if (tabUpdates.length > 0) {
         console.warn(`[marking] Paper ${paperId} tabulation safety net resynced ${tabUpdates.length} question(s) from notes prose-sum: ${tabFixes.map(f => `Q${f.questionNum}: ${f.before}→${f.after}`).join(", ")}`);
         await prisma.$transaction(tabUpdates);
+      }
+    }
+
+    // Cloze safety net — for Grammar Cloze / Comp Cloze / Editing
+    // questions where the marker landed at 0 marks but the stored
+    // studentAnswer exactly matches the answer key, force-correct.
+    // Catches the cascade where the blue-ink check false-negatives
+    // on a tight per-blank crop → 0 marks + studentAnswer reset to
+    // "No answer detected", but a prior pass had already written a
+    // correct letter / word to DB and that value survives the partial
+    // update. Same idea as the prose-sum tabulation net above but
+    // scoped to short-answer cloze sections where exact text match
+    // IS the marking rule. Also catches mid-run anomalies (verify
+    // pass kept original 0 when the AI's own re-detection said the
+    // answer was correct).
+    {
+      const clozeFixes: { id: string; questionNum: string; before: number; after: number; reason: string }[] = [];
+      const clozeUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+      // Fetch full question records — finalState doesn't include
+      // syllabusTopic or answer, both needed to decide cloze status.
+      const fullQs = await prisma.examQuestion.findMany({
+        where: { examPaperId: paperId, marksAwarded: { lt: prisma.examQuestion.fields.marksAvailable } },
+        select: { id: true, questionNum: true, marksAwarded: true, marksAvailable: true, studentAnswer: true, answer: true, syllabusTopic: true, transcribedSubparts: true },
+      });
+      function norm(s: string | null | undefined): string {
+        return (s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+      }
+      for (const q of fullQs) {
+        const topic = (q.syllabusTopic ?? "").toLowerCase();
+        const isGrammarCloze = topic.includes("grammar") && topic.includes("cloze");
+        const isCompCloze = topic.includes("comprehension") && topic.includes("cloze");
+        const isEditing = topic.includes("editing");
+        if (!isGrammarCloze && !isCompCloze && !isEditing) continue;
+        const stored = q.marksAwarded ?? 0;
+        const avail = q.marksAvailable ?? 0;
+        if (avail <= 0 || stored >= avail) continue;
+        const detected = q.studentAnswer;
+        if (!detected || detected === "No answer detected") continue;
+        const detectedNorm = norm(detected);
+        const keyNorm = norm(q.answer);
+        if (!detectedNorm || !keyNorm) continue;
+
+        // Direct text match (case-insensitive, alphanumeric only)
+        let matched = detectedNorm === keyNorm;
+        let reason = "exact match";
+
+        // Grammar Cloze word-form: if detected is a word from the bank
+        // matching the key letter, accept. Parse word bank from
+        // transcribedSubparts._passage.
+        if (!matched && isGrammarCloze) {
+          const subs = (q.transcribedSubparts as Array<{ label: string; text: string }> | null) ?? null;
+          const passage = subs?.find(s => s.label === "_passage")?.text ?? "";
+          if (passage) {
+            const tableLines = passage.split("\n").filter(l => /^\s*\|/.test(l) && /\|\s*$/.test(l));
+            const dataRows = tableLines.filter(l => !/^\s*\|[\s|:-]+\|\s*$/.test(l));
+            const parsedRows = dataRows.map(l => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim()));
+            const wordToLetter = new Map<string, string>();
+            for (let r = 0; r + 1 < parsedRows.length; r += 2) {
+              const letters = parsedRows[r];
+              const words = parsedRows[r + 1] ?? [];
+              for (let c = 0; c < letters.length; c++) {
+                const letter = letters[c]?.toUpperCase().trim();
+                const word = letters[c + 1] ? norm(words[c]) : norm(words[c]);
+                if (letter && word && /^[A-Z]$/.test(letter)) wordToLetter.set(word, letter);
+              }
+            }
+            const letterForDetected = wordToLetter.get(detectedNorm);
+            const keyLetter = (q.answer ?? "").trim().toUpperCase().match(/\b[A-Z]\b/)?.[0];
+            if (letterForDetected && keyLetter && letterForDetected === keyLetter) {
+              matched = true;
+              reason = `word "${detected}" = letter "${letterForDetected}" in bank`;
+            }
+          }
+        }
+
+        if (matched) {
+          clozeFixes.push({ id: q.id, questionNum: q.questionNum, before: stored, after: avail, reason });
+          clozeUpdates.push(prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: avail, markingNotes: `Detected: ${detected} | Correct (cloze safety net: ${reason})` },
+          }));
+        }
+      }
+      if (clozeUpdates.length > 0) {
+        console.warn(`[marking] Paper ${paperId} cloze safety net resynced ${clozeUpdates.length} question(s): ${clozeFixes.map(f => `Q${f.questionNum}: ${f.before}→${f.after} (${f.reason})`).join(", ")}`);
+        await prisma.$transaction(clozeUpdates);
+        // Refresh finalState's local copy so the score reduce sees the upgrades
+        for (const fix of clozeFixes) {
+          const fs = finalState.find(f => f.id === fix.id);
+          if (fs) fs.marksAwarded = fix.after;
+        }
       }
     }
 
