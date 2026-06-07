@@ -949,11 +949,14 @@ function englishMarkingRules(subject: string | null | undefined): string {
 
   (a) GRAMMAR CLOZE (select from options A–Q, excluding I and O):
   - A passage with numbered blanks. The student selects a word from a printed word bank labeled A through Q (letters I and O are skipped to avoid confusion with numbers 1 and 0).
-  - The student writes a SINGLE LETTER (A–H, J–N, P–Q) in the blank or answer box.
+  - Most students write a SINGLE LETTER (A–H, J–N, P–Q) in the blank or answer box. Some write the FULL WORD from the bank (e.g. "thereby" instead of just "L"). A subset write BOTH ("L thereby" or "L" above + "thereby" below).
   - STEP 1 — Verify question number: locate the parenthesised number and confirm it matches the question you are marking.
   - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank or in the answer box. If no blue ink, award 0.
-  - STEP 3 — Read answer: the student's answer is the LETTER written in blue ink. Read it as an uppercase letter (A–Q).
-  - Compare the letter against the answer key. Exact letter match = full marks. Wrong letter = 0 marks.
+  - STEP 3 — Read answer: transcribe EVERYTHING the student wrote in blue ink — every isolated letter AND every word, even if both are present. If you see "L" written alone and "thereby" written separately, report BOTH as "L thereby" in studentAnswer. Do NOT discard the letter to keep just the word, or vice-versa. The downstream override layer matches either form against the word bank, so missing one cuts off a valid acceptance path.
+  - Compare against the answer key:
+      * If the student's transcription contains the correct LETTER (as an isolated A–Q character), award full marks.
+      * If the student's transcription contains a word that maps to the correct letter via the printed word bank (e.g. the bank pairs "L" with "thereby"), award full marks. The override layer handles the word-bank lookup; your job is to transcribe accurately.
+      * If neither matches, award 0.
   - NOTE: The letters I and O are NOT used. If you think you see "I" it is likely "J"; if you see "O" it is likely "D", "Q", or "C". Use context and the letter bank to resolve ambiguity.
 
   (b) EDITING (spelling & grammar correction):
@@ -986,8 +989,12 @@ function englishMarkingRules(subject: string | null | undefined): string {
       * Only resolve ambiguity in the student's favour when the stroke is genuinely unreadable AND the favourable reading produces a real word; never to "rescue" a near-miss into the expected answer.
       Log it: "Transcription: [x-x-x-x-x]".
   - STEP 4 — Count letters: count letters in your transcription vs the answer key. If the counts differ, the student misspelled the word — award 0 (do NOT show the count in notes).
-  - STEP 5 — Accept the exact word from the answer key. Accept other words ONLY if they are BOTH grammatically correct in the sentence AND semantically equivalent to the key in context.
-  - Do NOT accept answers that change the grammar of the sentence.
+  - STEP 5 — Accept the exact word from the answer key. The answer key represents ONE acceptable answer, not the only one. Accept other words if they (a) are grammatically correct in the sentence, AND (b) preserve the overall meaning of the sentence in context. Slight differences in shade of meaning are fine — PSLE marking accepts a range of contextually valid alternatives. Examples that PASS:
+      * "hesitation" for key "doubt" in "Without any ___, hawker centres come to mind." — both express "immediately / unequivocally" in this context.
+      * "until" for key "till" in "Up ___ the 1960s, street hawkers were common." — exact synonyms in this register.
+      * "amongst" for key "among" in "___ different immigrant groups". — register variant.
+      * "could" for key "able to" when the surrounding tense permits both.
+    Do NOT accept answers that change the grammar of the sentence.
   - Spelling must be correct. A misspelled word = 0 marks. Do NOT round "dipose" to "dispose", "recieve" to "receive", "befor" to "before", etc. — that is exactly the auto-correction this rule blocks.
   - Be careful with function-word swaps — prepositions, conjunctions, determiners and quantifiers each carry a precise meaning and are often NOT interchangeable even when they sound plausible: "between" vs "among" (two vs many), "in" vs "on" vs "at", "all" vs "every" vs "each", "fewer" vs "less", "many" vs "much", "this/that/these/those", "a" vs "an" vs "the", "since" vs "for", "and" vs "or" vs "but", "who" vs "whom" vs "which" vs "that". Examine the context before accepting any of these as a synonym for the key.
   - MANDATORY notes when the student's word is NOT the exact word in the key (whether you accept it or reject it):
@@ -999,7 +1006,13 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - There is usually one correct rewritten sentence or one accepted form.
   - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
   - Award 0 if meaning is changed, tense is wrong, or key words are missing.
-  - The given word/phrase MUST be used in the rewritten sentence. If the student did not use the given word, award 0.
+  - KEYWORD HANDLING — RECONSTRUCT BEFORE MARKING:
+      1. Find where the given word/phrase appears in the answer key. Note the words IMMEDIATELY before and immediately after it.
+      2. Read the student's transcribed sentence. If the given word/phrase is ALREADY present, mark as written.
+      3. If the given word/phrase is MISSING from the student's sentence, attempt a one-shot RECONSTRUCTION: insert the given word/phrase at the position the answer key uses (between the "before" word and the "after" word). Check whether the reconstructed sentence is grammatically and semantically equivalent to the answer key.
+        - If reconstruction succeeds (the only thing the student missed was the connector word itself, and the rest of the rewrite is otherwise correct): award FULL marks − 0.5. Note in marker notes: "Student omitted the given word '<keyword>' but the rest of the rewrite matches — full mark minus 0.5 for missing connector."
+        - If reconstruction does NOT yield the expected sentence (the rewrite has additional errors beyond the missing connector): award 0.
+      Real example: keyword "when", expected "Everyone was amazed when Rahim won the race.", student wrote "Everyone was amazed Rahim won the race." → reconstruct → matches → 1.5/2 marks.
   - APOSTROPHE-S TOLERANCE: When the given word/phrase contains an apostrophe + s (possessive form, e.g. "Nisa's", "the boy's", "the children's", "Mr Tan's"), accept the student's answer if the base name/word appears in the right slot even without the apostrophe-s. A handwritten "'s" is a small tick that the AI transcription routinely drops — penalising the student for what is almost always an OCR loss is wrong. Examples that PASS the keyword check: keyword "Nisa's" + student "Nisa" → accepted; keyword "the boy's bag" + student "the boy bag" → accepted (the apostrophe-s is treated as punctuation under rule above). The MEANING / structure of the rewrite must still be correct; this rule only relaxes the literal-presence test for the possessive marker itself.
   - SPELLING (this is a HANDWRITTEN scanned answer — every word is a deliberate spelling choice by the student). Synthesis is all-or-nothing — no partial marks. ANY misspelled word in the rewritten sentence = 0. Do this AFTER you have transcribed the student's writing exactly. Apply the same letter-by-letter handwriting reading discipline as (b) Editing — don't infer a correctly-spelled word from context, transcribe what the ink physically shows. Ignore punctuation mistakes (missing commas, full stops, missing/extra apostrophes, capitalisation in the middle of the sentence) for now — those don't affect the spelling check.
   - COMPOUND-WORD SPACING IS NOT A SPELLING ERROR. When the student writes a compound word as two separate words (e.g. "sales girl" instead of "salesgirl", "every day" instead of "everyday", "after noon" instead of "afternoon", "ice cream" instead of "icecream") OR the reverse (single word as two), accept it for the spelling check. The component letters are correct in the right order, only the spacing differs. This is a presentation choice that primary students legitimately get wrong both ways without it reflecting on their spelling knowledge. The strict letter-by-letter rule applies WITHIN each word, not to whether two words should fuse into one.

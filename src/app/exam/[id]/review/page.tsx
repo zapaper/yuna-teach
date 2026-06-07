@@ -2698,9 +2698,38 @@ function ExamReviewContent({ id }: { id: string }) {
                         .replace(/\*\*([^*]+)\*\*/g, "$1")
                         .replace(/_{3,}/g, "")
                         .trim();
-                      // Extract keyword from synthesis stem
+                      // Extract keyword from synthesis stem. Fall back to
+                      // a student-vs-expected word-diff when the stem is
+                      // missing (extraction never populated transcribedStem
+                      // on this paper, but the keyword is the missing word
+                      // sequence between student's answer and the answer
+                      // key). PSLE English 2025 Q61: student wrote
+                      // "Everyone was amazed Rahim won the race." and the
+                      // key is "Everyone was amazed when Rahim won the
+                      // race." — diff yields "when".
                       const kwMatch = stemRaw.match(/\*\*([^*]+)\*\*/);
-                      const keyword = kwMatch ? kwMatch[1].trim() : "";
+                      let keyword = kwMatch ? kwMatch[1].trim() : "";
+                      if (!keyword && isSynthesis && rawCorrect && studentAns) {
+                        const ew = rawCorrect.toLowerCase().replace(/[.,;:!?]/g, "").split(/\s+/).filter(Boolean);
+                        const sw = studentAns.toLowerCase().replace(/[.,;:!?]/g, "").split(/\s+/).filter(Boolean);
+                        const missing: string[] = [];
+                        let si = 0;
+                        for (const w of ew) {
+                          if (si < sw.length && sw[si] === w) { si++; continue; }
+                          missing.push(w);
+                          // Only accept a SINGLE contiguous missing chunk
+                          // as the keyword — once student matches again,
+                          // any further mismatch means the rewrite is
+                          // wrong on more than just the keyword.
+                          if (si < sw.length && sw[si] !== w && missing.length > 0 && missing[missing.length - 1] === w) continue;
+                        }
+                        if (missing.length > 0 && missing.length <= 3) {
+                          // Cross-check the chunk is contiguous in the key.
+                          const joined = missing.join(" ");
+                          const idxInKey = rawCorrect.toLowerCase().indexOf(joined);
+                          if (idxInKey >= 0) keyword = joined;
+                        }
+                      }
 
                       return (
                         <div key={q.id} className={`p-4 rounded-2xl border-2 ${
@@ -2917,6 +2946,40 @@ function ExamReviewContent({ id }: { id: string }) {
                                             // Mid-sentence keyword: '<before>|||<after>'
                                             const [before, after] = studentAns.split("|||");
                                             combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                          } else if (keyword && rawCorrect && !new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(studentAns)) {
+                                            // Keyword missing from student's answer entirely.
+                                            // Splice it in at the position dictated by the
+                                            // answer key: find the text in the key BEFORE
+                                            // the keyword, locate that same prefix inside
+                                            // the student's answer (case-insensitive), and
+                                            // insert the keyword right after it. This
+                                            // surfaces a coherent reconstructed sentence so
+                                            // the parent sees the keyword sitting in its
+                                            // intended position rather than the student's
+                                            // text running on without it.
+                                            // Real failure: PSLE English 2025 Q61 student
+                                            // "Everyone was amazed Rahim won the race."
+                                            // gets rebuilt to "Everyone was amazed when
+                                            // Rahim won the race." with "when" bolded.
+                                            const keyRe = new RegExp(`(.*?)\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b(.*)`, "i");
+                                            const keyM = rawCorrect.match(keyRe);
+                                            if (keyM) {
+                                              const beforeKw = keyM[1].trim();
+                                              if (beforeKw) {
+                                                const sLower = studentAns.toLowerCase();
+                                                const idx = sLower.indexOf(beforeKw.toLowerCase());
+                                                if (idx >= 0) {
+                                                  const end = idx + beforeKw.length;
+                                                  combined = `${studentAns.slice(0, end).trim()} ${keyword} ${studentAns.slice(end).trim()}`.replace(/\s+/g, " ").trim();
+                                                } else {
+                                                  combined = `${beforeKw} ${keyword} ${studentAns.trim()}`.replace(/\s+/g, " ").trim();
+                                                }
+                                              } else {
+                                                combined = `${keyword} ${studentAns.trim()}`.replace(/\s+/g, " ").trim();
+                                              }
+                                            } else {
+                                              combined = studentAns;
+                                            }
                                           } else if (keyword && studentAns.includes("\n") && !studentAns.toLowerCase().includes(keyword.toLowerCase())) {
                                             // Scan-back detection: student wrote BEFORE on
                                             // one line and AFTER on the next, with the
