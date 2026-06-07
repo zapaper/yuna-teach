@@ -276,6 +276,11 @@ function activityIcon(paper: ExamPaperSummary) {
 }
 
 function scorePct(paper: ExamPaperSummary) {
+  // Same gate as StudentDashboard: only show a percentage when the
+  // paper is fully marked. A mid-deploy kill writes a partial score
+  // plus status="failed" / "in_progress"; surfacing that as "42%"
+  // misleads the parent into thinking marking finished.
+  if (paper.markingStatus !== "complete" && paper.markingStatus !== "released") return null;
   if (paper.score === null || !paper.totalMarks) return null;
   const total = parseFloat(paper.totalMarks);
   return total > 0 ? Math.round((paper.score / total) * 100) : null;

@@ -42,6 +42,13 @@ function greeting() {
 }
 
 function scorePct(paper: ExamPaperSummary): number | null {
+  // Only surface a percentage once the paper is fully marked. A
+  // mid-deploy kill leaves the marker writing a partial score AND
+  // status="failed" (the safety net at the end of markExamPaper) —
+  // OR leaves status="in_progress" with stale score from a previous
+  // run. Either way the number is misleading; show "Incomplete
+  // marking" instead by returning null here.
+  if (paper.markingStatus !== "complete" && paper.markingStatus !== "released") return null;
   if (paper.score === null || !paper.totalMarks) return null;
   // Match the review-page formula: subtract skipped marks from the
   // denominator so a student isn't penalised for questions they
