@@ -1146,16 +1146,19 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           orderIndex: i,
           // For 写作套话 Q33: source stems end with a model-letter
           // template ("…因为____________________\n____________________\n…")
-          // and ChineseQuizSection's `hasInlineLineMarkers` check
+          // OR with a single trailing "___" with no newline after.
+          // ChineseQuizSection's `hasInlineLineMarkers` check
           // (/^_{3,}\s*$/m) treats those underscore lines as inline
           // input fields — so the renderer skips the 田字格 canvas
-          // branch and falls back to per-line textareas. Strip those
-          // trailing underscore-only lines so the renderer sees a
-          // plain prose stem and shows the 田字格 instead. Gated on
-          // the chinese-oeq-setpieces slug + q33-writing subTopic so
-          // every other master class's stems pass through unchanged.
+          // branch and falls back to per-line textareas. Strip any
+          // standalone underscore-only line ANYWHERE (the multiline
+          // `$` anchor matches end-of-line AND end-of-string, so this
+          // catches "…通知\n___<EOF>" which the old `\r?\n`-anchored
+          // regex missed). Gated on the chinese-oeq-setpieces slug +
+          // q33-writing subTopic so every other master class's stems
+          // pass through unchanged.
           transcribedStem: (slug === "chinese-oeq-setpieces" && q.subTopic === "q33-writing")
-            ? (q.transcribedStem ?? "").replace(/(?:^[ 　\t]*_{3,}[ 　\t]*\r?\n)+/gm, "").replace(/\s+$/, "")
+            ? (q.transcribedStem ?? "").replace(/^[ 　\t]*_{3,}[ 　\t]*$\r?\n?/gm, "").replace(/\s+$/, "")
             : q.transcribedStem,
           transcribedOptions: q.transcribedOptions ?? undefined,
           transcribedOptionImages: q.transcribedOptionImages ?? undefined,
