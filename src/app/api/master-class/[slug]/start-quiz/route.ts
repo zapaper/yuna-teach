@@ -6,6 +6,7 @@ import { classifyPatternQuestion } from "@/lib/master-class/classify-pattern";
 import { classifyCircuitsQuestion } from "@/lib/master-class/classify-circuits";
 import { classifyHiddenConstantTotal } from "@/lib/master-class/classify-hidden-constant-total";
 import { classifyGeometryMastery } from "@/lib/master-class/classify-geometry-mastery";
+import { classifyOeqSetpieces } from "@/lib/master-class/classify-oeq-setpieces";
 
 // Per-slug stem classifier. When the source question has no
 // subTopic tag, we fill it in at clone time so per-sub-topic
@@ -15,6 +16,7 @@ const STEM_CLASSIFIERS: Record<string, (stem: string | null) => string | null> =
   "electrical-circuits": classifyCircuitsQuestion,
   "math-hidden-constant-total": classifyHiddenConstantTotal,
   "math-geometry-mastery": classifyGeometryMastery,
+  "chinese-oeq-setpieces": classifyOeqSetpieces,
 };
 
 // POST /api/master-class/[slug]/start-quiz

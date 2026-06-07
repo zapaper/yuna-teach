@@ -14,11 +14,11 @@ slug: chinese-oeq-setpieces
 subject: chinese
 level: P5-P6
 topicLabel: 阅读理解 OEQ
-# General-pool — slide deck teaches Q33 写作 and Q40 个人意见 as
-# separate sub-topics but extraction tags both under 阅读理解 OEQ,
-# and the AI sub-topic classifier can't reliably split them. Picker
-# uses single pool until a hand-coded classifier is added.
-noSubTopicFilter: true
+# Stem-classifier mode — both Q33 (短文写作) and Q40 (个人意见) sit
+# under syllabusTopic "阅读理解 OEQ", so a hand-coded stem classifier
+# (src/lib/master-class/classify-oeq-setpieces.ts) routes each
+# candidate into the right bucket. Without this, the picker would
+# pull two Q33s by chance — the actual bug the user hit.
 paperLevels: [PSLE, P6]
 title: "PSLE 华文 — 写作套话 (Q33 + Q40)"
 
@@ -271,7 +271,7 @@ keyConcepts:
         套句: "虽然 ___, 但 ___。另外, ___ 。"
       - |-
         **(1 分) 扣回性格** — 用证据收尾, 重申他是 ___ 的人
-        套句: "由此可见, X 真的是个 ___ 的人。"
+        套句: "**由此可见**, X 真的是个 ___ 的人。"
       - |-
         {最后要记住一点}**关键: 性格词必须**和文章寓意一致**, {绝对}不能"看脸挑词"。
 
@@ -355,7 +355,7 @@ keyConcepts:
       - |-
         {再拿}**(1 分){的} 第 3 句 — {写出}证据 ②:** 另外, 她坚持每年的教师节都帮小男孩, 完成他的心愿。
       - |-
-        {最后拿}**(1 分){的} 第 4 句 — {总结并}扣回性格:** 由此可见, 卖花的阿姨真的是个慷慨又好心的人。
+        {最后拿}**(1 分){的} 第 4 句 — {总结并}扣回性格:** **由此可见**, 卖花的阿姨真的是个慷慨又好心的人。
       - |-
         {这样一来，}**总分: 1 {分性格词} + 2 {分证据} + 1 {分总结} = 4 分** ✓{，轻松拿满分。}
       - |-
@@ -401,17 +401,21 @@ keyConcepts:
           — which Chinese trait fits?
           (English: ARROGANT + RUDE)
         options:
-          - 慷慨好心
-          - 孝顺有礼
+          - 自私
+          - 不肯原谅别人
           - 傲慢无礼
-          - 乐于助人
+          - 不体谅别人
         correctAnswer: 3
         explanation: >-
-          傲慢无礼 = arrogant and rude (PSLE 2017 标答原词)。其他选项都是
-          正面词, 用在这里就反了。
-          傲慢无礼 = arrogant + rude (PSLE 2017 model answer). The other
-          three options are POSITIVE traits — using them here flips the
-          meaning.
+          傲慢无礼 = arrogant and rude (PSLE 2017 标答原词) — 抓住了"看不起穷人"
+          这个核心。其他三个选项都是反面词, 但和这个具体场景不对路:
+          自私只强调"为自己", 不肯原谅别人是关于"心胸狭窄记仇",
+          不体谅别人比"傲慢"轻得多。
+          傲慢无礼 = arrogant + rude (PSLE 2017 model answer) — captures
+          the "look down on poorer people" essence. The other three ARE
+          negative traits, but don't fit this exact scene: 自私 only
+          stresses "for self", 不肯原谅别人 is about grudges, and
+          不体谅别人 is milder than arrogance.
         mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
         mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
 

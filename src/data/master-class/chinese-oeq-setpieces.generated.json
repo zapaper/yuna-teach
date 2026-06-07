@@ -3,7 +3,6 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "阅读理解 OEQ",
-  "noSubTopicFilter": true,
   "paperLevels": [
     "PSLE",
     "P6"
@@ -177,7 +176,7 @@
       "bullets": [
         "**(1 分) 性格词** — 一句话指出 X 是怎样的人 (列 1-2 个词都只算 1 分)\n套句: \"X 是个 **___ 且 ___** 的人。\"",
         "**(至少 2 分) 文中具体证据** — 必须是文章里**具体的行为**\n套句: \"虽然 ___, 但 ___。另外, ___ 。\"",
-        "**(1 分) 扣回性格** — 用证据收尾, 重申他是 ___ 的人\n套句: \"由此可见, X 真的是个 ___ 的人。\"",
+        "**(1 分) 扣回性格** — 用证据收尾, 重申他是 ___ 的人\n套句: \"**由此可见**, X 真的是个 ___ 的人。\"",
         "**关键: 性格词必须**和文章寓意一致**, 不能\"看脸挑词\"。"
       ],
       "narration": {
@@ -259,7 +258,7 @@
         "**(1 分) 第 1 句 — 性格词:** 卖花的阿姨是个**慷慨且好心**的人。",
         "**(1 分) 第 2 句 — 证据 ①:** 虽然小男孩给的钱不够, 但她还是自掏腰包帮他送花。",
         "**(1 分) 第 3 句 — 证据 ②:** 另外, 她坚持每年的教师节都帮小男孩, 完成他的心愿。",
-        "**(1 分) 第 4 句 — 扣回性格:** 由此可见, 卖花的阿姨真的是个慷慨又好心的人。",
+        "**(1 分) 第 4 句 — 扣回性格:** **由此可见**, 卖花的阿姨真的是个慷慨又好心的人。",
         "**总分: 1 + 2 + 1 = 4 分** ✓",
         "**⚠️ 性格词的陷阱:** 写\"好\"、\"善\"、\"不错\" — 0 分。\n必须用 12 个具体性格词之一。"
       ],
@@ -270,7 +269,7 @@
           "答题时，能拿**(1 分)的 第 1 句 — 直接写出性格词:** 卖花的阿姨是个**慷慨且好心**的人。",
           "接着拿**(1 分)的 第 2 句 — 写出证据 ①:** 虽然小男孩给的钱不够, 但她还是自掏腰包帮他送花。",
           "再拿**(1 分)的 第 3 句 — 写出证据 ②:** 另外, 她坚持每年的教师节都帮小男孩, 完成他的心愿。",
-          "最后拿**(1 分)的 第 4 句 — 总结并扣回性格:** 由此可见, 卖花的阿姨真的是个慷慨又好心的人。",
+          "最后拿**(1 分)的 第 4 句 — 总结并扣回性格:** **由此可见**, 卖花的阿姨真的是个慷慨又好心的人。",
           "这样一来，**总分: 1 分性格词 + 2 分证据 + 1 分总结 = 4 分** ✓，轻松拿满分。",
           null
         ]
@@ -299,13 +298,13 @@
           "label": "ARROGANT — 中文是哪一个？",
           "stem": "想形容用 50 元让小孩下水沟拾手链, 还用钱看不起人的男女 → 用什么词？\nTo describe a couple who threw $50 to make a child fetch\ntheir bracelet from a drain, looking down on poorer people\n— which Chinese trait fits?\n(English: ARROGANT + RUDE)",
           "options": [
-            "慷慨好心",
-            "孝顺有礼",
+            "自私",
+            "不肯原谅别人",
             "傲慢无礼",
-            "乐于助人"
+            "不体谅别人"
           ],
           "correctAnswer": 3,
-          "explanation": "傲慢无礼 = arrogant and rude (PSLE 2017 标答原词)。其他选项都是 正面词, 用在这里就反了。 傲慢无礼 = arrogant + rude (PSLE 2017 model answer). The other three options are POSITIVE traits — using them here flips the meaning.",
+          "explanation": "傲慢无礼 = arrogant and rude (PSLE 2017 标答原词) — 抓住了\"看不起穷人\" 这个核心。其他三个选项都是反面词, 但和这个具体场景不对路: 自私只强调\"为自己\", 不肯原谅别人是关于\"心胸狭窄记仇\", 不体谅别人比\"傲慢\"轻得多。 傲慢无礼 = arrogant + rude (PSLE 2017 model answer) — captures the \"look down on poorer people\" essence. The other three ARE negative traits, but don't fit this exact scene: 自私 only stresses \"for self\", 不肯原谅别人 is about grudges, and 不体谅别人 is milder than arrogance.",
           "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
           "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
         }
