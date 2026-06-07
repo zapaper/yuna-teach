@@ -399,9 +399,16 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // stems / passages / MCQ options. Without these here, every
     // pointer-move on the canvas competes with the browser's
     // selection / callout machinery, which feels like pen lag.
+    // iOS Safari fires pointercancel mid-stroke if ANY ancestor leaves
+    // the selection / callout / scroll machinery armed. The canvas
+    // alone has touch-action: none, but without the wrapper having it
+    // too iPadOS sometimes hijacks the gesture as a scroll candidate
+    // and our stroke drops samples / cancels mid-character. Match the
+    // English OEQ canvas wrapper (quiz/[id]/page.tsx ~3593) which has
+    // this fix applied.
     <div
       className="bg-white rounded-2xl shadow-sm ring-1 ring-[#c3c6d1]/20 overflow-hidden select-none"
-      style={{ height: CSS_H, WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}
+      style={{ height: CSS_H, touchAction: "none", WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}
     >
       <canvas
         ref={visibleRef}
