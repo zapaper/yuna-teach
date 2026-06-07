@@ -110,12 +110,28 @@ export async function GET(
           select: {
             questionNum: true,
             answer: true,
+            answerImageData: true,
             marksAvailable: true,
             pageIndex: true,
             orderIndex: true,
             yStartPct: true,
             yEndPct: true,
             syllabusTopic: true,
+            // Question CONTENT used by the review page renderer.
+            // Without these the clone-as-source path (English Test
+            // Quiz, Chinese Test Quiz, scan-back exams etc.) returned
+            // empty stems / options / images, and the per-question
+            // cards on /exam/[id]/review showed up blank ("all the
+            // grammar mcq in review is empty"). Pull from master;
+            // clones don't duplicate this content.
+            transcribedStem: true,
+            transcribedOptions: true,
+            transcribedOptionImages: true,
+            transcribedOptionTable: true,
+            transcribedSubparts: true,
+            imageData: true,
+            diagramImageData: true,
+            diagramBounds: true,
           },
         },
       },
@@ -135,6 +151,7 @@ export async function GET(
           yStartPct: mq.yStartPct ?? null,
           yEndPct: mq.yEndPct ?? null,
           answer: mq.answer,
+          answerImageData: mq.answerImageData ?? null,
           syllabusTopic: mq.syllabusTopic ?? null,
           marksAwarded: cq?.marksAwarded ?? null,
           marksAvailable: mq.marksAvailable,
@@ -142,6 +159,15 @@ export async function GET(
           studentAnswer: cq?.studentAnswer ?? null,
           elaboration: cq?.elaboration ?? null,
           flagged: cq?.flagged ?? false,
+          // Question content from master — see select-list comment above.
+          transcribedStem: mq.transcribedStem ?? null,
+          transcribedOptions: mq.transcribedOptions ?? null,
+          transcribedOptionImages: mq.transcribedOptionImages ?? null,
+          transcribedOptionTable: mq.transcribedOptionTable ?? null,
+          transcribedSubparts: mq.transcribedSubparts ?? null,
+          imageData: mq.imageData ?? null,
+          diagramImageData: mq.diagramImageData ?? null,
+          diagramBounds: mq.diagramBounds ?? null,
         };
       });
       const { sourceExamId: _, questions: __, metadata: cloneMeta, ...rest } = paper;
