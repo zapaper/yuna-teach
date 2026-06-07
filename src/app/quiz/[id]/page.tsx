@@ -1181,6 +1181,13 @@ function QuizContent({ id }: { id: string }) {
       allOeqWithHandles.forEach((q, i) => { submittedPageMap[q.id] = i; });
 
       // Save time, final pageMap, and mark as completed.
+      // keepalive: true keeps the request in flight after the user
+      // navigates away — without it, pressing "Home" mid-submit
+      // cancels these fetches and the paper is stranded with
+      // completedAt=null + markingStatus=null, which the homepage
+      // then renders as "IN PROGRESS" instead of "Marking your
+      // answers…". The browser caps keepalive payload at ~64 KB,
+      // well above what these requests send.
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -1189,10 +1196,13 @@ function QuizContent({ id }: { id: string }) {
           completedAt: new Date().toISOString(),
           metadata: { ...(paper?.metadata ?? {}), canvasHeights: canvasHeights.current, oeqPageMap: submittedPageMap },
         }),
+        keepalive: true,
       });
 
-      // Trigger marking (handles both MCQ-only and MCQ+OEQ)
-      await fetch(`/api/exam/${id}/mark`, { method: "POST" });
+      // Trigger marking (handles both MCQ-only and MCQ+OEQ).
+      // Also keepalive so a fast Home tap doesn't strand the paper
+      // in "completedAt set, marking never started" limbo.
+      await fetch(`/api/exam/${id}/mark`, { method: "POST", keepalive: true });
       // Start polling if there are AI-marked questions. English comp cloze runs a
       // per-question AI synonym/grammar check on the server, so include it here too —
       // otherwise the review page renders the client's instant simple-compare marks
