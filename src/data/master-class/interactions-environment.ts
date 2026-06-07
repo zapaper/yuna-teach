@@ -108,6 +108,16 @@ export type MasterClassContent = {
   // etc.). Sub-topics are still defined for display + mastery tracking
   // on the slides, but they don't constrain the question pool.
   noSubTopicFilter?: boolean;
+  // Optional: when true, the picker SKIPS the passage-bound section
+  // bundling that normally fires for topics like "阅读理解 OEQ" /
+  // "Comprehension Open Ended" — instead picking individual questions
+  // via the standard subTopic / classifier pool. Used by the 写作套话
+  // (Q33 + Q40) master class: Q33 and Q40 sit on DIFFERENT passages
+  // (informational notice vs narrative story) so bundling all
+  // "阅读理解 OEQ" rows from one paper drags Q34-Q39 mid-comp questions
+  // into the quiz, which we don't want — the class teaches Q33 and Q40
+  // as standalone setpieces, not in their original passage context.
+  noPassageBundle?: boolean;
   // Optional: paper-level filter on the practice pool. Each entry
   // accepts the level/title variants we see in the bank — e.g. "PSLE"
   // matches level === "PSLE" OR title contains "PSLE"; "P6" matches

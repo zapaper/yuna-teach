@@ -3,6 +3,7 @@
   "subject": "chinese",
   "level": "P5-P6",
   "topicLabel": "阅读理解 OEQ",
+  "noPassageBundle": true,
   "paperLevels": [
     "PSLE",
     "P6"

@@ -359,7 +359,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const passageBoundLabels = [content.topicLabel, ...(content.topicLabelExtras ?? [])];
   const isPassageBound = passageBoundLabels.some(l => PASSAGE_BOUND_TOPICS.has(l));
 
-  if (isPassageBound) {
+  // Master classes can opt out of the section-bundling path with
+  // noPassageBundle. 写作套话 (Q33 + Q40) needs this — Q33 and Q40
+  // share syllabusTopic="阅读理解 OEQ" but sit on DIFFERENT passages
+  // in the source paper; bundling all 阅读理解 OEQ rows from one
+  // paper pulls Q34-Q39 mid-comp questions into the quiz too.
+  if (isPassageBound && !content.noPassageBundle) {
     type PCandidate = typeof candidates[number];
     type PassageGroup = { paperId: string; topic: string; questions: PCandidate[] };
     // 1. Group candidates by (examPaperId, syllabusTopic). Each group

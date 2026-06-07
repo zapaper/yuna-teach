@@ -19,6 +19,15 @@ topicLabel: 阅读理解 OEQ
 # (src/lib/master-class/classify-oeq-setpieces.ts) routes each
 # candidate into the right bucket. Without this, the picker would
 # pull two Q33s by chance — the actual bug the user hit.
+# noPassageBundle: skip the section-bundling path that fires by
+# default for 阅读理解 OEQ. Q33 (situational writing on the
+# informational notice) and Q40 (opinion on the narrative) sit on
+# DIFFERENT passages in the same paper, but they share the
+# syllabusTopic. Without this opt-out the picker bundles ALL
+# 阅读理解 OEQ rows from one paper (Q33 + Q34 + Q35 + … + Q40), so
+# the mastery quiz ends up with 16 questions instead of the intended
+# 1 Q33 + 1 Q40 pair.
+noPassageBundle: true
 paperLevels: [PSLE, P6]
 title: "PSLE 华文 — 写作套话 (Q33 + Q40)"
 
