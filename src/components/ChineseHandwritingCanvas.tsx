@@ -307,8 +307,23 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // detection that touch-action: none should already block. The
     // combined effect is fewer dropped fast-stroke samples.
     const onDown = (e: PointerEvent) => {
+      // Match BlankCanvas (Math/Science OEQ): bail out for non-drawing
+      // tools so a tap-to-select / tap-to-highlight gesture isn't
+      // consumed by the canvas. Without this gate, type/highlight taps
+      // start a phantom stroke that the page-level highlight system
+      // never sees.
+      const t = toolRef.current;
+      if (t === "type" || t == null) return;
       e.preventDefault();
-      (e.target as Element).setPointerCapture(e.pointerId);
+      // Capture on the canvas element directly — NOT e.target. On
+      // iPadOS Apple Pencil, e.target can resolve to a different
+      // hit-test node (sub-pixel ancestor, layer boundary) and the
+      // resulting capture is silently dropped a frame or two later
+      // when the touch trajectory crosses the layer — which is the
+      // "writes smoothly for ~1s then stops" symptom on the Q33/Q40
+      // mastery quiz. BlankCanvas uses canvas.setPointerCapture and
+      // doesn't have this bug; bring this canvas in line.
+      try { visible.setPointerCapture(e.pointerId); } catch { /* ignore */ }
       drawing.current = true;
       const pos = pointerPos(e);
       lastPos.current = pos;
@@ -319,6 +334,13 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     const onMove = (e: PointerEvent) => {
       if (!drawing.current) return;
       e.preventDefault();
+      // Defensive re-capture. iPadOS sometimes drops pointer capture
+      // mid-stroke without firing pointercancel — re-claiming on every
+      // move ensures subsequent samples keep routing here even after
+      // the silent drop. Cheap: hasPointerCapture short-circuits.
+      if (!visible.hasPointerCapture(e.pointerId)) {
+        try { visible.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      }
       strokeEvent(e);
     };
     // pointerrawupdate fires for raw input samples even between
@@ -329,6 +351,9 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // segment that's invisible.
     const onRaw = (e: PointerEvent) => {
       if (!drawing.current) return;
+      if (!visible.hasPointerCapture(e.pointerId)) {
+        try { visible.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      }
       strokeEvent(e);
     };
     const onUp = () => {
@@ -349,7 +374,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // pointerdown.
     const onCancel = (e: PointerEvent) => {
       if (!drawing.current) return;
-      try { (e.target as Element).setPointerCapture(e.pointerId); } catch { /* capture lost */ }
+      try { visible.setPointerCapture(e.pointerId); } catch { /* capture lost */ }
     };
 
     visible.addEventListener("pointerdown", onDown, { passive: false });
