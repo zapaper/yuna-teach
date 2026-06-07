@@ -184,9 +184,20 @@ async function fetchRemoteSubmissionFiles(
   // Step 2: fetch each file via the existing per-file endpoint. Parse
   // the filename back into (page, subpart, type) so we can hit the
   // same handler that the marker eventually reads from on disk.
+  //
+  // Concurrency limit: fetching ALL ~40 files of a paper in parallel
+  // produces a 40-way fan-out on the server's DB connection pool (each
+  // request hits Prisma to look up the paper / submission metadata).
+  // Post-migration to direct Railway Postgres (no PgBouncer in front),
+  // bursts at that scale exhaust Prisma's connection pool and surface
+  // as P2024 timeouts or 500s — see the eval that ran at 84% pass
+  // before throttling. Limit to 5 concurrent requests per paper:
+  // still fast (~8 batches × 40ms ≈ 0.5s per paper) but small enough
+  // not to crowd out normal app traffic on the prod DB.
+  const CONCURRENCY = 5;
   let fetched = 0;
   let failed = 0;
-  await Promise.all(files.map(async (file) => {
+  async function fetchOne(file: string) {
     // Filename shapes:
     //   page_N.jpg
     //   page_N_ink.png
@@ -209,7 +220,11 @@ async function fetchRemoteSubmissionFiles(
     } catch {
       failed++;
     }
-  }));
+  }
+  for (let i = 0; i < files.length; i += CONCURRENCY) {
+    const batch = files.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map(fetchOne));
+  }
   return { fetched, failed };
 }
 

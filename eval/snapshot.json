@@ -914,7 +914,7 @@
       "level": "PSLE",
       "paperType": "quiz",
       "totalMarks": "90",
-      "score": 84,
+      "score": 83,
       "questionCount": 40,
       "questions": [
         {
@@ -1154,7 +1154,7 @@
         {
           "questionNum": "40",
           "marksAvailable": 4,
-          "marksAwarded": 4,
+          "marksAwarded": 3,
           "syllabusTopic": "阅读理解 OEQ"
         }
       ],
