@@ -3173,8 +3173,10 @@ function ExamReviewContent({ id }: { id: string }) {
                       against the inline marking above. Covers every
                       typed English section. Comp-OEQ's split-screen
                       grid grows past its fixed-height stop in the lg
-                      viewport — that's accepted; the page scrolls. */}
-                  {data.isPrintedAndScanned && (isGrammarCloze || isEditing || isCompCloze || isSynthesis || isCompOeq) && (() => {
+                      viewport — that's accepted; the page scrolls.
+                      Vocab Cloze + Visual Text were missing here so
+                      their bottom scan never rendered — added. */}
+                  {data.isPrintedAndScanned && (isGrammarCloze || isEditing || isCompCloze || isSynthesis || isCompOeq || isVocabCloze || isVisualText) && (() => {
                     const uniquePages = Array.from(
                       new Set(
                         sectionQuestions
