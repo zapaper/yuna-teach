@@ -2701,8 +2701,48 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
     const finalState = await prisma.examQuestion.findMany({
       where: { examPaperId: paperId },
-      select: { id: true, questionNum: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
+      select: { id: true, questionNum: true, marksAvailable: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
     });
+
+    // Tabulation safety net — see markQuizPaper for full rationale.
+    // Re-parse per-part "Awarded N mark(s)." lines from notes and
+    // re-sync marksAwarded to the sum. The marker has layered overrides
+    // (parts[] sum, prose-sum, blank-subpart clamp, drawable clamp),
+    // and each layer has at some point silently overwritten a later
+    // layer's correct verdict. The contract students/parents care
+    // about is the per-part marks shown in the notes — make them
+    // authoritative server-side.
+    {
+      const tabFixes: { id: string; questionNum: string; before: number; after: number }[] = [];
+      const tabUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+      for (const q of finalState) {
+        if (!q.markingNotes) continue;
+        const marksAvailable = q.marksAvailable ?? 0;
+        if (marksAvailable <= 0) continue;
+        const sepIdx = q.markingNotes.indexOf(" | ");
+        const notesStr = sepIdx >= 0 ? q.markingNotes.slice(sepIdx + 3) : q.markingNotes;
+        const partRe = /(?:^|[\n|])\s*(?:Part\s*)?\(([a-z])\)\s*:?\s*([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+        const partAwards: { label: string; awarded: number }[] = [];
+        for (const m of notesStr.matchAll(partRe)) {
+          const chunk = m[2];
+          const awardMatch = chunk.match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\b/i);
+          if (!awardMatch) continue;
+          partAwards.push({ label: m[1].toLowerCase(), awarded: parseFloat(awardMatch[1]) });
+        }
+        if (partAwards.length < 2) continue;
+        const proseSum = Math.min(marksAvailable, partAwards.reduce((s, p) => s + Math.max(0, p.awarded), 0));
+        const stored = q.marksAwarded ?? 0;
+        if (Math.abs(proseSum - stored) < 0.0001) continue;
+        tabFixes.push({ id: q.id, questionNum: q.questionNum, before: stored, after: proseSum });
+        tabUpdates.push(prisma.examQuestion.update({ where: { id: q.id }, data: { marksAwarded: proseSum } }));
+        q.marksAwarded = proseSum;
+      }
+      if (tabUpdates.length > 0) {
+        console.warn(`[marking] Paper ${paperId} tabulation safety net resynced ${tabUpdates.length} question(s) from notes prose-sum: ${tabFixes.map(f => `Q${f.questionNum}: ${f.before}→${f.after}`).join(", ")}`);
+        await prisma.$transaction(tabUpdates);
+      }
+    }
+
     const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
     const unmarked = finalState.filter(q =>
       q.studentAnswer !== "__SKIPPED__" &&
@@ -5550,9 +5590,61 @@ Return ONLY valid JSON:
     if (updates.length > 0) await prisma.$transaction(updates);
 
     const finalState = await prisma.examQuestion.findMany({
-      where: { examPaperId: paperId },
-      select: { id: true, questionNum: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
+      where: { examPaperId: paperId, marksAvailable: { not: null } },
+      select: { id: true, questionNum: true, marksAvailable: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
     });
+
+    // ── TABULATION SAFETY NET ──────────────────────────────────────
+    // The OEQ marker has per-part-aware logic (parts[] sum, prose-sum
+    // override, blank-subpart clamp, drawable clamp). Each layer fixes
+    // one historical incident. But each layer has also, at one time
+    // or another, silently overwritten a later one's correct verdict —
+    // most recently on this paper:
+    //   /exam/cmq34sx5b004qgnicjxy3flh6/review
+    //   Q10 stored 0/4, markingNotes ended with "Part (b): … Awarded 1
+    //   mark(s). Part (c): … Awarded 0 mark(s). Part (d): … Awarded 1
+    //   mark(s)." — clear 0+1+0+1 = 2.
+    //
+    // The contract students/parents care about: the per-part marks in
+    // the markingNotes ARE what counts. So before declaring the paper
+    // complete, re-parse the notes for every question and re-sync
+    // marksAwarded to the prose sum. This is a server-side belt-and-
+    // suspenders pass over the in-loop prose-sum override — guaranteed
+    // not to silently disagree even if a future change to the marker
+    // breaks an earlier override.
+    const tabFixes: { id: string; questionNum: string; before: number; after: number }[] = [];
+    const tabUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+    for (const q of finalState) {
+      if (!q.markingNotes) continue;
+      const marksAvailable = q.marksAvailable ?? 0;
+      if (marksAvailable <= 0) continue;
+      // Strip the "Detected: <student>" prefix that buildMarkingNotes
+      // prepends so we don't pick up "(a)", "(b)" labels from the
+      // student's own answer text.
+      const sepIdx = q.markingNotes.indexOf(" | ");
+      const notesStr = sepIdx >= 0 ? q.markingNotes.slice(sepIdx + 3) : q.markingNotes;
+      const partRe = /(?:^|[\n|])\s*(?:Part\s*)?\(([a-z])\)\s*:?\s*([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+      const partAwards: { label: string; awarded: number }[] = [];
+      for (const m of notesStr.matchAll(partRe)) {
+        const chunk = m[2];
+        const awardMatch = chunk.match(/awarded\s+(\d+(?:\.\d+)?)\s*mark(?:s|\(s\))?\b/i);
+        if (!awardMatch) continue;
+        partAwards.push({ label: m[1].toLowerCase(), awarded: parseFloat(awardMatch[1]) });
+      }
+      if (partAwards.length < 2) continue; // single-part / MCQ / no per-part prose — leave alone
+      const proseSum = Math.min(marksAvailable, partAwards.reduce((s, p) => s + Math.max(0, p.awarded), 0));
+      const stored = q.marksAwarded ?? 0;
+      if (Math.abs(proseSum - stored) < 0.0001) continue;
+      tabFixes.push({ id: q.id, questionNum: q.questionNum, before: stored, after: proseSum });
+      tabUpdates.push(prisma.examQuestion.update({ where: { id: q.id }, data: { marksAwarded: proseSum } }));
+      // Mutate in place so the finalScore reduce below sees the fix.
+      q.marksAwarded = proseSum;
+    }
+    if (tabUpdates.length > 0) {
+      console.warn(`[quiz-marking] Paper ${paperId} tabulation safety net resynced ${tabUpdates.length} question(s) from notes prose-sum: ${tabFixes.map(f => `Q${f.questionNum}: ${f.before}→${f.after}`).join(", ")}`);
+      await prisma.$transaction(tabUpdates);
+    }
+
     const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
     // A question is "unmarked" when it has neither a written verdict
     // (markingNotes) nor an awarded mark and the student didn't
