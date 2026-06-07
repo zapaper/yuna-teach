@@ -84,17 +84,35 @@ export async function GET(
   const printableCount = await prisma.examQuestion.count({
     where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
   });
-  const ownMeta = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+  const ownMeta = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number }; skipPages?: number[]; answerPages?: number[] } | null;
   let chinesePadFlag = !!ownMeta?.normalExtractChinese?.oeqPadFirstPageIndex;
-  if (!chinesePadFlag && paper.sourceExamId) {
+  // For clones, fall back to the source master's metadata to detect
+  // the print/scan workflow signals. Clones inherit metadata indirectly
+  // via the print route, but historical clones might not have the
+  // skipPages/answerPages stamped on themselves directly.
+  let inheritedSkipPages: number[] | undefined;
+  let inheritedAnswerPages: number[] | undefined;
+  if (paper.sourceExamId) {
     const src = await prisma.examPaper.findUnique({
       where: { id: paper.sourceExamId },
       select: { metadata: true },
     });
-    const srcMeta = src?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
-    chinesePadFlag = !!srcMeta?.normalExtractChinese?.oeqPadFirstPageIndex;
+    const srcMeta = src?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number }; skipPages?: number[]; answerPages?: number[] } | null;
+    if (!chinesePadFlag) chinesePadFlag = !!srcMeta?.normalExtractChinese?.oeqPadFirstPageIndex;
+    inheritedSkipPages = srcMeta?.skipPages;
+    inheritedAnswerPages = srcMeta?.answerPages;
   }
-  const isPrintedAndScanned = printableCount > 0 || chinesePadFlag;
+  // English / generic scan-back signal — same defensive fallback the
+  // POST /mark routing uses. Catches papers where the print-flow ran
+  // but printableBounds didn't land on questions (older extractions,
+  // pre-fix English exam prints, etc.) so the review UI still
+  // surfaces the scanned page section even without bounds.
+  const skipPages = ownMeta?.skipPages ?? inheritedSkipPages;
+  const answerPages = ownMeta?.answerPages ?? inheritedAnswerPages;
+  const hasScanBackMetadata =
+    (Array.isArray(skipPages) && skipPages.length > 0) ||
+    (Array.isArray(answerPages) && answerPages.length > 0);
+  const isPrintedAndScanned = printableCount > 0 || chinesePadFlag || hasScanBackMetadata;
 
   // If this is a clone, use the master's question structure as the source of
   // truth for questionNum, answer, marksAvailable, and pageIndex. Pull marking
