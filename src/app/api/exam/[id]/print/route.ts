@@ -171,6 +171,24 @@ export async function GET(
     const sorted = Array.from(pagesToDrop).filter(i => i >= 0 && i < doc.getPageCount()).sort((a, b) => b - a);
     for (const i of sorted) doc.removePage(i);
   }
+
+  // Build originalPageIndex → printedPageIndex map. The exam print
+  // doesn't re-layout questions on new pages — it just drops hidden
+  // pages from the master PDF — so each question's y-coordinates
+  // stay valid on the page they always lived on, and only the page-
+  // index needs to shift to account for the removed pages above it.
+  // Stamping printableBounds with this mapping lets the mark router
+  // detect "this was printed-and-scanned" on the strong signal (no
+  // need to fall back to metadata.skipPages) AND gives the scan-back
+  // marker precise per-question crops.
+  const originalPageCount = (await PDFDocument.load(pdfBytes)).getPageCount();
+  const printedPageOf = new Map<number, number>();
+  let printedIdx = 0;
+  for (let origIdx = 0; origIdx < originalPageCount; origIdx++) {
+    if (pagesToDrop.has(origIdx)) continue;
+    printedPageOf.set(origIdx, printedIdx);
+    printedIdx++;
+  }
   const pages = doc.getPages();
   if (pages.length === 0) {
     return NextResponse.json({ error: "Empty PDF after removing answer pages" }, { status: 500 });
@@ -265,6 +283,43 @@ export async function GET(
   // Build a clean filename from the paper title.
   const safeTitle = (paper.title ?? "Exam").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Exam";
   const filename = `${safeTitle} (print).pdf`;
+
+  // Stamp printableBounds on every question of THIS paper (the clone
+  // if printed from an assigned paper, the master if printed directly).
+  // Bounds carry { pageIndex: <position in printed PDF>, yStartPct,
+  // yEndPct } — same shape the focused-test printable route uses. The
+  // mark router checks for any question with printableBounds set as
+  // its primary "this was scanned back" signal, so stamping these
+  // restores accurate routing on the strong signal AND gives the
+  // scan-back marker precise crops. Best-effort: failures are logged
+  // but don't block the PDF response.
+  prisma.examQuestion.findMany({
+    where: { examPaperId: id },
+    select: { id: true, pageIndex: true, yStartPct: true, yEndPct: true, printableBounds: true },
+  }).then(async qs => {
+    const updates = [];
+    for (const q of qs) {
+      if (q.printableBounds) continue; // idempotent — don't overwrite
+      const printedPageIndex = printedPageOf.get(q.pageIndex);
+      if (printedPageIndex === undefined) continue; // question on a dropped page (shouldn't happen)
+      if (q.yStartPct == null || q.yEndPct == null) continue;
+      const bounds = {
+        pageIndex: printedPageIndex,
+        yStartPct: q.yStartPct,
+        yEndPct: q.yEndPct,
+      };
+      updates.push(
+        prisma.examQuestion.update({
+          where: { id: q.id },
+          data: { printableBounds: bounds },
+        }).catch(err => console.warn(`[print] failed to set printableBounds for q=${q.id}:`, err))
+      );
+    }
+    if (updates.length > 0) {
+      await Promise.all(updates);
+      console.log(`[print] stamped printableBounds on ${updates.length}/${qs.length} questions for paper ${id}`);
+    }
+  }).catch(err => console.warn(`[print] failed to stamp printableBounds batch for ${id}:`, err));
 
   // Stamp printedAt so the student homepage can show the self-serve
   // scan-back camera icon for this assignment. Best-effort — never
