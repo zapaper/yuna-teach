@@ -2907,6 +2907,17 @@ function ExamReviewContent({ id }: { id: string }) {
                                             // with keyword "when" missing.
                                             const [before, after] = studentAns.split(/\n+/);
                                             combined = `${before.trim()} ${keyword} ${after?.trim() ?? ""}`.replace(/\s+/g, " ").trim();
+                                          } else if (keyword && new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\\\\]\\\\]/g, "\\$&")}\\b`, "i").test(studentAns)) {
+                                            // Keyword already appears anywhere in the
+                                            // student's answer (mid-sentence or otherwise).
+                                            // Render as-is — the keyword bolding pass
+                                            // below highlights it. Without this branch,
+                                            // the default below double-prepends the
+                                            // keyword and the parent sees
+                                            // "when Everyone was amazed when Rahim won
+                                            // the race" — duplicate keyword that was
+                                            // never in the student's answer.
+                                            combined = studentAns.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
                                           } else if (keyword) {
                                             // Single-input format. Only prepend the parts
                                             // the student didn't already type — otherwise
@@ -3213,7 +3224,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               <span className="font-bold text-xs text-[#001e40] w-10 shrink-0">Q{q.questionNum}</span>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={`/api/exam/${id}/question-crop?questionId=${q.id}`}
+                                src={`/api/exam/${id}/question-crop?questionId=${q.id}&b=${q.xStartPct ?? "n"}_${q.xEndPct ?? "n"}_${q.yStartPct ?? "n"}_${q.yEndPct ?? "n"}`}
                                 alt={`Crop for Q${q.questionNum}`}
                                 className="h-12 w-auto rounded border border-[#e5eeff] shrink-0"
                                 style={{ maxWidth: "240px", objectFit: "contain" }}
@@ -4033,8 +4044,31 @@ function ExamReviewContent({ id }: { id: string }) {
                       const isChn = subjLc.includes("chinese") || (paperSubject ?? "").includes("华文") || (paperSubject ?? "").includes("中文") || (paperSubject ?? "").includes("华语");
                       if (!isEng && !isChn) return null;
                       const sub = getSubmissionPage(currentQ.pageIndex);
+                      const hasYBounds = currentQ.yStartPct != null && currentQ.yEndPct != null;
                       return (
                         <div className="mt-6 pt-5 border-t border-[#e5eeff]">
+                          {/* Admin-only: the exact slice the marker
+                              cropped for this question, so we can see
+                              what the MCQ / OEQ detector actually saw
+                              vs the full page below. Hidden from
+                              students/parents — they don't need the
+                              behind-the-scenes view. Renders even when
+                              x-bounds are null (full-width y-strip is
+                              still useful for Booklet A MCQ where the
+                              detector reads the rightmost margin). */}
+                          {sessionIsAdmin && hasYBounds && (
+                            <div className="mb-4">
+                              <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#ba1a1a] mb-2">
+                                Cropped slice (admin) — Q{currentQ.questionNum} · y {currentQ.yStartPct?.toFixed(1)}–{currentQ.yEndPct?.toFixed(1)}%{currentQ.xStartPct != null && currentQ.xEndPct != null ? ` · x ${currentQ.xStartPct.toFixed(1)}–${currentQ.xEndPct.toFixed(1)}%` : " · x full"}
+                              </p>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`/api/exam/${id}/question-crop?questionId=${currentQ.id}&b=${currentQ.xStartPct ?? "n"}_${currentQ.xEndPct ?? "n"}_${currentQ.yStartPct ?? "n"}_${currentQ.yEndPct ?? "n"}`}
+                                alt={`Marker crop for Q${currentQ.questionNum}`}
+                                className="w-full h-auto rounded-xl border border-[#ba1a1a]"
+                              />
+                            </div>
+                          )}
                           <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-3">
                             Scanned page — Q{currentQ.questionNum}
                           </p>

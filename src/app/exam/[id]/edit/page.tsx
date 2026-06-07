@@ -651,6 +651,37 @@ function ExamEditContent({ id }: { id: string }) {
         onFile={handlePdfLoad}
       />
 
+      {/* Problematic-question count banner. Same red/amber logic that
+          the per-card border uses (missing answer = red, missing page
+          = amber) — surfaced at the top so the user knows up front
+          how much manual cleanup is left without scrolling all
+          sections. Hidden when nothing is problematic, so happy-path
+          extractions don't get false alarm noise. English/Chinese only —
+          the inline (non-sectioned) Math/Sci layout has fewer issue
+          modes worth surfacing this way. */}
+      {isSectionedPaper && (() => {
+        const missingAnswer = paper.questions.filter(q => !q.answer || q.answer.trim() === "" || q.answer.trim() === "?").length;
+        const missingPage = paper.questions.filter(q => q.pageIndex == null).length;
+        const total = missingAnswer + missingPage;
+        if (total === 0) return null;
+        return (
+          <div className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 mb-5 flex items-center gap-3">
+            <span className="material-symbols-outlined text-red-600 shrink-0">error</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-red-700">
+                {total} question{total === 1 ? "" : "s"} seem{total === 1 ? "s" : ""} problematic
+              </p>
+              <p className="text-[11px] text-red-600 mt-0.5">
+                {missingAnswer > 0 && `${missingAnswer} missing answer${missingAnswer === 1 ? "" : "s"}`}
+                {missingAnswer > 0 && missingPage > 0 && " · "}
+                {missingPage > 0 && `${missingPage} missing page index`}
+                {" — scroll down to find the red/amber-bordered cards."}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Question cards — English uses section-based view. Also used for
           Synthetic Bank English papers, which don't carry sectionOcrTexts
           but still need the synthesis-aware question rendering. */}

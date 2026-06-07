@@ -144,7 +144,10 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "image/jpeg",
-      "Cache-Control": "private, max-age=60",
+      // No browser cache — bounds get backfilled/re-extracted during
+      // marking-quality investigation and the same URL has to render the
+      // new slice immediately, not the stale one from 60s ago.
+      "Cache-Control": "no-store, max-age=0",
     },
   });
 }

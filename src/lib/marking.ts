@@ -994,6 +994,7 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
   - Award 0 if meaning is changed, tense is wrong, or key words are missing.
   - The given word/phrase MUST be used in the rewritten sentence. If the student did not use the given word, award 0.
+  - APOSTROPHE-S TOLERANCE: When the given word/phrase contains an apostrophe + s (possessive form, e.g. "Nisa's", "the boy's", "the children's", "Mr Tan's"), accept the student's answer if the base name/word appears in the right slot even without the apostrophe-s. A handwritten "'s" is a small tick that the AI transcription routinely drops — penalising the student for what is almost always an OCR loss is wrong. Examples that PASS the keyword check: keyword "Nisa's" + student "Nisa" → accepted; keyword "the boy's bag" + student "the boy bag" → accepted (the apostrophe-s is treated as punctuation under rule above). The MEANING / structure of the rewrite must still be correct; this rule only relaxes the literal-presence test for the possessive marker itself.
   - SPELLING (this is a HANDWRITTEN scanned answer — every word is a deliberate spelling choice by the student). Synthesis is all-or-nothing — no partial marks. ANY misspelled word in the rewritten sentence = 0. Do this AFTER you have transcribed the student's writing exactly. Apply the same letter-by-letter handwriting reading discipline as (b) Editing — don't infer a correctly-spelled word from context, transcribe what the ink physically shows. Ignore punctuation mistakes (missing commas, full stops, missing/extra apostrophes, capitalisation in the middle of the sentence) for now — those don't affect the spelling check.
   - COMPOUND-WORD SPACING IS NOT A SPELLING ERROR. When the student writes a compound word as two separate words (e.g. "sales girl" instead of "salesgirl", "every day" instead of "everyday", "after noon" instead of "afternoon", "ice cream" instead of "icecream") OR the reverse (single word as two), accept it for the spelling check. The component letters are correct in the right order, only the spacing differs. This is a presentation choice that primary students legitimately get wrong both ways without it reflecting on their spelling knowledge. The strict letter-by-letter rule applies WITHIN each word, not to whether two words should fuse into one.
   - In notes when awarding 0 for spelling: state the misspelled word and the correct spelling. Example: "Misspelled 'recieved' (should be 'received') — 0 marks." Do NOT cite "sales girl vs salesgirl" or similar pure-spacing differences as the reason for 0.
@@ -1915,7 +1916,19 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           paper.questions.push(...created);
           console.log(`[marking] Rebuilt ${created.length} questions from master`);
         } else {
-          // Structure matches — just sync field values
+          // Structure matches — just sync field values.
+          // syllabusTopic + xStartPct/xEndPct were missing from this
+          // sync list, so when the master got re-tagged ("Grammar MCQ"
+          // / "Vocabulary MCQ") or x-bounds were backfilled, the clone
+          // stayed on its stale value. PSLE English 2025 clone had
+          // Q1-Q15 syllabusTopic still "Grammar Cloze" (the wrong
+          // bucket extraction picked), which made isClozeQuestion
+          // return true and routed every MCQ into the writtenQs / OEQ
+          // markBatch path — producing the "Working: (no working
+          // shown) / Final answer: (3)" multi-question text in
+          // studentAnswer instead of the digit-only MCQ detector
+          // output. Add all three so the structure-match path catches
+          // up on every re-mark.
           let syncCount = 0;
           for (let i = 0; i < paper.questions.length; i++) {
             const q = paper.questions[i];
@@ -1930,6 +1943,9 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             if (mq.pageIndex !== q.pageIndex) updates.pageIndex = mq.pageIndex;
             if (mq.yStartPct !== q.yStartPct) updates.yStartPct = mq.yStartPct;
             if (mq.yEndPct !== q.yEndPct) updates.yEndPct = mq.yEndPct;
+            if (mq.syllabusTopic !== q.syllabusTopic) updates.syllabusTopic = mq.syllabusTopic;
+            if (mq.xStartPct !== q.xStartPct) updates.xStartPct = mq.xStartPct;
+            if (mq.xEndPct !== q.xEndPct) updates.xEndPct = mq.xEndPct;
             if (Object.keys(updates).length > 0) {
               await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
               Object.assign(q, updates);
@@ -1975,6 +1991,36 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
     for (const q of paper.questions) {
       if (!byPage.has(q.pageIndex)) byPage.set(q.pageIndex, []);
       byPage.get(q.pageIndex)!.push(q);
+    }
+
+    // Y-bound overlap normalization for tightly-packed passage blanks.
+    // Extraction occasionally writes overlapping yStart/yEnd for adjacent
+    // Comp Cloze / Editing / Grammar Cloze blanks (~1-2% of paper height
+    // each pair). When the marker's bottom pad is added, the crop for
+    // blank N then spills into blank N+1's row and Gemini reads the
+    // wrong word — Q48 detected "without" (Q50's expected) and Q49
+    // detected "d much money to start" (multi-line bleed) on PSLE
+    // English 2025. Walk same-page x-bound questions in order; when
+    // q[i].yEnd > q[i+1].yStart, split the overlap at the midpoint so
+    // neither crop reaches into the other. Only applied when x-bounds
+    // are set on both — full-width OEQ crops have no neighbor problem
+    // because the entire page width is the same row anyway. In-memory
+    // patch only; DB rows are untouched.
+    for (const qs of byPage.values()) {
+      const xBounded = qs.filter(q =>
+        q.yStartPct != null && q.yEndPct != null &&
+        q.xStartPct != null && q.xEndPct != null
+      ).sort((a, b) => (a.yStartPct ?? 0) - (b.yStartPct ?? 0));
+      for (let i = 0; i + 1 < xBounded.length; i++) {
+        const a = xBounded[i];
+        const b = xBounded[i + 1];
+        if ((a.yEndPct ?? 0) > (b.yStartPct ?? 0)) {
+          const mid = ((a.yEndPct ?? 0) + (b.yStartPct ?? 0)) / 2;
+          console.log(`[marking] Y-overlap fix page ${a.pageIndex}: Q${a.questionNum}(${a.yStartPct?.toFixed(1)}-${a.yEndPct?.toFixed(1)}) ↔ Q${b.questionNum}(${b.yStartPct?.toFixed(1)}-${b.yEndPct?.toFixed(1)}) → split at ${mid.toFixed(1)}%`);
+          a.yEndPct = mid;
+          b.yStartPct = mid;
+        }
+      }
     }
 
     console.log(`[marking] Marking ${byPage.size} page(s) concurrently`);
