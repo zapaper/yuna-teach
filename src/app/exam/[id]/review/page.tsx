@@ -162,6 +162,15 @@ interface ReviewQuestion {
   imageData?: string;
   answerImageData?: string | null;
   syllabusTopic?: string | null;
+  // Bounds — the API merges these from master.questions on clone
+  // papers. Used by the admin crop-slice preview + the per-blank
+  // crop grid as a cachebuster so an updated bound value changes
+  // the image URL and the browser refetches instead of serving the
+  // old slice.
+  yStartPct?: number | null;
+  yEndPct?: number | null;
+  xStartPct?: number | null;
+  xEndPct?: number | null;
   // Master Class sub-topic tag (only present on mastery-quiz questions).
   // Used to group missed questions by sub-topic for the post-quiz
   // "review weak concepts" cards.
