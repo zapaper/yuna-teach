@@ -268,7 +268,16 @@ async function cropPageRegion(
   pageBuffer: Buffer,
   yStartPct: number,
   yEndPct: number,
-  label: string = ""
+  label: string = "",
+  // X-bounds are optional. Sections that have multiple blanks on the
+  // same line — Editing, Grammar Cloze, Comp Cloze — store per-question
+  // xStartPct/xEndPct during Normal Extract so the marker can crop to
+  // the exact word/blank instead of grabbing the whole line. Without
+  // these, two blanks on the same line get IDENTICAL crops and the AI
+  // has to guess which question's answer it's checking, producing
+  // false detections (the "into / placed" pair on PSLE English).
+  xStartPct: number | null = null,
+  xEndPct: number | null = null,
 ): Promise<Buffer> {
   const meta = await sharp(pageBuffer).metadata();
   const height = meta.height ?? 1;
@@ -280,11 +289,26 @@ async function cropPageRegion(
   const top = Math.max(0, Math.round((yStartPct / 100) * height - padTop));
   const bottom = Math.min(height, Math.round((yEndPct / 100) * height + padBottom));
   const cropHeight = Math.max(1, bottom - top);
+
+  // X-bounds: use when both are valid percentages with end > start.
+  // Add a small horizontal pad so a word touching the box edge isn't
+  // shaved off, but stay tight enough to give the AI single-blank
+  // context.
+  let left = 0;
+  let cropWidth = width;
+  if (xStartPct != null && xEndPct != null && Number.isFinite(xStartPct) && Number.isFinite(xEndPct) && xEndPct > xStartPct) {
+    const padX = width * 0.01;
+    left = Math.max(0, Math.round((xStartPct / 100) * width - padX));
+    const right = Math.min(width, Math.round((xEndPct / 100) * width + padX));
+    cropWidth = Math.max(1, right - left);
+  }
+
   const cropped = await sharp(pageBuffer)
-    .extract({ left: 0, top, width, height: cropHeight })
+    .extract({ left, top, width: cropWidth, height: cropHeight })
     .jpeg()
     .toBuffer();
-  console.log(`[marking] CROP ${label}: original ${width}x${height}, yStart=${yStartPct}% yEnd=${yEndPct}% padTop=${(padTop/height*100).toFixed(1)}% padBottom=${(padBottom/height*100).toFixed(1)}% → top=${top}px bottom=${bottom}px cropH=${cropHeight}px, size=${cropped.length}b`);
+  const xTag = (xStartPct != null && xEndPct != null) ? ` xStart=${xStartPct}% xEnd=${xEndPct}%` : "";
+  console.log(`[marking] CROP ${label}: original ${width}x${height}, yStart=${yStartPct}% yEnd=${yEndPct}%${xTag} padTop=${(padTop/height*100).toFixed(1)}% padBottom=${(padBottom/height*100).toFixed(1)}% → left=${left}px top=${top}px cropW=${cropWidth}px cropH=${cropHeight}px, size=${cropped.length}b`);
   return cropped;
 }
 
@@ -1610,7 +1634,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     // Crop to question region to prevent adjacent questions bleeding in
     const hasBounds = question.yStartPct != null && question.yEndPct != null;
     const mcqImageBuffer = hasBounds
-      ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle MCQ Q${question.questionNum}`)
+      ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle MCQ Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null)
       : pageBuffer;
     const pageBase64 = mcqImageBuffer.toString("base64");
     const qForDetect = hasBounds ? { ...question, yStartPct: 0, yEndPct: 100 } : question;
@@ -1668,7 +1692,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     && question.yStartPct != null && question.yEndPct != null;
   console.log(`[marking] remarkSingle Q${question.questionNum}: subject="${paper.subject}", answer="${question.answer}", isWritten=${isWrittenQuestion(question.answer)}, hasBounds=${question.yStartPct != null && question.yEndPct != null}, useCrop=${useCrop}`);
   const imageBuffer = useCrop
-    ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle Q${question.questionNum}`)
+    ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null)
     : pageBuffer;
   const pageBase64 = imageBuffer.toString("base64");
   console.log(`[marking] remarkSingle Q${question.questionNum}: sending image ${imageBuffer.length} bytes (original ${pageBuffer.length} bytes, cropped=${useCrop})`);
@@ -2069,7 +2093,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               const isChineseCloze = topic.includes("短文填空") || topic.includes("完成对话") || topic.includes("对话填空");
               const isTightCloze = topic.includes("完成对话") || topic.includes("对话填空");
               const imageBuffer = hasBounds
-                ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`)
+                ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
                 : pageBuffer;
               const imageBase64 = imageBuffer.toString("base64");
               const qForDetect = hasBounds ? { ...q, yStartPct: 0, yEndPct: 100 } : q;
@@ -2082,7 +2106,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               if (!studentAnswer && isTightCloze && hasBounds) {
                 const yStartPad = Math.max(0, q.yStartPct! - 3);
                 const yEndPad = Math.min(100, q.yEndPct! + 3);
-                const padded = await cropPageRegion(pageBuffer, yStartPad, yEndPad, `MCQ page ${pageIndex} Q${q.questionNum} +3%`);
+                const padded = await cropPageRegion(pageBuffer, yStartPad, yEndPad, `MCQ page ${pageIndex} Q${q.questionNum} +3%`, q.xStartPct ?? null, q.xEndPct ?? null);
                 console.log(`[marking] MCQ Q${q.questionNum}: 完成对话 first pass null — retry with bounds expanded 3% (${yStartPad.toFixed(1)}% → ${yEndPad.toFixed(1)}%)`);
                 detected = await detectMcqAnswers(padded.toString("base64"), [qForDetect], `page ${pageIndex} Q${q.questionNum} retry +3%`, 0.3, new Set(), isChineseCloze);
                 studentAnswer = detected.get(q.id) ?? null;
@@ -2126,7 +2150,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           const croppedResults = await Promise.all(
             writtenQs.map(async (q) => {
               try {
-                const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`);
+                const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
                 const croppedBase64 = cropped.toString("base64");
 
                 // Step 1: Pre-check for blue ink
@@ -2231,7 +2255,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             && q.yStartPct != null && q.yEndPct != null;
           console.log(`[marking] Retry Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
-            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`)
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
             : pageBuffer;
           const pageBase64 = imageBuffer.toString("base64");
 
@@ -2359,7 +2383,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             && q.yStartPct != null && q.yEndPct != null;
           console.log(`[marking] Verify Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
-            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `verify Q${q.questionNum}`)
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `verify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
             : pageBuffer;
           const pageBase64 = imageBuffer.toString("base64");
 
@@ -2477,7 +2501,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           }
 
           // Crop to the question's region for a closer look
-          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`);
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
           const pageBase64 = imageBuffer.toString("base64");
           const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
 
@@ -2585,7 +2609,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           let pageBuffer: Buffer;
           try { pageBuffer = await fs.readFile(pagePath); }
           catch { return null; }
-          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `mcqVerify Q${q.questionNum}`);
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `mcqVerify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
           const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
           const detected = await detectMcqAnswers(
             imageBuffer.toString("base64"),
