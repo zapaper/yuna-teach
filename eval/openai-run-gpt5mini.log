@@ -1,0 +1,75 @@
+Eval: 9 paper(s), tolerance ±0.5 mark per question, cleanup=true
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter ... fetched=39 cloned=cmpufpagp0… marked. 8/10 FAIL (total 18 vs 20.5)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry ... fetched=19 cloned=cmpufptgw0… marked. 5/10 FAIL (total 8 vs 17)
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1 ... fetched=46 cloned=cmpufq2r30… marked. 13/16 FAIL (total 30.5 vs 37)
+
+[cmpffd3wu000i1032c8w0t5pm] P6 Grammar MCQ+ ... fetched=0 cloned=cmpufqhf40… marked. 27/27 PASS (total 25 vs 25)
+
+[cmp0z7a390001ypkf6juin4qb] P6 Editing+ ... fetched=0 cloned=cmpufqk9c0… marked. 27/27 PASS (total 32 vs 32)
+
+[cmozc5icr000d11l735uqp939] P6 Focused: Fractions ... fetched=21 cloned=cmpufqmxm0… marked. 7/10 FAIL (total 9 vs 14.5)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry ... fetched=19 cloned=cmpufr28h0… marked. 6/10 FAIL (total 10 vs 19)
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio ... fetched=19 cloned=cmpufrbop0… marked. 5/10 FAIL (total 8 vs 18)
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems ... fetched=39 cloned=cmpufs1ge0… marked. 5/10 FAIL (total 0 vs 13)
+
+=== DIFFS ===
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter
+  8/10 match, total 18 vs 20.5 expected
+  Q6: expected 2, got 1 (Δ-1)
+  Q9: expected 2, got 1 (Δ-1)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry
+  5/10 match, total 8 vs 17 expected
+  Q6: expected 1, got 0 (Δ-1)
+  Q7: expected 2, got 0 (Δ-2)
+  Q8: expected 2, got 0 (Δ-2)
+  Q9: expected 2, got 0 (Δ-2)
+  Q10: expected 2, got 0 (Δ-2)
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1
+  13/16 match, total 30.5 vs 37 expected
+  Q11: expected 4, got 3 (Δ-1)
+  Q12: expected 3, got 0 (Δ-3)
+  Q15: expected 3, got 0 (Δ-3)
+
+[cmozc5icr000d11l735uqp939] P6 Focused: Fractions
+  7/10 match, total 9 vs 14.5 expected
+  Q6: expected 2, got 0 (Δ-2)
+  Q8: expected 1, got 0 (Δ-1)
+  Q10: expected 2, got 0 (Δ-2)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry
+  6/10 match, total 10 vs 19 expected
+  Q6: expected 3, got 0 (Δ-3)
+  Q8: expected 2, got 0 (Δ-2)
+  Q9: expected 2, got 0 (Δ-2)
+  Q10: expected 2, got 0 (Δ-2)
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio
+  5/10 match, total 8 vs 18 expected
+  Q6: expected 2, got 0 (Δ-2)
+  Q7: expected 2, got 0 (Δ-2)
+  Q8: expected 4, got 0 (Δ-4)
+  Q9: expected 1, got 0 (Δ-1)
+  Q10: expected 1, got 0 (Δ-1)
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems
+  5/10 match, total 0 vs 13 expected
+  Q6: expected 3, got 0 (Δ-3)
+  Q7: expected 4, got 0 (Δ-4)
+  Q8: expected 2, got 0 (Δ-2)
+  Q9: expected 1, got 0 (Δ-1)
+  Q10: expected 3, got 0 (Δ-3)
+
+=== SUMMARY ===
+Papers: 2/9 pass
+Questions: 103/130 match within ±0.5 (79.2%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

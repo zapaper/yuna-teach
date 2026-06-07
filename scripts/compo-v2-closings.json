@@ -1,0 +1,666 @@
+{
+  "perMoral": [
+    {
+      "moralNameCn": "安全意识",
+      "closingPhrases": [
+        {
+          "cn": "经过这次教训，我再也不敢做危险的事了。",
+          "en": "After this lesson, I will never dare to do dangerous things again."
+        },
+        {
+          "cn": "碰到紧急情况时不要慌乱，要冷静处理问题。",
+          "en": "When encountering an emergency, do not panic; handle the problem calmly."
+        },
+        {
+          "cn": "做任何事之前要想后果，千万不要像我一样。",
+          "en": "Think about the consequences before acting, and never make the same mistake as I did."
+        },
+        {
+          "cn": "好好保管个人物品，以免类似事件再次发生。",
+          "en": "Take good care of personal belongings to prevent similar incidents from happening again."
+        },
+        {
+          "cn": "如果不注意安全，后果将不堪设想。",
+          "en": "If one does not pay attention to safety, the consequences will be unimaginable."
+        },
+        {
+          "cn": "为自己的顽皮和自作主张付出了惨重的代价。",
+          "en": "I paid a heavy price for my naughtiness and acting on my own."
+        },
+        {
+          "cn": "后悔莫及，可是这世上哪有后悔药吃呢？",
+          "en": "It is too late for regrets, for there is no medicine for regret in this world."
+        },
+        {
+          "cn": "走在路上千万不能玩手机，一定要注意安全。",
+          "en": "Never play with your phone while walking on the road; always pay attention to safety."
+        },
+        {
+          "cn": "以后我们都要小心点才是。",
+          "en": "We must be more careful in the future."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "不可粗心大意",
+      "closingPhrases": [
+        {
+          "cn": "经过这次教训，我再也不敢粗心大意了",
+          "en": "After this lesson, I will never dare to be careless again"
+        },
+        {
+          "cn": "提醒自己做事要小心，以免类似事件再次发生",
+          "en": "I remind myself to be careful to prevent similar incidents from happening again"
+        },
+        {
+          "cn": "做事绝对不能粗心大意，否则后果不堪设想",
+          "en": "One must never be careless, otherwise the consequences would be unimaginable"
+        },
+        {
+          "cn": "我明白了做事必须仔细，绝对不能马虎",
+          "en": "I have learned that one must be careful and absolutely not sloppy"
+        },
+        {
+          "cn": "粗心大意只会给自己带来不必要的麻烦",
+          "en": "Carelessness will only bring unnecessary trouble to oneself"
+        },
+        {
+          "cn": "我下定决心，一定要改掉粗心大意的坏毛病",
+          "en": "I am determined to get rid of the bad habit of being careless"
+        },
+        {
+          "cn": "千万不能因为一时的疏忽而酿成大错",
+          "en": "One must never make a huge mistake due to a moment of negligence"
+        },
+        {
+          "cn": "这件事给我敲响警钟，提醒我做事要谨慎",
+          "en": "This incident sounded an alarm for me, reminding me to be cautious"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "感恩",
+      "closingPhrases": [
+        {
+          "cn": "有些人、有些事，是值得我由衷感谢的。",
+          "en": "There are people and things in my life that are worthy of my heartfelt gratitude."
+        },
+        {
+          "cn": "我打从心眼里感激他的热情相助。",
+          "en": "I am grateful from the bottom of my heart for his enthusiastic help."
+        },
+        {
+          "cn": "回想起那天的点点滴滴，我的内心充满感激。",
+          "en": "Looking back at the little details of that day, my heart is filled with gratitude."
+        },
+        {
+          "cn": "朋友的关心如同黑夜里的一盏灯。",
+          "en": "A friend's care is like a guiding light in the dark night."
+        },
+        {
+          "cn": "愿我们的友谊能够地久天长。",
+          "en": "May our friendship last forever."
+        },
+        {
+          "cn": "真正的友谊就是在困难时刻互相支持。",
+          "en": "True friendship is about supporting each other during difficult times."
+        },
+        {
+          "cn": "这份礼物包含着长辈对我的关爱与栽培。",
+          "en": "This gift contains the love and nurturing from my elders."
+        },
+        {
+          "cn": "我的心涌出了阵阵暖意。",
+          "en": "Waves of warmth welled up in my heart."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "团结合作",
+      "closingPhrases": [
+        {
+          "cn": "俗话说：“人心齐，泰山移。”",
+          "en": "As the saying goes, \"When people are united, they can move mountains.\""
+        },
+        {
+          "cn": "俗话说：“人多力量大。”",
+          "en": "As the saying goes, \"There is strength in numbers.\""
+        },
+        {
+          "cn": "只有合作才能把事情做好。",
+          "en": "Only through cooperation can we do things well."
+        },
+        {
+          "cn": "互相合作，各尽其职，才能成功。",
+          "en": "Success comes only when we cooperate and each do our part."
+        },
+        {
+          "cn": "经过这次教训，我明白了合作的重要性。",
+          "en": "Through this lesson, I learned the importance of teamwork."
+        },
+        {
+          "cn": "在困难时刻互相支持，共同面对挑战。",
+          "en": "Support each other in difficult times and face challenges together."
+        },
+        {
+          "cn": "大家互相配合，努力让结果更加完美。",
+          "en": "By cooperating with one another, we strive to make the outcome perfect."
+        },
+        {
+          "cn": "只要齐心协力，就能克服一切困难。",
+          "en": "As long as we work together, we can overcome any difficulty."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "友谊珍贵",
+      "closingPhrases": [
+        {
+          "cn": "我为有这样的好朋友而感到庆幸！",
+          "en": "I feel so fortunate to have such a good friend!"
+        },
+        {
+          "cn": "愿我们的友谊万古长青！",
+          "en": "May our friendship remain evergreen!"
+        },
+        {
+          "cn": "我打从心眼里感激他的热情相助。",
+          "en": "I am grateful from the bottom of my heart for his warm help."
+        },
+        {
+          "cn": "朋友的关心如同黑夜里的一盏灯。",
+          "en": "A friend's care is like a guiding light in the dark night."
+        },
+        {
+          "cn": "愿我们的友谊能够地久天长。",
+          "en": "May our friendship last forever."
+        },
+        {
+          "cn": "回想起那天的点点滴滴，内心充满感激。",
+          "en": "Looking back at the little things from that day, my heart is filled with gratitude."
+        },
+        {
+          "cn": "这件事让我更加了解我的朋友。",
+          "en": "This incident allowed me to understand my friend better."
+        },
+        {
+          "cn": "感谢朋友在我烦恼时适时给我鼓励。",
+          "en": "I thank my friend for giving me timely encouragement when I was feeling troubled."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "遵守规则",
+      "closingPhrases": [
+        {
+          "cn": "那是一个令人难忘的教训。",
+          "en": "That was an unforgettable lesson."
+        },
+        {
+          "cn": "我为自己的自作主张付出了惨重的代价。",
+          "en": "I paid a heavy price for acting on my own without permission."
+        },
+        {
+          "cn": "我后悔莫及，可是世上哪有后悔药吃呢？",
+          "en": "I regretted it deeply, but there is no cure for regret in this world."
+        },
+        {
+          "cn": "我们在做任何事之前要想后果。",
+          "en": "We must think about the consequences before doing anything."
+        },
+        {
+          "cn": "我低头认错，承诺再也不调皮恶作剧了。",
+          "en": "I bowed my head to admit my mistake and promised never to play pranks again."
+        },
+        {
+          "cn": "这件事让我明白了遵守规则的重要性。",
+          "en": "This incident made me understand the importance of following rules."
+        },
+        {
+          "cn": "我明白了注意言行举止的重要性。",
+          "en": "I understood the importance of minding my words and actions."
+        },
+        {
+          "cn": "我们必须听从指示，不能擅自行动。",
+          "en": "We must follow instructions and not act without permission."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "自私的代价",
+      "closingPhrases": [
+        {
+          "cn": "只顾自己的利益，不为他人考虑就是自私。",
+          "en": "Only caring about one's own interests without considering others is selfishness."
+        },
+        {
+          "cn": "自私的行为是十分要不得的。",
+          "en": "Selfish behavior is highly unacceptable."
+        },
+        {
+          "cn": "我完全没有从自私中得到任何好处。",
+          "en": "I did not gain any benefit from being selfish at all."
+        },
+        {
+          "cn": "自私实在要不得，我以后要多多为别人着想。",
+          "en": "Selfishness is truly unacceptable; I must be more considerate of others in the future."
+        },
+        {
+          "cn": "经过这件事，我决心以后多多为他人着想。",
+          "en": "After this incident, I am determined to be more considerate of others from now on."
+        },
+        {
+          "cn": "原来这一切不良后果，都是自私造成的。",
+          "en": "It turns out that all these bad consequences were caused by selfishness."
+        },
+        {
+          "cn": "自私不仅损人不利己，还会破坏朋友间的情谊。",
+          "en": "Selfishness not only harms others without benefiting oneself, but also destroys friendships."
+        },
+        {
+          "cn": "珍惜物品固然重要，但学会分享更是一种成长。",
+          "en": "While cherishing our belongings is important, learning to share is a form of growth."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "助人为乐",
+      "closingPhrases": [
+        {
+          "cn": "用自己的双手传递了爱心",
+          "en": "Spread love and kindness with one's own hands"
+        },
+        {
+          "cn": "用心做一件有意义的小事，也能带来温暖",
+          "en": "Doing a small, meaningful thing with your heart can also bring warmth to others"
+        },
+        {
+          "cn": "用真心去关心别人",
+          "en": "Care for others with a sincere heart"
+        },
+        {
+          "cn": "在努力与善良中闪闪发光",
+          "en": "Shine brightly through hard work and kindness"
+        },
+        {
+          "cn": "我的心里充满幸福",
+          "en": "My heart is filled with happiness"
+        },
+        {
+          "cn": "防人之心不可无，害人之心不可有",
+          "en": "One should be cautious, but never harbor intentions to harm others"
+        },
+        {
+          "cn": "不要总把别人往坏的地方想",
+          "en": "Do not always think the worst of others"
+        },
+        {
+          "cn": "努力就有回报",
+          "en": "Hard work pays off"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "珍惜拥有",
+      "closingPhrases": [
+        {
+          "cn": "我会好好珍惜这份无比珍贵的礼物。",
+          "en": "I will carefully cherish this incredibly precious gift."
+        },
+        {
+          "cn": "它成了我最珍惜的宝贝，我会好好收藏。",
+          "en": "It has become my most cherished treasure, and I will keep it safe."
+        },
+        {
+          "cn": "它记录了珍贵的时刻，我会好好珍惜它。",
+          "en": "It records precious moments, and I will cherish it well."
+        },
+        {
+          "cn": "我们要小心保管自己的物品，不要弄坏。",
+          "en": "We must take good care of our belongings and not damage them."
+        },
+        {
+          "cn": "珍惜自己的东西固然重要，也要学会分享。",
+          "en": "While cherishing our own belongings is important, we must also learn to share."
+        },
+        {
+          "cn": "借别人的东西时要小心，好好保管。",
+          "en": "When borrowing from others, we must be careful and take good care of the items."
+        },
+        {
+          "cn": "我把它像宝贝一样带在身边，好好保护它。",
+          "en": "I keep it by my side like a treasure and protect it well."
+        },
+        {
+          "cn": "这不仅是一件物品，更包含着家人的关爱。",
+          "en": "This is not just an object; it also contains the love of my family."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "关爱他人",
+      "closingPhrases": [
+        {
+          "cn": "真正的友谊就是在困难时刻互相支持",
+          "en": "True friendship is supporting each other in times of difficulty"
+        },
+        {
+          "cn": "我们的友谊因这次经历变得更加深厚",
+          "en": "Our friendship grew deeper because of this experience"
+        },
+        {
+          "cn": "共同走过每一个挑战",
+          "en": "Overcoming every challenge together"
+        },
+        {
+          "cn": "在我悲观烦恼时适时给我鼓励",
+          "en": "Giving me timely encouragement when I am sad and troubled"
+        },
+        {
+          "cn": "我为有这样的好朋友而感到庆幸",
+          "en": "I feel fortunate to have such a good friend"
+        },
+        {
+          "cn": "愿我们的友谊万古长青",
+          "en": "May our friendship last forever"
+        },
+        {
+          "cn": "朋友们一直在支持着我",
+          "en": "My friends have always been supporting me"
+        },
+        {
+          "cn": "通情达理、善解人意",
+          "en": "Reasonable and understanding of others' feelings"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "体谅他人",
+      "closingPhrases": [
+        {
+          "cn": "决心以后多多为他人着想",
+          "en": "Determined to be more considerate of others from now on"
+        },
+        {
+          "cn": "只顾自己的利益，不为他人考虑",
+          "en": "Only caring about one's own interests and not considering others"
+        },
+        {
+          "cn": "自私的行为是十分要不得的",
+          "en": "Selfish behavior is highly unacceptable"
+        },
+        {
+          "cn": "时刻提醒自己多多为别人着想",
+          "en": "Always remind myself to think more of others"
+        },
+        {
+          "cn": "原来这一切都是自私造成的",
+          "en": "It turns out that all of this was caused by selfishness"
+        },
+        {
+          "cn": "完全没有从自私中得到任何好处",
+          "en": "Did not gain any benefit from being selfish at all"
+        },
+        {
+          "cn": "所谓“吃一堑，长一智”",
+          "en": "As the saying goes, 'Learn from one's mistakes'"
+        },
+        {
+          "cn": "经过这次教训后，我再也不敢了",
+          "en": "After this lesson, I will never dare to do it again"
+        },
+        {
+          "cn": "如果不注意安全，后果不堪设想",
+          "en": "If one does not pay attention to safety, the consequences would be disastrous"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "勇敢",
+      "closingPhrases": [
+        {
+          "cn": "无论做什么事情都要勇敢地跨出第一步",
+          "en": "No matter what we do, we must bravely take the first step."
+        },
+        {
+          "cn": "勇敢地跨出第一步，才能有所收获",
+          "en": "Only by bravely taking the first step can we reap the rewards."
+        },
+        {
+          "cn": "如果畏首畏尾，举步不前，终将一事无成",
+          "en": "If we are timid and hesitate to move forward, we will achieve nothing."
+        },
+        {
+          "cn": "经过这件事，我不再胆小怕事",
+          "en": "After this incident, I am no longer timid and fearful."
+        },
+        {
+          "cn": "只要鼓起勇气，就会发现事情没那么可怕",
+          "en": "As long as we gather our courage, we will find that things are not as scary as they seem."
+        },
+        {
+          "cn": "克服内心的恐惧，勇敢面对挑战",
+          "en": "Overcome inner fears and bravely face challenges."
+        },
+        {
+          "cn": "遇到困难时，我们要鼓起勇气去面对",
+          "en": "When encountering difficulties, we must gather our courage to face them."
+        },
+        {
+          "cn": "只要勇敢尝试，就会有意想不到的收获",
+          "en": "As long as we bravely give it a try, we will have unexpected gains."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "明辨是非",
+      "closingPhrases": [
+        {
+          "cn": "我很庆幸做了一个正确的决定。",
+          "en": "I am very glad that I made the right decision."
+        },
+        {
+          "cn": "每一个决定，将带领我们走向不同的结果。",
+          "en": "Every decision will lead us to a different outcome."
+        },
+        {
+          "cn": "勿以善小而不为，勿以恶小而为之。",
+          "en": "Do not commit a bad deed because it is small, nor ignore a good deed because it is minor."
+        },
+        {
+          "cn": "对每一个决定我们都应该三思而后行。",
+          "en": "We should think twice before making every decision."
+        },
+        {
+          "cn": "时刻拿道德这把尺来衡量。",
+          "en": "Always use morality as a ruler to measure our actions."
+        },
+        {
+          "cn": "心里如释重负，因为我做了正确的决定。",
+          "en": "I felt a sense of relief because I made the right decision."
+        },
+        {
+          "cn": "站在十字路口前，我们要做出正确的选择。",
+          "en": "Standing at the crossroads of life, we must make the right choice."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "耐心",
+      "closingPhrases": [
+        {
+          "cn": "只要有耐心，就有成功的机会。",
+          "en": "As long as we have patience, we will have a chance to succeed."
+        },
+        {
+          "cn": "做事不能急于求成。",
+          "en": "We must not rush for quick results when doing things."
+        },
+        {
+          "cn": "耐心是我这次最大的收获。",
+          "en": "Patience is my greatest takeaway from this experience."
+        },
+        {
+          "cn": "做任何事都是对耐心和坚持的考验。",
+          "en": "Doing anything is a test of our patience and perseverance."
+        },
+        {
+          "cn": "经过这件事，我学会了耐心等待。",
+          "en": "Through this incident, I learned how to wait patiently."
+        },
+        {
+          "cn": "凡事不能心急，必须耐心地去做。",
+          "en": "We cannot be impatient; we must do things patiently."
+        },
+        {
+          "cn": "欲速则不达，做事不能急于求成。",
+          "en": "Haste makes waste; we must not rush for success."
+        }
+      ]
+    },
+    {
+      "moralNameCn": "言而有信",
+      "closingPhrases": [
+        {
+          "cn": "答应别人的事必须做到",
+          "en": "One must always do what they have promised others"
+        },
+        {
+          "cn": "言而无信会辜负朋友的信任",
+          "en": "Breaking a promise will let down a friend's trust"
+        },
+        {
+          "cn": "答应别人的事一定要认真对待",
+          "en": "Promises made to others must be taken seriously"
+        },
+        {
+          "cn": "所谓“一言既出，驷马难追”",
+          "en": "As the saying goes, a promise made is a promise kept"
+        },
+        {
+          "cn": "坦诚相待才能保持彼此的信任",
+          "en": "Only by being honest can we maintain mutual trust"
+        },
+        {
+          "cn": "答应别人之前，要仔细考虑",
+          "en": "Before making a promise, one must consider it carefully"
+        },
+        {
+          "cn": "做不到的事，要坦诚地告诉对方",
+          "en": "If you cannot keep a promise, you should tell the other person honestly"
+        },
+        {
+          "cn": "守信用才能让朋友感受到诚意",
+          "en": "Keeping your word lets friends feel your sincerity"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "坚持",
+      "closingPhrases": [
+        {
+          "cn": "这次经历让我学会了坚持",
+          "en": "This experience taught me perseverance"
+        },
+        {
+          "cn": "失败了没关系，再试一次就好了",
+          "en": "It doesn't matter if you fail, just try again"
+        },
+        {
+          "cn": "咬咬牙，决定坚持下去",
+          "en": "Grit your teeth and decide to keep going"
+        },
+        {
+          "cn": "真切地体会到努力就有回报",
+          "en": "Truly realize that hard work pays off"
+        },
+        {
+          "cn": "努力就有回报的喜悦",
+          "en": "The joy of knowing that hard work pays off"
+        },
+        {
+          "cn": "让自己在努力与善良中闪闪发光",
+          "en": "Let yourself shine through hard work and kindness"
+        },
+        {
+          "cn": "心里充满成就感",
+          "en": "Heart filled with a sense of achievement"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "乐于分享",
+      "closingPhrases": [
+        {
+          "cn": "珍惜自己的东西固然重要",
+          "en": "Cherishing one's own belongings is indeed important"
+        },
+        {
+          "cn": "学会与朋友沟通和分享更是一种成长",
+          "en": "Learning to communicate and share with friends is a form of personal growth"
+        },
+        {
+          "cn": "经历这场风波后，我收获了友情",
+          "en": "After this incident, I gained true friendship"
+        },
+        {
+          "cn": "我也学会了冷静处理问题",
+          "en": "I also learned to handle problems calmly"
+        },
+        {
+          "cn": "友谊并没有因此破坏",
+          "en": "Our friendship was not ruined because of this"
+        },
+        {
+          "cn": "向别人借东西时要小心，好好保管",
+          "en": "When borrowing from others, be careful and take good care of the items"
+        },
+        {
+          "cn": "没得到允许就偷拿是不诚实的行为",
+          "en": "Taking things secretly without permission is a dishonest act"
+        },
+        {
+          "cn": "我心里的委屈也渐渐消散",
+          "en": "The grievance in my heart gradually faded away"
+        }
+      ]
+    },
+    {
+      "moralNameCn": "恶作剧的后果",
+      "closingPhrases": [
+        {
+          "cn": "这次的经历让我获益良多",
+          "en": "This experience has benefited me a lot"
+        },
+        {
+          "cn": "我明白了遵守规则的重要性",
+          "en": "I understood the importance of following rules"
+        },
+        {
+          "cn": "我明白了注意言行举止的重要性",
+          "en": "I understood the importance of minding my behavior"
+        },
+        {
+          "cn": "我承诺再也不调皮恶作剧了",
+          "en": "I promised never to be mischievous and play pranks again"
+        },
+        {
+          "cn": "经过这次教训，我再也不敢恶作剧了",
+          "en": "After this lesson, I dare not play pranks anymore"
+        },
+        {
+          "cn": "调皮捣蛋会带来意想不到的麻烦",
+          "en": "Being mischievous will bring unexpected trouble"
+        },
+        {
+          "cn": "恶作剧最终只会让自己受到惩罚",
+          "en": "Playing pranks will ultimately only get yourself punished"
+        },
+        {
+          "cn": "犯了错就要勇于认错并承担后果",
+          "en": "When we make mistakes, we must be brave enough to admit them and bear the consequences"
+        }
+      ]
+    }
+  ]
+}

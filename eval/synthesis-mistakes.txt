@@ -1,0 +1,362 @@
+585 marked synthesis questions in visible papers; 384 had marks lost.
+
+
+============================================================
+uncategorised  (112 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: The boy heard a loud noise. He quickly looked up. **Hearing a** ________________________________
+  EXPECTED: Hearing a loud noise, the boy quickly looked up.
+  STUDENT:  loud noise,the boy looked up
+  NOTES:    The word 'quickly' was omitted, which changes the meaning from the original sentence.
+
+  -- 0/2 marks
+  STEM: All the children were pleased with their gifts. Linda was not pleased with her gift. ____________________ **except** ____________________
+  EXPECTED: All the children except Linda were pleased with their gifts.
+  STUDENT:  All the children were pleased with their gifts|||for linda
+  NOTES:    Capitalisation error: 'linda' should be 'Linda' (proper noun).
+
+  -- 1.5/2 marks
+  STEM: Ahmad did not complete his homework. He watched the World Cup Final on television. ⏎ **Instead of** ________________________________ ⏎ ________________________________
+  EXPECTED: Instead of completing his homework, Ahmad watched the World Cup Final on television.
+  STUDENT:  finishing his homework, Ahmad watched the World Cup Final on television.
+  NOTES:    Deducted 0.5 marks for using 'finishing' instead of 'completing'. The answer must use the exact words from the expected answer.
+
+  -- 0/2 marks
+  STEM: All the students completed their homework. Sarah did not complete her homework. ⏎ ________________________________ **except** ________________________________
+  EXPECTED: All the students except Sarah completed their homework.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: The guests arrived early. Mr Phua panicked. ⏎ **With the early** ________________________________ ⏎ ________________________________
+  EXPECTED: With the early arrival of the guests, Mr Phua panicked.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 0/2 marks
+  STEM: ________________________________ **upon** ⏎ ________________________________
+  EXPECTED: My brother jumped for joy upon winning the competition.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+============================================================
+reported-speech  (100 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: "Have you completed your project?" the student asked Tom. **the student wanted to know** ________________________________
+  EXPECTED: the student wanted to know if Tom had completed his project.
+  STUDENT:  if they had completed their project
+  NOTES:    The pronoun 'they' changes the meaning. It should refer to Tom (e.g., 'if Tom had completed his project' or 'if he had completed his project').
+
+  -- 0/2 marks
+  STEM: "Did you see the new movie last night?" my friend asked me. **My friend asked me** ________________________________ ⏎ ________________________________
+  EXPECTED: My friend asked me if I had seen the new movie the previous night.
+  STUDENT:  if i saw the new movie the night before
+  NOTES:    Incorrect tense: 'saw' should be 'had seen'. Also, 'i' should be capitalized as 'I'.
+
+  -- 0/2 marks
+  STEM: "Are you going to the library today?" the student asked his sister. **the student asked his sister** ________________________________
+  EXPECTED: the student asked his sister if she was going to the library that day.
+  STUDENT:  If she was going to the library that day
+  NOTES:    Incorrect capitalization of 'if'.
+
+  -- 1.5/2 marks
+  STEM: "Did you go to the supermarket yesterday?" the student asked her mother. ⏎ **the student asked** ________________________________ ⏎ ________________________________
+  EXPECTED: the student asked her mother if she had gone to the supermarket the previous day.
+  STUDENT:  her mother if she had gone to the supermarket the day before.
+  NOTES:    Deducted 0.5 marks for using 'the day before' instead of 'the previous day', which is a synonym and not the exact word from the expected answer.
+
+  -- 0/2 marks
+  STEM: the student asked me ________________________________ ⏎ ________________________________
+  EXPECTED: the student asked me where I would be travelling to in December.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 0/2 marks
+  STEM: "Did you take the book from this shelf?" the student asked me. **the student asked** ____________________ ⏎ ____________________
+  EXPECTED: the student asked if I had taken the book from that shelf.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+============================================================
+preference  (41 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: Alice does not enjoy watching TV. She prefers reading books. ________________________________ **would rather** ________________________________
+  EXPECTED: Alice would rather read books than watch TV.
+  STUDENT:  Alice|||read a book than watch TV
+  NOTES:    The meaning is slightly changed. The original sentence states Alice prefers 'reading books' (plural, indicating a general activity). Your answer uses 'read a book' (singular), which implies a preference for reading one s
+
+  -- 1/2 marks
+  STEM: My grandparents prefer visiting local attractions to travelling overseas. ⏎ ________________________________ ⏎ **preference** ⏎ ________________________________
+  EXPECTED: My grandparents have a preference for visiting local attractions over travelling overseas.
+  STUDENT:  My grandparents|||is visiting local attractions to travelling overseas.
+  NOTES:    Grammar error: Incorrect use of 'preference' (should be 'have a preference for' or 'grandparents' preference is'). Grammar error: Incorrect preposition 'to' instead of 'over' when comparing preferences.
+
+  -- 0/2 marks
+  STEM: The students did not choose to stay in the classroom during recess. They chose to play basketball in the court. ________________________________ **would rather** _________________
+  EXPECTED: The students would rather play basketball in the court than stay in the classroom during recess.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: ________________________________ **prefers** ⏎ ________________________________
+  EXPECTED: Daisy prefers eating a banana cake to drinking strawberry milk.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 1.5/2 marks
+  STEM: Rani enjoys cycling. She does not enjoy swimming. ____________________ ⏎ **would rather** ⏎ ____________________
+  EXPECTED: Rani would rather cycle than swim.
+  STUDENT:  Rami|||cycle than swim.
+  NOTES:    Spelling error: 'Rami' should be 'Rani'.
+
+  -- 0/2 marks
+  STEM: The students do not want to attend the optional workshop. They prefer to have extra recess time. ⏎ ________________________________ **would rather** ________________________________
+  EXPECTED: The students would rather have extra recess time than attend the optional workshop.
+  STUDENT:  The students|||have extra recess time than to attend the optional workshop.
+  NOTES:    The phrase 'than to attend' should be 'than attend' after 'would rather'.
+
+============================================================
+relative-clause  (34 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: My mother bought a new blender. It can make fruit juices very quickly. ________________________________**which** ________________________________
+  EXPECTED: My mother bought a new blender which can make fruit juices very quickly.
+  STUDENT:  My mother bought a new blender|||makes fruit juices very quickly
+  NOTES:    The answer omits the word "can", which changes the meaning from the original sentence. The original sentence states the blender *can make* fruit juices, implying capability, which should be retained in the transformed se
+
+  -- 0/2 marks
+  STEM: The robber wore a black mask. The robber was caught by the police. ________________________________**who** ________________________________
+  EXPECTED: The Robber who wore a black mask was caught by the police
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 1.5/2 marks
+  STEM: We admire Mr Kwan. He is our local football player. ________________________________**whom**________________________________
+  EXPECTED: Mr Kwan, whom we admire, is our local football player
+  STUDENT:  We admire MrKwan|||is our local football player.
+  NOTES:    Grammar error: 'whom is' should be 'who is'. 'Whom' is used as an object, while 'who' is used as a subject.
+
+  -- 1.5/2 marks
+  STEM: We admire Mr Kwan. He is our local football player. ________________________________**whom**________________________________
+  EXPECTED: Mr Kwan, whom we admire, is our local football player
+  STUDENT:  We admire MrKwan|||is our local football player.
+  NOTES:    Grammar error: 'whom is' should be 'who is'. 'Whom' is used as an object, while 'who' is used as a subject.
+
+  -- 0/2 marks
+  STEM: We admire Mr Kwan. He is our local football player. ________________________________**whom**________________________________
+  EXPECTED: Mr Kwan, whom we admire, is our local football player
+  STUDENT:  We admire Mr Kwan|||is our local football player.
+  NOTES:    The use of 'whom' is incorrect here. 'Whom' is an object pronoun, but in your sentence, it is used as the subject of the verb 'is'. It should be 'who is'. The sentence structure and punctuation (missing commas) also diff
+
+  -- 1.5/2 marks
+  STEM: We admire Mr Kwan. He is our local football player. ________________________________**whom**________________________________
+  EXPECTED: Mr Kwan, whom we admire, is our local football player
+  STUDENT:  Mr Kwan|||whom we admire, is our local football player.
+  NOTES:    Grammar error: The word 'whom' was repeated unnecessarily.
+
+============================================================
+cause  (25 questions where marks lost)
+============================================================
+
+  -- 1.5/2 marks
+  STEM: Sam fell ill suddenly. He missed the meeting. ⏎ **On account of Sam's** ________________________________ ⏎ ________________________________
+  EXPECTED: On account of Sam's sudden illness, he missed the meeting.
+  STUDENT:  illness, he missed the meeting.
+  NOTES:    Missing the word 'sudden' from the original sentence, which slightly changes the meaning.
+
+  -- 1.5/2 marks
+  STEM: Mark could not decide. Hence, he was late. ⏎ ________________________________**because of his** ________________________________
+  EXPECTED: Mark was late because of his indecisiveness
+  STUDENT:  Mark was late|||indecesion.
+  NOTES:    Spelling error: 'indecesion' should be 'indecision' or 'indecisiveness'.
+
+  -- 1.5/2 marks
+  STEM: Sam fell ill suddenly. He missed the meeting. ⏎ **On account of Sam's** ________________________________ ⏎ ________________________________
+  EXPECTED: On account of Sam's sudden illness, he missed the meeting.
+  STUDENT:  sudden illness, Sam missed the meeting.
+  NOTES:    The repetition of 'Sam' instead of using a pronoun like 'he' is a grammatical error. Deduct 0.5 marks.
+
+  -- 0/2 marks
+  STEM: He was very tired. He fell asleep on the bus. **Because of his** ________________________________
+  EXPECTED: Because of his tiredness, he fell asleep on the bus.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 1.5/2 marks
+  STEM: Mark could not decide. Hence, he was late. ⏎ ________________________________**because of his** ________________________________
+  EXPECTED: Mark was late because of his indecisiveness
+  STUDENT:  Mark was late|||indecesion.
+  NOTES:    Spelling error: 'indecesion' should be 'indecision' or 'indecisiveness'.
+
+  -- 1.5/2 marks
+  STEM: Sam fell ill suddenly. He missed the meeting. ⏎ **On account of Sam's** ________________________________ ⏎ ________________________________
+  EXPECTED: On account of Sam's sudden illness, he missed the meeting.
+  STUDENT:  illness, he missed the meeting.
+  NOTES:    Missing the word 'sudden' from the original sentence, which slightly changes the meaning.
+
+============================================================
+concession  (24 questions where marks lost)
+============================================================
+
+  -- 1.5/2 marks
+  STEM: I tried very hard to persuade Mrs Lim but she refused to join the baking class. ⏎ **No matter** ________________________________ ⏎ ________________________________
+  EXPECTED: No matter how hard I tried to persuade Mrs Lim, she refused to join the baking class.
+  STUDENT:  how hard I tried to persuade Mrs Lim, she refused to join the baking class
+  NOTES:    Missing period at the end.
+
+  -- 0/2 marks
+  STEM: I tried very hard to persuade Mrs Lim but she refused to join the baking class. ⏎ **No matter** ________________________________ ⏎ ________________________________
+  EXPECTED: No matter how hard I tried to persuade Mrs Lim, she refused to join the baking class.
+  STUDENT:  
+  NOTES:    No answer provided.
+
+  -- 0.5/1 marks
+  STEM: Sarah was tired. Sarah stayed up late to finish her work. ⏎ **Although** ________________________________ ⏎ ________________________________
+  EXPECTED: Although Sarah was tired, she stayed up late to finish her work.
+  STUDENT:  Sarah was tired , she stayed up late to finish her homework.
+  NOTES:    The sentence is grammatically correct and uses the keyword 'Although' appropriately. However, changing 'work' to 'homework' slightly alters the meaning of the original sentence, as 'work' is a more general term. Deducted
+
+  -- 0/2 marks
+  STEM: I tried very hard to persuade Mrs Lim but she refused to join the baking class. **No matter** ____________________ ⏎ ____________________
+  EXPECTED: No matter how hard I tried to persuade Mrs Lim, she refused to join the baking class.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: The children begged their parents for a new pet. Their parents firmly refused. **No matter** ________________________________ ⏎ ________________________________
+  EXPECTED: No matter how much the children begged their parents for a new pet, their parents firmly refused.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: The villagers tried various ways to protect their crops. The wild boars still raided their fields. **No matter** ________________________________ ⏎ ________________________________
+  EXPECTED: No matter what ways the villagers tried to protect their crops, the wild boars still raided their fields.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+============================================================
+participle-having  (17 questions where marks lost)
+============================================================
+
+  -- 1.5/2 marks
+  STEM: 61. John drew a picture of his dog. Then he framed it up. ⏎ **Having** ____________________ ⏎ ____________________
+  EXPECTED: Having drawn a picture of his dog,John framed it up.
+  STUDENT:  drawn a picture of a dog, John framed it up.
+  NOTES:    You changed 'his' to 'a'. The answer should use the exact words from the original sentence where appropriate.
+
+  -- 1.5/2 marks
+  STEM: 61. John drew a picture of his dog. Then he framed it up. ⏎ **Having** ____________________ ⏎ ____________________
+  EXPECTED: Having drawn a picture of his dog,John framed it up.
+  STUDENT:  drawn a picture of a dog, John framed it up.
+  NOTES:    You changed 'his' to 'a'. The answer should use the exact words from the original sentence where appropriate.
+
+  -- 1.5/2 marks
+  STEM: 61. John drew a picture of his dog. Then he framed it up. ⏎ **Having** ____________________ ⏎ ____________________
+  EXPECTED: Having drawn a picture of his dog,John framed it up.
+  STUDENT:  drawn a picture of his dog, John dramed the picture up.
+  NOTES:    Spelling error: 'dramed' should be 'framed'.
+
+  -- 0/2 marks
+  STEM: Mary finished her homework. She went out to play. **Having** ____________________
+  EXPECTED: Having finished her homework, Mary went out to play.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: Mary finished her homework. She went out to play. **Having** ____________________
+  EXPECTED: Having finished her homework, Mary went out to play.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: The children packed their bags. They waited for the school bus. **Having** ____________________
+  EXPECTED: Having packed their bags, the children waited for the school bus.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+============================================================
+inclusion-correlative  (16 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: Ali likes to go hiking at Bukit Timah Hill. Lily likes to go hiking at the same venue too. ⏎ **Both** ________________________________ ⏎ ________________________________
+  EXPECTED: Both Ali and Lily like to go hiking at Bukit Timah Hill.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 0/2 marks
+  STEM: Ali likes to go hiking at Bukit Timah Hill. Lily likes to go hiking at the same venue too. ⏎ **Both** ________________________________________ ⏎ _______________________________________
+  EXPECTED: Both Ali and Lily like to go hiking at Bukit Timah Hill.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 0.5/1 marks
+  STEM: We can play soccer during recess. We can go to the library during recess. ⏎ ________________________________**either** ________________________________
+  EXPECTED: We can either play soccer or go to the library during recess.
+  STUDENT:  we can |||play soccer or go to the libary during recess.
+  NOTES:    Spelling error: 'libary' should be 'library'.
+
+  -- 0/2 marks
+  STEM: Sarah sings beautifully. She plays the piano well. **Not only** ____________________ **also** ⏎ ____________________
+  EXPECTED: Not only does Sarah sing beautifully, but she also plays the piano well.
+  STUDENT:  
+  NOTES:    No answer provided.
+
+  -- 0/2 marks
+  STEM: Hand in your assignment on time. Your marks will be deducted. ________________________________ **or** ________________________________
+  EXPECTED: Hand in your assignment on time or your marks will be deducted.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+  -- 0/2 marks
+  STEM: Eat your vegetables. You will not grow strong. ________________________________ **or** ________________________________
+  EXPECTED: Eat your vegetables or you will not grow strong.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found
+
+============================================================
+condition  (15 questions where marks lost)
+============================================================
+
+  -- 0/2 marks
+  STEM: If we do not leave home now, we will miss the beginning of the movie. ⏎ **Unless** ________________________________ ⏎ ________________________________
+  EXPECTED: Unless we leave for home now, we will miss the beginning of the movie.
+  STUDENT:  No answer detected
+  NOTES:    No blue ink found (pre-check)
+
+  -- 0.5/2 marks
+  STEM: If we do not leave home now, we will miss the beginning of the movie. ⏎ **Unless** ________________________________ ⏎ ________________________________
+  EXPECTED: Unless we do not leave home now, we will miss the beginning of the movie.
+  STUDENT:  we leave for home now, we will miss the beginning of the movie.
+  NOTES:    Your answer is missing 'do not' and includes an extra word 'for' compared to the expected answer. Deduct 0.5 marks for each word difference.
+
+  -- 1.5/2 marks
+  STEM: Abel will not go to the park. He is feeling unwell. ⏎ ________________________________**unless** ________________________________
+  EXPECTED: Abel will go to the park unless he is feeling unwell.
+  STUDENT:  Abel will go to the park|||he iss feeling unwell.
+  NOTES:    Spelling error: 'iss' should be 'is'.
+
+  -- 0.5/1 marks
+  STEM: The students arrive on time. We will start the lesson. ⏎ **If** ________________________________ ⏎ ________________________________
+  EXPECTED: If the students arrive on time, we will start the lesson.
+  STUDENT:  the students arrive on time,we will start lesson.
+  NOTES:    Missing 'the' before 'lesson'.
+
+  -- 0.5/2 marks
+  STEM: Abel will not go to the park. He is feeling unwell. ⏎ ________________________________**unless** ________________________________
+  EXPECTED: Abel will go to the park unless he is feeling unwell.
+  STUDENT:  Abel will not go to thepark|||he is feeling well .
+  NOTES:    Spelling error: 'thepark' should be 'the park'. The words 'not go' should be 'go' and 'well' should be 'unwell' to match the expected answer and meaning.
+
+  -- 0/2 marks
+  STEM: The company can proceed with the project. The board of directors must authorise it. ________________________________ **only with the** ________________________________
+  EXPECTED: The company can proceed with the project only with the authorisation of the board of directors.
+  STUDENT:  No answer detected
+  NOTES:    No written answer found

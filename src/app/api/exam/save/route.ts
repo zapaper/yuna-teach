@@ -72,6 +72,8 @@ export async function POST(request: NextRequest) {
               orderIndex: q.orderIndex,
               yStartPct: q.yStartPct ?? null,
               yEndPct: q.yEndPct ?? null,
+              xStartPct: (q as { xStartPct?: number | null }).xStartPct ?? null,
+              xEndPct: (q as { xEndPct?: number | null }).xEndPct ?? null,
               marksAvailable: q.marksAvailable ?? null,
             })
           ),

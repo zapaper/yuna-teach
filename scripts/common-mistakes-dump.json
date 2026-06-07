@@ -1,0 +1,1377 @@
+{
+  "english": [
+    {
+      "topic": "Synthesis / Transformation",
+      "count": 48,
+      "examples": [
+        {
+          "id": "cmnphh4xw000wnsjpjmeeq7ym",
+          "paper": "P6 Daily Quiz – English (Grammar + Vocab MCQ + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "Ahmad did not complete his homework. He watched the World Cup Final on television. **Instead of** ________________________________ ________________________________",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "finishing his homework, Ahmad watched the World Cup Final on television.",
+          "correctAnswer": "Instead of completing his homework, Ahmad watched the World Cup Final on television.",
+          "marksAwarded": 1.5,
+          "marksAvailable": 2,
+          "markingNotes": "Deducted 0.5 marks for using 'finishing' instead of 'completing'. The answer must use the exact words from the expected answer.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnq25h19001jjmhr9bfde91b",
+          "paper": "P5 Daily Quiz – English (Vocab Cloze + Visual Text + Grammar Cloze + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "Upon seeing the dog run after the ball, the children cheered excitedly. **At the** ________________________________ ________________________________",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "sight of the dog running after the ball, the children cheered excitedly",
+          "correctAnswer": "At the sight of the dog running after the ball, the children cheered.",
+          "marksAwarded": 1.5,
+          "marksAvailable": 2,
+          "markingNotes": "Deduct 0.5 marks for the extra word 'excitedly'. The student must use the exact words from the expected answer for Synthesis & Transformation questions.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnq25h19001kjmhr1wuv8gx0",
+          "paper": "P5 Daily Quiz – English (Vocab Cloze + Visual Text + Grammar Cloze + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "The guests arrived early. Mr Phua panicked. **With the early** ________________________________ ________________________________",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "arrival of guests, Mr Phua panicked.",
+          "correctAnswer": "With the early arrival of the guests, Mr Phua panicked.",
+          "marksAwarded": 1.5,
+          "marksAvailable": 2,
+          "markingNotes": "Missing the word 'the' before 'guests'.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Comprehension Open Ended",
+      "count": 14,
+      "examples": [
+        {
+          "id": "cmnphh4xw000ynsjpm488exkm",
+          "paper": "P6 Daily Quiz – English (Grammar + Vocab MCQ + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "Based on the first paragraph, explain what the narrator initially believed caused his insatiable appetite. [1m]",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "His work on the farm.",
+          "correctAnswer": "The narrator initially believed that the hard work he was doing on the farm caused his insatiable appetite.",
+          "marksAwarded": 0.5,
+          "marksAvailable": 1,
+          "markingNotes": "The student correctly identified the cause of the insatiable appetite. However, 0.5 marks are deducted for the missing period at the end of the answer.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnphh4xw000znsjpuaxc37ld",
+          "paper": "P6 Daily Quiz – English (Grammar + Vocab MCQ + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "Fill in the following table to show the narrator's physical appearance and how he felt before and at the start of secondary 2 based on lines 2-16 [4m] | | Before the start of secondary two | At the start of secondary two | |---|---|---| | Physical appearance | | | | Feeling | | |",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "{\"r1c1\":\"average weight, below average height\",\"r2c1\":\"normal\",\"r1c2\":\"much taller and heavier. Two size bigger for tousers and shoes\",\"r2c2\":\"not confident\"}",
+          "correctAnswer": "Before start of secondary two: Physical appearance: Below average in height but average in weight. | Feeling: Unconcerned. At the start of secondary two: physical appearance: grew twelve centimetres, put on 7 kilogrammes and shoe size grew two sizes bigger. Feeling: awkward.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "In 'Before the start of secondary two - Feeling', 'normal' is incorrect; the passage states 'unconcerned'. In 'At the start of secondary two - Physical appearance', specific measurements (12cm, 7kg) were missed, and 'trousers' was incorrectly added. Spelling error: 'tousers' should be 'trousers'. (-0.5m) Grammar error: 'Two size bigger' should be 'Two sizes bigger'. (-0.5m) In 'At the start of secondary two - Feeling', 'not confident' is incorrect; the passage states 'awkward'.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnphh4xw0010nsjppro4ko7p",
+          "paper": "P6 Daily Quiz – English (Grammar + Vocab MCQ + Editing + Comprehension Cloze + Synthesis + Comprehension OEQ)",
+          "stem": "Which three-word phrase from lines 17 - 21 tells us that the narrator showed his displeasure with his classmates? [1m]",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "Glared at them.",
+          "correctAnswer": "glared at them",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "Deductions: Incorrect capitalization ('Glared' instead of 'glared') (-0.5 marks). Extra period at the end (-0.5 marks).",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Grammar MCQ",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmnwwq19m0002at85jaylmrcz",
+          "paper": "P5 English Quiz MCQ + OEQ",
+          "stem": "You must complete the registration form ___ you cannot take part in the competition.",
+          "options": "  (1) if\n  (2) or\n  (3) but\n  (4) since",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 2 Here is a simple way to figure out this sentence! **Step 1:** Read the two parts of the sentence. The first part is an instruction: You must complete the registration form. The second part is a result: you cannot take part in the competition. **Step 2:** Figure out how they connect. The sentence tells us that if you do not follow the instruction, the bad result will happen. We need a connecting word, called a **conjunction**, that warns us about what happens if we do not do something. **Step 3:** Pick the matching word. The word \"or\" works perfectly here. When we use \"or\" in a warning, it means \"otherwise\" or \"if not\". The sentence \"You must complete the registration form or you cannot take part\" means \"Complete the form, otherwise you cannot join the competition.\" You are doing a wonderful job practicing your English grammar! Keep up the awesome effort!"
+        },
+        {
+          "id": "cmnx6tpdk001hi16w3ta83omj",
+          "paper": "P6 English Quiz MCQ",
+          "stem": "Weiling is one of the numerous students who ___ up for the Science Fair every year.",
+          "options": "  (1) sign\n  (2) signs\n  (3) was signing\n  (4) were signing",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "(1)",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (1). Here is how to figure it out step by step! **Step 1:** Look for time clues in the sentence. The phrase \"every year\" tells us this action is a regular habit. Because of this, we must use the **present tense**. That leaves us with \"sign\" and \"signs\". **Step 2:** Find the subject doing the action. The word \"who\" is a **relative pronoun**. It connects the action directly to the noun that comes right before it. **Step 3:** Apply the rules of **subject-verb agreement**. Look at the word right before \"who\". That word is \"students\". Because \"students\" is a **plural noun**, the verb following \"who\" must also be plural. **Step 4:** Choose the matching verb. In English, a plural **present tense** verb does not have an \"s\" at the end. Therefore, \"sign\" is the correct plural verb to match \"students\". **Answer:** (1)"
+        },
+        {
+          "id": "cmnzrbosc0003pnvpq9hbppbj",
+          "paper": "P6 English Quiz MCQ",
+          "stem": "My teacher has asked Sally and ___ to help out with the class decoration.",
+          "options": "  (1) I\n  (2) me\n  (3) mine\n  (4) myself",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(2)",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (2) me Here is a great way to figure this out! **Step 1:** Look at who is doing the action in the sentence. The teacher is doing the asking, so the teacher is the **subject**. **Step 2:** Look at who is receiving the action. The teacher is asking Sally and someone else. The people receiving the action are the **object** of the sentence. **Step 3:** Choose the correct **pronoun**. Because the missing word is an **object**, we need an **object pronoun** like \"me\". We only use \"I\" when it is a **subject pronoun** doing the action. **Step 4:** Try a helpful trick! Take away the words \"Sally and\" from the sentence to see what makes sense. My teacher has asked I to help out. My teacher has asked me to help out. The second sentence sounds perfect! When you put \"Sally and\" back into the sentence, the rule stays exactly the same. You are doing a wonderful job learning these language rules, keep it up!"
+        }
+      ]
+    },
+    {
+      "topic": "Visual Text Comprehension MCQ",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmnwxpb4m000a5tjzxixe3o0m",
+          "paper": "P5 English Quiz MCQ + OEQ",
+          "stem": "According to Text 2, which of the following statements is **not** true?",
+          "options": "  (1) Eco-friendly air-conditioners are very popular among consumers.\n  (2) Buying eco-friendly air-conditioners reduces our carbon footprint significantly.\n  (3) Shoppers should consider the maintenance costs before buying air-conditioners.\n  (4) Advertisements do not consider whether the air-conditioners save energy in the long run.",
+          "subparts": "",
+          "studentAnswer": "4",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "The correct answer is 2. Here is how to solve it step-by-step! **Step 1:** Understand what the question is asking. We need to find the statement that is false or **not true** based on Text 2. **Step 2:** Search for clues about **eco-friendly** air-conditioners and our **carbon footprint**. Even though we do not see the full text here, we can find a helpful clue right in Question 25. It tells us that Text 2 says the impact on **carbon footprint** is always limited. **Step 3:** Compare this clue with the options given. Option 2 claims that buying these air-conditioners reduces our **carbon footprint** significantly. Significantly means by a very large amount. Because Text 2 says the impact is actually limited or small, this statement completely contradicts the text. **Step 4:** Conclude that since Option 2 is the opposite of what the text says, it is the false statement we are looking for. The other options describe true points made in the text about shopping for air-conditioners. **Answer:** 2"
+        },
+        {
+          "id": "cmo59484g002se506xr277dcy",
+          "paper": "P5 Editing+",
+          "stem": "Why is an exclamation mark used in the sentence, \"It's a heartwarming story filled with music, laughter and sweet treats!\"?",
+          "options": "  (1) to attract attention to the poster\n  (2) to convey excitement about the event\n  (3) to show the talents of Xin Ning Primary School\n  (4) to emphasise the importance of the heartwarming story",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (2) **Step 1:** Understand the purpose of an **exclamation mark**. In English, we use an **exclamation mark** at the end of a sentence to express strong **emotion**, such as joy, surprise, or excitement. **Step 2:** Look closely at the clue words in the sentence. The poster describes the performance as a heartwarming story filled with music, laughter, and sweet treats. These words paint a picture of a very happy, fun, and lively event. **Step 3:** Match the punctuation to the writer's purpose. The creator of the poster wants the audience to feel thrilled and eager to buy tickets to the show. By ending the sentence with an **exclamation mark**, the poster successfully conveys **excitement** about the upcoming event. Keep up the great effort! Learning how punctuation changes the tone of a sentence is a wonderful reading skill to have."
+        },
+        {
+          "id": "cmo59484g002ve506gwiibnqa",
+          "paper": "P5 Editing+",
+          "stem": "The information presented in Text 1 is not supported in Text 2 because Text 2 states that ___.",
+          "options": "  (1) chocolate has widespread popularity\n  (2) not every child is attracted to chocolate\n  (3) many children find chocolate irresistible\n  (4) chocolate is not a common food in some culture",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "3",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer: 3** **Step 1:** Find the main idea about chocolate in Text 1. The poster highlights a magical story featuring \"children dreaming of chocolate\" and enjoying \"sweet treats!\" This gives the strong impression that a love for chocolate is an absolute, universal rule for all children. **Step 2:** Understand what it means when information is \"not supported.\" It means the second text gives a different, often more realistic perspective that doesn't completely agree with the broad claims of the first text. **Step 3:** Evaluate Option (3), which states that **many children find chocolate irresistible**. Text 2 presents a realistic fact by using the word \"many.\" Because \"many\" does not mean \"all,\" this factual statement does not fully support the exaggerated, magical claim in Text 1 that every single child is dreaming of chocolate. Always look closely at absolute ideas in stories (like \"all\" children) versus realistic facts in informational texts (like \"many\" children) to see where they differ!"
+        }
+      ]
+    },
+    {
+      "topic": "Vocabulary Cloze MCQ",
+      "count": 6,
+      "examples": [
+        {
+          "id": "cmnwwq19m000cat855ka8as6h",
+          "paper": "P5 English Quiz MCQ + OEQ",
+          "stem": "He served as Deputy Prime Minister and held __various__ ministerial roles, including the Minister of Finance, Defence and Education.",
+          "options": "  (1) a few notable\n  (2) many different\n  (3) numerous similar\n  (4) some recognisable",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 2 **Step 1:** Understand the meaning of the underlined word. The word **various** means having several different types or kinds of something. To solve this, we need to find a **synonym**, which is a word or phrase that has the exact same meaning. **Step 2:** Look for **context clues** in the sentence. The passage tells us Dr Goh held roles including the Minister of Finance, Defence and Education. These three departments handle money, the army, and schools. Because they focus on completely different things, we know his roles were not all the same. **Step 3:** Test the options to find the best fit. The phrase many different is the perfect match because it shows he took on several roles that were distinct from one another. If we swap it into the passage, it reads: He held many different ministerial roles. This makes perfect sense and keeps the original meaning of the sentence! Keep up the great work building your vocabulary!"
+        },
+        {
+          "id": "cmnwxpb4m00025tjzy1uag4gu",
+          "paper": "P5 English Quiz MCQ + OEQ",
+          "stem": "His __engaging__ personality made him a favourite among his peers, as he effortlessly connected with others.",
+          "options": "  (1) raving\n  (2) appealing\n  (3) appeasing\n  (4) encouraging",
+          "subparts": "",
+          "studentAnswer": "3",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 2 **Step 1:** Look closely at the clues in the sentence. The passage says Michael is a favourite among his peers and effortlessly connects with others. This tells us his personality is very likable and draws people to him. **Step 2:** Understand the meaning of the original word. In this sentence, having an **engaging** personality means being charming, friendly, and easy to talk to. We need to find a **synonym**, which is a word with the same or a very similar meaning. **Step 3:** Test the options to find the best match. The word **appealing** means attractive, interesting, and easy to like. This perfectly matches the idea of an **engaging** personality that makes someone popular! The other options have different meanings. For example, **encouraging** means giving support, **appeasing** means calming someone down by giving them what they want, and **raving** means talking wildly. You are doing a great job building your reading skills! Keep up the excellent work."
+        },
+        {
+          "id": "cmnwxpb4m00035tjzfvm3oa98",
+          "paper": "P5 English Quiz MCQ + OEQ",
+          "stem": "He __persisted__ with his studies, dedicating hours to mastering difficult subjects, even when they seemed overwhelming.",
+          "options": "  (1) dealt\n  (2) continued\n  (3) interacted\n  (4) associated",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 2 **Step 1:** Read the sentence to find **context clues**. The passage says Michael is dedicating hours to difficult subjects even when they seem overwhelming. This tells us he is not giving up and is working very hard. **Step 2:** Define the target word. The word persisted means to keep doing something firmly, even when it is difficult. **Step 3:** Find the best **synonym** from the options. A **synonym** is a word that has the same or almost the same meaning as another word. The word continued means to carry on with an activity without stopping. If we replace the target word, \"He continued with his studies\" makes perfect sense and matches the hard-working behavior described in the passage. You are doing a wonderful job building your **vocabulary** skills! Keep looking for those helpful clues in the reading text."
+        }
+      ]
+    },
+    {
+      "topic": "Vocabulary MCQ",
+      "count": 2,
+      "examples": [
+        {
+          "id": "cmnx605j000er97iu6nx4wm64",
+          "paper": "P6 English Quiz MCQ",
+          "stem": "When the football match was over, the supporters of the winning team were ___ in euphoria, not realising that it had started to rain.",
+          "options": "  (1) raving\n  (2) roving\n  (3) rebelling\n  (4) revelling",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(4)",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (4) revelling Let us look at how to find the right word for this sentence! **Step 1:** Look at the **context clues** in the sentence. The supporters just won a football match and are in a state of euphoria, which means extreme happiness. They are so happy they do not even notice the rain. We need a word that means celebrating with a lot of joy. **Step 2:** Let us learn the meanings of the options. The word **raving** means talking wildly, often out of anger or madness. The word **roving** means wandering around without a clear destination. The word **rebelling** means fighting against a rule or a leader. Finally, **revelling** means celebrating and enjoying oneself in a very lively, happy way. **Step 3:** Match the best word to the clues. The winning fans are celebrating their victory, so **revelling** is the perfect fit! When you are **revelling** in something, you are getting great pleasure from it. Keep up the great effort with your vocabulary practice!"
+        },
+        {
+          "id": "cmo8eyhkz000nklxx60fi0vt0",
+          "paper": "P6 Grammar MCQ+",
+          "stem": "The flowers in the garden ___ a sweet fragrance, attracting many bees and butterflies.",
+          "options": "  (1) give in\n  (2) give up\n  (3) give off\n  (4) give away",
+          "subparts": "",
+          "studentAnswer": "4",
+          "correctAnswer": "(3)",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (3). **Step 1:** Look at the **context clues** in the sentence. The sentence talks about flowers and a sweet fragrance, which is a pleasant smell. We need a **phrasal verb** that means to produce or send out a smell into the air. **Step 2:** Understand what \"give off\" means. The **phrasal verb** \"give off\" is used when an object produces or sends out a smell, a gas, heat, or light. For example, a fire gives off heat, and a blooming flower gives off a sweet smell! **Step 3:** Review the other options to build your **vocabulary**. \"Give in\" means to surrender, \"give up\" means to stop trying, and \"give away\" means to give a gift to someone for free. None of these describe a flower producing a smell. Because the flowers are sending a pleasant scent into the air to attract bees, \"give off\" is the perfect choice to complete the sentence. Keep up the great practice! **Answer:** (3)"
+        }
+      ]
+    }
+  ],
+  "math": [
+    {
+      "topic": "Fractions",
+      "count": 39,
+      "examples": [
+        {
+          "id": "cmniebk9o000e5pij4946h1r9",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Find the value of 8 ÷ 3/7. Leave your answer as a mixed number.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "56/3",
+          "correctAnswer": "18 2/3",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "Detected: 56/3 | The student correctly calculated 56/3, but the question asked for the answer as a mixed number. The student did not convert the improper fraction to a mixed number.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnpseah30016hi1vd76kis3e",
+          "paper": "P5 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Mrs Wee bought some pies. She gave 2/5 of the pies to her sister and 1/6 of the remaining pies to her neighbour. What fraction of the pies had she left?",
+          "options": "  (1) 1/10\n  (2) 1/2\n  (3) 5/6\n  (4) 9/15",
+          "subparts": "",
+          "studentAnswer": "4",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is Option (2). Here is how to solve it! **Step 1:** Find the **fraction** of pies left after giving some to her sister. Mrs Wee started with a whole batch, which is 5/5. She gave away 2/5. 5/5 - 2/5 = 3/5 She had 3/5 of the pies remaining. **Step 2:** Find the **fraction** she kept after giving some to her neighbour. She gave 1/6 of the remaining pies to her neighbour. This means she kept 5/6 of those remaining pies, because 6/6 - 1/6 = 5/6. **Step 3:** Multiply to find the final amount. To find 5/6 of the 3/5 she had remaining, multiply the two fractions. Multiply the top numbers, called the **numerator**, and the bottom numbers, called the **denominator**. 5/6 * 3/5 = 15/30 **Step 4:** **Simplify** the final fraction. Divide both the top and bottom by 15 to make the numbers as small as possible. 15/30 = 1/2 **Answer:** (2) 1/2"
+        },
+        {
+          "id": "cmnpseah30018hi1v8kbkr96h",
+          "paper": "P5 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Ismail had 14 kg of flour. He packed all the flour equally into 8 packets. How much flour was there in each packet? Express your answer as a mixed number in its simplest form.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "Working: 14 ÷ 8 = 0.75 0.75 = 3/4 Final answer: 7/4 kg",
+          "correctAnswer": "1 3/4",
+          "marksAwarded": 1,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: Working: 14 ÷ 8 = 0.75 0.75 = 3/4 Final answer: 7/4 kg | The student correctly calculated the value of flour per packet as 7/4 kg, which is numerically equivalent to 1 3/4 kg, and included the correct unit. However, the question specifically asked for the answer to be expressed as a mixed number in its simplest form. The student provided an improper fraction. The working shown contains a calculation error (14 ÷ 8 = 0.75 is incorrect) and does not logically lead to the final answer of 7/4. Despite the incorrect working, the final numerical value is correct and in simplest form. One mark is awarded for the correct value and unit, and one mark is deducted for not expressing the answer as a mixed number. Awarded 1 mark(s).",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Ratio",
+      "count": 35,
+      "examples": [
+        {
+          "id": "cmnsvlpia001i1te7hh9xahh9",
+          "paper": "P6 Daily Quiz – Math (MCQ)",
+          "stem": "At a shop, the ratio of the number of erasers to the number of pens to the number of rulers is 5 : 3 : 2. There is a total of 280 erasers and rulers. How many pens are there?",
+          "options": "  (1) 168\n  (2) 120\n  (3) 105\n  (4) 84",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(2)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "Let us solve this problem together! **Step 1:** Understand the given **ratio**. The **ratio** of erasers to pens to rulers is 5 : 3 : 2. This means for every 5 **units** of erasers, there are 3 **units** of pens, and 2 **units** of rulers. **Step 2:** Find the total **units** for the given items. The problem tells us there are 280 erasers and rulers combined. Let us add the **units** for the erasers and rulers. 5 **units** + 2 **units** = 7 **units**. **Step 3:** Find the value of 1 unit. Since 7 **units** equal 280 items, we divide to find the value of exactly 1 unit. 280 / 7 = 40. **Step 4:** Calculate the number of pens. We know from our **ratio** that there are 3 **units** of pens. Now we just multiply the value of 1 unit by 3. 3 x 40 = 120 pens. **Answer:** (2)"
+        },
+        {
+          "id": "cmnsw23f8000d5nic0m6ti94i",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Terry had 3 times as many $2-notes as $5-notes. He had $385 altogether. How many $5-notes did Terry have?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": ")",
+          "correctAnswer": "6U + 5U = 385 | U = 385 ÷ 11 | U = 35",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: ) | No answer or working provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo259rmg001m11v4b8hb0knd",
+          "paper": "Test Quiz — P6 Math WA1 Raffles Girls 2023",
+          "stem": "Tim and Jerry were paid a total of $8568 for selling tickets. Tim was paid $5304 more than Jerry.",
+          "options": "",
+          "subparts": "  (a) How much was Tim paid for selling the tickets?\n  (b) Tim and Jerry were paid based on the number of tickets they sold. Tim sold 3 times as many tickets as Jerry. Tim was paid $5 more than Jerry for selling each ticket. How many tickets did Tim sell?",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) 8568 – 5304 = 3264 | 3264 ÷ 2 = 1632 | 1632 + 5304 =$6936 | (b) 6936 ÷ 3 = 2312 | 2312 – 1632 = 680 | 680 ÷ 5 = 136 | 136 X 3 = 408",
+          "marksAwarded": 0,
+          "marksAvailable": 5,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Geometry",
+      "count": 33,
+      "examples": [
+        {
+          "id": "cmnfydywo002ralkebuf5u2qq",
+          "paper": "P6 Daily Quiz – Math (MCQ)",
+          "stem": "A rectangular tile is printed with square patterns. The perimeter of the tile is 32 cm. What is the area of each square pattern?",
+          "options": "  (1) 60 cm²\n  (2) 2 cm²\n  (3) 8 cm²\n  (4) 4 cm²",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(4)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (4). Here is how to solve it step-by-step: 1. Count the outer edges: Look at the picture of your rectangular tile. Count the outside edges of the small squares that make up the border of the tile. Because of how the math works out, you will count exactly 16 square edges along the outside! 2. Find the side length of one square: The total perimeter (the distance around the outside of the whole tile) is 32 cm. Since that border is made of 16 equal little edges, we just divide the total perimeter by 16. 32 / 16 = 2 cm. This means each side of a small square pattern is 2 cm long. 3. Calculate the area: The formula to find the area of a square is side x side. 2 cm x 2 cm = 4 cm^2. So, the area of each square pattern is 4 cm^2. Keep up the awesome work with your math practice!"
+        },
+        {
+          "id": "cmniz84qf000ws3n078sywgwe",
+          "paper": "P5 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "ABC is a piece of paper in the shape of a triangle. AB is perpendicular to BC. AB is of the same length as BC. It is then folded as shown:",
+          "options": "",
+          "subparts": "  (a) Find the length of BC of the triangular paper.\n  (b) Find the area of the piece of triangular paper when it is not folded.",
+          "studentAnswer": "(a) BC = 9cm + 6cm + 6cm = 21 cm (b) Area = 21 x 21 = 441 cm^2",
+          "correctAnswer": "a) 15 + 6 = 21 cm | b) ½ x 21 x 21 = 220.5 cm2",
+          "marksAwarded": 3,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) BC = 9cm + 6cm + 6cm = 21 cm (b) Area = 21 x 21 = 441 cm^2 | (a) Correct. The final answer matches the expected answer. (b) Partially correct. The student correctly used the length of the side from part (a) and multiplied the sides, but missed the factor of ½ for the area of a triangle.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnx0jvsc000g5elxeis3hij0",
+          "paper": "P4 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Figure ABCDE is drawn on the square grid shown.",
+          "options": "",
+          "subparts": "  (a) In the figure above, identify a pair of perpendicular lines. [1]\n  (b) The square grid shows the sides QR and RS of Rectangle PQRS. Complete Rectangle PQRS by drawing two more lines. Label Point P. [1]",
+          "studentAnswer": "(a) ABLAE (b) [Point P drawn on grid at incorrect location]",
+          "correctAnswer": "a)Line AE ⊥ Line ED b) see answer img",
+          "marksAwarded": 1,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) ABLAE (b) [Point P drawn on grid at incorrect location] | (a) Incorrect. The student did not identify a pair of perpendicular lines. (b) Incorrect. Point P is in the wrong position and the lines PQ and PS were not drawn to complete the rectangle.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Basic math operations",
+      "count": 26,
+      "examples": [
+        {
+          "id": "cmnpseah30015hi1v04hq9lyt",
+          "paper": "P5 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "What is the missing number in the pattern below? 950, 947, 941, 950, 938, 923, 941, 920, 896, 923, _____, 860",
+          "options": "  (1) 893\n  (2) 896\n  (3) 950\n  (4) 953",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "(1)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (1) Here is a fun way to solve this! **Step 1:** Find the **difference** between the numbers in the sequence. Let us write down how they change from one to the next: -3, -6, +9, -12, -15, +18, -21, -24, +27. **Step 2:** Look closely at those numbers. They are all **multiples** of 3! (3, 6, 9, 12, 15, 18, 21, 24, 27). **Step 3:** Notice the hidden **pattern** in the math operations. The rule goes: subtract, subtract, add, and then it repeats! **Step 4:** Follow this rule to find the missing number. The last change we made was adding 27 to 896 to get 923. The next rule is to subtract the next multiple of 3, which is 30. 923 - 30 = 893. **Step 5:** Check your work! The next rule is to subtract 33. 893 - 33 = 860. This matches the last number perfectly! Keep up the great work!"
+        },
+        {
+          "id": "cmns83xe80005sosmwzt7v6lz",
+          "paper": "Test Quiz — P5 Math WA1 ACS-P 2023",
+          "stem": "John had 75 stamps. 12 of his friends took 3 stamps each. John and his 2 siblings then shared the rest of the stamps equally among themselves. Each of the statements is either true or false from the information given. For each statement, put a tick (✓) to indicate your answer.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "Statement 1: False Statement 2: False",
+          "correctAnswer": "True | False",
+          "marksAwarded": 1,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: Statement 1: False Statement 2: False | Statement 1: Incorrect. The expression (75 - 12 × 3) correctly calculates the stamps left, so the statement is True. Statement 2: Correct. The expression (75 - 12 × 3 ÷ 3) does not correctly represent the number of stamps John had in the end (which should be (75 - 12 × 3) ÷ 3), so the statement is False.",
+          "elaboration": "**Answer:** Statement 1 is True and Statement 2 is False. Let us solve this step by step by finding out exactly how many stamps everyone received! **Step 1:** Find out how many stamps the friends took in total. John has 12 friends and each took 3 stamps. We use **multiplication** to find the total. 12 x 3 = 36 stamps. This means his friends took a total of 36 stamps. **Step 2:** Find the **remainder** of the stamps. We subtract the stamps the friends took from the total amount John started with. 75 - 36 = 39 stamps left over. **Step 3:** Find out how many stamps John and each of his siblings get. John and his 2 siblings make 3 people sharing the stamps. We use **division** to share the remainder equally. 39 / 3 = 13 stamps each. By working out these numbers, we can see exactly why the first statement matches our math and the second statement does not. Keep up the great work practicing these steps!"
+        },
+        {
+          "id": "cmnwx3h9c00086tptczx53dxm",
+          "paper": "P5 Daily Quiz – Math (MCQ)",
+          "stem": "What is the value of 56 – (9 + 7) ÷ 8 × 2?",
+          "options": "  (1) 10\n  (2) 52\n  (3) 55\n  (4) 108",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(2)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (2). To solve this, we use the **order of operations**. A helpful trick is to remember BODMAS or PEMDAS to know exactly which part of the math problem to do first! **Step 1:** Always solve the numbers inside the **parentheses** first. 9 + 7 = 16 Now the problem becomes: 56 - 16 ÷ 8 × 2 **Step 2:** Next, we look for division and multiplication. We solve these from left to right. The division comes first in our line. 16 ÷ 8 = 2 Now the problem is: 56 - 2 × 2 **Step 3:** Next up is the multiplication. 2 × 2 = 4 Now we are left with: 56 - 4 **Step 4:** Finally, we do the subtraction at the very end. 56 - 4 = 52 You are doing a fantastic job practicing these math rules. Keep up the great work! **Answer:** (2)"
+        }
+      ]
+    },
+    {
+      "topic": "Algebra",
+      "count": 20,
+      "examples": [
+        {
+          "id": "cmniebk9o000d5pijd76iqbqu",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Faith is f cm tall. Gerry is twice as tall as Faith. Helen is 24 cm shorter than Gerry.",
+          "options": "",
+          "subparts": "  (a) What is the average height of the three girls in terms of f?\n  (b) If Faith is 75 cm tall, what is the difference between Helen's and Faith's height?",
+          "studentAnswer": "(a) (5/3 f - 8) (b) 5cm",
+          "correctAnswer": "(a) (f+2f+(2f-24))/3 = (5f-24)/3 cm | Ans: (5f-24)/3 cm | (b) Helen's height -> 2(75)-24 = 126cm | Difference -> 126-75 = 51cm | Ans: 51cm",
+          "marksAwarded": 2,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (5/3 f - 8) (b) 5cm | (a) Correct. The expression (5/3 f - 8) is equivalent to (5f-24)/3. (b) Incorrect. The difference should be 51cm.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmniebk9o000g5pijb0gd1aff",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Black and white tiles are used to form the following figures that follow a pattern as shown below. The table shows the number of white tiles and black tiles for the first four figures.",
+          "options": "",
+          "subparts": "  (a) Complete the table for Figure 5.\n  (b) Find the total number of white and black tiles in Figure 10.\n  (c) Which figure number has 133 white tiles?",
+          "studentAnswer": "(a) (table not filled) (b) 120 (c) 34",
+          "correctAnswer": "(a) see answer img (b) (Fig no. + 1) × (Fig No. + 1) = Total No. of tiles | 10 + 1 = 11 | 11 × 11 = 121 | (c) Figure 12",
+          "marksAwarded": 2,
+          "marksAvailable": 5,
+          "markingNotes": "Detected: (a) (table not filled) (b) 120 (c) 34 | (a) The table for Figure 5 is not completed. (b) The total number of tiles for Figure 10 should be 121, not 120. (c) The figure number with 133 white tiles is Figure 12, not 34.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnsv4zrt000e1te7jbwzfsmx",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "Macy had $270 less and Lindy. After Macy gave Lindy some money, Lindy had 4 times as much money as Macy. If Macy had $520 left, how much money did she have at first?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "520 x 3 = 1560 645",
+          "correctAnswer": "1165",
+          "marksAwarded": 1,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: 520 x 3 = 1560 645 | The calculation '520 x 3 = 1560' is a correct intermediate step, representing the difference in money between Lindy and Macy after the transfer. However, the final answer '645' is incorrect.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Statistics",
+      "count": 17,
+      "examples": [
+        {
+          "id": "cmnwx3h9d000i6tptex73lx00",
+          "paper": "P5 Daily Quiz – Math (MCQ)",
+          "stem": "Which fruit did most pupils choose?",
+          "options": "  (1) pear\n  (2) apple\n  (3) orange\n  (4) banana",
+          "subparts": "",
+          "studentAnswer": "__SKIPPED__",
+          "correctAnswer": "(2)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Student: (__SKIPPED__), Correct: (2)",
+          "elaboration": "**Answer:** (2) Here is how to find the right fruit! **Step 1:** Look at the **data** shown in your chart or table. **Step 2:** Check the amount for each fruit. When a question asks which item was chosen the \"most,\" we need to look for the highest number, the most tally marks, or the tallest bar on a **graph**. **Step 3:** Compare the totals for pear, apple, orange, and banana. **Step 4:** Find the biggest amount. When you look closely, you will see that the total for apple is higher than all the other fruits! This makes apple the most popular choice among the pupils. Reading a **graph** or table gets super easy with practice. Keep up the great work!"
+        },
+        {
+          "id": "cmnzm6x910008m18ndvd7os0w",
+          "paper": "P5 Focused: Statistics",
+          "stem": "Jeraldine baked a total of 749 cupcakes to sell at a carnival. Figure 1 shows the number of cupcakes that were sold. Figure 2 shows the number of cupcakes that were left unsold at the end of the carnival. The number of Red Velvet cupcakes that were left unsold is not shown in Figure 2. Which table below shows the correct number of cupcakes which were left unsold?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "4",
+          "correctAnswer": "(3)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "Here is how to solve this problem step-by-step! **Step 1:** Find the scale for Figure 1. There are 5 spaces between 0 and 20, so each small line stands for 20 / 5 = 4 cupcakes. **Step 2:** Read the number of sold cupcakes from Figure 1. * Red velvet: 1 line past 60 = 64 * Caramel: 60 * Chocolate: 100 **Total sold** = 64 + 60 + 100 = 224 cupcakes. **Step 3:** Calculate the **total unsold** cupcakes by subtracting the sold amount from the total baked. **Total unsold** = 749 - 224 = 525 cupcakes. **Step 4:** Find the scale for Figure 2. There are 5 spaces between 0 and 50, so each small line stands for 50 / 5 = 10 cupcakes. **Step 5:** Read the unsold cupcakes for Caramel and Chocolate from Figure 2. * Caramel: 3 lines past 200 = 230 * Chocolate: 100 **Step 6:** Calculate the unsold Red velvet cupcakes by subtracting the others from the total. Red velvet unsold = **Total unsold** - Caramel - Chocolate Red velvet unsold = 525 - 230 - 100 = 195 cupcakes. Comparing our numbers (Red velvet: 195, Caramel: 230, Chocolate: 100) to the options, we can see the matching table. **Answer:** (3)"
+        },
+        {
+          "id": "cmo27mj9g001hr29q57mk1mxr",
+          "paper": "Test Quiz — P6 Math WA2 Tao Nan 2023",
+          "stem": "The line graph shows Country X's export of rice to Singapore for the past 5 years.",
+          "options": "",
+          "subparts": "  (a) What is the value of Country X's export of rice in Year 2017?\n  (b) During which 1-year period was the decrease in the value of rice export the smallest?",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) 56 million dollars | (b) Year 2015 to Year 2016",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Area and circumference of circle",
+      "count": 14,
+      "examples": [
+        {
+          "id": "cmo26qxu5003511v4tafgehvo",
+          "paper": "Test Quiz — P6 Math WA2 StNick 2025",
+          "stem": "The shaded figure is formed by 3 straight lines and 6 identical quarter circles. Take π = 3.14.",
+          "options": "",
+          "subparts": "  (a) What is the radius of each quarter circle?\n  (b) Find the area of the shaded figure.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) 9 ÷ 3 = 3cm | (b) 101.61cm³",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo27mbrr0007r29qn9uoxrwu",
+          "paper": "Test Quiz — P6 Math WA2 StNick 2025",
+          "stem": "The shaded figure is formed by 3 straight lines and 6 identical quarter circles. Take π = 3.14.",
+          "options": "",
+          "subparts": "  (a) What is the radius of each quarter circle?\n  (b) Find the area of the shaded figure.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) 9 ÷ 3 = 3cm | (b) 101.61cm³",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. The radius of each quarter circle is 9 cm / 3 = 3 cm. (b) No answer provided. The area of the shaded figure is calculated as the area of the bounding rectangle minus the area of 6 quarter circles. Area = (16 * 9) - 6 * (1/4 * 3.14 * 3^2) = 144 - 6 * 7.065 = 144 - 42.39 = 101.61 cm^2. Note: The expected answer provided has a unit of cm^3, which is incorrect for area; it should be cm^2.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo27me71000pr29qgttbaopj",
+          "paper": "Test Quiz — P6 Math WA2 RGS 2025",
+          "stem": "The figure is made up of 4 semicircles and a rectangle inside a square of side 54 cm. (Take π = 3.14)",
+          "options": "",
+          "subparts": "  (a) What is the radius of each semi-circle?\n  (b) Find the total area of the shaded parts.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) 54 ÷ 4 = 13.5 cm | (b) 3.14 x 13.5 x 13.5 = 572.265 | 572.26 X 2 = 1144.53 | 13.5 x 2 = 27 | 27 x 54 = 1458 | 1458 + 1144.53 = 2602.53 cm2",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Percentage",
+      "count": 6,
+      "examples": [
+        {
+          "id": "cmnsw23f8000g5nicjmzv8moe",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "ABC Mega Mall had a storewide sale of 70%. Mrs Suresh paid $570 for a laptop during the sale. What was the usual price of the laptop?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "$1330",
+          "correctAnswer": "$1900",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: $1330 | Incorrect. The student calculated the discount amount (70% of the usual price) instead of the usual price. The usual price should be $1900.",
+          "elaboration": "**Answer:** $1900 **Step 1:** Understand the **discount**. The usual price of the laptop represents the full amount, which is 100%. Since the mall has a 70% **discount**, Mrs Suresh only pays the remaining amount. **Step 2:** Calculate the **percentage** she actually paid. 100% - 70% = 30%. This means Mrs Suresh paid 30% of the usual price. **Step 3:** Match the **percentage** to the money paid. We know that 30% of the usual price is equal to $570. **Step 4:** Find 1% of the price. To find this, divide the dollar amount by 30. $570 / 30 = $19. **Step 5:** Find the full 100% price. Multiply the value of 1% by 100 to get the usual price. $19 x 100 = $1900. You are doing a wonderful job practicing these math problems, keep it up!"
+        },
+        {
+          "id": "cmo254hg2001911v45ccl0xn2",
+          "paper": "Test Quiz — P6 Math WA1 Nan Hua 2023",
+          "stem": "Danny had 880 cards in his collection. 25% of the cards were football cards and the rest were basketball cards.",
+          "options": "",
+          "subparts": "  (a) How many more basketball cards than football cards did he have in his collection?\n  (b) How many more football cards must Danny buy if he wanted to increase the number of football cards in his collection to 45%?",
+          "studentAnswer": "(a) 440 (b) 27",
+          "correctAnswer": "a)4u → 880 | 1u → 220 | 2u → 440 | b)3u → 220 x 3 = 660 | 100% - 45% = 55% | 55% → 660 | 1% → 12 | 45% → 12 x 45 = 540 | 540 - 220 = 320",
+          "marksAwarded": 1,
+          "marksAvailable": 5,
+          "markingNotes": "Detected: (a) 440 (b) 27 | (a) Correct. (b) Wrong. The correct answer is 320.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo27ba7n000fj62sixdiqr77",
+          "paper": "Test Quiz — P6 Science WA2 Catholic 2025",
+          "stem": "A bowl of noodles at a restaurant cost $27.25 including 9% GST. Find the cost of the bowl of noodles before GST.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "$25",
+          "correctAnswer": "109%P | 27.25 | 109%P=27.25 | 1%P=27.25/109 | 100%P=$25",
+          "marksAwarded": 1,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: $25 | Correct final answer, but working is not shown as requested by the question.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Volume of cube and cuboid",
+      "count": 5,
+      "examples": [
+        {
+          "id": "cmo06fzib006czqnqi4x2duvy",
+          "paper": "P6 Daily Quiz – Math (MCQ + OEQ)",
+          "stem": "An empty rectangular tank measures 52 cm by 45 cm by 40 cm. A tap was turned on water flowed at a rate of 5.2 litres per minute. How long would it take for the tank to be 1/2 -filled?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "2hr",
+          "correctAnswer": "(52 x 45 x 40) ÷ 2 = 46800 | 46800ml = 46.8L | 46.8 ÷ 5.2 = 9 minutes",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: 2hr | Incorrect. The correct answer is 9 minutes.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2de66v001pzs4k6yfcxuj3",
+          "paper": "Test Quiz — P5 Math WA2 Ai Tong 2023",
+          "stem": "The figure shows some 1-cm cubes glued together at the corner of a room.",
+          "options": "",
+          "subparts": "  (a) How many 1-cm cubes are there in the figure?\n  (b) Draw the side view of the figure in the square grid below.",
+          "studentAnswer": "(a) (b) [Drawing of a 2x2 block in the middle of the grid]",
+          "correctAnswer": "a) 6 | b) See answer img",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (b) [Drawing of a 2x2 block in the middle of the grid] | (a) No answer provided. The correct answer is 6 cubes. (b) Incorrect drawing. The side view (from the left, as per the expected answer) should show a shape that is 3 units high on the left column and 2 units high on the adjacent right column.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2de66v001wzs4kk6zrykq7",
+          "paper": "Test Quiz — P5 Math WA2 Ai Tong 2023",
+          "stem": "A tank measuring 40 cm by 12 cm by 32 cm was 5/8 filled with water. The water in the tank was then poured into as many pails as possible. Each pail can hold 1.5 ℓ of water.",
+          "options": "",
+          "subparts": "  (a) What was the volume of the water in the tank at first?\n  (b) What was the volume of water left in the tank after filling the pails with water?",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "a) 40 x 12 x 32 = 15360 | 15360 x 5/8 = 9600ml | b) 600ml",
+          "marksAwarded": 0,
+          "marksAvailable": 5,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "(untagged)",
+      "count": 2,
+      "examples": [
+        {
+          "id": "cmo254hg2001111v4tlgxtfqn",
+          "paper": "Test Quiz — P6 Math WA1 Nan Hua 2023",
+          "stem": "Simon has some peanuts. He wants to pack 28 packets of peanuts. Each packet contains 0.8 kg of peanuts. He has 620 g of peanuts left. How many kilograms of peanuts did he have at first?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "22kg",
+          "correctAnswer": "0.8kg = 800g | 800 x 28 = 22400 | 22400 + 620 = 23020 | 23020g = 23.02kg",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: 22kg | Incorrect. The total amount of peanuts should be 23.02 kg.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo26tqlk003k11v4242f4h43",
+          "paper": "Test Quiz — P6 Math WA2 ACSJ 2025",
+          "stem": "Write the greatest 4-digit even number without using the digits 2, 4, 8 and 9. The digits cannot be repeated.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "7653",
+          "correctAnswer": "7650",
+          "marksAwarded": 0,
+          "marksAvailable": 1,
+          "markingNotes": "Detected: 7653 | Incorrect. The number must be even. The greatest 4-digit even number using the allowed digits without repetition is 7650.",
+          "elaboration": ""
+        }
+      ]
+    }
+  ],
+  "science": [
+    {
+      "topic": "Water cycle, evaporation, condensation",
+      "count": 23,
+      "examples": [
+        {
+          "id": "cmo299i5c0015br5vhhpgkhyi",
+          "paper": "Test Quiz — P6 Science WA1 Nanhua 2025",
+          "stem": "Jaden filled 3 identical glass bottles, X, Y and Z, with water of different temperatures to the same level in each bottle. He left them sealed on the table. He observed water droplets form on the outer surface of bottle Y and the inner surface of bottle Z. For bottle X, no water droplets were formed.",
+          "options": "",
+          "subparts": "  (a) Fill in the boxes below with X, Y or Z, starting from the bottle containing water with the lowest temperature.\n  (b) Explain how water droplets were formed on the inner surface of bottle Z.\n  (c) The water droplets formed on the outer surface of bottle Y cannot be seen after a while. Explain why.",
+          "studentAnswer": "(a) (empty) (b) (empty) (c) (empty)",
+          "correctAnswer": "(a) Y, X, Z | (b) The hot water in Z gained heat and evaporated into water vapour. The warm water vapour then rose up and contacted the cooler inner surface of bottle Z, lost heat and condensed into water droplets. | (c) The water droplets on the outer surface of Y gained heat from the surroundings and evaporated into water vapour.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (empty) (b) (empty) (c) (empty) | (a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2c4xb90019lujp0c9njyvk",
+          "paper": "Test Quiz — P6 Science WA2 Nanhua 2025",
+          "stem": "Carl waited outside a store for his parents. He noticed that there were water droplets on the window and he used his finger to write a message on it.",
+          "options": "",
+          "subparts": "  (a) Explain clearly why there were small droplets of water on the store window. [2marks]\n  (b) Before leaving, Carl noticed that his writing had disappeared. Explain why. [1marks]",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "31a [Source of water vapour] Warmer water vapour outside the store | [Condensation process] came into contact with the cooler surface of the window, lost heat and condensed into water droplets on the window. | 31b Water droplets had formed again in the space where Carl wrote.'",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2dinen002vzs4ktjtgn2q1",
+          "paper": "Test Quiz — P5 Science WA1 Raffles 2025",
+          "stem": "John sprayed some water from a spray bottle onto some meat on a grill cooker to keep them from burning while cooking as shown below.",
+          "options": "",
+          "subparts": "  (a) He noticed that the water droplets on the meat disappeared after some time. Explain his observation. [2marks]\n  (b) Name the change of state of water that took place in part (a). [1mark]\n  (c) John used a different spray bottle and sprayed the same amount of water droplets onto the meat. However, the water droplets are of smaller size. Did the water droplets on the meat disappear faster or slower? Explain your answer. [2marks]",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "(a) The water droplets on the meat gained heat from the fire/meat. It evaporate to form water vapour. | (b) From liquid to gas. | (c) C: Faster E: the water droplets are of smaller size. R: So they have more exposed surface area of water to the meat/fire and evaporated faster.",
+          "marksAwarded": 0,
+          "marksAvailable": 5,
+          "markingNotes": "(a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Plant parts and functions",
+      "count": 20,
+      "examples": [
+        {
+          "id": "cmnd1awmj001cf406uwb5mi8s",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "Kim cut a root into pieces of the same size. She placed each piece into a glass tube. Each tube was kept at a different temperature.",
+          "options": "  (1) \n  (2) \n  (3) \n  (4) ",
+          "subparts": "",
+          "studentAnswer": "3",
+          "correctAnswer": "4",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "Option 4 is the correct answer! Great job tackling this science experiment question! Here is a simple step-by-step way to understand why Option 4 is the right choice: 1. Identify the goal: Kim is testing how different temperatures affect the root pieces. 2. Check for a fair test: To make sure her results are reliable, Kim must change only one thing (the temperature). Everything else must stay exactly the same. We already know she used root pieces of the \"same size\" so that size wouldn't mess up the results. 3. Understand the science: Roots are made of living cells, and they carry out life processes (like respiration) using special proteins called enzymes. These processes work faster as the temperature gets comfortably warm. However, if it gets too hot, the enzymes get damaged and the process stops completely. 4. Match the results: Option 4 correctly follows this scientific rule! It shows that the activity of the root increases as it gets warmer, but then drops quickly once the temperature becomes too hot. Keep up the great work with your science questions! Always remember to look out for fair tests and how living things react to heat."
+        },
+        {
+          "id": "cmnk4o5be000cl1hdpw9a5g2o",
+          "paper": "P4 Daily Quiz – Science (MCQ)",
+          "stem": "Alice observed that even with fewer leaves, plant P could still grow. What does her observation show about the function of leaves?",
+          "options": "  (1) Make food for the plant\n  (2) Take in and give out gases\n  (3) Absorb water and mineral salts\n  (4) Transport food, water and mineral salts",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "1",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 1 Here is how we can understand this plant science! **Step 1:** Think about what a plant needs to grow. Just like you need food to get taller and stronger, plants need food to grow too. **Step 2:** Think about the jobs of different plant parts. The roots **absorb** water and mineral salts from the soil. The stem is used to **transport** those materials to the rest of the plant. The leaves act like the kitchen of the plant. **Step 3:** Connect the leaves to their job. Leaves catch sunlight to make food for the plant through a process called **photosynthesis**. **Step 4:** Look at Alice's observation. Because the plant continued to grow, it means the plant still had energy. The few leaves left on the plant were still working hard to make enough food for the plant to survive and grow. This shows that the main job of leaves for plant growth is to make food! Keep up the fantastic work!"
+        },
+        {
+          "id": "cmnq8q1mg007yetagkga1wdqf",
+          "paper": "P6 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "Ravi wanted to investigate the conditions needed for leaf growth using three types of soil. Four pots of identical plants were placed in the same area within a garden. The diagram shows the four pots of plants after two weeks.",
+          "options": "",
+          "subparts": "  (a) State which pots must be compared to conclude about the effect of each variable on leaf growth.\n  (b) Ravi conducted a second experiment to find how the amount of fertiliser affects leaf growth. He conducted a fair test, planting the same number of plants in five big pots, V, W, X, Y and Z. The pots are filled with garden soil. The results of his experiment are as shown. What can Ravi conclude about the effect of fertiliser on leaf growth?\n  (c) Explain why the results of Ravi's second experiment cannot be used to improve the leaf growth in pot S from his first experiment.",
+          "studentAnswer": "(a) (blank table) (b) (blank) (c) (blank)",
+          "correctAnswer": "(a) type of soil--- P,R,S | Availability of water --- P and Q | (b) From V to X, as the amount of fertiliser increases the average surface area of a leaf after two weeks increases. From V to Z, as the amount of fertiliser increases the average surface area of a leaf after two weeks decreases. | (c) The pots are filled with garden soil than clayey soil.",
+          "marksAwarded": 0,
+          "marksAvailable": 5,
+          "markingNotes": "Detected: (a) (blank table) (b) (blank) (c) (blank) | (a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Life cycles in plants and animals",
+      "count": 17,
+      "examples": [
+        {
+          "id": "cmnmphw45001m13kxvnt2bt02",
+          "paper": "P5 Daily Quiz – Science (MCQ)",
+          "stem": "Karne studied a diagram showing the life cycle of an animal P, as shown below. Karne made the following 3 observations about the life cycle of animal P. A The life cycle of animal P has 3 stages. B The life cycle begins with the egg stage. C The young of animal P resembles the adult. Based on the life cycle shown, which of Karne's statement(s) is/are true?",
+          "options": "  (1) A only\n  (2) B only\n  (3) A and B only\n  (4) A, B, and C",
+          "subparts": "",
+          "studentAnswer": "3",
+          "correctAnswer": "(1)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (1) **Step 1:** Look at statement A. The diagram clearly shows the animal going through exactly 3 separate **stages** of growth, so statement A is true. **Step 2:** Look at statement B. A **life cycle** is a continuous, repeating circle that shows how living things grow and **reproduce**. Because it is a continuous loop, a cycle has no true beginning or end. Therefore, saying it starts at the egg stage is false. **Step 3:** Look at statement C. For some animals with 3 **stages**, such as frogs or dragonflies, the young look completely different from the adults. Based on the diagram, the young does not resemble the adult, making statement C false. **Step 4:** Since only statement A is correct, we choose option (1). Keep up the great work learning about nature!"
+        },
+        {
+          "id": "cmo2cgoqq0021z3xke859avt9",
+          "paper": "Test Quiz — P6 Science WA2 Nanyang 2025",
+          "stem": "The diagram below shows organism P. The young of organism P feeds on leaves.",
+          "options": "",
+          "subparts": "  (a) Based on the results above, suggest the conditions needed for Alina to ensure the most number of eggs hatched over a period of time. Give a reason for your answer.\n  (b) Organism P lays its eggs, which hatch into larvae, on the leaves of plants. The larvae grow in size after some time. Explain how laying its eggs on leaves increases the chances of survival of organism P's young.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) Set the temperature at 20°C and the amount of water vapour in the air at 50 units. Under these conditions, the number of eggs hatched will be the most. | (b) The young will feed on the leaves once they are hatched.",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2cnryu003uz3xksl99c76y",
+          "paper": "Test Quiz — P6 Science WA2 Nan Hua 2023",
+          "stem": "The graph below shows the amount of food an organism consumed in a 40-days period during its life cycle.",
+          "options": "",
+          "subparts": "  (a) Name the stage in the life cycle of the organism at stage C.\n  (b) What is happening to the organism at stage C?\n  (c) How long did it take for the organism to develop into an adult?",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "(a) Pupa stage | (b) The young / larva is developing / turning / changing into/ becoming an adult. OR The young / pupa does not eat. OR The young / pupa stops feeding. | (c) 30 days",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "(a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Cycles in matter",
+      "count": 16,
+      "examples": [
+        {
+          "id": "cmo2cgoqr0023z3xkpcsx2069",
+          "paper": "Test Quiz — P6 Science WA2 Nanyang 2025",
+          "stem": "Jeyna took a box of frozen meat out from the freezer. Soon, she observed a thin layer of ice forming on the package as shown in the diagram below.",
+          "options": "",
+          "subparts": "  (a) Explain how a thin layer of ice had formed on the packaging of the box after it was taken out from the freezer.\n  (b) After a short while, Jeyna noticed that the thin layer of ice had disappeared. Explain what had happened.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) - water vapour in the surrounding air | - lost heat to the cooler surface of the box and condensed | - water droplets further lost heat | - and froze | (b) - Thin layer of ice gained heat (from the surroundings) and melted to form water",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2cnryv0040z3xkdl7x2wqc",
+          "paper": "Test Quiz — P6 Science WA2 Nan Hua 2023",
+          "stem": "Some liquid was poured into a communicating vessel (container) as shown below.",
+          "options": "",
+          "subparts": "  (a) What property of liquid is shown in the diagram above?\n  (b) Susie wanted to make a cup of bubble tea. She filled a measuring cup with some pearls until the 100 ml mark as shown below. How much tea should Susie pour in to fill the cup to 200 ml? Tick [✓] the box beside your choice.\n  (c) Give a reason for your answer to part (b) above.\n  (d) Suzie put some ice cubes carefully into her bubble tea and some tea overflowed from the cup. Explain why this happen.",
+          "studentAnswer": "(a) [BLANK] (b) More than 100 ml but less than 200 ml [ticked] (c) [BLANK] (d) [BLANK]",
+          "correctAnswer": "35(a) Liquid has no definite / fixed shape / takes the shape of its container. | 35(b) Tick ✓ More than 100ml but less than 200ml | 35(c) The pearls are fully submerged so the space between 100ml and 200ml should all be taken up by tea. | 35(d) The ice cubes took up space in the cup previously occupied by the tea that had overflowed. OR Ice cubes took up more space than the cup (with tea) allows. ",
+          "marksAwarded": 1,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) [BLANK] (b) More than 100 ml but less than 200 ml [ticked] (c) [BLANK] (d) [BLANK] | (a) No answer provided. (b) Correct option selected. (c) No answer provided. (d) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2dineo002wzs4k4o2ub3da",
+          "paper": "Test Quiz — P5 Science WA1 Raffles 2025",
+          "stem": "Sally opened the windows in the laboratory before she carried out an experiment. She took a can of drink out from the fridge and placed it on a digital balance as shown.",
+          "options": "",
+          "subparts": "  (a) Explain why there is an increase in the reading on the digital balance after five minutes. [2marks]\n  (b) Sally repeated the experiment in an enclosed air-conditioned laboratory using a similar can of drink taken out from the fridge.\nShe observed that after five minutes, the reading was more than 310g but less than 313g, compared to the previous experiment. Explain her observation. [2marks]",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) The warmer water vapour in the surrounding air lost heat to the cooler outer surface of the can and condensed into tiny water droplets. These additional water droplets on the can add on to the mass of the can, so the reading on the balance increased. | (b) The airconditioned room has less humidity and hence less water vapour condensed on the cool can. Thus, water droplets were formed on the ca",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Reproduction in plants and animals",
+      "count": 15,
+      "examples": [
+        {
+          "id": "cmnbg7z91008962739zu9odgp",
+          "paper": "P5 Daily Quiz – Science (MCQ)",
+          "stem": "The reproductive systems of humans and a flowering plant are shown in the diagram below.",
+          "options": "  (1) \n  (2) \n  (3) \n  (4) ",
+          "subparts": "",
+          "studentAnswer": "4",
+          "correctAnswer": "2",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is Option 2! To solve this, we just need to match the parts of the human reproductive system with the parts of the plant reproductive system that do the exact same job. Let's look at the male parts first: In humans, the testes produce the male reproductive cells (sperm). In flowering plants, the anther produces pollen grains, which hold the male reproductive cells. So, the testis matches the anther because they both produce male cells. Now, let's look at the female parts: In humans, the ovary produces female reproductive cells (eggs). In flowering plants, the plant's ovary produces ovules, which hold the plant's female reproductive cells. So, the human ovary matches the plant ovary because they both produce female cells. Option 2 correctly pairs up these male and female parts based on their special jobs. Keep up the great work learning about biology!"
+        },
+        {
+          "id": "cmnjphqp6000xb7omv16fy5a2",
+          "paper": "P5 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "The diagram below shows a wind-pollinated flower X with both male and female parts. Part (ii) has a feathery structure.",
+          "options": "",
+          "subparts": "  (a) \n  (b) When the male parts of flower X are removed, flower X could still grow into a fruit. Explain why this happened.",
+          "studentAnswer": "(a) (i) antler (ii) stigma (b) Male pollen from other flowers can still be freed with the female parts, resulting in fertilisation and growing into a fruit",
+          "correctAnswer": "(a)(i) Anther (a)(ii) Stigma (b) The pollen grain was transferred from the anther to the stigma before it was removed. The flower will then undergo fertilisation. The ovary will develop into the fruit.",
+          "marksAwarded": 3,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (i) antler (ii) stigma (b) Male pollen from other flowers can still be freed with the female parts, resulting in fertilisation and growing into a fruit | (a)(i) Incorrect. The male part is the anther, not antler. (a)(ii) Correct. (b) Correct. The student correctly explains that cross-pollination from other flowers can lead to fertilisation and fruit development, even if the flower's own male parts are removed.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmnjphqp7000zb7omayqma27x",
+          "paper": "P5 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "The diagram below shows a flower from a mango plant. Study the picture carefully.",
+          "options": "",
+          "subparts": "  (a) A part of a typical flower is missing in the picture. Name the missing plant part and state its function. (2m)\n  (b) State two differences between a flower that is insect-pollinated and one that is wind-pollinated. (2m)",
+          "studentAnswer": "(a) Stigma. A male pollen can attach to the stigma and eventually lead to fertilisation. (b) - The anthers of wind pollinated flowers sticks outside the flower. - The stigma of wind pollinated flowers usually have feathery structure.",
+          "correctAnswer": "a) Ovule. Ovule contains egg cells. | b) Insect-pollinated flowers have nectar but wind-pollinated flowers do not have nectar.",
+          "marksAwarded": 2,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) Stigma. A male pollen can attach to the stigma and eventually lead to fertilisation. (b) - The anthers of wind pollinated flowers sticks outside the flower. - The stigma of wind pollinated flowers usually have feathery structure. | (a) Incorrect. The stigma is clearly visible in the diagram, so it is not a 'missing' part. The function provided is correct for the stigma, but the named part is not missing. (0m) (b) Correct. The student provided two valid differences between wind-pollinated and insect-pollinated flowers: the position of anthers and the structure of the stigma. (2m)",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Energy conversion",
+      "count": 14,
+      "examples": [
+        {
+          "id": "cmnd5m34f0004tsc0ailhqmf7",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "A toy car made of iron was moving up a slope due to the attraction of a magnet placed at the top of the slope.",
+          "options": "  (1) \n  (2) \n  (3) \n  (4) ",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "4",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is Option 4. Here is a step-by-step explanation of the invisible forces at work as the car moves: 1. **Magnetic Force:** Iron is a magnetic material. The magnet placed at the top of the slope pulls the iron car towards it. This pulling force points upwards along the slope. 2. **Gravity (Weight):** The Earth pulls down on everything. Gravity is constantly trying to pull the toy car back down to the bottom of the slope. 3. **Friction:** When the car moves, its wheels rub against the surface of the slope. Friction always works exactly opposite to the direction the object is moving. Since the car is moving up, friction is pushing down the slope. For the car to successfully move upwards, the upward magnetic pull from the magnet must be stronger than gravity and friction combined! Option 4 correctly identifies how these forces interact with the toy car. Keep up the great work exploring science!"
+        },
+        {
+          "id": "cmngtywl30004vnbfqesa0h11",
+          "paper": "P6 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "The picture below shows a toy car moving on a plastic track. Which of the following statements are correct? A The toy car has less kinetic energy at X than at Z. B The toy car has the greatest amount of potential energy at position W. C The amount of potential energy in the toy car increased as it moved from X to Y.",
+          "options": "  (1) B only\n  (2) A and B only\n  (3) B and C only\n  (4) A, B and C",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(3)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (3) **Step 1:** Learn the energy rules. **Potential energy** is stored energy based on height. The higher the car is, the more **potential energy** it has. **Kinetic energy** is the energy of motion. **Step 2:** Test statement B. Position W is the highest point on the track. Because it has the most height, the car holds the greatest amount of **potential energy** here. Statement B is correct. **Step 3:** Test statement C. As the toy car climbs from position X up to position Y, it goes higher. Increasing height means the **potential energy** increases. Statement C is correct. **Step 4:** Test statement A. Position X is at the bottom of the first drop, so the car moves fastest here. This means the car has the most **kinetic energy** at X, not less than at Z. Statement A is incorrect. Since statements B and C are the only correct ones, the right choice is 3. You are doing an amazing job learning science!"
+        },
+        {
+          "id": "cmnq8q1mg007zetagalrc1t38",
+          "paper": "P6 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "Sally set up the experiment shown to find out how the length of the blade of a model wind turbine affects the amount of electricity it can generate. She used an electric fan to blow wind at the wind turbine, which generated an amount of electricity recorded by a data logger.",
+          "options": "",
+          "subparts": "  (a) What is the source of energy for the model wind turbine?\n  (b) Sally repeated her experiment using wind turbines with blades of different lengths and recorded her findings in the table.  What happened to the amount of electricity generated when she used blades of longer lengths?\n  (c) State two other ways that can increase the amount of electricity generated by the same wind turbine.",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "(a) Moving air | (b) The amount of electricity increased in units. | (c) Increase the speed of the fan. | Add more fans and blow it at the model wind turbine.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (b) (c) | (a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Interactions within the environment",
+      "count": 14,
+      "examples": [
+        {
+          "id": "cmngtywl4000bvnbf76rule17",
+          "paper": "P6 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "The flowchart below shows some organisms, W, X, Y and Z, in a community. Which one of the following food webs can be correct?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "(1)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** (1) **Step 1:** Look at the flowchart to find the **producer**. A **producer** is an organism like W that makes its own food. In any food web, arrows always start at the **producer** and point away from it because it passes **energy** to the animals that eat it. **Step 2:** Identify the **consumers**. Organisms X, Y, and Z are **consumers** because they eat other living things to get **energy**. Remember that the arrows in a food web always point toward the eater. If organism X eats organism W, the arrow must point from W to X. **Step 3:** Match the special traits from the flowchart to the correct food web. For example, if the flowchart tells us Z is a meat-eater, or **carnivore**, the arrows pointing to Z must only come from other animals like X or Y, never from the plant W. Option 1 is the only web that perfectly matches the rules from your flowchart. Great job taking your time to follow the flow of **energy** from the plants to the animals!"
+        },
+        {
+          "id": "cmo2bpuyf001hts3w0pukly6v",
+          "paper": "Test Quiz — P6 Science WA2 ACSJ 2025",
+          "stem": "Cacti are plants that can be found in the desert, where temperatures can be extremely high during the day and very low at night. Water is scarce, and the environment is dry and harsh. Cacti have needle-like leaves which help them survive for long periods without rain.",
+          "options": "",
+          "subparts": "  (a) Give a reason how having spines instead of leaves help the cacti survive in the desert. [1marks]\n  (b) State another structural adaptation of the cacti that helps them survive long periods without rain. [1marks]",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "a) To reduce water loss. | b) It has large waxy stems, which stores water for itself when there is no rain. |",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2bpuyf001its3wadzjooc7",
+          "paper": "Test Quiz — P6 Science WA2 ACSJ 2025",
+          "stem": "Bird C is an organism that lives in the cacti and feeds on the nectar of the cacti flower as shown in diagrams 1 and 2.",
+          "options": "",
+          "subparts": "  (c) How does Bird C and the cacti benefit from one another? [2marks]",
+          "studentAnswer": "Benefit to bird C: Benefit to cacti:",
+          "correctAnswer": "c) Benefit to bird: C can take in nectar of cacti flower to feed itself. Benefit to cacti: C can transport the pollen grains of the cacti flower from the anther to the stigma, this way the cacti can fertilised and reproduced.",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: Benefit to bird C: Benefit to cacti: | No answer provided by the student.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Heat energy and uses",
+      "count": 13,
+      "examples": [
+        {
+          "id": "cmnbg7z9100886273f3x1dbk8",
+          "paper": "P5 Daily Quiz – Science (MCQ)",
+          "stem": "Maslinda conducted an experiment as shown below. The plates are identical but made of different materials, C and D. She placed an identical ice cube on the top of each plate. She observed that the ice cube on material C melted first and made the statements below. A Material D gained heat from the ice cube. B Both ice cubes lost heat to the surrounding air. C Material C is a better conductor of heat than material D. Which of the following statement(s) above is/are wrong?",
+          "options": "  (1) A only\n  (2) C only\n  (3) A and B only\n  (4) B and C only",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "3",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (3) A and B only. Let's look at why step-by-step! First, remember the golden rule of heat: heat always travels from a warmer object to a cooler object. Statement A: The plates are at room temperature, which is warmer than the freezing ice cubes. Because heat moves from warmer to cooler things, the ice cubes gained heat from the plates. Material D did not gain heat from the ice; it lost heat to the ice! So, Statement A is wrong. Statement B: The surrounding air is also warmer than the ice cubes. This means the ice cubes gained heat from the air to melt. They did not lose heat to the air. So, Statement B is wrong too. Statement C: The ice cube on material C melted first. This tells us that heat traveled through material C to the ice cube much faster than it did through material D. That means material C is indeed a better conductor of heat. Statement C is correct! Since the question asks for the WRONG statements, the correct choice is A and B only. Keep up the great work with your science practice!"
+        },
+        {
+          "id": "cmo2bpuye001dts3wfx6uql5m",
+          "paper": "Test Quiz — P6 Science WA2 ACSJ 2025",
+          "stem": "Mrs Lum placed a packet of fish balls at room temperature into a pot of boiling soup as shown.",
+          "options": "",
+          "subparts": "  (a) The temperature of the soup decreased after the fish balls were added. Give a reason why. [1marks]\n  (b) It takes 15 minutes to cook a packet of fish balls. How will the time taken to cook the fish balls change if Mrs Lum cooks two packets of fish balls in the same pot using the same volume of hot soup instead? Explain why. [1marks]\n  (c) Mrs Lum steamed some buns with chocolate filling as shown in diagram 1. After steaming the buns for 10 minutes, the chocolate filling burst through the walls of the buns as shown in diagram 2. Explain why. [2marks]",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "a) The hot soup lost heat to the fish balls. | b) The time taken would increase. The two fish balls packets have more mass to be heated up. Hence more heat energy needs to be transferred. (c) The chocolate filling gained heat and expanded more than the wall of the bun, hence bursting through the walls.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (b) (c) | (a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2c4xbb001jlujpw37mh90k",
+          "paper": "Test Quiz — P6 Science WA2 Nanhua 2025",
+          "stem": "Lauren bought a hot drink which was served in a cup as shown below. Lauren held the cup and almost scalded her fingers. The stall holder offered her a cup sleeve to put around her cup as shown below. She noticed that the inner side of the cup sleeve was corrugated.",
+          "options": "",
+          "subparts": "  (a) Explain how the corrugated inner side of the cup sleeve will prevent Lauren from scalding her fingers. [2marks]\n  (b) When Lauren got home, she poured a cold drink into a double-walled cup to keep it cold for a long time. The double-walled cup has a layer of air between the two walls of the cup as shown below. Explain how the double walled cup helps to keep her cold drink cold for as long as possible. [2marks]",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) [Evidence from the diagram] The corrugated inner side of the cup sleeve reduces the exposed surface area in contact with the hot cup. | [Concept] Hence, the cup sleeve will gain less heat from the hot cup, | [Link] and Lauren's fingers will gain less heat from the cup sleeve, preventing her from scalding her fingers. | (b) [Evidence from the diagram] There is a layer of air between the two wal",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Human respiratory and circulatory systems",
+      "count": 13,
+      "examples": [
+        {
+          "id": "cmo0zo24l0009l9hcl7aye8my",
+          "paper": "Test Quiz — P4 Science WA1 Henry Park 2023",
+          "stem": "Study the flowchart below carefully.",
+          "options": "",
+          "subparts": "  (a) \n  (b) ",
+          "studentAnswer": "(a) A: system B: system (b) i) system ii) system",
+          "correctAnswer": "a) A: skeletal | B: Respiratory | b) i)Digestive | ii)Circulatory",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) A: system B: system (b) i) system ii) system | (a) No answer provided for A or B. (b) No answer provided for i) or ii).",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo28lpzc001hxv0fn90fch0k",
+          "paper": "Test Quiz — P6 Science WA1 PLMGS 2025",
+          "stem": "The diagram shows a human body system.",
+          "options": "",
+          "subparts": "  (a) Identify the system and state the function of this system.\n  (b) Name Y.\n  (c) Other than Y, name another two parts of this system.",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "(a) Circulatory system. It transports blood rich in oxygen and digested food to all parts of the body. | (b) Heart | (c) Blood, blood vessels.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (b) (c) | (a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2c4xb9001clujpp66cze5n",
+          "paper": "Test Quiz — P6 Science WA2 Nanhua 2025",
+          "stem": "The graph below shows the changes in Mirabel's heart rate over time when she went running.",
+          "options": "",
+          "subparts": "  (a) Based on the graph, describe the changes in her heart rate during the 25 minutes. [1marks]\n  (b) Based on the graph, explain how Mirabel's heart rate changed after point S. [2marks]",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "34a: In the first 15 minutes, her heart rate increased. | After 15 minutes, her heart rate decreased. | 34b: [Evidence from the graph] The graph shows her heart rate decreased after point S. | [Concept] As the demand for oxygen and digested food is lower, her heart pumped blood slower to transport less oxygen and digested food to all parts of the body.",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Light energy and uses",
+      "count": 13,
+      "examples": [
+        {
+          "id": "cmo2cgoqs002cz3xkskwlnrik",
+          "paper": "Test Quiz — P6 Science WA2 Nanyang 2025",
+          "stem": "The diagram below shows a paper counting system that is made up of a light source, a light sensor and a datalogger. Paper P is placed at an equal distance between the light source and the light sensor. The light sensor measures the amount of light passing through the paper. The graph below shows the number of sheets of paper P and the amount of light recorded by the light sensor and datalogger.",
+          "options": "",
+          "subparts": "  (a) Based on the results above, state the maximum number of sheets Alexis should use to make a strong bag that still allows her to see the shapes of the items in the bag.\n  (b) Give a reason the amount of light decreases as the number of sheets increases.\n  (c) Suggest a way to ensure that the results are reliable. Explain your suggestion.",
+          "studentAnswer": "(a) (b) (c)",
+          "correctAnswer": "(a) 4 (b) More light is blocked as more sheets of paper P is used. | (c) Repeat the experiment at least 3 times and calculate the average. | This allows us to check for consistency in the results.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "(a) No answer provided. (b) No answer provided. (c) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2mhxu7001vutc27coom5wi",
+          "paper": "Test Quiz — P4 Science WA2 Maha Bodhi 2025",
+          "stem": "Jason wants to find out how much light a material can reflect. He sets up the experiment as shown below.",
+          "options": "",
+          "subparts": "  (a) Arrange materials A, B, C and D using the table below in order of how much light they reflect.\n  (b) State one variable in the experiment that was changed.",
+          "studentAnswer": "(a) D A B C (b) blank",
+          "correctAnswer": "a) D, A, B, C | b) The type of material.",
+          "marksAwarded": 1,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) D A B C (b) blank | Part (a) is correct. Part (b) is blank.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2my3qg003mutc2q7ogbck0",
+          "paper": "Test Quiz — P4 Science WA2 Maha Bodhi 2023",
+          "stem": "The diagram below shows an object placed at the centre of four light bulbs, W, X, Y and Z.",
+          "options": "",
+          "subparts": "  (a) Which light bulbs, W, X, Y and/or Z were switched on to form the shadows shown in the diagram above?\n  (b) State how a shadow is formed.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "a) Light bulbs W and X. | b) A shadow is formed when light is partially or completely blocked by an object.",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "(a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Diversity of materials",
+      "count": 11,
+      "examples": [
+        {
+          "id": "cmo0zo24l0007l9hcpy5m1d80",
+          "paper": "Test Quiz — P4 Science WA1 Henry Park 2023",
+          "stem": "Nelly wanted to find out whether four cubes, E, F, G and H, made of different materials could absorb water. All the cubes have the same volume. She placed the cubes into four similar containers each filled with 90ml of water.",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "H, G, E, F",
+          "correctAnswer": "H, F, G, E",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: H, G, E, F | The correct order from most absorbent to least absorbent is H, F, G, E. The student correctly identified H as the most absorbent but the rest of the order is incorrect.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo0zo24m000bl9hc961tko5d",
+          "paper": "Test Quiz — P4 Science WA1 Henry Park 2023",
+          "stem": "Simon wanted to test a property of three materials, P, Q and R. He placed each material on the side of a table and hung a 50g weight on one end of the material. He measured the distance 'd' as shown in the diagram and recorded his observation in the table below.",
+          "options": "",
+          "subparts": "  (a) State the property of the materials that Simon is trying to test.\n  (b) Which material, P, Q or R is most suitable for making a bookshelf? Explain your answer.",
+          "studentAnswer": "(a) (no answer) (b) (no answer)",
+          "correctAnswer": "a) Flexibility | b) Material R, material R is the least flexible so the books will not fall of the shelf.",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (no answer) (b) (no answer) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo2kvtqr00393jrwjfyxkipy",
+          "paper": "Test Quiz — P4 Science WA1 Henry Park 2025",
+          "stem": "Maureen poured coloured water into each of the glass containers shown below until the water reached the same level. She observed the shape of the coloured water in each container. State two properties of liquids observed by Maureen.",
+          "options": "",
+          "subparts": "  (i) \n  (ii) ",
+          "studentAnswer": "(i) (ii)",
+          "correctAnswer": "i) Liquids have a definite volume. | ii) Liquids do not have a definite shape.",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "(i) No answer provided. (ii) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Human digestive system",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmn01kc0t000710glvh0uhzt8",
+          "paper": "P4 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "The diagram below shows the human digestive system. Which of the following statement(s) about parts S and T is/are true? A Digestion starts at part S and ends at part T. B Part S has more digested food than part T. C Both parts S and T contain digestive juices. D Water is removed from the undigested food in Part T.",
+          "options": "  (1) A only.\n  (2) D only.\n  (3) A and C only.\n  (4) B and D only.",
+          "subparts": "",
+          "studentAnswer": "2",
+          "correctAnswer": "4",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is **(4) B and D only**. Let's break down the steps to solve this! Based on the clues, **Part S** is the **small intestine**, and **Part T** is the **large intestine**. Here is why statements B and D are the correct ones: * **Statement B is True:** The small intestine (Part S) is where food finishes breaking down. It contains lots of digested food waiting to be absorbed into your blood! By the time the leftovers reach the large intestine (Part T), it is mostly just undigested waste. * **Statement D is True:** The main job of the large intestine (Part T) is to absorb (or remove) water from that leftover undigested food before it leaves the body. Here is why A and C are false: * Digestion actually starts in the *mouth* and ends in the *small intestine*, not the large intestine (Statement A is false). * The large intestine (Part T) does *not* contain digestive juices because digestion is already finished by the time food gets there (Statement C is false). Great job reviewing the digestive system! Keep up the fantastic work!"
+        },
+        {
+          "id": "cmnki1jt6008p14p6r4x5duwa",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "The diagram below shows the human digestive system. Which of the following correctly identifies the parts where digestion of food takes place?",
+          "options": "  (1) P, Q and S only\n  (2) P, R and S only\n  (3) P, R and T only\n  (4) R, S and T only",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(2)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (2). Let us look at how to find this step by step! **Step 1:** Identify the organs of the **digestive system** from the diagram. Usually, P points to the **mouth**, Q is the **gullet**, R is the **stomach**, S is the **small intestine**, and T is the **large intestine**. **Step 2:** Remember that **digestion** is the process of breaking down food into simpler substances. Let us check each organ to see if it breaks down food. **Step 3:** In part P, the **mouth**, teeth chew food and saliva starts breaking it down. Part Q, the **gullet**, is simply a tube that pushes food down, so no **digestion** happens here. In part R, the **stomach**, food is churned and mixed with digestive juices to break it down further. In part S, the **small intestine**, **digestion** is fully completed. Finally, part T, the **large intestine**, only absorbs water from leftover waste, so no **digestion** happens there. **Step 4:** Group the organs where food is actually broken down. These are the **mouth** (P), **stomach** (R), and **small intestine** (S). **Answer:** (2)"
+        },
+        {
+          "id": "cmnki1jt7009214p6wpg8i7oj",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "The diagram below shows the human digestive system.",
+          "options": "  (1) \n  (2) \n  (3) \n  (4) ",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "3",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "**Answer:** 3 **Step 1:** Trace the path of food through the **digestive system** in your diagram. Food begins its journey in the **mouth** and travels down a long tube called the **esophagus**. **Step 2:** Look at where the tube leads next. It empties into a pouch-shaped organ called the **stomach**, where food gets mashed up and mixed with juices. **Step 3:** Follow the diagram to the next organ, which matches option 3. After the **stomach**, food enters the **small intestine**. This is the long, coiled tube in the center of the belly. It is a very important organ because it is where most of the digestion happens and where nutrients are absorbed into your blood. **Step 4:** Notice the thicker tube surrounding it. That is the **large intestine**, which absorbs water and handles leftover waste. By following the food's journey in order, you can confidently identify each organ. Keep up the great work in science!"
+        }
+      ]
+    },
+    {
+      "topic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmnflatsq0004y6mifylo3wlo",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "Allison carried out an experiment using springs P and Q. Both springs have the same original length. She hung 100 g masses on each spring and repeated the experiment using 200 g masses as shown in the diagrams below. Based on the results above, which one of the following graphs is correct?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "1",
+          "correctAnswer": "(4)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "Great job practicing your science skills! Let's look at exactly how to find the correct answer, which is Graph (4). Step 1: Check the starting point. The question tells us that springs P and Q have the same original length. This means when there is 0 g of mass on them, they are exactly the same size. On a graph, both lines must start at the exact same spot on the upright axis (length) when the bottom axis (mass) is at zero. Step 2: Look at the stretching. When Allison hangs the 100 g and 200 g masses on them, both springs stretch. Because adding mass makes the springs longer, both lines on the graph must go up as the mass gets bigger. Step 3: Compare the springs. Since P and Q are different springs, one will stretch more easily than the other. This means one line will go up faster and be steeper than the other line. Graph (4) is correct because it shows both lines starting together at the exact same original length, and then spreading apart as they stretch at different rates. Keep up the awesome work!"
+        },
+        {
+          "id": "cmo299i5c0014br5v1ka3138c",
+          "paper": "Test Quiz — P6 Science WA1 Nanhua 2025",
+          "stem": "Joshua placed a toy car in the middle of a rubber band and used it to pull the rubber band backwards. He then released the rubber band and measured the distance moved by the toy car. He repeated the experiment with different extension lengths and recorded his results in the table as shown below.",
+          "options": "",
+          "subparts": "  (a) State the energy that the stretched rubber band has.\n  (b) What is the relationship between the extension of the rubber band and the distance moved by the toy car\n  (c) Name one variable that should be kept constant in this experiment.\n  (d) What could Joshua do to obtain more reliable results?",
+          "studentAnswer": "(a) (b) (c) (d)",
+          "correctAnswer": "(a) Elastic potential energy. | (b) When the extension of the rubber band increases, the distance moved by the toy car increases. | (c) The type of toy car. | (d) Repeat the experiment a few more times and calculate the average of the results.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (b) (c) (d) | (a) No answer provided. (b) No answer provided. (c) No answer provided. (d) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo29vfga000yj0wm0flbwsyd",
+          "paper": "Test Quiz — P6 Science WA1 ACSJ 2023",
+          "stem": "Calvin made a jumping toy using two pieces of metal cards, some tape and a rubber band as shown. To make the toy jump, he stretched the rubber band and pressed the toy down as shown. When Calvin removed his finger, the toy jumped. He used a different number of rubber bands each time and measured and recorded the maximum height the toy jumped to in the table.",
+          "options": "",
+          "subparts": "  (a) State the relationship between the number of rubber bands used and the maximum height the toy jumped to.\n  (b) State a change Calvin must make to the toy, so that it jumps higher than 18 cm when four rubber bands are used.",
+          "studentAnswer": "(a) (blank) (b) (blank)",
+          "correctAnswer": "(a) As the number rubber bands used increases from 1 to 4, the maximum height the toy jumped to increased. When the number of rubber bands used increases from 4 to 6 the maximum height the toy jumped remained the same. | (b) Use lighter cards.",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: (a) (blank) (b) (blank) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Photosynthesis",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmnflatsr000gy6mizlgwvve6",
+          "paper": "P6 Daily Quiz – Science (MCQ)",
+          "stem": "Mrs Matthew prepared the set-up as shown in the diagram. She gave the plant some water and placed it under the sun for a few hours. Which one of the following graphs shows the changes in the amount of carbon dioxide and oxygen in the bell jar over time?",
+          "options": "",
+          "subparts": "",
+          "studentAnswer": "3",
+          "correctAnswer": "(4)",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "",
+          "elaboration": "The correct answer is (4). Here is a step-by-step look at why! When Mrs Matthew placed the watered plant under the bright sun, she gave it everything it needs to carry out a process called photosynthesis. During photosynthesis, plants take in carbon dioxide from the air and release fresh oxygen. Even though plants also breathe (respire) and use a tiny bit of oxygen, they produce much more oxygen than they use when they are out in the bright sunlight. Because the plant is inside a closed bell jar, the gases have nowhere to go. Over a few hours, here is what happens: 1. The plant keeps taking in carbon dioxide to make food, so the amount of carbon dioxide in the jar will decrease (the line goes down). 2. At the same time, it keeps releasing oxygen, so the amount of oxygen in the jar will increase (the line goes up). Graph (4) perfectly shows the oxygen line going up and the carbon dioxide line going down. Keep up the great work learning about how amazing plants are!"
+        },
+        {
+          "id": "cmnq8q1mg0080etagga2ol92h",
+          "paper": "P6 Daily Quiz – Science (MCQ + OEQ)",
+          "stem": "Pei Hwa carried out an experiment in a dark room. He placed a plant in a closed clear glass container as shown.",
+          "options": "",
+          "subparts": "  (a) Give a reason why a clear glass container was used for the experiment.\n  (b) Pei Hwa switched off the lamp. State what would happen to the amount of oxygen and the amount of carbon dioxide detected by the datalogger after a few hours. Explain.",
+          "studentAnswer": "(a) (No answer provided) (b) (No answer provided)",
+          "correctAnswer": "(a) Light can pass through the glass for the plant to photosynthesize | (b) The amount of oxygen will decrease and the amount of carbon dioxide will increase | The plant could not photosynthesize as there was no light",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (No answer provided) (b) (No answer provided) | (a) No answer provided by the student. (b) No answer provided by the student.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo299fkz000nbr5vt3i0utwn",
+          "paper": "Test Quiz — P6 Science WA1 Catholic 2025",
+          "stem": "Pei Hwa carried out an experiment in a dark room. He placed a plant in a closed clear glass container as shown.",
+          "options": "",
+          "subparts": "  (a) Give a reason why a clear glass container was used for the experiment.\n  (b) Pei Hwa switched off the lamp. State what would happen to the amount of oxygen and the amount of carbon dioxide detected by the datalogger after a few hours. Explain.",
+          "studentAnswer": "(a) (b)",
+          "correctAnswer": "(a) Light can pass through the glass for the plant to photosynthesize | (b) The amount of oxygen will decrease and the amount of carbon dioxide will increase | The plant could not photosynthesize as there was no light",
+          "marksAwarded": 0,
+          "marksAvailable": 2,
+          "markingNotes": "Detected: (a) (b) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    },
+    {
+      "topic": "Interaction of forces (Magnets)",
+      "count": 7,
+      "examples": [
+        {
+          "id": "cmo0zo24m000cl9hcgtowg8dq",
+          "paper": "Test Quiz — P4 Science WA1 Henry Park 2023",
+          "stem": "Matthew wants to make an Iron nail into a magnet using the stroking method.",
+          "options": "",
+          "subparts": "  (a(i)) Tick (✓) the box that shows the correct way of using the stroking method to make the iron nail into a temporary magnet.\n  (a(ii)) Describe how Matthew can increase the strength of the temporary magnet.\n  (b) Matthew brought two magnets near to each other but the two magnets moved away from each other. Is Y the North or South Pole? Explain your answer.",
+          "studentAnswer": "(a(i)) [No tick provided] (a(ii)) [No answer] (b) [No answer]",
+          "correctAnswer": "Part a)i) See answer img. Tick the first diagram. correctly check first box: Part a)ii): Matthew can stroke the iron nail more times. | Part b): Y is the north pole. Both like poles of the magnets are facing each other, so when they are brought together they will repel each other.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a(i)) [No tick provided] (a(ii)) [No answer] (b) [No answer] | (a(i)) No answer provided. (a(ii)) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo29vfga000xj0wm4x9vhv0w",
+          "paper": "Test Quiz — P6 Science WA1 ACSJ 2023",
+          "stem": "Ryan conducted an experiment as shown. When he released the steel ball A, it moved and hit the magnet. He recorded the time taken for steel ball A to hit the magnet. He then repeated the experiment with steel balls B and C of different masses and recorded his results in the table.",
+          "options": "",
+          "subparts": "  (a) What force caused the steel balls to move towards the magnet?\n  (b) Give a reason why steel ball B took the longest time to hit the magnet?\n  (c) What will happen to the time taken for steel ball B to hit the magnet, when a lubricant is applied on the table?\n  (d) What is the effect of force on steel ball C if a stronger magnet is used?",
+          "studentAnswer": "(a) (blank) (b) (blank) (c) (blank) (d) (blank)",
+          "correctAnswer": "(a) Magnetic force acting on the steel ball. | (b) The steel ball was heavier than steel balls A and C. | (c) The time taken for steel ball B to hit the magnet when a lubricant is present would decrease in time. | (d) Increment of the speed.",
+          "marksAwarded": 0,
+          "marksAvailable": 4,
+          "markingNotes": "Detected: (a) (blank) (b) (blank) (c) (blank) (d) (blank) | (a) No answer provided. (b) No answer provided. (c) No answer provided. (d) No answer provided.",
+          "elaboration": ""
+        },
+        {
+          "id": "cmo29vfga0010j0wm6li3fdoy",
+          "paper": "Test Quiz — P6 Science WA1 ACSJ 2023",
+          "stem": "The diagrams show a diesel-powered train and a Maglev train. Diesel is a type of fuel made from crude oil. The diesel-powered train has wheels which travel on a metal track as shown. The Maglev train does not have wheels. It has magnets which allow it to float over the track as shown. Answer parts (b) and (c) based on concepts of forces.",
+          "options": "",
+          "subparts": "  (a) Based on the diagram, explain why the Maglev train is able to float over the track.\n  (b) (Answer b, c based on forces).  The Maglev train can travel much faster than the diesel train. Explain why.",
+          "studentAnswer": "(a) (no answer) (b) (no answer)",
+          "correctAnswer": "(a) The magnet in the train and the maglev are like poles facing each other. Thus, it repels each other enabling the train to float. | (b) There is no friction between the train and the track.",
+          "marksAwarded": 0,
+          "marksAvailable": 3,
+          "markingNotes": "Detected: (a) (no answer) (b) (no answer) | (a) No answer provided. (b) No answer provided.",
+          "elaboration": ""
+        }
+      ]
+    }
+  ]
+}

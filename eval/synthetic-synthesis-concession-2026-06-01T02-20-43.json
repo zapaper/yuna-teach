@@ -1,0 +1,38 @@
+{
+  "subTopic": "concession",
+  "generatedAt": "2026-06-01T02:20:43.074Z",
+  "items": [
+    {
+      "sourceId": "cmo6ye0v60009105eamystri2",
+      "sourcePaper": "[Synthetic Bank] English Primary 6 (?)",
+      "originalStem": "The boy practised throwing the ball many times. He could not hit the target.\n\n**No matter**  ________________________________\n________________________________\n",
+      "originalAnswer": "No matter how many times the boy practised throwing the ball, he could not hit the target.",
+      "simple": {
+        "stem": "The old man walked slowly. He reached the top of the hill.\n\n**Although** ________________________________\n________________________________",
+        "keyword": "Although",
+        "answer": "Although the old man walked slowly, he reached the top of the hill."
+      },
+      "similar": {
+        "stem": "My sister studied very hard for the test. She still failed it.\n\n**Despite** ________________________________\n________________________________",
+        "keyword": "Despite",
+        "answer": "Despite studying very hard for the test, my sister still failed it."
+      }
+    },
+    {
+      "sourceId": "cmo6ye0vg000d105etsppic1z",
+      "sourcePaper": "[Synthetic Bank] English Primary 6 (?)",
+      "originalStem": "The children begged their parents for a new pet. Their parents firmly refused.\n\n**No matter** ________________________________\n________________________________\n",
+      "originalAnswer": "No matter how much the children begged their parents for a new pet, their parents firmly refused.",
+      "simple": {
+        "stem": "The old man was very tired. He continued walking to the market.\n\n________________________________ **Although** ________________________________",
+        "keyword": "Although",
+        "answer": "The old man continued walking to the market although he was very tired."
+      },
+      "similar": {
+        "stem": "The team trained rigorously every day. They lost the championship match.\n\n**Despite** ________________________________\n________________________________",
+        "keyword": "Despite",
+        "answer": "Despite training rigorously every day, the team lost the championship match."
+      }
+    }
+  ]
+}

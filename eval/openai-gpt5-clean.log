@@ -1,0 +1,43 @@
+Eval: 9 paper(s), tolerance ±0.5 mark per question, cleanup=true
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter ... fetched=39 cloned=cmpui4cya0… marked. 9/10 FAIL (total 19.5 vs 20.5)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry ... fetched=19 cloned=cmpui5ype0… marked. 9/10 FAIL (total 16 vs 17)
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1 ... fetched=46 cloned=cmpui8ymk0… marked. 15/16 FAIL (total 34.5 vs 37)
+
+[cmpffd3wu000i1032c8w0t5pm] P6 Grammar MCQ+ ... fetched=0 cloned=cmpuicv4u0… marked. 27/27 PASS (total 25 vs 25)
+
+[cmp0z7a390001ypkf6juin4qb] P6 Editing+ ... fetched=0 cloned=cmpuidlcc0… marked. 27/27 PASS (total 32 vs 32)
+
+[cmozc5icr000d11l735uqp939] P6 Focused: Fractions ... fetched=21 cloned=cmpuidv7h0… marked. 10/10 PASS (total 14 vs 14.5)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry ... fetched=19 cloned=cmpuifw0i0… marked. 9/10 FAIL (total 18 vs 19)
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio ... fetched=19 cloned=cmpuiianr0… marked. 10/10 PASS (total 18 vs 18)
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems ... fetched=39 cloned=cmpuilxzz0… marked. 10/10 PASS (total 12 vs 13)
+
+=== DIFFS ===
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter
+  9/10 match, total 19.5 vs 20.5 expected
+  Q6: expected 2, got 1 (Δ-1)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry
+  9/10 match, total 16 vs 17 expected
+  Q9: expected 2, got 1 (Δ-1)
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1
+  15/16 match, total 34.5 vs 37 expected
+  Q11: expected 4, got 3 (Δ-1)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry
+  9/10 match, total 18 vs 19 expected
+  Q6: expected 3, got 2 (Δ-1)
+
+=== SUMMARY ===
+Papers: 5/9 pass
+Questions: 126/130 match within ±0.5 (96.9%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

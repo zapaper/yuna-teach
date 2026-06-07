@@ -1,0 +1,15 @@
+Eval: 1 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry ... fetched=19 cloned=cmpuium1z0… marked. 9/10 FAIL (total 18 vs 19)
+
+=== DIFFS ===
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry
+  9/10 match, total 18 vs 19 expected
+  Q6: expected 3, got 2 (Δ-1)
+
+=== SUMMARY ===
+Papers: 0/1 pass
+Questions: 9/10 match within ±0.5 (90.0%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

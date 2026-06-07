@@ -12,7 +12,10 @@
 
 import { prisma } from "../src/lib/db";
 
-type Cat = "A-transfer" | "B-equal-removal" | "C-one-constant" | "D-equalise-ratios" | "E-weight-difference";
+type Cat = "A-transfer" | "B-equal-removal" | "C-one-constant" | "D-equalise-ratios";
+
+// Pattern E (weight-difference mix) was dropped from the master class
+// taxonomy — PSLE only tests it ~once a decade. See commit 8383f693.
 
 const CATEGORIES: Array<{ id: Cat; regex: RegExp; desc: string }> = [
   {
@@ -55,16 +58,6 @@ const CATEGORIES: Array<{ id: Cat; regex: RegExp; desc: string }> = [
       "\\bnew\\s+ratio\\b",
       "\\bbecame\\b\\s+\\d+\\s*:\\s*\\d+",
       "\\bratio\\b.*\\b\\d+\\s*:\\s*\\d+\\b.*\\bratio\\b.*\\b\\d+\\s*:\\s*\\d+\\b",
-    ].join("|"), "i"),
-  },
-  {
-    id: "E-weight-difference",
-    desc: "Equal counts, different mixes (coins / notes / stamps / items of different values)",
-    regex: new RegExp([
-      "\\b(coins?|notes?|stamps?|tickets?)\\s+(?:of|worth)\\b",
-      "\\b\\d+\\s*-?\\s*cent\\s+(?:and|or)\\b.*\\b\\d+\\s*-?\\s*cent\\b",
-      "\\$\\s*\\d+\\s+(?:notes?|coins?)\\b.*\\$\\s*\\d+\\s+(?:notes?|coins?)\\b",
-      "\\bsame\\s+(?:number|total)\\s+of\\s+(?:coins?|notes?|stamps?|items?|tickets?)\\b",
     ].join("|"), "i"),
   },
 ];
@@ -129,17 +122,22 @@ async function main() {
   }
 
   console.log(`\nUnmatched: ${unmatched}   Multi-match (took first): ${multiMatch}`);
-  console.log(`\n========== PER-CATEGORY COUNTS ==========`);
+  console.log(`\n========== FULL LISTING (for manual cleanup) ==========`);
+  console.log(`Tell me which numbered items to DROP (false positives).`);
+  console.log(`Anything not dropped will be tagged with the listed subTopic.`);
   for (const c of CATEGORIES) {
     const b = buckets.get(c.id)!;
-    console.log(`\n${c.id} — ${c.desc}`);
-    console.log(`  MCQ: ${b.mcq.length}   OEQ: ${b.oeq.length}`);
-    const samples = [...b.oeq.slice(0, 2), ...b.mcq.slice(0, 1)];
-    for (const s of samples) {
-      const tag = isMcq(s) ? "[MCQ]" : "[OEQ]";
-      const paperTag = `${s.examPaper.title}${s.examPaper.year ? ` (${s.examPaper.year})` : ""}`;
-      console.log(`  ${tag} ${paperTag} Q${s.questionNum}: ${(s.transcribedStem ?? "").trim().replace(/\s+/g, " ").slice(0, 180)}…`);
-    }
+    const all = [...b.oeq, ...b.mcq];
+    console.log(`\n----------\n${c.id} — ${c.desc}`);
+    console.log(`  Total: ${all.length}  (OEQ: ${b.oeq.length}, MCQ: ${b.mcq.length})`);
+    all.forEach((q, i) => {
+      const tag = isMcq(q) ? "[MCQ]" : "[OEQ]";
+      const paperTag = `${q.examPaper.title}${q.examPaper.year ? ` ${q.examPaper.year}` : ""}`;
+      const stem = (q.transcribedStem ?? "").trim().replace(/\s+/g, " ");
+      const num = `${c.id.charAt(0)}.${(i + 1).toString().padStart(2, "0")}`;
+      console.log(`  ${num} ${tag} ${paperTag} Q${q.questionNum} (id=${q.id.slice(0, 10)})`);
+      console.log(`        ${stem.slice(0, 260)}${stem.length > 260 ? "…" : ""}`);
+    });
   }
 }
 

@@ -1,0 +1,47 @@
+Picked 10 pending Grammar MCQ rows. Running elaborations…
+
+============================================================
+[1/10] P5 English EOY Nanyang 2025 — Q1  Primary 5  (13.6s)
+============================================================
+STEM: Jenny was worried about the upcoming test ___ she did not revise enough.
+  (1) if
+  (2) as
+  (3) unless
+  (4) therefore
+ANSWER: 2
+
+ELABORATION (584 chars):
+This question tests **subordinating conjunctions of reason**, which connect a situation to its cause. 
+
+Option **(2)** is correct because "as" means "because." It correctly explains the reason why Jenny was worried (she did not revise enough).
+
+- Option **(1)** fails because "if" creates a **conditional sentence**, but her lack of revision is a fact, not a possibility.
+- Option **(3)** fails because "unless" means "except if," creating an illogical **negative condition**.
+- Option **(4)** fails because "therefore" is a **conjunctive adverb** used to show a result, not a reason.
+
+============================================================
+[2/10] P5 English EOY Nanyang 2025 — Q2  Primary 5  (12.7s)
+============================================================
+STEM: Rachel has a small appetite, so she ordered a dish without ___ meat.
+  (1) less
+  (2) little
+  (3) many
+  (4) much
+ANSWER: 4
+
+ELABORATION (672 chars):
+This question tests **quantifiers with uncountable nouns**.
+
+The word "meat" is an **uncountable noun**. We use "**much**" in negative contexts (like after the word "without") to mean a large amount, so ordering a dish "without **much** meat" is perfect for someone with a small appetite!
+
+Here is why the other options are incorrect:
+**(1)** "less" is a **comparative quantifier** used to compare two things, which is not happening here.
+**(2)** "little" creates an illogical meaning, because "without **little** meat" actually implies she wants a lot of meat!
+**(3)** "many" is a **quantifier** only used with **countable nouns** (like "apples" or "plates"), not "meat".
+
+[3/10] FAILED  P5 English EOY Nanyang 2025 Q3: 
+Invalid `prisma.examQuestion.update()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\_run-grammar-elab-batch.ts:96:33
+
+  93 const { solution, diagrams } = parseModelResponse(raw);
+  94 c

@@ -134,6 +134,8 @@ export async function GET(
             orderIndex: true,
             yStartPct: true,
             yEndPct: true,
+            xStartPct: true,
+            xEndPct: true,
             syllabusTopic: true,
             // Question CONTENT used by the review page renderer.
             // Without these the clone-as-source path (English Test
@@ -168,6 +170,8 @@ export async function GET(
           orderIndex: mq.orderIndex,
           yStartPct: mq.yStartPct ?? null,
           yEndPct: mq.yEndPct ?? null,
+          xStartPct: mq.xStartPct ?? null,
+          xEndPct: mq.xEndPct ?? null,
           answer: mq.answer,
           answerImageData: mq.answerImageData ?? null,
           syllabusTopic: mq.syllabusTopic ?? null,

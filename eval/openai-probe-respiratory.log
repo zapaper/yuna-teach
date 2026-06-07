@@ -1,0 +1,19 @@
+Eval: 1 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems ... fetched=39 cloned=cmpug10zi0… marked. 5/10 FAIL (total 0 vs 13)
+
+=== DIFFS ===
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems
+  5/10 match, total 0 vs 13 expected
+  Q6: expected 3, got 0 (Δ-3)
+  Q7: expected 4, got 0 (Δ-4)
+  Q8: expected 2, got 0 (Δ-2)
+  Q9: expected 1, got 0 (Δ-1)
+  Q10: expected 3, got 0 (Δ-3)
+
+=== SUMMARY ===
+Papers: 0/1 pass
+Questions: 5/10 match within ±0.5 (50.0%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

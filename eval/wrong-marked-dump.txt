@@ -1,0 +1,313 @@
+
+============================================================
+P4 Cycles in matter  (cmpuga9uy000…)
+============================================================
+
+--- Q6  0/2m  (expected 2, got 0, Δ-2)
+STEM: 
+
+EXPECTED ANSWER:
+(a) Matter is anything that has mass and occupies space.
+
+STUDENT ANSWER (detected):
+(a) Working: (no working shown)
+(a) Final answer: moss and space.
+
+MARKER NOTES:
+Detected: (a) Working: (no working shown)
+(a) Final answer: moss and space. | Part (a): The student correctly wrote the word **space**, but wrote **moss** instead of the required scientific term **mass**. Both key components **mass** and **space** are needed to define matter, so the answer is incomplete. −2 for missing the key term **mass**.
+
+--- Q9  1/4m  (expected 2, got 1, Δ-1)
+STEM: 
+
+EXPECTED ANSWER:
+(a) Air has mass. | Water occupies space. | (b-i) Remains the same. | (b-ii) Water has a definite volume.
+
+STUDENT ANSWER (detected):
+(a) Working: Drew a blue tick in the Tick column for "Air has mass."
+Drew a blue tick in the Tick column for "Water occupies space."
+Final answer: Ticked "Air has mass." and "Water occupies space."
+
+(b) Working: (no working shown)
+Final answer: (no final answer shown)
+
+(i) Working: (no working shown)
+Final answer: the water level will increase.
+
+(ii) Working: (no working shown)
+Final answer: The plastic is matter and all matter occupies space, so the plastic cup will occupy space in the container.
+
+MARKER NOTES:
+Detected: (a) Working: Drew a blue tick in the Tick column for "Air has mass."
+Drew a blue tick in the Tick column for "Water occupies space."
+Final answer: Ticked "Air has mass." and "Water occupies space."
+
+(b) Working: (no working shown)
+Final answer: (no final answer shown)
+
+(i) Working: (no working shown)
+Final answer: the water level will increase.
+
+(ii) Working: (no working shown)
+Final answer: The plastic is matter and all matter occupies space, so the plastic cup will occupy space in the container. | Part (a): The student correctly ticked **Air has mass** and **Water occupies space**, matching the expected answers. Awarded full marks for part (a).
+Part (b): The student left this part blank with no answer given, so no marks can be awarded. Awarded 0 marks for part (b).
+Part (i): The student answered "the water level will increase," which does not match the expected answer "Remains the same." Awarded 0 marks.
+Part (ii): The student explained that the plastic is matter and occupies space, but did not mention the key phrase **Water has a definite volume** as required. Awarded 0 marks.
+
+============================================================
+P4 Geometry  (cmpugantq000…)
+============================================================
+
+--- Q8  1/2m  (expected 2, got 1, Δ-1)
+STEM: Look at the figure below and answer 8a and 8b.
+
+EXPECTED ANSWER:
+(a) 3 | (b) VW perpendicular to WX OR YZ perpendicular to UZ
+
+STUDENT ANSWER (detected):
+(a) Final answer: 3  
+(b) Final answer: VW ⊥ WX
+
+MARKER NOTES:
+Detected: (a) Final answer: 3  
+(b) Final answer: VW ⊥ WX | Part (a): The student's answer '3' matches the expected answer '3' exactly. Award full 1 mark.  Awarded 1 mark(s).
+Part (b): The student wrote 'VW ⊥ WX' but the expected answer requires 'VW perpendicular to WX' OR 'YZ perpendicular to UZ'. The student's answer does not match the expected perpendicular pairs. Award 0 marks.  Awarded 0 mark(s).
+
+--- Q9  0/3m  (expected 2, got 0, Δ-2)
+STEM: A movie at a cinema started at 11.49 a.m. Jasmine arrived at the cinema late and started watching the movie 18 minutes after the movie had started. She watched the movie for 2 h 24 min. What time did the movie end? (Express your answer in 24-hour clock)
+
+EXPECTED ANSWER:
+Steps:
+Step 1: Find the movie's total duration by adding the time Jasmine missed to the time she watched.
+2 h 24 min + 18 min = 2 h 42 min
+Step 2: Add the total duration to the start time to find when the movie ended.
+11 h 49 min + 2 h 42 min = 13 h 91 min
+Step 3: Regroup the minutes from the result, as 60 minutes make an hour.
+91 min = 1 h 31 min
+Step 4: Add the regrouped hour to find the final end time in 24-hour format.
+13 h + 1 h 31 min = 1431
+Final answer: 1431
+
+STUDENT ANSWER (detected):
+Working: 2 h 4 min f 18 min = 2 h 22 min  
+Working: 11:49  1:40 pm  2:11  
+Final answer: 14 11'
+
+MARKER NOTES:
+Detected: 2 h 4 min f 18 min = 2 h 22 min  
+Working: 11:49  1:40 pm  2:11  
+Final answer: 14 11' | The final answer given, '14 11'', does not match the expected answer '1431'. The working shows incorrect addition of times (2 h 4 min instead of 2 h 24 min watched) and incorrect final time calculations. No correct final answer or correct method to find the movie end time is shown. Therefore, no marks can be awarded.
+
+============================================================
+Mastery Interactions  (cmpugb9a5000…)
+============================================================
+
+--- Q11  3/4m  (expected 4, got 3, Δ-1)
+STEM: A scientist made the following observations of organisms B, C, E, F and G:
+*   B and C live in the water, and feed on F.
+*   E lives on both land and water, and eats both B and C.
+*   G lives on land and feeds on E.
+
+EXPECTED ANSWER:
+(a) See answer image. Student must draw a food web showing organisms E, B, C, F, G with correct arrows indicating energy flow. E -> G, B -> E, C -> E, F -> B and F -> C. (b) When its nest is built in water, organism E can hide from predator G which lives on land.  Organism E can eat organisms B and C which live in water.
+
+STUDENT ANSWER (detected):
+(a) Working: Drew a food web in blue ink: wrote F on the left, B below centre-left, C above centre, E near centre-right, and G on the right.
+Arrow from F to B.
+Arrow from F to C.
+Arrow from B to E.
+Arrow from C to E.
+Arrow from E to G.
+Final answer: Food web drawn as F → B, F → C, B → E, C → E, E → G
+
+(b) Working: G can't feed on E since E is in water and E can feed on B and C.
+Final answer: G can't feed on E since E is in water and E can feed on B and C.
+
+MARKER NOTES:
+Detected: (a) Working: Drew a food web in blue ink: wrote F on the left, B below centre-left, C above centre, E near centre-right, and G on the right.
+Arrow from F to B.
+Arrow from F to C.
+Arrow from B to E.
+Arrow from C to E.
+Arrow from E to G.
+Final answer: Food web drawn as F → B, F → C, B → E, C → E, E → G
+
+(b) Working: G can't feed on E since E is in water and E can feed on B and C.
+Final answer: G can't feed on E since E is in water and E can feed on B and C. | Part (a): Evidence: student drew five labelled organisms, with arrows from F to B, F to C, B to E, C to E, and E to G. Awarded 2 mark(s).
+Part (b): [AI-judged, no key provided] The student recognised that **E can feed on B and C**, which matches one advantage of the nest being in water, but did not clearly state that the nest helps **E hide from predator G** on land. Awarded 1 mark(s).
+
+--- Q16  2/4m  (expected 3, got 2, Δ-1)
+STEM: When a lake is polluted, there is dirt in the water, which makes it difficult for plants to obtain light to make food. Water samples were taken from three different lakes, R, S and T, to check how polluted the lakes were.
+Light was shone with a torchlight through three similar cl
+
+EXPECTED ANSWER:
+(a-i) Steps: Step 1: Light travels in straight lines. | Step 2: When an object is in the path of light, it blocks the light from reaching the surface behind it, forming a dark area. | Final answer: A shadow is formed when light is partially or completely blocked by an object. | (a-ii) Steps: Step 1: The more polluted the water, the more dirt it contains, which makes the water less transparent and blocks more light. | Step 2: The water sample from Lake T cast the darkest shadow, which means it blocked the most light from passing through. | Step 3: Therefore, Lake T is the most polluted. | Final answer: Lake T. The water sample from T cast the darkest shadow, showing it had the most dirt blocking the most light. | (b) Steps: Step 1: To ensure a fair test, only the variable being tested (the water sample) should be changed. | Step 2: All other variables that could affect the outcome (the darkness of the shadow) must be kept constant. | Step 3: These controlled variables include the material of the beaker, the volume of the water sample, and the distance between the torch and the beaker. | Final answer: The variables to be kept constant are: Material of beaker used, Volume of water sample obtained, and Distance between torch and beaker.
+
+STUDENT ANSWER (detected):
+(a) Working: To least light can
+par through.
+Final answer: To least light can par through.
+
+(b) Working: Drew three blue ticks in the Tick (✓) column next to:
+Material of beaker used
+Volume of water sample obtained
+Distance between torch and beaker
+Final answer: Material of beaker used; Volume of water sample obtained; Distance between torch and beaker
+
+MARKER NOTES:
+Detected: (a) Working: To least light can
+par through.
+Final answer: To least light can par through.
+
+(b) Working: Drew three blue ticks in the Tick (✓) column next to:
+Material of beaker used
+Volume of water sample obtained
+Distance between torch and beaker
+Final answer: Material of beaker used; Volume of water sample obtained; Distance between torch and beaker | Part (a): The student’s answer is unclear and does not explain how shadows are formed, missing the key idea that shadows form when an object blocks light. The phrase "To least light can par through" does not convey the formation of shadows. Awarded 0 marks.
+Part (b): The student correctly identified the three variables that must be kept constant: Material of beaker used, Volume of water sample obtained, and Distance between torch and beaker. Awarded full 2 marks.
+
+============================================================
+P6 Fractions  (cmpugc9x5002…)
+============================================================
+
+--- Q6  0/2m  (expected 2, got 0, Δ-2)
+STEM: A poster has an area of $\frac{3}{4}$ m². Its length is $\frac{7}{8}$ m. Find its breadth.
+
+EXPECTED ANSWER:
+$\frac{6}{7}$
+
+STUDENT ANSWER (detected):
+Final answer: 6/7 m
+
+MARKER NOTES:
+Detected: Final answer: 6/7 m | The student's final answer is 6/7 m, which does not match the expected answer of \(\frac{6}{7}\). Although the fraction is correct, the student wrote it as 6/7 (implying a fraction but not in the exact expected format) and included the unit 'm'. However, the expected answer is exactly \(\frac{6}{7}\) without the unit. Since the expected answer is strictly \(\frac{6}{7}\), the student's answer does not match exactly. Therefore, no marks can be awarded.
+
+--- Q8  0/1m  (expected 1, got 0, Δ-1)
+STEM: Find the value of 8 ÷ $\frac{3}{7}$. Leave your answer as a mixed number.
+
+EXPECTED ANSWER:
+$18\frac{2}{3}$
+
+STUDENT ANSWER (detected):
+Working: 48 2/3  
+Final answer: 48 2/3
+
+MARKER NOTES:
+Detected: 48 2/3  
+Final answer: 48 2/3 | The final answer given is 48 2/3, which does not match the expected answer of $18\frac{2}{3}$. No partial credit is awarded as the final answer is incorrect.
+
+============================================================
+P6 Geometry  (cmpugcq9w003…)
+============================================================
+
+--- Q6  1/5m  (expected 3, got 1, Δ-2)
+STEM: In the diagram below, not drawn to scale, ABCD is a parallelogram. CDE is a straight line and AD = DE.
+
+EXPECTED ANSWER:
+(a) ∠ADC = 180° - 82° = 98° | ∠ADE = 180° - 98° = 82° | ∠AED = (180° - 82°) ÷ 2 = 49° | ∠X = 180° - 49° = 131° | Ans: 131° | (b) ∠CDF = 180° - 160° = 20° | 180° - (20° + 40°) = 60° | 180° - 120° = 40° | ∠BAD = ∠BCD = 82° | 180° - 82° = 98° | ∠y = 180° - (98° + 60°) = 22° | Ans: 22°
+
+STUDENT ANSWER (detected):
+Working: 198°  
+Final answer: 22°
+
+MARKER NOTES:
+Detected: 198°  
+Final answer: 22° | The final answer given is 22°, which matches the expected answer for part (b) only. However, the question and expected answer indicate multiple parts with different final answers (e.g. 131° for part (a) and 22° for part (b)). The student’s working and final answer do not clearly indicate which part they are answering. Since the final answer 22° matches the expected answer for part (b), partial credit is awarded for that part only. No evidence or correct final answer is given for part (a). Award 1 mark for correct final answer 22° (part b) with no working shown for part (a).
+
+--- Q7  2/4m  (expected 0, got 2, Δ+2)
+STEM: In the figure below, ABCD is a parallelogram and AEF is an isosceles triangle.  DEFB is a straight line. ∠ DCB is 108°. ∠ AEF is 75° and ∠ FAB is 11°.
+a) Find ∠ABF
+b) Find ∠DAE
+
+EXPECTED ANSWER:
+Steps:
+Step 1: In isosceles triangle AEF, base angles are equal, so ∠AFE = ∠AEF = 75°.
+Step 2: Since DEFB is a straight line, find ∠AFB by subtracting ∠AFE from 180°. (180° - 75° = 105°)
+Step 3: For triangle ABF, find ∠ABF using the sum of angles. (180° - 105° - 11° = 64°)
+Step 4: In parallelogram ABCD, opposite angles are equal, so ∠DAB = ∠DCB = 108°.
+Step 5: For triangle AEF, find the top angle ∠EAF. (180° - 75° - 75° = 30°)
+Step 6: Find ∠DAE by subtracting the other parts from ∠DAB. (108° - 30° - 11° = 67°)
+Final answer: a) 64° b) 67°
+
+STUDENT ANSWER (detected):
+Working: 41 67 64°  
+Final answer: 64°
+
+MARKER NOTES:
+Detected: 41 67 64°  
+Final answer: 64° | Part (a): The student’s final answer of 64° for ∠ABF matches the expected answer exactly, so full marks can be awarded for part (a). Part (b): The student did not provide a final answer for ∠DAE, only some working numbers (41, 67) but no clear final answer line or statement. Since the expected answer for part (b) is 67°, and the student’s final answer line does not include this, no marks can be awarded for part (b). Award 2 marks for part (a) (assuming equal split 2+2), 0 for part (b).
+
+--- Q8  0/2m  (expected 2, got 0, Δ-2)
+STEM: In the figure, BCDE is a trapezium. AFC and BFE are straight lines and AB = BC. ∠ABF = 28° and ∠FCD = 60°. Find ∠BCF.
+
+EXPECTED ANSWER:
+180 – 28 = 152° | 180 – 60 = 120° | 152 – 120 = 32°
+
+STUDENT ANSWER (detected):
+Final answer: 32°
+
+MARKER NOTES:
+Detected: Final answer: 32° | The final answer 32° matches the expected numerical value, but the student did not show any working or the intermediate angle calculations as required by the expected answer. Since the question is worth 2 marks and the final answer alone without working does not meet the full expected answer criteria, no marks can be awarded. The student gave only the final number without the necessary reasoning steps (180 – 28 = 152°, 180 – 60 = 120°, 152 – 120 = 32°). Awarding 0 marks.
+
+============================================================
+P6 Ratio  (cmpugczd0003…)
+============================================================
+
+--- Q6  0/2m  (expected 2, got 0, Δ-2)
+STEM: Terry had 3 times as many $2-notes as $5-notes. He had $385 altogether. How many $5-notes did Terry have?
+
+EXPECTED ANSWER:
+6U + 5U = 385 | U = 385 ÷ 11 | U = 35
+
+STUDENT ANSWER (detected):
+$2 \boxed{11}$  
+$5 \boxed{1}$  
+1 set = 6 + 5 = 11  
+385 ÷ 11 = 35  
+Final answer: 35S
+
+MARKER NOTES:
+Detected: $2 \boxed{11}$  
+$5 \boxed{1}$  
+1 set = 6 + 5 = 11  
+385 ÷ 11 = 35  
+Final answer: 35S | The student's final answer is '35S', which does not match the expected answer format or value. The expected answer shows the number of $5-notes as 35 (U = 35), but the student’s final answer is unclear and incorrect. The working is confused (e.g. '1 set = 6 + 5 = 11' is incorrect since the set should be 3 times $2-notes plus $5-notes, not 6 + 5). Therefore, no marks can be awarded for the final answer or method.
+
+--- Q10  0/2m  (expected 1, got 0, Δ-1)
+STEM: There are pink, blue and white ribbons in a bag. There are twice as many pink ribbons as blue ribbons. The number of pink ribbons is $\frac{6}{7}$ of the number of white ribbons. What is the ratio of the number of blue to white ribbons?
+
+EXPECTED ANSWER:
+3:7
+
+STUDENT ANSWER (detected):
+Working: 2 : 1 w, p ; b  
+Working: x3 x3 7 : 6 : ?  
+Working: 6 : 3  
+Final answer: 7 : 3
+
+MARKER NOTES:
+Detected: 2 : 1 w, p ; b  
+Working: x3 x3 7 : 6 : ?  
+Working: 6 : 3  
+Final answer: 7 : 3 | The final answer given is 7 : 3, which is the reverse of the expected ratio 3 : 7. The working is unclear and does not correctly show the ratio of blue to white ribbons. Since the final answer is incorrect and reversed, no marks can be awarded. Awarding 0 marks as per the marking rules for a wrong final answer.
+
+============================================================
+P6 Respiratory  (cmpugd92j003…)
+============================================================
+
+--- Q10  2/3m  (expected 3, got 2, Δ-1)
+STEM: The graph below shows the changes in Mirabel's heart rate over time when she went running.
+
+EXPECTED ANSWER:
+(a) Her heart rate increased. | (b-i) She slowed, stopped running. | (b-ii) Her heart pumped blood slower. | Heart pump less blood, as less oxygen and digested food is needed by her muscles involved in running.
+
+STUDENT ANSWER (detected):
+(a) Working: Mirabel heart rate increased during the 15 minutes  
+(b) (i) Working: Mirabel took a break and rested.  
+(b) (ii) Working: When resting, her body needs less energy and thus the heart could pump blood slower as the body needs less energy.
+
+MARKER NOTES:
+Detected: (a) Working: Mirabel heart rate increased during the 15 minutes  
+(b) (i) Working: Mirabel took a break and rested.  
+(b) (ii) Working: When resting, her body needs less energy and thus the heart could pump blood slower as the body needs less energy. | Part (a): The student correctly stated that Mirabel's heart rate increased, which matches the expected answer. Awarded 1 mark.
+Part (b): (i) The student said Mirabel took a break and rested, but the expected answer requires explanation about the heart pumping blood slower. (ii) The student explained the heart pumps blood slower because the body needs less energy, which matches the key idea, but did not mention the heart pumping less blood or the muscles needing less oxygen and digested food. Therefore, partial credit is given. Awarded 1 mark.

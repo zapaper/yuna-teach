@@ -4,6 +4,7 @@
   "level": "P5-P6",
   "topicLabel": "短文填空",
   "title": "PSLE 华文 — Cloze 短文填空 (Q16-Q20, 10 分)",
+  "noSubTopicFilter": true,
   "stats": {
     "headline": "PSLE 华文 Q16-Q20 = 10 分。一段短文 + 5 个空。词语类型和 Q5-Q6 一样 — 背好抽象动词卡, 这 10 分稳。"
   },
@@ -185,8 +186,9 @@
         "label": "点这里开始练习",
         "quizSpec": {
           "title": "Mastery: 华文 Cloze 短文填空",
-          "mcq": 15,
-          "oeq": 0
+          "mcq": 12,
+          "oeq": 0,
+          "minPassages": 3
         }
       },
       "narration": {

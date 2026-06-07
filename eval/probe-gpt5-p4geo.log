@@ -1,0 +1,21 @@
+Eval: 1 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry ...   remote list failed (502) — falling back to empty
+  remote fetch: 0 files OK, 1 failed
+cloned=cmpuiru370… marked. 5/10 FAIL (total 8 vs 17)
+
+=== DIFFS ===
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry
+  5/10 match, total 8 vs 17 expected
+  Q6: expected 1, got 0 (Δ-1)
+  Q7: expected 2, got 0 (Δ-2)
+  Q8: expected 2, got 0 (Δ-2)
+  Q9: expected 2, got 0 (Δ-2)
+  Q10: expected 2, got 0 (Δ-2)
+
+=== SUMMARY ===
+Papers: 0/1 pass
+Questions: 5/10 match within ±0.5 (50.0%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

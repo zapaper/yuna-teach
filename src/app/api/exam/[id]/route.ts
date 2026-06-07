@@ -280,6 +280,8 @@ export async function PATCH(
             orderIndex: q.orderIndex,
             yStartPct: q.yStartPct,
             yEndPct: q.yEndPct,
+            xStartPct: q.xStartPct,
+            xEndPct: q.xEndPct,
             marksAvailable: q.marksAvailable,
             syllabusTopic: q.syllabusTopic,
             // Clean-extract fields: without these, /quiz can't render

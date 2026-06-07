@@ -1,0 +1,15 @@
+Eval: 1 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1 ... fetched=46 cloned=cmpuisesp0… marked. 15/16 FAIL (total 36 vs 37)
+
+=== DIFFS ===
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1
+  15/16 match, total 36 vs 37 expected
+  Q11: expected 4, got 3 (Δ-1)
+
+=== SUMMARY ===
+Papers: 0/1 pass
+Questions: 15/16 match within ±0.5 (93.8%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

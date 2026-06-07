@@ -1,0 +1,325 @@
+{
+  "overview": "过去10年PSLE华文作文高度侧重日常行为规范与人际交往。出现频率最高的是“安全意识”(2016, 2017, 2019, 2022, 2023)与“不可粗心大意”(2016, 2018, 2022, 2023)，常通过看图作文考察。此外，“感恩”(2021, 2023, 2024)、“团结合作”(2016, 2024)和“助人为乐”(2020, 2025)也是核心考点。预测明年极可能再次考察“安全意识”(2016, 2017, 2019, 2022, 2023)或“不可粗心大意”(2016, 2018, 2022, 2023)，同时“体谅他人”(2020, 2022)与“遵守规则”(2019, 2021)也有较高回归概率。",
+  "overviewEn": "Over the past decade, PSLE Chinese compositions have heavily emphasized daily behavioral norms. The most frequent themes are \"Safety awareness\" (2016, 2017, 2019, 2022, 2023) and \"Don't be careless\" (2016, 2018, 2022, 2023). \"Gratitude\" (2021, 2023, 2024), \"Teamwork\" (2016, 2024), and \"Joy in helping others\" (2020, 2025) are also core focuses. For next year, we predict a high chance of \"Safety awareness\" (2016, 2017, 2019, 2022, 2023) or \"Don't be careless\" (2016, 2018, 2022, 2023) returning. Additionally, \"Consideration for others\" (2020, 2022) and \"Following rules\" (2019, 2021) are highly likely to reappear.",
+  "morals": [
+    {
+      "nameCn": "安全意识",
+      "nameEn": "Safety awareness",
+      "description": "培养在日常生活中防范危险的意识",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "option": 2,
+          "note": "随意放下书包去跑步导致被偷"
+        },
+        {
+          "year": "2017",
+          "option": 2,
+          "note": "在电梯大堂玩捉迷藏，躲进电梯十分危险"
+        },
+        {
+          "year": "2019",
+          "option": 2,
+          "note": "未经同意偷骑电动踏板车出门"
+        },
+        {
+          "year": "2022",
+          "option": 2,
+          "note": "走路专心看手机撞到路人"
+        },
+        {
+          "year": "2023",
+          "option": 2,
+          "note": "松开婴儿车把手导致车子滑下坡"
+        }
+      ],
+      "frequency": 5
+    },
+    {
+      "nameCn": "不可粗心大意",
+      "nameEn": "Don't be careless",
+      "description": "做事需谨慎，避免因疏忽造成损失",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "option": 2,
+          "note": "疏忽大意将贵重物品留在无人看管的书包里"
+        },
+        {
+          "year": "2018",
+          "option": 2,
+          "note": "拿毛巾时不小心把钱掉在地上"
+        },
+        {
+          "year": "2022",
+          "option": 2,
+          "note": "撞人后帮忙捡东西却没发现自己手机掉了"
+        },
+        {
+          "year": "2023",
+          "option": 2,
+          "note": "为了接电话和找东西，大意松开婴儿车"
+        }
+      ],
+      "frequency": 4
+    },
+    {
+      "nameCn": "感恩",
+      "nameEn": "Gratitude",
+      "description": "对他人给予的帮助或心意表达感激",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "option": 1,
+          "note": "珍惜并感激父母用心准备的生日礼物"
+        },
+        {
+          "year": "2023",
+          "option": 1,
+          "note": "感谢朋友在快下雨时给予的帮助"
+        },
+        {
+          "year": "2024",
+          "option": 2,
+          "note": "排练话剧为老师庆祝教师节以表达谢意"
+        }
+      ],
+      "frequency": 3
+    },
+    {
+      "nameCn": "团结合作",
+      "nameEn": "Teamwork",
+      "description": "齐心协力完成任务，明白合作的力量",
+      "yearsAppeared": [
+        {
+          "year": "2016",
+          "option": 1,
+          "note": "小组合作完成伟人生平事迹的作业"
+        },
+        {
+          "year": "2024",
+          "option": 2,
+          "note": "同学们聚在一起讨论并排练话剧"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "友谊珍贵",
+      "nameEn": "Cherishing friendship",
+      "description": "理解并珍惜朋友间的互助与情谊",
+      "yearsAppeared": [
+        {
+          "year": "2018",
+          "option": 1,
+          "note": "朋友在自己发愁时主动关心，加深了了解"
+        },
+        {
+          "year": "2023",
+          "option": 1,
+          "note": "朋友的及时帮助让作者充满感激"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "遵守规则",
+      "nameEn": "Following rules",
+      "description": "听从指示，不擅自行动或恶作剧",
+      "yearsAppeared": [
+        {
+          "year": "2019",
+          "option": 2,
+          "note": "没有得到父母同意就擅自骑车出门"
+        },
+        {
+          "year": "2021",
+          "option": 2,
+          "note": "上巴士插队，在动物园不守规矩逗弄动物"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "自私的代价",
+      "nameEn": "The cost of selfishness",
+      "description": "只顾自己利益最终会导致不良后果",
+      "yearsAppeared": [
+        {
+          "year": "2020",
+          "option": 1,
+          "note": "明白了自私的含义并决心为他人着想"
+        },
+        {
+          "year": "2025",
+          "option": 2,
+          "note": "不愿意分享书本，争抢中导致书本撕破"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "助人为乐",
+      "nameEn": "Joy in helping others",
+      "description": "主动向有需要的人伸出援手",
+      "yearsAppeared": [
+        {
+          "year": "2020",
+          "option": 2,
+          "note": "主动帮助跌倒的老太太捡起散落的物品"
+        },
+        {
+          "year": "2025",
+          "option": 1,
+          "note": "亲手做饼干参与爱心义卖，为山区孩子筹款"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "珍惜拥有",
+      "nameEn": "Cherishing what one has",
+      "description": "妥善保管并珍视自己拥有的物品",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "option": 1,
+          "note": "把父母送的优盘视为最珍惜的礼物"
+        },
+        {
+          "year": "2025",
+          "option": 2,
+          "note": "答应爸爸好好保护书本，却因争抢而损坏"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "关爱他人",
+      "nameEn": "Caring for others",
+      "description": "对遇到困难或受伤的人表达关心",
+      "yearsAppeared": [
+        {
+          "year": "2018",
+          "option": 1,
+          "note": "好朋友主动关心闷闷不乐的作者"
+        },
+        {
+          "year": "2024",
+          "option": 2,
+          "note": "同学们满脸担忧地探望跌倒受伤的男同学"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "体谅他人",
+      "nameEn": "Consideration for others",
+      "description": "站在他人角度思考，不给别人添麻烦",
+      "yearsAppeared": [
+        {
+          "year": "2020",
+          "option": 1,
+          "note": "反思自私行为，决心以后多多为他人着想"
+        },
+        {
+          "year": "2022",
+          "option": 2,
+          "note": "走路玩手机撞到阿姨，给他人带来困扰"
+        }
+      ],
+      "frequency": 2
+    },
+    {
+      "nameCn": "勇敢",
+      "nameEn": "Courage",
+      "description": "克服内心的恐惧，勇敢面对挑战",
+      "yearsAppeared": [
+        {
+          "year": "2017",
+          "option": 1,
+          "note": "在主题公园克服胆小，变成勇敢的人"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "明辨是非",
+      "nameEn": "Making right choices",
+      "description": "在诱惑面前做出正确的判断与决定",
+      "yearsAppeared": [
+        {
+          "year": "2019",
+          "option": 1,
+          "note": "面对同学都有手机的诱惑，做出了正确的决定"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "耐心",
+      "nameEn": "Patience",
+      "description": "做事不急于求成，懂得等待",
+      "yearsAppeared": [
+        {
+          "year": "2022",
+          "option": 1,
+          "note": "种绿豆时急于求成加太多水，明白了耐心的重要"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "言而有信",
+      "nameEn": "Keeping one's word",
+      "description": "答应别人的事情必须努力做到",
+      "yearsAppeared": [
+        {
+          "year": "2024",
+          "option": 1,
+          "note": "答应同学去科技展却因故无法赴约，体会到守信的重要"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "坚持",
+      "nameEn": "Perseverance",
+      "description": "遇到失败不气馁，继续努力尝试",
+      "yearsAppeared": [
+        {
+          "year": "2025",
+          "option": 1,
+          "note": "烤饼干连续失败两次依然不放弃"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "乐于分享",
+      "nameEn": "Willingness to share",
+      "description": "愿意与他人共享美好的事物",
+      "yearsAppeared": [
+        {
+          "year": "2025",
+          "option": 2,
+          "note": "反面教材：带书到学校却不愿意借给同学分享"
+        }
+      ],
+      "frequency": 1
+    },
+    {
+      "nameCn": "恶作剧的后果",
+      "nameEn": "Consequences of mischief",
+      "description": "明白调皮捣蛋会带来意想不到的麻烦",
+      "yearsAppeared": [
+        {
+          "year": "2021",
+          "option": 2,
+          "note": "顽皮逗弄猴子，结果背包被猴子抢走"
+        }
+      ],
+      "frequency": 1
+    }
+  ]
+}

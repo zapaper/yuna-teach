@@ -1,0 +1,56 @@
+[
+  {
+    "trap": "combined_figure_area",
+    "year": "2017",
+    "q": "P2-18",
+    "marks": 5,
+    "stem": "The figure below is made up of a rectangle, semicircles and quarter circles. The area of the rectangle is 288 cm².",
+    "answer": "(a) Length of the rectangle = 2 × Breadth of the rectangle | Therefore, we can divide the rectangle equally into 2 squares. | Area of 1/2 of the rectangle = 288 cm² ÷ 2 = 144 cm² | Breadth of the rectangle = √144 cm = 12 cm | Length of the rectangle = 2 × 12 cm = 24 cm | 24 cm + 12 cm + 24 cm + 12 cm = 72 cm | The perimeter of the rectangle is 72 cm. | (b) Length of 4 radii = 12 cm | Length of 1 radius = 12 cm ÷ 4 = 3 cm | Area of a quarter circle = 1/4 × 22/7 × 3 cm × 3 cm = 99/14 cm² | Area of 28 quarter circles = 28 × 99/14 cm² = 198 cm² | 288 cm² + 198 cm² = 486 cm² | The area of the figure is 486 cm².",
+    "note": "scalloped rectangle (10 semicircles) — pair them into full circles"
+  },
+  {
+    "trap": "combined_figure_area",
+    "year": "2023",
+    "q": "P2-12",
+    "marks": 4,
+    "stem": "The figure shows 6 circles, each of radius 7 cm. Each circle touches the circles next to it. (Take $\\pi = \\frac{22}{7}$)",
+    "answer": "(a) Diameter of circle = 2 × 7 = 14 cm | Perimeter of shaded part = circumference of 3 whole circles = 3 × 22/7 × 14 = 132 cm | (b) Area of dotted rectangle = 28 × 14 = 392 cm² | Area of unshaded part in the dotted rectangle = area of 1 circle = 22/7 × 7² = 154 cm² | Area of shaded part in dotted rectangle = 392 - 154 = 238 cm² | Area of shaded part outside dotted rectangle = area of 2 circles = 2 × 22/7 × 7² = 308 cm² | 238 + 308 = 546 | The total area of shaded part is 546 cm².",
+    "note": "6 touching circles, r=7cm — shaded gaps rearrange to a circle"
+  },
+  {
+    "trap": "unit_conversion",
+    "year": "2018",
+    "q": "24",
+    "marks": 2,
+    "stem": "Aishah has a roll of wire 10.2 m long. She cuts off 3 equal pieces. Each piece is 8 cm. What is the length of the remaining roll of wire? Give your answer in metres.",
+    "answer": "100 cm = 1 m | Total length of the wire she cuts off = 3 x 8 cm = 24 cm = 0.24 m | Length of the remaining roll of wire = 10.2 m - 0.24 m = 9.96 m",
+    "note": "wire 10.2m, cut 3 pieces of 8cm — answer in metres"
+  },
+  {
+    "trap": "unit_conversion",
+    "year": "2020",
+    "q": "25",
+    "marks": 2,
+    "stem": "The line graph shows the temperature of soup in a pot from 07 00 to 07 35.",
+    "answer": "(a) 95°C (note: accept 95 as well) (b) 5 min → 60° - 20° = 40° | Increase in temperature = 40° ÷ 5 = 8°C/min (note: accept 8 as well)",
+    "note": "Mrs Tan oil — 880 ml after 4 days, half bottle after 6 — answer in litres"
+  },
+  {
+    "trap": "hidden_equal",
+    "year": "2019",
+    "q": "13",
+    "marks": 2,
+    "stem": "Seng kept his gold and silver stars in two boxes. The ratio of the number of gold to silver stars in the first box was 1 : 5 and it was 1 : 2 in the second box. The two boxes contained the same number of stars. What fraction of Seng's stars were gold stars?",
+    "answer": "(4)",
+    "note": "gold:silver 1:5 vs 1:2, same total stars → find gold fraction"
+  },
+  {
+    "trap": "hidden_equal",
+    "year": "2021",
+    "q": "P2-15",
+    "marks": 4,
+    "stem": "Helen and Ivan have the same total number of coins. Helen has a number of fifty-cent coins and 64 twenty-cent coins. The total mass of her coins is 1.134 kg. Ivan has a number of fifty-cent coins and 104 twenty-cent coins.",
+    "answer": "(a) Since Helen has more 50-cent coins, Helen has more money. | 104 - 64 = 40 | 40 x ($0.50 - $0.20) = 40 x $0.30 = $12 | Helen has $12 more than Ivan. | (b) Difference in mass = 40 x 2.7 g = 108 g = 0.108 kg | 1.134 kg - 0.108 kg = 1.026 kg | Total mass of Ivan's coins is 1.026 kg.",
+    "note": "Helen and Ivan same total coins"
+  }
+]
