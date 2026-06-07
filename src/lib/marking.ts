@@ -462,12 +462,16 @@ Return ONLY valid JSON (no markdown fences):
   //   - "1"-hint on the first pass: still bump to 2.5-pro (thin
   //     vertical stroke is easy to miss for flash).
   const isRetryPass = label.startsWith("mcqRetry") || label.startsWith("remarkSingle");
-  // Second-opinion pass on a wrong MCQ — re-detect with a different
-  // model (3.1 flash) to double-confirm the digit. Routed here when
-  // the first pass said wrong but we want to verify the read.
+  // Second-opinion pass on a wrong MCQ — re-detect with a heavier
+  // model to double-confirm the digit. Was gemini-3.1-flash-preview
+  // but Google retired that endpoint (404 NOT_FOUND). Swap to 3.1-pro-
+  // preview — same family the retry pass already uses, so we know it
+  // works against this codebase. Verify only runs on the rare wrong-
+  // MCQ subset (≤6 per paper based on observed logs) so the cost
+  // bump is bounded.
   const isVerifyPass = label.startsWith("mcqVerify");
   const mcqModel = isVerifyPass
-    ? "gemini-3.1-flash-preview"
+    ? "gemini-3.1-pro-preview"
     : isRetryPass
       ? "gemini-3.1-pro-preview"
       : hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
@@ -2572,7 +2576,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       return !!expected && !!got && expected !== got;
     });
     if (mcqToVerify.length > 0) {
-      console.log(`[marking] MCQ verify pass: ${mcqToVerify.length} wrong MCQs to second-opinion (3.1-flash)`);
+      console.log(`[marking] MCQ verify pass: ${mcqToVerify.length} wrong MCQs to second-opinion (3.1-pro-preview)`);
       const verifyResults = await Promise.all(
         mcqToVerify.map(async (q) => {
           const submissionPage = submissionIndexMap.get(q.pageIndex);
@@ -2602,7 +2606,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               marksAvailable: q.marksAvailable ?? 1,
               marksAwarded: q.marksAvailable ?? 1,
               studentAnswer: verifyAns,
-              notes: `Detected (verified): ${verifyAns} | Correct (original read "${origAns}" — second-opinion 3.1-flash confirmed "${verifyAns}")`,
+              notes: `Detected (verified): ${verifyAns} | Correct (original read "${origAns}" — second-opinion 3.1-pro-preview confirmed "${verifyAns}")`,
             } as QuestionMarkResult;
           }
           return null;
