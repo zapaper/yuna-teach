@@ -2894,6 +2894,19 @@ function ExamReviewContent({ id }: { id: string }) {
                                             // Mid-sentence keyword: '<before>|||<after>'
                                             const [before, after] = studentAns.split("|||");
                                             combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                          } else if (keyword && studentAns.includes("\n") && !studentAns.toLowerCase().includes(keyword.toLowerCase())) {
+                                            // Scan-back detection: student wrote BEFORE on
+                                            // one line and AFTER on the next, with the
+                                            // keyword sitting between. The AI transcription
+                                            // joined the lines with a newline but dropped
+                                            // the keyword. Treat the newline as the keyword
+                                            // position so the parent sees a coherent
+                                            // sentence with the keyword visibly inserted.
+                                            // Real failure: PSLE English 2025 Q61 detected
+                                            // "Everyone was amazed\nRahim won the race"
+                                            // with keyword "when" missing.
+                                            const [before, after] = studentAns.split(/\n+/);
+                                            combined = `${before.trim()} ${keyword} ${after?.trim() ?? ""}`.replace(/\s+/g, " ").trim();
                                           } else if (keyword) {
                                             // Single-input format. Only prepend the parts
                                             // the student didn't already type — otherwise

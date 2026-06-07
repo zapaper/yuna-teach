@@ -278,14 +278,46 @@ async function cropPageRegion(
   // false detections (the "into / placed" pair on PSLE English).
   xStartPct: number | null = null,
   xEndPct: number | null = null,
+  // Subject controls how much bottom slack the crop gets — Math /
+  // Science OEQ trail "Ans:" lines below the printed box and need a
+  // generous bottom pad, English / Chinese cloze and editing are
+  // tightly packed line-by-line and a generous pad pulls neighbours
+  // into the crop. See padBottom calc below for the actual tiers.
+  // Default unset = math/sci (preserves pre-existing behaviour for
+  // every call site that hasn't been updated yet).
+  subject: string | null = null,
 ): Promise<Buffer> {
   const meta = await sharp(pageBuffer).metadata();
   const height = meta.height ?? 1;
   const width = meta.width ?? 1;
-  // Padding: 1% above (don't bleed into previous question), 6% below (student's final
-  // answer / "Ans:" line often sits right at the bottom boundary — be generous)
+  // Padding tiers:
+  //   - Math / Science OEQ (NO x-bounds): 1% top, 6% bottom. Student's
+  //     final answer / "Ans:" line typically sits below the printed
+  //     answer box and needs generous bottom slack — commit 46bc05e5
+  //     (Apr 2026) bumped 2%→6% to stop clipping "Ans:" lines.
+  //   - Cloze / Editing / Synthesis (HAS x-bounds): 1% top, 1.5%
+  //     bottom. Blanks here are packed tightly (4–5% per question
+  //     in PSLE Comp Cloze) — a 6% bottom pad pulls TWO neighbours
+  //     into the crop and the AI grabs the wrong blank's word.
+  //     Real failure: PSLE English 2025 Q46 (expected "doubt") was
+  //     detected as "traced" because the crop extended down into
+  //     Q48's blank (Q48's expected is "traced"). Same shift pattern
+  //     on Q49→Q50, Q58→Q59, Q31→Q32 in Grammar Cloze. Presence of
+  //     xStartPct/xEndPct is the unambiguous "I'm a tight-packed
+  //     blank" signal — Math/Science OEQ never has x-bounds.
+  //   - Subject explicitly overrides: English / Chinese papers go on
+  //     a tighter ladder even WITHOUT x-bounds, because Comp OEQ /
+  //     Comp Cloze passages are still much more vertically packed
+  //     than a Math/Science working box.
+  const hasXBounds = xStartPct != null && xEndPct != null && Number.isFinite(xStartPct) && Number.isFinite(xEndPct) && xEndPct > xStartPct;
+  const subjLc = (subject ?? "").toLowerCase();
+  const isEnglishOrChinese = subjLc.includes("english") || subjLc.includes("chinese");
   const padTop = height * 0.01;
-  const padBottom = height * 0.06;
+  const padBottom = height * (
+    hasXBounds ? 0.015 :              // per-blank crop — cloze / editing / synthesis
+    isEnglishOrChinese ? 0.03 :       // English / Chinese OEQ (no x) — medium
+    0.06                              // Math / Science OEQ — generous "Ans:" slack
+  );
   const top = Math.max(0, Math.round((yStartPct / 100) * height - padTop));
   const bottom = Math.min(height, Math.round((yEndPct / 100) * height + padBottom));
   const cropHeight = Math.max(1, bottom - top);
@@ -515,9 +547,22 @@ Return ONLY valid JSON (no markdown fences):
     );
     const text = response.text;
     if (!text) return new Map();
-    const parsed = extractJson(text) as { answers: Array<{ questionId: string; detected: string | null; confidence?: string }> };
+    const parsed = extractJson(text) as { answers?: unknown };
     const result = new Map<string, string | null>();
-    for (const a of parsed.answers) {
+    // Defensive: the `as { answers: Array<...> }` cast is a compile-
+    // time hint, not a runtime guarantee. Gemini occasionally returns
+    // valid JSON without the expected shape — `{error: "..."}`,
+    // `{result: "..."}`, or `{answers: "single-string"}` — and the
+    // bare `for...of parsed.answers` then throws "r.answers is not
+    // iterable". The try/catch below already turns it into a benign
+    // empty Map, but the noisy stack trace ends up in production logs
+    // every time. Detect-and-warn cleanly instead.
+    if (!Array.isArray(parsed.answers)) {
+      console.warn(`[marking] MCQ detect ${label}: response missing .answers array (got: ${JSON.stringify(parsed).slice(0, 120)})`);
+      return result;
+    }
+    const answersArr = parsed.answers as Array<{ questionId: string; detected: string | null; confidence?: string }>;
+    for (const a of answersArr) {
       // Discard low-confidence detections — treat as null (no answer)
       const val = a.confidence === "low" ? null : a.detected;
       result.set(a.questionId, val);
@@ -950,7 +995,8 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - Award 0 if meaning is changed, tense is wrong, or key words are missing.
   - The given word/phrase MUST be used in the rewritten sentence. If the student did not use the given word, award 0.
   - SPELLING (this is a HANDWRITTEN scanned answer — every word is a deliberate spelling choice by the student). Synthesis is all-or-nothing — no partial marks. ANY misspelled word in the rewritten sentence = 0. Do this AFTER you have transcribed the student's writing exactly. Apply the same letter-by-letter handwriting reading discipline as (b) Editing — don't infer a correctly-spelled word from context, transcribe what the ink physically shows. Ignore punctuation mistakes (missing commas, full stops, missing/extra apostrophes, capitalisation in the middle of the sentence) for now — those don't affect the spelling check.
-  - In notes when awarding 0 for spelling: state the misspelled word and the correct spelling. Example: "Misspelled 'recieved' (should be 'received') — 0 marks."
+  - COMPOUND-WORD SPACING IS NOT A SPELLING ERROR. When the student writes a compound word as two separate words (e.g. "sales girl" instead of "salesgirl", "every day" instead of "everyday", "after noon" instead of "afternoon", "ice cream" instead of "icecream") OR the reverse (single word as two), accept it for the spelling check. The component letters are correct in the right order, only the spacing differs. This is a presentation choice that primary students legitimately get wrong both ways without it reflecting on their spelling knowledge. The strict letter-by-letter rule applies WITHIN each word, not to whether two words should fuse into one.
+  - In notes when awarding 0 for spelling: state the misspelled word and the correct spelling. Example: "Misspelled 'recieved' (should be 'received') — 0 marks." Do NOT cite "sales girl vs salesgirl" or similar pure-spacing differences as the reason for 0.
 
   (e) COMPREHENSION OEQ (open-ended, short answer):
   - The answer key gives the expected key point(s).
@@ -1634,7 +1680,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     // Crop to question region to prevent adjacent questions bleeding in
     const hasBounds = question.yStartPct != null && question.yEndPct != null;
     const mcqImageBuffer = hasBounds
-      ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle MCQ Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null)
+      ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle MCQ Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null, paper.subject ?? null)
       : pageBuffer;
     const pageBase64 = mcqImageBuffer.toString("base64");
     const qForDetect = hasBounds ? { ...question, yStartPct: 0, yEndPct: 100 } : question;
@@ -1692,7 +1738,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     && question.yStartPct != null && question.yEndPct != null;
   console.log(`[marking] remarkSingle Q${question.questionNum}: subject="${paper.subject}", answer="${question.answer}", isWritten=${isWrittenQuestion(question.answer)}, hasBounds=${question.yStartPct != null && question.yEndPct != null}, useCrop=${useCrop}`);
   const imageBuffer = useCrop
-    ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null)
+    ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle Q${question.questionNum}`, question.xStartPct ?? null, question.xEndPct ?? null, paper.subject ?? null)
     : pageBuffer;
   const pageBase64 = imageBuffer.toString("base64");
   console.log(`[marking] remarkSingle Q${question.questionNum}: sending image ${imageBuffer.length} bytes (original ${pageBuffer.length} bytes, cropped=${useCrop})`);
@@ -1749,8 +1795,17 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
-  const remarkModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
-  if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
+  // Editing needs strict letter-by-letter OCR — flash-lite was mis-
+  // reading "Wasting" as "woting" on Q40 (PSLE English 2025) and the
+  // strict spell check then penalised the AI's mis-read, not the
+  // student. 2.5-pro reads handwriting accurately enough that the
+  // spell check sees what the student actually wrote. Cloze stays on
+  // flash-lite because it picks from a fixed list of options — no
+  // free-form OCR ambiguity to amplify.
+  const remarkModel = isEditing ? "gemini-2.5-pro"
+    : isCloze ? "gemini-3.1-flash-lite-preview"
+    : "gemini-2.5-flash";
+  if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-2.5-pro)`);
   console.log(`[marking] Calling Gemini (${remarkModel}) for remark of question ${questionId} (syllabusTopic="${question.syllabusTopic ?? "none"}")`);
   const response = await withTimeout(
     getAI().models.generateContent({
@@ -2093,7 +2148,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               const isChineseCloze = topic.includes("短文填空") || topic.includes("完成对话") || topic.includes("对话填空");
               const isTightCloze = topic.includes("完成对话") || topic.includes("对话填空");
               const imageBuffer = hasBounds
-                ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
+                ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null)
                 : pageBuffer;
               const imageBase64 = imageBuffer.toString("base64");
               const qForDetect = hasBounds ? { ...q, yStartPct: 0, yEndPct: 100 } : q;
@@ -2106,7 +2161,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               if (!studentAnswer && isTightCloze && hasBounds) {
                 const yStartPad = Math.max(0, q.yStartPct! - 3);
                 const yEndPad = Math.min(100, q.yEndPct! + 3);
-                const padded = await cropPageRegion(pageBuffer, yStartPad, yEndPad, `MCQ page ${pageIndex} Q${q.questionNum} +3%`, q.xStartPct ?? null, q.xEndPct ?? null);
+                const padded = await cropPageRegion(pageBuffer, yStartPad, yEndPad, `MCQ page ${pageIndex} Q${q.questionNum} +3%`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null);
                 console.log(`[marking] MCQ Q${q.questionNum}: 完成对话 first pass null — retry with bounds expanded 3% (${yStartPad.toFixed(1)}% → ${yEndPad.toFixed(1)}%)`);
                 detected = await detectMcqAnswers(padded.toString("base64"), [qForDetect], `page ${pageIndex} Q${q.questionNum} retry +3%`, 0.3, new Set(), isChineseCloze);
                 studentAnswer = detected.get(q.id) ?? null;
@@ -2150,7 +2205,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           const croppedResults = await Promise.all(
             writtenQs.map(async (q) => {
               try {
-                const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
+                const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null);
                 const croppedBase64 = cropped.toString("base64");
 
                 // Step 1: Pre-check for blue ink
@@ -2189,13 +2244,19 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 const qNumDigit = parseInt(String(q.questionNum ?? "").replace(/[^0-9]/g, ""), 10);
                 const isChineseOeq = isChineseSubject && (qNumDigit === 33 || qNumDigit === 40);
                 let modelOverride: string | undefined;
-                // Grammar Cloze + Editing: small/strict model for
-                // single-letter / single-word checks.
+                // Grammar Cloze: small/strict model for single-letter
+                // option-picker checks.
+                // Editing: 2.5-pro — was on flash-lite which misread
+                // "Wasting" as "woting" on PSLE English 2025 Q40 and
+                // the strict spell check penalised the AI's OCR, not
+                // the student. Pro reads handwriting accurately enough
+                // that the strict spell check works on the real word.
                 // Comp Cloze: 2.5-flash so it can reason about
                 // synonyms/context and explain accept/reject — the
                 // lite model was silently accepting near-misses
                 // (e.g. "between" for "among") with no rationale.
-                if (isGrammarCloze || isEditing) modelOverride = "gemini-3.1-flash-lite-preview";
+                if (isGrammarCloze) modelOverride = "gemini-3.1-flash-lite-preview";
+                else if (isEditing) modelOverride = "gemini-2.5-pro";
                 else if (isCompCloze) modelOverride = "gemini-2.5-flash";
                 else if (isChineseOeq) modelOverride = "gemini-3.1-pro-preview";
                 const effectiveModel = modelOverride ?? (isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash");
@@ -2255,7 +2316,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             && q.yStartPct != null && q.yEndPct != null;
           console.log(`[marking] Retry Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
-            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null)
             : pageBuffer;
           const pageBase64 = imageBuffer.toString("base64");
 
@@ -2383,7 +2444,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             && q.yStartPct != null && q.yEndPct != null;
           console.log(`[marking] Verify Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
-            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `verify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null)
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `verify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null)
             : pageBuffer;
           const pageBase64 = imageBuffer.toString("base64");
 
@@ -2501,7 +2562,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           }
 
           // Crop to the question's region for a closer look
-          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null);
           const pageBase64 = imageBuffer.toString("base64");
           const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
 
@@ -2609,7 +2670,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           let pageBuffer: Buffer;
           try { pageBuffer = await fs.readFile(pagePath); }
           catch { return null; }
-          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `mcqVerify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null);
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `mcqVerify Q${q.questionNum}`, q.xStartPct ?? null, q.xEndPct ?? null, paper.subject ?? null);
           const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
           const detected = await detectMcqAnswers(
             imageBuffer.toString("base64"),
@@ -2703,10 +2764,59 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         const detectedKey = isChineseDialogueCloze
           ? (detected.match(/\b[1-9]\b/) ?? [""])[0]
           : (detected.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
-        if (detectedKey && acceptable.has(detectedKey)) {
-          console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detectedKey}" matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
+        let matched = !!detectedKey && acceptable.has(detectedKey);
+
+        // Word-form fallback (English Grammar Cloze only). Students
+        // sometimes write the word from the bank instead of just the
+        // letter — e.g. "thereby" instead of "L" on PSLE English
+        // 2025 Q35. The strict letter-match above rejects "thereby"
+        // even though it's the bank's exact entry for L. Parse the
+        // word bank from the section passage (stored as a 2-row
+        // markdown table on _passage subpart by the clean-extract
+        // step) and accept the word form too.
+        if (!matched && !isChineseDialogueCloze && detected) {
+          const subs = (q?.transcribedSubparts as Array<{ label: string; text: string }> | null) ?? null;
+          const passageText = subs?.find(s => s.label === "_passage")?.text ?? "";
+          if (passageText) {
+            // Parse the word bank table: rows of `| A | the | B | of | …`
+            // shape. Two layouts in prod: separate letter row + word
+            // row (4 cols), or letter-word pairs interleaved across
+            // columns (8 cols).
+            const wordToLetter = new Map<string, string>();
+            const tableLines = passageText.split("\n").filter(l => /^\s*\|/.test(l) && /\|\s*$/.test(l));
+            // Strip the markdown separator row (| --- | --- |) which
+            // would otherwise be parsed as letters.
+            const dataRows = tableLines.filter(l => !/^\s*\|[\s|:-]+\|\s*$/.test(l));
+            const parsedRows = dataRows.map(l => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim()));
+            // Header layout: row[0] = letters, row[1] = words. Plus
+            // optional row[2] / row[3] for the second half of the bank.
+            for (let r = 0; r + 1 < parsedRows.length; r += 2) {
+              const letters = parsedRows[r];
+              const words = parsedRows[r + 1] ?? [];
+              for (let c = 0; c < letters.length; c++) {
+                const letter = letters[c]?.toUpperCase().trim();
+                const word = words[c]?.toLowerCase().trim();
+                if (letter && word && /^[A-Z]$/.test(letter)) {
+                  wordToLetter.set(word, letter);
+                }
+              }
+            }
+            const detectedWord = detected.toLowerCase().trim();
+            const letterForDetectedWord = wordToLetter.get(detectedWord);
+            if (letterForDetectedWord && acceptable.has(letterForDetectedWord)) {
+              console.log(`[marking] Grammar Cloze word-form match Q${q?.questionNum}: detected "${detected}" = letter "${letterForDetectedWord}" in word bank, matches key "${[...acceptable].join("/")}" — accepting`);
+              matched = true;
+              finalNotes = `Detected: ${detected} (matches "${letterForDetectedWord}" in word bank) | Correct`;
+            }
+          }
+        }
+
+        if (matched) {
+          if (!finalNotes.includes("Correct")) {
+            console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detectedKey}" matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
+            finalNotes = `Detected: ${detected} | Correct`;
+          }
           finalAwarded = finalAvailable;
-          finalNotes = `Detected: ${detected} | Correct`;
         }
       }
       totalAwarded += finalAwarded;
