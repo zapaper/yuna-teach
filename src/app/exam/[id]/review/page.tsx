@@ -1628,7 +1628,21 @@ function ExamReviewContent({ id }: { id: string }) {
                   <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
                 </details>
               )}
-              {data.bookletScores && data.bookletScores.length > 0 && !(paperSubject ?? "").toLowerCase().includes("chinese") && (
+              {/* Per-booklet score chips. Hidden for quiz / focused /
+                  mastery papers — the metadata.papers list inherited
+                  from the master enumerates every PSLE sub-paper
+                  (Paper 1 Writing, Listening Comprehension, Oral Day
+                  1/2, etc.) even when the quiz only covers Booklet A
+                  + B. Empty questionPrefix on most of those entries
+                  makes computeBookletScores aggregate the same
+                  questions into every chip, so the parent sees seven
+                  rows of "61.5/90". Booklet breakdown is meaningful
+                  only on the full-exam paperType (no specific
+                  paperType set on the master). Also still skipped for
+                  Chinese papers as before. */}
+              {data.bookletScores && data.bookletScores.length > 0
+                && !(paperSubject ?? "").toLowerCase().includes("chinese")
+                && paperType !== "quiz" && paperType !== "focused" && paperType !== "mastery" && (
                 <div className="flex flex-wrap gap-3">
                   {data.bookletScores.map((b) => (
                     <span key={b.label} className="px-3 py-1 bg-[#eff4ff] rounded-full text-xs font-bold text-[#001e40]">
