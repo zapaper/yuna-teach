@@ -450,24 +450,30 @@ function ExamReviewContent({ id }: { id: string }) {
         }
         if (markRes.ok) {
           const markData = await markRes.json();
-          // Attach data from paper questions to mark data
+          // Attach data from paper questions to mark data. Only
+          // overwrite when the paper response actually has the field —
+          // for clone-based papers (English Test Quiz, scan-back exams,
+          // Mastery quizzes) the per-paper /api/exam/[id] returns the
+          // clone's own questions, which intentionally don't duplicate
+          // the master's content. The /mark route now pulls that
+          // content from master and includes it in the response; the
+          // old unconditional `?? null` assignments here would clobber
+          // those values back to null and the MCQ cards rendered blank.
           for (const q of markData.questions ?? []) {
             const pq = paperQuestionMap[q.questionNum];
             if (pq) {
               if (pq.imageData) q.imageData = pq.imageData;
               if (pq.answerImageData) q.answerImageData = pq.answerImageData;
-              // For quizzes, also attach transcription data.
-              // transcribedOptionTable was missing from this merge,
-              // which is why table-format MCQ rendered the OEQ canvas
-              // instead of the actual table — the DB row had it but
-              // currentQ saw `null` after merge.
+              // For quizzes, also attach transcription data — but ONLY
+              // when the paper response has it. Otherwise leave whatever
+              // came back from /mark (which is master-sourced for clones).
               if (paperIsQuiz) {
-                q.transcribedStem = pq.transcribedStem ?? null;
-                q.transcribedOptions = pq.transcribedOptions ?? null;
-                q.transcribedOptionImages = pq.transcribedOptionImages ?? null;
-                q.transcribedOptionTable = pq.transcribedOptionTable ?? null;
-                q.transcribedSubparts = pq.transcribedSubparts ?? null;
-                q.diagramImageData = pq.diagramImageData ?? null;
+                if (pq.transcribedStem != null) q.transcribedStem = pq.transcribedStem;
+                if (pq.transcribedOptions != null) q.transcribedOptions = pq.transcribedOptions;
+                if (pq.transcribedOptionImages != null) q.transcribedOptionImages = pq.transcribedOptionImages;
+                if (pq.transcribedOptionTable != null) q.transcribedOptionTable = pq.transcribedOptionTable;
+                if (pq.transcribedSubparts != null) q.transcribedSubparts = pq.transcribedSubparts;
+                if (pq.diagramImageData) q.diagramImageData = pq.diagramImageData;
               }
             }
           }
