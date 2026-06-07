@@ -3174,6 +3174,59 @@ function ExamReviewContent({ id }: { id: string }) {
                     })}
                   </div>
                   </div>
+                  {/* Per-blank crop grid (Editing / Grammar Cloze /
+                      Comp Cloze only). For passage sections where the
+                      marker crops a narrow line per blank, show the
+                      EXACT slice the AI saw next to its detection vs
+                      the expected answer. Lets the parent spot wrong
+                      detections caused by overlapping y-bands or AI
+                      misreads, instead of scrolling a huge passage
+                      and squinting. Skipped for Synthesis / Comp OEQ
+                      (whole-sentence answers, not per-blank crops). */}
+                  {data.isPrintedAndScanned && (isGrammarCloze || isEditing || isCompCloze) && sectionQuestions.length > 0 && (
+                    <div className={`mt-6 pt-6 border-t border-[#e5eeff] ${useSplitScreen ? "lg:col-span-2 lg:row-start-3" : ""}`}>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-3">
+                        What Gemini cropped for each blank
+                      </p>
+                      <div className="space-y-2">
+                        {sectionQuestions.map(q => {
+                          const detected = q.studentAnswer
+                            ?? q.markingNotes?.match(/^Detected:\s*([\s\S]+?)(?:\s*\||$)/)?.[1]?.trim()
+                            ?? null;
+                          const correct = (q.marksAwarded ?? 0) >= (q.marksAvailable ?? 1);
+                          const expected = (q.answer ?? "").replace(/\s*\|\s*/g, " / ");
+                          return (
+                            <div key={q.id} className="flex items-center gap-3 p-2 bg-white rounded-xl border border-[#e5eeff]">
+                              <span className="font-bold text-xs text-[#001e40] w-10 shrink-0">Q{q.questionNum}</span>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`/api/exam/${id}/question-crop?questionId=${q.id}`}
+                                alt={`Crop for Q${q.questionNum}`}
+                                className="h-12 w-auto rounded border border-[#e5eeff] shrink-0"
+                                style={{ maxWidth: "240px", objectFit: "contain" }}
+                              />
+                              <div className="flex-1 min-w-0 text-xs">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="font-bold text-[#43474f]">Detected:</span>
+                                  <span className={`font-mono truncate ${correct ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>
+                                    {detected ?? "(none)"}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="font-bold text-[#43474f]">Expected:</span>
+                                  <span className="font-mono text-[#001e40] truncate">{expected || "—"}</span>
+                                </div>
+                              </div>
+                              <span className={`text-xs font-extrabold shrink-0 ${correct ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>
+                                {correct ? "✓" : "✗"} {q.marksAwarded ?? 0}/{q.marksAvailable ?? 1}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Scanned page(s) at the bottom of the section
                       panel — lets the parent verify what Gemini saw
                       against the inline marking above. Covers every
