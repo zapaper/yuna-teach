@@ -971,11 +971,25 @@ function ExamReviewContent({ id }: { id: string }) {
   const isMathSciMcq = (q: ReviewQuestion) => isMathOrScience && hasOpts(q);
   const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
+  // Detect scanned-back workflow: the paper had skipPages or answerPages
+  // metadata, meaning only specific pages were printed (e.g. PSLE Paper 2
+  // only) and the student scanned the printed pages 1:1. In that mode
+  // EVERY scan render — including the OEQ "Written Answer" — should
+  // index by paper page, not by per-OEQ-question counter, because
+  // multiple OEQ questions land on the same printed page and the
+  // student's handwriting lives on that physical page. The per-OEQ
+  // counter (currentQOeqIndex) is correct ONLY for digital quizzes
+  // where each OEQ question got its own browser canvas saved as
+  // page_<idx>.jpg.
+  const isScannedBack = skipPages.length > 0 || answerPages.length > 0;
   // Use stored page map when available (set at submission time, immune to code changes).
-  // Otherwise fall back to calculated OEQ index using current options-based classification.
+  // For scanned-back, prefer page-based mapping over the per-OEQ counter.
+  // Otherwise fall back to calculated OEQ index for digital quizzes.
   const currentQSubmissionPage = currentQ && oeqPageMap && currentQ.id in oeqPageMap
     ? oeqPageMap[currentQ.id]
-    : currentQOeqIndex;
+    : currentQ && isScannedBack
+      ? getSubmissionPage(currentQ.pageIndex)
+      : currentQOeqIndex;
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
@@ -3746,8 +3760,14 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
 
-                    {/* Quiz OEQ (non-subpart): stacked layout — written answer, detected, correct */}
-                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !currentQ.transcribedOptionTable && !hasInlinePartAnswers && realSubLabels.length === 0 && (
+                    {/* Quiz OEQ (non-subpart): stacked layout — written answer, detected, correct.
+                        Skip for scanned-back papers: the per-question Written Answer block
+                        renders the SAME scan that the English-quiz-scan at the section bottom
+                        already shows, AND it used to mis-index by per-OEQ-question counter
+                        (which is wrong for scanned-back — multiple OEQ questions live on the
+                        same printed page). For scanned-back the bottom scan is the source of
+                        truth. */}
+                    {isQuiz && !isScannedBack && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !currentQ.transcribedOptionTable && !hasInlinePartAnswers && realSubLabels.length === 0 && (
                       <div className="space-y-4 mb-4">
                         {/* Written answer image */}
                         {(() => {
