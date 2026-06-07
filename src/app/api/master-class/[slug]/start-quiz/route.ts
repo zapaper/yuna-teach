@@ -1052,6 +1052,57 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       }]
     : undefined;
 
+  // Chinese mastery: when the per-bucket picker is used (because the
+  // master class opted out of section-bundling via noPassageBundle),
+  // we still want each picked question to render with its source
+  // passage on the left in the quiz UI. Look up each picked Chinese
+  // OEQ's source paper, find the chineseSections entry that contains
+  // it (by source orderIndex), and stamp one section entry per pick
+  // onto the mastery paper. Without this, the quiz renders the OEQ
+  // questions as bare cards with no passage context.
+  let masteryChineseSections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> | undefined;
+  const subjectIsChinese = (content.subject ?? "").toLowerCase().includes("chinese");
+  if (subjectIsChinese && content.noPassageBundle && finalPicked.length > 0) {
+    const sourcePaperIds = [...new Set(finalPicked.map(q => q.examPaperId).filter(Boolean) as string[])];
+    const sourcePapers = await prisma.examPaper.findMany({
+      where: { id: { in: sourcePaperIds } },
+      select: { id: true, metadata: true },
+    });
+    const sourceMetaById = new Map(sourcePapers.map(p => [p.id, p.metadata as Record<string, unknown> | null]));
+    // Fetch each picked question's source orderIndex so we can map it
+    // into the source paper's chineseSections range.
+    const sourceQs = await prisma.examQuestion.findMany({
+      where: {
+        OR: finalPicked
+          .filter(q => q.examPaperId)
+          .map(q => ({ examPaperId: q.examPaperId!, questionNum: q.questionNum })),
+      },
+      select: { examPaperId: true, questionNum: true, orderIndex: true },
+    });
+    const orderIndexByKey = new Map(
+      sourceQs.map(sq => [`${sq.examPaperId}::${sq.questionNum}`, sq.orderIndex] as const),
+    );
+    const built: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> = [];
+    for (let i = 0; i < finalPicked.length; i++) {
+      const q = finalPicked[i];
+      if (!q.examPaperId) continue;
+      const meta = sourceMetaById.get(q.examPaperId);
+      const sections = (meta as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; passageImageData?: string }> } | null)?.chineseSections ?? [];
+      const srcOrderIndex = orderIndexByKey.get(`${q.examPaperId}::${q.questionNum}`);
+      if (srcOrderIndex === undefined) continue;
+      const sec = sections.find(s => srcOrderIndex >= s.startIndex && srcOrderIndex <= s.endIndex);
+      if (!sec) continue;
+      built.push({
+        label: sec.label,
+        startIndex: i,
+        endIndex: i,
+        ...(sec.passage ? { passage: sec.passage } : {}),
+        ...(sec.passageImageData ? { passageImageData: sec.passageImageData } : {}),
+      });
+    }
+    if (built.length > 0) masteryChineseSections = built;
+  }
+
   const paper = await prisma.examPaper.create({
     data: {
       title,
@@ -1071,6 +1122,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         ...(focusSubTopics.length > 0 ? { focusSubTopics } : {}),
         ...(body.parentMasteryId ? { parentMasteryId: body.parentMasteryId } : {}),
         ...(synthesisEnglishSections ? { englishSections: synthesisEnglishSections } : {}),
+        ...(masteryChineseSections ? { chineseSections: masteryChineseSections } : {}),
         warnings,
       } as never,
       questions: {

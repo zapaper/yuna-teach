@@ -452,7 +452,11 @@ keyConcepts:
         # free-text OEQ. Extraction classifies every question as OEQ
         # (answer is a typed sentence, not 1-4). Spec accordingly.
         mcq: 0
-        oeq: 10
+        # Exactly 1 Q33 + 1 Q40 per mastery quiz. The classifier +
+        # subTopic stamps + noPassageBundle (above) guarantee one of
+        # each; the picker enforces per-sub-topic min 1 and stops
+        # when it has 2 OEQs total.
+        oeq: 2
 
 commonMistakes: []
 
