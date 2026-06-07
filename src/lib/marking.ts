@@ -956,6 +956,7 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - Compare against the answer key:
       * If the student's transcription contains the correct LETTER (as an isolated A–Q character), award full marks.
       * If the student's transcription contains a word that maps to the correct letter via the printed word bank (e.g. the bank pairs "L" with "thereby"), award full marks. The override layer handles the word-bank lookup; your job is to transcribe accurately.
+      * **If FULL PASSAGE CONTEXT is provided (it contains the printed word bank at the top — typically a table of LETTER | WORD entries — plus the passage with every blank inline), use it to confirm word↔letter mapping when the student wrote only the word. Read the bank, find which letter the student's word is paired with, and compare that letter against the answer key.**
       * If neither matches, award 0.
   - NOTE: The letters I and O are NOT used. If you think you see "I" it is likely "J"; if you see "O" it is likely "D", "Q", or "C". Use context and the letter bank to resolve ambiguity.
 
@@ -989,7 +990,7 @@ function englishMarkingRules(subject: string | null | undefined): string {
       * Only resolve ambiguity in the student's favour when the stroke is genuinely unreadable AND the favourable reading produces a real word; never to "rescue" a near-miss into the expected answer.
       Log it: "Transcription: [x-x-x-x-x]".
   - STEP 4 — Count letters: count letters in your transcription vs the answer key. If the counts differ, the student misspelled the word — award 0 (do NOT show the count in notes).
-  - STEP 5 — Accept the exact word from the answer key. The answer key represents ONE acceptable answer, not the only one. Accept other words if they (a) are grammatically correct in the sentence, AND (b) preserve the overall meaning of the sentence in context. Slight differences in shade of meaning are fine — PSLE marking accepts a range of contextually valid alternatives. Examples that PASS:
+  - STEP 5 — Accept the exact word from the answer key. The answer key represents ONE acceptable answer, not the only one. Accept other words if they (a) are grammatically correct in the sentence, AND (b) preserve the overall meaning of the sentence in context. Slight differences in shade of meaning are fine — PSLE marking accepts a range of contextually valid alternatives. **Use the FULL PASSAGE CONTEXT block (if provided alongside the question — it contains the entire Comp Cloze passage with every blank shown inline) to judge fit against the surrounding sentences and the whole paragraph, NOT just the narrow row crop. If the FULL PASSAGE CONTEXT is provided, you MUST refer to it before rejecting an alternative — many "wrong" student words turn out to be valid synonyms once you see the sentence in full.** Examples that PASS:
       * "hesitation" for key "doubt" in "Without any ___, hawker centres come to mind." — both express "immediately / unequivocally" in this context.
       * "until" for key "till" in "Up ___ the 1960s, street hawkers were common." — exact synonyms in this register.
       * "amongst" for key "among" in "___ different immigrant groups". — register variant.
@@ -2025,6 +2026,31 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
     // are set on both — full-width OEQ crops have no neighbor problem
     // because the entire page width is the same row anyway. In-memory
     // patch only; DB rows are untouched.
+    // Section passage lookup. metadata.sectionOcrTexts is keyed by
+    // section label ("Comprehension Cloze", "Grammar Cloze", "Editing
+    // (Spelling & Grammar)") and contains the full passage with every
+    // blank inline (e.g. "Without any **(46)________**, hawker..."),
+    // captured during extraction. Pass this to the Comp Cloze / Grammar
+    // Cloze / Editing marker prompt so it can judge whether an answer
+    // fits grammatically and contextually in the FULL paragraph — not
+    // just the narrow row crop. Real failure: PSLE English 2025 Q46
+    // student wrote "hesitation" for key "doubt" and the marker
+    // rejected it because the row crop alone doesn't show enough
+    // context to see "hesitation" also works in "Without any ___,
+    // hawker centres come to mind." Clone first, master fallback.
+    let cloneSectionOcr: Record<string, { ocrText?: string }> | null = null;
+    const cloneMetaForOcr = paper.metadata as { sectionOcrTexts?: Record<string, { ocrText?: string }> } | null;
+    if (cloneMetaForOcr?.sectionOcrTexts) cloneSectionOcr = cloneMetaForOcr.sectionOcrTexts;
+    if (!cloneSectionOcr && paper.sourceExamId) {
+      const srcForOcr = await prisma.examPaper.findUnique({
+        where: { id: paper.sourceExamId },
+        select: { metadata: true },
+      });
+      const srcMetaForOcr = srcForOcr?.metadata as { sectionOcrTexts?: Record<string, { ocrText?: string }> } | null;
+      if (srcMetaForOcr?.sectionOcrTexts) cloneSectionOcr = srcMetaForOcr.sectionOcrTexts;
+    }
+    const sectionOcrTexts = cloneSectionOcr ?? {};
+
     for (const qs of byPage.values()) {
       const xBounded = qs.filter(q =>
         q.yStartPct != null && q.yEndPct != null &&
@@ -2053,7 +2079,13 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       questions: NonNullable<typeof paper>["questions"],
       label: string,
       isCropped: boolean,
-      modelOverride?: string
+      modelOverride?: string,
+      // Optional full-passage context (the section OCR text from
+      // metadata.sectionOcrTexts). Appended to the prompt so the
+      // marker can judge contextual / grammatical fit against the
+      // whole paragraph instead of just the narrow row crop. Only
+      // used by Comp Cloze / Grammar Cloze / Editing right now.
+      extraContext?: string
     ): Promise<QuestionMarkResult[]> {
       const questionLines = questions
         .map((q) => {
@@ -2089,7 +2121,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + scienceStrictRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject) + chineseMarkingRules(paper?.subject));
+      const extraNote = extraContext ? `\n\n${extraContext}\n` : "";
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines + extraNote).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + scienceStrictRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject) + chineseMarkingRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -2340,7 +2373,23 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
                 if (isChineseOeq) console.log(`[marking] Q${q.questionNum} is Chinese OEQ Q33/Q40 — using pro model for reliable character detection`);
                 console.log(`[marking] Q${q.questionNum} using model: ${effectiveModel} (syllabusTopic="${q.syllabusTopic ?? "none"}", subject="${paper?.subject ?? "?"}")`);
-                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride);
+                // Pass the full section passage (from sectionOcrTexts)
+                // to the marker for Comp Cloze / Grammar Cloze /
+                // Editing so it can judge fit against the whole
+                // paragraph context, not just the cropped row.
+                let extraContext: string | undefined;
+                if (isCompCloze || isGrammarCloze || isEditing) {
+                  const passage = q.syllabusTopic ? (sectionOcrTexts[q.syllabusTopic]?.ocrText ?? "") : "";
+                  if (passage) {
+                    const heading = isCompCloze
+                      ? `FULL PASSAGE CONTEXT — use this to judge whether the student's word fits contextually + grammatically in the WHOLE sentence and paragraph (not just the cropped row). Blank (${q.questionNum}) is what you are marking; the other "(N)________" blanks are siblings — ignore their content, only use them as positional cues:`
+                      : isGrammarCloze
+                      ? `FULL PASSAGE CONTEXT (with WORD BANK at the top and numbered blanks below). Use this to (a) confirm the letter/word the student wrote matches the bank entry for blank (${q.questionNum}), and (b) judge the word's grammatical fit in the surrounding sentence:`
+                      : `FULL PASSAGE CONTEXT (the editing passage). The error word for blank (${q.questionNum}) is somewhere in this text; use the surrounding sentence to confirm what KIND of correction the student should have produced:`;
+                    extraContext = `${heading}\n\n${passage}`;
+                  }
+                }
+                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride, extraContext);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
                 return [];
