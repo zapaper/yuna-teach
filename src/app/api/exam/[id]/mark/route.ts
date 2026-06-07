@@ -251,7 +251,7 @@ export async function POST(
   // printed & scanned" via the OEQ-pad metadata the print flow writes
   // onto the master. Mirror the same check the GET handler uses for
   // the review-page flag.
-  const ownMetaForRoute = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
+  const ownMetaForRoute = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number }; skipPages?: number[]; answerPages?: number[] } | null;
   let chineseScanBack = !!ownMetaForRoute?.normalExtractChinese?.oeqPadFirstPageIndex;
   if (!chineseScanBack && paper.sourceExamId) {
     const srcMeta2 = await prisma.examPaper.findUnique({
@@ -261,7 +261,18 @@ export async function POST(
     const sm = srcMeta2?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
     chineseScanBack = !!sm?.normalExtractChinese?.oeqPadFirstPageIndex;
   }
-  const isPrintedAndScanned = printableCount > 0 || chineseScanBack;
+  // English / generic scan-back signal: the extraction recorded which
+  // pages of the original paper are NOT printed (skipPages = Paper 1 +
+  // listening / answerPages = answer key). Presence of either means
+  // the user went through the print-and-scan workflow even when no
+  // question got printableBounds populated (older extractions, or
+  // papers where the print PDF generation step set bounds on a
+  // narrower subset). Without this, English PSLE scan-backs fell
+  // through to markQuizPaper — the wrong marker.
+  const hasScanBackMetadata =
+    Array.isArray(ownMetaForRoute?.skipPages) && (ownMetaForRoute!.skipPages!.length > 0) ||
+    Array.isArray(ownMetaForRoute?.answerPages) && (ownMetaForRoute!.answerPages!.length > 0);
+  const isPrintedAndScanned = printableCount > 0 || chineseScanBack || hasScanBackMetadata;
   if (isPrintedAndScanned) {
     markExamPaper(id).catch((err) =>
       console.error(`Printed-and-scanned marking for ${id} failed:`, err)
