@@ -32,8 +32,9 @@ const COOKIE_NAME = "yuna_session";
 const PUBLIC_REGEXES: RegExp[] = [
   // NextAuth + our hybrid post-login bridge.
   /^\/api\/auth(\/.*)?$/,
-  // Health / status endpoints (none currently — placeholder).
-  // /^\/api\/health$/,
+  // Railway deploy healthcheck. No auth, no DB hit — just returns 200.
+  // Public so Railway can probe without a session cookie.
+  /^\/api\/health$/,
   // Webhooks (each has its own shared-secret auth).
   /^\/api\/inbound-email\/?$/,           // SendGrid Basic Auth (route-level)
   /^\/api\/iap\/asn-webhook\/?$/,        // RevenueCat signed header (route-level)
