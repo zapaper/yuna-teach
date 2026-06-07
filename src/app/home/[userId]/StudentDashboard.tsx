@@ -319,25 +319,32 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [aiTip, setAiTip] = useState<string | null>(null);
+  // Unified Quiz / Focused Practice modal — mirrors ParentDashboard's
+  // QuizModal (single modal with a Daily Quiz ↔ Focused Practice pill
+  // toggle) so the student-side picker matches the parent-side picker
+  // visually and behaviourally. Two former modals (showFocusedSetup
+  // and showQuizSetup) are collapsed into one driven by assignMode.
   const [showQuizSetup, setShowQuizSetup] = useState(false);
+  const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [focusedType, setFocusedType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
-  // Self-serve Focused Practice modal (gated by same studentQuizMode
-  // setting as Daily Quiz). Subject picker + topic list fetched from
-  // /api/student-progress so students see their actual studied topics.
-  const [showFocusedSetup, setShowFocusedSetup] = useState(false);
-  const [focusedSubject, setFocusedSubject] = useState<"math" | "science">("math");
+  // Focused practice: topic list comes from /api/student-progress so
+  // the weakest-topic ranking + dropdown reflect the student's own
+  // performance. Subject is taken from `quizSubject` (shared with
+  // Daily Quiz) — same UX as parent.
   const [focusedTopic, setFocusedTopic] = useState<string>("");
   const [focusedTopics, setFocusedTopics] = useState<{ topic: string; pct: number; sample: number }[]>([]);
-  const [creatingFocused, setCreatingFocused] = useState(false);
   useEffect(() => {
-    if (!showFocusedSetup) return;
+    if (!showQuizSetup) return;
+    if (assignMode !== "focused") return;
+    if (quizSubject !== "math" && quizSubject !== "science") return;
     fetch(`/api/student-progress?studentId=${userId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (!d) return;
-        const subjBucket = focusedSubject === "math" ? "Math" : "Science";
+        const subjBucket = quizSubject === "math" ? "Math" : "Science";
         const subjData = d.subjects?.[subjBucket];
         if (!subjData) { setFocusedTopics([]); return; }
         const rows = Object.entries(subjData.topics as Record<string, { earned: number; available: number; count: number }>)
@@ -345,36 +352,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           .map(([t, v]) => ({ topic: t, pct: v.available > 0 ? Math.round((v.earned / v.available) * 100) : 0, sample: v.count }))
           .sort((a, b) => a.pct - b.pct);
         setFocusedTopics(rows);
-        if (rows.length > 0 && !focusedTopic) setFocusedTopic(rows[0].topic);
       })
       .catch(() => setFocusedTopics([]));
-  }, [showFocusedSetup, focusedSubject, userId, focusedTopic]);
-  async function createFocusedPractice() {
-    if (!focusedTopic) return;
-    setCreatingFocused(true);
-    try {
-      const subject = focusedSubject === "math" ? "Mathematics" : "Science";
-      const res = await fetch("/api/focused-test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId: userId, studentId: userId, subject, topic: focusedTopic }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data.error ?? `Create failed (HTTP ${res.status})`);
-        return;
-      }
-      setShowFocusedSetup(false);
-      setFocusedTopic("");
-      // Refresh papers so the new focused test shows in Today's
-      // Activities immediately.
-      fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
-    } catch (err) {
-      alert(`Create failed: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      setCreatingFocused(false);
-    }
-  }
+  }, [showQuizSetup, assignMode, quizSubject, userId]);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
@@ -672,8 +652,49 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   }
 
   async function startQuiz() {
+    // Unified dispatcher — mirrors ParentDashboard's QuizModal submit
+    // branch. Daily Quiz hits /api/daily-quiz; Focused Practice hits
+    // /api/focused-test for Math/Science (topic + type) and
+    // /api/daily-quiz with focused:true for English (single-section
+    // doubled quiz).
     setCreatingQuiz(true);
     try {
+      if (assignMode === "focused") {
+        if (quizSubject === "english") {
+          if (englishSections.size !== 1) { alert("Pick exactly one section"); return; }
+          const res = await fetch("/api/daily-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId,
+              quizType: "mcq",
+              subject: "english",
+              englishSections: [...englishSections],
+              focused: true,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) { alert(data.error || "Failed to create practice"); return; }
+          setShowQuizSetup(false);
+          fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
+          return;
+        }
+        // Math / Science focused
+        if (!focusedTopic) { alert("Pick a topic"); return; }
+        const subject = quizSubject === "math" ? "Mathematics" : "Science";
+        const res = await fetch("/api/focused-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ parentId: userId, studentId: userId, subject, topic: focusedTopic, type: focusedType }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { alert(data.error ?? `Create failed (HTTP ${res.status})`); return; }
+        setShowQuizSetup(false);
+        setFocusedTopic("");
+        fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
+        return;
+      }
+      // Daily Quiz branch
       const res = await fetch("/api/daily-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1222,10 +1243,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </button>
             {canCreateQuiz && (
               <>
-                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                <button onClick={() => { playClick(); setAssignMode("quiz"); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
                   <span className="material-symbols-outlined">quiz</span>Quiz
                 </button>
-                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                <button onClick={() => { playClick(); setAssignMode("focused"); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
                   <span className="material-symbols-outlined">psychology</span>Focused Practice
                 </button>
               </>
@@ -1393,13 +1414,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <section className="mb-12">
               <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Self-learning</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
+                <button onClick={() => { playClick(); setAssignMode("quiz"); setShowQuizSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">rocket_launch</span>
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Daily 20min Quiz</h3>
                   <p className="text-[#6cf8bb]/90 font-medium">Power up your memory today</p>
                 </button>
-                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#003366] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#003366]/20">
+                <button onClick={() => { playClick(); setAssignMode("focused"); setShowQuizSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#003366] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#003366]/20">
                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">psychology</span>
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Focused Practice</h3>
@@ -1732,8 +1753,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <section className="mb-8 grid grid-cols-2 gap-3">
             {canCreateQuiz && (
               <>
-                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
-                <button onClick={() => { playClick(); setShowFocusedSetup(true); }} className="relative h-32 rounded-2xl bg-[#003366] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">psychology</span><h3 className="text-sm font-extrabold text-white font-headline">Focused Practice</h3><p className="text-[10px] text-white/70">Drill a topic</p></button>
+                <button onClick={() => { playClick(); setAssignMode("quiz"); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+                <button onClick={() => { playClick(); setAssignMode("focused"); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#003366] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">psychology</span><h3 className="text-sm font-extrabold text-white font-headline">Focused Practice</h3><p className="text-[10px] text-white/70">Drill a topic</p></button>
               </>
             )}
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end">
@@ -1895,118 +1916,167 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       </div>
 
 
-      {/* ── Quiz Setup Modal ─────────────────────────────────────────────── */}
+      {/* ── Unified Quiz / Focused Practice Modal ────────────────────────
+          Mirrors ParentDashboard's QuizModal so the student-side picker
+          matches the parent-side picker visually + behaviourally. One
+          modal with a Daily Quiz ↔ Focused Practice pill toggle, shared
+          Subject row, mode-specific body, single action button. */}
       {showQuizSetup && canCreateQuiz && (
-        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowQuizSetup(false)}>
-          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily Quiz</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowQuizSetup(false)}>
+          <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-4">{assignMode === "quiz" ? "Daily Quiz" : "Focused Practice"}</h3>
+            {/* Mode toggle — same pill style as the parent modal. */}
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+              {(["quiz", "focused"] as const).map(m => (
+                <button key={m} onClick={() => { setAssignMode(m); if (m === "focused" && quizSubject === "english") setQuizSubject("math"); }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${assignMode === m ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500"}`}>
+                  {m === "quiz" ? "Daily Quiz" : "Focused Practice"}
+                </button>
+              ))}
+            </div>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
             <div className="flex gap-2 mb-4">
               {(["math", "science", "english"] as const).map(s => (
                 <button key={s} onClick={() => setQuizSubject(s)}
-                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${quizSubject === s ? "border-[#006c49] bg-[#006c49]/5 text-[#006c49]" : "border-slate-200 text-slate-600"}`}>
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
                   {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
                 </button>
               ))}
             </div>
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
-            {quizSubject !== "english" ? (
-              <div className="space-y-2 mb-6">
-                {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => {
-                  const blocked = val === "mcq" && studentQuizMode === "oeq-only";
-                  return (
-                    <button key={val} onClick={() => { if (!blocked) setQuizType(val); }} disabled={blocked}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${blocked ? "border-slate-100 opacity-40 cursor-not-allowed" : quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
-                      <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${quizType === val && !blocked ? "border-[#006c49]" : "border-slate-300"}`}>
-                        {quizType === val && !blocked && <span className="w-2.5 h-2.5 rounded-full bg-[#006c49]" />}
-                      </span>
-                      <div>
-                        <p className={`text-sm font-medium ${quizType === val && !blocked ? "text-[#006c49]" : "text-slate-700"}`}>{label}</p>
-                        <p className="text-xs text-slate-400">{blocked ? "Not available — please do MCQ + Written" : desc}</p>
-                      </div>
-                    </button>
-                  );
-                })}
+            {/* Focused Practice — English: pick a single section
+                (doubled to 2x via /api/daily-quiz focused branch). */}
+            {assignMode === "focused" && quizSubject === "english" && (
+              <div className="mb-4">
+                <p className="text-[10px] font-extrabold text-[#43474f] uppercase tracking-wider mb-1.5">Pick one section (2x questions)</p>
+                <select value={[...englishSections][0] ?? ""} onChange={e => setEnglishSections(new Set(e.target.value ? [e.target.value] : []))}
+                  className="w-full px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-xs font-medium text-[#001e40] focus:border-[#003366] focus:outline-none bg-white">
+                  <option value="">Select a section…</option>
+                  <option value="grammar-mcq">Grammar MCQ</option>
+                  <option value="vocab-mcq">Vocabulary MCQ</option>
+                  <option value="vocab-cloze">Vocabulary Cloze</option>
+                  <option value="visual-text">Visual Text Comprehension</option>
+                  <option value="grammar-cloze">Grammar Cloze</option>
+                  <option value="editing">Editing (Spelling & Grammar)</option>
+                  <option value="comprehension-cloze">Comprehension Cloze</option>
+                  <option value="synthesis">Synthesis & Transformation</option>
+                  <option value="comprehension-oeq">Comprehension OEQ</option>
+                </select>
               </div>
-            ) : (
-              <div className="mb-6">
-                <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
-                <div className="space-y-2">
-                  {[
-                    { key: "grammar-mcq", label: "Grammar MCQ" },
-                    { key: "vocab-mcq", label: "Vocabulary MCQ" },
-                    { key: "vocab-cloze", label: "Vocabulary Cloze" },
-                    { key: "visual-text", label: "Visual Text" },
-                    { key: "grammar-cloze", label: "Grammar Cloze" },
-                    { key: "editing", label: "Editing" },
-                    { key: "comprehension-cloze", label: "Comprehension Cloze" },
-                    { key: "synthesis", label: "Synthesis" },
-                    { key: "comprehension-oeq", label: "Comprehension OEQ" },
-                  ].map(s => (
-                    <label key={s.key} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={englishSections.has(s.key)}
-                        onChange={() => {
-                          setEnglishSections(prev => {
-                            const next = new Set(prev);
-                            next.has(s.key) ? next.delete(s.key) : next.add(s.key);
-                            return next;
-                          });
-                        }}
-                        className="w-4 h-4 accent-[#006c49] rounded"
-                      />
-                      <span className="text-sm text-[#001e40]">{s.label}</span>
-                    </label>
+            )}
+            {/* Focused Practice — Math / Science: type pill, weakest
+                topics quick-pick, then full topic dropdown. */}
+            {assignMode === "focused" && (quizSubject === "math" || quizSubject === "science") && (
+              <>
+                <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
+                <div className="flex gap-2 mb-4">
+                  {(["mcq", "mcq-oeq"] as const).map(t => (
+                    <button key={t} onClick={() => setFocusedType(t)}
+                      className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${focusedType === t ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                      {t === "mcq" ? "MCQ Only" : "MCQ + Written"}
+                    </button>
                   ))}
                 </div>
-              </div>
+                {(() => {
+                  const weak = focusedTopics.filter(t => t.pct <= 75).slice(0, 3);
+                  return weak.length > 0 ? (
+                    <div className="mb-4">
+                      <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Weakest Topics</p>
+                      <div className="space-y-1.5">
+                        {weak.map(t => (
+                          <button key={t.topic} onClick={() => setFocusedTopic(t.topic)}
+                            className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-xl border-2 transition-all ${focusedTopic === t.topic ? "border-[#006c49] bg-[#6cf8bb]/20" : "border-[#c3c6d1] bg-white"}`}>
+                            <span className="text-sm font-bold text-[#001e40] truncate pr-2">{t.topic}</span>
+                            <span className="text-xs text-[#ba1a1a] font-extrabold shrink-0">{t.pct}%</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+                <div className="mb-5">
+                  <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">{focusedTopics.filter(t => t.pct <= 75).length > 0 ? "Or Choose Topic" : "Choose Topic"}</p>
+                  <select value={focusedTopic} onChange={e => setFocusedTopic(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white">
+                    <option value="">Select a topic…</option>
+                    {(quizSubject === "math"
+                      ? ["Basic math operations", "Fractions", "Percentage", "Ratio", "Algebra", "Area and circumference of circle", "Volume of cube and cuboid", "Geometry", "Statistics", "Time", "Volume measurement"]
+                      : ["Diversity of living and non-living things", "Diversity of materials", "Life cycles in plants and animals", "Plant parts and functions", "Human digestive system", "Cycles in matter", "Water cycle, evaporation, condensation", "Plant respiratory and circulatory systems", "Human respiratory and circulatory systems", "Reproduction in plants and animals", "Light energy and uses", "Heat energy and uses", "Electrical system and circuits", "Photosynthesis", "Energy conversion", "Interaction of forces (Magnets)", "Interaction of forces (Frictional force, gravitational force, elastic spring force)", "Interactions within the environment"]
+                    ).map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+            {/* Daily Quiz body — same as the parent modal's quiz path. */}
+            {assignMode === "quiz" && (
+              <>
+                <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
+                {quizSubject !== "english" ? (
+                  <>
+                    <div className="flex gap-2 mb-5">
+                      {(["mcq", "mcq-oeq"] as const).map(t => {
+                        const blocked = t === "mcq" && studentQuizMode === "oeq-only";
+                        return (
+                          <button key={t} onClick={() => { if (!blocked) setQuizType(t); }} disabled={blocked}
+                            className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${blocked ? "border-slate-100 opacity-40" : quizType === t ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                            {t === "mcq" ? "MCQ Only" : "MCQ + Written"}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {quizType === "mcq-oeq" && (
+                      <p className="text-[10px] text-[#c3c6d1] -mt-3 mb-4 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs">stylus_note</span>
+                        Stylus recommended for written questions
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="mb-5">
+                    <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
+                    <div className="space-y-2">
+                      {[
+                        { key: "grammar-mcq", label: "Grammar MCQ" },
+                        { key: "vocab-mcq", label: "Vocabulary MCQ" },
+                        { key: "vocab-cloze", label: "Vocabulary Cloze MCQ" },
+                        { key: "visual-text", label: "Visual Text Comprehension MCQ" },
+                        { key: "grammar-cloze", label: "Grammar Cloze" },
+                        { key: "editing", label: "Editing (Spelling & Grammar)" },
+                        { key: "comprehension-cloze", label: "Comprehension Cloze" },
+                        { key: "synthesis", label: "Synthesis & Transformation (5 questions)" },
+                        { key: "comprehension-oeq", label: "Comprehension OEQ" },
+                      ].map(s => (
+                        <label key={s.key} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={englishSections.has(s.key)}
+                            onChange={() => {
+                              setEnglishSections(prev => {
+                                const next = new Set(prev);
+                                if (next.has(s.key)) next.delete(s.key);
+                                else next.add(s.key);
+                                return next;
+                              });
+                            }}
+                            className="w-4 h-4 rounded accent-[#006c49]"
+                          />
+                          <span className="text-sm text-[#001e40]">{s.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             <div className="flex gap-3">
-              <button onClick={() => setShowQuizSetup(false)} className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-medium">Cancel</button>
-              <button onClick={startQuiz} disabled={creatingQuiz}
-                className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50">
-                {creatingQuiz ? "Creating..." : "Start Quiz"}
+              <button onClick={() => setShowQuizSetup(false)} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
+              <button
+                disabled={creatingQuiz || (assignMode === "focused" && (quizSubject === "math" || quizSubject === "science") && !focusedTopic) || (assignMode === "focused" && quizSubject === "english" && englishSections.size !== 1)}
+                onClick={startQuiz}
+                className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2">
+                {creatingQuiz && <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {creatingQuiz ? "Creating…" : assignMode === "focused" ? "Start Practice" : "Start Quiz"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Focused Practice Setup Modal ─────────────────────────────────── */}
-      {showFocusedSetup && canCreateQuiz && (
-        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowFocusedSetup(false)}>
-          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Focused Practice</h3>
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
-            <div className="flex gap-2 mb-4">
-              {(["math", "science"] as const).map(s => (
-                <button key={s} onClick={() => { setFocusedSubject(s); setFocusedTopic(""); }}
-                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${focusedSubject === s ? "border-[#006c49] bg-[#006c49]/5 text-[#006c49]" : "border-slate-200 text-slate-600"}`}>
-                  {s === "math" ? "Math" : "Science"}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Topic <span className="text-slate-400 normal-case font-medium">(weak topics first)</span></p>
-            {focusedTopics.length === 0 ? (
-              <p className="text-sm text-slate-500 italic mb-6 py-4 text-center">No topic history yet for {focusedSubject === "math" ? "Math" : "Science"}. Try a Daily Quiz first.</p>
-            ) : (
-              <div className="space-y-1.5 max-h-72 overflow-y-auto mb-6 pr-1">
-                {focusedTopics.map(t => (
-                  <button key={t.topic} onClick={() => setFocusedTopic(t.topic)}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border-2 text-sm transition-all text-left ${focusedTopic === t.topic ? "border-[#006c49] bg-[#6cf8bb]/20" : "border-slate-200 text-slate-700"}`}>
-                    <span className={`flex-1 min-w-0 truncate ${focusedTopic === t.topic ? "font-bold text-[#001e40]" : ""}`}>{t.topic}</span>
-                    <span className={`text-xs font-bold shrink-0 ${t.pct >= 75 ? "text-[#006c49]" : t.pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.pct}%</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <button onClick={createFocusedPractice}
-              disabled={!focusedTopic || creatingFocused}
-              className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold disabled:opacity-50">
-              {creatingFocused ? "Creating…" : focusedTopic ? `Start: ${focusedTopic}` : "Pick a topic"}
-            </button>
-            <button onClick={() => setShowFocusedSetup(false)} className="w-full mt-2 py-2.5 text-sm text-slate-500">Cancel</button>
           </div>
         </div>
       )}
@@ -2098,14 +2168,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         {canCreateQuiz && (
           <>
             <button
-              onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
+              onClick={() => { setActiveNav("quiz"); setAssignMode("quiz"); setShowQuizSetup(true); }}
               className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "quiz" ? "text-[#006c49]" : "text-slate-400"}`}
             >
               <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
               <span className="text-[10px] font-medium">Quiz</span>
             </button>
             <button
-              onClick={() => { setShowFocusedSetup(true); }}
+              onClick={() => { setAssignMode("focused"); setShowQuizSetup(true); }}
               className="flex flex-col items-center gap-0.5 transition-all text-slate-400"
             >
               <span className="material-symbols-outlined text-2xl">psychology</span>
