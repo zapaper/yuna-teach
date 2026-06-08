@@ -93,6 +93,12 @@ export default function DocumentScanner({
   const [noEdgeSec, setNoEdgeSec] = useState(0);
   // Animation state: thumb-flying-to-corner after a successful capture.
   const [flyThumb, setFlyThumb] = useState<{ id: string; thumbUrl: string } | null>(null);
+  // True from shutter tap until the worker returns + thumbnail
+  // renders. Disables the capture button and swaps in a spinner so
+  // the user can't queue a second capture during the 3-4 s pipeline
+  // (4K getImageData → detect → 4K getImageData → warp → CLAHE →
+  // toBlob → thumbnail).
+  const [capturing, setCapturing] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
@@ -467,6 +473,7 @@ export default function DocumentScanner({
 
   // ── Capture shutter ──
   const handleCapture = useCallback(async () => {
+    if (capturing) return; // belt-and-suspenders, button is also disabled
     const worker = workerRef.current;
     const video = videoRef.current;
     if (!worker || !video) return;
@@ -477,16 +484,21 @@ export default function DocumentScanner({
     // Audible feedback the moment the user taps, before any worker
     // round-trip — the camera shutter cue is meant to be tight.
     playClick(0.5);
+    // Visible "processing" state — button swaps to a spinner, second
+    // taps short-circuit at the top of this function. Cleared in
+    // both the success path and the catch / finally.
+    setCapturing(true);
 
-    // Snap a still at full video resolution. Re-detect at full-res
-    // for a tighter crop than what the live (downsampled) loop saw.
+    // Snap a still at full video resolution for the WARP step. We
+    // detect on a downsampled copy (option B speedup) but warp from
+    // the full-res canvas so the saved scan keeps the 4K detail.
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     const stillCanvas = document.createElement("canvas");
     stillCanvas.width = vw;
     stillCanvas.height = vh;
     const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
-    if (!sctx) return;
+    if (!sctx) { setCapturing(false); return; }
     sctx.drawImage(video, 0, 0, vw, vh);
 
     // Camera readiness check — after a retake, videoWidth can be 0
@@ -497,12 +509,31 @@ export default function DocumentScanner({
     if (vw === 0 || vh === 0) {
       setErrorMsg("Camera still warming up — try again in a moment.");
       setTimeout(() => setErrorMsg(""), 2500);
+      setCapturing(false);
       return;
     }
 
     try {
-      // Full-res detect via worker.
-      const detectImg = sctx.getImageData(0, 0, vw, vh);
+      // Detect on a 1080-px-long-edge downsample of the still. The
+      // page edge is just as detectable at 1080p as at 4K, but Canny
+      // + findContours run ~4× faster and the getImageData reads
+      // ~4× less data over the postMessage boundary. The full 4K
+      // canvas is still used for the warp below so the saved scan
+      // doesn't lose detail.
+      const DETECT_MAX_EDGE = 1080;
+      const detectScale = Math.min(1, DETECT_MAX_EDGE / Math.max(vw, vh));
+      const dw = Math.round(vw * detectScale);
+      const dh = Math.round(vh * detectScale);
+      const detectCanvas = document.createElement("canvas");
+      detectCanvas.width = dw;
+      detectCanvas.height = dh;
+      const dctx = detectCanvas.getContext("2d", { willReadFrequently: true });
+      if (!dctx) throw new Error("detect canvas ctx missing");
+      // Draw the still onto the downsampled canvas. drawImage with
+      // explicit width/height resamples natively — bilinear by
+      // default on every browser we care about.
+      dctx.drawImage(stillCanvas, 0, 0, dw, dh);
+      const detectImg = dctx.getImageData(0, 0, dw, dh);
       const detectId = `det-${Date.now()}`;
       const detectMsg = await new Promise<WorkerMsg>((resolve, reject) => {
         pendingRef.current.set(detectId, { resolve, reject });
@@ -512,6 +543,14 @@ export default function DocumentScanner({
         );
       });
       let quad: [number, number][] | null = detectMsg.type === "detected" ? detectMsg.quad : null;
+      // Scale the quad UP from detect-canvas (~1080-edge) coords to
+      // full-res. The warp runs on the 4K source so the saved scan
+      // keeps its detail — but the worker needs quad coords in 4K
+      // space to map source → destination.
+      if (quad) {
+        const upscale = 1 / detectScale;
+        quad = quad.map(([x, y]) => [x * upscale, y * upscale] as [number, number]);
+      }
       if (!quad) quad = lastQuadRef.current;
       if (!quad) quad = [[0, 0], [vw, 0], [vw, vh], [0, vh]];
 
@@ -574,8 +613,10 @@ export default function DocumentScanner({
       const msg = (err instanceof Error ? err.message : String(err)).slice(0, 140);
       setErrorMsg(`Could not process this page: ${msg}`);
       setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setCapturing(false);
     }
-  }, [retakeIdx]);
+  }, [retakeIdx, capturing]);
 
   // ── Submit to backend ──
   const handleSubmit = useCallback(async () => {
@@ -729,12 +770,23 @@ export default function DocumentScanner({
             </button>
             <button
               onClick={handleCapture}
-              disabled={!edgeLocked}
-              className={`w-20 h-20 rounded-full border-4 active:scale-95 transition-all shadow-2xl ${
-                edgeLocked ? "bg-white border-white/40" : "bg-white/40 border-white/20 cursor-not-allowed"
+              disabled={!edgeLocked || capturing}
+              className={`w-20 h-20 rounded-full border-4 active:scale-95 transition-all shadow-2xl flex items-center justify-center ${
+                capturing
+                  ? "bg-white border-white/40 cursor-wait"
+                  : edgeLocked
+                    ? "bg-white border-white/40"
+                    : "bg-white/40 border-white/20 cursor-not-allowed"
               }`}
-              aria-label="Capture page"
-            />
+              aria-label={capturing ? "Processing page…" : "Capture page"}
+            >
+              {capturing ? (
+                <span
+                  className="block w-8 h-8 rounded-full border-[3px] border-[#001e40]/20 border-t-[#001e40] animate-spin"
+                  aria-hidden
+                />
+              ) : null}
+            </button>
             <div className="w-[80px]" /> {/* spacer to balance the Done button */}
           </div>
         </>
