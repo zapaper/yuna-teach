@@ -102,47 +102,40 @@ function extremeCornersFromHull(hull) {
   return [tl, tr, br, bl];
 }
 
-// Parallelogram correction. The PSLE page held at any reasonable
-// camera angle is a parallelogram (or close to one — the actual
-// shape is a perspective trapezoid, but a parallelogram is within
-// a few percent at typical hand-held distances). For each corner,
-// compute the position the OTHER 3 corners predict via the
-// parallelogram identity `tl + br = tr + bl`. Then check whether
-// the actual corner agrees with that prediction. If one corner
-// deviates much more than the others — exactly the dog-eared /
-// hand-occluded / out-of-frame top corner case — replace it with
-// the predicted position. This is the live-preview's "find one
-// top corner, mirror the same x-delta on the other side" rule,
-// applied via the principled vector identity.
+// Parallelogram correction — TOP corners only.
+// Dog-ears, hand occlusion, and out-of-frame edges happen at the
+// TOP of the page because the student/parent holds the paper at
+// the bottom. Bottom corners are always reliable; correcting them
+// would mask real misdetection (e.g. a bad bottom corner means
+// the whole detection is wrong, not just one corner).
+// Use the parallelogram identity `tl + br = tr + bl` to predict
+// each top corner from the other 3 corners. If exactly ONE top
+// corner deviates significantly from prediction (the other top
+// agrees well), replace it with the predicted position. This is
+// the "mirror the same x-delta" rule applied as a vector identity.
 function correctDogEaredCorner(quad) {
   if (!quad || quad.length !== 4) return quad;
   const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
+  for (const p of quad) {
+    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
+  }
   const tlExp = [bl[0] + tr[0] - br[0], bl[1] + tr[1] - br[1]];
   const trExp = [br[0] + tl[0] - bl[0], br[1] + tl[1] - bl[1]];
-  const brExp = [tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1]];
-  const blExp = [tl[0] + br[0] - tr[0], tl[1] + br[1] - tr[1]];
   const dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
   const dTl = dist(tl, tlExp);
   const dTr = dist(tr, trExp);
-  const dBr = dist(br, brExp);
-  const dBl = dist(bl, blExp);
   const diag = Math.hypot(br[0] - tl[0], br[1] - tl[1]);
-  if (diag <= 0) return quad;
+  if (!Number.isFinite(diag) || diag <= 0) return quad;
   const threshold = diag * 0.12;
-  // Find the corner with the biggest deviation AND make sure the
-  // next-worst is well below the threshold (otherwise the page is
-  // genuinely non-parallelogram, e.g. extreme oblique angle, and
-  // we don't want to over-correct).
-  const cands = [
-    { idx: 0, d: dTl, exp: tlExp },
-    { idx: 1, d: dTr, exp: trExp },
-    { idx: 2, d: dBr, exp: brExp },
-    { idx: 3, d: dBl, exp: blExp },
-  ].sort(function (a, b) { return b.d - a.d; });
-  if (cands[0].d > threshold && cands[1].d < threshold * 0.6) {
-    const corrected = [quad[0], quad[1], quad[2], quad[3]];
-    corrected[cands[0].idx] = cands[0].exp;
-    return corrected;
+  // Only one top corner gets corrected per call. If BOTH top
+  // corners deviate, the page is non-parallelogram (extreme angle,
+  // or a bottom corner is wrong); leave the quad alone rather than
+  // synthesise both.
+  if (dTl > threshold && dTr < threshold * 0.6) {
+    return [tlExp, tr, br, bl];
+  }
+  if (dTr > threshold && dTl < threshold * 0.6) {
+    return [tl, trExp, br, bl];
   }
   return quad;
 }

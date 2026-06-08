@@ -470,43 +470,59 @@ export default function DocumentScanner({
       return;
     }
 
-    // Downsample the still BEFORE the worker round-trip. A 4K video
-    // frame is 8.3 MP — getImageData serialises ~33 MB and the
-    // worker's Canny + warpPerspective + CLAHE all scale linearly
-    // with pixel count. Capping the capture canvas at 2400 px max
-    // edge cuts everything downstream by ~4× without hurting marker
-    // OCR (2400 wide on A4 = ~290 DPI, well above what Gemini needs
-    // for clean handwriting). The live-loop quad from a 480-px
-    // detect canvas scales up directly into this space.
-    const CAPTURE_MAX_EDGE = 2400;
-    const captureScale = Math.min(1, CAPTURE_MAX_EDGE / Math.max(vw, vh));
-    const cw = Math.round(vw * captureScale);
-    const ch = Math.round(vh * captureScale);
+    // Use the full-resolution video frame as the warp source — the
+    // earlier downsample-before-warp produced white pages on some
+    // captures (suspected drawImage timing edge case that left the
+    // downsampled canvas blank → CLAHE inflated the empty pixels to
+    // pure white). Worker still caps output at 2400 px so the saved
+    // file size is bounded. The trade-off: one full-res getImageData
+    // (~33 MB at 4K) instead of a downsampled one, ~0.5 s slower per
+    // capture, but white pages are catastrophic in comparison.
     const stillCanvas = document.createElement("canvas");
-    stillCanvas.width = cw;
-    stillCanvas.height = ch;
+    stillCanvas.width = vw;
+    stillCanvas.height = vh;
     const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
     if (!sctx) return;
-    sctx.drawImage(video, 0, 0, cw, ch);
+    sctx.drawImage(video, 0, 0, vw, vh);
+
+    // Sanity check — make sure something actually got drawn. drawImage
+    // can silently no-op on some platforms when the video is paused
+    // or freshly resumed; a blank canvas downstream produces the same
+    // pure-white CLAHE artefact.
+    const probe = sctx.getImageData(Math.floor(vw / 2), Math.floor(vh / 2), 1, 1);
+    if (probe.data[3] === 0) {
+      setErrorMsg("Camera frame wasn't ready — try again in a moment.");
+      setTimeout(() => setErrorMsg(""), 2500);
+      return;
+    }
 
     try {
-      // Use the live loop's most recent quad — it's plenty accurate
-      // for a steady-hold capture and skipping the full-res
-      // re-detect step removes a whole worker round-trip + an
-      // 8 MP Canny+findContours pass (~1.5 s). The quad coords are
-      // in detect-canvas space (480 px max edge); rescale them to
-      // the capture canvas before sending to the warp worker.
+      // REQUIRE a live-loop quad. The earlier fallback to the full
+      // frame [[0,0],[vw,0],[vw,vh],[0,vh]] sent edge-of-screen
+      // coordinates to the warp, which is never what the user
+      // wanted — it preserved the entire camera frame (desk + hand
+      // + page) instead of cropping to the page. Refuse to capture
+      // until the live loop has found a quad. The capture button is
+      // already disabled in this state (edgeLocked === false), so
+      // this is a defensive bail rather than a normal path.
+      const liveQuad = lastQuadRef.current;
+      if (!liveQuad) {
+        setErrorMsg("Page edges not detected — line up the four corners and try again.");
+        setTimeout(() => setErrorMsg(""), 2500);
+        return;
+      }
+      // Scale the live quad from detect-canvas (max 480 px edge) up
+      // to full video resolution.
       const detectMaxEdge = 480;
       const detectScale = Math.min(1, detectMaxEdge / Math.max(vw, vh));
-      const quadScale = captureScale / detectScale;
-      const liveQuad = lastQuadRef.current;
-      const quad: [number, number][] = liveQuad
-        ? liveQuad.map(([x, y]) => [x * quadScale, y * quadScale] as [number, number])
-        : [[0, 0], [cw, 0], [cw, ch], [0, ch]];
+      const quadScale = 1 / detectScale;
+      const quad: [number, number][] = liveQuad.map(
+        ([x, y]) => [x * quadScale, y * quadScale] as [number, number]
+      );
 
       // Warp + dehaze via worker. Buffer is transferred — sctx is
       // disposable after this call.
-      const warpImg = sctx.getImageData(0, 0, cw, ch);
+      const warpImg = sctx.getImageData(0, 0, vw, vh);
       const warpId = `warp-${Date.now()}`;
       const warpMsg = await new Promise<WorkerMsg>((resolve, reject) => {
         pendingRef.current.set(warpId, { resolve, reject });
