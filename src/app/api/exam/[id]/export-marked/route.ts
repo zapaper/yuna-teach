@@ -592,7 +592,13 @@ async function handle(
     // Note font ~50% larger so the handwriting comment sits at a
     // comfortable teacher-paper reading size next to the stamp.
     const noteSize = Math.max(27, Math.round(pageH * 0.021));
+    // English OEQ pages (Comp OEQ, Synthesis) have tight handwriting
+    // lines with little white space between rows; using the full-size
+    // teacher note tends to crowd the student's writing. Shrink ~20%
+    // (≈ 2 visual sizes) so a couple of comments fit in the same band.
+    const englishOeqNoteSize = Math.max(22, Math.round(noteSize * 0.78));
     const isScience = (paper.subject ?? "").toLowerCase().includes("science");
+    const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
 
     // Per-page list of rects already occupied by previously-placed
     // notes — used to slide a new note DOWN if its chosen anchor would
@@ -688,13 +694,17 @@ async function handle(
           ? stripLatex(m.note)
           : null;
         if (rawNote) {
+          // Pick the effective font size: English OEQ uses the shrunken
+          // size so notes fit in the cramped row spacing of English
+          // writing-pad pages. Math/Science OEQ keeps the original.
+          const effNoteSize = (isEnglish && isOeq) ? englishOeqNoteSize : noteSize;
           // Search both directions for the nearest whitespace band big
           // enough for the note. If the band is far from the cross,
           // prepend the subpart label (e.g. "(b) ") so the reader can
           // still tie the comment back to the right subpart. We wrap
           // AFTER picking the band so the label is part of the first
           // line and wraps with it.
-          const provisionalBlockH = Math.ceil(noteSize * 1.25 * 2); // worst-case 2 lines
+          const provisionalBlockH = Math.ceil(effNoteSize * 1.25 * 2); // worst-case 2 lines
           const searchStartY = yPx + markSize * 0.6;
           const band = findWhitespaceBand(
             searchStartY,
@@ -718,7 +728,7 @@ async function handle(
           const wrapAt = (maxW: number) => {
             const out: string[] = [];
             for (const line of rawLines) {
-              for (const w of wrapText(line, handFont, noteSize, maxW)) out.push(w);
+              for (const w of wrapText(line, handFont, effNoteSize, maxW)) out.push(w);
             }
             return out;
           };
@@ -730,7 +740,7 @@ async function handle(
           // the block so its longest line ends near the mark column,
           // keeping the comment visually attached to the cross without
           // ever wandering off the right edge.
-          const lineWidths = capped.map(l => handFont.widthOfTextAtSize(l, noteSize));
+          const lineWidths = capped.map(l => handFont.widthOfTextAtSize(l, effNoteSize));
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
@@ -744,8 +754,8 @@ async function handle(
           //     proposed rect overlaps an earlier note on this page.
           //     Gap is one line-spacing so adjacent notes read as
           //     separate comments rather than a paragraph.
-          const lineSpacingPx = noteSize * 1.25;
-          const blockH = Math.ceil(noteSize * 1.25 * capped.length);
+          const lineSpacingPx = effNoteSize * 1.25;
+          const blockH = Math.ceil(effNoteSize * 1.25 * capped.length);
           let wsTop: number;
           if (band.direction === "fallback") {
             wsTop = Math.min(grayH - blockH - 4, regionTopPx + regionH - blockH - 4);
@@ -753,7 +763,7 @@ async function handle(
             wsTop = band.y;
           }
           // PDF-y coordinate of the note block's TOP-LEFT corner.
-          let pdfTopY = pageH - wsTop - noteSize;
+          let pdfTopY = pageH - wsTop - effNoteSize;
           // Slide down past any earlier note that overlaps the proposed
           // rect. Stop after a few iterations or once we hit the page
           // bottom — the worst case is a slightly off-region note,
@@ -776,7 +786,7 @@ async function handle(
             drawJitteredText(page, line, {
               x: noteX,
               y: yCursor,
-              size: noteSize,
+              size: effNoteSize,
               font: handFont,
               color: RED,
             });
@@ -806,16 +816,18 @@ async function handle(
   }
 
   const out = await doc.save();
-  // Filename = "<student> - <paper title> (marked).pdf" so a parent
-  // saving a marked PDF for multiple kids ends up with files that
-  // are obviously distinguishable on disk. Student name is omitted
-  // when the paper has no assignee (unusual — would mean the export
-  // ran on a master / unassigned clone).
+  // Filename = "<StudentFirstName> <title> - Marked paper.pdf".
+  // First name only (the surname clutters the title bar without adding
+  // anything useful when the parent is looking at their own kids), title
+  // unmodified, "- Marked paper" suffix so a parent who downloads the
+  // un-marked print version and this one side-by-side can tell them
+  // apart at a glance.
   const safeTitle = (paper.title ?? "Exam").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Exam";
-  const studentName = (paper.assignedTo?.name ?? "").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 60);
-  const filename = studentName
-    ? `${studentName} - ${safeTitle} (marked).pdf`
-    : `${safeTitle} (marked).pdf`;
+  const fullName = (paper.assignedTo?.name ?? "").replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
+  const firstName = fullName.split(/\s+/)[0]?.slice(0, 40) ?? "";
+  const filename = firstName
+    ? `${firstName} ${safeTitle} - Marked paper.pdf`
+    : `${safeTitle} - Marked paper.pdf`;
   return new NextResponse(Buffer.from(out), {
     status: 200,
     headers: {
