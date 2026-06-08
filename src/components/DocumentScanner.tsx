@@ -123,12 +123,7 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      // Cache-bust the worker URL so a deploy that ships new
-      // detection / warp code doesn't get served from the browser's
-      // stale copy. Bump SCANNER_WORKER_VERSION whenever the worker
-      // file changes; the query string forces a fresh fetch
-      // regardless of the browser's existing Cache-Control entry.
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-g");
+      worker = new Worker("/vendor/scanner-worker.js");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
@@ -456,8 +451,16 @@ export default function DocumentScanner({
     // round-trip — the camera shutter cue is meant to be tight.
     playClick(0.5);
 
+    // Snap a still at full video resolution. Re-detect at full-res
+    // for a tighter crop than what the live (downsampled) loop saw.
     const vw = video.videoWidth;
     const vh = video.videoHeight;
+    const stillCanvas = document.createElement("canvas");
+    stillCanvas.width = vw;
+    stillCanvas.height = vh;
+    const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
+    if (!sctx) return;
+    sctx.drawImage(video, 0, 0, vw, vh);
 
     // Camera readiness check — after a retake, videoWidth can be 0
     // for the first ~100ms while the WKWebView re-binds the
@@ -470,43 +473,8 @@ export default function DocumentScanner({
       return;
     }
 
-    // Use the full-resolution video frame as the warp source — the
-    // earlier downsample-before-warp produced white pages on some
-    // captures (suspected drawImage timing edge case that left the
-    // downsampled canvas blank → CLAHE inflated the empty pixels to
-    // pure white). Worker still caps output at 2400 px so the saved
-    // file size is bounded. The trade-off: one full-res getImageData
-    // (~33 MB at 4K) instead of a downsampled one, ~0.5 s slower per
-    // capture, but white pages are catastrophic in comparison.
-    const stillCanvas = document.createElement("canvas");
-    stillCanvas.width = vw;
-    stillCanvas.height = vh;
-    const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
-    if (!sctx) return;
-    sctx.drawImage(video, 0, 0, vw, vh);
-
-    // Sanity check — make sure something actually got drawn. drawImage
-    // can silently no-op on some platforms when the video is paused
-    // or freshly resumed; a blank canvas downstream produces the same
-    // pure-white CLAHE artefact.
-    const probe = sctx.getImageData(Math.floor(vw / 2), Math.floor(vh / 2), 1, 1);
-    if (probe.data[3] === 0) {
-      setErrorMsg("Camera frame wasn't ready — try again in a moment.");
-      setTimeout(() => setErrorMsg(""), 2500);
-      return;
-    }
-
     try {
-      // RESTORED — full-res re-detect at capture time. Was removed
-      // in c8f50361 thinking the live-loop's 480 px quad was good
-      // enough; it wasn't. Without this step, every capture relied
-      // on the downsampled live-loop quad which can be degenerate
-      // (collapsed points, off-page contour, frame-stale), and the
-      // warp then produced uniform output → CLAHE inflated it to
-      // pure white. Re-running detectQuad on the full-resolution
-      // still gives the worker a final precise look at the four
-      // page corners before warping. Costs ~1.5 s per capture but
-      // restores reliability.
+      // Full-res detect via worker.
       const detectImg = sctx.getImageData(0, 0, vw, vh);
       const detectId = `det-${Date.now()}`;
       const detectMsg = await new Promise<WorkerMsg>((resolve, reject) => {
@@ -517,22 +485,8 @@ export default function DocumentScanner({
         );
       });
       let quad: [number, number][] | null = detectMsg.type === "detected" ? detectMsg.quad : null;
-      if (!quad) {
-        // Full-res detect failed. Fall back to the live-loop quad
-        // (scaled up to full-res coords). If neither is available,
-        // bail with a clear error — never use the edge-of-screen
-        // fallback that warped the whole desk + hand + page frame.
-        const liveQuad = lastQuadRef.current;
-        if (!liveQuad) {
-          setErrorMsg("Page edges not detected — line up the four corners and try again.");
-          setTimeout(() => setErrorMsg(""), 2500);
-          return;
-        }
-        const detectMaxEdge = 480;
-        const detectScale = Math.min(1, detectMaxEdge / Math.max(vw, vh));
-        const quadScale = 1 / detectScale;
-        quad = liveQuad.map(([x, y]) => [x * quadScale, y * quadScale] as [number, number]);
-      }
+      if (!quad) quad = lastQuadRef.current;
+      if (!quad) quad = [[0, 0], [vw, 0], [vw, vh], [0, vh]];
 
       // Warp + dehaze via worker. Buffer is transferred — sctx is
       // disposable after this call.

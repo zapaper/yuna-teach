@@ -162,6 +162,13 @@ model ExamPaper {
   // each value a PNG data URL produced by the /exam/[id]/annotate page.
   // Null means no annotations yet.
   annotationsByPage Json?
+  // Denormalised mirror of metadata.revisionMode being set. Lets the
+  // dashboard list endpoint skip pulling the full JSONB metadata column
+  // for every paper just to derive this boolean — the per-paper
+  // metadata fetch was the slowest query in /api/exam (~2 s on a busy
+  // dashboard). Writers in /api/admin/student-revision set this to true
+  // when creating a revision paper.
+  isRevision Boolean @default(false)
   // Parent's red-pen annotations made on the quiz review page.
   // Object keyed by either "passage:<sectionIdx>" (English passage)
   // or "question:<questionId>" (per-question OEQ canvas), each value a

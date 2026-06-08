@@ -251,6 +251,10 @@ export async function POST(request: NextRequest) {
       ...(mode === "review"
         ? { completedAt: new Date(), markingStatus: "complete" }
         : {}),
+      // Denormalised flag — also stored on metadata.revisionMode for
+      // backwards compatibility with anything that already reads from
+      // there (lib/revision.ts, lib/weak-topics.ts).
+      isRevision: true,
       metadata: {
         revisionMode: mode,
         revisionSubject: subject,

@@ -190,41 +190,16 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Surface metadata.revisionMode as a top-level boolean — the
-  // dashboard uses this to exclude compiled-revision papers from the
-  // "X completed papers" count and the average-score numerator (a
-  // revision paper IS a curated set of past mistakes; counting it as
-  // a fresh attempt would mislead the parent).
-  // Fetch metadata for both the papers themselves AND any source
-  // masters they're clones of, so we can derive the
-  // hasNormalExtractEnglish flag from the MASTER's metadata
-  // (bounds are extracted on the master; clones inherit them at
-  // assign-time).
-  const metaIds = [
-    ...papers.map((p) => p.id),
-    ...papers.map((p) => p.sourceExamId).filter((x): x is string => !!x),
-  ];
-  const papersWithMeta = await prisma.examPaper.findMany({
-    where: { id: { in: [...new Set(metaIds)] } },
-    select: { id: true, metadata: true },
-  });
-  const metaById = new Map<string, unknown>();
-  const revisionFlagById = new Map<string, boolean>();
-  for (const r of papersWithMeta) {
-    metaById.set(r.id, r.metadata);
-    const m = r.metadata as { revisionMode?: string } | null;
-    revisionFlagById.set(r.id, !!m?.revisionMode);
-  }
-  function hasNormalExtractEnglishFor(p: { id: string; sourceExamId: string | null }): boolean {
-    // Check the MASTER's metadata — for clones that's sourceExamId,
-    // for masters it's the paper itself. Any section flag (other than
-    // lastRunAt) being true counts as "extracted".
-    const ownerId = p.sourceExamId ?? p.id;
-    const meta = metaById.get(ownerId) as { normalExtractEnglish?: Record<string, unknown> } | undefined | null;
-    const state = meta?.normalExtractEnglish;
-    if (!state) return false;
-    return Object.entries(state).some(([k, v]) => k !== "lastRunAt" && v === true);
-  }
+  // (Removed: per-paper metadata JSONB fetch.) Used to pull
+  // metadata for every paper AND every source master to derive
+  // isRevision (metadata.revisionMode) and hasNormalExtractEnglish
+  // (metadata.normalExtractEnglish.*). Step (a) of the slow-load fix
+  // dropped hasNormalExtractEnglish from the response (English print
+  // is admin-only now, no per-paper flag needed). Step (b) added
+  // ExamPaper.isRevision as a denormalised column updated by the
+  // student-revision writer. The pull was the slowest query in this
+  // endpoint (~2 s on a busy dashboard, pulling MB of OCR passage
+  // text per row); reading the column saves all of that.
 
   // Skipped-marks lookup. The review page shows pct =
   // score / (totalMarks − skippedMarks) so a student isn't penalised
@@ -279,17 +254,13 @@ export async function GET(request: NextRequest) {
       sourceExamId: p.sourceExamId ?? null,
       syllabusTagged: p.questions.length > 0,
       cleanExtracted: p.questions.some(q => !!q.transcribedStem),
-      // True iff at least one Normal Extract section flag is set on
-      // the master (for clones, on the source master). English papers
-      // need this before they can be printed for scan-back marking.
-      hasNormalExtractEnglish: hasNormalExtractEnglishFor(p),
       flaggedCount: p.clones.reduce((sum, c) => sum + c._count.questions, 0),
       unreleasedAssignmentCount: p.clones.filter((c) => c.markingStatus !== "released").length,
       pendingReviewCount: p.clones.filter((c) => c.markingStatus === "complete").length,
       instantFeedback: p.instantFeedback,
       visible: p.visible,
       timeSpentSeconds: p.timeSpentSeconds,
-      isRevision: revisionFlagById.get(p.id) ?? false,
+      isRevision: p.isRevision,
     })),
   });
 }

@@ -76,149 +76,6 @@ function orderQuad(pts) {
   return [tl, tr, br, bl];
 }
 
-// Pull the 4 extreme corner points off a convex hull (or any
-// point set). Works whether the hull has 4 vertices or 40. Useful
-// when approxPolyDP can't land on exactly 4 vertices because a
-// corner is occluded / dog-eared / falls outside the frame.
-function extremeCornersFromHull(hull) {
-  const buf = hull.data32S;
-  if (!buf) return null;
-  const n = hull.rows;
-  if (n < 4) return null;
-  let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
-  let tl = null, tr = null, br = null, bl = null;
-  for (let i = 0; i < n; i++) {
-    const x = buf[i * 2];
-    const y = buf[i * 2 + 1];
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-    const sum = x + y;
-    const diff = x - y;
-    if (sum < minSum) { minSum = sum; tl = [x, y]; }
-    if (sum > maxSum) { maxSum = sum; br = [x, y]; }
-    if (diff > maxDiff) { maxDiff = diff; tr = [x, y]; }
-    if (diff < minDiff) { minDiff = diff; bl = [x, y]; }
-  }
-  if (!tl || !tr || !br || !bl) return null;
-  return [tl, tr, br, bl];
-}
-
-// Clamp a single point inside image bounds. Used to keep
-// parallelogram-predicted corners on-canvas so warpPerspective
-// doesn't receive impossible source coordinates.
-function clampPoint(p, w, h) {
-  return [
-    Math.max(0, Math.min(w - 1, p[0])),
-    Math.max(0, Math.min(h - 1, p[1])),
-  ];
-}
-
-// Check whether the vertical edge of the page actually leads up to
-// the proposed top corner. Walk a line from the bottom corner to
-// the candidate top corner, sampling points along the way. For
-// each sample point, check whether there's a high-gradient pixel
-// in a small neighbourhood (the Canny edges Mat already encodes
-// where page edges are). Returns the hit ratio in [0, 1].
-//
-// Real top corner: the page's vertical edge tracks the line from
-// bottom corner upward, so most samples find a nearby edge pixel.
-// Dog-ear / folded corner: the visible edge stops short or veers
-// inward; few samples find a nearby edge pixel → low hit ratio.
-function verticalEdgeSupport(edgesMat, topPt, bottomPt) {
-  if (!edgesMat || !topPt || !bottomPt) return 0;
-  const w = edgesMat.cols, h = edgesMat.rows;
-  const data = edgesMat.data; // Uint8 flat buffer
-  const samples = 12;
-  const radius = 6;
-  let hits = 0;
-  let total = 0;
-  // Skip the very ends of the line (the corners themselves) — a
-  // corner pixel always lights up in Canny, so we'd get a false
-  // positive on the bottom corner side.
-  for (let i = 2; i < samples - 2; i++) {
-    const t = i / (samples - 1);
-    const cx = Math.round(topPt[0] * (1 - t) + bottomPt[0] * t);
-    const cy = Math.round(topPt[1] * (1 - t) + bottomPt[1] * t);
-    if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
-    let found = false;
-    for (let dy = -radius; dy <= radius && !found; dy++) {
-      const yy = cy + dy;
-      if (yy < 0 || yy >= h) continue;
-      for (let dx = -radius; dx <= radius; dx++) {
-        const xx = cx + dx;
-        if (xx < 0 || xx >= w) continue;
-        if (data[yy * w + xx] > 0) { found = true; break; }
-      }
-    }
-    if (found) hits++;
-    total++;
-  }
-  return total > 0 ? hits / total : 0;
-}
-
-// Parallelogram correction — TOP corners only.
-// Dog-ears, hand occlusion, and out-of-frame edges happen at the
-// TOP of the page because the student/parent holds the paper at
-// the bottom. Bottom corners are always reliable; correcting them
-// would mask real misdetection (e.g. a bad bottom corner means
-// the whole detection is wrong, not just one corner).
-//
-// Decision logic:
-//   1. Use the vertical-edge support check as the PRIMARY signal —
-//      if the page edge doesn't lead up to a top corner, it's
-//      almost certainly a dog-ear regardless of geometry.
-//   2. Fall back to parallelogram deviation as a secondary check
-//      when an edges Mat isn't available (e.g. one of the older
-//      code paths still calls without it).
-// The "fix" is the parallelogram prediction `tl + br = tr + bl`
-// rearranged for the dog-eared corner, then clamped on-canvas.
-function correctDogEaredCorner(quad, edgesMat, imgW, imgH) {
-  if (!quad || quad.length !== 4) return quad;
-  for (const p of quad) {
-    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
-  }
-  const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
-  const tlExp = [bl[0] + tr[0] - br[0], bl[1] + tr[1] - br[1]];
-  const trExp = [br[0] + tl[0] - bl[0], br[1] + tl[1] - bl[1]];
-  const w = imgW || (edgesMat && edgesMat.cols) || 1;
-  const h = imgH || (edgesMat && edgesMat.rows) || 1;
-  // PRIMARY signal: vertical-edge support. Real top corner has the
-  // page edge leading up to it from the bottom; dog-ear / fold
-  // does not. Threshold 0.4 = at least 40 % of samples on the line
-  // from bottom to top corner have a Canny edge pixel within 6 px.
-  if (edgesMat) {
-    const tlSupport = verticalEdgeSupport(edgesMat, tl, bl);
-    const trSupport = verticalEdgeSupport(edgesMat, tr, br);
-    const T = 0.4;
-    if (tlSupport < T && trSupport >= T) {
-      return [clampPoint(tlExp, w, h), tr, br, bl];
-    }
-    if (trSupport < T && tlSupport >= T) {
-      return [tl, clampPoint(trExp, w, h), br, bl];
-    }
-    // If both top corners pass the edge-support check, trust the
-    // detection — no correction needed.
-    if (tlSupport >= T && trSupport >= T) return quad;
-    // Both failed: fall through to the parallelogram-deviation
-    // backup below, which may still correct one of them.
-  }
-  // BACKUP signal: parallelogram-deviation magnitude. Less
-  // reliable than the edge check (when one corner is wrong, BOTH
-  // top deviations grow), but better than nothing.
-  const dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-  const dTl = dist(tl, tlExp);
-  const dTr = dist(tr, trExp);
-  const diag = Math.hypot(br[0] - tl[0], br[1] - tl[1]);
-  if (!Number.isFinite(diag) || diag <= 0) return quad;
-  const threshold = diag * 0.12;
-  if (dTl > threshold && dTr < threshold * 0.6) {
-    return [clampPoint(tlExp, w, h), tr, br, bl];
-  }
-  if (dTr > threshold && dTl < threshold * 0.6) {
-    return [tl, clampPoint(trExp, w, h), br, bl];
-  }
-  return quad;
-}
-
 function detectQuad(cv, imageData, opts) {
   const w = imageData.width;
   const h = imageData.height;
@@ -230,8 +87,7 @@ function detectQuad(cv, imageData, opts) {
   const cannyHigh = (opts && typeof opts.cannyHigh === "number") ? opts.cannyHigh : 200;
   const minAreaPct = (opts && typeof opts.minAreaPct === "number") ? opts.minAreaPct : 0.15;
   const fillRatioMin = (opts && typeof opts.fillRatioMin === "number") ? opts.fillRatioMin : 0.85;
-  let src = null, gray = null, blur = null, edges = null;
-  let contours = null, hier = null;
+  let src = null, gray = null, blur = null, edges = null, contours = null, hier = null;
   try {
     src = cv.matFromImageData(imageData);
     gray = new cv.Mat();
@@ -244,24 +100,27 @@ function detectQuad(cv, imageData, opts) {
     cv.Canny(blur, edges, cannyLow, cannyHigh);
     cv.findContours(edges, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
-    const minArea = w * h * minAreaPct;
-    let bestRect = null;
-    const total = contours.size();
-
-    // Original detectQuad — minAreaRect-only. Restored after a
-    // session of dog-ear + extreme-corner + parallelogram-correction
-    // experiments produced consistent stdL=0 / white-screen outputs.
-    // The fancy 4-vertex approxPolyDP + extreme-corners path will
-    // come back behind tests once we have a captured set of failing
-    // images to reproduce against. For now: rectangular bounding box
-    // of the largest convex-ish contour, guaranteed valid coords.
+    // Detection strategy: for every large convex-ish contour, take
+    // its minAreaRect (smallest rotated rectangle containing it).
     //
-    // Why minAreaRect: when a page corner is folded over, the
-    // visible outline has 5+ vertices (the fold creates an inward
-    // step). minAreaRect ignores that — its corners sit at the
-    // contour's extents, which are still defined by the unfolded
-    // edges. Fill ratio guards against picking non-rectangular
-    // shapes; threshold 0.85 keeps folded pages, rejects junk.
+    // Why minAreaRect instead of approxPolyDP+4-vertex check:
+    // when a page corner is folded over, the visible outline has
+    // 5+ vertices (the fold creates an inward step). approxPolyDP
+    // at epsilon=0.02*perimeter collapses those extra vertices
+    // into ONE inward-pulled corner → trapezium → perspective
+    // warp skews the whole page. minAreaRect ignores that — its
+    // corners sit at the contour's extents, which are still
+    // defined by the unfolded edges (the corner of the rectangle
+    // along, say, the right edge is determined by the bottom-
+    // right unfolded corner, not by where the fold cuts in).
+    //
+    // Fill ratio guards against picking non-rectangular shapes:
+    // a real page fills ~95-100% of its bounding rect; a small
+    // fold drops fill ratio to ~0.92; an irregular blob is much
+    // lower. Threshold 0.85 keeps folded pages, rejects junk.
+    const minArea = w * h * minAreaPct;
+    let best = null;
+    const total = contours.size();
     for (let i = 0; i < total; i++) {
       const c = contours.get(i);
       try {
@@ -273,6 +132,11 @@ function detectQuad(cv, imageData, opts) {
         const rectArea = rw * rh;
         if (rectArea <= 0) continue;
         if (cArea / rectArea < fillRatioMin) continue;
+
+        // RotatedRect → 4 corners. cv.minAreaRect's angle field
+        // is in DEGREES. opencv.js doesn't reliably expose
+        // boxPoints/RotatedRect.points across builds, so compute
+        // by hand from center/size/angle.
         const cx = rect.center.x;
         const cy = rect.center.y;
         const ang = rect.angle * Math.PI / 180;
@@ -290,14 +154,14 @@ function detectQuad(cv, imageData, opts) {
             cy + p[0] * sin + p[1] * cos,
           ];
         });
-        if (!bestRect || rectArea > bestRect.area) {
-          bestRect = { quad: orderQuad(pts), area: rectArea };
+        if (!best || rectArea > best.area) {
+          best = { quad: orderQuad(pts), area: rectArea };
         }
       } finally {
         c.delete();
       }
     }
-    return bestRect ? bestRect.quad : null;
+    return best ? best.quad : null;
   } finally {
     if (src) src.delete();
     if (gray) gray.delete();
@@ -316,12 +180,7 @@ function warpAndClean(cv, imageData, quad) {
   const heightB = dist(quad[0], quad[3]);
   const W = Math.max(1, Math.round(Math.max(widthA, widthB)));
   const H = Math.max(1, Math.round(Math.max(heightA, heightB)));
-  // Long-edge cap on the warped output. 1600 was producing 1220x1624
-  // saved scans (David's PSLE English) — well below the server's
-  // 1800px normaliser target, which meant the resolution bump from
-  // the 4K getUserMedia constraint was being clawed back here.
-  // 2400 gives ~290 DPI for an A4 page through to the marker.
-  const cap = 2400;
+  const cap = 1600;
   const longEdge = Math.max(W, H);
   const downscale = longEdge > cap ? cap / longEdge : 1;
   const Wd = Math.max(1, Math.round(W * downscale));
