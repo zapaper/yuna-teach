@@ -157,12 +157,23 @@ function correctDogEar(cv, edgesMat, quad) {
     }
   }
   const w = edgesMat.cols, h = edgesMat.rows;
-  const searchHalfWidth = Math.max(6, Math.round(w * 0.06));
-  const missTolerance = 3;
+  // Search band widened 6 → 10 % of image width. Keystone tilt can
+  // shift the page edge by ~5-8 px per row at high angles; ±10 %
+  // (~48 px at 480, ~108 px at 1080 detect downsample) handles that
+  // without bridging into interior text contours.
+  const searchHalfWidth = Math.max(8, Math.round(w * 0.10));
+  // Miss tolerance now scales with image height (5 % of height) so
+  // the trace can bridge multi-row Canny gaps from compression /
+  // anti-aliasing noise on real page edges, but still stops at a
+  // real dog-ear fold (which leaves a much larger continuous gap
+  // — typically 10-20 % of page height).
+  const missTolerance = Math.max(5, Math.round(h * 0.05));
   const tlTrace = traceVerticalUp(edgesMat, bl[0], bl[1], tl[1], searchHalfWidth, missTolerance);
   const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[1], searchHalfWidth, missTolerance);
   const tlReachedY = tlTrace[1];
   const trReachedY = trTrace[1];
+  const tlDx = Math.abs(tlTrace[0] - bl[0]);
+  const trDx = Math.abs(trTrace[0] - br[0]);
   const dyDiff = Math.abs(tlReachedY - trReachedY);
   // 3 % of image height = dog-ear threshold.
   const dogEarThreshold = h * 0.03;
@@ -176,6 +187,8 @@ function correctDogEar(cv, edgesMat, quad) {
     rectTopY: Math.round(Math.min(tl[1], tr[1])),
     tlTrace: [Math.round(tlTrace[0]), Math.round(tlTrace[1])],
     trTrace: [Math.round(trTrace[0]), Math.round(trTrace[1])],
+    tlDx: Math.round(tlDx),
+    trDx: Math.round(trDx),
     dyDiff: Math.round(dyDiff),
     threshold: Math.round(dogEarThreshold),
     dogEar: isDogEar,
@@ -340,7 +353,16 @@ function warpAndClean(cv, imageData, quad) {
     ]);
     dstPts = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, Wd, 0, Wd, Hd, 0, Hd]);
     M = cv.getPerspectiveTransform(srcPts, dstPts);
-    cv.warpPerspective(src, warped, M, new cv.Size(Wd, Hd));
+    // BORDER_REPLICATE — when the quad's corners sit right at the
+    // edge of the source frame, the perspective sampler asks for
+    // pixels a few px beyond the image. Default BORDER_CONSTANT
+    // returns 0 (black) for those, and the shadow-flatten step
+    // (cv.addWeighted(L, 1.0, lBlur, -0.92, 220, L)) below inflates
+    // small black bands into bright white fillers — the headline
+    // "white at the bottom of the scan" bug. Replicating the nearest
+    // edge pixel keeps the bordering pixels close to the page colour,
+    // so the shadow-flatten amplification is a no-op there.
+    cv.warpPerspective(src, warped, M, new cv.Size(Wd, Hd), cv.INTER_LINEAR, cv.BORDER_REPLICATE);
 
     rgb = new cv.Mat();
     cv.cvtColor(warped, rgb, cv.COLOR_RGBA2RGB);

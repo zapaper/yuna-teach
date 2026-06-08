@@ -49,6 +49,8 @@ type DogEarDiag =
       rectTopY: number;
       tlTrace: [number, number];
       trTrace: [number, number];
+      tlDx: number;
+      trDx: number;
       dyDiff: number;
       threshold: number;
       dogEar: boolean;
@@ -148,7 +150,7 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-j");
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-k");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
@@ -804,7 +806,12 @@ export default function DocumentScanner({
             className="absolute top-16 bottom-24 left-0 right-0 overflow-y-auto overscroll-contain px-4 pb-4"
             style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {/* Troubleshooting layout: stack pages vertically at full
+                width so the parent can inspect each capture closely
+                (white fillers at the bottom, missed page corners,
+                dog-ear orientation, etc.). Will shrink back to a
+                multi-column grid once the scanner is stable. */}
+            <div className="flex flex-col gap-4">
               {pages.map((p, i) => (
                 <div key={p.id} className="relative bg-white rounded-xl overflow-hidden shadow-lg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -985,7 +992,7 @@ function drawDogEarDiag(
   ctx.arc(trPt[0], trPt[1], 6, 0, Math.PI * 2);
   ctx.fill();
   // One-line summary along the bottom.
-  const summary = `dyDiff=${diag.dyDiff} (thr=${diag.threshold}) tlY=${diag.tlTrace[1]} trY=${diag.trTrace[1]} → ${diag.dogEar ? "DOG-EAR" : "ok"}`;
+  const summary = `dyDiff=${diag.dyDiff} (thr=${diag.threshold}) tlY=${diag.tlTrace[1]} (dx=${diag.tlDx}) trY=${diag.trTrace[1]} (dx=${diag.trDx}) → ${diag.dogEar ? "DOG-EAR" : "ok"}`;
   ctx.fillStyle = "rgba(0,0,0,0.7)";
   ctx.fillRect(8, ch - 32, cw - 16, 24);
   ctx.fillStyle = "#fff";
