@@ -8,6 +8,18 @@ import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 import { requireAccessToPaper } from "@/lib/auth-guard";
+import { isCompOeqLabel } from "@/lib/english-sections";
+
+// Whether this question is a Comprehension Cloze fill-in-the-blank
+// (single-word answer, no subparts). Detected from the syllabusTopic
+// label written by the structure-analysis pipeline. Other Cloze types
+// (Vocab Cloze MCQ, Grammar Cloze) are NOT included — their answers
+// are letters that the MCQ render path already handles cleanly.
+function isComprehensionCloze(syllabusTopic: string | null | undefined): boolean {
+  if (!syllabusTopic) return false;
+  const t = syllabusTopic.toLowerCase();
+  return t.includes("comprehension cloze") || t.includes("comp cloze");
+}
 
 // GET /api/exam/[id]/export-marked?userId=<parent>
 //
@@ -173,6 +185,18 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
     if (cleaned.length === 0) {
       cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: q.markingNotes?.slice(0, 80) });
     }
+    // Trust the marker over the classifier when there's only one mark
+    // to stamp (MCQ, vocab cloze, single-answer short answer). The
+    // marker has the marking notes, the answer key, and the OCR — the
+    // classifier sees only a cropped image and sometimes flips a clean
+    // correct answer to "wrong" because the slice overlapped the
+    // neighbouring question or the handwriting was misread. For
+    // multi-subpart OEQ we still need the AI's per-subpart status
+    // because the marker only emits one verdict for the whole row.
+    if (cleaned.length === 1) {
+      cleaned[0].status = fallbackStatus(q);
+      cleaned[0].marksLost = fallbackLost(q);
+    }
     return cleaned;
   } catch (err) {
     console.error(`[export-marked] classifyQuestion Q${q.questionNum} failed:`, err);
@@ -312,6 +336,7 @@ async function handle(
           id: true, questionNum: true, pageIndex: true,
           yStartPct: true, yEndPct: true, answer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
+          syllabusTopic: true,
         },
         orderBy: { orderIndex: "asc" },
       },
@@ -568,6 +593,15 @@ async function handle(
     const noteSize = Math.max(27, Math.round(pageH * 0.021));
     const isScience = (paper.subject ?? "").toLowerCase().includes("science");
 
+    // Per-page list of rects already occupied by previously-placed
+    // notes — used to slide a new note DOWN if its chosen anchor would
+    // overlap an earlier note. Comp Cloze pages (passage above, 8-10
+    // single-blank questions below) are the headline case: every
+    // question's band-search falls back to the same band and the notes
+    // stack on top of each other. Rects are in PDF-y space (origin
+    // bottom-left), same as drawText.
+    const placedNoteRects: Array<{ x: number; y: number; w: number; h: number }> = [];
+
     for (const q of qs) {
       const entry = perQ.find(e => e.qId === q.id);
       if (!entry) continue;
@@ -579,6 +613,8 @@ async function handle(
       const cleanAnswer = answerStr.replace(/[().]/g, "").trim();
       const isMcq = /^[A-D1-4]$/i.test(cleanAnswer);
       const isOeq = !isMcq;
+      const isCompCloze = isComprehensionCloze(q.syllabusTopic);
+      const isCompOeq = isCompOeqLabel(q.syllabusTopic);
 
       // Mark column: 10% from the right edge by default; 15% for
       // Science OEQ (the user wants more breathing room there).
@@ -633,8 +669,24 @@ async function handle(
           color: RED,
         });
 
-        if (m.note) {
-          const stripped = stripLatex(m.note);
+        // Pick the note TEXT. Three shapes:
+        //   1. Comp Cloze (fill-in-the-blank with a single-word answer)
+        //      — the note is the correct answer with the question
+        //      number in front, e.g. "55: gentle". The marker's prose
+        //      note is overkill on a one-word blank; the parent just
+        //      wants the right word.
+        //   2. Comp OEQ with subparts (m.label set) — prepend the
+        //      subpart label so a note that slides into whitespace
+        //      can still be tied back to (a)/(b)/(c).
+        //   3. Everything else — strip LaTeX from the AI's note.
+        // (1) and (2) are the cases the user called out; (3) is the
+        // pre-existing behaviour.
+        const rawNote = isCompCloze
+          ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
+          : m.note
+          ? stripLatex(m.note)
+          : null;
+        if (rawNote) {
           // Search both directions for the nearest whitespace band big
           // enough for the note. If the band is far from the cross,
           // prepend the subpart label (e.g. "(b) ") so the reader can
@@ -648,9 +700,15 @@ async function handle(
             Math.ceil(grayH * 0.3),
             provisionalBlockH,
           );
+          // Subpart label: ALWAYS prepend for Comp OEQ when present so
+          // the reader doesn't have to guess which subpart the note
+          // belongs to. For other OEQ subjects, only label when the
+          // note has drifted too far from the cross to be visually
+          // attached (preserves the tighter math layout).
           const TOO_FAR = markSize * 2.5;
-          const needsLabel = band.distance > TOO_FAR && m.label && !/^\s*\(/.test(stripped);
-          const noteText = needsLabel ? `(${m.label}) ${stripped}` : stripped;
+          const alreadyLabelled = /^\s*\(/.test(rawNote);
+          const labelIt = m.label && !alreadyLabelled && !isCompCloze && (isCompOeq || band.distance > TOO_FAR);
+          const noteText = labelIt ? `(${m.label}) ${rawNote}` : rawNote;
 
           const rawLines = noteText.split(" / ").map(s => s.trim()).filter(Boolean);
           // Adaptive width: try a tight 55% first so short notes stay
@@ -675,13 +733,43 @@ async function handle(
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
-          // Use the band top found above. If actual line count is 1 we
-          // could squeeze with less vertical room, but the band was
-          // sized for the worst case so it'll still fit cleanly.
+          // Vertical anchor strategy:
+          //   - Whitespace band found → use it.
+          //   - Fallback (no band) → ride the BOTTOM of the question's
+          //     bounding region. Each question on a crowded Comp Cloze
+          //     page has a different region bottom, so this stops the
+          //     notes from stacking at the same page-foot row.
+          //   - Whichever anchor we pick, slide DOWN as long as the
+          //     proposed rect overlaps an earlier note on this page.
+          //     Gap is one line-spacing so adjacent notes read as
+          //     separate comments rather than a paragraph.
           const lineSpacingPx = noteSize * 1.25;
-          const wsTop = band.y;
-          // First baseline = top-of-whitespace + first line's ascent.
-          let yCursor = pageH - wsTop - noteSize;
+          const blockH = Math.ceil(noteSize * 1.25 * capped.length);
+          let wsTop: number;
+          if (band.direction === "fallback") {
+            wsTop = Math.min(grayH - blockH - 4, regionTopPx + regionH - blockH - 4);
+          } else {
+            wsTop = band.y;
+          }
+          // PDF-y coordinate of the note block's TOP-LEFT corner.
+          let pdfTopY = pageH - wsTop - noteSize;
+          // Slide down past any earlier note that overlaps the proposed
+          // rect. Stop after a few iterations or once we hit the page
+          // bottom — the worst case is a slightly off-region note,
+          // never an exception.
+          for (let guard = 0; guard < 8; guard++) {
+            const proposed = { x: noteX, y: pdfTopY - blockH, w: longestW, h: blockH };
+            const collides = placedNoteRects.some(r =>
+              proposed.x < r.x + r.w &&
+              proposed.x + proposed.w > r.x &&
+              proposed.y < r.y + r.h &&
+              proposed.y + proposed.h > r.y);
+            if (!collides) break;
+            pdfTopY -= blockH + lineSpacingPx * 0.5;
+          }
+
+          // First baseline = block top - one font's ascent.
+          let yCursor = pdfTopY;
           for (let li = 0; li < capped.length; li++) {
             const line = capped[li];
             drawJitteredText(page, line, {
@@ -693,6 +781,7 @@ async function handle(
             });
             yCursor -= lineSpacingPx;
           }
+          placedNoteRects.push({ x: noteX, y: pdfTopY - blockH, w: longestW, h: blockH });
         }
       }
     }
