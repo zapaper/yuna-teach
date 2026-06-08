@@ -329,7 +329,7 @@ async function handle(
     where: { id },
     select: {
       id: true, title: true, pageCount: true, metadata: true, subject: true,
-      sourceExamId: true, assignedToId: true, userId: true,
+      sourceExamId: true, assignedToId: true, userId: true, paperType: true,
       reviewAnnotations: true,
       assignedTo: { select: { name: true } },
       questions: {
@@ -484,6 +484,109 @@ async function handle(
       width: drawW,
       height: drawH,
     });
+  }
+
+  // ── Cover page (always first) ───────────────────────────────────
+  // Exam papers (paperType === null) get a per-section breakdown so the
+  // parent can see at a glance which topic the student needs to work on.
+  // Quizzes / focused tests / mastery — narrower, single-skill assessments
+  // — just get the grand total + percentage; the per-section view would
+  // either repeat the same row or split single questions, which adds noise
+  // instead of insight.
+  const isExamPaper = paper.paperType === null;
+  // Aggregate marks per syllabusTopic. Questions without a topic are
+  // bucketed under "Other" so they aren't silently dropped from the
+  // grand total.
+  type SectionStat = { label: string; awarded: number; available: number; firstOrder: number };
+  const sectionMap = new Map<string, SectionStat>();
+  let grandAwarded = 0;
+  let grandAvailable = 0;
+  paper.questions.forEach((q, idx) => {
+    const label = q.syllabusTopic ?? "Other";
+    const cur = sectionMap.get(label) ?? { label, awarded: 0, available: 0, firstOrder: idx };
+    cur.awarded += q.marksAwarded ?? 0;
+    cur.available += q.marksAvailable ?? 0;
+    sectionMap.set(label, cur);
+    grandAwarded += q.marksAwarded ?? 0;
+    grandAvailable += q.marksAvailable ?? 0;
+  });
+  const sectionList = [...sectionMap.values()].sort((a, b) => a.firstOrder - b.firstOrder);
+  const pctRaw = grandAvailable > 0 ? (grandAwarded / grandAvailable) * 100 : 0;
+  const pct = Math.round(pctRaw);
+  const encouragement = pctRaw >= 80
+    ? "Great Work!"
+    : pctRaw >= 70
+    ? "Good Job!"
+    : "Keep up the good work!";
+
+  // Size the cover page to roughly the first scanned page so the bundle
+  // visually flows together. Falls back to A4 dimensions if the read
+  // fails for any reason.
+  let coverW = 1240; // A4 @ 150 DPI
+  let coverH = 1754;
+  try {
+    const firstBytes = await fs.readFile(path.join(subDir, pageFiles[0]));
+    const firstMeta = await sharp(firstBytes).metadata();
+    if (firstMeta.width && firstMeta.height) {
+      coverW = firstMeta.width;
+      coverH = firstMeta.height;
+    }
+  } catch { /* keep A4 default */ }
+  {
+    const coverPage = doc.addPage([coverW, coverH]);
+    coverPage.drawRectangle({ x: 0, y: 0, width: coverW, height: coverH, color: rgb(1, 1, 1) });
+    const padX = Math.round(coverW * 0.08);
+    const titleSize = Math.round(coverH * 0.034);
+    const labelSize = Math.round(coverH * 0.018);
+    const totalSize = Math.round(coverH * 0.04);
+    const encouragementSize = Math.round(coverH * 0.05);
+    const NAVY = rgb(0, 0.118, 0.251);
+    const DARK = rgb(0.15, 0.15, 0.15);
+    const MUTED = rgb(0.45, 0.45, 0.45);
+
+    let cursorY = coverH - Math.round(coverH * 0.10);
+
+    // Title — paper name
+    const titleLine = paper.title ?? "Marked Paper";
+    coverPage.drawText(titleLine, { x: padX, y: cursorY, size: titleSize, font: helvetica, color: NAVY });
+    cursorY -= titleSize * 1.3;
+
+    // Subline — student name + subject
+    const studentLine = paper.assignedTo?.name
+      ? `${paper.assignedTo.name}${paper.subject ? ` · ${paper.subject}` : ""}`
+      : (paper.subject ?? "");
+    if (studentLine) {
+      coverPage.drawText(studentLine, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: MUTED });
+      cursorY -= labelSize * 2.5;
+    } else {
+      cursorY -= labelSize;
+    }
+
+    // Per-section breakdown (exam papers only).
+    if (isExamPaper && sectionList.length > 0) {
+      const sectionHeaderSize = Math.round(labelSize * 1.15);
+      coverPage.drawText("Section breakdown", { x: padX, y: cursorY, size: sectionHeaderSize, font: helvetica, color: NAVY });
+      cursorY -= sectionHeaderSize * 1.6;
+      const rowH = labelSize * 1.85;
+      // Two-column tabular layout: label left-aligned, score right-aligned.
+      const colRightX = coverW - padX;
+      for (const s of sectionList) {
+        const scoreText = `${s.awarded} / ${s.available}`;
+        const scoreWidth = helveticaRegular.widthOfTextAtSize(scoreText, labelSize);
+        coverPage.drawText(s.label, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: DARK });
+        coverPage.drawText(scoreText, { x: colRightX - scoreWidth, y: cursorY, size: labelSize, font: helvetica, color: DARK });
+        cursorY -= rowH;
+      }
+      cursorY -= rowH * 0.5;
+    }
+
+    // Total + percentage — always present.
+    const totalText = `Total: ${grandAwarded} / ${grandAvailable}    ${pct}%`;
+    coverPage.drawText(totalText, { x: padX, y: cursorY, size: totalSize, font: helvetica, color: RED });
+    cursorY -= totalSize * 1.6;
+
+    // Encouragement — large + warm.
+    coverPage.drawText(encouragement, { x: padX, y: cursorY, size: encouragementSize, font: helvetica, color: NAVY });
   }
 
   for (let i = 0; i < pageFiles.length; i++) {
