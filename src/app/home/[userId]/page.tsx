@@ -37,6 +37,10 @@ export default function HomePage({
   const [showInvite, setShowInvite] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
 
+  // Per-day, per-user cache key. Including the date means yesterday's
+  // entry auto-expires on first load today — no manual eviction needed.
+  const cacheKey = `home-cache:${userId}:${new Date().toISOString().slice(0, 10)}`;
+
   const fetchData = useRef<() => Promise<void>>(undefined);
   fetchData.current = async () => {
     try {
@@ -55,18 +59,28 @@ export default function HomePage({
       ]);
 
       const foundUser: User | null = userData.user ?? null;
+      const freshTests = testsData.tests ?? [];
+      const freshExams = examsData.papers ?? [];
       setUser(foundUser);
       // `?? []` guards against transient 502 / partial JSON responses
       // mid-Railway-deploy. Without this, examPapers can end up
       // undefined and the next .some() call in the polling effect
       // throws "Cannot read properties of undefined (reading 'some')"
       // — surfacing as a generic "Application error" page.
-      setTests(testsData.tests ?? []);
-      setExamPapers(examsData.papers ?? []);
+      setTests(freshTests);
+      setExamPapers(freshExams);
       // Default quiz target = first linked student for parents.
       if (foundUser?.linkedStudents && foundUser.linkedStudents.length > 0 && !quizStudentId) {
         setQuizStudentId(foundUser.linkedStudents[0].id);
       }
+      // Persist the fresh snapshot so the next load on this device renders
+      // immediately while a new background fetch runs. Quota / disabled
+      // localStorage is non-fatal — we swallow the error.
+      try {
+        window.localStorage.setItem(cacheKey, JSON.stringify({
+          user: foundUser, tests: freshTests, examPapers: freshExams, ts: Date.now(),
+        }));
+      } catch { /* ignore — quota or private-mode disabled */ }
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -75,6 +89,29 @@ export default function HomePage({
   };
 
   useEffect(() => {
+    // Stale-while-revalidate: prime state from yesterday-or-today's cached
+    // snapshot BEFORE the network round-trip lands. The /api/exam call has
+    // been hovering ~2 s on a busy dashboard; SWR drops perceived first-
+    // paint to ~50 ms for returning users while the background fetch
+    // self-corrects any stale rows (marking finished, new assignment).
+    try {
+      const cached = window.localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached) as {
+          user: User | null;
+          tests: SpellingTestSummary[];
+          examPapers: ExamPaperSummary[];
+          ts: number;
+        };
+        if (parsed && Array.isArray(parsed.examPapers) && Array.isArray(parsed.tests)) {
+          setUser(parsed.user);
+          setTests(parsed.tests);
+          setExamPapers(parsed.examPapers);
+          setLoading(false); // first paint immediately; background fetch will refine
+        }
+      }
+    } catch { /* corrupted JSON / disabled — ignore, fall back to network */ }
+
     fetchData.current?.();
 
     // Refetch when tab becomes visible (e.g. after upload/create redirects back)
