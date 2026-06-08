@@ -2988,7 +2988,20 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       let finalAwarded = result.marksAwarded ?? 0;
       let finalNotes = buildMarkingNotes(result);
       const finalAvailable = (existingMarks ?? result.marksAvailable) ?? 0;
-      if (isGrammarClozeQ && detected && finalAvailable > 0 && finalAwarded < finalAvailable) {
+      if (isGrammarClozeQ && detected && finalAvailable > 0) {
+        // Grammar Cloze marking is DETERMINISTIC: the answer is a
+        // single letter (A–Q for English, 1–8 for Chinese 完成对话)
+        // from a word bank. Once Gemini has detected what the
+        // student wrote, the score is decided purely by string
+        // match against the key. We override the AI's verdict in
+        // BOTH directions:
+        //   - matched but AI awarded 0 → upgrade to full (covers
+        //     the historic "Gemini rejected a correct letter as
+        //     'not a word'" bug).
+        //   - NOT matched but AI awarded full → downgrade to 0
+        //     (covers PSLE English 2025 Q31 / Q34: AI confidently
+        //     awarded 1/1 to "K" against key "N" and to "L"
+        //     against key "G" with no rationale).
         const keyRaw = q?.answer ?? "";
         const acceptable = new Set(
           (isChineseDialogueCloze
@@ -2999,6 +3012,8 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           ? (detected.match(/\b[1-9]\b/) ?? [""])[0]
           : (detected.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
         let matched = !!detectedKey && acceptable.has(detectedKey);
+        let matchedVia: "letter" | "word" | null = matched ? "letter" : null;
+        let matchedWordLetter: string | null = null;
 
         // Word-form fallback (English Grammar Cloze only). Students
         // sometimes write the word from the bank instead of just the
@@ -3038,19 +3053,30 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             const detectedWord = detected.toLowerCase().trim();
             const letterForDetectedWord = wordToLetter.get(detectedWord);
             if (letterForDetectedWord && acceptable.has(letterForDetectedWord)) {
-              console.log(`[marking] Grammar Cloze word-form match Q${q?.questionNum}: detected "${detected}" = letter "${letterForDetectedWord}" in word bank, matches key "${[...acceptable].join("/")}" — accepting`);
               matched = true;
-              finalNotes = `Detected: ${detected} (matches "${letterForDetectedWord}" in word bank) | Correct`;
+              matchedVia = "word";
+              matchedWordLetter = letterForDetectedWord;
             }
           }
         }
 
-        if (matched) {
-          if (!finalNotes.includes("Correct")) {
+        if (matched && finalAwarded < finalAvailable) {
+          if (matchedVia === "word") {
+            console.log(`[marking] Grammar Cloze word-form match Q${q?.questionNum}: detected "${detected}" = letter "${matchedWordLetter}" in word bank, matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
+            finalNotes = `Detected: ${detected} (matches "${matchedWordLetter}" in word bank) | Correct`;
+          } else {
             console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detectedKey}" matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
             finalNotes = `Detected: ${detected} | Correct`;
           }
           finalAwarded = finalAvailable;
+        } else if (!matched && finalAwarded > 0) {
+          // The AI awarded marks but neither the detected letter nor
+          // any word-bank lookup matches the key. Downgrade to 0 —
+          // Grammar Cloze marks come from a strict letter/word match,
+          // not the AI's judgment.
+          console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detected}" does NOT match key "${[...acceptable].join("/")}" — downgrading ${finalAwarded} → 0`);
+          finalNotes = `Detected: ${detected} | "${detectedKey || detected}" does not match key "${[...acceptable].join("/")}"`;
+          finalAwarded = 0;
         }
       }
       totalAwarded += finalAwarded;
