@@ -230,7 +230,7 @@ function detectQuad(cv, imageData, opts) {
   const cannyHigh = (opts && typeof opts.cannyHigh === "number") ? opts.cannyHigh : 200;
   const minAreaPct = (opts && typeof opts.minAreaPct === "number") ? opts.minAreaPct : 0.15;
   const fillRatioMin = (opts && typeof opts.fillRatioMin === "number") ? opts.fillRatioMin : 0.85;
-  let src = null, gray = null, blur = null, edges = null, kernel = null;
+  let src = null, gray = null, blur = null, edges = null;
   let contours = null, hier = null;
   try {
     src = cv.matFromImageData(imageData);
@@ -242,143 +242,26 @@ function detectQuad(cv, imageData, opts) {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
     cv.Canny(blur, edges, cannyLow, cannyHigh);
-    // Morphological closing — bridges small gaps in the Canny
-    // outline so a continuous page boundary survives as one
-    // contour. Without this, text or low-contrast paper edges
-    // segment the outline into pieces and we'd pick a fragment.
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(7, 7));
-    cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel);
-    // RETR_EXTERNAL — only the outermost contours. We don't
-    // care about inner text contours; they slow down the
-    // selection loop and risk being picked over the page.
-    cv.findContours(edges, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    cv.findContours(edges, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
     const minArea = w * h * minAreaPct;
-    let bestQuad = null;
     let bestRect = null;
     const total = contours.size();
-    // PASS 1: find a true 4-vertex quadrilateral. This is what
-    // makes the keystone (perspective) correction actually do
-    // work — the 4 vertices are the real page corners in the
-    // camera image, and warpPerspective maps them to a rectangle.
-    // Convex-hull the contour first to strip interior text /
-    // shadow vertices, then approxPolyDP at progressive epsilons.
-    // Aspect-ratio sanity rejects hand-in-frame, desk edges, etc.
+
+    // Original detectQuad — minAreaRect-only. Restored after a
+    // session of dog-ear + extreme-corner + parallelogram-correction
+    // experiments produced consistent stdL=0 / white-screen outputs.
+    // The fancy 4-vertex approxPolyDP + extreme-corners path will
+    // come back behind tests once we have a captured set of failing
+    // images to reproduce against. For now: rectangular bounding box
+    // of the largest convex-ish contour, guaranteed valid coords.
     //
-    // Read the 4 points via approx.data32S — approxPolyDP returns
-    // a CV_32SC2 Mat where the flat int32 array is laid out
-    // [x0,y0,x1,y1,x2,y2,x3,y3]. The earlier intPtr(j, 0) access
-    // returned only the x channel and left y undefined, giving
-    // warpPerspective NaN coordinates and producing white pages.
-    for (let i = 0; i < total; i++) {
-      const c = contours.get(i);
-      try {
-        const cArea = cv.contourArea(c);
-        if (cArea < minArea) continue;
-        const hull = new cv.Mat();
-        try {
-          cv.convexHull(c, hull, false, true);
-          const hullArea = cv.contourArea(hull);
-          if (hullArea < minArea) continue;
-          const perimeter = cv.arcLength(hull, true);
-          if (perimeter <= 0) continue;
-          for (const epsFactor of [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08]) {
-            const approx = new cv.Mat();
-            try {
-              cv.approxPolyDP(hull, approx, epsFactor * perimeter, true);
-              if (approx.rows !== 4) continue;
-              if (!cv.isContourConvex(approx)) continue;
-              const buf = approx.data32S;
-              if (!buf || buf.length < 8) continue;
-              const pts = [];
-              for (let j = 0; j < 4; j++) {
-                const x = buf[j * 2];
-                const y = buf[j * 2 + 1];
-                if (!Number.isFinite(x) || !Number.isFinite(y)) {
-                  pts.length = 0;
-                  break;
-                }
-                pts.push([x, y]);
-              }
-              if (pts.length !== 4) continue;
-              const ordered = orderQuad(pts);
-              // Aspect-ratio sanity: A4 is 1.414, letter is 1.294.
-              // Mild perspective skew can drop the apparent ratio
-              // by ~30 %, so accept 0.55–1.65 either-orientation.
-              const eu = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-              const top = eu(ordered[0], ordered[1]);
-              const bot = eu(ordered[3], ordered[2]);
-              const left = eu(ordered[0], ordered[3]);
-              const right = eu(ordered[1], ordered[2]);
-              const meanW = (top + bot) / 2;
-              const meanH = (left + right) / 2;
-              if (meanW <= 0 || meanH <= 0) continue;
-              const aspect = meanW / meanH;
-              if (aspect < 0.55 || aspect > 1.65) continue;
-              if (!bestQuad || hullArea > bestQuad.area) {
-                bestQuad = { quad: ordered, area: hullArea };
-              }
-              break;
-            } finally {
-              approx.delete();
-            }
-          }
-        } finally {
-          hull.delete();
-        }
-      } finally {
-        c.delete();
-      }
-    }
-    if (bestQuad) return correctDogEaredCorner(bestQuad.quad, edges, w, h);
-
-    // PASS 1.5: no clean 4-vertex contour was found, but a large
-    // contour exists with a dog-eared / occluded corner. Take its
-    // convex hull's 4 extreme points (tl/tr/br/bl by sum & diff of
-    // x,y) and parallelogram-correct the worst-deviating one.
-    // Catches the common "bottom 2 corners + one good top + one
-    // partially-missing top" framing — the missing corner gets
-    // synthesised from the other 3 via the bl + tr − br identity.
-    let bestExtreme = null;
-    for (let i = 0; i < total; i++) {
-      const c = contours.get(i);
-      try {
-        const cArea = cv.contourArea(c);
-        if (cArea < minArea) continue;
-        const hull = new cv.Mat();
-        try {
-          cv.convexHull(c, hull, false, true);
-          const hullArea = cv.contourArea(hull);
-          if (hullArea < minArea) continue;
-          const extremes = extremeCornersFromHull(hull);
-          if (!extremes) continue;
-          const ordered = orderQuad(extremes);
-          const eu = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-          const top = eu(ordered[0], ordered[1]);
-          const bot = eu(ordered[3], ordered[2]);
-          const left = eu(ordered[0], ordered[3]);
-          const right = eu(ordered[1], ordered[2]);
-          const meanW = (top + bot) / 2;
-          const meanH = (left + right) / 2;
-          if (meanW <= 0 || meanH <= 0) continue;
-          const aspect = meanW / meanH;
-          if (aspect < 0.55 || aspect > 1.65) continue;
-          if (!bestExtreme || hullArea > bestExtreme.area) {
-            bestExtreme = { quad: ordered, area: hullArea };
-          }
-        } finally {
-          hull.delete();
-        }
-      } finally {
-        c.delete();
-      }
-    }
-    if (bestExtreme) return correctDogEaredCorner(bestExtreme.quad, edges, w, h);
-
-    // PASS 2: no clean 4-vertex contour. Fall back to
-    // minAreaRect — same logic as before for handling folded
-    // pages where the outline has > 4 vertices but the rotated
-    // bounding rect still tracks the true page edges.
+    // Why minAreaRect: when a page corner is folded over, the
+    // visible outline has 5+ vertices (the fold creates an inward
+    // step). minAreaRect ignores that — its corners sit at the
+    // contour's extents, which are still defined by the unfolded
+    // edges. Fill ratio guards against picking non-rectangular
+    // shapes; threshold 0.85 keeps folded pages, rejects junk.
     for (let i = 0; i < total; i++) {
       const c = contours.get(i);
       try {
@@ -420,7 +303,6 @@ function detectQuad(cv, imageData, opts) {
     if (gray) gray.delete();
     if (blur) blur.delete();
     if (edges) edges.delete();
-    if (kernel) kernel.delete();
     if (contours) contours.delete();
     if (hier) hier.delete();
   }
@@ -468,27 +350,6 @@ function warpAndClean(cv, imageData, quad) {
     labChannels = new cv.MatVector();
     cv.split(lab, labChannels);
     const L = labChannels.get(0);
-
-    // Degenerate-warp guard. If the L (luminance) channel has
-    // nearly-zero std-dev, the warpPerspective output is uniform
-    // (quad pointed at an empty / bright desk region, or quad
-    // points were too close together). CLAHE on a uniform input
-    // amplifies tiny variations to maximum contrast, then the
-    // 1.18× stretch below pushes everything past 255 — producing
-    // a pure-white scan that's been the headline bug all session.
-    // Bail with a clear error message instead of returning white.
-    const meanMat = new cv.Mat();
-    const stdMat = new cv.Mat();
-    try {
-      cv.meanStdDev(L, meanMat, stdMat);
-      const stdL = stdMat.data64F[0];
-      if (!Number.isFinite(stdL) || stdL < 3) {
-        throw new Error("warped image is nearly uniform (stdL=" + stdL.toFixed(1) + "); detection likely landed on empty background — re-frame the page");
-      }
-    } finally {
-      meanMat.delete();
-      stdMat.delete();
-    }
 
     // ── Shadow removal — flatten the lighting ──
     // Two-pass illumination flattening:
