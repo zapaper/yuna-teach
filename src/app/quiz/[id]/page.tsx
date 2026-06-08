@@ -134,6 +134,18 @@ function QuizContent({ id }: { id: string }) {
   // MCQ answers: questionId -> selected option (1-4)
   const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  // Per-question debounce timers for the auto-PATCH inside
+  // selectMcqAnswer. Typed-answer textareas (synthesis, comp OEQ,
+  // typed cloze) call selectMcqAnswer on every keystroke; without
+  // debouncing, a delayed PATCH from keystroke N can land AFTER the
+  // PATCH from keystroke N+10 and overwrite the full sentence with
+  // a truncated prefix. Real failure: P5 quiz Q58 student typed
+  // "that he had done the chores himself" but the saved
+  // studentAnswer landed as "that he did the chore". 500 ms is long
+  // enough to collapse most keystroke bursts while staying
+  // imperceptible if the user clicks Submit right after typing
+  // (handleSubmit re-PATCHes the current state anyway).
+  const patchDebounceRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // OEQ drawing.
   // English and Chinese papers each carry their OWN metadata field
@@ -817,26 +829,36 @@ function QuizContent({ id }: { id: string }) {
 
   function selectMcqAnswer(questionId: string, option: string) {
     setMcqAnswers(prev => ({ ...prev, [questionId]: option }));
-    // Persist to server on every click so a tab close, refresh, or
-    // submit-time state loss can't drop the answer. We saw a real
-    // case where 5 MCQ landed in the DB with studentAnswer=null
-    // even though the student clicked — likely an in-memory state
-    // wipe between click and submit. Fire-and-forget; the UI
-    // already shows the selection from local state.
+    // Persist to server so a tab close, refresh, or submit-time
+    // state loss can't drop the answer. We saw a real case where 5
+    // MCQ landed in the DB with studentAnswer=null even though the
+    // student clicked — likely an in-memory state wipe between
+    // click and submit. Fire-and-forget; the UI already shows the
+    // selection from local state.
     const q = paper?.questions.find(qq => qq.id === questionId);
     if (!q) return;
     const correctLetter = normalizeMcqKey(q.answer);
     const marksAwarded = option === correctLetter ? (q.marksAvailable ?? 1) : 0;
-    // Retry-with-backoff + localStorage outbox: a deploy outage or
-    // brief network blip won't silently drop the click. Successive
-    // clicks on the same MCQ collapse onto one outbox entry via
-    // cacheId.
-    patchJsonWithRetry({
-      paperId: id,
-      url: `/api/exam/questions/${questionId}`,
-      body: { studentAnswer: option, marksAwarded },
-      cacheId: `mcq:${id}:${questionId}`,
-    }).catch(err => console.warn("[quiz] MCQ persist failed:", err));
+    // Debounce the PATCH per-question so a typed-textarea burst
+    // collapses to one in-flight request. Otherwise every keystroke
+    // queues its own PATCH and an out-of-order arrival truncates
+    // the saved answer. patchJsonWithRetry already collapses by
+    // cacheId, but the collapse happens at queue time — once a
+    // request is dispatched, a later keystroke spawns a NEW
+    // request that can race the first. Debouncing at the source
+    // makes sure only the latest value goes out.
+    const existing = patchDebounceRef.current.get(questionId);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      patchDebounceRef.current.delete(questionId);
+      patchJsonWithRetry({
+        paperId: id,
+        url: `/api/exam/questions/${questionId}`,
+        body: { studentAnswer: option, marksAwarded },
+        cacheId: `mcq:${id}:${questionId}`,
+      }).catch(err => console.warn("[quiz] MCQ persist failed:", err));
+    }, 500);
+    patchDebounceRef.current.set(questionId, timer);
   }
 
   async function handleSaveProgress() {
