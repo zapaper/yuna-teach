@@ -78,42 +78,50 @@ function orderQuad(pts) {
 
 // Walk upward from a bottom corner along where the page's vertical
 // edge should be, returning the highest (smallest y) point that
-// still has a Canny edge pixel within reach. Allows a horizontal
-// search band at each y-step so keystone tilt doesn't lose the
-// edge. When the edge breaks (page ends, fold, dog-ear), the walk
-// stops and we return that y. Used by the dog-ear corrector to
-// figure out which top corner is real and which is folded.
+// still has a Canny edge pixel within reach. ADAPTIVELY follows the
+// edge — at each y-step, search around the LAST found x (not a
+// straight-up expectedX from the bottom). That tracks keystone
+// tilt: a real page edge leans inward several pixels per row, and
+// a fixed-x search column would slip off the edge a few steps up.
+// When the edge breaks (page ends, fold, dog-ear), the walk stops.
 //
 //   edgesMat        Canny edges Mat (Uint8 1-channel)
 //   fromX, fromY    bottom corner pixel coords
-//   towardX, towardY rectangle's top corner — used to bias the
-//                   horizontal expected-x search column
+//   toY             y to walk toward (typically rectangle's top y)
 //   searchHalfWidth half-width of the horizontal search band per
 //                   y-step (in pixels)
+//   missTolerance   number of consecutive misses allowed before
+//                   declaring the edge broken. Catches one-pixel
+//                   gaps in Canny output without bridging a real
+//                   fold.
 //
 // Returns [reachedX, reachedY] — the highest edge pixel we found
 // while the edge stayed continuous from the bottom.
-function traceVerticalUp(edgesMat, fromX, fromY, towardX, towardY, searchHalfWidth) {
+function traceVerticalUp(edgesMat, fromX, fromY, toY, searchHalfWidth, missTolerance) {
   const w = edgesMat.cols, h = edgesMat.rows;
   const data = edgesMat.data;
   let reachedX = fromX, reachedY = fromY;
-  const dyTotal = fromY - towardY;
+  let currentX = fromX;
+  const dyTotal = fromY - toY;
   if (dyTotal <= 0) return [reachedX, reachedY];
+  let consecutiveMisses = 0;
   for (let step = 1; step <= dyTotal; step++) {
     const y = fromY - step;
     if (y < 0 || y >= h) break;
-    const t = step / dyTotal;
-    const expectedX = Math.round(fromX + t * (towardX - fromX));
     let hit = -1;
     for (let dx = 0; dx <= searchHalfWidth; dx++) {
-      // Search outward from expectedX so the closest edge pixel
-      // wins, not whichever side we happen to scan first.
-      const xLeft = expectedX - dx;
-      const xRight = expectedX + dx;
+      const xLeft = Math.round(currentX) - dx;
+      const xRight = Math.round(currentX) + dx;
       if (xLeft >= 0 && xLeft < w && data[y * w + xLeft] > 0) { hit = xLeft; break; }
-      if (xRight >= 0 && xRight < w && data[y * w + xRight] > 0) { hit = xRight; break; }
+      if (xRight !== xLeft && xRight >= 0 && xRight < w && data[y * w + xRight] > 0) { hit = xRight; break; }
     }
-    if (hit < 0) break; // edge ended → walk halts
+    if (hit < 0) {
+      consecutiveMisses++;
+      if (consecutiveMisses > missTolerance) break;
+      continue;
+    }
+    consecutiveMisses = 0;
+    currentX = hit;
     reachedX = hit;
     reachedY = y;
   }
@@ -147,18 +155,29 @@ function correctDogEar(cv, edgesMat, quad) {
     if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
   }
   const w = edgesMat.cols, h = edgesMat.rows;
-  // Search band scales with image width — narrow at low res
-  // (live-loop 480 px) and wider at full res so the keystone tilt
-  // doesn't slip out of the band.
-  const searchHalfWidth = Math.max(3, Math.round(w * 0.03));
-  const tlTrace = traceVerticalUp(edgesMat, bl[0], bl[1], tl[0], tl[1], searchHalfWidth);
-  const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[0], tr[1], searchHalfWidth);
+  // Search band scales with image width. 6 % gives ~29 px at 480
+  // (live-loop) and ~115 px at full 4K — wide enough to track
+  // a steep keystone tilt without bridging across to internal text
+  // contours. The adaptive currentX in traceVerticalUp does most of
+  // the keystone follow; this is the absolute max stride per step.
+  const searchHalfWidth = Math.max(6, Math.round(w * 0.06));
+  // Allow up to 3 consecutive misses before declaring the edge
+  // broken. Bridges 1-2 px Canny gaps without spanning across a
+  // real fold (which is typically tens of pixels of gap).
+  const missTolerance = 3;
+  const tlTrace = traceVerticalUp(edgesMat, bl[0], bl[1], tl[1], searchHalfWidth, missTolerance);
+  const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[1], searchHalfWidth, missTolerance);
   const tlReachedY = tlTrace[1];
   const trReachedY = trTrace[1];
   // Tolerance for "similar heights" — anything within 5% of image
   // height is the same edge. Bigger gap = one trace clearly
   // stopped at a fold while the other ran on.
-  const tolerance = h * 0.05;
+  // 3 % of image height = noticeable but not noisy. Most natural
+  // pages with both top corners visible have traces within 1-2 %
+  // of each other; a real dog-ear creates a 15-30 % gap because the
+  // fold cuts off a meaningful chunk of the bad side's vertical
+  // edge.
+  const tolerance = h * 0.03;
   if (Math.abs(tlReachedY - trReachedY) < tolerance) return quad;
   if (tlReachedY < trReachedY) {
     // TL trace ran higher → TL is real, TR is dog-eared.
