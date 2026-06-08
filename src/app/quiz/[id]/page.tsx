@@ -105,6 +105,27 @@ function normalizeMcqKey(raw: string | null | undefined): string {
   return head.trim().replace(/[().]/g, "").trim();
 }
 
+// Local snapshot of in-progress quiz state, written BEFORE every Save
+// Progress network call so a mid-save canvas wipe (rare React re-mount
+// edge case) or a network failure can't lose the student's work.
+// Cleared on confirmed server success. The BlankCanvas init effect
+// falls back to these snapshots when the server's savedInkUrl 404s.
+const QUIZ_SNAPSHOT_PREFIX = "quiz-save-snapshot";
+function mcqSnapshotKey(paperId: string): string {
+  return `${QUIZ_SNAPSHOT_PREFIX}:${paperId}:mcq`;
+}
+function canvasSnapshotKey(paperId: string, canvasId: string): string {
+  return `${QUIZ_SNAPSHOT_PREFIX}:${paperId}:canvas:${canvasId}`;
+}
+function blobToDataUrlSafe(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
 /* ────────────── main page ────────────── */
 
 export default function QuizPage({ params }: { params: Promise<{ id: string }> }) {
@@ -560,6 +581,11 @@ function QuizContent({ id }: { id: string }) {
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
+  // Bumped on every confirmed save. Threaded into savedInkUrl as a
+  // cache-bust query param so a BlankCanvas re-init after save fetches
+  // the fresh PNG instead of replaying a cached 404 from before the
+  // ink existed on disk.
+  const [savedInkTick, setSavedInkTick] = useState(0);
   // "Go to homepage" confirmation modal — surfaced when the student
   // (or a parent who clicked through by accident) wants to leave a
   // quiz mid-way. Asks whether to save first.
@@ -668,6 +694,20 @@ function QuizContent({ id }: { id: string }) {
           if (q.studentAnswer) savedAnswers[q.id] = q.studentAnswer;
         }
         if (Object.keys(savedAnswers).length > 0) setMcqAnswers(savedAnswers);
+        // Save-progress snapshot recovery. Whenever a Save Progress run
+        // fails mid-flight (or appears to wipe the canvas before the
+        // server actually commits), we leave a localStorage snapshot
+        // behind. Merge it over the server's mcqAnswers so the student
+        // gets back any clicks that didn't make it to disk.
+        try {
+          const mcqSnap = window.localStorage.getItem(mcqSnapshotKey(id));
+          if (mcqSnap) {
+            const parsed = JSON.parse(mcqSnap) as Record<string, string>;
+            if (parsed && typeof parsed === "object") {
+              setMcqAnswers(prev => ({ ...prev, ...parsed }));
+            }
+          }
+        } catch { /* corrupted JSON / localStorage disabled — ignore */ }
         // Submit-time snapshot recovery — English typed quizzes only.
         // English quizzes have no canvas, so all student answers are
         // typed text and the snapshot fully captures them. Math /
@@ -889,6 +929,16 @@ function QuizContent({ id }: { id: string }) {
   async function handleSaveProgress() {
     if (savingProgress) return;
     setSavingProgress(true);
+    // Track every localStorage snapshot key we write below, so success
+    // path can wipe them and failure path leaves them behind for the
+    // BlankCanvas init effect / next-load MCQ recovery to restore from.
+    const snapshotKeys: string[] = [];
+    // Snapshot MCQ state up-front. Cheap (one JSON write) and protects
+    // typed answers even if the OEQ export loop below fails midway.
+    try {
+      window.localStorage.setItem(mcqSnapshotKey(id), JSON.stringify(mcqAnswers));
+      snapshotKeys.push(mcqSnapshotKey(id));
+    } catch { /* quota / disabled — ignore, save still proceeds */ }
     try {
       // Save all answers (MCQ + typed sections like cloze/editing)
       const questionsWithAnswers = (paper?.questions ?? []).filter(q => mcqAnswers[q.id]);
@@ -916,6 +966,16 @@ function QuizContent({ id }: { id: string }) {
             const [composite, ink] = await Promise.all([handle.exportImage(), handle.exportInk()]);
             blobs[`page_${i}`] = { blob: composite, filename: `page_${i}.jpg` };
             blobs[`page_${i}_ink`] = { blob: ink, filename: `page_${i}_ink.png` };
+            // Snapshot the ink PNG to localStorage in case the canvas
+            // gets visually wiped before this save completes — the
+            // BlankCanvas init effect falls back to this if its
+            // server-side savedInkUrl 404s.
+            try {
+              const inkDataUrl = await blobToDataUrlSafe(ink);
+              const key = canvasSnapshotKey(id, q.id);
+              window.localStorage.setItem(key, inkDataUrl);
+              snapshotKeys.push(key);
+            } catch { /* quota — drop silently */ }
             const visible = canvasHeights.current[q.id] ?? 360;
             const trimmed = await inkBottomCss(ink, visible);
             canvasHeights.current[q.id] = trimmed;
@@ -927,6 +987,12 @@ function QuizContent({ id }: { id: string }) {
                 const [spComposite, spInk] = await Promise.all([spHandle.exportImage(), spHandle.exportInk()]);
                 blobs[`page_${i}_${label}`] = { blob: spComposite, filename: `page_${i}_${label}.jpg` };
                 blobs[`page_${i}_${label}_ink`] = { blob: spInk, filename: `page_${i}_${label}_ink.png` };
+                try {
+                  const spInkDataUrl = await blobToDataUrlSafe(spInk);
+                  const spKeyLs = canvasSnapshotKey(id, `${q.id}_${label}`);
+                  window.localStorage.setItem(spKeyLs, spInkDataUrl);
+                  snapshotKeys.push(spKeyLs);
+                } catch { /* quota — drop silently */ }
                 const spKey = `${q.id}_${label}`;
                 const spVisible = canvasHeights.current[spKey] ?? 260;
                 const spTrimmed = await inkBottomCss(spInk, spVisible);
@@ -959,9 +1025,22 @@ function QuizContent({ id }: { id: string }) {
         }),
       });
 
+      // Confirmed success — server has the latest MCQ + ink. Wipe the
+      // localStorage snapshots so a future page load uses the server
+      // copy and doesn't replay stale state. Bump the saved-ink tick
+      // so any already-mounted BlankCanvas instances re-fetch their
+      // savedInkUrl on next mount instead of serving a cached 404.
+      try {
+        for (const k of snapshotKeys) window.localStorage.removeItem(k);
+      } catch { /* ignore */ }
+      setSavedInkTick(t => t + 1);
+
       setProgressSaved(true);
       setTimeout(() => setProgressSaved(false), 2000);
     } catch {
+      // Snapshots intentionally NOT cleared — they're our last-chance
+      // restore for the canvas/MCQ that the failed call was meant to
+      // persist.
       alert("Failed to save progress");
     } finally {
       setSavingProgress(false);
@@ -2063,6 +2142,7 @@ function QuizContent({ id }: { id: string }) {
                   onSubpartStrokeStart={(label) => { lastDrawnId.current = q.id; lastDrawnSubLabel.current[q.id] = label; }}
                   paperId={id}
                   oeqIndex={idx}
+                  savedInkTick={savedInkTick}
                   savedHeights={canvasHeights.current}
                   onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
                   flagged={flaggedIds.has(q.id)}
@@ -2907,6 +2987,7 @@ function OeqQuestionCard({
   onSubpartStrokeStart,
   paperId,
   oeqIndex,
+  savedInkTick = 0,
   savedHeights,
   onHeightChange,
   flagged,
@@ -2924,6 +3005,9 @@ function OeqQuestionCard({
   onSubpartStrokeStart?: (label: string) => void;
   paperId: string;
   oeqIndex: number;
+  // Bumped on every confirmed save — used as a cache-bust on
+  // savedInkUrl so post-save re-mounts re-fetch the fresh PNG.
+  savedInkTick?: number;
   savedHeights?: Record<string, number>;
   onHeightChange?: (id: string, h: number) => void;
   flagged?: boolean;
@@ -3124,8 +3208,9 @@ function OeqQuestionCard({
                     onStrokeStart={() => { onStrokeStart(); onSubpartStrokeStart?.(sp.label); }}
                     defaultHeight={sp.diagramBase64 ? 780 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
-                    savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
+                    savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink&t=${savedInkTick}`}
                     canvasId={`${question.id}_${sp.label}`}
+                    paperId={paperId}
                     savedHeight={savedHeights?.[`${question.id}_${sp.label}`]}
                     onHeightChange={onHeightChange}
                     showAnsOverlay={showAnsOverlay}
@@ -3147,8 +3232,9 @@ function OeqQuestionCard({
               // until the image loads (or the fallback when no image).
               defaultHeight={drawableDiagramBase64 ? 700 : 300}
               backgroundImage={drawableDiagramBase64}
-              savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
+              savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink&t=${savedInkTick}`}
               canvasId={question.id}
+              paperId={paperId}
               savedHeight={savedHeights?.[question.id]}
               onHeightChange={onHeightChange}
               showAnsOverlay={showAnsOverlay}
@@ -3212,8 +3298,8 @@ interface AnswerCanvasHandle {
 
 const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean }
->(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, savedHeight, onHeightChange, showAnsOverlay = true }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; paperId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, paperId, savedHeight, onHeightChange, showAnsOverlay = true }, ref) {
   const maxCanvasHeight = 900;
   const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
@@ -3270,6 +3356,7 @@ const ResizableCanvas = forwardRef<
           height={maxCanvasHeight}
           backgroundImage={backgroundImage}
           savedInkUrl={savedInkUrl}
+          snapshotKey={paperId && canvasId ? `${QUIZ_SNAPSHOT_PREFIX}:${paperId}:canvas:${canvasId}` : null}
         />
         {/* Ans: overlay at bottom right — Math only. Science answers
             are sentences/paragraphs so the placeholder just clutters
@@ -3296,8 +3383,8 @@ const ResizableCanvas = forwardRef<
 
 const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null }
->(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null; snapshotKey?: string | null }
+>(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl, snapshotKey }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -3361,22 +3448,35 @@ const BlankCanvas = forwardRef<
       const ctx = canvas!.getContext("2d", { desynchronized: true })!;
       drawBackground(ctx);
 
-      // Load saved ink if available
+      // Try the server's saved ink first. If that 404s (fresh canvas,
+      // or browser-cached miss from before the file existed), fall
+      // back to a localStorage snapshot — handleSaveProgress writes
+      // the ink PNG dataURL there before its network calls so a
+      // mid-save canvas wipe can be recovered.
+      const drawInk = (img: HTMLImageElement) => {
+        ctx.drawImage(img, 0, 0, canvasDims.current.w, canvasDims.current.h);
+        const inkCtx = inkCanvasRef.current?.getContext("2d");
+        if (inkCtx) inkCtx.drawImage(img, 0, 0, canvasDims.current.w, canvasDims.current.h);
+      };
+      const tryLoadSnapshot = () => {
+        if (!snapshotKey) { setReady(true); return; }
+        let dataUrl: string | null = null;
+        try { dataUrl = window.localStorage.getItem(snapshotKey); } catch { /* ignore */ }
+        if (!dataUrl) { setReady(true); return; }
+        const img = new Image();
+        img.onload = () => { drawInk(img); setReady(true); };
+        img.onerror = () => setReady(true);
+        img.src = dataUrl;
+      };
+
       if (savedInkUrl) {
         const inkImg = new Image();
         inkImg.crossOrigin = "anonymous";
-        inkImg.onload = () => {
-          // Draw ink onto visible canvas
-          ctx.drawImage(inkImg, 0, 0, canvasDims.current.w, canvasDims.current.h);
-          // Also draw onto ink-only canvas
-          const inkCtx = inkCanvasRef.current?.getContext("2d");
-          if (inkCtx) inkCtx.drawImage(inkImg, 0, 0, canvasDims.current.w, canvasDims.current.h);
-          setReady(true);
-        };
-        inkImg.onerror = () => setReady(true);
+        inkImg.onload = () => { drawInk(inkImg); setReady(true); };
+        inkImg.onerror = () => tryLoadSnapshot();
         inkImg.src = savedInkUrl;
       } else {
-        setReady(true);
+        tryLoadSnapshot();
       }
     }
 
