@@ -87,7 +87,8 @@ function detectQuad(cv, imageData, opts) {
   const cannyHigh = (opts && typeof opts.cannyHigh === "number") ? opts.cannyHigh : 200;
   const minAreaPct = (opts && typeof opts.minAreaPct === "number") ? opts.minAreaPct : 0.15;
   const fillRatioMin = (opts && typeof opts.fillRatioMin === "number") ? opts.fillRatioMin : 0.85;
-  let src = null, gray = null, blur = null, edges = null, contours = null, hier = null;
+  let src = null, gray = null, blur = null, edges = null, kernel = null;
+  let contours = null, hier = null;
   try {
     src = cv.matFromImageData(imageData);
     gray = new cv.Mat();
@@ -98,29 +99,106 @@ function detectQuad(cv, imageData, opts) {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
     cv.Canny(blur, edges, cannyLow, cannyHigh);
-    cv.findContours(edges, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+    // Morphological closing — bridges small gaps in the Canny
+    // outline so a continuous page boundary survives as one
+    // contour. Without this, text or low-contrast paper edges
+    // segment the outline into pieces and we'd pick a fragment.
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(7, 7));
+    cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel);
+    // RETR_EXTERNAL — only the outermost contours. We don't
+    // care about inner text contours; they slow down the
+    // selection loop and risk being picked over the page.
+    cv.findContours(edges, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    // Detection strategy: for every large convex-ish contour, take
-    // its minAreaRect (smallest rotated rectangle containing it).
-    //
-    // Why minAreaRect instead of approxPolyDP+4-vertex check:
-    // when a page corner is folded over, the visible outline has
-    // 5+ vertices (the fold creates an inward step). approxPolyDP
-    // at epsilon=0.02*perimeter collapses those extra vertices
-    // into ONE inward-pulled corner → trapezium → perspective
-    // warp skews the whole page. minAreaRect ignores that — its
-    // corners sit at the contour's extents, which are still
-    // defined by the unfolded edges (the corner of the rectangle
-    // along, say, the right edge is determined by the bottom-
-    // right unfolded corner, not by where the fold cuts in).
-    //
-    // Fill ratio guards against picking non-rectangular shapes:
-    // a real page fills ~95-100% of its bounding rect; a small
-    // fold drops fill ratio to ~0.92; an irregular blob is much
-    // lower. Threshold 0.85 keeps folded pages, rejects junk.
     const minArea = w * h * minAreaPct;
-    let best = null;
+    let bestQuad = null;
+    let bestRect = null;
     const total = contours.size();
+    // PASS 1: find a true 4-vertex quadrilateral. This is what
+    // makes the keystone (perspective) correction actually do
+    // work — the 4 vertices are the real page corners in the
+    // camera image, and warpPerspective maps them to a rectangle.
+    // The old minAreaRect-only path always produced a pre-
+    // rectangular quad, which is why "keystone wasn't working"
+    // — there was nothing to correct.
+    //
+    // Strategy:
+    //   1. Take the convex hull of each large contour. A page on
+    //      a desk produces hundreds of interior contour vertices
+    //      from text / shadows; the hull collapses those to the
+    //      outer envelope, which is what we actually want.
+    //   2. approxPolyDP on the hull, walking up an epsilon ladder
+    //      from 1% to 8% of perimeter. Tight epsilons preserve
+    //      detail (slight perspective skew → 4 distinct vertices);
+    //      loose epsilons forgive noise (one corner folded, dirt
+    //      along an edge). Lock in the first epsilon that yields
+    //      exactly 4 vertices.
+    //   3. Validate convex (rejects bow-tie / self-intersecting
+    //      picks) AND aspect ratio sanity (PSLE papers print on
+    //      A4, hull aspect should sit in [0.55, 1.65] after
+    //      perspective skew; values outside that are almost
+    //      always non-page contours — a hand, a phone shadow,
+    //      the desk edge).
+    //   4. Pick the largest area quad — when the desk has both
+    //      the paper AND a notebook in frame, the paper is
+    //      bigger.
+    for (let i = 0; i < total; i++) {
+      const c = contours.get(i);
+      try {
+        const cArea = cv.contourArea(c);
+        if (cArea < minArea) continue;
+        const hull = new cv.Mat();
+        try {
+          cv.convexHull(c, hull, false, true);
+          const hullArea = cv.contourArea(hull);
+          if (hullArea < minArea) continue;
+          const perimeter = cv.arcLength(hull, true);
+          if (perimeter <= 0) continue;
+          for (const epsFactor of [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08]) {
+            const approx = new cv.Mat();
+            try {
+              cv.approxPolyDP(hull, approx, epsFactor * perimeter, true);
+              if (approx.rows !== 4) continue;
+              if (!cv.isContourConvex(approx)) continue;
+              const pts = [];
+              for (let j = 0; j < 4; j++) {
+                pts.push([approx.intPtr(j, 0)[0], approx.intPtr(j, 0)[1]]);
+              }
+              const ordered = orderQuad(pts);
+              // Aspect-ratio sanity: A4 is 1.414, letter is 1.294.
+              // Mild perspective skew can drop the apparent ratio
+              // by ~30 %, so accept 0.55–1.65 either-orientation.
+              const eu = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+              const top = eu(ordered[0], ordered[1]);
+              const bot = eu(ordered[3], ordered[2]);
+              const left = eu(ordered[0], ordered[3]);
+              const right = eu(ordered[1], ordered[2]);
+              const meanW = (top + bot) / 2;
+              const meanH = (left + right) / 2;
+              if (meanW <= 0 || meanH <= 0) continue;
+              const aspect = meanW / meanH;
+              if (aspect < 0.55 || aspect > 1.65) continue;
+              if (!bestQuad || hullArea > bestQuad.area) {
+                bestQuad = { quad: ordered, area: hullArea };
+              }
+              break;
+            } finally {
+              approx.delete();
+            }
+          }
+        } finally {
+          hull.delete();
+        }
+      } finally {
+        c.delete();
+      }
+    }
+    if (bestQuad) return bestQuad.quad;
+
+    // PASS 2: no clean 4-vertex contour. Fall back to
+    // minAreaRect — same logic as before for handling folded
+    // pages where the outline has > 4 vertices but the rotated
+    // bounding rect still tracks the true page edges.
     for (let i = 0; i < total; i++) {
       const c = contours.get(i);
       try {
@@ -132,11 +210,6 @@ function detectQuad(cv, imageData, opts) {
         const rectArea = rw * rh;
         if (rectArea <= 0) continue;
         if (cArea / rectArea < fillRatioMin) continue;
-
-        // RotatedRect → 4 corners. cv.minAreaRect's angle field
-        // is in DEGREES. opencv.js doesn't reliably expose
-        // boxPoints/RotatedRect.points across builds, so compute
-        // by hand from center/size/angle.
         const cx = rect.center.x;
         const cy = rect.center.y;
         const ang = rect.angle * Math.PI / 180;
@@ -154,19 +227,20 @@ function detectQuad(cv, imageData, opts) {
             cy + p[0] * sin + p[1] * cos,
           ];
         });
-        if (!best || rectArea > best.area) {
-          best = { quad: orderQuad(pts), area: rectArea };
+        if (!bestRect || rectArea > bestRect.area) {
+          bestRect = { quad: orderQuad(pts), area: rectArea };
         }
       } finally {
         c.delete();
       }
     }
-    return best ? best.quad : null;
+    return bestRect ? bestRect.quad : null;
   } finally {
     if (src) src.delete();
     if (gray) gray.delete();
     if (blur) blur.delete();
     if (edges) edges.delete();
+    if (kernel) kernel.delete();
     if (contours) contours.delete();
     if (hier) hier.delete();
   }
@@ -180,7 +254,12 @@ function warpAndClean(cv, imageData, quad) {
   const heightB = dist(quad[0], quad[3]);
   const W = Math.max(1, Math.round(Math.max(widthA, widthB)));
   const H = Math.max(1, Math.round(Math.max(heightA, heightB)));
-  const cap = 1600;
+  // Long-edge cap on the warped output. 1600 was producing 1220x1624
+  // saved scans (David's PSLE English) — well below the server's
+  // 1800px normaliser target, which meant the resolution bump from
+  // the 4K getUserMedia constraint was being clawed back here.
+  // 2400 gives ~290 DPI for an A4 page through to the marker.
+  const cap = 2400;
   const longEdge = Math.max(W, H);
   const downscale = longEdge > cap ? cap / longEdge : 1;
   const Wd = Math.max(1, Math.round(W * downscale));

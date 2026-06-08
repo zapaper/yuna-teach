@@ -451,16 +451,8 @@ export default function DocumentScanner({
     // round-trip — the camera shutter cue is meant to be tight.
     playClick(0.5);
 
-    // Snap a still at full video resolution. Re-detect at full-res
-    // for a tighter crop than what the live (downsampled) loop saw.
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    const stillCanvas = document.createElement("canvas");
-    stillCanvas.width = vw;
-    stillCanvas.height = vh;
-    const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
-    if (!sctx) return;
-    sctx.drawImage(video, 0, 0, vw, vh);
 
     // Camera readiness check — after a retake, videoWidth can be 0
     // for the first ~100ms while the WKWebView re-binds the
@@ -473,24 +465,43 @@ export default function DocumentScanner({
       return;
     }
 
+    // Downsample the still BEFORE the worker round-trip. A 4K video
+    // frame is 8.3 MP — getImageData serialises ~33 MB and the
+    // worker's Canny + warpPerspective + CLAHE all scale linearly
+    // with pixel count. Capping the capture canvas at 2400 px max
+    // edge cuts everything downstream by ~4× without hurting marker
+    // OCR (2400 wide on A4 = ~290 DPI, well above what Gemini needs
+    // for clean handwriting). The live-loop quad from a 480-px
+    // detect canvas scales up directly into this space.
+    const CAPTURE_MAX_EDGE = 2400;
+    const captureScale = Math.min(1, CAPTURE_MAX_EDGE / Math.max(vw, vh));
+    const cw = Math.round(vw * captureScale);
+    const ch = Math.round(vh * captureScale);
+    const stillCanvas = document.createElement("canvas");
+    stillCanvas.width = cw;
+    stillCanvas.height = ch;
+    const sctx = stillCanvas.getContext("2d", { willReadFrequently: true });
+    if (!sctx) return;
+    sctx.drawImage(video, 0, 0, cw, ch);
+
     try {
-      // Full-res detect via worker.
-      const detectImg = sctx.getImageData(0, 0, vw, vh);
-      const detectId = `det-${Date.now()}`;
-      const detectMsg = await new Promise<WorkerMsg>((resolve, reject) => {
-        pendingRef.current.set(detectId, { resolve, reject });
-        worker.postMessage(
-          { id: detectId, type: "detect", imageData: detectImg },
-          [detectImg.data.buffer],
-        );
-      });
-      let quad: [number, number][] | null = detectMsg.type === "detected" ? detectMsg.quad : null;
-      if (!quad) quad = lastQuadRef.current;
-      if (!quad) quad = [[0, 0], [vw, 0], [vw, vh], [0, vh]];
+      // Use the live loop's most recent quad — it's plenty accurate
+      // for a steady-hold capture and skipping the full-res
+      // re-detect step removes a whole worker round-trip + an
+      // 8 MP Canny+findContours pass (~1.5 s). The quad coords are
+      // in detect-canvas space (480 px max edge); rescale them to
+      // the capture canvas before sending to the warp worker.
+      const detectMaxEdge = 480;
+      const detectScale = Math.min(1, detectMaxEdge / Math.max(vw, vh));
+      const quadScale = captureScale / detectScale;
+      const liveQuad = lastQuadRef.current;
+      const quad: [number, number][] = liveQuad
+        ? liveQuad.map(([x, y]) => [x * quadScale, y * quadScale] as [number, number])
+        : [[0, 0], [cw, 0], [cw, ch], [0, ch]];
 
       // Warp + dehaze via worker. Buffer is transferred — sctx is
       // disposable after this call.
-      const warpImg = sctx.getImageData(0, 0, vw, vh);
+      const warpImg = sctx.getImageData(0, 0, cw, ch);
       const warpId = `warp-${Date.now()}`;
       const warpMsg = await new Promise<WorkerMsg>((resolve, reject) => {
         pendingRef.current.set(warpId, { resolve, reject });
