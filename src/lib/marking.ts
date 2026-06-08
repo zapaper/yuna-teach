@@ -1307,6 +1307,63 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   - Final marksAwarded = sum of awarded components. Clamp to
     [0, marksAvailable]. Round to nearest 0.5.
 
+  ═══════════════════════════════════════════════════════════════════
+  CHINESE Q33 — 应用文 (LETTER / EMAIL / 通告 WRITING) — 2 marks 内容 + 2 marks 语言:
+  ═══════════════════════════════════════════════════════════════════
+  Detection rule (apply BEFORE the phrase-based and opinion rubrics
+  above): when the question being marked is "Question 33" on a Chinese
+  paper, OR the answer key contains the literal string "评分标准" with
+  "内容" + "语言" mark allocations, treat the question as 应用文 /
+  letter writing and use the rubric below. DO NOT apply the
+  phrase-by-phrase " | " split — the answer key's pipe separators in
+  this case are part of a sample letter, not a list of marking points.
+
+  Q33 is a SHORT FUNCTIONAL TEXT — typically 邀请信 / 通知 / 留言 / 邮件
+  / 短信. The student is given a brief stem listing WHICH details the
+  letter must contain. The 4 marks split exactly as:
+
+  ─ 内容 (2 marks total) ────────────────────────────────────────
+  READ the question stem to identify the required W's — typically a
+  combination of WHO (人物 / 收件人), WHAT (什么事 / 什么活动), WHEN
+  (时间), WHERE (地点), WHY (原因). Some tasks add HOW or other
+  details. Award credit for each required W the student CAPTURES
+  (synonyms / paraphrases accepted — exact wording is NOT required).
+
+    · All required W's clearly captured                 → 2 / 2
+    · Most captured, one or two missing or vague        → 1.5 / 2
+    · Half captured                                     → 1 / 2
+    · Only one W or token coverage                      → 0.5 / 2
+    · None captured                                     → 0 / 2
+
+  Be flexible: a date like "2025年11月29日" satisfies WHEN, "在东海岸"
+  satisfies WHERE, "因为我想了解…" satisfies WHY, etc. The student
+  does not need to copy the sample letter — they need to communicate
+  the required information.
+
+  ─ 语言 (2 marks total) ────────────────────────────────────────
+  START AT 2 / 2 and deduct as follows:
+    · 错别字 (wrong character / 别字) — 0.5 off PER instance.
+      Cap total 错别字 deduction at 1 mark even if more than two
+      错别字 are present (so the worst-case 错别字 hit is -1/2).
+    · 病句 / clumsy / ungrammatical / non-idiomatic sentence
+      (meaning is unclear, word order is wrong, key connector
+      missing) — 0.5 off PER instance.
+    · 标点 errors — IGNORE per PSLE marker convention; punctuation
+      is not scored on Q33.
+    · Foreign / English words inserted where Chinese is required —
+      0.5 off PER instance.
+  Floor at 0. Round to nearest 0.5.
+  Notes for 语言 deductions MUST quote the offending word or
+  sentence in 中文引号 「…」 so the parent can spot the issue in
+  the student's writing — e.g. 「也理海滩」错别字，应为「清理海滩」。
+
+  ─ Final marks for Q33 ────────────────────────────────────────
+  marksAwarded = 内容 + 语言, clamped to [0, 4], rounded to 0.5.
+
+  Notes MUST split the score into TWO parts and use 中文:
+    内容: X / 2 — <name each W and whether captured>.
+    语言: Y / 2 — <list each deduction with the quoted offender>.
+
   - LANGUAGE OF OUTPUT — CRITICAL: EVERY string in the "notes" / "feedback" field of your JSON response MUST be written in Simplified Chinese (简体中文). Do NOT respond in English. Do NOT use British English. Numbers and punctuation may stay as printed.
   `;
 }
@@ -5520,6 +5577,29 @@ NO = the transcription consists only of phrases like "blank", "(no working shown
           //   - flash's compliant marker said ABSENT/EMPTY, OR
           //   - judge said the transcription is just blank-phrasing
           const shouldEscalate = usedFlashOnly && inkPresentOverall && (markerSaysEmpty || judgedEmpty);
+          // Local helper — strips the OUTPUT FORMAT marker lines off a
+          // detection response so the downstream marker sees just the
+          // transcription. Identical logic to the inline strip above.
+          const stripMarkerLines = (raw: string): string => {
+            const xs = raw.split("\n");
+            const a = (xs[0] ?? "").trim();
+            const b = (xs[1] ?? "").trim();
+            const ma = a === "HANDWRITING: PRESENT" || a === "HANDWRITING: ABSENT";
+            const mb = b === "TRANSCRIPTION: FOUND" || b === "TRANSCRIPTION: EMPTY";
+            if (ma && mb) return xs.slice(2).join("\n").trim();
+            if (ma) return xs.slice(1).join("\n").trim();
+            return raw;
+          };
+          // Decide afresh whether a candidate detection text is still a
+          // read failure — drives the OpenAI fallback below.
+          const looksUnreadable = (txt: string): boolean => {
+            if (!txt) return true;
+            const u = txt.toUpperCase();
+            // Pro / flash sometimes return only the marker pair with no
+            // transcription body when they couldn't read the ink.
+            if (/HANDWRITING:\s*ABSENT/.test(u) || /TRANSCRIPTION:\s*EMPTY/.test(u)) return true;
+            return false;
+          };
           if (shouldEscalate) {
             const reason = markerSaysEmpty ? "marker said ABSENT/EMPTY" : "judge said empty";
             console.log(`[quiz-marking] Q${q.questionNum}: ${reason} but ink present — retrying with gemini-3.1-pro-preview`);
@@ -5535,22 +5615,42 @@ NO = the transcription consists only of phrases like "blank", "(no working shown
               );
               const retryAns = retry.text?.trim() ?? "";
               if (retryAns) {
-                // Strip pro's marker lines too if present
-                const retryLines = retryAns.split("\n");
-                const retryLine1 = (retryLines[0] ?? "").trim();
-                const retryLine2 = (retryLines[1] ?? "").trim();
-                const retryMarker1 = retryLine1 === "HANDWRITING: PRESENT" || retryLine1 === "HANDWRITING: ABSENT";
-                const retryMarker2 = retryLine2 === "TRANSCRIPTION: FOUND" || retryLine2 === "TRANSCRIPTION: EMPTY";
-                const stripped = retryMarker1 && retryMarker2
-                  ? retryLines.slice(2).join("\n").trim()
-                  : retryMarker1
-                    ? retryLines.slice(1).join("\n").trim()
-                    : retryAns;
+                const stripped = stripMarkerLines(retryAns);
                 console.log(`[quiz-marking] Q${q.questionNum} pro re-detect: "${stripped.substring(0, 100)}"`);
                 detectedAnswer = stripped;
               }
             } catch (err) {
               console.warn(`[quiz-marking] Q${q.questionNum} pro retry failed:`, err instanceof Error ? err.message : err);
+            }
+
+            // ── FINAL FALLBACK: OpenAI gpt-5.4 ──
+            // If pro ALSO couldn't transcribe the handwriting, try one
+            // more time against OpenAI — a different vendor genuinely
+            // helps on some scans where Gemini gives up. P6 Ratio Q8 in
+            // the recent eval is the headline case: pixel ink was
+            // present, both flash and pro returned EMPTY, the marker
+            // wrote "Could not read student's answer" and awarded 0/4
+            // for a question the student had answered correctly.
+            if (looksUnreadable(detectedAnswer) && isOpenAIFallbackEnabled()) {
+              console.log(`[quiz-marking] Q${q.questionNum}: pro also EMPTY — falling back to OpenAI gpt-5.4`);
+              try {
+                const openaiResp = await runOpenAIFallback(
+                  { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts: detectParts }] },
+                  `quiz-detect-q${q.questionNum}-openai`,
+                );
+                const openaiAns = openaiResp.text?.trim() ?? "";
+                if (openaiAns) {
+                  const stripped = stripMarkerLines(openaiAns);
+                  if (stripped && !looksUnreadable(stripped)) {
+                    console.log(`[quiz-marking] Q${q.questionNum} OpenAI re-detect: "${stripped.substring(0, 100)}"`);
+                    detectedAnswer = stripped;
+                  } else {
+                    console.log(`[quiz-marking] Q${q.questionNum} OpenAI also returned EMPTY — accepting unreadable state`);
+                  }
+                }
+              } catch (err) {
+                console.warn(`[quiz-marking] Q${q.questionNum} OpenAI re-detect failed:`, err instanceof Error ? err.message : err);
+              }
             }
           }
         }
