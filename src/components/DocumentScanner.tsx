@@ -49,10 +49,13 @@ type DogEarDiag =
       rectTopY: number;
       tlTrace: [number, number];
       trTrace: [number, number];
+      finalTL: [number, number];
+      finalTR: [number, number];
       tlDx: number;
       trDx: number;
       dyDiff: number;
       threshold: number;
+      realSide: "TL" | "TR" | null; // OTHER side is the one interpolated
       dogEar: boolean;
     };
 
@@ -150,7 +153,7 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-l");
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-m");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
@@ -976,27 +979,40 @@ function drawDogEarDiag(
     ctx.restore();
     return;
   }
-  // Convert detect-canvas (480-px) trace points to video-pixel
-  // coords, then to displayed-canvas coords.
+  // Convert detect-canvas (~1080-px) points to video-pixel coords,
+  // then to displayed-canvas coords.
   const toCanvas = (p: [number, number]): [number, number] => {
     const vx = p[0] / detectScale;
     const vy = p[1] / detectScale;
     return [ox + vx * scale, oy + vy * scale];
   };
-  const tlPt = toCanvas(diag.tlTrace);
-  const trPt = toCanvas(diag.trTrace);
-  // Trace endpoints — small filled circles on the overlay.
-  ctx.fillStyle = diag.dogEar ? "#ff3b30" : "#34d399";
+  // Render at the FINAL corner positions (after dog-ear mirror), not
+  // the raw trace endpoints — that way "yellow" sits exactly where
+  // the interpolated corner ended up in the warp quad.
+  const tlPt = toCanvas(diag.finalTL);
+  const trPt = toCanvas(diag.finalTR);
+  // Colour: yellow = this side was interpolated via keystone mirror,
+  // green = trace endpoint kept as-is (real corner).
+  const tlColour = diag.realSide === "TR" ? "#facc15" : "#34d399";
+  const trColour = diag.realSide === "TL" ? "#facc15" : "#34d399";
+  ctx.fillStyle = tlColour;
   ctx.beginPath();
-  ctx.arc(tlPt[0], tlPt[1], 6, 0, Math.PI * 2);
-  ctx.arc(trPt[0], trPt[1], 6, 0, Math.PI * 2);
+  ctx.arc(tlPt[0], tlPt[1], 7, 0, Math.PI * 2);
   ctx.fill();
-  // One-line summary along the bottom.
-  const summary = `dyDiff=${diag.dyDiff} (thr=${diag.threshold}) tlY=${diag.tlTrace[1]} (dx=${diag.tlDx}) trY=${diag.trTrace[1]} (dx=${diag.trDx}) → ${diag.dogEar ? "DOG-EAR" : "ok"}`;
+  ctx.fillStyle = trColour;
+  ctx.beginPath();
+  ctx.arc(trPt[0], trPt[1], 7, 0, Math.PI * 2);
+  ctx.fill();
+  // One-line summary along the bottom — shows which decision tier
+  // the picker landed in.
+  const verdict = diag.realSide === null
+    ? "ok"
+    : `INTERP-${diag.realSide === "TL" ? "TR" : "TL"} (kept ${diag.realSide})`;
+  const summary = `dy=${diag.dyDiff} tlY=${diag.tlTrace[1]} dx=${diag.tlDx} trY=${diag.trTrace[1]} dx=${diag.trDx} → ${verdict}`;
   ctx.fillStyle = "rgba(0,0,0,0.7)";
   ctx.fillRect(8, ch - 32, cw - 16, 24);
   ctx.fillStyle = "#fff";
-  ctx.font = "12px monospace";
+  ctx.font = "11px monospace";
   ctx.fillText(summary, 16, ch - 14);
   ctx.restore();
 }

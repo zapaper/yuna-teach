@@ -181,9 +181,12 @@ function correctDogEar(cv, edgesMat, quad) {
   const trDx = Math.abs(trDxSigned);
   const dyDiff = Math.abs(tlReachedY - trReachedY);
   // Two thresholds: clearly different heights ⇒ height picks; if
-  // heights are close, x-delta picks.
+  // heights are close, x-delta picks. dxMargin tightened 3 → 1.5 %
+  // because the dog-ear fold visibly pulls the trace inward by ~3-5
+  // % of width while a real keystone holds it within ~1-2 %; a 3 %
+  // margin was missing the difference between those regimes.
   const dyMargin = h * 0.03;
-  const dxMargin = w * 0.03;
+  const dxMargin = w * 0.015;
 
   // Two-tier selection for which top corner is "real":
   //   1. CLEARLY different heights → higher (smaller y) is real.
@@ -208,33 +211,38 @@ function correctDogEar(cv, edgesMat, quad) {
     realSide = tlDx < trDx ? "TL" : "TR";
   }
 
+  // Compute the final TL / TR positions and remember which side (if
+  // any) was interpolated. The overlay then draws the real side as
+  // green and the interpolated side as yellow so we can see at a
+  // glance where the keystone mirror put the missing corner vs
+  // where the trace actually stopped.
+  let finalTL = tlTrace;
+  let finalTR = trTrace;
+  if (realSide === "TL") {
+    const newTrX = br[0] - tlDxSigned;        // ← KEYSTONE MIRROR
+    finalTR = [Math.max(0, Math.min(w - 1, newTrX)), tlTrace[1]];
+  } else if (realSide === "TR") {
+    const newTlX = bl[0] - trDxSigned;        // ← KEYSTONE MIRROR
+    finalTL = [Math.max(0, Math.min(w - 1, newTlX)), trTrace[1]];
+  }
+
   const diag = {
     bl: [Math.round(bl[0]), Math.round(bl[1])],
     br: [Math.round(br[0]), Math.round(br[1])],
     rectTopY: Math.round(Math.min(tl[1], tr[1])),
     tlTrace: [Math.round(tlTrace[0]), Math.round(tlTrace[1])],
     trTrace: [Math.round(trTrace[0]), Math.round(trTrace[1])],
+    finalTL: [Math.round(finalTL[0]), Math.round(finalTL[1])],
+    finalTR: [Math.round(finalTR[0]), Math.round(finalTR[1])],
     tlDx: Math.round(tlDx),
     trDx: Math.round(trDx),
     dyDiff: Math.round(dyDiff),
     threshold: Math.round(dyMargin),
+    realSide: realSide, // "TL" | "TR" | null — which side was kept; the OTHER was interpolated
     dogEar: realSide !== null,
   };
 
-  if (realSide === null) {
-    // Both top corners look real — use trace endpoints as-is.
-    return { quad: [tlTrace, trTrace, br, bl], diag: diag };
-  }
-  if (realSide === "TL") {
-    // TL is real, mirror TR using TL's signed dx.
-    const newTrX = br[0] - tlDxSigned;        // ← KEYSTONE MIRROR
-    const clampedX = Math.max(0, Math.min(w - 1, newTrX));
-    return { quad: [tlTrace, [clampedX, tlTrace[1]], br, bl], diag: diag };
-  }
-  // realSide === "TR" — TR is real, mirror TL using TR's signed dx.
-  const newTlX = bl[0] - trDxSigned;          // ← KEYSTONE MIRROR
-  const clampedX = Math.max(0, Math.min(w - 1, newTlX));
-  return { quad: [[clampedX, trTrace[1]], trTrace, br, bl], diag: diag };
+  return { quad: [finalTL, finalTR, br, bl], diag: diag };
 }
 
 function detectQuad(cv, imageData, opts) {
