@@ -3129,6 +3129,24 @@ function ExamReviewContent({ id }: { id: string }) {
                                       );
                                     })}
                                   </div>
+                                  {/* Parent score edit — mirrors the Grammar Cloze /
+                                      Comp Cloze toggle below so Vocab Cloze and Visual
+                                      Text aren't the only sections where the parent
+                                      can't override the auto-mark. 1-mark MCQ so the
+                                      toggle is binary. */}
+                                  {!isStudent && (
+                                    <button
+                                      onClick={() => {
+                                        const newMarks = qCorrect ? 0 : (q.marksAvailable ?? 1);
+                                        updateMarks(q.id, newMarks);
+                                      }}
+                                      disabled={savingMarks}
+                                      className="mt-1 text-[10px] font-bold text-[#737780] hover:text-[#003366] transition-colors flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">edit</span>
+                                      {qCorrect ? "Mark as wrong" : "Mark as correct"}
+                                    </button>
+                                  )}
                                 </div>
                               ) : (
                                 /* Grammar Cloze / Editing / Comp Cloze */
