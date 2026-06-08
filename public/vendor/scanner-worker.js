@@ -76,6 +76,77 @@ function orderQuad(pts) {
   return [tl, tr, br, bl];
 }
 
+// Pull the 4 extreme corner points off a convex hull (or any
+// point set). Works whether the hull has 4 vertices or 40. Useful
+// when approxPolyDP can't land on exactly 4 vertices because a
+// corner is occluded / dog-eared / falls outside the frame.
+function extremeCornersFromHull(hull) {
+  const buf = hull.data32S;
+  if (!buf) return null;
+  const n = hull.rows;
+  if (n < 4) return null;
+  let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
+  let tl = null, tr = null, br = null, bl = null;
+  for (let i = 0; i < n; i++) {
+    const x = buf[i * 2];
+    const y = buf[i * 2 + 1];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    const sum = x + y;
+    const diff = x - y;
+    if (sum < minSum) { minSum = sum; tl = [x, y]; }
+    if (sum > maxSum) { maxSum = sum; br = [x, y]; }
+    if (diff > maxDiff) { maxDiff = diff; tr = [x, y]; }
+    if (diff < minDiff) { minDiff = diff; bl = [x, y]; }
+  }
+  if (!tl || !tr || !br || !bl) return null;
+  return [tl, tr, br, bl];
+}
+
+// Parallelogram correction. The PSLE page held at any reasonable
+// camera angle is a parallelogram (or close to one — the actual
+// shape is a perspective trapezoid, but a parallelogram is within
+// a few percent at typical hand-held distances). For each corner,
+// compute the position the OTHER 3 corners predict via the
+// parallelogram identity `tl + br = tr + bl`. Then check whether
+// the actual corner agrees with that prediction. If one corner
+// deviates much more than the others — exactly the dog-eared /
+// hand-occluded / out-of-frame top corner case — replace it with
+// the predicted position. This is the live-preview's "find one
+// top corner, mirror the same x-delta on the other side" rule,
+// applied via the principled vector identity.
+function correctDogEaredCorner(quad) {
+  if (!quad || quad.length !== 4) return quad;
+  const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
+  const tlExp = [bl[0] + tr[0] - br[0], bl[1] + tr[1] - br[1]];
+  const trExp = [br[0] + tl[0] - bl[0], br[1] + tl[1] - bl[1]];
+  const brExp = [tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1]];
+  const blExp = [tl[0] + br[0] - tr[0], tl[1] + br[1] - tr[1]];
+  const dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+  const dTl = dist(tl, tlExp);
+  const dTr = dist(tr, trExp);
+  const dBr = dist(br, brExp);
+  const dBl = dist(bl, blExp);
+  const diag = Math.hypot(br[0] - tl[0], br[1] - tl[1]);
+  if (diag <= 0) return quad;
+  const threshold = diag * 0.12;
+  // Find the corner with the biggest deviation AND make sure the
+  // next-worst is well below the threshold (otherwise the page is
+  // genuinely non-parallelogram, e.g. extreme oblique angle, and
+  // we don't want to over-correct).
+  const cands = [
+    { idx: 0, d: dTl, exp: tlExp },
+    { idx: 1, d: dTr, exp: trExp },
+    { idx: 2, d: dBr, exp: brExp },
+    { idx: 3, d: dBl, exp: blExp },
+  ].sort(function (a, b) { return b.d - a.d; });
+  if (cands[0].d > threshold && cands[1].d < threshold * 0.6) {
+    const corrected = [quad[0], quad[1], quad[2], quad[3]];
+    corrected[cands[0].idx] = cands[0].exp;
+    return corrected;
+  }
+  return quad;
+}
+
 function detectQuad(cv, imageData, opts) {
   const w = imageData.width;
   const h = imageData.height;
@@ -187,7 +258,50 @@ function detectQuad(cv, imageData, opts) {
         c.delete();
       }
     }
-    if (bestQuad) return bestQuad.quad;
+    if (bestQuad) return correctDogEaredCorner(bestQuad.quad);
+
+    // PASS 1.5: no clean 4-vertex contour was found, but a large
+    // contour exists with a dog-eared / occluded corner. Take its
+    // convex hull's 4 extreme points (tl/tr/br/bl by sum & diff of
+    // x,y) and parallelogram-correct the worst-deviating one.
+    // Catches the common "bottom 2 corners + one good top + one
+    // partially-missing top" framing — the missing corner gets
+    // synthesised from the other 3 via the bl + tr − br identity.
+    let bestExtreme = null;
+    for (let i = 0; i < total; i++) {
+      const c = contours.get(i);
+      try {
+        const cArea = cv.contourArea(c);
+        if (cArea < minArea) continue;
+        const hull = new cv.Mat();
+        try {
+          cv.convexHull(c, hull, false, true);
+          const hullArea = cv.contourArea(hull);
+          if (hullArea < minArea) continue;
+          const extremes = extremeCornersFromHull(hull);
+          if (!extremes) continue;
+          const ordered = orderQuad(extremes);
+          const eu = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+          const top = eu(ordered[0], ordered[1]);
+          const bot = eu(ordered[3], ordered[2]);
+          const left = eu(ordered[0], ordered[3]);
+          const right = eu(ordered[1], ordered[2]);
+          const meanW = (top + bot) / 2;
+          const meanH = (left + right) / 2;
+          if (meanW <= 0 || meanH <= 0) continue;
+          const aspect = meanW / meanH;
+          if (aspect < 0.55 || aspect > 1.65) continue;
+          if (!bestExtreme || hullArea > bestExtreme.area) {
+            bestExtreme = { quad: ordered, area: hullArea };
+          }
+        } finally {
+          hull.delete();
+        }
+      } finally {
+        c.delete();
+      }
+    }
+    if (bestExtreme) return correctDogEaredCorner(bestExtreme.quad);
 
     // PASS 2: no clean 4-vertex contour. Fall back to
     // minAreaRect — same logic as before for handling folded

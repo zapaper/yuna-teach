@@ -123,7 +123,12 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      worker = new Worker("/vendor/scanner-worker.js");
+      // Cache-bust the worker URL so a deploy that ships new
+      // detection / warp code doesn't get served from the browser's
+      // stale copy. Bump SCANNER_WORKER_VERSION whenever the worker
+      // file changes; the query string forces a fresh fetch
+      // regardless of the browser's existing Cache-Control entry.
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-d");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
