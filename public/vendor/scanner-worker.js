@@ -76,6 +76,104 @@ function orderQuad(pts) {
   return [tl, tr, br, bl];
 }
 
+// Walk upward from a bottom corner along where the page's vertical
+// edge should be, returning the highest (smallest y) point that
+// still has a Canny edge pixel within reach. Allows a horizontal
+// search band at each y-step so keystone tilt doesn't lose the
+// edge. When the edge breaks (page ends, fold, dog-ear), the walk
+// stops and we return that y. Used by the dog-ear corrector to
+// figure out which top corner is real and which is folded.
+//
+//   edgesMat        Canny edges Mat (Uint8 1-channel)
+//   fromX, fromY    bottom corner pixel coords
+//   towardX, towardY rectangle's top corner — used to bias the
+//                   horizontal expected-x search column
+//   searchHalfWidth half-width of the horizontal search band per
+//                   y-step (in pixels)
+//
+// Returns [reachedX, reachedY] — the highest edge pixel we found
+// while the edge stayed continuous from the bottom.
+function traceVerticalUp(edgesMat, fromX, fromY, towardX, towardY, searchHalfWidth) {
+  const w = edgesMat.cols, h = edgesMat.rows;
+  const data = edgesMat.data;
+  let reachedX = fromX, reachedY = fromY;
+  const dyTotal = fromY - towardY;
+  if (dyTotal <= 0) return [reachedX, reachedY];
+  for (let step = 1; step <= dyTotal; step++) {
+    const y = fromY - step;
+    if (y < 0 || y >= h) break;
+    const t = step / dyTotal;
+    const expectedX = Math.round(fromX + t * (towardX - fromX));
+    let hit = -1;
+    for (let dx = 0; dx <= searchHalfWidth; dx++) {
+      // Search outward from expectedX so the closest edge pixel
+      // wins, not whichever side we happen to scan first.
+      const xLeft = expectedX - dx;
+      const xRight = expectedX + dx;
+      if (xLeft >= 0 && xLeft < w && data[y * w + xLeft] > 0) { hit = xLeft; break; }
+      if (xRight >= 0 && xRight < w && data[y * w + xRight] > 0) { hit = xRight; break; }
+    }
+    if (hit < 0) break; // edge ended → walk halts
+    reachedX = hit;
+    reachedY = y;
+  }
+  return [reachedX, reachedY];
+}
+
+// Dog-ear corrector. Takes a minAreaRect quad (TL/TR/BR/BL ordered)
+// and the Canny edges Mat that produced it. For each TOP corner,
+// trace the page's vertical edge upward from the corresponding
+// BOTTOM corner. The trace that reaches HIGHER on screen (smaller
+// y) is the REAL top corner — the page edge ran continuously all
+// the way up. The other trace stops at the fold, so its end-y is
+// where the visible edge ended.
+//
+// If the two traces reach similar heights → no dog-ear; return the
+// minAreaRect quad unchanged.
+//
+// If they differ significantly → the lower-reaching side is dog-
+// eared. Interpolate that corner:
+//   - y: same as the real top corner (the page is rectangular under
+//     the fold, so the missing corner should sit at the same height)
+//   - x: KEYSTONE MIRROR. If the real top corner sits +dx from its
+//     bottom corner (page leans rightward), the missing corner must
+//     sit −dx from ITS bottom corner. NOT +dx (parallelogram); the
+//     parallelogram rule is for affine shapes, but keystone is a
+//     perspective transform and the top edge narrows symmetrically.
+function correctDogEar(cv, edgesMat, quad) {
+  if (!quad || quad.length !== 4) return quad;
+  const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
+  for (const p of quad) {
+    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
+  }
+  const w = edgesMat.cols, h = edgesMat.rows;
+  // Search band scales with image width — narrow at low res
+  // (live-loop 480 px) and wider at full res so the keystone tilt
+  // doesn't slip out of the band.
+  const searchHalfWidth = Math.max(3, Math.round(w * 0.03));
+  const tlTrace = traceVerticalUp(edgesMat, bl[0], bl[1], tl[0], tl[1], searchHalfWidth);
+  const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[0], tr[1], searchHalfWidth);
+  const tlReachedY = tlTrace[1];
+  const trReachedY = trTrace[1];
+  // Tolerance for "similar heights" — anything within 5% of image
+  // height is the same edge. Bigger gap = one trace clearly
+  // stopped at a fold while the other ran on.
+  const tolerance = h * 0.05;
+  if (Math.abs(tlReachedY - trReachedY) < tolerance) return quad;
+  if (tlReachedY < trReachedY) {
+    // TL trace ran higher → TL is real, TR is dog-eared.
+    const knownDx = tlTrace[0] - bl[0];
+    const newTrX = br[0] - knownDx;          // ← KEYSTONE MIRROR
+    const clampedX = Math.max(0, Math.min(w - 1, newTrX));
+    return [tlTrace, [clampedX, tlTrace[1]], br, bl];
+  }
+  // TR trace ran higher → TR is real, TL is dog-eared.
+  const knownDx = trTrace[0] - br[0];
+  const newTlX = bl[0] - knownDx;            // ← KEYSTONE MIRROR
+  const clampedX = Math.max(0, Math.min(w - 1, newTlX));
+  return [[clampedX, trTrace[1]], trTrace, br, bl];
+}
+
 function detectQuad(cv, imageData, opts) {
   const w = imageData.width;
   const h = imageData.height;
@@ -161,7 +259,25 @@ function detectQuad(cv, imageData, opts) {
         c.delete();
       }
     }
-    return best ? best.quad : null;
+    if (!best) return null;
+    // Dog-ear correction. The minAreaRect quad always gives a
+    // RECTANGLE — both top corners share the same y. When one top
+    // corner is dog-eared / folded, the rectangle's top is at the
+    // GOOD side's true top y, while the BAD side has no actual
+    // contour pixel at the rectangle's top corner (the page edge
+    // turns inward earlier at the fold). We don't want to warp from
+    // the rectangle corners because that pulls in fold-region pixels
+    // on the bad side. Trace each side's vertical page edge upward
+    // and either confirm both top corners are real (no dog-ear) or
+    // replace the dog-eared corner with a keystone-mirrored prediction.
+    try {
+      return correctDogEar(cv, edges, best.quad);
+    } catch (_e) {
+      // Safety net — if anything in the corrector throws, fall back
+      // to the raw minAreaRect quad. The scanner's working baseline
+      // is more important than the dog-ear refinement.
+      return best.quad;
+    }
   } finally {
     if (src) src.delete();
     if (gray) gray.delete();
