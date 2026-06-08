@@ -93,6 +93,19 @@ export function middleware(request: NextRequest) {
     url.protocol = "https:";
     return NextResponse.redirect(url, 308);
   }
+  // Strip the :8080 (or any explicit port) from the canonical hosts.
+  // Railway's internal load balancer sometimes echoes the proxy port
+  // into the Host header, so users hit URLs like www.markforyou.com:8080
+  // — which Google OAuth, cookies, and the rest of the app aren't
+  // registered for. Permanently redirect to the port-less canonical
+  // before anything else runs.
+  if (host === "www.markforyou.com:8080" || host === "markforyou.com:8080") {
+    const url = request.nextUrl.clone();
+    url.host = "www.markforyou.com";
+    url.protocol = "https:";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
 
   // Only enforce auth on /api/* — every other path (pages,
   // _next/*, public assets) is unaffected.

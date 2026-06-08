@@ -55,6 +55,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
 
+  // Custom error / signin pages. Without these, NextAuth's default
+  // error path is /api/auth/error — a built-in plain HTML page that
+  // doesn't link back anywhere. When an OAuth round-trip fails (mid-
+  // deploy state lost, CSRF mismatch, Google rejected the consent),
+  // the user lands on /api/auth/error and is stuck. Pointing
+  // `pages.error` at /login makes NextAuth redirect there with
+  // `?error=<code>` so we can surface a message and the user can
+  // retry. signIn similarly returns to /login.
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
   callbacks: {
     /**
      * Runs after the OAuth provider returns. We use it to:

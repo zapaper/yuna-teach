@@ -78,6 +78,31 @@ function LoginContent() {
   const [loginShowPw, setLoginShowPw] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // NextAuth redirects here with `?error=<code>` when an OAuth round-
+  // trip fails — usually a deploy-time race where the PKCE / state
+  // cookies were set on an old build and validated against a new
+  // one. Surface a human-readable message and clear the param off
+  // the URL so a refresh doesn't keep re-showing it.
+  useEffect(() => {
+    const oauthErrorParam = searchParams.get("error");
+    if (!oauthErrorParam) return;
+    const msg = oauthErrorParam === "OAuthCallback" || oauthErrorParam === "InvalidCheck" || oauthErrorParam === "OAuthSignin"
+      ? "Sign-in was interrupted (possibly by a deploy). Please try again."
+      : oauthErrorParam === "AccessDenied"
+        ? "You cancelled the sign-in. Try again or use email + password."
+        : oauthErrorParam === "Configuration"
+          ? "Sign-in is temporarily unavailable. Please try again in a minute."
+          : `Sign-in failed (${oauthErrorParam}). Please try again.`;
+    setLoginError(msg);
+    // Strip the error from the URL so reloading the page doesn't
+    // re-show the same banner.
+    const qs = new URLSearchParams(window.location.search);
+    qs.delete("error");
+    const newSearch = qs.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Ref to the password input so we can auto-focus it after the
   // username has been pre-filled from the next= redirect lookup.
   const passwordInputRef = useRef<HTMLInputElement>(null);
