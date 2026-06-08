@@ -713,22 +713,84 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // Keep quiz modal target student in sync with the currently selected student
   useEffect(() => { if (selectedStudentId) setQuizStudentId(selectedStudentId); }, [selectedStudentId]);
 
+  // Day-+-quiz-fingerprint cache for per-student data that only
+  // changes when the student completes / submits a quiz (average
+  // performance, weak topics, spelling tests). On every parent ↔
+  // student switch we used to issue 3-4 big DB queries even when the
+  // numbers couldn't have moved since the last load. Cache stores
+  // { date, fp, data } in localStorage keyed by student + endpoint;
+  // hit if BOTH the date matches today AND the quiz fingerprint
+  // matches the current examPapers state. Anything quiz-completion-
+  // related busts the fp automatically. examPapers + assignments
+  // stay fresh-from-server (they're the source of fp).
+  function readCache<T>(key: string, fp: string): T | null {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { date?: string; fp?: string; data?: T };
+      if (parsed.date !== new Date().toDateString()) return null;
+      if (parsed.fp !== fp) return null;
+      return (parsed.data ?? null) as T | null;
+    } catch { return null; }
+  }
+  function writeCache<T>(key: string, fp: string, data: T) {
+    try {
+      localStorage.setItem(key, JSON.stringify({ date: new Date().toDateString(), fp, data }));
+    } catch { /* quota or disabled */ }
+  }
+
   useEffect(() => {
     if (!selectedStudentId) return;
     if (!hasSessionCookie()) { setLoadingProgress(false); return; }
-    setLoadingProgress(true);
-    setProgressData(null);
-    fetch(`/api/student-progress?parentId=${userId}&studentId=${selectedStudentId}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => setProgressData(d))
-      .catch(() => {})
-      .finally(() => setLoadingProgress(false));
-    // Fetch spelling tests for selected student
-    fetch(`/api/tests?userId=${selectedStudentId}`)
-      .then(r => r.ok ? r.json() : { tests: [] })
-      .then(d => setSpellingTests(d.tests ?? []))
-      .catch(() => setSpellingTests([]));
-  }, [userId, selectedStudentId]);
+    // Fingerprint per the existing studentQuizFingerprint memo — same
+    // bust signal (paper id + completedAt + markingStatus). The memo
+    // isn't in scope here yet because of declaration order; rebuild
+    // inline so this effect can use it. Cheap (single-pass string
+    // join), already memoised once for fetchInsight.
+    let fpInline = 0;
+    const fpStr = examPapers
+      .filter(p => p.assignedToId === selectedStudentId && p.completedAt)
+      .map(p => `${p.id}:${p.completedAt}:${p.markingStatus ?? ""}`)
+      .sort()
+      .join("|");
+    for (let i = 0; i < fpStr.length; i++) fpInline = (fpInline * 31 + fpStr.charCodeAt(i)) | 0;
+    const fp = (fpInline >>> 0).toString(36);
+
+    const progKey = `progress-${selectedStudentId}`;
+    const testsKey = `tests-${selectedStudentId}`;
+    const cachedProgress = readCache<ProgressData>(progKey, fp);
+    const cachedTests = readCache<SpellingTestSummary[]>(testsKey, fp);
+    if (cachedProgress) {
+      setProgressData(cachedProgress);
+      setLoadingProgress(false);
+    } else {
+      setLoadingProgress(true);
+      setProgressData(null);
+      fetch(`/api/student-progress?parentId=${userId}&studentId=${selectedStudentId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((d: ProgressData | null) => {
+          setProgressData(d);
+          if (d) writeCache(progKey, fp, d);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingProgress(false));
+    }
+    if (cachedTests) {
+      setSpellingTests(cachedTests);
+    } else {
+      fetch(`/api/tests?userId=${selectedStudentId}`)
+        .then(r => r.ok ? r.json() : { tests: [] })
+        .then((d: { tests: SpellingTestSummary[] }) => {
+          const tests = d.tests ?? [];
+          setSpellingTests(tests);
+          writeCache(testsKey, fp, tests);
+        })
+        .catch(() => setSpellingTests([]));
+    }
+  // examPapers deliberately included — when the fingerprint changes
+  // (a paper finishes marking, a new assignment lands), we want the
+  // cache lookup to miss and the fetch to refresh.
+  }, [userId, selectedStudentId, examPapers]);
 
   // Fingerprint of the student's completed quizzes — when a new quiz is
   // submitted or its markingStatus flips (pending→complete→released), this
@@ -784,18 +846,32 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // Pull the structured weak-topics table that replaces the LLM's
   // "weak topics" bullet inside the AI Smart Insights card. Server
   // computes the recent-trend (last-5 vs last-10 question avg).
+  // Cached per (student, day, quizFingerprint) — see readCache /
+  // writeCache. Weak topics only move when a new quiz lands, so the
+  // fingerprint bust is the right signal.
   useEffect(() => {
+    if (!selectedStudentId) return;
+    const weakKey = `weak-topics-${selectedStudentId}`;
+    const cached = readCache<WeakTopicRow[]>(weakKey, studentQuizFingerprint);
+    if (cached) {
+      setInsightWeakTopics(cached);
+      return;
+    }
     // Clear synchronously so the previous student's table never flashes
     // while the new student's fetch is in flight.
     setInsightWeakTopics([]);
-    if (!selectedStudentId) return;
     let cancelled = false;
     fetch(`/api/student/weak-topics?studentId=${selectedStudentId}&limit=5`)
       .then(r => r.ok ? r.json() : { rows: [] })
-      .then((d: { rows: WeakTopicRow[] }) => { if (!cancelled) setInsightWeakTopics(d.rows ?? []); })
+      .then((d: { rows: WeakTopicRow[] }) => {
+        if (cancelled) return;
+        const rows = d.rows ?? [];
+        setInsightWeakTopics(rows);
+        writeCache(weakKey, studentQuizFingerprint, rows);
+      })
       .catch(() => { if (!cancelled) setInsightWeakTopics([]); });
     return () => { cancelled = true; };
-  }, [selectedStudentId]);
+  }, [selectedStudentId, studentQuizFingerprint]);
 
   // Map a clicked weak-topic row to the Focused Practice modal state
   // and open it. Math/Science route through focusedTopic; English maps

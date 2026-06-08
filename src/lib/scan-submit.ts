@@ -156,15 +156,16 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
     cloneId = clone.id;
   }
 
-  // Re-encode every page through sharp to a uniform 2400px JPEG so the
+  // Re-encode every page through sharp to a uniform 1800px JPEG so the
   // marker sees comparable input regardless of source (raw camera vs
-  // pre-processed scanner). Bumped from 1600 → 2400 (~200 DPI for an
-  // A4 page) after David's PSLE English scan came in at 665px wide
-  // and Gemini was reading the wrong row on tightly-packed Comp Cloze
-  // blanks. 2400px is the sweet spot — fine handwriting strokes are
-  // resolved without blowing up the file size past ~400 KB per page.
-  // withoutEnlargement keeps phones that already shoot at lower
-  // resolution from being upscaled (no synthetic detail).
+  // pre-processed scanner). 1800px ≈ 220 DPI for an A4 page — good
+  // enough for handwritten Comp Cloze blanks (each ~80px tall row,
+  // ~30-45px per letter) without ballooning file size. Up from 1600
+  // (was leaving too little headroom on tight handwriting) but
+  // deliberately not all the way to 2400 — diminishing accuracy
+  // return past 1800 and ~5 MB per 20-page paper is the right cost
+  // ceiling. withoutEnlargement keeps phones that already shoot at
+  // lower resolution from being upscaled (no synthetic detail).
   // Then mask the watermark corner.
   const subDir = path.join(SUBMISSIONS_DIR, cloneId);
   await fs.mkdir(subDir, { recursive: true });
@@ -172,7 +173,7 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   for (let i = 0; i < jpegBuffers.length; i++) {
     try {
       const norm = await sharp(jpegBuffers[i])
-        .resize({ width: 2400, withoutEnlargement: true })
+        .resize({ width: 1800, withoutEnlargement: true })
         .jpeg({ quality: 90 })
         .toBuffer();
       const masked = await maskBottomRightCorner(norm);

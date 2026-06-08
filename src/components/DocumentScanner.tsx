@@ -233,8 +233,17 @@ export default function DocumentScanner({
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            // 1920x1080 (HD video) was the bottleneck — after OpenCV
+            // perspective-corrected and cropped to the page boundary,
+            // saved scans landed at ~665px wide (David's PSLE English
+            // paper), well below the server's 1800px target and too
+            // coarse for tightly-packed Comp Cloze handwriting. 4K
+            // (3840x2160) is what modern phone rear cameras shoot
+            // stills at; `ideal:` is a soft constraint so phones that
+            // can't hit it fall back to their highest supported mode
+            // instead of failing the gUM call.
+            width: { ideal: 3840 },
+            height: { ideal: 2160 },
           },
           audio: false,
         }).catch((err: { name?: string }) => {
