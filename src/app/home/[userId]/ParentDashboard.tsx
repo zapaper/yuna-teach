@@ -117,12 +117,17 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 function subjectBlocksPrintScan(
   subject: string | null | undefined,
   isAdmin = false,
-  hasNormalExtractEnglish = false,
 ): boolean {
   const s = (subject ?? "").toLowerCase();
   const raw = subject ?? "";
   const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
-  if (s.includes("english")) return !(isAdmin || hasNormalExtractEnglish);
+  // English / Chinese print-scan is admin-only for now — we'll
+  // guarantee every English master goes through Normal Extract
+  // upstream, so the dashboard can hide the button on non-admin
+  // without a per-paper flag. Drops the hasNormalExtractEnglish
+  // field that previously gated this, and along with it the slow
+  // metadata fetch in /api/exam (~2 sec on a busy dashboard).
+  if (s.includes("english")) return !isAdmin;
   if (isChinese) return !isAdmin;
   return false;
 }
@@ -311,7 +316,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
-  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null; cleanExtracted: boolean; hasNormalExtractEnglish?: boolean } | null>(null);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null; cleanExtracted: boolean } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
 
   async function reschedulePaper(paperId: string, newDay: Date) {
@@ -3060,7 +3065,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
-                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser, p.hasNormalExtractEnglish) && (
+                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3154,7 +3159,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {unstartedPapers.map(paper => (
                     <div
                       key={paper.id}
-                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null, cleanExtracted: paper.cleanExtracted, hasNormalExtractEnglish: paper.hasNormalExtractEnglish })}
+                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null, cleanExtracted: paper.cleanExtracted })}
                       className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
                     >
                       <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
@@ -3175,7 +3180,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             clean-extract content with bounds, the
                             scan-back marking flow works uniformly
                             for regular / quiz / focused. */}
-                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser, paper.hasNormalExtractEnglish) && (
+                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3405,7 +3410,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted, hasNormalExtractEnglish: p.hasNormalExtractEnglish });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
@@ -3738,7 +3743,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted, hasNormalExtractEnglish: p.hasNormalExtractEnglish });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
@@ -4047,21 +4052,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // with lg:hidden. Both depend on knowing which student the
         // scheduler is currently filtered to (selectedStudentId).
         const popup = schedulerPopup;
-        // English + Chinese printables are disabled for now — the
-        // writing-comprehension / 短文填空 layouts don't translate
+        // English + Chinese printables are disabled for non-admin —
+        // the writing-comprehension / 短文填空 layouts don't translate
         // cleanly to lined/boxed A4. Hide both Print and Scan in the
-        // popup for those subjects.
-        let popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser, popup.hasNormalExtractEnglish);
-        // English Normal Extract gate: even for admin (who CAN print
-        // English), require at least one Normal Extract section flag
-        // to be set on the master. Without bounds the scan-back
-        // marker has nothing to crop with, so hide the controls
-        // entirely instead of letting admin print → scan → get empty
-        // marks.
-        const popupSubjLc = (popup.subject ?? "").toLowerCase();
-        if (popupSubjLc.includes("english") && !popup.hasNormalExtractEnglish) {
-          popupBlocked = true;
-        }
+        // popup for those subjects. Admin always allowed; we
+        // guarantee all English masters get Normal Extract upstream
+        // so we no longer gate on a per-paper flag.
+        const popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser);
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>

@@ -128,7 +128,7 @@ export default function DocumentScanner({
       // stale copy. Bump SCANNER_WORKER_VERSION whenever the worker
       // file changes; the query string forces a fresh fetch
       // regardless of the browser's existing Cache-Control entry.
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-e");
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-f");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
@@ -497,28 +497,42 @@ export default function DocumentScanner({
     }
 
     try {
-      // REQUIRE a live-loop quad. The earlier fallback to the full
-      // frame [[0,0],[vw,0],[vw,vh],[0,vh]] sent edge-of-screen
-      // coordinates to the warp, which is never what the user
-      // wanted — it preserved the entire camera frame (desk + hand
-      // + page) instead of cropping to the page. Refuse to capture
-      // until the live loop has found a quad. The capture button is
-      // already disabled in this state (edgeLocked === false), so
-      // this is a defensive bail rather than a normal path.
-      const liveQuad = lastQuadRef.current;
-      if (!liveQuad) {
-        setErrorMsg("Page edges not detected — line up the four corners and try again.");
-        setTimeout(() => setErrorMsg(""), 2500);
-        return;
+      // RESTORED — full-res re-detect at capture time. Was removed
+      // in c8f50361 thinking the live-loop's 480 px quad was good
+      // enough; it wasn't. Without this step, every capture relied
+      // on the downsampled live-loop quad which can be degenerate
+      // (collapsed points, off-page contour, frame-stale), and the
+      // warp then produced uniform output → CLAHE inflated it to
+      // pure white. Re-running detectQuad on the full-resolution
+      // still gives the worker a final precise look at the four
+      // page corners before warping. Costs ~1.5 s per capture but
+      // restores reliability.
+      const detectImg = sctx.getImageData(0, 0, vw, vh);
+      const detectId = `det-${Date.now()}`;
+      const detectMsg = await new Promise<WorkerMsg>((resolve, reject) => {
+        pendingRef.current.set(detectId, { resolve, reject });
+        worker.postMessage(
+          { id: detectId, type: "detect", imageData: detectImg },
+          [detectImg.data.buffer],
+        );
+      });
+      let quad: [number, number][] | null = detectMsg.type === "detected" ? detectMsg.quad : null;
+      if (!quad) {
+        // Full-res detect failed. Fall back to the live-loop quad
+        // (scaled up to full-res coords). If neither is available,
+        // bail with a clear error — never use the edge-of-screen
+        // fallback that warped the whole desk + hand + page frame.
+        const liveQuad = lastQuadRef.current;
+        if (!liveQuad) {
+          setErrorMsg("Page edges not detected — line up the four corners and try again.");
+          setTimeout(() => setErrorMsg(""), 2500);
+          return;
+        }
+        const detectMaxEdge = 480;
+        const detectScale = Math.min(1, detectMaxEdge / Math.max(vw, vh));
+        const quadScale = 1 / detectScale;
+        quad = liveQuad.map(([x, y]) => [x * quadScale, y * quadScale] as [number, number]);
       }
-      // Scale the live quad from detect-canvas (max 480 px edge) up
-      // to full video resolution.
-      const detectMaxEdge = 480;
-      const detectScale = Math.min(1, detectMaxEdge / Math.max(vw, vh));
-      const quadScale = 1 / detectScale;
-      const quad: [number, number][] = liveQuad.map(
-        ([x, y]) => [x * quadScale, y * quadScale] as [number, number]
-      );
 
       // Warp + dehaze via worker. Buffer is transferred — sctx is
       // disposable after this call.
