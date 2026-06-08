@@ -68,6 +68,21 @@ export function isQuotaExhaustedError(err: unknown): boolean {
   return false;
 }
 
+// Detects Gemini 5xx transients (504 DEADLINE_EXCEEDED, 503 UNAVAILABLE,
+// 502 Bad Gateway, internal RPC cancellations from prefill→decode). Used
+// by the per-OEQ marker as the trigger for a final OpenAI fallback after
+// Gemini's own retries have all failed with a transient signal — i.e.
+// when retrying again on Gemini is unlikely to help, but a different
+// provider might.
+export function isTransientServerError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as Record<string, unknown>;
+  if (typeof e.status === "number" && e.status >= 500 && e.status <= 599) return true;
+  const msg = typeof e.message === "string" ? e.message : "";
+  if (/\b5\d{2}\b|DEADLINE_EXCEEDED|UNAVAILABLE|Stream cancelled|RPC.*CANCELLED|Failed to run inference/i.test(msg)) return true;
+  return false;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GeminiParams = any;
 

@@ -2,7 +2,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
-import { isOpenAIFallbackEnabled, runOpenAIFallback } from "@/lib/openai-fallback";
+import { isOpenAIFallbackEnabled, isTransientServerError, runOpenAIFallback } from "@/lib/openai-fallback";
 import { generateContentWithRetry } from "@/lib/gemini";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -1922,6 +1922,67 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   console.log(`[marking] remarkSingleQuestion done, new total=${total}`);
 }
 
+// Maximum unmarked OEQs we'll let through on the "complete with caveat"
+// path. More than this and the paper still falls back to status=failed
+// (the parent had better re-mark — partial coverage past 2 questions
+// stops being useful).
+const MAX_UNMARKED_FOR_CAVEAT = 2;
+
+// Last-resort OpenAI marking attempt for a single OEQ. Called from
+// inside the per-OEQ retry loops AFTER every Gemini attempt has
+// failed with a 5xx-class transient (504 DEADLINE_EXCEEDED, 503
+// UNAVAILABLE, stream cancellations). When OpenAI fallback is wired
+// up, this is the "4th attempt" promised to parents — Gemini's three
+// tries plus one OpenAI try (translated to gpt-5.4 via the existing
+// model map). Returns the response text on success, null otherwise
+// (which the caller then funnels into the unmarked-list).
+async function tryOpenAIMarkingFallback(
+  params: { model: string; contents: unknown; config?: unknown },
+  lastErr: unknown,
+  label: string,
+): Promise<{ text: string } | null> {
+  if (!isOpenAIFallbackEnabled()) return null;
+  if (!isTransientServerError(lastErr)) return null;
+  try {
+    console.warn(`[marking] ${label} — Gemini failed with transient 5xx, attempting OpenAI fallback (gpt-5.4)`);
+    // Bump the routed Gemini model to the highest tier so the OpenAI
+    // mapper picks gpt-5.4 (pro). Keeps the prompt + image parts as-is.
+    return await runOpenAIFallback({ ...params, model: "gemini-3.1-pro-preview" }, label);
+  } catch (err) {
+    console.warn(`[marking] ${label} — OpenAI fallback also failed:`, err);
+    return null;
+  }
+}
+
+// After marking commits and feedbackSummary has been generated, prepend
+// a one-line caveat naming any OEQs that could not be marked, so the
+// parent sees the warning at the very top of the summary. Only called
+// when the paper passed the "1-2 unmarked" complete-with-caveat gate.
+async function applyMarkingCaveat(
+  paperId: string,
+  unmarked: Array<{ questionNum: string }>,
+): Promise<void> {
+  if (unmarked.length === 0) return;
+  const names = unmarked.map(q => `Q${q.questionNum}`);
+  const list = names.length === 1
+    ? names[0]
+    : names.length === 2
+    ? `${names[0]} and ${names[1]}`
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  const caveat = `⚠️ ${list} couldn't be marked automatically — please review manually.`;
+  const after = await prisma.examPaper.findUnique({
+    where: { id: paperId },
+    select: { feedbackSummary: true },
+  });
+  const existing = (after?.feedbackSummary ?? "").trim();
+  const combined = existing ? `${caveat}\n\n${existing}` : caveat;
+  await prisma.examPaper.update({
+    where: { id: paperId },
+    data: { feedbackSummary: combined },
+  });
+  console.warn(`[marking] Paper ${paperId} complete with caveat: ${caveat}`);
+}
+
 // One-shot MCQ reconciliation. Walks every question on the paper, and
 // for each row that the marker treats as an MCQ (4 transcribed options
 // OR a 1-4 digit answer), recomputes marksAwarded purely from the
@@ -2678,14 +2739,15 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject) + chineseMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
+          const retryReqParams = {
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts }],
+            config: { responseMimeType: "application/json", temperature: 0.1 },
+          };
           try {
             console.log(`[marking] Retry for Q${q.questionNum} (${q.id})${useCrop ? " [cropped]" : ""}`);
             const response = await withTimeout(
-              getAI().models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: [{ role: "user", parts }],
-                config: { responseMimeType: "application/json", temperature: 0.1 },
-              }),
+              getAI().models.generateContent(retryReqParams),
               GEMINI_TIMEOUT_MS,
               `retry Q${q.questionNum}`
             );
@@ -2701,6 +2763,21 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             return null;
           } catch (err) {
             console.warn(`[marking] Retry failed for Q${q.questionNum}:`, err);
+            // 4th attempt — OpenAI fallback for 5xx-class transients.
+            const openaiResp = await tryOpenAIMarkingFallback(retryReqParams, err, `retry Q${q.questionNum}`);
+            if (openaiResp?.text) {
+              try {
+                const parsed = extractJson(openaiResp.text) as { questions: QuestionMarkResult[] };
+                const result = parsed.questions.find((r) => r.questionId === q.id) ?? parsed.questions[0];
+                if (result) {
+                  result.questionId = q.id;
+                  console.log(`[marking] Q${q.questionNum} salvaged by OpenAI fallback: ${result.marksAwarded}/${result.marksAvailable}`);
+                  return result;
+                }
+              } catch (parseErr) {
+                console.warn(`[marking] OpenAI fallback for Q${q.questionNum} returned unparseable JSON:`, parseErr);
+              }
+            }
             return null;
           }
         })
@@ -3340,7 +3417,11 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       q.studentAnswer !== "__SKIPPED__" &&
       (q.marksAwarded == null || q.markingNotes == null)
     );
-    if (unmarked.length > 0) {
+    // Three-way policy (mirrors markQuizPaper):
+    //   0 unmarked → complete.
+    //   1-2 unmarked → complete with caveat prepended to feedbackSummary.
+    //   3+ unmarked → fail the whole paper.
+    if (unmarked.length > MAX_UNMARKED_FOR_CAVEAT) {
       console.error(`[marking] Paper ${paperId} has ${unmarked.length} questions with no marking output: ${unmarked.map(q => `Q${q.questionNum}`).join(", ")} — marking as failed`);
       await prisma.examPaper.update({
         where: { id: paperId },
@@ -3373,6 +3454,12 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         console.error(`[marking] Auto-summary failed for ${paperId}:`, err);
       }
     }
+
+    // Prepend the "couldn't mark Q…" caveat to feedbackSummary. Runs
+    // regardless of instantFeedback — the warning is useful whether the
+    // summary was auto-generated now or will be generated on parent
+    // release. No-op when unmarked is empty.
+    await applyMarkingCaveat(paperId, unmarked);
 
     // Auto-release if 100% score and student has skipReviewPerfect enabled
     const examTotalAvailable = [...validResults.values()].reduce((s, r) => s + (r.marksAvailable ?? 0), 0);
@@ -6167,12 +6254,64 @@ Return ONLY valid JSON:
             console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} (${QUIZ_MODELS[attempt]}) failed:`, err);
           }
         }
+        // OpenAI fallback (the "4th attempt"): only fires when Gemini
+        // exhausted its tries with a transient 5xx-class error. Pure
+        // synonyms-disagree or parse failures aren't going to be helped
+        // by a different vendor on the same image, so we don't burn an
+        // OpenAI call on those — they fall straight through to the
+        // unmarked write below.
         if (lastErr) {
-          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed after ${QUIZ_MODELS.length} attempts:`, lastErr);
+          const fallbackParts = lastParseFailText
+            ? [...markParts, { text: JSON_ONLY_REMINDER }]
+            : markParts;
+          const openaiResp = await tryOpenAIMarkingFallback(
+            {
+              model: QUIZ_MODELS[QUIZ_MODELS.length - 1],
+              contents: [{ role: "user", parts: fallbackParts }],
+              config: { temperature: needsPro ? 0 : 0.1, responseMimeType: "application/json" },
+            },
+            lastErr,
+            `quiz-oeq-q${q.questionNum}`,
+          );
+          if (openaiResp) {
+            const text = openaiResp.text?.trim() ?? "";
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
+                parsed.studentAnswer = detectedAnswer || parsed.studentAnswer;
+                const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
+                updates.push(
+                  prisma.examQuestion.update({
+                    where: { id: q.id },
+                    data: {
+                      marksAwarded: awarded,
+                      studentAnswer: parsed.studentAnswer || null,
+                      markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                    },
+                  }),
+                );
+                console.log(`[quiz-marking] OEQ Q${q.questionNum} marked by OpenAI fallback: ${awarded}/${marksAvailable}`);
+                lastErr = null;
+                lastParseFailText = null;
+              } catch (err) {
+                console.warn(`[quiz-marking] OEQ Q${q.questionNum} OpenAI fallback returned unparseable JSON:`, err);
+              }
+            } else {
+              console.warn(`[quiz-marking] OEQ Q${q.questionNum} OpenAI fallback returned no JSON`);
+            }
+          }
+        }
+        if (lastErr) {
+          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed after ${QUIZ_MODELS.length} Gemini attempts (+ OpenAI fallback if applicable):`, lastErr);
           updates.push(
             prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: 0, markingNotes: "Marking error — AI unavailable, please re-mark" },
+              // Leave marksAwarded NULL so the end-of-marker unmarked
+              // check catches this question and either triggers the
+              // "complete with caveat" branch (≤2 unmarked) or fails
+              // the whole paper (>2 unmarked).
+              data: { marksAwarded: null, markingNotes: "Marking error — AI unavailable, please re-mark" },
             })
           );
         } else if (lastParseFailText !== null) {
@@ -6180,7 +6319,7 @@ Return ONLY valid JSON:
           updates.push(
             prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: 0, markingNotes: "Failed to parse AI response after retries — please re-mark" },
+              data: { marksAwarded: null, markingNotes: "Failed to parse AI response after retries — please re-mark" },
             })
           );
         }
@@ -6250,15 +6389,23 @@ Return ONLY valid JSON:
     }
 
     const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
-    // A question is "unmarked" when it has neither a written verdict
-    // (markingNotes) nor an awarded mark and the student didn't
-    // explicitly skip it. Refuse to claim "complete" in that state —
-    // dashboard will show the failed state and re-mark is available.
+    // A question is "unmarked" when the marker couldn't commit a verdict
+    // (marksAwarded is null) or never produced a note, and the student
+    // didn't explicitly skip it. The OEQ retry loops above now leave
+    // marksAwarded NULL (rather than 0) on a real marker failure, so
+    // this filter catches them cleanly.
     const unmarked = finalState.filter(q =>
       q.studentAnswer !== "__SKIPPED__" &&
       (q.marksAwarded == null || q.markingNotes == null)
     );
-    if (unmarked.length > 0) {
+    // Three-way policy:
+    //   0 unmarked → complete (existing).
+    //   1-2 unmarked → complete but with a caveat prepended to the
+    //     parent-facing feedbackSummary so they know which Qs need a
+    //     manual review.
+    //   3+ unmarked → genuine failure, mark the whole paper as failed
+    //     so the dashboard surfaces the "re-mark" path.
+    if (unmarked.length > MAX_UNMARKED_FOR_CAVEAT) {
       console.error(`[quiz-marking] Paper ${paperId} has ${unmarked.length} questions with no marking output: ${unmarked.map(q => `Q${q.questionNum}`).join(", ")} — marking as failed`);
       await prisma.examPaper.update({
         where: { id: paperId },
@@ -6273,6 +6420,11 @@ Return ONLY valid JSON:
 
     // Generate feedback
     await generateFeedbackSummary(paperId);
+
+    // Prepend the "couldn't mark Q… — please review manually" caveat
+    // AFTER generateFeedbackSummary writes its own text, so the parent
+    // sees the warning at the very top of the summary card.
+    await applyMarkingCaveat(paperId, unmarked);
 
     // Auto-release if 100% score and student has skipReviewPerfect enabled
     const totalAvailable = paper.questions.reduce((sum, q) => sum + (q.marksAvailable ?? 0), 0);

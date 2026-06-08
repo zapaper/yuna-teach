@@ -1827,14 +1827,20 @@ function ExamReviewContent({ id }: { id: string }) {
                       alert(`Export failed: ${detail.detail ?? r.status}`);
                       return;
                     }
+                    // Read the server's filename out of Content-Disposition
+                    // BEFORE the blob URL strips the original URL's filename
+                    // away. On blob: URLs the browser ignores the response
+                    // header entirely and uses a.download instead, so the
+                    // previous hardcoded "marked-paper.pdf" was overriding
+                    // the real server filename every time.
+                    const cdHeader = r.headers.get("Content-Disposition") ?? "";
+                    const cdMatch = cdHeader.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+?)["']?(?:;|$)/i);
+                    const serverFilename = cdMatch?.[1]?.trim();
                     const blob = await r.blob();
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    // Server sets a Content-Disposition with the proper title
-                    // already; this fallback name only kicks in if the browser
-                    // ignores it, which most don't.
-                    a.download = "marked-paper.pdf";
+                    a.download = serverFilename || "Marked paper.pdf";
                     document.body.appendChild(a);
                     a.click();
                     a.remove();

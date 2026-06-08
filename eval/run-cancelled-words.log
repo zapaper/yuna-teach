@@ -1,0 +1,110 @@
+Eval: 10 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter ... [cmp1aebd00001ftsttx409h23] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry ... [cmoc9clzi0001gb2t256cysx9] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1 ... [cmpgb1zq0001d10h27r3nsudm] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmpffd3wu000i1032c8w0t5pm] P6 Grammar MCQ+ ... [cmpffd3wu000i1032c8w0t5pm] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmp0z7a390001ypkf6juin4qb] P6 Editing+ ... [cmp0z7a390001ypkf6juin4qb] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmozc5icr000d11l735uqp939] P6 Focused: Fractions ... [cmozc5icr000d11l735uqp939] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry ... [cmozcbl4e001d11l7dro13hbp] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio ... [cmotr5qoz000ih6io0b4z2erx] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems ... [cmoqkmwxa000pwu99qiiwf74x] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+[cmq0tgcuc00011e0qqv3pfcjc] PSLE Chinese 2025 ... [cmq0tgcuc00011e0qqv3pfcjc] FAILED: 
+Invalid `prisma.examPaper.findUnique()` invocation in
+C:\Users\peter\Yuna teach\yuna-teach\scripts\run-marking-eval.ts:232:41
+
+  229 }
+  230 
+  231 async function clonePaper(sourceId: string): Promise<string> {
+→ 232   const source = await prisma.examPaper.findUnique(
+The column `exam_papers.isRevision` does not exist in the current database.
+
+=== DIFFS ===
+(none — all papers within ±0.5)
+
+=== SUMMARY ===
+Papers: 0/0 pass
+Questions: 0/0 match within ±0.5 (NaN%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json

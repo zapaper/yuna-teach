@@ -1,0 +1,48 @@
+Eval: 10 paper(s), tolerance ±0.5 mark per question, cleanup=false
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter ...   remote fetch: 21 files OK, 18 failed
+cloned=cmq4ujtp10… marked. 8/10 FAIL (total 15.5 vs 19.5)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry ... fetched=19 cloned=cmq4ulmya0… marked. 9/10 FAIL (total 15 vs 16)
+
+[cmpgb1zq0001d10h27r3nsudm] Mastery: Interactions within the Environment Quiz 1 ... fetched=46 cloned=cmq4umi4o0… marked. 16/16 PASS (total 36.5 vs 37)
+
+[cmpffd3wu000i1032c8w0t5pm] P6 Grammar MCQ+ ... fetched=0 cloned=cmq4ur96t0… marked. 27/27 PASS (total 25 vs 25)
+
+[cmp0z7a390001ypkf6juin4qb] P6 Editing+ ... fetched=0 cloned=cmq4uri370… marked. 27/27 PASS (total 32 vs 32)
+
+[cmozc5icr000d11l735uqp939] P6 Focused: Fractions ... fetched=21 cloned=cmq4urpzr0… marked. 10/10 PASS (total 14 vs 14)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry ... fetched=19 cloned=cmq4utgjz0… marked. 9/10 FAIL (total 23 vs 19)
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio ... fetched=19 cloned=cmq4uva5v0… marked. 8/10 FAIL (total 19 vs 19)
+
+[cmoqkmwxa000pwu99qiiwf74x] P6 Focused: Human respiratory and circulatory systems ... fetched=39 cloned=cmq4uw6590… marked. 10/10 PASS (total 12.5 vs 12.5)
+
+[cmq0tgcuc00011e0qqv3pfcjc] PSLE Chinese 2025 ... fetched=38 cloned=cmq4uy4a90… marked. 40/40 PASS (total 83 vs 83)
+
+=== DIFFS ===
+
+[cmp1aebd00001ftsttx409h23] P4 Focused: Cycles in matter
+  8/10 match, total 15.5 vs 19.5 expected
+  Q9: expected 2, got 0 (Δ-2)
+  Q10: expected 2, got 0 (Δ-2)
+
+[cmoc9clzi0001gb2t256cysx9] P4 Focused: Geometry
+  9/10 match, total 15 vs 16 expected
+  Q9: expected 2, got 1 (Δ-1)
+
+[cmozcbl4e001d11l7dro13hbp] P6 Focused: Geometry
+  9/10 match, total 23 vs 19 expected
+  Q7: expected 0, got 4 (Δ+4)
+
+[cmotr5qoz000ih6io0b4z2erx] P6 Focused: Ratio
+  8/10 match, total 19 vs 19 expected
+  Q9: expected 1, got 2 (Δ+1)
+  Q10: expected 2, got 1 (Δ-1)
+
+=== SUMMARY ===
+Papers: 6/10 pass
+Questions: 164/170 match within ±0.5 (96.5%)
+
+Wrote C:\Users\peter\Yuna teach\yuna-teach\eval\results.json
