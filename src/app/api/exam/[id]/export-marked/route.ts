@@ -593,10 +593,11 @@ async function handle(
     // comfortable teacher-paper reading size next to the stamp.
     const noteSize = Math.max(27, Math.round(pageH * 0.021));
     // English OEQ pages (Comp OEQ, Synthesis) have tight handwriting
-    // lines with little white space between rows; using the full-size
-    // teacher note tends to crowd the student's writing. Shrink ~20%
-    // (≈ 2 visual sizes) so a couple of comments fit in the same band.
-    const englishOeqNoteSize = Math.max(22, Math.round(noteSize * 0.78));
+    // lines AND wordy marker notes — full English answers can run 3-5
+    // lines of teacher commentary. Shrink the font hard (~50% of the
+    // standard teacher note) so a longer comment still fits in the
+    // available band without crowding the student's writing.
+    const englishOeqNoteSize = Math.max(14, Math.round(noteSize * 0.5));
     const isScience = (paper.subject ?? "").toLowerCase().includes("science");
     const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
 
@@ -698,33 +699,43 @@ async function handle(
           // size so notes fit in the cramped row spacing of English
           // writing-pad pages. Math/Science OEQ keeps the original.
           const effNoteSize = (isEnglish && isOeq) ? englishOeqNoteSize : noteSize;
-          // Search both directions for the nearest whitespace band big
-          // enough for the note. If the band is far from the cross,
-          // prepend the subpart label (e.g. "(b) ") so the reader can
-          // still tie the comment back to the right subpart. We wrap
-          // AFTER picking the band so the label is part of the first
-          // line and wraps with it.
-          const provisionalBlockH = Math.ceil(effNoteSize * 1.25 * 2); // worst-case 2 lines
-          const searchStartY = yPx + markSize * 0.6;
-          const band = findWhitespaceBand(
-            searchStartY,
+          // Maximum lines we'll let a note wrap to. English Comp OEQ +
+          // Synthesis notes are wordy (whole-sentence rewrites + grammar
+          // explanations) and historically got truncated at 2 lines — a
+          // note that ends "...because the meaning of the sentence is" mid-
+          // sentence is worse than no note. Give the English path room to
+          // breathe. Math/Science notes stay capped at 2 (their format is
+          // ' / '-separated lines and the existing flow already keeps it
+          // tight).
+          const maxNoteLines = (isEnglish && isOeq) ? 8 : 2;
+
+          const rawLines = (isCompCloze
+            ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
+            : (m.note ? stripLatex(m.note) : "")
+          ).split(" / ").map(s => s.trim()).filter(Boolean);
+
+          // Determine the label-prepend decision FIRST, then wrap. The
+          // label needs to live on the first line so a long wrapped note
+          // still ties back to (a)/(b)/(c).
+          const alreadyLabelled = /^\s*\(/.test(rawNote);
+          // Provisional band search just to read .distance — used to
+          // decide whether to label. Actual placement happens below.
+          const provisionalBlockH = Math.ceil(effNoteSize * 1.25 * maxNoteLines);
+          const initialBand = findWhitespaceBand(
+            yPx + markSize * 0.6,
             Math.ceil(grayH * 0.3),
             provisionalBlockH,
           );
-          // Subpart label: ALWAYS prepend for Comp OEQ when present so
-          // the reader doesn't have to guess which subpart the note
-          // belongs to. For other OEQ subjects, only label when the
-          // note has drifted too far from the cross to be visually
-          // attached (preserves the tighter math layout).
           const TOO_FAR = markSize * 2.5;
-          const alreadyLabelled = /^\s*\(/.test(rawNote);
-          const labelIt = m.label && !alreadyLabelled && !isCompCloze && (isCompOeq || band.distance > TOO_FAR);
-          const noteText = labelIt ? `(${m.label}) ${rawNote}` : rawNote;
+          const labelIt = m.label && !alreadyLabelled && !isCompCloze && (isCompOeq || initialBand.distance > TOO_FAR);
+          const labelPrefix = labelIt ? `(${m.label}) ` : "";
+          // Prepend the label to the first raw line so the wrapper keeps
+          // them visually attached.
+          if (rawLines.length > 0 && labelPrefix) rawLines[0] = `${labelPrefix}${rawLines[0]}`;
 
-          const rawLines = noteText.split(" / ").map(s => s.trim()).filter(Boolean);
           // Adaptive width: try a tight 55% first so short notes stay
           // compact. If that forces a wrap, give the note 75% so the
-          // second line gets more horizontal room before we cap at 2.
+          // longer English commentary gets more horizontal room.
           const wrapAt = (maxW: number) => {
             const out: string[] = [];
             for (const line of rawLines) {
@@ -734,7 +745,18 @@ async function handle(
           };
           let wrapped = wrapAt(pageW * 0.55);
           if (wrapped.length > 1) wrapped = wrapAt(pageW * 0.75);
-          const capped = wrapped.slice(0, 2);
+          // Cap at maxNoteLines BUT never silently truncate mid-thought.
+          // If wrapped overflows, drop the cap to add an ellipsis on the
+          // final visible line so the parent knows the note continues
+          // somewhere (the markingNotes column has the full text).
+          let capped = wrapped.slice(0, maxNoteLines);
+          if (wrapped.length > capped.length) {
+            const last = capped[capped.length - 1] ?? "";
+            capped = [
+              ...capped.slice(0, -1),
+              (last + " …").trimEnd(),
+            ];
+          }
 
           // Left-justified: every line starts at the same x. Anchor
           // the block so its longest line ends near the mark column,
@@ -744,23 +766,41 @@ async function handle(
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
-          // Vertical anchor strategy:
-          //   - Whitespace band found → use it.
-          //   - Fallback (no band) → ride the BOTTOM of the question's
-          //     bounding region. Each question on a crowded Comp Cloze
-          //     page has a different region bottom, so this stops the
-          //     notes from stacking at the same page-foot row.
-          //   - Whichever anchor we pick, slide DOWN as long as the
-          //     proposed rect overlaps an earlier note on this page.
-          //     Gap is one line-spacing so adjacent notes read as
-          //     separate comments rather than a paragraph.
+          // Vertical anchor strategy (prefers BELOW the question's
+          // yEnd when there is room):
+          //   1. Try the strip immediately below regionTopPx+regionH (i.e.
+          //      below yEnd) — if the block fits there before running off
+          //      the page, use it. This keeps the comment visually next
+          //      to the question it belongs to.
+          //   2. Otherwise, do the whitespace-band search the way the
+          //      math/science path always has.
+          //   3. Final fallback: anchor at the BOTTOM of the question's
+          //      bounding region (so two crowded questions on one page
+          //      get different y positions).
           const lineSpacingPx = effNoteSize * 1.25;
           const blockH = Math.ceil(effNoteSize * 1.25 * capped.length);
+          const belowYEnd = regionTopPx + regionH + Math.round(effNoteSize * 0.3);
+          const fitsBelowYEnd = belowYEnd + blockH + 4 <= grayH;
           let wsTop: number;
-          if (band.direction === "fallback") {
+          if (fitsBelowYEnd) {
+            wsTop = belowYEnd;
+          } else if (initialBand.direction === "fallback") {
             wsTop = Math.min(grayH - blockH - 4, regionTopPx + regionH - blockH - 4);
           } else {
-            wsTop = band.y;
+            // Re-search the band with the ACTUAL block height (since
+            // capped may be < maxNoteLines for short notes — wider
+            // search lets a small note fit a narrow whitespace gap
+            // that the provisional search rejected).
+            const refined = findWhitespaceBand(
+              yPx + markSize * 0.6,
+              Math.ceil(grayH * 0.3),
+              blockH,
+            );
+            if (refined.direction === "fallback") {
+              wsTop = Math.min(grayH - blockH - 4, regionTopPx + regionH - blockH - 4);
+            } else {
+              wsTop = refined.y;
+            }
           }
           // PDF-y coordinate of the note block's TOP-LEFT corner.
           let pdfTopY = pageH - wsTop - effNoteSize;
