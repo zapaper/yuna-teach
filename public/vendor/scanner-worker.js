@@ -211,17 +211,21 @@ function correctDogEar(cv, edgesMat, quad) {
     realSide = tlDx < trDx ? "TL" : "TR";
   }
 
-  // Compute the final TL / TR positions and remember which side (if
-  // any) was interpolated. The overlay then draws the real side as
-  // green and the interpolated side as yellow so we can see at a
-  // glance where the keystone mirror put the missing corner vs
-  // where the trace actually stopped.
-  let finalTL = tlTrace;
-  let finalTR = trTrace;
+  // Compute the final TL / TR positions. Default = the original
+  // minAreaRect rectangle corners (tl / tr) so a trace that fails
+  // to reach the top — common when contrast is low or the page edge
+  // is faint — doesn't collapse the quad into a horizontal strip.
+  // Only override when a dog-ear is actually detected: on the real
+  // side, use the trace endpoint (which tracked the visible edge);
+  // on the dog-eared side, use the keystone mirror.
+  let finalTL = tl;
+  let finalTR = tr;
   if (realSide === "TL") {
+    finalTL = tlTrace;                        // real side uses trace
     const newTrX = br[0] - tlDxSigned;        // ← KEYSTONE MIRROR
     finalTR = [Math.max(0, Math.min(w - 1, newTrX)), tlTrace[1]];
   } else if (realSide === "TR") {
+    finalTR = trTrace;
     const newTlX = bl[0] - trDxSigned;        // ← KEYSTONE MIRROR
     finalTL = [Math.max(0, Math.min(w - 1, newTlX)), trTrace[1]];
   }
