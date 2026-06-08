@@ -423,7 +423,15 @@ function warpAndClean(cv, imageData, quad) {
 
     clahe = new cv.CLAHE(2.5, new cv.Size(8, 8));
     clahe.apply(L, L);
-    L.convertTo(L, -1, 1.18, -22);
+    // Gentler final stretch (was 1.18, -22). The aggressive version
+    // was crushing dark-blue pen ink (L ≈ 30-45) down to near-black,
+    // because the shadow-flatten already adds +220 bias, then CLAHE
+    // amplifies local contrast, and 1.18×−22 finishes the job. Net
+    // effect: blue ink looked black on the saved scan. 1.08×−10 keeps
+    // paper whites genuinely white but leaves enough headroom in the
+    // lows for blue ink to read as blue (the a/b channels carry the
+    // hue, but only if L isn't crushed to ~0).
+    L.convertTo(L, -1, 1.08, -10);
     cv.merge(labChannels, lab);
     cv.cvtColor(lab, rgb, cv.COLOR_Lab2RGB);
 
