@@ -102,40 +102,119 @@ function extremeCornersFromHull(hull) {
   return [tl, tr, br, bl];
 }
 
+// Clamp a single point inside image bounds. Used to keep
+// parallelogram-predicted corners on-canvas so warpPerspective
+// doesn't receive impossible source coordinates.
+function clampPoint(p, w, h) {
+  return [
+    Math.max(0, Math.min(w - 1, p[0])),
+    Math.max(0, Math.min(h - 1, p[1])),
+  ];
+}
+
+// Check whether the vertical edge of the page actually leads up to
+// the proposed top corner. Walk a line from the bottom corner to
+// the candidate top corner, sampling points along the way. For
+// each sample point, check whether there's a high-gradient pixel
+// in a small neighbourhood (the Canny edges Mat already encodes
+// where page edges are). Returns the hit ratio in [0, 1].
+//
+// Real top corner: the page's vertical edge tracks the line from
+// bottom corner upward, so most samples find a nearby edge pixel.
+// Dog-ear / folded corner: the visible edge stops short or veers
+// inward; few samples find a nearby edge pixel → low hit ratio.
+function verticalEdgeSupport(edgesMat, topPt, bottomPt) {
+  if (!edgesMat || !topPt || !bottomPt) return 0;
+  const w = edgesMat.cols, h = edgesMat.rows;
+  const data = edgesMat.data; // Uint8 flat buffer
+  const samples = 12;
+  const radius = 6;
+  let hits = 0;
+  let total = 0;
+  // Skip the very ends of the line (the corners themselves) — a
+  // corner pixel always lights up in Canny, so we'd get a false
+  // positive on the bottom corner side.
+  for (let i = 2; i < samples - 2; i++) {
+    const t = i / (samples - 1);
+    const cx = Math.round(topPt[0] * (1 - t) + bottomPt[0] * t);
+    const cy = Math.round(topPt[1] * (1 - t) + bottomPt[1] * t);
+    if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+    let found = false;
+    for (let dy = -radius; dy <= radius && !found; dy++) {
+      const yy = cy + dy;
+      if (yy < 0 || yy >= h) continue;
+      for (let dx = -radius; dx <= radius; dx++) {
+        const xx = cx + dx;
+        if (xx < 0 || xx >= w) continue;
+        if (data[yy * w + xx] > 0) { found = true; break; }
+      }
+    }
+    if (found) hits++;
+    total++;
+  }
+  return total > 0 ? hits / total : 0;
+}
+
 // Parallelogram correction — TOP corners only.
 // Dog-ears, hand occlusion, and out-of-frame edges happen at the
 // TOP of the page because the student/parent holds the paper at
 // the bottom. Bottom corners are always reliable; correcting them
 // would mask real misdetection (e.g. a bad bottom corner means
 // the whole detection is wrong, not just one corner).
-// Use the parallelogram identity `tl + br = tr + bl` to predict
-// each top corner from the other 3 corners. If exactly ONE top
-// corner deviates significantly from prediction (the other top
-// agrees well), replace it with the predicted position. This is
-// the "mirror the same x-delta" rule applied as a vector identity.
-function correctDogEaredCorner(quad) {
+//
+// Decision logic:
+//   1. Use the vertical-edge support check as the PRIMARY signal —
+//      if the page edge doesn't lead up to a top corner, it's
+//      almost certainly a dog-ear regardless of geometry.
+//   2. Fall back to parallelogram deviation as a secondary check
+//      when an edges Mat isn't available (e.g. one of the older
+//      code paths still calls without it).
+// The "fix" is the parallelogram prediction `tl + br = tr + bl`
+// rearranged for the dog-eared corner, then clamped on-canvas.
+function correctDogEaredCorner(quad, edgesMat, imgW, imgH) {
   if (!quad || quad.length !== 4) return quad;
-  const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
   for (const p of quad) {
     if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
   }
+  const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
   const tlExp = [bl[0] + tr[0] - br[0], bl[1] + tr[1] - br[1]];
   const trExp = [br[0] + tl[0] - bl[0], br[1] + tl[1] - bl[1]];
+  const w = imgW || (edgesMat && edgesMat.cols) || 1;
+  const h = imgH || (edgesMat && edgesMat.rows) || 1;
+  // PRIMARY signal: vertical-edge support. Real top corner has the
+  // page edge leading up to it from the bottom; dog-ear / fold
+  // does not. Threshold 0.4 = at least 40 % of samples on the line
+  // from bottom to top corner have a Canny edge pixel within 6 px.
+  if (edgesMat) {
+    const tlSupport = verticalEdgeSupport(edgesMat, tl, bl);
+    const trSupport = verticalEdgeSupport(edgesMat, tr, br);
+    const T = 0.4;
+    if (tlSupport < T && trSupport >= T) {
+      return [clampPoint(tlExp, w, h), tr, br, bl];
+    }
+    if (trSupport < T && tlSupport >= T) {
+      return [tl, clampPoint(trExp, w, h), br, bl];
+    }
+    // If both top corners pass the edge-support check, trust the
+    // detection — no correction needed.
+    if (tlSupport >= T && trSupport >= T) return quad;
+    // Both failed: fall through to the parallelogram-deviation
+    // backup below, which may still correct one of them.
+  }
+  // BACKUP signal: parallelogram-deviation magnitude. Less
+  // reliable than the edge check (when one corner is wrong, BOTH
+  // top deviations grow), but better than nothing.
   const dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
   const dTl = dist(tl, tlExp);
   const dTr = dist(tr, trExp);
   const diag = Math.hypot(br[0] - tl[0], br[1] - tl[1]);
   if (!Number.isFinite(diag) || diag <= 0) return quad;
   const threshold = diag * 0.12;
-  // Only one top corner gets corrected per call. If BOTH top
-  // corners deviate, the page is non-parallelogram (extreme angle,
-  // or a bottom corner is wrong); leave the quad alone rather than
-  // synthesise both.
   if (dTl > threshold && dTr < threshold * 0.6) {
-    return [tlExp, tr, br, bl];
+    return [clampPoint(tlExp, w, h), tr, br, bl];
   }
   if (dTr > threshold && dTl < threshold * 0.6) {
-    return [tl, trExp, br, bl];
+    return [tl, clampPoint(trExp, w, h), br, bl];
   }
   return quad;
 }
@@ -251,7 +330,7 @@ function detectQuad(cv, imageData, opts) {
         c.delete();
       }
     }
-    if (bestQuad) return correctDogEaredCorner(bestQuad.quad);
+    if (bestQuad) return correctDogEaredCorner(bestQuad.quad, edges, w, h);
 
     // PASS 1.5: no clean 4-vertex contour was found, but a large
     // contour exists with a dog-eared / occluded corner. Take its
@@ -294,7 +373,7 @@ function detectQuad(cv, imageData, opts) {
         c.delete();
       }
     }
-    if (bestExtreme) return correctDogEaredCorner(bestExtreme.quad);
+    if (bestExtreme) return correctDogEaredCorner(bestExtreme.quad, edges, w, h);
 
     // PASS 2: no clean 4-vertex contour. Fall back to
     // minAreaRect — same logic as before for handling folded
@@ -389,6 +468,27 @@ function warpAndClean(cv, imageData, quad) {
     labChannels = new cv.MatVector();
     cv.split(lab, labChannels);
     const L = labChannels.get(0);
+
+    // Degenerate-warp guard. If the L (luminance) channel has
+    // nearly-zero std-dev, the warpPerspective output is uniform
+    // (quad pointed at an empty / bright desk region, or quad
+    // points were too close together). CLAHE on a uniform input
+    // amplifies tiny variations to maximum contrast, then the
+    // 1.18× stretch below pushes everything past 255 — producing
+    // a pure-white scan that's been the headline bug all session.
+    // Bail with a clear error message instead of returning white.
+    const meanMat = new cv.Mat();
+    const stdMat = new cv.Mat();
+    try {
+      cv.meanStdDev(L, meanMat, stdMat);
+      const stdL = stdMat.data64F[0];
+      if (!Number.isFinite(stdL) || stdL < 3) {
+        throw new Error("warped image is nearly uniform (stdL=" + stdL.toFixed(1) + "); detection likely landed on empty background — re-frame the page");
+      }
+    } finally {
+      meanMat.delete();
+      stdMat.delete();
+    }
 
     // ── Shadow removal — flatten the lighting ──
     // Two-pass illumination flattening:
