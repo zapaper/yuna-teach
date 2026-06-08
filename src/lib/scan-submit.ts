@@ -4,7 +4,6 @@ import sharp from "sharp";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { markExamPaper, markQuizPaper, markFocusedTest } from "@/lib/marking";
-import { maskBottomRightCorner } from "@/lib/watermark";
 import { isAdmin } from "@/lib/admin";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -166,7 +165,12 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   // return past 1800 and ~5 MB per 20-page paper is the right cost
   // ceiling. withoutEnlargement keeps phones that already shoot at
   // lower resolution from being upscaled (no synthetic detail).
-  // Then mask the watermark corner.
+  // Parent-submitted scans no longer have a CamScanner-style watermark
+  // baked into the bottom-right corner — they come from our own in-app
+  // scanner (DocumentScanner) which never stamps a logo, and the inbound-
+  // email flow now sees parents using the in-app scanner overwhelmingly.
+  // Skip the bottom-right white mask so any answer the student wrote in
+  // that corner is preserved.
   const subDir = path.join(SUBMISSIONS_DIR, cloneId);
   await fs.mkdir(subDir, { recursive: true });
   let saved = 0;
@@ -176,8 +180,7 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
         .resize({ width: 1800, withoutEnlargement: true })
         .jpeg({ quality: 90 })
         .toBuffer();
-      const masked = await maskBottomRightCorner(norm);
-      await fs.writeFile(path.join(subDir, `page_${saved}.jpg`), masked);
+      await fs.writeFile(path.join(subDir, `page_${saved}.jpg`), norm);
       saved++;
     } catch (err) {
       console.error(`[scan-submit] failed to save page ${i} for ${cloneId}:`, err);
