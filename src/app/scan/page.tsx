@@ -32,16 +32,18 @@ function ScanPageContent() {
   const [newWordText, setNewWordText] = useState("");
   const [addingToTest, setAddingToTest] = useState<number | null>(null);
 
-  // Resize an image data-URL down to a max edge of 2048px and re-encode
+  // Resize an image data-URL down to a max edge of 3200px and re-encode
   // as JPEG. Same dimensions as compressImage() so the rest of the
   // flow doesn't care whether the bytes came from a File or the
-  // native Camera plugin.
+  // native Camera plugin. Bumped from 2048 → 3200 so the server-side
+  // 2400px normaliser has headroom and we stop bottlenecking high-MP
+  // phone cameras before they reach the marker.
   function compressDataUrl(dataUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const maxDim = 2048;
+        const maxDim = 3200;
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
           if (width > height) {
@@ -56,7 +58,7 @@ function ScanPageContent() {
         canvas.height = height;
         const ctx = canvas.getContext("2d")!;
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
+        resolve(canvas.toDataURL("image/jpeg", 0.92));
       };
       img.onerror = reject;
       img.src = dataUrl;

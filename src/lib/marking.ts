@@ -1925,6 +1925,17 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                   orderIndex: mq.orderIndex,
                   yStartPct: mq.yStartPct,
                   yEndPct: mq.yEndPct,
+                  // X-bounds were missing from the rebuild path — when
+                  // a clone landed in structureChanged territory
+                  // (questionNum count drifted from master), every
+                  // freshly-created clone row lost its per-blank
+                  // x-bounds. Subsequent marks then cropped the whole
+                  // row instead of the single blank, and per-blank
+                  // crops in the review UI fell back to full-width
+                  // (David's PSLE English paper Q46-Q50 all showed
+                  // null x-bounds despite master having them).
+                  xStartPct: mq.xStartPct,
+                  xEndPct: mq.xEndPct,
                   marksAvailable: mq.marksAvailable,
                   syllabusTopic: mq.syllabusTopic,
                   // Preserve marking data if questionNum existed before
@@ -2393,7 +2404,48 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                     extraContext = `${heading}\n\n${passage}`;
                   }
                 }
-                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride, extraContext);
+                const initial = await markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride, extraContext);
+
+                // No-detection fallback (Comp Cloze / Editing /
+                // Grammar Cloze only): when the marker returned
+                // nothing recognisable as a student answer, retry
+                // ONCE with the crop expanded +1% on every border.
+                // Tightly-packed per-blank crops sometimes shave the
+                // student's handwriting at the edge — David's PSLE
+                // English 2025 Q47-Q49 returned no detection on Comp
+                // Cloze blanks where the ink visibly sat within the
+                // expanded region. We don't retry when the marker
+                // returned an actual word (even a wrong one) since
+                // that's a real read, not a clip.
+                const needsRetry = (isCompCloze || isEditing || isGrammarCloze)
+                  && q.xStartPct != null && q.xEndPct != null
+                  && q.yStartPct != null && q.yEndPct != null
+                  && initial.length > 0
+                  && (() => {
+                    const r = initial[0];
+                    const sa = (r?.studentAnswer ?? "").trim();
+                    return !sa || sa === "No answer detected" || sa.toLowerCase() === "blank";
+                  })();
+                if (needsRetry) {
+                  const padPct = 1.0;
+                  const yS = Math.max(0, q.yStartPct! - padPct);
+                  const yE = Math.min(100, q.yEndPct! + padPct);
+                  const xS = Math.max(0, q.xStartPct! - padPct);
+                  const xE = Math.min(100, q.xEndPct! + padPct);
+                  console.log(`[marking] Q${q.questionNum} no detection on initial crop — retrying with +${padPct}% expansion on all borders (y ${yS.toFixed(1)}-${yE.toFixed(1)}, x ${xS.toFixed(1)}-${xE.toFixed(1)})`);
+                  const widerBuffer = await cropPageRegion(pageBuffer, yS, yE, `batch Q${q.questionNum} wider`, xS, xE, paper.subject ?? null);
+                  const widerBase64 = widerBuffer.toString("base64");
+                  const widened = await markBatch(widerBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped +1%)`, true, modelOverride, extraContext);
+                  if (widened.length > 0) {
+                    const wr = widened[0];
+                    const wsa = (wr?.studentAnswer ?? "").trim();
+                    if (wsa && wsa !== "No answer detected" && wsa.toLowerCase() !== "blank") {
+                      console.log(`[marking] Q${q.questionNum} wider retry detected "${wsa}" — using widened result`);
+                      return widened;
+                    }
+                  }
+                }
+                return initial;
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
                 return [];
