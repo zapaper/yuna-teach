@@ -256,12 +256,25 @@ function LoginContent() {
         return;
       }
       const user = await res.json();
-      // If the user was bounced here from a gated page (e.g.
-      // /home/<their-id>), `next` carries the intended destination.
-      // Fallback is the user's own home if nothing was provided, the
-      // param looks unsafe, or it points at a /home/<someone-else>
-      // that would just bounce them right back here.
-      router.push(safeNext(nextParam, `/home/${user.id}`, user.id));
+      // Always go HOME after a password login. The previous behaviour
+      // (router.push(safeNext(nextParam, …))) honoured the `next=`
+      // param the gating layout sets when bouncing a logged-out user
+      // to /login, so re-opening the browser to a deep link like
+      // /exam/<id>/review (with a long chain of query params) sent
+      // the freshly-logged-in user straight back there — and the
+      // page often stalled because the data load was racing with
+      // session hydration, or the deep URL pointed at stale state.
+      // Going to /home/<userId> is a predictable, fast landing page;
+      // the parent can navigate to the intended paper from there
+      // with one tap.
+      // Whitelisted short paths (/quiz/<id>, /test/<id>) are still
+      // allowed because the iOS account-switch flow uses them. Long
+      // /exam/ deep links and unknown paths fall back to home.
+      const WHITELIST = /^\/(quiz|test|progress|account)\//;
+      const dest = (nextParam && WHITELIST.test(nextParam))
+        ? safeNext(nextParam, `/home/${user.id}`, user.id)
+        : `/home/${user.id}`;
+      router.push(dest);
     } catch {
       setLoginError("Something went wrong. Please try again.");
     } finally {
