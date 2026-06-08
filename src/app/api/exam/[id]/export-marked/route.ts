@@ -487,13 +487,15 @@ async function handle(
   }
 
   // ── Cover page (always first) ───────────────────────────────────
-  // Exam papers (paperType === null) get a per-section breakdown so the
-  // parent can see at a glance which topic the student needs to work on.
-  // Quizzes / focused tests / mastery — narrower, single-skill assessments
-  // — just get the grand total + percentage; the per-section view would
-  // either repeat the same row or split single questions, which adds noise
-  // instead of insight.
-  const isExamPaper = paper.paperType === null;
+  // Decide whether to show a per-section breakdown by looking at the
+  // shape of the paper — if it has MORE THAN ONE syllabusTopic, it's a
+  // multi-section exam (PSLE English 2025 has Grammar MCQ + Vocab Cloze
+  // + Editing + Comp Cloze + Synthesis + Comp OEQ even though its
+  // paperType is "quiz"). Single-section papers (e.g. P6 Grammar MCQ+
+  // focused test) just get the grand total + percentage — a one-row
+  // breakdown is noise.
+  // (paperType-based gating was the old heuristic; topic-shape detection
+  // catches multi-section papers regardless of paperType.)
   // Aggregate marks per syllabusTopic. Questions without a topic are
   // bucketed under "Other" so they aren't silently dropped from the
   // grand total.
@@ -562,8 +564,10 @@ async function handle(
       cursorY -= labelSize;
     }
 
-    // Per-section breakdown (exam papers only).
-    if (isExamPaper && sectionList.length > 0) {
+    // Per-section breakdown — shown whenever the paper has more than one
+    // distinct syllabusTopic. Captures English papers regardless of
+    // paperType while keeping single-skill tests clean.
+    if (sectionList.length > 1) {
       const sectionHeaderSize = Math.round(labelSize * 1.15);
       coverPage.drawText("Section breakdown", { x: padX, y: cursorY, size: sectionHeaderSize, font: helvetica, color: NAVY });
       cursorY -= sectionHeaderSize * 1.6;
@@ -712,6 +716,39 @@ async function handle(
     // stack on top of each other. Rects are in PDF-y space (origin
     // bottom-left), same as drawText.
     const placedNoteRects: Array<{ x: number; y: number; w: number; h: number }> = [];
+
+    // Pre-compute every tick / cross rect on this page BEFORE we lay out
+    // any notes, so a note can slide DOWN past a tick/cross that hasn't
+    // been stamped yet. Without this, question N's note can land on top
+    // of question N+1's mark (the mark is drawn AFTER the note since the
+    // notes loop runs question-by-question and stamps the tick/cross
+    // first then the note for that same Q — so a future Q's mark in the
+    // same y-band overlaps a previously-placed note).
+    type MarkRect = { x: number; y: number; w: number; h: number };
+    const pageMarkRects: MarkRect[] = [];
+    for (const qq of qs) {
+      const e2 = perQ.find(p => p.qId === qq.id);
+      if (!e2) continue;
+      const aClean = (qq.answer ?? "").replace(/[().]/g, "").trim();
+      const isMcqQ = /^[A-D1-4]$/i.test(aClean);
+      const isOeqQ = !isMcqQ;
+      const inset = (isOeqQ && (paper.subject ?? "").toLowerCase().includes("science")) ? 0.15 : 0.10;
+      const mRightX = pageW * (1 - inset);
+      const mX = mRightX - markSize * 0.5;
+      for (const mm of e2.marks) {
+        if (mm.status === "blank") continue;
+        const regionTopPx = e2.pageRegion.topPx;
+        const regionH = e2.pageRegion.heightPx;
+        const yPx = regionTopPx + (mm.yPctEnd / 100) * regionH;
+        const mY = pageH - yPx - markSize * 0.2;
+        pageMarkRects.push({
+          x: mX - markSize / 2,
+          y: mY - markSize / 2,
+          w: markSize,
+          h: markSize,
+        });
+      }
+    }
 
     for (const q of qs) {
       const entry = perQ.find(e => e.qId === q.id);
@@ -907,17 +944,27 @@ async function handle(
           }
           // PDF-y coordinate of the note block's TOP-LEFT corner.
           let pdfTopY = pageH - wsTop - effNoteSize;
-          // Slide down past any earlier note that overlaps the proposed
-          // rect. Stop after a few iterations or once we hit the page
-          // bottom — the worst case is a slightly off-region note,
-          // never an exception.
-          for (let guard = 0; guard < 8; guard++) {
+          // Slide down past any rect that the proposed note overlaps —
+          // both earlier notes AND every tick/cross on this page. The
+          // tick/cross list is pre-computed above so we also avoid marks
+          // that haven't been stamped yet (a later question's mark could
+          // sit right where this question's note wants to go).
+          // Bonus: pad the mark rect by a small gutter horizontally so a
+          // long note line doesn't END flush against the mark column —
+          // the parent still reads "<note text> ✗" cleanly.
+          const MARK_GUTTER = Math.round(markSize * 0.2);
+          const paddedMarks = pageMarkRects.map(r => ({
+            x: r.x - MARK_GUTTER, y: r.y,
+            w: r.w + MARK_GUTTER * 2, h: r.h,
+          }));
+          for (let guard = 0; guard < 12; guard++) {
             const proposed = { x: noteX, y: pdfTopY - blockH, w: longestW, h: blockH };
-            const collides = placedNoteRects.some(r =>
+            const overlaps = (r: { x: number; y: number; w: number; h: number }) =>
               proposed.x < r.x + r.w &&
               proposed.x + proposed.w > r.x &&
               proposed.y < r.y + r.h &&
-              proposed.y + proposed.h > r.y);
+              proposed.y + proposed.h > r.y;
+            const collides = placedNoteRects.some(overlaps) || paddedMarks.some(overlaps);
             if (!collides) break;
             pdfTopY -= blockH + lineSpacingPx * 0.5;
           }
