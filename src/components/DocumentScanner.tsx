@@ -813,7 +813,7 @@ export default function DocumentScanner({
                 multi-column grid once the scanner is stable. */}
             <div className="flex flex-col gap-4">
               {pages.map((p, i) => (
-                <div key={p.id} className="relative bg-white rounded-xl overflow-hidden shadow-lg">
+                <div key={p.id} className="relative w-full bg-white rounded-xl overflow-hidden shadow-lg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.thumbUrl} alt={`Page ${i + 1}`} className="w-full h-auto block" />
                   <div className="absolute top-2 left-2 bg-black/70 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
