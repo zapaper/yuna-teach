@@ -943,6 +943,22 @@ function englishMarkingRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("english")) return "";
   return `
   ENGLISH PAPER MARKING RULES:
+
+  CANCELLED WORDS (English-only — does NOT apply to Math/Science where a stroke across a digit is far more likely to be part of the digit itself than a cancellation): PSLE convention — a clearly crossed-out word is the student's REJECTED attempt and the marker ignores it. Treat clearly cancelled writing as if it were NOT WRITTEN at all.
+
+  What counts as CLEARLY cancelled (ignore the word):
+    ✓ One or more horizontal / diagonal strikethrough lines THROUGH the word
+    ✓ Multiple scribble strokes drawn ACROSS the word (zig-zag, hatch)
+    ✓ Word enclosed in a heavily crossed-out box or with an X through it
+
+  What does NOT count as cancelled (STILL read the word):
+    ✗ Underline below the word (that is emphasis, not cancellation)
+    ✗ A single dot, tick, or short mark beside the word
+    ✗ A stroke from a neighbouring letter that just clips the word
+    ✗ Faint marks that do not obscure the letters
+
+  If a cancelled word has a replacement written nearby (above, beside, or below it), treat ONLY the replacement as the student's answer. In notes write: "Cancelled '<oldWord>', read replacement '<newWord>'." If a word is cancelled with NO replacement, treat that portion of the answer as blank — do not award credit for the cancelled writing.
+
   - MCQ questions (Grammar MCQ, Vocabulary MCQ): no partial marks, exact single-option match only.
   - For ALL written English questions, READ the question text in the image to identify the question type, then apply the rules below.
   - The sections in order after MCQ are: (a) Grammar Cloze, (b) Editing, (c) Comprehension Cloze, (d) Synthesis & Transformation, (e) Comprehension OEQ.
