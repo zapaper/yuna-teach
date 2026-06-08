@@ -22,23 +22,33 @@ export async function setSession(userId: string): Promise<void> {
   const sig = sign(userId);
   const value = `${userId}.${sig}`;
   const c = await cookies();
+  // Set BOTH maxAge AND expires. iOS Safari has historically treated
+  // cookies without an explicit Expires attribute as session cookies
+  // — purged when the tab is killed (which happens after ~5 min in
+  // background on iOS). The Set-Cookie spec says either is sufficient,
+  // but in practice Safari's heuristics for "persistent" require
+  // Expires for max reliability. Same fix in both cookies below.
+  const thirtyDaysSec = 60 * 60 * 24 * 30;
+  const expiresAt = new Date(Date.now() + thirtyDaysSec * 1000);
   c.set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: thirtyDaysSec,
+    expires: expiresAt,
   });
   // Mirror a non-secret presence flag — JS-readable so the client
   // can avoid firing API calls when there's no session. Value is
   // literal "1"; treat anything else (including absent) as "no
-  // session". maxAge stays in lockstep with the real cookie.
+  // session". maxAge + expires stay in lockstep with the real cookie.
   c.set(COOKIE_PRESENT_NAME, "1", {
     httpOnly: false,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: thirtyDaysSec,
+    expires: expiresAt,
   });
 }
 
