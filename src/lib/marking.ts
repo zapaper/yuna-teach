@@ -3014,6 +3014,11 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         let matched = !!detectedKey && acceptable.has(detectedKey);
         let matchedVia: "letter" | "word" | null = matched ? "letter" : null;
         let matchedWordLetter: string | null = null;
+        // Tracks whether we could actually parse the word bank — used
+        // to decide whether a "no word-form match" verdict is reliable
+        // enough to downgrade an AI overcredit, or whether we should
+        // trust the AI (passage missing → we can't verify either way).
+        let wordBankSize = 0;
 
         // Word-form fallback (English Grammar Cloze only). Students
         // sometimes write the word from the bank instead of just the
@@ -3050,6 +3055,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 }
               }
             }
+            wordBankSize = wordToLetter.size;
             const detectedWord = detected.toLowerCase().trim();
             const letterForDetectedWord = wordToLetter.get(detectedWord);
             if (letterForDetectedWord && acceptable.has(letterForDetectedWord)) {
@@ -3060,6 +3066,23 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           }
         }
 
+        // Conditions for the bi-directional override:
+        //   - matched + AI undermarked → upgrade
+        //   - NOT matched + AI awarded marks → downgrade, BUT ONLY
+        //     when we are CONFIDENT the student's answer doesn't fit.
+        //     "Confident" means: (a) detected is a clear single
+        //     letter that we can compare to the key directly, OR
+        //     (b) we parsed the word bank successfully and the
+        //     detected word is not the bank entry for the key.
+        //     When the passage wasn't extracted (wordBankSize === 0)
+        //     and detected isn't a clear letter, we can't tell —
+        //     trust the AI rather than wrongly downgrade legitimately
+        //     correct word-form answers (Q35 "thereby" → L, Q32
+        //     "upon" → P on PSLE English 2025).
+        const definitelyWrong = !matched && (
+          !!detectedKey                          // clear letter that doesn't match
+          || (!isChineseDialogueCloze && wordBankSize > 0)  // word bank checked, word didn't fit
+        );
         if (matched && finalAwarded < finalAvailable) {
           if (matchedVia === "word") {
             console.log(`[marking] Grammar Cloze word-form match Q${q?.questionNum}: detected "${detected}" = letter "${matchedWordLetter}" in word bank, matches key "${[...acceptable].join("/")}" — upgrading ${finalAwarded} → ${finalAvailable}`);
@@ -3069,11 +3092,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             finalNotes = `Detected: ${detected} | Correct`;
           }
           finalAwarded = finalAvailable;
-        } else if (!matched && finalAwarded > 0) {
-          // The AI awarded marks but neither the detected letter nor
-          // any word-bank lookup matches the key. Downgrade to 0 —
-          // Grammar Cloze marks come from a strict letter/word match,
-          // not the AI's judgment.
+        } else if (definitelyWrong && finalAwarded > 0) {
           console.log(`[marking] Grammar Cloze override Q${q?.questionNum}: detected "${detected}" does NOT match key "${[...acceptable].join("/")}" — downgrading ${finalAwarded} → 0`);
           finalNotes = `Detected: ${detected} | "${detectedKey || detected}" does not match key "${[...acceptable].join("/")}"`;
           finalAwarded = 0;
