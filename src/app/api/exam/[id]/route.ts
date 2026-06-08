@@ -7,39 +7,15 @@ import path from "path";
 import { extractExamPaperBackground } from "@/lib/extraction";
 import { tagSyllabusTopics } from "@/lib/gemini";
 import { bumpUserActivity } from "@/lib/track-activity";
-import { markQuizPaper, markFocusedTest, markExamPaper } from "@/lib/marking";
 import { guardCanAssign } from "@/lib/subscription";
 import { requireAccessToPaper, requireSession } from "@/lib/auth-guard";
 
-// Detect MCQ rows whose stored marksAwarded disagrees with what a
-// fresh comparison says. Used by the GET handler below to lazily
-// re-mark completed papers that were caught by the silent-bad-marks
-// bug (paper completed with markingStatus="complete" + null
-// markingNotes + wrong marks). Returns true if at least one MCQ
-// would change marks under a fresh re-score.
-type StaleQ = { transcribedOptions: unknown; transcribedOptionImages: unknown; answer: string | null; studentAnswer: string | null; marksAwarded: number | null; marksAvailable: number | null };
-function hasStaleMcqMarks(questions: StaleQ[]): boolean {
-  for (const q of questions) {
-    const opts = q.transcribedOptions;
-    const imgs = q.transcribedOptionImages;
-    const isMcq =
-      (Array.isArray(opts) && opts.length === 4) ||
-      (Array.isArray(imgs) && imgs.some((o) => !!o)) ||
-      (() => {
-        const a = (q.answer ?? "").trim().replace(/[().]/g, "");
-        return a === "1" || a === "2" || a === "3" || a === "4";
-      })();
-    if (!isMcq) continue;
-    if (q.marksAwarded == null) continue; // skipped — not stale
-    const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
-    const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-    const acceptable = correctAns.split(/\s+or\s+/).map((p) => p.trim());
-    const computedCorrect = studentAns !== "" && acceptable.includes(studentAns);
-    const computed = computedCorrect ? (q.marksAvailable ?? 1) : 0;
-    if (computed !== q.marksAwarded) return true;
-  }
-  return false;
-}
+// (hasStaleMcqMarks helper + the GET-handler "lazy auto-heal on review-
+// page open" path were removed.) The same staleness check now runs
+// ONCE at the tail of markExamPaper / markQuizPaper as a deterministic
+// MCQ reconciliation pass (see `reconcileMcqMarks` in src/lib/marking.ts).
+// That keeps the read path side-effect-free and prevents the heal from
+// firing every time a parent opens the review page.
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -94,48 +70,6 @@ export async function GET(
   }
 
   const requesterIsAdmin = auth.isAdmin;
-
-  // Lazy auto-heal: if this is a completed quiz/focused paper and
-  // any MCQ row has marks that disagree with a fresh comparison
-  // (the silent-bad-marks bug), fire a background re-mark. Doesn't
-  // block the response — the parent sees stale marks once and
-  // correct marks on next refresh. Cheap check: small extra query
-  // for studentAnswer + transcribedOptions, only on completed
-  // quiz/focused papers.
-  if (
-    (paper.paperType === "quiz" || paper.paperType === "focused") &&
-    paper.markingStatus === "complete"
-  ) {
-    void (async () => {
-      try {
-        const staleCheck = await prisma.examQuestion.findMany({
-          where: { examPaperId: id },
-          select: {
-            transcribedOptions: true,
-            transcribedOptionImages: true,
-            answer: true,
-            studentAnswer: true,
-            marksAwarded: true,
-            marksAvailable: true,
-          },
-        });
-        if (!hasStaleMcqMarks(staleCheck)) return;
-        console.warn(`[exam GET] paper=${id} has stale MCQ marks — triggering background re-mark`);
-        // Same routing rule as /api/exam/[id]/mark: a paper is "printed
-        // and scanned" iff at least one question has printableBounds.
-        // That decides scan-back marker vs in-app marker, NOT subject.
-        const printableCount = await prisma.examQuestion.count({
-          where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
-        });
-        const remark = printableCount > 0
-          ? markExamPaper(id)
-          : paper.paperType === "quiz" ? markQuizPaper(id) : markFocusedTest(id);
-        await remark;
-      } catch (err) {
-        console.warn(`[exam GET] auto-heal failed for ${id}:`, err);
-      }
-    })();
-  }
 
   return NextResponse.json({
     ...paper,

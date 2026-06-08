@@ -1922,8 +1922,84 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   console.log(`[marking] remarkSingleQuestion done, new total=${total}`);
 }
 
+// One-shot MCQ reconciliation. Walks every question on the paper, and
+// for each row that the marker treats as an MCQ (4 transcribed options
+// OR a 1-4 digit answer), recomputes marksAwarded purely from the
+// stored studentAnswer vs answer string compare and writes the result
+// back IF it disagrees.
+//
+// Why this exists: the silent-bad-marks bug (~May 2026) sometimes left
+// completed papers with markingStatus=complete + marksAwarded that
+// didn't match what the studentAnswer+answer fields would compute to.
+// The old "lazy auto-heal on review-page open" defence fired on every
+// GET of those papers, which was both noisy (re-marked the paper on
+// every page load) and out of place in the read path.
+//
+// This version is invoked exactly ONCE at the end of markExamPaper /
+// markQuizPaper. The check is deterministic — string compare, not the
+// AI — so it can never disagree with itself, which means no re-fire
+// loop. Mismatches are written in place with a brief note; no recursion
+// into the marker.
+async function reconcileMcqMarks(paperId: string): Promise<void> {
+  const rows = await prisma.examQuestion.findMany({
+    where: { examPaperId: paperId },
+    select: {
+      id: true, questionNum: true,
+      transcribedOptions: true, transcribedOptionImages: true,
+      answer: true, studentAnswer: true,
+      marksAwarded: true, marksAvailable: true,
+    },
+  });
+  let fixed = 0;
+  for (const q of rows) {
+    const opts = q.transcribedOptions;
+    const imgs = q.transcribedOptionImages;
+    const isMcq =
+      (Array.isArray(opts) && opts.length === 4) ||
+      (Array.isArray(imgs) && imgs.some((o) => !!o)) ||
+      (() => {
+        const a = (q.answer ?? "").trim().replace(/[().]/g, "");
+        return a === "1" || a === "2" || a === "3" || a === "4";
+      })();
+    if (!isMcq) continue;
+    if (q.marksAwarded == null) continue; // skipped — leave it alone
+    const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
+    const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+    const acceptable = correctAns.split(/\s+or\s+/).map((p) => p.trim());
+    const computedCorrect = studentAns !== "" && acceptable.includes(studentAns);
+    const computed = computedCorrect ? (q.marksAvailable ?? 1) : 0;
+    if (computed === q.marksAwarded) continue;
+    console.warn(`[marking] reconcile Q${q.questionNum} (${q.id}): marksAwarded ${q.marksAwarded} → ${computed} (student="${studentAns}" expected="${correctAns}")`);
+    await prisma.examQuestion.update({
+      where: { id: q.id },
+      data: {
+        marksAwarded: computed,
+        markingNotes: computedCorrect
+          ? `Reconciled: "${studentAns}" matches key "${correctAns}".`
+          : `Reconciled: "${studentAns}" does not match key "${correctAns}".`,
+      },
+    });
+    fixed++;
+  }
+  if (fixed > 0) {
+    // Recompute paper score from the up-to-date question marks.
+    const after = await prisma.examQuestion.findMany({
+      where: { examPaperId: paperId },
+      select: { marksAwarded: true },
+    });
+    const total = after.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+    await prisma.examPaper.update({ where: { id: paperId }, data: { score: total } });
+    console.log(`[marking] reconcile fixed ${fixed} MCQ rows for ${paperId}, new total=${total}`);
+  }
+}
+
 export async function markExamPaper(paperId: string): Promise<void> {
-  return withMarkRetry("marking", paperId, () => _markExamPaperOnce(paperId));
+  await withMarkRetry("marking", paperId, () => _markExamPaperOnce(paperId));
+  try {
+    await reconcileMcqMarks(paperId);
+  } catch (err) {
+    console.warn(`[marking] reconcile pass failed for ${paperId}:`, err);
+  }
 }
 
 async function _markExamPaperOnce(paperId: string): Promise<void> {
@@ -3759,7 +3835,12 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
  * OEQ questions are marked via AI using their submission drawings.
  */
 export async function markQuizPaper(paperId: string): Promise<void> {
-  return withMarkRetry("quiz-marking", paperId, () => _markQuizPaperOnce(paperId));
+  await withMarkRetry("quiz-marking", paperId, () => _markQuizPaperOnce(paperId));
+  try {
+    await reconcileMcqMarks(paperId);
+  } catch (err) {
+    console.warn(`[quiz-marking] reconcile pass failed for ${paperId}:`, err);
+  }
 }
 
 async function _markQuizPaperOnce(paperId: string): Promise<void> {
