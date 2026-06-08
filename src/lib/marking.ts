@@ -1014,6 +1014,13 @@ function englishMarkingRules(subject: string | null | undefined): string {
       * "amongst" for key "among" in "___ different immigrant groups". — register variant.
       * "could" for key "able to" when the surrounding tense permits both.
     Do NOT accept answers that change the grammar of the sentence.
+  - **GRAMMAR + CONTEXT CHECK (MANDATORY before accepting any non-exact match)**: Before awarding marks to a student's word that differs from the answer key, you MUST verify it parses in the FULL sentence — not just that it shares a meaning with the key. Read the words IMMEDIATELY before and after the blank in the passage; the student's word must fit BOTH grammatically and contextually with them. Common rejection cases the marker has missed in the past:
+      * **Article–noun agreement**: "a" before a vowel-sound word, or "an" before a consonant-sound word, is wrong. Real failure: passage said "a ___" and the student wrote "appetite" while the key was "craving" — the marker accepted "appetite" because it meant the same thing, but "a appetite" is ungrammatical (should be "an appetite"). Reject any student word that produces a/an mismatch with the printed article.
+      * **Singular/plural agreement**: the printed verb / determiner / pronoun nearby implies a number — e.g. "two ___ were", "this ___", "every ___". Reject a student word whose number breaks that agreement, even if it's a valid synonym in isolation.
+      * **Part of speech**: if the slot needs a noun (article + ___, ___ + verb), reject a verb or adjective; if it needs an adverb (___ +ly slot, after a comma+verb), reject a noun. The synonym must be in the right word class for the slot.
+      * **Tense / verb form**: matching tense of surrounding verbs and the form (-ing / past-participle / infinitive) required by the auxiliary or modal printed in the passage. "had ___" wants a past participle, not a base verb; "to ___" wants an infinitive.
+      * **Preposition agreement**: the printed verb / phrase may require a specific preposition (e.g. "depend ON", "consist OF", "interested IN"). Reject a student word that severs the established collocation in the passage.
+    Whenever you reject a student's word under this rule, the notes MUST name the grammar / context mismatch explicitly (e.g. "Rejected 'appetite' for key 'craving' — passage reads 'a ___', requires consonant-sound word; 'appetite' begins with a vowel sound."). Vague rejections like "doesn't fit" are not acceptable.
   - Spelling must be correct. A misspelled word = 0 marks. Do NOT round "dipose" to "dispose", "recieve" to "receive", "befor" to "before", etc. — that is exactly the auto-correction this rule blocks.
   - Be careful with function-word swaps — prepositions, conjunctions, determiners and quantifiers each carry a precise meaning and are often NOT interchangeable even when they sound plausible: "between" vs "among" (two vs many), "in" vs "on" vs "at", "all" vs "every" vs "each", "fewer" vs "less", "many" vs "much", "this/that/these/those", "a" vs "an" vs "the", "since" vs "for", "and" vs "or" vs "but", "who" vs "whom" vs "which" vs "that". Examine the context before accepting any of these as a synonym for the key.
   - MANDATORY notes when the student's word is NOT the exact word in the key (whether you accept it or reject it):
@@ -1359,6 +1366,33 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - WRONG FINAL ANSWER (any marksAvailable): scan the student's
     working steps for partial credit. Award partial marks if some
     steps or methods are correct, proportional to marksAvailable.
+
+  - SUB-PART LABEL SWAP: If a multi-part question's expected answers
+    per subpart are known (e.g. (a) = 64°, (b) = 67°) AND the student
+    wrote BOTH correct values in their answer area but under SWAPPED
+    subpart labels (their (a) = 67°, their (b) = 64°), treat this as
+    a label mix-up — NOT two wrong answers. Numerically the student
+    got both right; the only mistake was the (a)/(b) bookkeeping.
+      · If the WORKING shows the student understood which value
+        belongs to which subpart (e.g. they wrote the right method
+        for ∠ABF and arrived at 64°, then the right method for ∠DAE
+        and arrived at 67°, just labelled the final ANS lines in
+        the wrong order) → award FULL marks for both subparts and
+        flag the label slip in the notes only.
+      · If NO working is shown but both correct values appear
+        labelled in swapped order → award (marksAvailable − 1) marks
+        TOTAL across the two subparts (so a 4-mark question becomes
+        3, a 2-mark question becomes 1) — one mark off as a slip.
+      · Distribute the awarded marks across the two subparts so each
+        subpart's marksAwarded ≤ its marksAvailable. Example for a
+        4-mark question (2+2 split) with label-swap and no working:
+        award 2 marks for (a) and 1 mark for (b) (or 1 and 2; pick
+        whichever keeps each subpart's tally within its cap).
+      · In notes: "Student swapped (a)/(b) labels — both numerical
+        answers correct, deducted 1 mark for the label mix-up."
+    This rule applies ONLY when the student's writing CLEARLY
+    contains BOTH expected values. If only one is present, mark
+    each subpart normally.
 
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
 
@@ -5370,6 +5404,13 @@ For math questions, working is secondary to the final answer:
 - The expected answer key may include AUXILIARY identifications such as "x = ∠BDC" or "let y be …" or "this angle is alternate to …". These are reasoning hints, NOT required parts of the student's answer. If the student's final NUMERICAL/value answer matches the key, award FULL MARKS even if they omit these labels or angle identifications. Example: question is "find ∠x", key is "180 − 105 − 32 = 43° | x = ∠BDC", student wrote "43°" → FULL MARKS.
 - ONLY when the final answer is WRONG or absent: scan the working steps for partial credit. Award partial marks proportional to marksAvailable if some steps or methods are correct.
 - IF THE WORKING REACHES THE CORRECT ANSWER but the student wrote a different number on the "Final answer" line (very common transcription/write-down slip — e.g. working shows "108 − 70 = 38" but final-answer line says "88"), trust the working and award FULL MARKS. The student did the math correctly; they just mis-copied at the end. EXCLUSIONS — the following are WRONG ANSWERS, NOT transcription errors: (a) ratio order reversed (working "B:W = 3:7", final "7:3"); (b) units swapped or omitted; (c) negative/positive sign flipped; (d) different number with no working bridge to the right one. Apply the cap below.
+
+SUB-PART LABEL SWAP (applies before the wrong-answer cap):
+If the question has subparts (e.g. (a) and (b)) AND the student's answer area clearly contains BOTH expected values but written under SWAPPED labels (their "(a)" = the expected (b) value, their "(b)" = the expected (a) value), treat this as a label mix-up, NOT two wrong answers.
+  · WITH WORKING that shows the student understood which value belongs to which subpart (e.g. working for ∠ABF derives 64°, working for ∠DAE derives 67°, and only the final "Ans:" lines are labelled wrong way round) → award FULL MARKS for both subparts. The student got the math AND the reasoning right; the only mistake is the bookkeeping at the ANS lines.
+  · WITHOUT WORKING (or with working that doesn't tie either subpart to its method) → award (marksAvailable − 1) marks TOTAL across the two subparts. A 4-mark question (2+2) → 3 marks total; a 2-mark question (1+1) → 1 mark total. Distribute the awarded marks so no subpart exceeds its own marksAvailable.
+  · In notes: "Student swapped (a)/(b) labels — both numerical answers correct, deducted 1 mark for the label mix-up."
+The rule does NOT fire unless BOTH expected values appear in the student's writing. If only one is present, mark each subpart normally.
 
 ⚠️ WRONG-ANSWER CAP (NON-NEGOTIABLE — for math OEQ; also applies inside parts[]):
 A wrong final answer can NEVER receive full marks. Cap = (marksAvailable − 1) for the part. Within the cap:

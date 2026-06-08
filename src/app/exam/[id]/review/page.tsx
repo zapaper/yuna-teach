@@ -2403,11 +2403,17 @@ function ExamReviewContent({ id }: { id: string }) {
                               // pick up obvious matches.
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
-                              // Marker is authoritative: full marks → green even
-                              // if studentAns is empty (scan-back English may
-                              // not have populated the typed text).
+                              // Marker is authoritative when it has run: only
+                              // fall back to a string match if marksAwarded is
+                              // still null (legacy / unmarked rows). Without
+                              // the null guard, a marker mis-OCR that spells
+                              // the right word OR a parent override flipping
+                              // marks→0 both leave the question green.
+                              const markerHasRun = (q?.marksAwarded ?? null) !== null;
                               const fullMarks = earned >= available && available > 0;
-                              const isMatch = fullMarks || (!isBlank && norm(studentAns) === norm(correctAns));
+                              const isMatch = markerHasRun
+                                ? fullMarks
+                                : (!isBlank && norm(studentAns) === norm(correctAns));
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
@@ -2458,8 +2464,13 @@ function ExamReviewContent({ id }: { id: string }) {
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
+                              // See Editing branch above for the marker-
+                              // authority rationale.
+                              const markerHasRun = (q?.marksAwarded ?? null) !== null;
                               const fullMarks = earned >= available && available > 0;
-                              const isMatch = fullMarks || (!isBlank && studentAns.toLowerCase() === correctAns.toLowerCase());
+                              const isMatch = markerHasRun
+                                ? fullMarks
+                                : (!isBlank && studentAns.toLowerCase() === correctAns.toLowerCase());
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
@@ -2518,8 +2529,14 @@ function ExamReviewContent({ id }: { id: string }) {
                               // empty (scan-back may have detected the answer
                               // from the bounded crop without populating the
                               // typed-text studentAnswer field).
+                              // See Editing branch above for the marker-
+                              // authority rationale: only fall back to letter
+                              // match if marksAwarded is null.
+                              const markerHasRun = (q?.marksAwarded ?? null) !== null;
                               const fullMarks = earned >= available && available > 0;
-                              const isCorrect = fullMarks || (!isBlank && studentLetter === correctLetter);
+                              const isCorrect = markerHasRun
+                                ? fullMarks
+                                : (!isBlank && studentLetter === correctLetter);
                               // Chinese 完成对话 uses a stricter user-spec
                               // review treatment: blank → red [Blank] + ✗,
                               // correct → green answer only, wrong → red
@@ -2652,7 +2669,21 @@ function ExamReviewContent({ id }: { id: string }) {
                         if (acceptable.size > 0) return acceptable.has(stu);
                         return stu === cor;
                       })();
-                      const qCorrect = markerCorrect || stringMatchOk || grammarLetterMatchOk;
+                      // Marker authority: when the AI has actually written a
+                      // verdict to marksAwarded (i.e. not null), that verdict
+                      // is the source of truth. stringMatchOk /
+                      // grammarLetterMatchOk are ONLY used as a forward safety
+                      // net when the marker hasn't run, never to overrule a
+                      // marker who already gave 0 — otherwise (a) a parent
+                      // flipping "Mark as wrong" via the toggle drops the
+                      // total but the question stays green, and (b) a marker
+                      // mis-OCR that happens to spell the right word marks
+                      // the question correct even though the student wrote
+                      // something else.
+                      const markerHasRun = q.marksAwarded !== null;
+                      const qCorrect = markerHasRun
+                        ? markerCorrect
+                        : (stringMatchOk || grammarLetterMatchOk);
                       const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
                       // For Grammar Cloze the answer key is sometimes stored
                       // as "(C)" or "(C) HIS" instead of the bare letter "C".
