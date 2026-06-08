@@ -149,48 +149,57 @@ function traceVerticalUp(edgesMat, fromX, fromY, toY, searchHalfWidth, missToler
 //     parallelogram rule is for affine shapes, but keystone is a
 //     perspective transform and the top edge narrows symmetrically.
 function correctDogEar(cv, edgesMat, quad) {
-  if (!quad || quad.length !== 4) return quad;
+  if (!quad || quad.length !== 4) return { quad: quad, diag: { err: "bad-quad" } };
   const tl = quad[0], tr = quad[1], br = quad[2], bl = quad[3];
   for (const p of quad) {
-    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return quad;
+    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) {
+      return { quad: quad, diag: { err: "nan-pt" } };
+    }
   }
   const w = edgesMat.cols, h = edgesMat.rows;
-  // Search band scales with image width. 6 % gives ~29 px at 480
-  // (live-loop) and ~115 px at full 4K — wide enough to track
-  // a steep keystone tilt without bridging across to internal text
-  // contours. The adaptive currentX in traceVerticalUp does most of
-  // the keystone follow; this is the absolute max stride per step.
   const searchHalfWidth = Math.max(6, Math.round(w * 0.06));
-  // Allow up to 3 consecutive misses before declaring the edge
-  // broken. Bridges 1-2 px Canny gaps without spanning across a
-  // real fold (which is typically tens of pixels of gap).
   const missTolerance = 3;
   const tlTrace = traceVerticalUp(edgesMat, bl[0], bl[1], tl[1], searchHalfWidth, missTolerance);
   const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[1], searchHalfWidth, missTolerance);
   const tlReachedY = tlTrace[1];
   const trReachedY = trTrace[1];
-  // Tolerance for "similar heights" — anything within 5% of image
-  // height is the same edge. Bigger gap = one trace clearly
-  // stopped at a fold while the other ran on.
-  // 3 % of image height = noticeable but not noisy. Most natural
-  // pages with both top corners visible have traces within 1-2 %
-  // of each other; a real dog-ear creates a 15-30 % gap because the
-  // fold cuts off a meaningful chunk of the bad side's vertical
-  // edge.
-  const tolerance = h * 0.03;
-  if (Math.abs(tlReachedY - trReachedY) < tolerance) return quad;
+  const dyDiff = Math.abs(tlReachedY - trReachedY);
+  // 3 % of image height = dog-ear threshold.
+  const dogEarThreshold = h * 0.03;
+  const isDogEar = dyDiff >= dogEarThreshold;
+  // Diagnostic field surfaced to the main thread so we can see what
+  // the traces are computing without DevTools. Will be rendered as
+  // text on the overlay during the dog-ear workshop.
+  const diag = {
+    bl: [Math.round(bl[0]), Math.round(bl[1])],
+    br: [Math.round(br[0]), Math.round(br[1])],
+    rectTopY: Math.round(Math.min(tl[1], tr[1])),
+    tlTrace: [Math.round(tlTrace[0]), Math.round(tlTrace[1])],
+    trTrace: [Math.round(trTrace[0]), Math.round(trTrace[1])],
+    dyDiff: Math.round(dyDiff),
+    threshold: Math.round(dogEarThreshold),
+    dogEar: isDogEar,
+  };
+  if (!isDogEar) {
+    // Both top corners reached similar y — use the trace endpoints
+    // anyway. They're tighter to the actual page edge than the
+    // minAreaRect corners (the rectangle's top is the contour's
+    // bounding-extent y, which can sit a few px above the visible
+    // edge on a slightly-tilted page).
+    return { quad: [tlTrace, trTrace, br, bl], diag: diag };
+  }
   if (tlReachedY < trReachedY) {
     // TL trace ran higher → TL is real, TR is dog-eared.
     const knownDx = tlTrace[0] - bl[0];
     const newTrX = br[0] - knownDx;          // ← KEYSTONE MIRROR
     const clampedX = Math.max(0, Math.min(w - 1, newTrX));
-    return [tlTrace, [clampedX, tlTrace[1]], br, bl];
+    return { quad: [tlTrace, [clampedX, tlTrace[1]], br, bl], diag: diag };
   }
   // TR trace ran higher → TR is real, TL is dog-eared.
   const knownDx = trTrace[0] - br[0];
   const newTlX = bl[0] - knownDx;            // ← KEYSTONE MIRROR
   const clampedX = Math.max(0, Math.min(w - 1, newTlX));
-  return [[clampedX, trTrace[1]], trTrace, br, bl];
+  return { quad: [[clampedX, trTrace[1]], trTrace, br, bl], diag: diag };
 }
 
 function detectQuad(cv, imageData, opts) {
@@ -278,24 +287,20 @@ function detectQuad(cv, imageData, opts) {
         c.delete();
       }
     }
-    if (!best) return null;
+    if (!best) return { quad: null, diag: null };
     // Dog-ear correction. The minAreaRect quad always gives a
     // RECTANGLE — both top corners share the same y. When one top
     // corner is dog-eared / folded, the rectangle's top is at the
     // GOOD side's true top y, while the BAD side has no actual
     // contour pixel at the rectangle's top corner (the page edge
-    // turns inward earlier at the fold). We don't want to warp from
-    // the rectangle corners because that pulls in fold-region pixels
-    // on the bad side. Trace each side's vertical page edge upward
-    // and either confirm both top corners are real (no dog-ear) or
-    // replace the dog-eared corner with a keystone-mirrored prediction.
+    // turns inward earlier at the fold). Trace each side's vertical
+    // page edge upward and either use trace endpoints (no fold) or
+    // keystone-mirror the dog-eared one.
     try {
       return correctDogEar(cv, edges, best.quad);
-    } catch (_e) {
-      // Safety net — if anything in the corrector throws, fall back
-      // to the raw minAreaRect quad. The scanner's working baseline
-      // is more important than the dog-ear refinement.
-      return best.quad;
+    } catch (err) {
+      // Safety net — fall back to the raw minAreaRect quad.
+      return { quad: best.quad, diag: { err: String(err && err.message || err).slice(0, 80) } };
     }
   } finally {
     if (src) src.delete();
@@ -429,8 +434,13 @@ self.onmessage = function (e) {
   }
   try {
     if (msg.type === "detect") {
-      const quad = detectQuad(self.cv, msg.imageData, msg.opts);
-      self.postMessage({ id: id, type: "detected", quad: quad });
+      const result = detectQuad(self.cv, msg.imageData, msg.opts);
+      // detectQuad now returns { quad, diag } so the main thread can
+      // render trace diagnostics on the overlay during the dog-ear
+      // workshop. Unwrap the quad and forward diag separately.
+      const quad = result && result.quad !== undefined ? result.quad : result;
+      const diag = result && result.diag ? result.diag : null;
+      self.postMessage({ id: id, type: "detected", quad: quad, diag: diag });
     } else if (msg.type === "focus") {
       const score = focusScore(self.cv, msg.imageData);
       self.postMessage({ id: id, type: "focusScored", score: score });

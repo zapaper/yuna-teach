@@ -35,11 +35,30 @@ type Page = {
 
 // Messages that come back from /vendor/scanner-worker.js. The worker
 // owns the OpenCV runtime; we just speak postMessage.
+// Diagnostic info attached to "detected" messages while we workshop
+// the dog-ear corrector. The worker traces the page's vertical edge
+// up from each bottom corner and ships back where each trace ended.
+// Rendered as text on the overlay so we can see what the algorithm
+// is computing without DevTools. Optional / can be dropped once we
+// trust the algorithm.
+type DogEarDiag =
+  | { err: string }
+  | {
+      bl: [number, number];
+      br: [number, number];
+      rectTopY: number;
+      tlTrace: [number, number];
+      trTrace: [number, number];
+      dyDiff: number;
+      threshold: number;
+      dogEar: boolean;
+    };
+
 type WorkerMsg =
   | { type: "status"; stage: "downloading" | "compiling" }
   | { type: "ready" }
   | { type: "error"; message: string; id?: string }
-  | { id: string; type: "detected"; quad: [number, number][] | null }
+  | { id: string; type: "detected"; quad: [number, number][] | null; diag?: DogEarDiag | null }
   | { id: string; type: "warped"; imageData: ImageData };
 
 export default function DocumentScanner({
@@ -123,7 +142,7 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-i");
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-j");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
@@ -195,6 +214,14 @@ export default function DocumentScanner({
             }
             setEdgeLocked(true);
             drawOverlay(overlay, video, q);
+            // Workshop diagnostics — render trace results as text on
+            // top of the overlay so we can see what the dog-ear
+            // detector is computing. Strip once we trust the
+            // algorithm. Scale trace points the same way the quad
+            // was scaled.
+            if (msg.diag) {
+              drawDogEarDiag(overlay, video, msg.diag, ds);
+            }
           }
         } else {
           // Anti-flicker: keep showing the last quad for up to
@@ -852,6 +879,66 @@ function drawOverlay(canvas: HTMLCanvasElement, video: HTMLVideoElement, quad: [
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
+}
+
+// Workshop diagnostics for the dog-ear corrector. Renders trace
+// endpoints + a one-line summary on top of the existing overlay so
+// we can see, in real time, what the algorithm is computing. Strip
+// once the dog-ear detection is trusted.
+function drawDogEarDiag(
+  canvas: HTMLCanvasElement,
+  video: HTMLVideoElement,
+  diag: DogEarDiag,
+  detectScale: number,
+) {
+  const cw = video.clientWidth;
+  const ch = video.clientHeight;
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (cw === 0 || ch === 0 || vw === 0 || vh === 0) return;
+  const scale = Math.max(cw / vw, ch / vh);
+  const dw = vw * scale;
+  const dh = vh * scale;
+  const ox = (cw - dw) / 2;
+  const oy = (ch - dh) / 2;
+  const dpr = window.devicePixelRatio || 1;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  // Error path — just show the error string.
+  if ("err" in diag) {
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillRect(8, ch - 32, cw - 16, 24);
+    ctx.fillStyle = "#ff6b6b";
+    ctx.font = "12px monospace";
+    ctx.fillText(`diag err: ${diag.err}`, 16, ch - 14);
+    ctx.restore();
+    return;
+  }
+  // Convert detect-canvas (480-px) trace points to video-pixel
+  // coords, then to displayed-canvas coords.
+  const toCanvas = (p: [number, number]): [number, number] => {
+    const vx = p[0] / detectScale;
+    const vy = p[1] / detectScale;
+    return [ox + vx * scale, oy + vy * scale];
+  };
+  const tlPt = toCanvas(diag.tlTrace);
+  const trPt = toCanvas(diag.trTrace);
+  // Trace endpoints — small filled circles on the overlay.
+  ctx.fillStyle = diag.dogEar ? "#ff3b30" : "#34d399";
+  ctx.beginPath();
+  ctx.arc(tlPt[0], tlPt[1], 6, 0, Math.PI * 2);
+  ctx.arc(trPt[0], trPt[1], 6, 0, Math.PI * 2);
+  ctx.fill();
+  // One-line summary along the bottom.
+  const summary = `dyDiff=${diag.dyDiff} (thr=${diag.threshold}) tlY=${diag.tlTrace[1]} trY=${diag.trTrace[1]} → ${diag.dogEar ? "DOG-EAR" : "ok"}`;
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(8, ch - 32, cw - 16, 24);
+  ctx.fillStyle = "#fff";
+  ctx.font = "12px monospace";
+  ctx.fillText(summary, 16, ch - 14);
   ctx.restore();
 }
 
