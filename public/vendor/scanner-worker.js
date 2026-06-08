@@ -118,30 +118,15 @@ function detectQuad(cv, imageData, opts) {
     // makes the keystone (perspective) correction actually do
     // work — the 4 vertices are the real page corners in the
     // camera image, and warpPerspective maps them to a rectangle.
-    // The old minAreaRect-only path always produced a pre-
-    // rectangular quad, which is why "keystone wasn't working"
-    // — there was nothing to correct.
+    // Convex-hull the contour first to strip interior text /
+    // shadow vertices, then approxPolyDP at progressive epsilons.
+    // Aspect-ratio sanity rejects hand-in-frame, desk edges, etc.
     //
-    // Strategy:
-    //   1. Take the convex hull of each large contour. A page on
-    //      a desk produces hundreds of interior contour vertices
-    //      from text / shadows; the hull collapses those to the
-    //      outer envelope, which is what we actually want.
-    //   2. approxPolyDP on the hull, walking up an epsilon ladder
-    //      from 1% to 8% of perimeter. Tight epsilons preserve
-    //      detail (slight perspective skew → 4 distinct vertices);
-    //      loose epsilons forgive noise (one corner folded, dirt
-    //      along an edge). Lock in the first epsilon that yields
-    //      exactly 4 vertices.
-    //   3. Validate convex (rejects bow-tie / self-intersecting
-    //      picks) AND aspect ratio sanity (PSLE papers print on
-    //      A4, hull aspect should sit in [0.55, 1.65] after
-    //      perspective skew; values outside that are almost
-    //      always non-page contours — a hand, a phone shadow,
-    //      the desk edge).
-    //   4. Pick the largest area quad — when the desk has both
-    //      the paper AND a notebook in frame, the paper is
-    //      bigger.
+    // Read the 4 points via approx.data32S — approxPolyDP returns
+    // a CV_32SC2 Mat where the flat int32 array is laid out
+    // [x0,y0,x1,y1,x2,y2,x3,y3]. The earlier intPtr(j, 0) access
+    // returned only the x channel and left y undefined, giving
+    // warpPerspective NaN coordinates and producing white pages.
     for (let i = 0; i < total; i++) {
       const c = contours.get(i);
       try {
@@ -160,10 +145,19 @@ function detectQuad(cv, imageData, opts) {
               cv.approxPolyDP(hull, approx, epsFactor * perimeter, true);
               if (approx.rows !== 4) continue;
               if (!cv.isContourConvex(approx)) continue;
+              const buf = approx.data32S;
+              if (!buf || buf.length < 8) continue;
               const pts = [];
               for (let j = 0; j < 4; j++) {
-                pts.push([approx.intPtr(j, 0)[0], approx.intPtr(j, 0)[1]]);
+                const x = buf[j * 2];
+                const y = buf[j * 2 + 1];
+                if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                  pts.length = 0;
+                  break;
+                }
+                pts.push([x, y]);
               }
+              if (pts.length !== 4) continue;
               const ordered = orderQuad(pts);
               // Aspect-ratio sanity: A4 is 1.414, letter is 1.294.
               // Mild perspective skew can drop the apparent ratio

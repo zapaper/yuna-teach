@@ -256,22 +256,23 @@ function LoginContent() {
         return;
       }
       const user = await res.json();
-      // Always go HOME after a password login. The previous behaviour
-      // (router.push(safeNext(nextParam, …))) honoured the `next=`
-      // param the gating layout sets when bouncing a logged-out user
-      // to /login, so re-opening the browser to a deep link like
-      // /exam/<id>/review (with a long chain of query params) sent
-      // the freshly-logged-in user straight back there — and the
-      // page often stalled because the data load was racing with
-      // session hydration, or the deep URL pointed at stale state.
-      // Going to /home/<userId> is a predictable, fast landing page;
-      // the parent can navigate to the intended paper from there
-      // with one tap.
-      // Whitelisted short paths (/quiz/<id>, /test/<id>) are still
-      // allowed because the iOS account-switch flow uses them. Long
-      // /exam/ deep links and unknown paths fall back to home.
-      const WHITELIST = /^\/(quiz|test|progress|account)\//;
-      const dest = (nextParam && WHITELIST.test(nextParam))
+      // After a password login, go straight to /home/<userId>. The
+      // previous behaviour (router.push(safeNext(nextParam, …)))
+      // honoured the `next=` param the gating layout sets when
+      // bouncing a logged-out user to /login. Re-opening the browser
+      // to a stale deep link (/exam/<id>/review?userId=…&long-chain)
+      // then routed the user back there after login — and the page
+      // stalled because session hydration raced the data fetch, or
+      // the URL pointed at moved / cleared state. Home is a fast,
+      // predictable landing page; one tap from there gets to the
+      // intended paper.
+      // EXCEPTION — iOS native app only. The Capacitor account-
+      // switch flow uses `/login?next=/quiz/<id>` to land the parent
+      // back on the right quiz after they've impersonated a child;
+      // breaking that would break the iOS quiz flow. Web browsers
+      // ALWAYS go home; only the native shell honours next=.
+      const isNativeApp = Capacitor.isNativePlatform();
+      const dest = isNativeApp
         ? safeNext(nextParam, `/home/${user.id}`, user.id)
         : `/home/${user.id}`;
       router.push(dest);
