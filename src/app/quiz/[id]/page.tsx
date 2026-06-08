@@ -668,6 +668,31 @@ function QuizContent({ id }: { id: string }) {
           if (q.studentAnswer) savedAnswers[q.id] = q.studentAnswer;
         }
         if (Object.keys(savedAnswers).length > 0) setMcqAnswers(savedAnswers);
+        // Submit-time snapshot recovery. If a previous submit
+        // attempt wrote a snapshot to localStorage but the network
+        // call broke before reaching the server (deploy hop, tab
+        // close, 502), restore the snapshot here so the textareas
+        // come back populated and the student can re-submit
+        // without retyping. Snapshot is preferred over the
+        // server's saved answers because the snapshot is taken at
+        // submit time (last-keystroke state), whereas the
+        // server's value might be an older debounced PATCH that
+        // missed the final keystrokes.
+        try {
+          const snap = window.localStorage.getItem(`quiz-submit-snapshot:${id}`);
+          if (snap) {
+            const parsed = JSON.parse(snap) as { mcqAnswers?: Record<string, string>; ts?: number };
+            // Only restore if the snapshot is < 7 days old — older
+            // entries are likely stale state from an abandoned
+            // attempt.
+            if (parsed.ts && Date.now() - parsed.ts < 7 * 24 * 60 * 60 * 1000 && parsed.mcqAnswers) {
+              setMcqAnswers(prev => ({ ...prev, ...parsed.mcqAnswers }));
+              console.log(`[quiz] restored submit snapshot for ${id} (${Object.keys(parsed.mcqAnswers).length} answers, ${Math.round((Date.now() - parsed.ts) / 1000)}s old)`);
+            } else if (!parsed.ts || Date.now() - parsed.ts >= 7 * 24 * 60 * 60 * 1000) {
+              window.localStorage.removeItem(`quiz-submit-snapshot:${id}`);
+            }
+          }
+        } catch { /* localStorage disabled / quota — ignore */ }
         // Load saved canvas heights
         const savedHeights = (data.metadata as { canvasHeights?: Record<string, number> } | null)?.canvasHeights;
         if (savedHeights) canvasHeights.current = savedHeights;
@@ -994,6 +1019,25 @@ function QuizContent({ id }: { id: string }) {
     }
 
     setSubmitting(true);
+    // Submit-time snapshot. Write the FULL in-memory answers map to
+    // localStorage BEFORE any network call fires. If anything below
+    // breaks (deploy hop, 502, tab close, network blip), the next
+    // page load will restore this snapshot into mcqAnswers so the
+    // student doesn't lose typed text. Cleared at the end of a
+    // successful submit. Also flushes any pending per-keystroke
+    // debounced PATCHes so they don't fire after the submit's own
+    // bulk PATCH (otherwise a stale closure could overwrite a
+    // value).
+    try {
+      for (const timer of patchDebounceRef.current.values()) clearTimeout(timer);
+      patchDebounceRef.current.clear();
+      const snapshot = {
+        ts: Date.now(),
+        mcqAnswers,
+        skippedIds: Array.from(skippedIds),
+      };
+      window.localStorage.setItem(`quiz-submit-snapshot:${id}`, JSON.stringify(snapshot));
+    } catch { /* localStorage disabled / quota — proceed without snapshot */ }
     try {
       // Score MCQ instantly (exclude skipped)
       let correct = 0;
@@ -1261,6 +1305,11 @@ function QuizContent({ id }: { id: string }) {
       } catch { /* badge check is non-critical */ }
 
       setSubmitted(true);
+      // Submit fully succeeded — drop the recovery snapshot. If
+      // ANY step before this throws, the catch falls through to
+      // finally and the snapshot persists for the next page load
+      // to recover from.
+      try { window.localStorage.removeItem(`quiz-submit-snapshot:${id}`); } catch { /* ignore */ }
     } finally {
       setSubmitting(false);
     }
