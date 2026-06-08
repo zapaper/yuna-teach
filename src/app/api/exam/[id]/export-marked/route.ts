@@ -331,6 +331,7 @@ async function handle(
       id: true, title: true, pageCount: true, metadata: true, subject: true,
       sourceExamId: true, assignedToId: true, userId: true,
       reviewAnnotations: true,
+      assignedTo: { select: { name: true } },
       questions: {
         select: {
           id: true, questionNum: true, pageIndex: true,
@@ -805,8 +806,16 @@ async function handle(
   }
 
   const out = await doc.save();
+  // Filename = "<student> - <paper title> (marked).pdf" so a parent
+  // saving a marked PDF for multiple kids ends up with files that
+  // are obviously distinguishable on disk. Student name is omitted
+  // when the paper has no assignee (unusual — would mean the export
+  // ran on a master / unassigned clone).
   const safeTitle = (paper.title ?? "Exam").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Exam";
-  const filename = `${safeTitle} (marked).pdf`;
+  const studentName = (paper.assignedTo?.name ?? "").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 60);
+  const filename = studentName
+    ? `${studentName} - ${safeTitle} (marked).pdf`
+    : `${safeTitle} (marked).pdf`;
   return new NextResponse(Buffer.from(out), {
     status: 200,
     headers: {
