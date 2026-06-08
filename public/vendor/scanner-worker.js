@@ -172,15 +172,42 @@ function correctDogEar(cv, edgesMat, quad) {
   const trTrace = traceVerticalUp(edgesMat, br[0], br[1], tr[1], searchHalfWidth, missTolerance);
   const tlReachedY = tlTrace[1];
   const trReachedY = trTrace[1];
-  const tlDx = Math.abs(tlTrace[0] - bl[0]);
-  const trDx = Math.abs(trTrace[0] - br[0]);
+  // SIGNED dx so we can keystone-mirror with the right sign on the
+  // dog-eared side. Absolute value is the "how vertical" score for
+  // picking which trace followed a real page edge.
+  const tlDxSigned = tlTrace[0] - bl[0];
+  const trDxSigned = trTrace[0] - br[0];
+  const tlDx = Math.abs(tlDxSigned);
+  const trDx = Math.abs(trDxSigned);
   const dyDiff = Math.abs(tlReachedY - trReachedY);
-  // 3 % of image height = dog-ear threshold.
-  const dogEarThreshold = h * 0.03;
-  const isDogEar = dyDiff >= dogEarThreshold;
-  // Diagnostic field surfaced to the main thread so we can see what
-  // the traces are computing without DevTools. Will be rendered as
-  // text on the overlay during the dog-ear workshop.
+  // Two thresholds: clearly different heights ⇒ height picks; if
+  // heights are close, x-delta picks.
+  const dyMargin = h * 0.03;
+  const dxMargin = w * 0.03;
+
+  // Two-tier selection for which top corner is "real":
+  //   1. CLEARLY different heights → higher (smaller y) is real.
+  //      The lower trace stopped at a fold while the higher one
+  //      continued all the way up.
+  //   2. SAME or ROUGHLY SAME height → smaller |dx| is real.
+  //      A real page edge stays vertical (small |dx|); a dog-ear
+  //      fold pulls the trace inward by several percent of width.
+  //      The trace with the smaller absolute x-delta from its bottom
+  //      corner is the one that tracked a true vertical edge.
+  //   3. Inconclusive (similar y AND similar |dx|) → both top corners
+  //      are real, no correction.
+  // The dog-eared corner is then keystone-mirrored:
+  //   missing_top_x = missing_bottom_x − real_dx_signed
+  //   missing_top_y = real_top_y
+  // — same |dx| as the real side, opposite sign (keystone narrows
+  // symmetrically at the top).
+  let realSide = null;  // "TL" | "TR" | null
+  if (dyDiff > dyMargin) {
+    realSide = tlReachedY < trReachedY ? "TL" : "TR";
+  } else if (Math.abs(tlDx - trDx) > dxMargin) {
+    realSide = tlDx < trDx ? "TL" : "TR";
+  }
+
   const diag = {
     bl: [Math.round(bl[0]), Math.round(bl[1])],
     br: [Math.round(br[0]), Math.round(br[1])],
@@ -190,27 +217,22 @@ function correctDogEar(cv, edgesMat, quad) {
     tlDx: Math.round(tlDx),
     trDx: Math.round(trDx),
     dyDiff: Math.round(dyDiff),
-    threshold: Math.round(dogEarThreshold),
-    dogEar: isDogEar,
+    threshold: Math.round(dyMargin),
+    dogEar: realSide !== null,
   };
-  if (!isDogEar) {
-    // Both top corners reached similar y — use the trace endpoints
-    // anyway. They're tighter to the actual page edge than the
-    // minAreaRect corners (the rectangle's top is the contour's
-    // bounding-extent y, which can sit a few px above the visible
-    // edge on a slightly-tilted page).
+
+  if (realSide === null) {
+    // Both top corners look real — use trace endpoints as-is.
     return { quad: [tlTrace, trTrace, br, bl], diag: diag };
   }
-  if (tlReachedY < trReachedY) {
-    // TL trace ran higher → TL is real, TR is dog-eared.
-    const knownDx = tlTrace[0] - bl[0];
-    const newTrX = br[0] - knownDx;          // ← KEYSTONE MIRROR
+  if (realSide === "TL") {
+    // TL is real, mirror TR using TL's signed dx.
+    const newTrX = br[0] - tlDxSigned;        // ← KEYSTONE MIRROR
     const clampedX = Math.max(0, Math.min(w - 1, newTrX));
     return { quad: [tlTrace, [clampedX, tlTrace[1]], br, bl], diag: diag };
   }
-  // TR trace ran higher → TR is real, TL is dog-eared.
-  const knownDx = trTrace[0] - br[0];
-  const newTlX = bl[0] - knownDx;            // ← KEYSTONE MIRROR
+  // realSide === "TR" — TR is real, mirror TL using TR's signed dx.
+  const newTlX = bl[0] - trDxSigned;          // ← KEYSTONE MIRROR
   const clampedX = Math.max(0, Math.min(w - 1, newTlX));
   return { quad: [[clampedX, trTrace[1]], trTrace, br, bl], diag: diag };
 }

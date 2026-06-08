@@ -150,7 +150,7 @@ export default function DocumentScanner({
     setStatusMsg("Loading scanner…");
     let worker: Worker;
     try {
-      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-k");
+      worker = new Worker("/vendor/scanner-worker.js?v=2025-12-08-l");
     } catch (err) {
       setStage("error");
       setErrorMsg("Failed to start scanner worker: " + (err instanceof Error ? err.message : String(err)));
