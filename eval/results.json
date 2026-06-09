@@ -1,25 +1,1043 @@
 {
-  "ranAt": "2026-06-08T12:33:17.301Z",
+  "ranAt": "2026-06-09T02:20:26.915Z",
   "tolerance": 0.5,
   "summary": {
     "papers": {
-      "passed": 1,
-      "total": 1
+      "passed": 5,
+      "total": 10
     },
     "questions": {
-      "matched": 40,
-      "total": 40
+      "matched": 164,
+      "total": 170
     }
   },
   "results": [
     {
+      "sourceId": "cmp1aebd00001ftsttx409h23",
+      "cloneId": "cmq5zzfrl0001povesn2muh0a",
+      "title": "P4 Focused: Cycles in matter",
+      "expectedTotal": 19.5,
+      "actualTotal": 18.5,
+      "pass": false,
+      "matched": 8,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 1,
+          "actual": 2,
+          "delta": 1,
+          "pass": false
+        },
+        {
+          "questionNum": "7",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 2.5,
+          "actual": 2.5,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 0,
+          "delta": -2,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "sourceId": "cmoc9clzi0001gb2t256cysx9",
+      "cloneId": "cmq601nyh000dpoveqaeykn6u",
+      "title": "P4 Focused: Geometry",
+      "expectedTotal": 16,
+      "actualTotal": 15,
+      "pass": false,
+      "matched": 9,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 2,
+          "actual": 1,
+          "delta": -1,
+          "pass": false
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmpgb1zq0001d10h27r3nsudm",
+      "cloneId": "cmq6030vj000ppovepk7bv3zm",
+      "title": "Mastery: Interactions within the Environment Quiz 1",
+      "expectedTotal": 37,
+      "actualTotal": 36.5,
+      "pass": true,
+      "matched": 16,
+      "total": 16,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "11",
+          "expected": 4,
+          "actual": 4,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "12",
+          "expected": 3,
+          "actual": 3,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "13",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "14",
+          "expected": 2,
+          "actual": 1.5,
+          "delta": -0.5,
+          "pass": true
+        },
+        {
+          "questionNum": "15",
+          "expected": 3,
+          "actual": 3,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "16",
+          "expected": 3,
+          "actual": 3,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmpffd3wu000i1032c8w0t5pm",
+      "cloneId": "cmq608f620017pove2jpae4zi",
+      "title": "P6 Grammar MCQ+",
+      "expectedTotal": 25,
+      "actualTotal": 25,
+      "pass": true,
+      "matched": 27,
+      "total": 27,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "11",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "12",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "13",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "14",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "15",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "16",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "17",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "18",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "19",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "20",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "21",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "22",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "23",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "24",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "25",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "26",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "27",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmp0z7a390001ypkf6juin4qb",
+      "cloneId": "cmq6095u40020poveyen7gjw0",
+      "title": "P6 Editing+",
+      "expectedTotal": 32,
+      "actualTotal": 32,
+      "pass": true,
+      "matched": 27,
+      "total": 27,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "11",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "12",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "13",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "14",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "15",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "16",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "17",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "18",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "19",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "20",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "21",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "22",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "23",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "24",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "25",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "26",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "27",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmozc5icr000d11l735uqp939",
+      "cloneId": "cmq609zg9002tpove9tybl4tm",
+      "title": "P6 Focused: Fractions",
+      "expectedTotal": 14,
+      "actualTotal": 14,
+      "pass": true,
+      "matched": 10,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmozcbl4e001d11l7dro13hbp",
+      "cloneId": "cmq60bjyy0035poveg7i3vhaz",
+      "title": "P6 Focused: Geometry",
+      "expectedTotal": 22,
+      "actualTotal": 22,
+      "pass": true,
+      "matched": 10,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 3,
+          "actual": 3,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 3,
+          "actual": 3,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sourceId": "cmotr5qoz000ih6io0b4z2erx",
+      "cloneId": "cmq60djr8003hpovec20qiw2l",
+      "title": "P6 Focused: Ratio",
+      "expectedTotal": 19,
+      "actualTotal": 18,
+      "pass": false,
+      "matched": 9,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 2,
+          "actual": 2,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 4,
+          "actual": 4,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "9",
+          "expected": 1,
+          "actual": 1,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 2,
+          "actual": 1,
+          "delta": -1,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "sourceId": "cmoqkmwxa000pwu99qiiwf74x",
+      "cloneId": "cmq60ev4c003tpovevclxfmb1",
+      "title": "P6 Focused: Human respiratory and circulatory systems",
+      "expectedTotal": 12.5,
+      "actualTotal": 12,
+      "pass": false,
+      "matched": 9,
+      "total": 10,
+      "diffs": [
+        {
+          "questionNum": "1",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "2",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "3",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "4",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "5",
+          "expected": 0,
+          "actual": 0,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "6",
+          "expected": 3,
+          "actual": 2.5,
+          "delta": -0.5,
+          "pass": true
+        },
+        {
+          "questionNum": "7",
+          "expected": 4,
+          "actual": 4,
+          "delta": 0,
+          "pass": true
+        },
+        {
+          "questionNum": "8",
+          "expected": 1,
+          "actual": 2,
+          "delta": 1,
+          "pass": false
+        },
+        {
+          "questionNum": "9",
+          "expected": 1.5,
+          "actual": 1,
+          "delta": -0.5,
+          "pass": true
+        },
+        {
+          "questionNum": "10",
+          "expected": 3,
+          "actual": 2.5,
+          "delta": -0.5,
+          "pass": true
+        }
+      ]
+    },
+    {
       "sourceId": "cmq0tgcuc00011e0qqv3pfcjc",
-      "cloneId": "cmq56yahl000177ng7d1y2d62",
+      "cloneId": "cmq60glik0045povetnkyfqd3",
       "title": "PSLE Chinese 2025",
       "expectedTotal": 83,
-      "actualTotal": 82,
-      "pass": true,
-      "matched": 40,
+      "actualTotal": 83.5,
+      "pass": false,
+      "matched": 39,
       "total": 40,
       "diffs": [
         {
@@ -298,9 +1316,9 @@
         {
           "questionNum": "40",
           "expected": 3,
-          "actual": 2.5,
-          "delta": -0.5,
-          "pass": true
+          "actual": 4,
+          "delta": 1,
+          "pass": false
         }
       ]
     }

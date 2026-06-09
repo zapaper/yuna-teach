@@ -2493,10 +2493,22 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
 
         console.log(`[marking] Page ${pageIndex}: total=${questions.length}, writtenCrop=${writtenQs.length}, mcq=${mcqQs.length}, nonMcq=${nonMcqOther.length}`);
         for (const q of writtenQs) {
-          console.log(`[marking]   CROP Q${q.questionNum}: answer="${q.answer}", yStart=${q.yStartPct}, yEnd=${q.yEndPct}`);
+          // Per-question CROP setup line suppressed — the per-page
+          // "Page N: total=X writtenCrop=Y mcq=Z" summary above
+          // already conveys the layout; individual yStart/yEnd values
+          // are noise on a 77-Q paper. Restore via DEBUG_MARKING_VERBOSE
+          // if a specific question's crop bounds need to be inspected.
+          if (process.env.DEBUG_MARKING_VERBOSE === "1") {
+            console.log(`[marking]   CROP Q${q.questionNum}: answer="${q.answer}", yStart=${q.yStartPct}, yEnd=${q.yEndPct}`);
+          }
         }
         for (const q of mcqQs) {
-          console.log(`[marking]   MCQ Q${q.questionNum}: answer="${q.answer}"`);
+          // Per-question MCQ "answer=" line suppressed for the same
+          // reason as CROP above — the per-page MCQ BLIND DETECTION
+          // banner already lists every Q on the page.
+          if (process.env.DEBUG_MARKING_VERBOSE === "1") {
+            console.log(`[marking]   MCQ Q${q.questionNum}: answer="${q.answer}"`);
+          }
         }
         for (const q of nonMcqOther) {
           console.log(`[marking]   FULL Q${q.questionNum}: answer="${q.answer}"`);
@@ -2635,13 +2647,28 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 // lite model was silently accepting near-misses
                 // (e.g. "between" for "among") with no rationale.
                 if (isGrammarCloze) modelOverride = "gemini-3.1-flash-lite-preview";
-                else if (isEditing) modelOverride = "gemini-2.5-pro";
+                // Editing: was 2.5-pro to catch "Wasting → woting"
+                // mis-OCRs, but PRO is ~17× the price of flash and
+                // adds ~$0.45 per English paper. Handwriting OCR on
+                // flash has improved enough that flash now handles
+                // Editing well; the eval re-run will confirm. Keep
+                // the strict letter-by-letter spell-check rules in
+                // the prompt — those weren't pro-specific.
+                else if (isEditing) modelOverride = "gemini-2.5-flash";
                 else if (isCompCloze) modelOverride = "gemini-2.5-flash";
                 else if (isChineseOeq) modelOverride = "gemini-3.1-pro-preview";
                 const effectiveModel = modelOverride ?? (isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash");
-                if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
-                if (isChineseOeq) console.log(`[marking] Q${q.questionNum} is Chinese OEQ Q33/Q40 — using pro model for reliable character detection`);
-                console.log(`[marking] Q${q.questionNum} using model: ${effectiveModel} (syllabusTopic="${q.syllabusTopic ?? "none"}", subject="${paper?.subject ?? "?"}")`);
+                // Log expensive-model invocations only — the bulk
+                // flash/flash-lite call lines are noise once a paper
+                // is done. "Expensive" = pro tier or OpenAI fallback;
+                // see [[project_marking_logs_cleanup]] memory.
+                const isExpensiveModel = effectiveModel.includes("pro");
+                if (isExpensiveModel) {
+                  const reason = isChineseOeq ? "Chinese OEQ Q33/Q40"
+                    : isSci ? "Science strict marker"
+                    : "Other";
+                  console.log(`[marking] Q${q.questionNum} routed to ${effectiveModel} (${reason})`);
+                }
                 // Pass the full section passage (from sectionOcrTexts)
                 // to the marker for Comp Cloze / Grammar Cloze /
                 // Editing so it can judge fit against the whole
@@ -2873,14 +2900,27 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       // (Q29: pro=2.5/3 → flash verify=3/3 → review shows 3/3).
       // For science, trust the strict marker.
       if (paperIsScience) return false;
+      // Skip Grammar Cloze — the deterministic word-bank override at
+      // the end of markBatch now both UPGRADES (letter / word in bank
+      // matches key → full marks) AND DOWNGRADES (clearly wrong letter
+      // → 0) in the same pass. A flash verifier on top of that adds
+      // ~10 calls per paper without ever changing the outcome.
+      if (q.syllabusTopic === "Grammar Cloze") return false;
       return r.marksAwarded < r.marksAvailable;
     });
 
     if (questionsToVerify.length > 0) {
       console.log(`[marking] Verification pass: ${questionsToVerify.length} questions with partial/zero marks — re-marking`);
 
-      const verifyResults = await Promise.all(
-        questionsToVerify.map(async (q) => {
+      // Bounded concurrency (8 at a time) — firing 50+ flash calls
+      // via Promise.all reliably tripped Gemini's per-minute rate
+      // limit and triggered 5xx retries with 5s/10s backoff, which
+      // added 1-2 min of wall time to the verify pass. 8 concurrent
+      // calls hits the model API hard enough to stay efficient
+      // without pushing it past the throttle.
+      const VERIFY_CONCURRENCY = 8;
+      const verifyResults: Array<QuestionMarkResult | null> = [];
+      const runOne = async (q: typeof questionsToVerify[number]): Promise<QuestionMarkResult | null> => {
           const submissionPage = submissionIndexMap.get(q.pageIndex);
           if (submissionPage === undefined) return null;
           const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
@@ -2943,7 +2983,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             // Mirror the primary marker's narrow Q33/Q40-only routing.
             const vIsChineseOeq = vIsChinese && (vQNum === 33 || vQNum === 40);
             const verifyModel = vIsChineseOeq ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
-            console.log(`[marking] Verify Q${q.questionNum} (${q.id}) — original: ${orig.marksAwarded}/${orig.marksAvailable}, model: ${verifyModel}`);
+            // Only log the per-question verify line when the verify
+            // model is expensive (pro tier or above). Flash verifies
+            // are the common case and just create noise. The end-of-
+            // pass "Verification complete: N upgraded" line still
+            // reports the aggregate.
+            if (verifyModel.includes("pro")) {
+              console.log(`[marking] Q${q.questionNum} verify on ${verifyModel} (original ${orig.marksAwarded}/${orig.marksAvailable})`);
+            }
             const response = await withTimeout(
               getAI().models.generateContent({
                 model: verifyModel,
@@ -2966,8 +3013,15 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             console.warn(`[marking] Verify failed for Q${q.questionNum}:`, err);
             return null;
           }
-        })
-      );
+      };
+      // Process questions in chunks of VERIFY_CONCURRENCY at a time.
+      // Order doesn't matter — verifyResults is read by questionId
+      // below, not by index.
+      for (let i = 0; i < questionsToVerify.length; i += VERIFY_CONCURRENCY) {
+        const chunk = questionsToVerify.slice(i, i + VERIFY_CONCURRENCY);
+        const chunkResults = await Promise.all(chunk.map(runOne));
+        for (const r of chunkResults) verifyResults.push(r);
+      }
 
       let upgraded = 0;
       for (const vr of verifyResults) {
@@ -2980,7 +3034,12 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
           if (idx !== -1) allResults[idx] = vr;
           upgraded++;
         } else {
-          console.log(`[marking] Verify KEPT original for Q${vr.questionId}: verify=${vr.marksAwarded}, original=${original.marksAwarded}`);
+          // "Verify KEPT original" suppressed — the aggregate at the
+          // end ("Verification complete: N/M upgraded") already
+          // implies that everything else was kept.
+          if (process.env.DEBUG_MARKING_VERBOSE === "1") {
+            console.log(`[marking] Verify KEPT original for Q${vr.questionId}: verify=${vr.marksAwarded}, original=${original.marksAwarded}`);
+          }
         }
       }
       console.log(`[marking] Verification complete: ${upgraded}/${questionsToVerify.length} questions upgraded`);
