@@ -105,6 +105,13 @@ async function findQuestionPositionsOnPage(
   pageIndex: number,
   expectedQuestionNums: string[],
   sectionHint: string,
+  // Explicit override for cloze-inline detection. When set, we honour
+  // the caller; when omitted, we fall back to substring-matching the
+  // hint (legacy behaviour). The fallback misfired on Booklet A's
+  // Vocab Cloze MCQ — that section IS an MCQ list below the passage,
+  // not inline blanks — because the hint text contained the substring
+  // "Cloze". Caller now passes false for booklet-a explicitly.
+  isClozeSectionOverride?: boolean,
 ): Promise<Detection[]> {
   // Detect whether the expected list contains subpart-style numbers
   // (66a / 66 (a) / etc). When it does, the page likely shows the main
@@ -127,7 +134,14 @@ Match flexibly against the expected list: "66a" / "66(a)" / "66 (a)" are all the
   // important". The generic "NOT a reference inside text" rule below
   // makes Gemini skip these. Override that for cloze sections so it
   // reports every (N) that sits next to a writable blank.
-  const isClozeSection = /cloze/i.test(sectionHint);
+  //
+  // Booklet A's Vocab Cloze MCQ does NOT qualify even though its hint
+  // mentions "Cloze" — its question numbers live in the MCQ list
+  // below the passage, NOT next to the inline blanks. Caller passes
+  // isClozeSectionOverride=false in that case.
+  const isClozeSection = isClozeSectionOverride !== undefined
+    ? isClozeSectionOverride
+    : /cloze/i.test(sectionHint);
   const clozeGuidance = isClozeSection ? `
 
 CLOZE INLINE QUESTION NUMBERS: this is a cloze section. Each question number is printed INLINE WITHIN the passage text, in parentheses like "(46)", "(47)", placed IMMEDIATELY BEFORE or AFTER a blank line. Examples:
@@ -203,8 +217,11 @@ async function detectAcrossSectionPages(args: {
   sectionHint: string;
   pageRange?: { start: number; endExclusive: number };
   pageCount?: number;
+  // Forwarded into findQuestionPositionsOnPage so callers can override
+  // the substring-based cloze detection on a per-section basis.
+  isClozeSectionOverride?: boolean;
 }): Promise<{ detectionsByPage: Map<number, Detection[]>; warnings: string[] }> {
-  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange, pageCount } = args;
+  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange, pageCount, isClozeSectionOverride } = args;
   const warnings: string[] = [];
 
   let pagesToScan: number[] = [];
@@ -287,7 +304,7 @@ async function detectAcrossSectionPages(args: {
       console.log(`[normal-extract] page_${pageIdx}.jpg NOT FOUND on disk`);
       return { pageIdx, warning: `Page image not found on disk: page_${pageIdx}.jpg`, detections: null as Detection[] | null };
     }
-    const detections = await findQuestionPositionsOnPage(pageBytes, pageIdx, expectedNums, sectionHint);
+    const detections = await findQuestionPositionsOnPage(pageBytes, pageIdx, expectedNums, sectionHint, isClozeSectionOverride);
     console.log(`[normal-extract] page ${pageIdx}: detected ${detections.length} question numbers: ${detections.map(d => `Q${d.questionNum}@y${d.yPctTop.toFixed(1)}`).join(", ") || "(none)"}`);
     return { pageIdx, warning: null as string | null, detections };
   }));
@@ -365,6 +382,7 @@ async function extractSequential(args: {
   sectionHint: string;
   pageCount?: number;
   pageRange?: { start: number; endExclusive: number };
+  isClozeSectionOverride?: boolean;
 }): Promise<RunOutput> {
   const { sections, allQuestions } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
@@ -380,6 +398,7 @@ async function extractSequential(args: {
     sectionHint: args.sectionHint,
     pageCount: args.pageCount,
     pageRange: args.pageRange,
+    isClozeSectionOverride: args.isClozeSectionOverride,
   });
 
   if (detectionsByPage.size === 0) {
@@ -646,9 +665,13 @@ export async function POST(
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
-        sectionHint: "Booklet A MCQ stack (Grammar / Vocab / Vocab Cloze / Visual Text), sequential numbering",
+        sectionHint: "Booklet A MCQ stack (Grammar / Vocab / Vocab Cloze / Visual Text), sequential numbering. For Vocab Cloze MCQ in particular, the question numbers are in the MCQ LIST BELOW the passage (each followed by four (1)/(2)/(3)/(4) options), NOT the (N) markers inline within the passage text",
         pageCount: paper.pageCount ?? undefined,
         pageRange: bookletAPageRange,
+        // Booklet A's hint mentions "Vocab Cloze", which would otherwise
+        // trigger inline-(N) detection. Force it OFF — Vocab Cloze MCQ
+        // is an MCQ list below the passage, not inline blanks.
+        isClozeSectionOverride: false,
       });
       break;
     case "comp-oeq":
