@@ -4009,7 +4009,11 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
-                              isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                              isCorrect
+                                ? "bg-[#6cf8bb]/20 text-[#006c49]"
+                                : isPartial
+                                  ? "bg-[#fef3c7] text-[#633f00]"
+                                  : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
                               {cleanDetectedAnswer(studentAnswerText)}
                             </div>
@@ -4094,7 +4098,11 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
-                              isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                              isCorrect
+                                ? "bg-[#6cf8bb]/20 text-[#006c49]"
+                                : isPartial
+                                  ? "bg-[#fef3c7] text-[#633f00]"
+                                  : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
                               {cleanDetectedAnswer(studentAnswerText)}
                             </div>
@@ -4134,17 +4142,21 @@ function ExamReviewContent({ id }: { id: string }) {
                     </div>
                     )}
 
-                    {/* English quiz: scanned page at the bottom of every
-                        question card (MCQ + OEQ) so the parent can verify
-                        the detected answer against what the student
-                        actually wrote. Non-English papers already get a
-                        side-by-side submission image up top for OEQ; we
-                        skip here to avoid double-showing. */}
+                    {/* Quiz: scanned page at the bottom of every question
+                        card. ALL English / Chinese quizzes show this for
+                        both MCQ + OEQ so the parent can verify the
+                        detected answer. For Math / Science we only show
+                        on MCQ — OEQ already has the side-by-side
+                        submission image up top, so we skip to avoid
+                        double-showing. */}
                     {isQuiz && data.isPrintedAndScanned && currentQ.pageIndex >= 0 && (() => {
                       const subjLc = (paperSubject ?? "").toLowerCase();
                       const isEng = subjLc.includes("english");
                       const isChn = subjLc.includes("chinese") || (paperSubject ?? "").includes("华文") || (paperSubject ?? "").includes("中文") || (paperSubject ?? "").includes("华语");
-                      if (!isEng && !isChn) return null;
+                      const isMcqQ = hasOpts(currentQ);
+                      // Non-English/Chinese OEQ: already shown side-by-
+                      // side at the top — skip the duplicate down here.
+                      if (!isEng && !isChn && !isMcqQ) return null;
                       const sub = getSubmissionPage(currentQ.pageIndex);
                       const hasYBounds = currentQ.yStartPct != null && currentQ.yEndPct != null;
                       return (
