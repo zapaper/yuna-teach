@@ -357,6 +357,10 @@ async function handle(
           // page inset.
           xStartPct: true, xEndPct: true,
           answer: true,
+          // studentAnswer powers the Comp Cloze "accepted as" green
+          // note below the tick when the student wrote a different
+          // word from the canonical answer key but still got credit.
+          studentAnswer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
           syllabusTopic: true,
         },
@@ -837,6 +841,58 @@ async function handle(
 
         if (status === "correct") {
           stampMark(page, "tick", markX, markY, markSize);
+          // Comp Cloze "accepted as" note: when the student wrote a
+          // different word from the canonical answer key but still
+          // earned the mark (synonym / alt spelling), surface the
+          // canonical answer + the marker's reasoning in green ink
+          // below the tick. Parent can see both why their child
+          // got credit and the "model" answer.
+          if (isCompCloze) {
+            const keyAns = (q.answer ?? "").trim();
+            const studentAns = (q.studentAnswer ?? "").trim();
+            const norm = (s: string) => s.toLowerCase().replace(/[^\w'-]/g, "").trim();
+            const isDifferent =
+              keyAns.length > 0 &&
+              studentAns.length > 0 &&
+              norm(keyAns) !== norm(studentAns);
+            if (isDifferent) {
+              const GREEN = rgb(0.10, 0.55, 0.25);
+              const reason = q.markingNotes ? stripLatex(q.markingNotes).trim() : "";
+              // Line 1 always: "Ans: <answer key>"
+              // Line 2 always: "'<student>' accepted" (+ ":  <reason>" when present)
+              const line1 = `Ans: ${keyAns}`;
+              const line2 = reason
+                ? `'${studentAns}' accepted: ${reason}`
+                : `'${studentAns}' accepted`;
+              const noteSizeAcc = Math.max(11, Math.round(markSize * 0.32));
+              // Right-align to the tick's right edge so the note hangs
+              // under the mark column rather than drifting back over
+              // the student's writing.
+              const w1 = helveticaRegular.widthOfTextAtSize(line1, noteSizeAcc);
+              const w2 = helveticaRegular.widthOfTextAtSize(line2, noteSizeAcc);
+              const noteW = Math.max(w1, w2);
+              // Cap width so a long marker note doesn't run off the page.
+              const maxW = Math.max(120, pageW - markX - 8);
+              const lines = noteW <= maxW
+                ? [line1, line2]
+                : [
+                    ...wrapText(line1, helveticaRegular, noteSizeAcc, maxW),
+                    ...wrapText(line2, helveticaRegular, noteSizeAcc, maxW),
+                  ];
+              const noteX = Math.min(markRightX - Math.max(...lines.map(l => helveticaRegular.widthOfTextAtSize(l, noteSizeAcc))), pageW - 8);
+              let cursorY = markY - markSize * 0.55;
+              for (const ln of lines) {
+                page.drawText(ln, {
+                  x: Math.max(8, noteX),
+                  y: cursorY,
+                  size: noteSizeAcc,
+                  font: helveticaRegular,
+                  color: GREEN,
+                });
+                cursorY -= noteSizeAcc * 1.2;
+              }
+            }
+          }
           continue;
         }
 
