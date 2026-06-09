@@ -4046,10 +4046,17 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     )}
 
-                    {/* Exam paper: Submission image + solution side-by-side */}
+                    {/* Exam paper: Submission image + solution side-by-side.
+                        Used to skip the submission image entirely on MCQ
+                        questions, but for stylus / written exams the
+                        parent still needs to see which option the student
+                        circled / wrote — particularly Science MCQ where
+                        the "scanned page" shows the student's stylus
+                        marks. Always render the submission column now;
+                        MCQs and OEQs both benefit. */}
                     {!isQuiz && (
                     <div className="md:flex gap-5">
-                      {!currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !currentQ.transcribedOptionTable && (
+                      {(
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
