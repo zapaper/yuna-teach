@@ -187,13 +187,19 @@ export async function GET(
 
   const isMath = (paper.subject ?? "").toLowerCase().includes("math");
   const isScience = (paper.subject ?? "").toLowerCase().includes("sci");
-  const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
-  // English printable is rough (writing-comprehension layout doesn't
-  // translate cleanly to lined / boxed A4 yet) — keep blocked for
-  // parents but let admins through so they can run print + scan QA
-  // on the English flow end-to-end.
-  if (isEnglish && !auth.isAdmin) {
-    return NextResponse.json({ error: "Printable not available for English yet" }, { status: 400 });
+  const subjectRawLc = (paper.subject ?? "").toLowerCase();
+  const subjectRaw = paper.subject ?? "";
+  const isEnglish = subjectRawLc.includes("english");
+  const isChinese = subjectRawLc.includes("chinese") || subjectRaw.includes("华文") || subjectRaw.includes("中文") || subjectRaw.includes("华语");
+  // English / Chinese quiz + focused printable is disabled for now —
+  // the writing/comprehension layouts don't translate cleanly to
+  // lined / boxed A4 yet. Blocked even for admin until the
+  // English/Chinese quiz layout is fixed. Real EXAM printing for
+  // these subjects still goes through /api/exam/[id]/print.
+  if (isEnglish || isChinese) {
+    return NextResponse.json({
+      error: "Printing English / Chinese practice papers is temporarily disabled — the lined-A4 layout for those subjects is still being rebuilt.",
+    }, { status: 400 });
   }
   const code = `MFY-${paper.id.slice(0, 8)}-${student.id.slice(0, 8)}`;
 
