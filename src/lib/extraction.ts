@@ -3,6 +3,31 @@ import { promises as fs } from "fs";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
 
+// Canonical labels for Chinese paper sections. Gemini occasionally
+// hallucinates an English translation for a Chinese section label
+// (e.g. "Short Passage Cloze" instead of "短文填空", "Dialogue
+// Completion" instead of "完成对话"). Both the section-rendering
+// pathway and the per-section passage-attach gate match on the
+// Chinese spelling, so an English label silently breaks the quiz and
+// the audit. Normalise here on the read path so the downstream code
+// only ever sees the canonical Chinese form.
+const CHINESE_SECTION_NORMALISATION: Record<string, string> = {
+  "Short Passage Cloze": "短文填空",
+  "Passage Cloze": "短文填空",
+  "Dialogue Completion": "完成对话",
+  "Dialogue Cloze": "完成对话",
+  "Chinese Language Application": "语文应用 MCQ",
+  "Language Application MCQ": "语文应用 MCQ",
+  "Comprehension MCQ": "阅读理解 MCQ",
+  "Comprehension OEQ": "阅读理解 OEQ",
+  "Comprehension A": "阅读理解 A",
+  "Comprehension B OEQ": "阅读理解 B OEQ",
+};
+function normaliseChineseSectionLabel(label: string | null | undefined): string | null {
+  if (!label) return label ?? null;
+  return CHINESE_SECTION_NORMALISATION[label] ?? label;
+}
+
 // --- Extraction queue: run one extraction at a time to avoid Gemini rate limits ---
 let extractionQueue: Array<{ paperId: string; resolve: () => void; reject: (e: unknown) => void }> = [];
 let extractionRunning = false;
@@ -450,7 +475,10 @@ async function extractExamPaperCore(
             yStartPct: q.yStartPct ?? null,
             yEndPct: q.yEndPct ?? null,
             marksAvailable: coerceMarks(q.marksAvailable ?? result.marksPerQuestion?.[qNum]),
-            syllabusTopic: q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? null,
+            syllabusTopic: (() => {
+              const t = q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? null;
+              return isChineseEarly ? normaliseChineseSectionLabel(t) : t;
+            })(),
             transcribedStem: ext._stem || ext._blankContext || ext._errorWord || undefined,
             transcribedOptions: ext._options || undefined,
           });
@@ -717,7 +745,12 @@ async function extractExamPaperCore(
     for (const qNum of questionOrder) {
       const segments = questionGroups.get(qNum)!;
 
-      const syllabusTopic = result.syllabusTopics?.[qNum] ?? null;
+      // Normalise on the Chinese path so that downstream code never
+      // sees an English-translated section label (Gemini sometimes
+      // hallucinates "Short Passage Cloze" / "Dialogue Completion"
+      // etc.). English / math / science topics pass through untouched.
+      const rawTopic = result.syllabusTopics?.[qNum] ?? null;
+      const syllabusTopic = isChinese ? normaliseChineseSectionLabel(rawTopic) : rawTopic;
       const isEnglishMcq = isEnglish && ENGLISH_MCQ_TOPICS.has(syllabusTopic ?? "");
       const isGrammarCloze = syllabusTopic === "Grammar Cloze";
       const isEditing = syllabusTopic === "Editing (Spelling & Grammar)";
@@ -803,7 +836,9 @@ async function extractExamPaperCore(
             marksAvailable: si === 0
               ? (result.marksPerQuestion?.[qNum] ?? null)
               : null,
-            syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
+            syllabusTopic: isChinese
+              ? normaliseChineseSectionLabel(result.syllabusTopics?.[qNum] ?? null)
+              : (result.syllabusTopics?.[qNum] ?? null),
           });
         }
         continue;
@@ -867,7 +902,9 @@ async function extractExamPaperCore(
         yStartPct: primary.yStartPct ?? null,
         yEndPct: primary.yEndPct ?? null,
         marksAvailable: coerceMarks(result.marksPerQuestion?.[qNum]),
-        syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
+        syllabusTopic: isChinese
+          ? normaliseChineseSectionLabel(result.syllabusTopics?.[qNum] ?? null)
+          : (result.syllabusTopics?.[qNum] ?? null),
         // English text content — store as transcribed fields for clean display
         ...(seg0._stem ? { transcribedStem: seg0._stem } : {}),
         ...(seg0._options ? { transcribedOptions: seg0._options } : {}),
@@ -1012,7 +1049,12 @@ export function buildChineseSections(
   let curBoundaryPage = -1;
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
-    const label = (q.syllabusTopic ?? "").trim();
+    // Apply the same normalisation here as a belt-and-suspenders pass
+    // — if for any reason a question slipped through with an English
+    // section label (rebuilt from a stale clone, hand-edited, etc.),
+    // we still bucket it into the canonical Chinese section.
+    const rawLabel = (q.syllabusTopic ?? "").trim();
+    const label = normaliseChineseSectionLabel(rawLabel) ?? rawLabel;
     const isCompSec = label.includes("阅读理解");
     const boundaryPage = isCompSec ? q.pageIndex : -1;
     const startsNew = label !== curLabel || boundaryPage !== curBoundaryPage;
