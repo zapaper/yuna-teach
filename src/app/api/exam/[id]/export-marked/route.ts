@@ -439,28 +439,72 @@ async function handle(
     const qs = bySubPage.get(i) ?? [];
     for (const q of qs) flatJobs.push({ pageIdx: i, q });
   }
-  console.log(`[export-marked] classifying ${flatJobs.length} questions in parallel`);
+  // Only Comp OEQ needs the per-subpart split (the marker emits one
+  // verdict for the whole Q41(a)(b)(c) row; Gemini fans it out into
+  // per-subpart status/marksLost/notes). Every other section is
+  // single-mark — marker's marksAwarded + markingNotes is the whole
+  // truth, the whitespace-band placement decides WHERE notes go, and
+  // calling Gemini there was paying ~$0.05/paper for data we already
+  // have. Fast-path synthesises SubpartMark[] directly.
+  const compOeqJobs = flatJobs.filter(j => isCompOeqLabel(j.q.syllabusTopic));
+  const fastPathJobs = flatJobs.filter(j => !isCompOeqLabel(j.q.syllabusTopic));
+  console.log(`[export-marked] ${flatJobs.length} questions: ${compOeqJobs.length} Comp OEQ via Gemini, ${fastPathJobs.length} via fast-path`);
   const t0 = Date.now();
-  const flatResults = await Promise.all(flatJobs.map(async ({ pageIdx, q }) => {
-    const { jpgBytes, Wpx, Hpx } = pageData[pageIdx];
-    if (Wpx === 0 || Hpx === 0) {
-      return { pageIdx, qId: q.id, pageRegion: { topPx: 0, leftPx: 0, widthPx: 0, heightPx: 0 }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
-    }
+
+  // Pre-cropper used by both paths to compute pageRegion. Fast-path
+  // doesn't need the JPEG buffer at all (just the px coords); Comp
+  // OEQ still produces a buffer for Gemini.
+  function pageRegionFor(pageIdx: number, q: NonNullable<typeof paper>["questions"][number]) {
+    const { Hpx } = pageData[pageIdx];
+    if (Hpx === 0) return { topPx: 0, leftPx: 0, widthPx: 0, heightPx: 0 };
     const yStartPct = q.yStartPct ?? 0;
     const yEndPct = q.yEndPct ?? 100;
     const topPx = Math.max(0, Math.floor(Hpx * yStartPct / 100));
     const bottomPx = Math.min(Hpx, Math.ceil(Hpx * yEndPct / 100));
-    const heightPx = Math.max(1, bottomPx - topPx);
+    return { topPx, leftPx: 0, widthPx: pageData[pageIdx].Wpx, heightPx: Math.max(1, bottomPx - topPx) };
+  }
+
+  // Fast-path: one synthetic SubpartMark per question, no AI call.
+  // yPctEnd = 70 puts the tick ~3/4 down the crop — works for inline-
+  // blank sections (Editing / Grammar Cloze / Comp Cloze) and stacked
+  // MCQ alike. Synthesis stems are shorter so 70 still lands inside
+  // the writing area. Whitespace detection downstream owns the final
+  // y-position for the NOTE; the tick stays anchored to yPctEnd.
+  const fastPathResults = fastPathJobs.map(({ pageIdx, q }) => {
+    const pageRegion = pageRegionFor(pageIdx, q);
+    const status = fallbackStatus(q);
+    const marksLost = fallbackLost(q);
+    const note = status === "wrong" && q.markingNotes
+      ? stripLatex(q.markingNotes).trim().slice(0, 200) || undefined
+      : undefined;
+    return {
+      pageIdx,
+      qId: q.id,
+      pageRegion,
+      marks: [{ label: "", yPctEnd: 70, xPctEnd: 95, status, marksLost, note }] satisfies SubpartMark[],
+    };
+  });
+
+  // Comp OEQ path: classifyQuestion call per question. ~6 calls on a
+  // PSLE English paper instead of ~80.
+  const compOeqResults = await Promise.all(compOeqJobs.map(async ({ pageIdx, q }) => {
+    const { jpgBytes, Wpx, Hpx } = pageData[pageIdx];
+    const pageRegion = pageRegionFor(pageIdx, q);
+    if (Wpx === 0 || Hpx === 0) {
+      return { pageIdx, qId: q.id, pageRegion, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
+    }
     let regionBuf: Buffer;
     try {
-      regionBuf = await sharp(jpgBytes).extract({ left: 0, top: topPx, width: Wpx, height: heightPx }).jpeg({ quality: 80 }).toBuffer();
+      regionBuf = await sharp(jpgBytes).extract({ left: 0, top: pageRegion.topPx, width: Wpx, height: pageRegion.heightPx }).jpeg({ quality: 80 }).toBuffer();
     } catch (err) {
       console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
-      return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
+      return { pageIdx, qId: q.id, pageRegion, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
     }
     const marks = await classifyQuestion(regionBuf, q, paper.subject ?? "");
-    return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
+    return { pageIdx, qId: q.id, pageRegion, marks };
   }));
+
+  const flatResults = [...fastPathResults, ...compOeqResults];
   console.log(`[export-marked] classification done in ${Date.now() - t0}ms`);
 
   // Re-bucket by page index for the stamping loop.
@@ -887,17 +931,17 @@ async function handle(
               const GREEN = rgb(0.10, 0.55, 0.25);
               // Same shrunken font as the English OEQ marker note.
               const sizeAcc = englishOeqNoteSize;
-              // Width budget: from the left margin to a bit before the
-              // mark column (so the note sits under and to the LEFT of
-              // the tick, not running off the right edge).
-              const maxNoteW = Math.max(140, markX - pageW * 0.08);
-              // Wrap to at most 2 lines.
-              const wrappedAcc = wrapText(noteText, helveticaRegular, sizeAcc, maxNoteW);
-              let linesAcc = wrappedAcc.slice(0, 2);
-              if (wrappedAcc.length > linesAcc.length) {
-                const last = linesAcc[linesAcc.length - 1] ?? "";
-                linesAcc = [...linesAcc.slice(0, -1), (last + " …").trimEnd()];
-              }
+              // Width budget: the full printable page width minus a
+              // small left/right gutter. Previous "half the page" cap
+              // was truncating reasonable two-clause explanations;
+              // letting the note wrap naturally across the whole page
+              // keeps the explanation intact.
+              const maxNoteW = pageW - 16;
+              // Wrap freely — no hard line cap. The whitespace-band
+              // placement below will find room for whatever block height
+              // the note ends up at; if there is genuinely no room
+              // we fall back to the bottom of the region.
+              const linesAcc = wrapText(noteText, helveticaRegular, sizeAcc, maxNoteW);
               const lineSpacingAcc = sizeAcc * 1.25;
               const blockHAcc = Math.ceil(lineSpacingAcc * linesAcc.length);
               // Place via the same whitespace-band logic the red notes
