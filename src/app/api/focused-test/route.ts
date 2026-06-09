@@ -281,6 +281,100 @@ export async function POST(request: NextRequest) {
     }, { status: 404 });
   }
 
+  // ── Chinese passage-grouped path ────────────────────────────────
+  // For passage-based Chinese sections (one passage per paper carries
+  // 6–10 blanks / comprehension Qs), the user wants "2x quiz" to mean
+  // "2 whole passages", NOT "2x as many scattered blanks across many
+  // different passages". We group topic-matched questions by paperId
+  // (each group = one passage) and pick 2 distinct passages, including
+  // every question from each. Bypasses the MCQ/OEQ pools + dedup +
+  // sibling pull entirely — those are tuned for cross-paper Q-by-Q
+  // selection that doesn't apply here.
+  //
+  // 语文应用 MCQ is excluded because its questions are standalone
+  // across the paper, not bound to a passage — grouping by paperId
+  // would dump a paper's entire 语文应用 stack into the practice.
+  const CHINESE_PASSAGE_TOPICS = new Set([
+    "完成对话", "对话填空",
+    "短文填空",
+    "阅读理解 MCQ", "阅读理解 OEQ", "阅读理解 A", "阅读理解 B OEQ",
+    "Visual Text Comprehension MCQ",
+  ]);
+  if (isChinese && CHINESE_PASSAGE_TOPICS.has(topic)) {
+    const TARGET_PASSAGES = 2;
+    const byPaper = new Map<string, typeof topicMatched>();
+    for (const q of topicMatched) {
+      if (!byPaper.has(q.examPaperId)) byPaper.set(q.examPaperId, []);
+      byPaper.get(q.examPaperId)!.push(q);
+    }
+    const passageGroups = [...byPaper.values()];
+    passageGroups.sort(() => Math.random() - 0.5);
+    const picked = passageGroups.slice(0, TARGET_PASSAGES);
+    for (const g of picked) {
+      g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+    }
+    const allPicked = picked.flat();
+
+    const heavyRows = allPicked.length > 0
+      ? await prisma.examQuestion.findMany({
+          where: { id: { in: allPicked.map(q => q.id) } },
+          select: { id: true, imageData: true, answerImageData: true, diagramImageData: true },
+        })
+      : [];
+    const heavyByIdCh = new Map(heavyRows.map(r => [r.id, r]));
+    const hydratedQs = allPicked.map(q => ({
+      ...q,
+      imageData: heavyByIdCh.get(q.id)?.imageData ?? "",
+      answerImageData: heavyByIdCh.get(q.id)?.answerImageData ?? null,
+      diagramImageData: heavyByIdCh.get(q.id)?.diagramImageData ?? null,
+    }));
+
+    const labelLevel = effectiveLevel ?? student?.level ?? null;
+    const titlePrefix = labelLevel ? `P${labelLevel} ` : "";
+    const focusKind = isRevision ? "Revision" : "Focused";
+    const paper = await prisma.examPaper.create({
+      data: {
+        title: `${titlePrefix}${focusKind}: ${topic}`,
+        subject,
+        level: labelLevel ? `P${labelLevel}` : null,
+        userId: parentId,
+        assignedToId: studentId || null,
+        ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
+        paperType: "focused",
+        instantFeedback: true,
+        pageCount: 0,
+        extractionStatus: "ready",
+        totalMarks: String(hydratedQs.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0)),
+        questions: {
+          create: hydratedQs.map((q, i) => ({
+            questionNum: String(i + 1),
+            imageData: q.imageData,
+            answer: q.answer,
+            answerImageData: q.answerImageData,
+            marksAvailable: q.marksAvailable ?? 1,
+            syllabusTopic: q.syllabusTopic,
+            pageIndex: 0,
+            orderIndex: i,
+            transcribedStem: q.transcribedStem,
+            transcribedOptions: q.transcribedOptions ?? undefined,
+            transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedOptionTable: q.transcribedOptionTable ?? undefined,
+            transcribedSubparts: q.transcribedSubparts ?? undefined,
+            diagramImageData: q.diagramImageData,
+            diagramBounds: q.diagramBounds ?? undefined,
+            sourceQuestionId: q.id,
+          })),
+        },
+      },
+    });
+
+    const warnings: string[] = [];
+    if (picked.length < TARGET_PASSAGES) {
+      warnings.push(`Only ${picked.length} passage${picked.length === 1 ? "" : "s"} of "${topic}" available — practice runs ${picked.length} passage instead of the usual ${TARGET_PASSAGES}.`);
+    }
+    return NextResponse.json({ id: paper.id, questionCount: hydratedQs.length, warnings });
+  }
+
   // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
   // The topic filter can miss the parent row when only the subpart carries the syllabus
   // topic tag — and the parent is often the row with the diagram/lead stem. Without
