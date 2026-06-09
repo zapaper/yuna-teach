@@ -4142,14 +4142,19 @@ function ExamReviewContent({ id }: { id: string }) {
                     </div>
                     )}
 
-                    {/* Quiz: scanned page at the bottom of every question
-                        card. ALL English / Chinese quizzes show this for
-                        both MCQ + OEQ so the parent can verify the
-                        detected answer. For Math / Science we only show
-                        on MCQ — OEQ already has the side-by-side
+                    {/* Quiz: scanned/written page at the bottom of every
+                        question card. ALL English / Chinese quizzes show
+                        this for both MCQ + OEQ so the parent can verify
+                        the detected answer. For Math / Science we only
+                        show on MCQ — OEQ already has the side-by-side
                         submission image up top, so we skip to avoid
-                        double-showing. */}
-                    {isQuiz && data.isPrintedAndScanned && currentQ.pageIndex >= 0 && (() => {
+                        double-showing.
+                        Trigger: submissionPageCount > 0. Was gated on
+                        isPrintedAndScanned, which is false for stylus
+                        exams — so a tablet-written Science MCQ paper
+                        never showed the relevant page. submission count
+                        covers both paths cleanly. */}
+                    {isQuiz && submissionPageCount > 0 && currentQ.pageIndex >= 0 && (() => {
                       const subjLc = (paperSubject ?? "").toLowerCase();
                       const isEng = subjLc.includes("english");
                       const isChn = subjLc.includes("chinese") || (paperSubject ?? "").includes("华文") || (paperSubject ?? "").includes("中文") || (paperSubject ?? "").includes("华语");

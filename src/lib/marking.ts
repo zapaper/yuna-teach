@@ -5738,6 +5738,73 @@ NO = the transcription consists only of phrases like "blank", "(no working shown
           }
         }
 
+        // ── Science drawable electrical-circuit cross-check ──
+        // Series-vs-parallel topology is the canonical case where one
+        // pro-tier vision model reads the diagram correctly and another
+        // doesn't. When the question is a science drawable AND the stem /
+        // topic mentions any circuit-related keyword, run gpt-5.4 in
+        // parallel as a second opinion. If the two transcriptions
+        // disagree on series/parallel/cell-count, prepend a CROSS-CHECK
+        // warning so Phase 2 marker treats topology with extra care
+        // instead of trusting Phase 1's single read. Skipped when the
+        // primary transcription was already empty (the existing OpenAI
+        // fallback above handles that path).
+        const subjectLowerForXcheck = (paper.subject ?? "").toLowerCase();
+        const xcheckScience = subjectLowerForXcheck.includes("science");
+        const circuitKeywordRe = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
+        const stemAndTopic = `${q.transcribedStem ?? ""} ${q.syllabusTopic ?? ""} ${q.answer ?? ""}`;
+        const isElectricalCircuit = xcheckScience && isDrawableAny && circuitKeywordRe.test(stemAndTopic);
+        // Lightweight blank-check (mirrors the looksUnreadable helper in
+        // the OpenAI escalation block above, just simpler — we only need
+        // to skip cross-validation when Phase 1 is already blank).
+        const xcheckCandidate = (detectedAnswer ?? "").trim();
+        const xcheckLooksBlank = !xcheckCandidate || /^(blank|empty|no\s+answer|nothing|illegible)/i.test(xcheckCandidate);
+        if (isElectricalCircuit && isOpenAIFallbackEnabled() && !xcheckLooksBlank) {
+          console.log(`[quiz-marking] Q${q.questionNum}: science circuit detected — cross-validating Phase 1 with gpt-5.4`);
+          try {
+            const xResp = await runOpenAIFallback(
+              { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts: detectParts }] },
+              `quiz-detect-q${q.questionNum}-circuit-xcheck`,
+            );
+            const xRaw = xResp.text?.trim() ?? "";
+            // Strip the same OUTPUT FORMAT markers the Gemini pass strips.
+            const xLines = xRaw.split("\n");
+            const xL1 = (xLines[0] ?? "").trim();
+            const xL2 = (xLines[1] ?? "").trim();
+            const xIsMarker1 = xL1 === "HANDWRITING: PRESENT" || xL1 === "HANDWRITING: ABSENT";
+            const xIsMarker2 = xL2 === "TRANSCRIPTION: FOUND" || xL2 === "TRANSCRIPTION: EMPTY";
+            const xClean = xIsMarker1 && xIsMarker2
+              ? xLines.slice(2).join("\n").trim()
+              : xIsMarker1
+                ? xLines.slice(1).join("\n").trim()
+                : xRaw;
+            const xCleanLooksBlank = !xClean || /^(blank|empty|no\s+answer|nothing|illegible)/i.test(xClean);
+            if (xClean && !xCleanLooksBlank) {
+              const gemLc = detectedAnswer.toLowerCase();
+              const oaiLc = xClean.toLowerCase();
+              // Topology disagreement: one says series, the other says
+              // parallel (or vice versa). Also flag cell-count drift —
+              // 1-cell vs 2-cell circuits are different setups.
+              const topologyDisagrees =
+                (gemLc.includes("series") && oaiLc.includes("parallel")) ||
+                (gemLc.includes("parallel") && oaiLc.includes("series"));
+              const cellCountDisagrees =
+                /\b(one|two|three|1|2|3)\b\s*cell/.test(gemLc) &&
+                /\b(one|two|three|1|2|3)\b\s*cell/.test(oaiLc) &&
+                gemLc.match(/\b(one|two|three|1|2|3)\b\s*cell/)?.[1] !==
+                  oaiLc.match(/\b(one|two|three|1|2|3)\b\s*cell/)?.[1];
+              if (topologyDisagrees || cellCountDisagrees) {
+                console.log(`[quiz-marking] Q${q.questionNum} circuit cross-check: DISAGREEMENT (topology=${topologyDisagrees}, cellCount=${cellCountDisagrees}) — surfacing both transcriptions to Phase 2`);
+                detectedAnswer = `${detectedAnswer}\n\n[CIRCUIT CROSS-CHECK — gpt-5.4 read the SAME drawing differently. Inspect the actual diagram in the image; one of these transcriptions is wrong]:\n${xClean}`;
+              } else {
+                console.log(`[quiz-marking] Q${q.questionNum} circuit cross-check: AGREEMENT`);
+              }
+            }
+          } catch (err) {
+            console.warn(`[quiz-marking] Q${q.questionNum} circuit cross-check failed (non-fatal):`, err instanceof Error ? err.message : err);
+          }
+        }
+
         // ── PHASE 2: Compare detected answer against the answer key ──
         // Per-part answer image usage: the answer image only applies to parts whose
         // answer-key text says "see answer image" / "refer to answer image" / similar.
