@@ -5,7 +5,18 @@ import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
 type Counts = { total: number; regenerated: number; pending: number; sci: number; math: number };
-type Outcome = { id: string; questionNum: string; paperTitle: string; ok: boolean; letterSet: boolean; error?: string };
+type Outcome = {
+  id: string;
+  questionNum: string;
+  paperId: string;
+  paperTitle: string;
+  paperSubject: string | null;
+  ok: boolean;
+  letterSet: boolean;
+  error?: string;
+  solution?: string;
+  answer?: string | null;
+};
 
 export default function Page() {
   return (
@@ -204,18 +215,54 @@ function Content() {
           {log.length === 0 ? (
             <p className="text-xs text-slate-400">No results yet.</p>
           ) : (
-            <ul className="space-y-1 max-h-[480px] overflow-y-auto">
+            <ul className="space-y-2 max-h-[680px] overflow-y-auto">
               {log.map((r, i) => (
-                <li key={`${r.id}:${i}`} className="flex items-start gap-2 text-xs">
-                  <span className={r.ok ? "text-green-600" : "text-red-600"}>{r.ok ? "✓" : "✗"}</span>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium text-slate-700">Q{r.questionNum}</span>{" "}
-                    <span className="text-slate-500">— {r.paperTitle}</span>
-                    {r.letterSet && (
-                      <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 font-bold uppercase tracking-wider">letter-set</span>
+                <li key={`${r.id}:${i}`} className="border-b border-slate-100 last:border-b-0 pb-2">
+                  <details>
+                    <summary className="flex items-start gap-2 text-xs cursor-pointer list-none select-none">
+                      <span className={r.ok ? "text-green-600" : "text-red-600"}>{r.ok ? "✓" : "✗"}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-slate-700">Q{r.questionNum}</span>{" "}
+                        <span className="text-slate-500">— {r.paperTitle}</span>
+                        {r.paperSubject && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">{r.paperSubject}</span>
+                        )}
+                        {r.letterSet && (
+                          <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 font-bold uppercase tracking-wider">letter-set</span>
+                        )}
+                        {r.answer && (
+                          <span className="ml-2 text-[10px] text-slate-500">key=<strong className="text-slate-700">{r.answer}</strong></span>
+                        )}
+                        <span className="ml-2 text-[10px] text-slate-400">[click to expand]</span>
+                        {!r.ok && r.error && <p className="text-red-700 text-[11px] mt-0.5">{r.error}</p>}
+                      </div>
+                    </summary>
+                    {r.ok && r.solution && (
+                      <div className="mt-2 ml-6 space-y-2">
+                        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 whitespace-pre-wrap">
+                          {r.solution}
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px]">
+                          <a
+                            href={`/exam/${r.paperId}/edit?userId=${userId}#q-${r.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline hover:text-blue-800"
+                          >
+                            Open master in /edit (jumps to Q{r.questionNum}) ↗
+                          </a>
+                          <a
+                            href={`/exam/${r.paperId}/overview?userId=${userId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline hover:text-blue-800"
+                          >
+                            Master overview ↗
+                          </a>
+                        </div>
+                      </div>
                     )}
-                    {!r.ok && r.error && <p className="text-red-700 text-[11px] mt-0.5">{r.error}</p>}
-                  </div>
+                  </details>
                 </li>
               ))}
             </ul>

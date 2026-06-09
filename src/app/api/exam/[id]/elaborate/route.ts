@@ -391,6 +391,31 @@ export async function POST(
               : "";
 
     const hasDiagramHere = !!question.diagramImageData;
+    // Detect letter-set MCQs (options like "A, B and C only" / "II,
+    // III only"). For these the labelled items live ONLY on the
+    // diagram image — without an explicit instruction the model
+    // paraphrases what they say from training data. Same rule the
+    // bulk regen path uses. Skipped for Chinese papers (different
+    // labelling conventions there).
+    const letterSetOptsRe = /^\s*(?:[A-D](?:\s*,\s*[A-D]){0,3}(?:\s+and\s+[A-D])?(?:\s+only)?|(?:I{1,3}|IV|V)(?:\s*,\s*(?:I{1,3}|IV|V)){0,3}(?:\s+and\s+(?:I{1,3}|IV|V))?(?:\s+only)?)\s*$/i;
+    const elabOpts = question.transcribedOptions as string[] | null;
+    const isLetterSetElabMcq = !isChinesePaper
+      && Array.isArray(elabOpts) && elabOpts.length === 4
+      && elabOpts.every((o) => typeof o === "string" && letterSetOptsRe.test(o as string));
+    const letterSetRule = isLetterSetElabMcq ? `
+LABELLED-ITEM MCQ — CRITICAL:
+The options are letter-set references (e.g. "A, B and C only"). The labelled items A, B, C, D (or I, II, III…)
+live as printed text ON the diagram, NOT in the text portion of this prompt. Before reasoning, in this order:
+  1. Transcribe each labelled item VERBATIM from the image. Format:
+       Statement A: "<exact text>"
+       Statement B: "<exact text>"
+       …
+     If a label is unreadable, write "Statement X: (unreadable)" — never paraphrase or invent text.
+  2. Verify EACH labelled statement TRUE or FALSE against the diagram / data table, citing the specific row,
+     column, or feature you used.
+  3. ONLY after steps 1 and 2 write the final "Step 1 / Step 2 / Answer" explanation that arrives at the
+     official answer.
+` : "";
     const answerAnchor = isChinesePaper
       ? `**正确答案是：${question.answer ?? "未提供"}** — 这是官方参考答案，须以此为准。${hasDiagramHere ? "若题目含有图示，可能不易精确辨认；遇到分歧时以参考答案为准，并据此倒推合理解释。" : ""} 你的解释必须最终落到此答案。如果你的推理指向其他选项，那是你看错了题目，请重新阅读并解释如何得出参考答案。`
       : `**The answer is ${question.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagramHere ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine and explain how the official answer is reached.`;
@@ -412,7 +437,7 @@ Here is the question:
 ${questionText}
 ${visualTextNote}${passageNote}
 ${answerAnchor}${studentAnswerNote}
-
+${letterSetRule}
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
 Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{7}$\` (with TWO backslashes) inside the "solution" string, not \`$\\frac{3}{7}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$3\\\\frac{1}{2}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed and the fraction breaks. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers, = for equals. The only LaTeX command allowed is \\\\frac. ${formatStyleRule}

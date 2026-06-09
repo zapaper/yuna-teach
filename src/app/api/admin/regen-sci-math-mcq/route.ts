@@ -204,11 +204,24 @@ export async function POST(req: NextRequest) {
       diagramImageData: true,
       imageData: true,
       answer: true,
-      examPaper: { select: { title: true, subject: true, level: true } },
+      examPaper: { select: { id: true, title: true, subject: true, level: true } },
     },
   });
 
-  type Outcome = { id: string; questionNum: string; paperTitle: string; ok: boolean; letterSet: boolean; error?: string };
+  type Outcome = {
+    id: string;
+    questionNum: string;
+    paperId: string;
+    paperTitle: string;
+    paperSubject: string | null;
+    ok: boolean;
+    letterSet: boolean;
+    error?: string;
+    // Surface the actual solution string so the admin can review the
+    // output inline without opening a clone's review page.
+    solution?: string;
+    answer?: string | null;
+  };
   const outcomes: Outcome[] = [];
 
   // Process with limited concurrency (3 in flight).
@@ -295,12 +308,24 @@ ${COMMON_DIAGRAM_RULES}`;
           where: { id: q.id },
           data: { elaboration: cached },
         });
-        outcomes.push({ id: q.id, questionNum: q.questionNum, paperTitle: q.examPaper.title, ok: true, letterSet: isLetterSet });
+        outcomes.push({
+          id: q.id,
+          questionNum: q.questionNum,
+          paperId: q.examPaper.id,
+          paperTitle: q.examPaper.title,
+          paperSubject: q.examPaper.subject,
+          ok: true,
+          letterSet: isLetterSet,
+          solution,
+          answer: q.answer,
+        });
       } catch (err) {
         outcomes.push({
           id: q.id,
           questionNum: q.questionNum,
+          paperId: q.examPaper.id,
           paperTitle: q.examPaper.title,
+          paperSubject: q.examPaper.subject,
           ok: false,
           letterSet: isLetterSet,
           error: err instanceof Error ? err.message : String(err),
