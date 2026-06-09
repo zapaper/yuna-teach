@@ -1961,19 +1961,34 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
-  // Editing needs strict letter-by-letter OCR — flash-lite was mis-
-  // reading "Wasting" as "woting" on Q40 (PSLE English 2025) and the
-  // strict spell check then penalised the AI's mis-read, not the
-  // student. 2.5-pro reads handwriting accurately enough that the
-  // spell check sees what the student actually wrote. Cloze stays on
-  // flash-lite because it picks from a fixed list of options — no
-  // free-form OCR ambiguity to amplify.
+  // Drawable Science electrical-circuit questions need pro-tier
+  // vision: flash can't reliably distinguish series vs parallel
+  // topology on hand-drawn circuits, and getting that wrong on a
+  // single-question re-mark is exactly the case the parent flagged
+  // (Q35: student drew series, flash read parallel, marker awarded
+  // partial credit against the wrong topology). Also runs gpt-5.4
+  // in parallel as a second opinion — see below.
+  const subjLcRemark = (paper.subject ?? "").toLowerCase();
+  const isScienceRemark = subjLcRemark.includes("science");
+  const isDrawableRemark = !!question.answer && /\bsee\s+answer\s+(image|diagram|drawing)\b/i.test(question.answer);
+  const circuitKeywordReRemark = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
+  const stemTopicAns = `${question.transcribedStem ?? ""} ${question.syllabusTopic ?? ""} ${question.answer ?? ""}`;
+  const isElectricalCircuitRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns);
   const remarkModel = isEditing ? "gemini-2.5-pro"
     : isCloze ? "gemini-3.1-flash-lite-preview"
+    : isElectricalCircuitRemark ? "gemini-3.1-pro-preview"
     : "gemini-2.5-flash";
   if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-2.5-pro)`);
+  if (isElectricalCircuitRemark) console.log(`[marking] Q${question.questionNum} is Science drawable electrical circuit — using gemini-3.1-pro-preview + gpt-5.4 cross-check`);
   console.log(`[marking] Calling Gemini (${remarkModel}) for remark of question ${questionId} (syllabusTopic="${question.syllabusTopic ?? "none"}")`);
-  const response = await withTimeout(
+  // For science circuit questions, run gpt-5.4 in parallel as a
+  // cross-check. Both models see the same image + prompt and return
+  // marking JSON. If they agree on marksAwarded we use the Gemini
+  // result; if they disagree we use the LOWER score (conservative —
+  // a circuit either has the right topology or it doesn't, and a
+  // model that mis-reads the topology will award more marks than
+  // deserved).
+  const geminiPromise = withTimeout(
     getAI().models.generateContent({
       model: remarkModel,
       contents: [{ role: "user", parts }],
@@ -1982,12 +1997,46 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     GEMINI_TIMEOUT_MS,
     `remark question ${questionId}`
   );
+  const openaiCrossCheckPromise = (isElectricalCircuitRemark && isOpenAIFallbackEnabled())
+    ? runOpenAIFallback(
+        { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts }], config: { responseMimeType: "application/json", temperature: 0.1 } },
+        `remark-q${question.questionNum}-circuit-xcheck`,
+      ).then(r => ({ ok: true as const, text: r.text ?? "" })).catch(err => ({ ok: false as const, err }))
+    : Promise.resolve({ ok: false as const, err: null });
+  const [response, openaiResult] = await Promise.all([geminiPromise, openaiCrossCheckPromise]);
 
   const text = response.text;
   if (!text) throw new Error("Empty Gemini response");
   const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
   const result = parsed.questions.find((q) => q.questionId === questionId) ?? parsed.questions[0];
   if (!result) throw new Error("No result for question");
+
+  // Circuit cross-check: parse the OpenAI result and compare scores.
+  if (isElectricalCircuitRemark && openaiResult.ok && openaiResult.text) {
+    try {
+      const oaiParsed = extractJson(openaiResult.text) as { questions: QuestionMarkResult[] };
+      const oaiResult = oaiParsed.questions.find(q => q.questionId === questionId) ?? oaiParsed.questions[0];
+      if (oaiResult) {
+        const gemAwarded = result.marksAwarded ?? 0;
+        const oaiAwarded = oaiResult.marksAwarded ?? 0;
+        if (gemAwarded !== oaiAwarded) {
+          const lower = Math.min(gemAwarded, oaiAwarded);
+          console.log(`[marking] Q${question.questionNum} circuit cross-check: DISAGREEMENT — Gemini awarded ${gemAwarded}, gpt-5.4 awarded ${oaiAwarded}. Using LOWER (${lower}) — circuit topology is binary, the higher-scoring model likely mis-read the diagram.`);
+          // Append a cross-check note to the marker's reasoning so the
+          // review page surfaces why the score dropped.
+          const xnote = `\n\n[CIRCUIT CROSS-CHECK: Gemini read this as ${gemAwarded}/${result.marksAvailable ?? "?"} marks; gpt-5.4 read it as ${oaiAwarded}/${oaiResult.marksAvailable ?? "?"} marks. Conservative lower score applied because circuit topology is binary — series vs parallel is not partial credit.]`;
+          result.marksAwarded = lower;
+          result.notes = (result.notes ?? "") + xnote;
+        } else {
+          console.log(`[marking] Q${question.questionNum} circuit cross-check: AGREEMENT (both ${gemAwarded}/${result.marksAvailable ?? "?"})`);
+        }
+      }
+    } catch (err) {
+      console.warn(`[marking] Q${question.questionNum} circuit cross-check parse failed (non-fatal):`, err instanceof Error ? err.message : err);
+    }
+  } else if (isElectricalCircuitRemark && !openaiResult.ok && openaiResult.err) {
+    console.warn(`[marking] Q${question.questionNum} circuit cross-check call failed (non-fatal):`, openaiResult.err instanceof Error ? openaiResult.err.message : openaiResult.err);
+  }
 
   await prisma.examQuestion.update({
     where: { id: questionId },
