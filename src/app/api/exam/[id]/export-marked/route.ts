@@ -716,6 +716,22 @@ async function handle(
       return { y: Math.max(0, aboveBottom - needH + 1), distance: aboveDist, direction: "above" };
     }
 
+    // True when the rows in [topY, topY+h) are MOSTLY whitespace.
+    // Used to refuse a "below yEnd" anchor when the band immediately
+    // under the question is actually packed with the next question's
+    // text. ≤15% ink allowed for safety (anti-aliasing + faint pencil
+    // marks shouldn't disqualify an otherwise empty band).
+    function isBandWhitespace(topY: number, h: number): boolean {
+      const start = Math.max(0, Math.floor(topY));
+      const end = Math.min(grayH, start + Math.ceil(h));
+      if (end <= start) return false;
+      let inkRows = 0;
+      for (let y = start; y < end; y++) {
+        if (rowMeans[y] < WS_THRESHOLD) inkRows++;
+      }
+      return inkRows / (end - start) < 0.15;
+    }
+
     const qs = bySubPage.get(i) ?? [];
     const perQ = (allMarks.find(p => p.pageIdx === i)?.perQ) ?? [];
     // 2× larger ticks/crosses than before — they need to read as the
@@ -843,10 +859,12 @@ async function handle(
           stampMark(page, "tick", markX, markY, markSize);
           // Comp Cloze "accepted as" note: when the student wrote a
           // different word from the canonical answer key but still
-          // earned the mark (synonym / alt spelling), surface the
-          // canonical answer + the marker's reasoning in green ink
-          // below the tick. Parent can see both why their child
-          // got credit and the "model" answer.
+          // earned the mark (synonym / alt spelling), surface a
+          // single-string note in green ink. Format:
+          //   "Ans: <key>. Accepted '<student>' as <reason>"
+          // Uses the same small font as the English OEQ marker note
+          // and the same whitespace-band placement so it doesn't
+          // overlap the next question. 1-2 lines max.
           if (isCompCloze) {
             const keyAns = (q.answer ?? "").trim();
             const studentAns = (q.studentAnswer ?? "").trim();
@@ -856,40 +874,63 @@ async function handle(
               studentAns.length > 0 &&
               norm(keyAns) !== norm(studentAns);
             if (isDifferent) {
+              // Parse the marker's note. Marker prompt produces
+              //   "Accepted 'X' for key 'Y' — <reason>"
+              // We already display X and Y ourselves, so strip the
+              // boilerplate and keep just <reason>.
+              const rawNoteAcc = q.markingNotes ? stripLatex(q.markingNotes).trim() : "";
+              const acceptedRe = /^accepted\s+['"‘’“”]?[^'"‘’“”]+['"‘’“”]?\s+for\s+key\s+['"‘’“”]?[^'"‘’“”]+['"‘’“”]?\s*[—\-:]\s*/i;
+              const reason = rawNoteAcc.replace(acceptedRe, "").trim();
+              const noteText = reason
+                ? `Ans: ${keyAns}. Accepted '${studentAns}' as ${reason}`
+                : `Ans: ${keyAns}. Accepted '${studentAns}'`;
               const GREEN = rgb(0.10, 0.55, 0.25);
-              const reason = q.markingNotes ? stripLatex(q.markingNotes).trim() : "";
-              // Line 1 always: "Ans: <answer key>"
-              // Line 2 always: "'<student>' accepted" (+ ":  <reason>" when present)
-              const line1 = `Ans: ${keyAns}`;
-              const line2 = reason
-                ? `'${studentAns}' accepted: ${reason}`
-                : `'${studentAns}' accepted`;
-              const noteSizeAcc = Math.max(11, Math.round(markSize * 0.32));
+              // Same shrunken font as the English OEQ marker note.
+              const sizeAcc = englishOeqNoteSize;
+              // Width budget: from the left margin to a bit before the
+              // mark column (so the note sits under and to the LEFT of
+              // the tick, not running off the right edge).
+              const maxNoteW = Math.max(140, markX - pageW * 0.08);
+              // Wrap to at most 2 lines.
+              const wrappedAcc = wrapText(noteText, helveticaRegular, sizeAcc, maxNoteW);
+              let linesAcc = wrappedAcc.slice(0, 2);
+              if (wrappedAcc.length > linesAcc.length) {
+                const last = linesAcc[linesAcc.length - 1] ?? "";
+                linesAcc = [...linesAcc.slice(0, -1), (last + " …").trimEnd()];
+              }
+              const lineSpacingAcc = sizeAcc * 1.25;
+              const blockHAcc = Math.ceil(lineSpacingAcc * linesAcc.length);
+              // Place via the same whitespace-band logic the red notes
+              // use. Anchor below the tick; if that's overlapping text,
+              // findWhitespaceBand will slide it.
+              const tickBottomGray = pageH - (markY - markSize * 0.5);
+              let topGray: number;
+              const belowTick = tickBottomGray + Math.round(sizeAcc * 0.3);
+              const fitsBelowTick =
+                belowTick + blockHAcc + 4 <= grayH &&
+                isBandWhitespace(belowTick, blockHAcc);
+              if (fitsBelowTick) {
+                topGray = belowTick;
+              } else {
+                const band = findWhitespaceBand(belowTick, Math.ceil(grayH * 0.25), blockHAcc);
+                topGray = band.direction === "fallback"
+                  ? Math.min(grayH - blockHAcc - 4, belowTick)
+                  : band.y;
+              }
               // Right-align to the tick's right edge so the note hangs
-              // under the mark column rather than drifting back over
-              // the student's writing.
-              const w1 = helveticaRegular.widthOfTextAtSize(line1, noteSizeAcc);
-              const w2 = helveticaRegular.widthOfTextAtSize(line2, noteSizeAcc);
-              const noteW = Math.max(w1, w2);
-              // Cap width so a long marker note doesn't run off the page.
-              const maxW = Math.max(120, pageW - markX - 8);
-              const lines = noteW <= maxW
-                ? [line1, line2]
-                : [
-                    ...wrapText(line1, helveticaRegular, noteSizeAcc, maxW),
-                    ...wrapText(line2, helveticaRegular, noteSizeAcc, maxW),
-                  ];
-              const noteX = Math.min(markRightX - Math.max(...lines.map(l => helveticaRegular.widthOfTextAtSize(l, noteSizeAcc))), pageW - 8);
-              let cursorY = markY - markSize * 0.55;
-              for (const ln of lines) {
+              // under the mark column.
+              const longestW = Math.max(...linesAcc.map(l => helveticaRegular.widthOfTextAtSize(l, sizeAcc)));
+              const noteX = Math.max(8, Math.min(markRightX - longestW, pageW - longestW - 8));
+              let pdfY = pageH - topGray - sizeAcc;
+              for (const ln of linesAcc) {
                 page.drawText(ln, {
-                  x: Math.max(8, noteX),
-                  y: cursorY,
-                  size: noteSizeAcc,
+                  x: noteX,
+                  y: pdfY,
+                  size: sizeAcc,
                   font: helveticaRegular,
                   color: GREEN,
                 });
-                cursorY -= noteSizeAcc * 1.2;
+                pdfY -= lineSpacingAcc;
               }
             }
           }
@@ -1032,7 +1073,18 @@ async function handle(
           const lineSpacingPx = effNoteSize * 1.25;
           const blockH = Math.ceil(effNoteSize * 1.25 * capped.length);
           const belowYEnd = regionTopPx + regionH + Math.round(effNoteSize * 0.3);
-          const fitsBelowYEnd = belowYEnd + blockH + 4 <= grayH;
+          // Two conditions before we take the "park it right under the
+          // question" shortcut:
+          //   1. The block fits on the page below the question.
+          //   2. The strip below the question is ACTUALLY whitespace —
+          //      not just within page bounds. Without this check, a
+          //      Comp OEQ / Comp Cloze note happily lands on top of the
+          //      NEXT question's stem, which is the overlap the parent
+          //      keeps reporting. When (2) fails we fall through to the
+          //      findWhitespaceBand search above/below.
+          const fitsBelowYEnd =
+            belowYEnd + blockH + 4 <= grayH &&
+            isBandWhitespace(belowYEnd, blockH);
           let wsTop: number;
           if (fitsBelowYEnd) {
             wsTop = belowYEnd;
