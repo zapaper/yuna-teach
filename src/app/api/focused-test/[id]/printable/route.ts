@@ -834,18 +834,17 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: Cov
   const { owlLogo, wordmark, paperKind, topic, studentName, subject, level, questionCount } = args;
 
   // ── Submit-via-app banner: bold boxed notice at the very top ──
-  // Tells parents to scan + submit inside the app rather than
-  // emailing, and reminds students to write in blue ink so the
-  // scan-back marker can distinguish their writing from the
-  // printed text. Centred, full-width box at the page top.
+  // Single big-and-bold blue line at the top of the cover so the
+  // student can't miss it: legible blue ink + a complete scan
+  // submission. Was 11pt / 2 lines; bumped to 18pt single-line so it
+  // reads from across the room.
   const noticeParagraphs = [
-    "Use the App's scan function to submit (mobile only). Scan every page.",
-    "Please write all answers in blue ink.",
+    "Please write legibly in blue ink. Scan every page for submission.",
   ];
-  const noticeSize = 11;
+  const noticeSize = 18;
   const noticeLines = noticeParagraphs.flatMap(p => wrapLines(p, bold, noticeSize, CONTENT_W - 24));
-  const noticeLineH = noticeSize + 4;
-  const noticePadY = 9;
+  const noticeLineH = noticeSize + 6;
+  const noticePadY = 12;
   const noticeBoxH = noticeLines.length * noticeLineH + noticePadY * 2;
   const noticeBoxY = A4_H - MARGIN - noticeBoxH;
   page.drawRectangle({

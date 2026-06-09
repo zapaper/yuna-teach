@@ -205,16 +205,17 @@ export async function GET(
   const boxPad = 3;
 
   // ── Top-centre instructions banner ────────────────────────────
-  // White-filled, blue-bordered box stamped at the top of page 1
-  // so the parent sees the scan + ink instructions before they
-  // print. Drawn FIRST so the print code below can clear it.
+  // Big bold blue notice stamped at the top of page 1 so the student
+  // sees it the moment the paper is in their hands. One short line
+  // covering both expectations the marker depends on: legible blue
+  // ink + a full scan submission. Larger than the previous 11pt /
+  // 2-line layout because it has to read from across the room.
   const noticeLines = [
-    "Use the App's scan function to submit (mobile only). Scan every page.",
-    "Please write all answers in blue ink.",
+    "Please write legibly in blue ink. Scan every page for submission.",
   ];
-  const noticeSize = 11;
-  const noticeLineH = noticeSize + 4;
-  const noticeInnerPadY = 9;
+  const noticeSize = 18;
+  const noticeLineH = noticeSize + 6;
+  const noticeInnerPadY = 12;
   const noticeBoxH = noticeLines.length * noticeLineH + noticeInnerPadY * 2;
   const noticeBoxX = padX;
   const noticeBoxW = width - padX * 2;
