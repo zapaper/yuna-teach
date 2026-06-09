@@ -21,6 +21,20 @@ function isComprehensionCloze(syllabusTopic: string | null | undefined): boolean
   return t.includes("comprehension cloze") || t.includes("comp cloze");
 }
 
+// Sections where the student's answer box sits in a narrow right-
+// margin column (Editing, Grammar Cloze, Comp Cloze). For these we
+// want the tick/cross stamped to the LEFT of the answer column so it
+// doesn't sit on top of the student's writing. Detected by
+// syllabusTopic.
+function isRightMarginAnswerSection(syllabusTopic: string | null | undefined): boolean {
+  if (!syllabusTopic) return false;
+  const t = syllabusTopic.toLowerCase();
+  return t.includes("editing")
+    || t.includes("grammar cloze")
+    || t.includes("comprehension cloze")
+    || t.includes("comp cloze");
+}
+
 // GET /api/exam/[id]/export-marked?userId=<parent>
 //
 // Builds a downloadable "red-pen" PDF: the student's scanned pages with
@@ -732,7 +746,15 @@ async function handle(
       const aClean = (qq.answer ?? "").replace(/[().]/g, "").trim();
       const isMcqQ = /^[A-D1-4]$/i.test(aClean);
       const isOeqQ = !isMcqQ;
-      const inset = (isOeqQ && (paper.subject ?? "").toLowerCase().includes("science")) ? 0.15 : 0.10;
+      // Right-inset ladder:
+      //   - Editing / Grammar Cloze / Comp Cloze (0.22): land LEFT of
+      //     the right-margin answer column so the stamp doesn't sit on
+      //     top of the student's writing.
+      //   - Science OEQ (0.15): a bit of extra breathing room.
+      //   - Everything else (0.10): the existing default.
+      const inset = isRightMarginAnswerSection(qq.syllabusTopic) ? 0.22
+        : (isOeqQ && (paper.subject ?? "").toLowerCase().includes("science")) ? 0.15
+        : 0.10;
       const mRightX = pageW * (1 - inset);
       const mX = mRightX - markSize * 0.5;
       for (const mm of e2.marks) {
@@ -764,9 +786,16 @@ async function handle(
       const isCompCloze = isComprehensionCloze(q.syllabusTopic);
       const isCompOeq = isCompOeqLabel(q.syllabusTopic);
 
-      // Mark column: 10% from the right edge by default; 15% for
-      // Science OEQ (the user wants more breathing room there).
-      const rightInsetPct = isScience && isOeq ? 0.15 : 0.10;
+      // Mark column inset ladder — mirrors the pre-compute pass above.
+      //   - Editing / Grammar Cloze / Comp Cloze: 22% from the right
+      //     so the stamp lands LEFT of the student's right-margin
+      //     answer column (otherwise the tick/cross sits on top of
+      //     their writing).
+      //   - Science OEQ: 15% (extra breathing room).
+      //   - Everything else: 10%.
+      const rightInsetPct = isRightMarginAnswerSection(q.syllabusTopic) ? 0.22
+        : (isScience && isOeq) ? 0.15
+        : 0.10;
       const markRightX = pageW * (1 - rightInsetPct);
       const markX = markRightX - markSize * 0.5;
 
