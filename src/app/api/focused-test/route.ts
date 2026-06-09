@@ -158,13 +158,19 @@ export async function POST(request: NextRequest) {
     };
   };
 
-  const questionSelect = {
+  // Light select: drops the three base64 columns (imageData,
+  // answerImageData, diagramImageData) so the topic-matched +
+  // sibling + fallback queries don't drag 50–200 KB per row across
+  // Railway egress just to pick 10–20 rows out of a 100+ pool. The
+  // heavy columns are hydrated AFTER the final selection — same
+  // two-phase pattern as /api/daily-quiz. Was the dominant cost in
+  // assign-quiz/practice latency once the master bank grew past
+  // ~6k questions.
+  const questionSelectLight = {
     id: true,
     questionNum: true,
     examPaperId: true,
-    imageData: true,
     answer: true,
-    answerImageData: true,
     marksAvailable: true,
     syllabusTopic: true,
     transcribedStem: true,
@@ -172,7 +178,6 @@ export async function POST(request: NextRequest) {
     transcribedOptionImages: true,
     transcribedOptionTable: true,
     transcribedSubparts: true,
-    diagramImageData: true,
     diagramBounds: true,
     sourceQuestionId: true,
     examPaper: {
@@ -182,7 +187,7 @@ export async function POST(request: NextRequest) {
 
   let topicMatched = await prisma.examQuestion.findMany({
     where: questionWhere(true, difficultyFilter.primary, allowedExamTypes),
-    select: questionSelect,
+    select: questionSelectLight,
   });
   // If the time-of-year filter zeroed out the pool (e.g. April with WA1
   // only and the topic only appears in EOY papers), drop the examType
@@ -202,7 +207,7 @@ export async function POST(request: NextRequest) {
   if (broadenWhen && allowedExamTypes) {
     const broader = await prisma.examQuestion.findMany({
       where: questionWhere(true, difficultyFilter.primary, null),
-      select: questionSelect,
+      select: questionSelectLight,
     });
     if (broader.length > topicMatched.length) {
       topicMatched = broader;
@@ -219,7 +224,7 @@ export async function POST(request: NextRequest) {
   if (topicMatched.length === 0 && levelVariants) {
     topicMatched = await prisma.examQuestion.findMany({
       where: questionWhere(false, difficultyFilter.primary, null),
-      select: questionSelect,
+      select: questionSelectLight,
     });
     levelFallback = topicMatched.length > 0;
   }
@@ -237,7 +242,7 @@ export async function POST(request: NextRequest) {
     // Step 2: same levels but include unrated rows.
     const withNull = await prisma.examQuestion.findMany({
       where: questionWhere(true, difficultyFilter.primary, examTypeArg, true),
-      select: questionSelect,
+      select: questionSelectLight,
     });
     if (withNull.length > topicMatched.length) {
       topicMatched = withNull;
@@ -250,7 +255,7 @@ export async function POST(request: NextRequest) {
       const broadened = [...difficultyFilter.primary, ...difficultyFilter.fallback];
       const withFallback = await prisma.examQuestion.findMany({
         where: questionWhere(true, broadened, examTypeArg, true),
-        select: questionSelect,
+        select: questionSelectLight,
       });
       if (withFallback.length > topicMatched.length) {
         topicMatched = withFallback;
@@ -301,7 +306,7 @@ export async function POST(request: NextRequest) {
           // often untagged) but rejects an off-topic subpart.
           AND: [{ OR: [{ syllabusTopic: topic }, { syllabusTopic: null }] }],
         },
-        select: questionSelect,
+        select: questionSelectLight,
       })
     : [];
 
@@ -311,6 +316,14 @@ export async function POST(request: NextRequest) {
   const allQuestions = [...byId.values()];
 
   type Q = typeof allQuestions[number];
+  // Hydrated row: Q + the three base64 columns we dropped from the
+  // light select. Populated AFTER the final selection is picked so the
+  // bulk pool query stays cheap.
+  type HeavyQ = Q & {
+    imageData: string;
+    answerImageData: string | null;
+    diagramImageData: string | null;
+  };
 
   // Normalise a stem for dedup: the same question phrased with different
   // whitespace, punctuation, or a leading question number (e.g. "1. What...",
@@ -385,11 +398,19 @@ export async function POST(request: NextRequest) {
   for (const group of oeqGroupMap.values()) {
     group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
   }
-  // Keep groups that either have a stem OR an image. Image-only English OEQs
-  // (Grammar Cloze, Editing, Comp Cloze) should still be selectable — the quiz
-  // UI falls back to rendering imageData when transcribedStem is null.
+  // Keep groups that either have a stem OR text subparts. The stricter
+  // renderableOeq filter below enforces stem-on-group[0]-or-subpart-
+  // with-text before selection; this pre-filter just rejects entirely
+  // empty groups. (Originally also accepted image-only groups via an
+  // imageData length check, but renderableOeq would drop them anyway,
+  // and imageData lives in the heavy column we no longer pull at pool
+  // time.)
   const validGroups = [...oeqGroupMap.values()].filter(g =>
-    g.some(q => (q.transcribedStem ?? "").trim() || (q.imageData && q.imageData.length > 100))
+    g.some(q =>
+      (q.transcribedStem ?? "").trim() ||
+      ((q.transcribedSubparts as Array<{ label: string; text?: string }> | null) ?? [])
+        .some(sp => !sp.label.startsWith("_") && (sp.text ?? "").trim())
+    )
   );
   // Build a content fingerprint from the normalised stems of ALL siblings in
   // the group PLUS the normalised text of every real subpart. OEQ questions
@@ -453,7 +474,7 @@ export async function POST(request: NextRequest) {
     return result;
   }
 
-  function mergeOeqGroup(group: Q[]) {
+  function mergeOeqGroup(group: HeavyQ[]) {
     const first = group[0];
     // Main question stem, main diagram = group[0]'s own values, period. Do NOT
     // promote a later sibling's stem or diagram into the main slots — that
@@ -564,8 +585,45 @@ export async function POST(request: NextRequest) {
   const extraOeq = !mcqOnly && remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, renderableOeq.length - targetOeq) : 0;
 
   const selectedMcq = mcqPool.slice(0, targetMcq + extraMcq);
-  const selectedOeq = renderableOeq.slice(0, targetOeq + extraOeq).map(mergeOeqGroup);
-  const allSelected = [...selectedMcq, ...selectedOeq];
+  const selectedOeqGroups = renderableOeq.slice(0, targetOeq + extraOeq);
+
+  if (selectedMcq.length + selectedOeqGroups.length === 0) {
+    return NextResponse.json({ error: "No clean questions found for this topic" }, { status: 404 });
+  }
+
+  // Hydration pass: pull the heavy base64 columns for the ~10–20
+  // questions we actually picked, plus every sibling row inside each
+  // OEQ group (mergeOeqGroup may pick imageData/diagramImageData
+  // from any sibling, not just group[0]). One bounded findMany ≪
+  // dragging these columns across the whole topic pool.
+  const heavyIds = new Set<string>();
+  for (const q of selectedMcq) heavyIds.add(q.id);
+  for (const g of selectedOeqGroups) for (const q of g) heavyIds.add(q.id);
+  const heavyRows = heavyIds.size > 0
+    ? await prisma.examQuestion.findMany({
+        where: { id: { in: [...heavyIds] } },
+        select: { id: true, imageData: true, answerImageData: true, diagramImageData: true },
+      })
+    : [];
+  const heavyById = new Map(heavyRows.map(r => [r.id, r]));
+  const hydrate = (q: Q): HeavyQ => {
+    const heavy = heavyById.get(q.id);
+    return {
+      ...q,
+      // imageData is non-nullable in the schema; default "" guards
+      // against a row going missing between the light and heavy
+      // queries (very unlikely but cheap).
+      imageData: heavy?.imageData ?? "",
+      answerImageData: heavy?.answerImageData ?? null,
+      diagramImageData: heavy?.diagramImageData ?? null,
+    };
+  };
+
+  const hydratedMcq = selectedMcq.map(hydrate);
+  const selectedOeq = selectedOeqGroups
+    .map(group => group.map(hydrate))
+    .map(mergeOeqGroup);
+  const allSelected = [...hydratedMcq, ...selectedOeq];
 
   if (allSelected.length === 0) {
     return NextResponse.json({ error: "No clean questions found for this topic" }, { status: 404 });
