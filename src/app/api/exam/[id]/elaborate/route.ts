@@ -287,13 +287,25 @@ export async function POST(
       } catch { /* non-critical */ }
     }
 
-    // Include diagram image only (cropped, no headers)
+    // Include diagram image (cropped, no headers).
     if (question.diagramImageData) {
       const match = question.diagramImageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
-    // For Visual Text: also send the question image (contains the flyer/poster)
-    if (isVisualText && question.imageData) {
+    // Visual Text MCQ: also send the question image (contains the
+    // flyer/poster).
+    // Science: also send the full question image alongside the cropped
+    // diagram. Diagram-only crops routinely lose the labelled letters
+    // (A/B/C/D arrows, table headers, axis labels) — the model then
+    // paraphrases what those labels say from training data and gets
+    // them wrong. Carrying the full crop preserves the labels.
+    // Fall back to imageData when diagramImageData was null on ANY
+    // subject — text-only context is the worst hallucination case.
+    const sendFullImage =
+      isVisualText ||
+      isScienceSubject ||
+      !question.diagramImageData;
+    if (sendFullImage && question.imageData) {
       const match = question.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
