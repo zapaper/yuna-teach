@@ -139,15 +139,18 @@ function FlaggedContent() {
                       const examId = item.cloneId ?? item.paperId;
                       const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                       const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                      // Top-right "Q{n} ↗" always opens the QUIZ /
-                      // practice / overview the student actually
-                      // took — including Chinese. The master-paper
-                      // affordance lives further down on the card
-                      // ("Go to paper Q{n}") so each link points to
-                      // a distinct surface; don't merge them.
+                      // For a completed clone of a real exam paper
+                      // (paperType=null + cloneId + completedAt set),
+                      // route to /review — otherwise the top-right
+                      // Q{n} ↗ button would land on /overview (the
+                      // master catalogue view) and miss the student's
+                      // actual scanned answers + marks. Mirrors the
+                      // bottom "Paper ↗" button's logic so the two
+                      // affordances stay consistent.
+                      const isCompletedClone = !!item.cloneId && !!item.paperCompletedAt;
                       const path = isMastery
                         ? `/quiz/${examId}`
-                        : isQuizOrFocused
+                        : isQuizOrFocused || isCompletedClone
                           ? `/exam/${examId}/review`
                           : `/exam/${examId}/overview`;
                       window.open(`${path}?userId=${userId}`, "_blank");
