@@ -233,7 +233,12 @@ export async function POST(request: NextRequest) {
     select: {
       id: true, questionNum: true, examPaperId: true,
       transcribedStem: true, transcribedOptions: true, transcribedOptionImages: true,
-      transcribedSubparts: true, diagramImageData: true, answer: true,
+      transcribedSubparts: true, diagramImageData: true,
+      // imageData (full question crop) gets sent for Science MCQ so the
+      // model has full context (labels, terminals, option diagrams) and
+      // doesn't fill in missing parts of a tightly-cropped diagram.
+      imageData: true,
+      answer: true,
       syllabusTopic: true,
       examPaper: { select: { title: true, subject: true, level: true } },
     },
@@ -254,11 +259,28 @@ export async function POST(request: NextRequest) {
     }
 
     const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
+    // For Science MCQ, also feed the FULL question image alongside any
+    // cropped diagram. Diagram crops on their own routinely lose labels
+    // / arrow heads / circuit terminals — the model then fills in the
+    // missing pieces from training data ("hallucinated circuits"). The
+    // full question crop carries the surrounding labels + the four
+    // option diagrams and lets the model cross-reference. Cost: one
+    // extra image upload per question (~50-150 KB), pennies per paper.
+    const subjLcImg = (q.examPaper.subject ?? "").toLowerCase();
+    const isScienceImg = subjLcImg.includes("science");
     if (q.diagramImageData) {
       const match = q.diagramImageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
-    const hasDiagram = !!q.diagramImageData;
+    // Always include the full question image for Science MCQ. Also fall
+    // back to imageData when diagramImageData was null for any subject —
+    // text-only context is the worst hallucination case.
+    const sendFullImage = isScienceImg || !q.diagramImageData;
+    if (sendFullImage && q.imageData) {
+      const match = q.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+    }
+    const hasDiagram = !!q.diagramImageData || (isScienceImg && !!q.imageData);
     const answerAnchor = `**The answer is ${q.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagram ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine the question text and answer key, then explain how the official answer is reached.`;
 
     const subjectLc = (q.examPaper.subject ?? "").toLowerCase();
