@@ -270,12 +270,15 @@ IMPORTANT — do NOT flag any of the following:
 - Multiple valid phrasings of the same Chinese answer — phrase-based rubrics deliberately list one acceptable phrasing per scoring point.
 - The answer key being in 简体 vs 繁体 — both forms are acceptable.
 - Stylistic differences in OEQ (e.g. the key uses 而 instead of 但是) — only flag clear semantic or factual mismatches.
+- Any question whose Topic is "阅读理解 OEQ" (or contains 阅读理解 AND the Type is OEQ) — the answer key for these is entered from a separate answer sheet, so the stem we see may be incomplete or just a question prompt. Do NOT flag a Comp OEQ for "answer doesn't address the stem", "answer is just phrases without context", or similar — output an empty issues list for these unless the answer is BLANK or contains an obvious copy-paste error from a different question. (Q33 应用文 is the exception — keep auditing Q33 normally per its own rule below.)
+
+ROUTING — read the question's "Topic:" line FIRST and route to the matching rule below. The "Type:" line ("MCQ" / "OEQ") is auto-derived from whether transcribedOptions is populated; for 短文填空 and 完成对话 the Type may say "OEQ" even though both are choose-from-a-list sections — TRUST the Topic, not the Type. Do NOT apply the OEQ phrase rubric to a 短文填空 / 完成对话 question.
 
 DO read the stem and option text together when judging an MCQ answer:
 
 - 短文填空 (Passage Cloze) MCQ — the stem is a sentence with a numbered blank "(N)". The four options are short words/phrases. READ the option whose number matches the answer key, INSERT it into the blank, and check whether the resulting sentence is grammatically correct AND contextually consistent with the surrounding sentence. Flag when the chosen option produces a clearly ungrammatical, contradictory, or out-of-context sentence (e.g. wrong tense, opposite meaning, or a noun where a verb is needed). Sanity-check that the answer is in the 1-4 range too.
 
-- 完成对话 (Dialogue Cloze) MCQ — the stem shows part of a dialogue with a numbered blank. The word bank options are full short phrases. INSERT the chosen option into the blank and check whether the speaker's line still flows, addresses the previous turn, and makes the conversation coherent. Flag obvious non-sequiturs or when the speaker would never say that line in context. Also sanity-check that the answer is within the printed word-bank range (typically 1-8).
+- 完成对话 (Dialogue Cloze) MCQ — IMPORTANT FORMAT NOTE: the answer key for every 完成对话 question is a SINGLE DIGIT (typically 1-8) pointing to a printed word bank that lists 8 short phrases. The answer key is NEVER the phrase text itself; it is ALWAYS just the digit. Do NOT flag a 完成对话 question merely because its answer is a digit instead of a phrase — that is the expected format. To audit a 完成对话 question: look at the printed word bank, identify which phrase corresponds to the digit in the answer key, mentally INSERT that phrase into the dialogue's numbered blank, and check whether the speaker's line still flows, addresses the previous turn, and makes the conversation coherent. Flag only when (a) the digit is outside the printed word-bank range (e.g. "9" when the bank has 8 entries), or (b) inserting the corresponding phrase produces an obvious non-sequitur the speaker would never say in context.
 
 - General MCQ — the chosen option's TEXT must actually answer what the stem ASKS for (e.g. if the stem asks for a 同义词 of "高兴", the chosen option must mean 高兴; if the stem asks for the speaker's mood, the chosen option must reflect that mood).
 
@@ -283,7 +286,7 @@ DO read OEQ answer keys against the question stem:
 
 - OEQ phrase rubric — when the key uses " | " separators, EACH separated phrase should describe a real, distinct scoring point that DIRECTLY answers the question being asked. Flag when the phrases are commentary like 评分标准 / 注释 instead of scoring points, or when the phrases together don't actually address the question (e.g. stem asks "为什么", but the phrases describe "什么是").
 
-- Q33 应用文 (letter / 邮件 / 通告 writing) — the answer key should be a sample letter PLUS a (评分标准: 内容X分; 语言Y分) annotation. The sample letter must address EVERY W the stem explicitly asks for (when, where, why, who…). Flag when the sample letter is missing a W that the stem clearly requires, or when 评分标准 split doesn't sum to marksAvailable.
+- Q33 应用文 (letter / 邮件 / 通告 writing) — the answer key should be a sample letter that addresses EVERY W the stem explicitly asks for (when, where, why, who…). A "(评分标准: 内容X分; 语言Y分)" annotation is OPTIONAL — when the key omits it, assume the standard split of 2 marks 内容 + 2 marks 语言 and do NOT flag the missing annotation. Flag only when the sample letter is missing a W that the stem clearly requires, OR when an explicit 评分标准 annotation IS present but its X+Y sum doesn't equal marksAvailable.
 
 - Q40 你同意吗 / opinion question — the answer should include a 立场 (agree / disagree), at least two reasons, and a closing. Flag if the key has no clear stance, fewer than two reasons, or a stance that contradicts what the passage implies.
 

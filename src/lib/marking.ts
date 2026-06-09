@@ -1268,14 +1268,32 @@ function chineseMarkingRules(subject: string | null | undefined): string {
     → 4 phrases, 1 mark each.
 
   - ⭐ PARENTHETICAL POINT VALUES — (0.5) / (1) / (2): when a phrase
-    in the answer key is followed by "(N)", that N is the MARK
-    ALLOCATION for that specific point. The total should sum to
-    marksAvailable. Honour these EXACTLY — never override with the
-    default "1 mark per phrase" rule.
-      "解释关键 (2) | 给出例子 (1) | 总结 (1)" → 4 marks total:
-        point 1 worth 2, point 2 worth 1, point 3 worth 1.
-      "原因A (0.5) | 原因B (0.5) | 影响 (1)" → 2 marks total:
-        first two points 0.5 each, third point 1.
+    in the answer key is followed by a parenthesised mark allocation,
+    that number is the MARK VALUE for that specific phrase. The total
+    should sum to marksAvailable. Honour these EXACTLY — never override
+    with the default "1 mark per phrase" rule.
+
+    Accepted parenthesis styles (the marker keys come from human
+    teachers who write them inconsistently):
+      · Half-width Latin parens: "(0.5)", "(1)", "(2)"
+      · Half-width with 分: "(0.5分)", "(1 分)", "(2分)"
+      · Full-width Chinese parens: "（0.5）", "（1）", "（2）"
+      · Full-width with 分: "（0.5分）", "（0.5 分）", "（1 分）"
+    Treat ALL of these as the same N-mark annotation. Strip any
+    surrounding whitespace and the literal character "分" before
+    reading the number.
+
+    Examples (all five rows mean the SAME thing — 4 marks split as
+    2 / 1 / 1):
+      "解释关键 (2) | 给出例子 (1) | 总结 (1)"
+      "解释关键 （2） | 给出例子 （1） | 总结 （1）"
+      "解释关键 (2分) | 给出例子 (1分) | 总结 (1分)"
+      "解释关键 （2 分） | 给出例子 （1 分） | 总结 （1 分）"
+      "解释关键 (2) | 给出例子 (1分) | 总结 （1）"  ← mixed styles
+      → 4 marks total: point 1 worth 2, points 2 and 3 worth 1 each.
+
+    Half-mark example: "原因A (0.5) | 原因B （0.5 分） | 影响 (1)"
+      → 2 marks total: first two points 0.5 each, third point 1.
     For each annotated phrase:
       · Student captures it (synonyms / paraphrases accepted) → full
         N marks.
@@ -1317,6 +1335,12 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   letter writing and use the rubric below. DO NOT apply the
   phrase-by-phrase " | " split — the answer key's pipe separators in
   this case are part of a sample letter, not a list of marking points.
+
+  Default split when the answer key omits the explicit 评分标准
+  annotation: ASSUME 2 marks 内容 + 2 marks 语言 (i.e. the standard
+  Q33 rubric). Do NOT refuse to mark a Q33 answer just because the
+  key lacks the (评分标准: 内容X分; 语言Y分) annotation — the
+  annotation is optional.
 
   Q33 is a SHORT FUNCTIONAL TEXT — typically 邀请信 / 通知 / 留言 / 邮件
   / 短信. The student is given a brief stem listing WHICH details the
@@ -5032,7 +5056,7 @@ For Comprehension OEQ: This tests READING COMPREHENSION. Be LENIENT on language,
 CHINESE 阅读理解 OEQ — PHRASE-BASED RUBRIC (applies when the answer key contains 中文 phrases separated by " | "):
 - EACH " | "-separated phrase is a separate scoring point. Score each phrase independently against the student's answer.
 - DEFAULT mark per phrase: marksAvailable / (number of phrases). E.g. 4-mark answer with 3 phrases tagged (2)/(1)/(1) → phrase 1 = 2 marks, phrase 2 = 1 mark, phrase 3 = 1 mark.
-- ⭐ PARENTHETICAL POINT VALUES — when a phrase ends with "(N)" (e.g. "(0.5)", "(1)", "(2)"), that N is the EXPLICIT mark allocation for that point. Override the default. Sum of all (N) tags equals marksAvailable.
+- ⭐ PARENTHETICAL POINT VALUES — when a phrase ends with a parenthesised mark allocation, that number is the EXPLICIT mark value for that point. Override the default. Sum of all such tags equals marksAvailable. Accept ALL of these styles as the same N-mark annotation: half-width "(N)" / "(N分)" e.g. "(0.5)" "(1分)", full-width "（N）" / "（N分）" e.g. "（0.5）" "（1 分）" "（0.5 分）". Strip whitespace and the literal character "分" before reading the number — a phrase tagged "（0.5 分）" is worth 0.5, same as "(0.5)".
 - For each phrase, classify the student's coverage:
   · FULL coverage — the student captures BOTH the topic AND the substance (e.g. "聪明 又 注重家庭幸福" requires BOTH "clever" AND "treasures family happiness"). Synonyms / paraphrases accepted. → award N marks (the full value of that phrase).
   · PARTIAL coverage — the student mentions only PART of the phrase's idea (e.g. captures "聪明" but misses "注重家庭幸福"). → award N/2 rounded to the nearest 0.5. So a (2)-phrase partial = 1 mark; a (1)-phrase partial = 0.5; a (0.5)-phrase partial = 0.
