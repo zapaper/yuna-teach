@@ -76,11 +76,23 @@ export default function HomePage({
       // Persist the fresh snapshot so the next load on this device renders
       // immediately while a new background fetch runs. Quota / disabled
       // localStorage is non-fatal — we swallow the error.
-      try {
-        window.localStorage.setItem(cacheKey, JSON.stringify({
-          user: foundUser, tests: freshTests, examPapers: freshExams, ts: Date.now(),
-        }));
-      } catch { /* ignore — quota or private-mode disabled */ }
+      //
+      // Only cache when foundUser is truthy. A null user means the
+      // session expired (or the user lookup failed) — caching that
+      // state would cause the NEXT load (post-relogin) to prime
+      // user=null + loading=false synchronously, flashing the
+      // "Session expired" page for the duration of the new fetch.
+      if (foundUser) {
+        try {
+          window.localStorage.setItem(cacheKey, JSON.stringify({
+            user: foundUser, tests: freshTests, examPapers: freshExams, ts: Date.now(),
+          }));
+        } catch { /* ignore — quota or private-mode disabled */ }
+      } else {
+        // Stale null entry from a previous expired-session render. Clear
+        // it so it can't poison a future post-relogin load.
+        try { window.localStorage.removeItem(cacheKey); } catch { /* ignore */ }
+      }
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -103,7 +115,12 @@ export default function HomePage({
           examPapers: ExamPaperSummary[];
           ts: number;
         };
-        if (parsed && Array.isArray(parsed.examPapers) && Array.isArray(parsed.tests)) {
+        // Only prime from cache when the cached user is real. A null
+        // user in the cache would flash "Session expired" until the
+        // background fetch lands — defeats SWR's purpose. (Writer
+        // also no longer caches null users; this is belt-and-braces
+        // for old caches written before that fix.)
+        if (parsed && parsed.user && Array.isArray(parsed.examPapers) && Array.isArray(parsed.tests)) {
           setUser(parsed.user);
           setTests(parsed.tests);
           setExamPapers(parsed.examPapers);
