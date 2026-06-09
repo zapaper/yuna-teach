@@ -127,6 +127,13 @@ function AdminContent() {
       color: "bg-indigo-50 text-indigo-600",
     },
     {
+      icon: "refresh",
+      label: "Regen Sci / Math MCQ with Diagrams",
+      description: "Re-run gemini-3.1-pro-preview against every master Sci/Math MCQ with a diagram using the new prompt (sends full image + forces verbatim transcription of A/B/C/D statements). ~1,243 questions total, ~$8 full pass, or 173 letter-set only at ~$1.20.",
+      href: `/admin/regen-mcq-diagrams?userId=${userId}`,
+      color: "bg-violet-50 text-violet-600",
+    },
+    {
       icon: "rule",
       label: "Scan for Unclear Part-Answer Keys",
       description: "Master questions with sub-parts whose `answer` doesn't mention every (a)/(b)/(c) label — usually means the extractor missed a shared-block answer or the master answer is short. Batch of 30.",
