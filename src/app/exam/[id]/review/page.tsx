@@ -541,6 +541,16 @@ function ExamReviewContent({ id }: { id: string }) {
             return labels.some((l) => {
               if (ans.includes(`(${l})`)) return false;
               if (ans.includes(`(${l}-`)) return false;
+              // Hyphenated compound labels like "a-i" / "b-ii" are
+              // commonly stored in the answer field in paren-paren
+              // split form "(a)(i)" / "(b)(ii)". Convert the label to
+              // that form and check too — otherwise a perfectly-good
+              // key like "(a)(i) R, Q | (a)(ii) T, U" mis-classifies
+              // as missing and triggers auto-solve on every page load.
+              if (l.includes("-")) {
+                const parenParen = "(" + l.split("-").join(")(") + ")";
+                if (ans.includes(parenParen)) return false;
+              }
               // word-boundary "a)" — avoid matching the "a)" inside "(a)"
               if (new RegExp(`(^|[\\s|])${l}\\)`, "i").test(ans)) return false;
               if (new RegExp(`\\d+${l}[\\s:)]`, "i").test(ans)) return false;

@@ -105,10 +105,25 @@ export async function POST(
   // the answer text, no gaps remain — return the existing answer.
   // Same check the client uses before firing, but enforced here too
   // so a stale/racy client trigger doesn't burn another AI call.
+  //
+  // Accept ALL the common encodings of compound labels — hyphenated
+  // storage ("a-i") commonly lives in the answer field as "(a)(i)"
+  // split-paren form. Without that second check, a perfectly-good
+  // answer like "(a)(i) R, Q | (a)(ii) T, U" trips a re-solve every
+  // page load AND re-flags the master question with the [solve on
+  // demand] note.
   if (q.answer) {
     const ans = q.answer.toLowerCase();
     const labels = subparts.map((s) => s.label.toLowerCase());
-    if (labels.length > 0 && labels.every((l) => ans.includes(`(${l})`))) {
+    const labelPresent = (l: string): boolean => {
+      if (ans.includes(`(${l})`)) return true;
+      if (l.includes("-")) {
+        const parenParen = "(" + l.split("-").join(")(") + ")";
+        if (ans.includes(parenParen)) return true;
+      }
+      return false;
+    };
+    if (labels.length > 0 && labels.every(labelPresent)) {
       return NextResponse.json({ answer: q.answer, cached: true });
     }
   }
