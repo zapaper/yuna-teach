@@ -232,6 +232,97 @@ ${items}`;
   return flags;
 }
 
+/** Audit Chinese Q&A — phrase-rubric OEQs + 短文填空 / 完成对话 MCQ keys. */
+export async function auditChinesePaper(paperId: string): Promise<AuditFlags> {
+  const paper = await prisma.examPaper.findUnique({
+    where: { id: paperId },
+    include: { questions: { orderBy: { orderIndex: "asc" } } },
+  });
+  if (!paper) return {};
+
+  const flags: AuditFlags = {};
+  const qs = paper.questions.filter(q => q.transcribedStem && q.answer);
+  // Smaller batch than English/Science — Chinese stems run long
+  // (passages live in the stem) and a 10-item batch was overflowing
+  // gemini-2.5-flash's context window in practice.
+  const BATCH = 6;
+  for (let i = 0; i < qs.length; i += BATCH) {
+    const batch = qs.slice(i, i + BATCH);
+    const items = batch.map((q, j) => {
+      const opts = formatOptions(q.transcribedOptions);
+      const subs = formatSubparts(q.transcribedSubparts);
+      const isMcq = !!opts;
+      return [
+        `[${j}] id=${q.id}  qNum=${q.questionNum}`,
+        `Type: ${isMcq ? "MCQ" : "OEQ"}`,
+        `Topic: ${q.syllabusTopic}`,
+        `Stem: ${briefStem(q.transcribedStem, 800)}`,
+        opts ? `Options:\n${opts}` : "",
+        subs ? `Sub-parts:\n${subs}` : "",
+        `Answer key: ${q.answer}`,
+      ].filter(Boolean).join("\n");
+    }).join("\n\n---\n\n");
+
+    const prompt = `You are auditing Singapore primary-school 华文 (Chinese) answer keys. The TEXT of each question's stem, options (for MCQ), sub-parts, and the answer key are all shown to you. READ THEM CAREFULLY and reason about whether the answer actually makes sense for the question — not just whether it's formatted correctly.
+
+IMPORTANT — do NOT flag any of the following:
+- "diagram missing", "passage missing", "image missing" — those are shown separately to the student. If you can't see the full 短文 / 对话 passage in the stem, assume it exists.
+- Multiple valid phrasings of the same Chinese answer — phrase-based rubrics deliberately list one acceptable phrasing per scoring point.
+- The answer key being in 简体 vs 繁体 — both forms are acceptable.
+- Stylistic differences in OEQ (e.g. the key uses 而 instead of 但是) — only flag clear semantic or factual mismatches.
+
+DO read the stem and option text together when judging an MCQ answer:
+
+- 短文填空 (Passage Cloze) MCQ — the stem is a sentence with a numbered blank "(N)". The four options are short words/phrases. READ the option whose number matches the answer key, INSERT it into the blank, and check whether the resulting sentence is grammatically correct AND contextually consistent with the surrounding sentence. Flag when the chosen option produces a clearly ungrammatical, contradictory, or out-of-context sentence (e.g. wrong tense, opposite meaning, or a noun where a verb is needed). Sanity-check that the answer is in the 1-4 range too.
+
+- 完成对话 (Dialogue Cloze) MCQ — the stem shows part of a dialogue with a numbered blank. The word bank options are full short phrases. INSERT the chosen option into the blank and check whether the speaker's line still flows, addresses the previous turn, and makes the conversation coherent. Flag obvious non-sequiturs or when the speaker would never say that line in context. Also sanity-check that the answer is within the printed word-bank range (typically 1-8).
+
+- General MCQ — the chosen option's TEXT must actually answer what the stem ASKS for (e.g. if the stem asks for a 同义词 of "高兴", the chosen option must mean 高兴; if the stem asks for the speaker's mood, the chosen option must reflect that mood).
+
+DO read OEQ answer keys against the question stem:
+
+- OEQ phrase rubric — when the key uses " | " separators, EACH separated phrase should describe a real, distinct scoring point that DIRECTLY answers the question being asked. Flag when the phrases are commentary like 评分标准 / 注释 instead of scoring points, or when the phrases together don't actually address the question (e.g. stem asks "为什么", but the phrases describe "什么是").
+
+- Q33 应用文 (letter / 邮件 / 通告 writing) — the answer key should be a sample letter PLUS a (评分标准: 内容X分; 语言Y分) annotation. The sample letter must address EVERY W the stem explicitly asks for (when, where, why, who…). Flag when the sample letter is missing a W that the stem clearly requires, or when 评分标准 split doesn't sum to marksAvailable.
+
+- Q40 你同意吗 / opinion question — the answer should include a 立场 (agree / disagree), at least two reasons, and a closing. Flag if the key has no clear stance, fewer than two reasons, or a stance that contradicts what the passage implies.
+
+- Sub-part label mismatches (e.g. key labelled "(乙)" on a "(甲)" question) — flag.
+
+- Answer key contains a different name / entity / topic than the stem (copy-paste error from a sibling question) — flag.
+
+Return ONLY JSON: {"issues":[{"idx":N,"id":"<id>","reason":"<one sentence in Chinese>"}]}
+If all ok: {"issues":[]}
+
+Items:
+${items}`;
+
+    try {
+      const resp = await generateContentWithRetry({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { responseMimeType: "application/json", temperature: 0 },
+      });
+      const parsed = JSON.parse(resp.text ?? "{}") as { issues?: { idx: number; id: string; reason: string }[] };
+      for (const iss of (parsed.issues ?? [])) {
+        const qid = iss.id || batch[iss.idx]?.id;
+        if (qid) flags[qid] = iss.reason;
+      }
+    } catch (err) {
+      console.warn(`[audit-chinese] Batch ${i} failed:`, err instanceof Error ? err.message : err);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newMeta = { ...(paper.metadata as any ?? {}), auditFlags: flags };
+  await prisma.examPaper.update({
+    where: { id: paperId },
+    data: { metadata: newMeta },
+  });
+  console.log(`[audit-chinese] Paper ${paperId}: ${Object.keys(flags).length} Q&A flagged`);
+  return flags;
+}
+
 /** Dispatch the right audit based on paper subject. Fire-and-forget friendly. */
 export async function auditPaper(paperId: string): Promise<AuditFlags> {
   const paper = await prisma.examPaper.findUnique({
@@ -240,7 +331,13 @@ export async function auditPaper(paperId: string): Promise<AuditFlags> {
   });
   if (!paper) return {};
   const subj = (paper.subject ?? "").toLowerCase();
+  const raw = paper.subject ?? "";
   if (subj.includes("english")) return auditEnglishPaper(paperId);
   if (subj.includes("science")) return auditSciencePaper(paperId);
+  // Chinese routing: same convention used elsewhere in the codebase —
+  // also catches 华文 / 中文 / 华语 strings stored as the subject.
+  if (subj.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语")) {
+    return auditChinesePaper(paperId);
+  }
   return {};
 }
