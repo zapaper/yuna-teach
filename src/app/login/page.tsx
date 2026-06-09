@@ -78,6 +78,14 @@ function LoginContent() {
   const [loginShowPw, setLoginShowPw] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  // True after a successful POST until the router.push lands on the
+  // destination page. Without this, the spinner button flips back to
+  // "Login" the moment we call router.push — but the navigation +
+  // /home data fetch can take 3-5s, during which the user stares at
+  // a re-enabled login form and assumes nothing happened. The full-
+  // screen overlay below keeps a single, unambiguous spinner up
+  // until the new page paints.
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // NextAuth redirects here with `?error=<code>` when an OAuth round-
   // trip fails — usually a deploy-time race where the PKCE / state
@@ -258,6 +266,7 @@ function LoginContent() {
       return;
     }
     setLoginLoading(true);
+    let didRedirect = false;
     try {
       const isEmail = loginIdentity.includes("@");
       const res = await fetch("/api/auth", {
@@ -300,11 +309,19 @@ function LoginContent() {
       const dest = isNativeApp
         ? safeNext(nextParam, `/home/${user.id}`, user.id)
         : `/home/${user.id}`;
+      // Keep the spinner up across the redirect. Don't fall through
+      // to the finally block's setLoginLoading(false) — that flicker
+      // is the bug we're fixing.
+      didRedirect = true;
+      setIsRedirecting(true);
       router.push(dest);
     } catch {
       setLoginError("Something went wrong. Please try again.");
     } finally {
-      setLoginLoading(false);
+      // Only reset on the failure paths above. Success keeps
+      // loginLoading=true (and isRedirecting=true) so the form
+      // doesn't re-enable while the home page is loading.
+      if (!didRedirect) setLoginLoading(false);
     }
   }
 
@@ -347,6 +364,23 @@ function LoginContent() {
 
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col lg:flex-row items-center justify-center p-6 lg:p-12 relative overflow-hidden gap-8 lg:gap-16">
+
+      {/* Post-login redirect overlay. Auth.js sets the cookie before the
+          fetch resolves, but Next then has to render /home/<userId>,
+          fetch the dashboard data, and paint — typically 2-5s. Without
+          this overlay, the user sees the login form again for the
+          duration and assumes their login didn't take. */}
+      {isRedirecting && (
+        <div className="fixed inset-0 z-50 bg-surface/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <div
+            className="w-14 h-14 rounded-full border-4 border-surface-container-high border-t-primary animate-spin"
+            aria-label="Loading"
+          />
+          <p className="text-sm font-headline font-semibold text-on-surface-variant">
+            Signing you in…
+          </p>
+        </div>
+      )}
 
       {/* Decorative blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-surface-container-high rounded-full blur-[120px] opacity-60 pointer-events-none" />

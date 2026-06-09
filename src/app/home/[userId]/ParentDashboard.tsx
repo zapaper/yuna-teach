@@ -1811,6 +1811,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && quizSubject !== "english" && quizSubject !== "chinese" && !focusedTopic) || (assignMode === "focused" && quizSubject === "english" && englishSections.size !== 1) || (assignMode === "focused" && quizSubject === "chinese" && chineseSections.size !== 1)}
             onClick={async () => {
               setCreatingQuiz(true);
+              // 2-minute hard timeout. Quiz creation can take a while
+              // (LLM round-trips for synthesis / Chinese OEQ) but if the
+              // server hangs longer than this we abort so the button
+              // re-enables and the parent gets a real error instead of
+              // a permanently-spinning Create button.
+              const controller = new AbortController();
+              const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
+              const fetchOpts = (body: unknown): RequestInit => ({
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+                signal: controller.signal,
+              });
               try {
                 const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
                 // Revision-mode level — one below the student's current
@@ -1821,19 +1834,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 if (assignMode === "focused") {
                   if (quizSubject === "english") {
                     // Focused English: doubled single-section quiz via daily-quiz
-                    const res = await fetch("/api/daily-quiz", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        userId: quizStudentId,
-                        quizType: "mcq",
-                        subject: "english",
-                        englishSections: [...englishSections],
-                        focused: true,
-                        ...(revisionLevel ? { revisionLevel } : {}),
-                        ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
-                      }),
-                    });
+                    const res = await fetch("/api/daily-quiz", fetchOpts({
+                      userId: quizStudentId,
+                      quizType: "mcq",
+                      subject: "english",
+                      englishSections: [...englishSections],
+                      focused: true,
+                      ...(revisionLevel ? { revisionLevel } : {}),
+                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                    }));
                     const data = await res.json();
                     if (!res.ok) { alert(data.error || "Failed"); return; }
                     setShowQuiz(false); setQuizTargetDay(null);
@@ -1846,20 +1855,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     // section and assign through the same daily-quiz
                     // Chinese branch the multi-section flow uses, so
                     // we don't fork the question-pulling logic.
-                    const res = await fetch("/api/daily-quiz", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        userId,
-                        studentId: quizStudentId,
-                        quizType: "mcq",
-                        subject: "chinese",
-                        chineseSections: [...chineseSections],
-                        focused: true,
-                        ...(revisionLevel ? { revisionLevel } : {}),
-                        ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
-                      }),
-                    });
+                    const res = await fetch("/api/daily-quiz", fetchOpts({
+                      userId,
+                      studentId: quizStudentId,
+                      quizType: "mcq",
+                      subject: "chinese",
+                      chineseSections: [...chineseSections],
+                      focused: true,
+                      ...(revisionLevel ? { revisionLevel } : {}),
+                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                    }));
                     const data = await res.json();
                     if (!res.ok) { alert(data.error || "Failed"); return; }
                     setShowQuiz(false); setQuizTargetDay(null);
@@ -1867,19 +1872,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     await refreshPapers();
                     return;
                   }
-                  const res = await fetch("/api/focused-test", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      parentId: userId,
-                      studentId: quizStudentId,
-                      subject: quizSubject === "math" ? "Mathematics" : "Science",
-                      topic: focusedTopic,
-                      type: focusedType,
-                      ...(revisionLevel ? { revisionLevel } : {}),
-                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
-                    }),
-                  });
+                  const res = await fetch("/api/focused-test", fetchOpts({
+                    parentId: userId,
+                    studentId: quizStudentId,
+                    subject: quizSubject === "math" ? "Mathematics" : "Science",
+                    topic: focusedTopic,
+                    type: focusedType,
+                    ...(revisionLevel ? { revisionLevel } : {}),
+                    ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                  }));
                   const data = await res.json();
                   if (!res.ok) { alert(data.error || "Failed"); return; }
                   if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
@@ -1888,34 +1889,44 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   await refreshPapers();
                   return;
                 }
-                const res = await fetch("/api/daily-quiz", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    // Chinese assignments need to identify the admin
-                    // ACTOR (not the target student) so the route's
-                    // admin gate passes. Send admin id as userId and
-                    // the student as studentId. Other subjects keep
-                    // the existing student-as-userId pattern.
-                    ...(quizSubject === "chinese"
-                      ? { userId, studentId: quizStudentId }
-                      : { userId: quizStudentId }),
-                    quizType: quizSubject === "english" || quizSubject === "chinese" ? "mcq" : quizType,
-                    subject: quizSubject,
-                    ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
-                    ...(quizSubject === "chinese" && chineseSections.size > 0 ? { chineseSections: [...chineseSections] } : {}),
-                    ...(revisionLevel ? { revisionLevel } : {}),
-                    ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
-                  }),
-                });
+                const res = await fetch("/api/daily-quiz", fetchOpts({
+                  // Chinese assignments need to identify the admin
+                  // ACTOR (not the target student) so the route's
+                  // admin gate passes. Send admin id as userId and
+                  // the student as studentId. Other subjects keep
+                  // the existing student-as-userId pattern.
+                  ...(quizSubject === "chinese"
+                    ? { userId, studentId: quizStudentId }
+                    : { userId: quizStudentId }),
+                  quizType: quizSubject === "english" || quizSubject === "chinese" ? "mcq" : quizType,
+                  subject: quizSubject,
+                  ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
+                  ...(quizSubject === "chinese" && chineseSections.size > 0 ? { chineseSections: [...chineseSections] } : {}),
+                  ...(revisionLevel ? { revisionLevel } : {}),
+                  ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                }));
                 const data = await res.json();
                 if (!res.ok) { alert(data.error || "Failed"); return; }
                 setShowQuiz(false);
                 setQuizTargetDay(null);
                 maybeShowFirstAssignPrompt(quizStudentId);
                 await refreshPapers();
-              } catch { alert("Something went wrong"); }
-              finally { setCreatingQuiz(false); }
+              } catch (err) {
+                // AbortError surfaces here when the 2-minute timer
+                // tripped before the server responded — present that
+                // as a clear "creation failed" rather than the generic
+                // "something went wrong" so the parent knows it's not
+                // worth waiting / retrying mid-flight.
+                if (err instanceof Error && err.name === "AbortError") {
+                  alert("Quiz creation failed — the server didn't respond within 2 minutes. Please try again.");
+                } else {
+                  alert("Something went wrong");
+                }
+              }
+              finally {
+                window.clearTimeout(timeoutId);
+                setCreatingQuiz(false);
+              }
             }}
             className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2">
             {creatingQuiz && <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}

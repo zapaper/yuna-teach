@@ -32,6 +32,19 @@ export async function POST(request: NextRequest) {
   };
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
   const mcqOnly = type === "mcq";
+  // Chinese focused practices are double-length: 完成对话 / 短文填空 etc.
+  // are passage-based sections, and pulling only one passage feels too
+  // light for a practice. Bumping the target to 2x (e.g. 2 passages
+  // for dialogue completion) matches the depth of the real syllabus
+  // section. Detection mirrors lib/extraction.ts.
+  const subjectLower = (subject ?? "").toLowerCase();
+  const isChinese = subjectLower.includes("chinese")
+    || (subject ?? "").includes("华文")
+    || (subject ?? "").includes("中文")
+    || (subject ?? "").includes("华语");
+  const TARGET_TOTAL = isChinese ? 20 : 10;
+  const TARGET_MCQ_HALF = isChinese ? 10 : 5;
+  const TARGET_OEQ_HALF = isChinese ? 10 : 5;
 
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -179,7 +192,10 @@ export async function POST(request: NextRequest) {
   // empty — the user explicitly asked for "fall back to all WA1/2/3
   // if EOY/Prelim isn't enough".
   let examTypeFellBack = false;
-  const TARGET_POOL_REVISION = 10;
+  // Pool thresholds scale with practice length — Chinese targets 20
+  // questions, so trigger broaden/fallback when we'd otherwise have
+  // fewer than 20 to draw from.
+  const TARGET_POOL_REVISION = TARGET_TOTAL;
   const broadenWhen = isRevision
     ? topicMatched.length < TARGET_POOL_REVISION
     : topicMatched.length === 0;
@@ -215,7 +231,7 @@ export async function POST(request: NextRequest) {
   // mode that would let a Lv 5 'Very Hard' question through, defeating
   // the whole point of the setting.
   let difficultyFellBack = false;
-  const TARGET_POOL = 10;
+  const TARGET_POOL = TARGET_TOTAL;
   if (difficultyFilter.primary && topicMatched.length < TARGET_POOL) {
     const examTypeArg = examTypeFellBack ? null : allowedExamTypes;
     // Step 2: same levels but include unrated rows.
@@ -536,11 +552,14 @@ export async function POST(request: NextRequest) {
   shuffle(mcqPool);
   shuffle(renderableOeq);
 
-  // Take up to 5 MCQ + up to 5 OEQ; fill remaining slots from whichever has more
-  // When mcqOnly, use only MCQ pool for all 10 slots
-  const targetMcq = mcqOnly ? Math.min(10, mcqPool.length) : Math.min(5, mcqPool.length);
-  const targetOeq = mcqOnly ? 0 : Math.min(5, renderableOeq.length);
-  const remaining = 10 - targetMcq - targetOeq;
+  // Take up to TARGET_MCQ_HALF MCQ + up to TARGET_OEQ_HALF OEQ; fill
+  // remaining slots from whichever has more. When mcqOnly, use only
+  // MCQ pool for all TARGET_TOTAL slots. Chinese practices use 2x
+  // targets so a 完成对话 / 短文填空 practice runs 2 passages instead
+  // of 1.
+  const targetMcq = mcqOnly ? Math.min(TARGET_TOTAL, mcqPool.length) : Math.min(TARGET_MCQ_HALF, mcqPool.length);
+  const targetOeq = mcqOnly ? 0 : Math.min(TARGET_OEQ_HALF, renderableOeq.length);
+  const remaining = TARGET_TOTAL - targetMcq - targetOeq;
   const extraMcq = Math.min(remaining, mcqPool.length - targetMcq);
   const extraOeq = !mcqOnly && remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, renderableOeq.length - targetOeq) : 0;
 
@@ -616,16 +635,16 @@ export async function POST(request: NextRequest) {
     warnings.push(`No ${levelName} papers for "${topic}" yet — pulled from ${levelsUsed || "other levels"} instead.`);
   }
   if (mcqOnly) {
-    if (mcqPool.length < 10) {
-      warnings.push(`Only ${mcqPool.length} MCQ question${mcqPool.length === 1 ? "" : "s"} available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
+    if (mcqPool.length < TARGET_TOTAL) {
+      warnings.push(`Only ${mcqPool.length} MCQ question${mcqPool.length === 1 ? "" : "s"} available for "${topic}" at ${levelName}. Practice is shorter than the usual ${TARGET_TOTAL}.`);
     }
   } else {
     if (renderableOeq.length === 0 && mcqPool.length > 0) {
       warnings.push(`No written questions are tagged for "${topic}" at ${levelName} yet — this practice is MCQ-only.`);
     } else if (mcqPool.length === 0 && renderableOeq.length > 0) {
       warnings.push(`No MCQ questions are tagged for "${topic}" at ${levelName} yet — this practice is written-only.`);
-    } else if (mcqPool.length + renderableOeq.length < 10) {
-      warnings.push(`Only ${mcqPool.length} MCQ + ${renderableOeq.length} written question(s) available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
+    } else if (mcqPool.length + renderableOeq.length < TARGET_TOTAL) {
+      warnings.push(`Only ${mcqPool.length} MCQ + ${renderableOeq.length} written question(s) available for "${topic}" at ${levelName}. Practice is shorter than the usual ${TARGET_TOTAL}.`);
     }
   }
 
