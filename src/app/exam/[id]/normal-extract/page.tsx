@@ -1844,6 +1844,14 @@ function NormalExtractTriggerRow({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] } | null>(null);
+  // Per-section verdicts populated by the "Extract All" loop so the
+  // admin can see which sections succeeded vs failed across the run.
+  // Kept separate from lastResult (single-section state) so an
+  // Extract All that finishes mid-way still surfaces all the
+  // intermediate outcomes.
+  type RunSummary = { type: string; section: string; ok: boolean; updated?: number; error?: string; warnings?: string[] };
+  const [allResults, setAllResults] = useState<RunSummary[]>([]);
+  const [runningAll, setRunningAll] = useState(false);
   // Some school papers place the Q-number to the RIGHT of the answer
   // box for Grammar Cloze / Comp Cloze (editing-style layout) instead
   // of the standard PSLE format where the (N) sits BELOW the blank.
@@ -1851,9 +1859,11 @@ function NormalExtractTriggerRow({
   // + x-right extension. Default to "above" (standard PSLE).
   const [clozeQPosition, setClozeQPosition] = useState<"above" | "right">("above");
 
-  async function run(sectionType: string, label: string) {
-    setBusy(sectionType);
-    setLastResult(null);
+  // Runs one section against /normal-extract-english. Returns the
+  // outcome instead of mutating component state so the caller can
+  // decide whether to push into lastResult (single run) or accumulate
+  // into allResults (Extract All loop).
+  async function runOne(sectionType: string, label: string): Promise<RunSummary> {
     try {
       const body: Record<string, unknown> = { sectionType };
       if ((sectionType === "grammar-cloze" || sectionType === "comp-cloze") && clozeQPosition === "right") {
@@ -1868,21 +1878,50 @@ function NormalExtractTriggerRow({
       let json: Record<string, unknown> = {};
       try { json = text ? JSON.parse(text) as Record<string, unknown> : {}; } catch { /* tolerated */ }
       if (!res.ok) {
-        setLastResult({ section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` });
-        return;
+        return { type: sectionType, section: label, ok: false, error: (json.error as string) ?? `HTTP ${res.status}` };
       }
-      setLastResult({
+      return {
+        type: sectionType,
         section: label,
         ok: true,
         updated: typeof json.updated === "number" ? json.updated : 0,
         warnings: Array.isArray(json.warnings) ? json.warnings as string[] : [],
-      });
-      await onExtracted();
+      };
     } catch (err) {
-      setLastResult({ section: label, ok: false, error: err instanceof Error ? err.message : String(err) });
-    } finally {
-      setBusy(null);
+      return { type: sectionType, section: label, ok: false, error: err instanceof Error ? err.message : String(err) };
     }
+  }
+
+  async function run(sectionType: string, label: string) {
+    setBusy(sectionType);
+    setLastResult(null);
+    const summary = await runOne(sectionType, label);
+    setLastResult(summary);
+    if (summary.ok) await onExtracted();
+    setBusy(null);
+  }
+
+  // Sequential "Extract All" — runs each section's POST one at a time
+  // (the upstream extractor hits gemini-3.1-pro hard, so parallel
+  // requests would just contend for rate limit). Per-section results
+  // stream into `allResults` as they land so the admin can watch
+  // progress without waiting for the whole batch.
+  async function runAll() {
+    setRunningAll(true);
+    setAllResults([]);
+    setLastResult(null);
+    const accum: RunSummary[] = [];
+    for (const sec of NORMAL_EXTRACT_SECTIONS) {
+      setBusy(sec.type);
+      const summary = await runOne(sec.type, sec.label);
+      accum.push(summary);
+      setAllResults([...accum]);
+      // Refetch between sections so the question cards refresh
+      // progressively as bounds are written.
+      if (summary.ok) await onExtracted();
+    }
+    setBusy(null);
+    setRunningAll(false);
   }
 
   return (
@@ -1917,6 +1956,22 @@ function NormalExtractTriggerRow({
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
+        {/* Extract All — runs every section sequentially. Disabled
+            while busy so a second click can't double-fire. Visually
+            distinct from per-section buttons (slate, not violet)
+            since it's an aggregate action. */}
+        <button
+          type="button"
+          onClick={runAll}
+          disabled={busy !== null}
+          className="px-3 py-2 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 bg-slate-800 text-white hover:bg-slate-900 flex items-center gap-1.5"
+          title="Run every section's normal extract in order"
+        >
+          <span className="material-symbols-outlined text-base">play_arrow</span>
+          {runningAll && busy
+            ? `Extract All — ${NORMAL_EXTRACT_SECTIONS.find(s => s.type === busy)?.label ?? busy}…`
+            : "Extract All"}
+        </button>
         {NORMAL_EXTRACT_SECTIONS.map(sec => {
           const isDone = !!state[sec.stateKey];
           const isBusy = busy === sec.type;
@@ -1937,6 +1992,34 @@ function NormalExtractTriggerRow({
           );
         })}
       </div>
+      {/* Extract All summary — per-section verdicts streamed in by the
+          loop. Hidden while a single-section run is in progress (its
+          own lastResult panel below handles that case). */}
+      {allResults.length > 0 && (
+        <div className="mt-3 p-3 rounded-xl border border-slate-200 bg-white">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            Extract All — {allResults.filter(r => r.ok).length}/{NORMAL_EXTRACT_SECTIONS.length} sections complete
+            {runningAll && <span className="ml-1 text-slate-400">(running…)</span>}
+          </p>
+          <ul className="space-y-1">
+            {allResults.map(r => (
+              <li key={r.type} className="flex items-start gap-2 text-[11px]">
+                <span className={`shrink-0 mt-0.5 ${r.ok ? "text-green-600" : "text-red-600"}`}>
+                  {r.ok ? "✓" : "✗"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-slate-700">{r.section}:</span>{" "}
+                  {r.ok ? (
+                    <span className="text-slate-600">{r.updated ?? 0} questions updated{r.warnings && r.warnings.length > 0 ? `, ${r.warnings.length} warning(s)` : ""}</span>
+                  ) : (
+                    <span className="text-red-700">{r.error}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {lastResult && (
         <div className={`mt-3 p-3 rounded-xl border text-xs ${lastResult.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
           <p className="font-semibold">
