@@ -311,6 +311,30 @@ Respond with ONLY valid JSON (no markdown fences, no surrounding text):
 }`,
       });
     } else {
+      // Detect letter-set MCQs ("A, B and C only", "II, III only", etc.).
+      // For those the labelled items live as printed text ON the diagram,
+      // not in the option text we hand to the model. Without an explicit
+      // instruction the model paraphrases the labels from training data
+      // and gets them wrong (Q2 electromagnet case). Verified against
+      // Q2 + Q17 in scripts/_test-elab-prompt.ts — the verbatim-
+      // transcribe-first rule fixed both.
+      const letterSetRe = /^\s*(?:[A-D](?:\s*,\s*[A-D]){0,3}(?:\s+and\s+[A-D])?(?:\s+only)?|(?:I{1,3}|IV|V)(?:\s*,\s*(?:I{1,3}|IV|V)){0,3}(?:\s+and\s+(?:I{1,3}|IV|V))?(?:\s+only)?)\s*$/i;
+      const isLetterSetMcq = !!opts && opts.length === 4 && opts.every(o => letterSetRe.test(o));
+      const letterSetRule = isLetterSetMcq ? `
+LABELLED-ITEM MCQ — CRITICAL:
+The options are letter-set references (e.g. "A, B and C only"). The labelled items A, B, C, D (or I, II, III…)
+live as printed text ON the diagram, NOT in the text portion of this prompt. Before reasoning, in this order:
+  1. Transcribe each labelled item VERBATIM from the image. Use the format:
+       Statement A: "<exact text>"
+       Statement B: "<exact text>"
+       …
+     If a label is unreadable, write "Statement X: (unreadable)" — never paraphrase or invent text.
+  2. Verify EACH labelled statement TRUE or FALSE against the diagram / data table, citing the specific row,
+     column, or feature you used.
+  3. ONLY after steps 1 and 2 write the final "Step 1 / Step 2 / Answer" explanation that arrives at the
+     official answer.
+` : "";
+
       parts.push({
         text: `You are a helpful tutor for a primary school student.
 
@@ -318,10 +342,10 @@ Here is the question:
 ${questionText}
 
 ${answerAnchor}
-
+${letterSetRule}
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{7}$\` (with TWO backslashes) inside the "solution" string, not \`$\\frac{3}{7}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$3\\\\frac{1}{2}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed and the fraction breaks. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers, = for equals. The only LaTeX command allowed is \\\\frac. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
+Keep the "solution" tight: aim for ${isLetterSetMcq ? 200 : 120} words, hard cap at ${isLetterSetMcq ? 250 : 150}. Age-appropriate, encouraging, simple language. **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{7}$\` (with TWO backslashes) inside the "solution" string, not \`$\\frac{3}{7}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$3\\\\frac{1}{2}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed and the fraction breaks. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers, = for equals. The only LaTeX command allowed is \\\\frac. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, then express each part of the question in those units. Convert one known quantity into "1 unit = …" then read off the answer. This mirrors the answer-key format teachers use.
 ${mathHeuristicsBlock(q.examPaper.subject)}
