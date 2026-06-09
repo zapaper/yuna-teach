@@ -349,7 +349,14 @@ async function handle(
       questions: {
         select: {
           id: true, questionNum: true, pageIndex: true,
-          yStartPct: true, yEndPct: true, answer: true,
+          yStartPct: true, yEndPct: true,
+          // xEndPct drives the tick/cross placement for sections where
+          // each question has an explicit right-edge (Editing /
+          // Grammar Cloze / Comp Cloze — populated by the normal-
+          // extract pipeline). Without it we fall back to a fixed
+          // page inset.
+          xStartPct: true, xEndPct: true,
+          answer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
           syllabusTopic: true,
         },
@@ -746,17 +753,30 @@ async function handle(
       const aClean = (qq.answer ?? "").replace(/[().]/g, "").trim();
       const isMcqQ = /^[A-D1-4]$/i.test(aClean);
       const isOeqQ = !isMcqQ;
-      // Right-inset ladder:
-      //   - Editing / Grammar Cloze / Comp Cloze (0.22): land LEFT of
-      //     the right-margin answer column so the stamp doesn't sit on
-      //     top of the student's writing.
-      //   - Science OEQ (0.15): a bit of extra breathing room.
-      //   - Everything else (0.10): the existing default.
-      const inset = isRightMarginAnswerSection(qq.syllabusTopic) ? 0.22
-        : (isOeqQ && (paper.subject ?? "").toLowerCase().includes("science")) ? 0.15
-        : 0.10;
-      const mRightX = pageW * (1 - inset);
-      const mX = mRightX - markSize * 0.5;
+      // Mark X positioning:
+      //   - Editing / Grammar Cloze / Comp Cloze with stored xEndPct:
+      //     anchor the mark just PAST the question's bounding-box
+      //     right edge — that's "the right edge of the boundary box"
+      //     the marker is calling out. Each question's box ends at
+      //     a different x (Editing/Grammar Cloze boxes are inset from
+      //     the page margin), so a fixed page-relative inset doesn't
+      //     land at the box edge.
+      //   - Same sections WITHOUT xEndPct (paper hasn't been normal-
+      //     extracted yet): fall back to 0.22 page inset.
+      //   - Science OEQ: 0.15 inset.
+      //   - Everything else: 0.10 inset.
+      let mX: number;
+      if (isRightMarginAnswerSection(qq.syllabusTopic) && qq.xEndPct != null) {
+        const boxRightX = pageW * (qq.xEndPct / 100);
+        // Centre the mark just past the right edge so the mark's
+        // left side begins ~at the edge of the box.
+        mX = boxRightX + markSize * 0.4;
+      } else {
+        const inset = isRightMarginAnswerSection(qq.syllabusTopic) ? 0.22
+          : (isOeqQ && (paper.subject ?? "").toLowerCase().includes("science")) ? 0.15
+          : 0.10;
+        mX = pageW * (1 - inset) - markSize * 0.5;
+      }
       for (const mm of e2.marks) {
         if (mm.status === "blank") continue;
         const regionTopPx = e2.pageRegion.topPx;
@@ -786,18 +806,25 @@ async function handle(
       const isCompCloze = isComprehensionCloze(q.syllabusTopic);
       const isCompOeq = isCompOeqLabel(q.syllabusTopic);
 
-      // Mark column inset ladder — mirrors the pre-compute pass above.
-      //   - Editing / Grammar Cloze / Comp Cloze: 22% from the right
-      //     so the stamp lands LEFT of the student's right-margin
-      //     answer column (otherwise the tick/cross sits on top of
-      //     their writing).
-      //   - Science OEQ: 15% (extra breathing room).
-      //   - Everything else: 10%.
-      const rightInsetPct = isRightMarginAnswerSection(q.syllabusTopic) ? 0.22
-        : (isScience && isOeq) ? 0.15
-        : 0.10;
-      const markRightX = pageW * (1 - rightInsetPct);
-      const markX = markRightX - markSize * 0.5;
+      // Mark X positioning — mirrors the pre-compute pass above.
+      //   - Editing / Grammar Cloze / Comp Cloze WITH xEndPct: anchor
+      //     just past the question's bounding-box right edge.
+      //   - Same sections WITHOUT xEndPct: fall back to 0.22 inset.
+      //   - Science OEQ: 0.15 inset.
+      //   - Everything else: 0.10 inset.
+      let markX: number;
+      if (isRightMarginAnswerSection(q.syllabusTopic) && q.xEndPct != null) {
+        const boxRightX = pageW * (q.xEndPct / 100);
+        markX = boxRightX + markSize * 0.4;
+      } else {
+        const rightInsetPct = isRightMarginAnswerSection(q.syllabusTopic) ? 0.22
+          : (isScience && isOeq) ? 0.15
+          : 0.10;
+        markX = pageW * (1 - rightInsetPct) - markSize * 0.5;
+      }
+      // Right edge of the mark — note-anchor logic downstream uses this
+      // to right-align the marker's comment to the same x as the mark.
+      const markRightX = markX + markSize * 0.5;
 
       for (const m of entry.marks) {
         const regionTopPx = entry.pageRegion.topPx;
