@@ -2373,7 +2373,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         );
       })}
       {recentActivities.length === 0 && (
-        <p className="text-sm text-[#43474f] text-center py-6">No completed papers yet.</p>
+        <p className="text-sm text-[#43474f] text-center py-6">
+          {loadingPapers ? "Loading…" : "No completed papers yet."}
+        </p>
       )}
     </div>
   );
@@ -3856,7 +3858,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <button onClick={() => setActiveView("activities")} className="text-sm font-extrabold text-[#003366] hover:underline">View All</button>
                     </div>
                     <div className="space-y-5">
-                      {recentActivities.length === 0 ? (
+                      {loadingPapers ? (
+                        <p className="text-sm text-[#43474f] text-center py-4">Loading…</p>
+                      ) : recentActivities.length === 0 ? (
                         <p className="text-sm text-[#43474f] text-center py-4">No completed papers yet.</p>
                       ) : recentActivities.map(paper => {
                         const pct = scorePct(paper);
