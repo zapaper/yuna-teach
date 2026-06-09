@@ -26,17 +26,37 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       questionNum: true,
       transcribedStem: true,
       marksAvailable: true,
-      examPaper: { select: { id: true, subject: true } },
+      examPaper: { select: { id: true, subject: true, pageCount: true } },
     },
   });
   if (!question) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
   const pagesDir = path.join(VOLUME_PATH, "pages", question.examPaper.id);
+  // Enumerate page_N.jpg actually on disk so the error message can tell
+  // the admin what range is valid (1-indexed in the UI). This catches
+  // typed-too-high page numbers AND missing files that should be there.
+  let onDiskPages: number[] = [];
+  try {
+    onDiskPages = fs.readdirSync(pagesDir)
+      .map(f => f.match(/^page_(\d+)\.jpg$/)?.[1])
+      .filter((s): s is string => !!s)
+      .map(s => parseInt(s, 10))
+      .sort((a, b) => a - b);
+  } catch {
+    return NextResponse.json({ error: `No scanned pages found on disk for this paper.` }, { status: 404 });
+  }
   const imagesBase64: string[] = [];
   for (const pageIdx of pageIndices) {
     const filePath = path.join(pagesDir, `page_${pageIdx}.jpg`);
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: `Page ${pageIdx} not found on disk` }, { status: 404 });
+      // Report the page number the way the admin typed it (1-indexed)
+      // and tell them the valid range so they don't have to guess.
+      const userPage = pageIdx + 1;
+      const onDiskCount = onDiskPages.length;
+      const detail = onDiskCount > 0
+        ? `Paper has pages 1–${onDiskCount} on disk.`
+        : `No page images found for this paper.`;
+      return NextResponse.json({ error: `Page ${userPage} not found on disk. ${detail}` }, { status: 404 });
     }
     imagesBase64.push(fs.readFileSync(filePath).toString("base64"));
   }
