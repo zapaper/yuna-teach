@@ -546,6 +546,11 @@ function ExamEditContent({ id }: { id: string }) {
   const isMathPaper = subjectLower.includes("math");
   const isEnglishPaper = subjectLower.includes("english");
   const isChinesePaper = subjectLower.includes("chinese") || subjectRaw.includes("华文") || subjectRaw.includes("中文") || subjectRaw.includes("华语");
+  // Post-extraction Q&A audit results (drives the top-of-page summary
+  // + per-card red outline on the math/science branch below — English
+  // papers route through EnglishEditView which already renders both).
+  const auditFlags = ((paper?.metadata as { auditFlags?: Record<string, string> } | null)?.auditFlags ?? {}) as Record<string, string>;
+  const auditFlagCount = Object.keys(auditFlags).length;
   // The /edit section-grouped view applies to BOTH English and
   // Chinese — same data shape (sectionOcrTexts keyed by section name,
   // questions with syllabusTopic), same renderer. Forking later if
@@ -622,6 +627,19 @@ function ExamEditContent({ id }: { id: string }) {
         Edit Questions &amp; Answers
       </h1>
       <p className="text-sm text-slate-400 mb-5">{paper.title}</p>
+
+      {/* Post-extraction Q&A audit summary. Shown above both branches
+          (English routes through EnglishEditView and renders this
+          internally too — duplicate is harmless and one of them
+          will be hidden when the route only shows one). */}
+      {auditFlagCount > 0 && !isEnglishPaper && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 mb-5 flex items-center gap-3">
+          <span className="material-symbols-outlined text-red-600 shrink-0">flag</span>
+          <p className="text-sm text-red-800">
+            <span className="font-bold">{auditFlagCount} question{auditFlagCount === 1 ? "" : "s"}</span> likely having issues — flagged cards are outlined below in red.
+          </p>
+        </div>
+      )}
 
       {/* Extraction in progress banner */}
       {extracting && (
@@ -793,6 +811,7 @@ function ExamEditContent({ id }: { id: string }) {
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
+            auditFlag={auditFlags[q.id]}
             syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : isEnglishPaper ? ENGLISH_TOPICS : isChinesePaper ? CHINESE_TOPICS : SCIENCE_TOPICS) : null}
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
@@ -1108,6 +1127,7 @@ function QuestionEditCard({
   saving,
   pdfLoaded,
   syllabusTopics,
+  auditFlag,
   onSave,
   onDelete,
   onRedo,
@@ -1118,6 +1138,9 @@ function QuestionEditCard({
   saving: keyof ExamQuestionItem | "redo" | null;
   pdfLoaded: boolean;
   syllabusTopics: string[] | null;
+  // Audit reason from the post-extraction Q&A sanity check. When set,
+  // the card outline turns red and a reason banner renders at top.
+  auditFlag?: string;
   onSave: (
     id: string,
     field: keyof ExamQuestionItem,
@@ -1154,9 +1177,23 @@ function QuestionEditCard({
   return (
     <div
       className={`rounded-2xl border-2 bg-white shadow-sm overflow-hidden ${
-        isMissingPage ? "border-amber-300" : isMissingAnswer ? "border-red-200" : "border-slate-100"
+        auditFlag
+          ? "border-red-500"
+          : isMissingPage
+            ? "border-amber-300"
+            : isMissingAnswer
+              ? "border-red-200"
+              : "border-slate-100"
       }`}
     >
+      {/* Audit-flag banner — surfaces the Q&A sanity-check finding so
+          the admin sees the reason inside the red-outlined card. */}
+      {auditFlag && (
+        <div className="bg-red-50 border-b-2 border-red-300 px-4 py-2.5 flex items-start gap-2">
+          <span className="material-symbols-outlined text-red-600 text-base shrink-0 mt-0.5">flag</span>
+          <p className="text-sm text-red-800 leading-snug"><span className="font-bold">Likely issue:</span> {auditFlag}</p>
+        </div>
+      )}
       {/* English question type badge */}
       {syllabusTopics?.includes("Grammar Cloze") && (() => {
         const topic = question.syllabusTopic ?? "";

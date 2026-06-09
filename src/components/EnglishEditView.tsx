@@ -215,8 +215,22 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
     }
   }
 
+  const auditFlagCount = Object.keys(auditFlags).length;
+
   return (
     <div className="space-y-6">
+      {/* Post-extraction Q&A audit summary. Renders only when the
+          audit job found at least one mismatch. Mirrors the same
+          summary already on the Chinese normal-extract page so the
+          admin sees the count BEFORE scrolling the section list. */}
+      {auditFlagCount > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-center gap-3">
+          <span className="material-symbols-outlined text-red-600 shrink-0">flag</span>
+          <p className="text-sm text-red-800">
+            <span className="font-bold">{auditFlagCount} question{auditFlagCount === 1 ? "" : "s"}</span> likely having issues — flagged rows are outlined below in red.
+          </p>
+        </div>
+      )}
       {/* OCR audit panel — Chinese papers only. Shows a button that
           runs /api/exam/[id]/audit-ocr and then surfaces the specific
           transcription errors the vision judge identified. */}
