@@ -44,7 +44,7 @@
         {
           "questionNum": "6",
           "marksAvailable": 2,
-          "marksAwarded": 1,
+          "marksAwarded": 2,
           "syllabusTopic": "Cycles in matter"
         },
         {
@@ -826,7 +826,7 @@
         {
           "questionNum": "10",
           "marksAvailable": 2,
-          "marksAwarded": 2,
+          "marksAwarded": 1,
           "syllabusTopic": "Ratio"
         }
       ],
@@ -888,7 +888,7 @@
         {
           "questionNum": "8",
           "marksAvailable": 3,
-          "marksAwarded": 1,
+          "marksAwarded": 1.5,
           "syllabusTopic": "Human respiratory and circulatory systems"
         },
         {
