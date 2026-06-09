@@ -931,17 +931,19 @@ async function handle(
               const GREEN = rgb(0.10, 0.55, 0.25);
               // Same shrunken font as the English OEQ marker note.
               const sizeAcc = englishOeqNoteSize;
-              // Width budget: the full printable page width minus a
-              // small left/right gutter. Previous "half the page" cap
-              // was truncating reasonable two-clause explanations;
-              // letting the note wrap naturally across the whole page
-              // keeps the explanation intact.
-              const maxNoteW = pageW - 16;
-              // Wrap freely — no hard line cap. The whitespace-band
-              // placement below will find room for whatever block height
-              // the note ends up at; if there is genuinely no room
-              // we fall back to the bottom of the region.
-              const linesAcc = wrapText(noteText, helveticaRegular, sizeAcc, maxNoteW);
+              // Width budget: up to 75% of the page width. Past that the
+              // note runs from far-left to far-right and looks like
+              // body text instead of a teacher annotation. Cap at 3
+              // lines with an ellipsis on overflow — long marker prose
+              // that needs more than 3 lines is the exception and gets
+              // truncated cleanly.
+              const maxNoteW = pageW * 0.75;
+              const wrappedAcc = wrapText(noteText, helveticaRegular, sizeAcc, maxNoteW);
+              let linesAcc = wrappedAcc.slice(0, 3);
+              if (wrappedAcc.length > linesAcc.length) {
+                const last = linesAcc[linesAcc.length - 1] ?? "";
+                linesAcc = [...linesAcc.slice(0, -1), (last + " …").trimEnd()];
+              }
               const lineSpacingAcc = sizeAcc * 1.25;
               const blockHAcc = Math.ceil(lineSpacingAcc * linesAcc.length);
               // Place via the same whitespace-band logic the red notes
