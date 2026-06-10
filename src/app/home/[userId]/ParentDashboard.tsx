@@ -1057,7 +1057,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // colourblind-safe trio (Wong palette).
   // Chinese added with a fourth distinct hue (rose / red). Wong-safe
   // four-colour set: green / orange / blue / red.
-  const SUBJ_COLORS: Record<string, string> = { math: "#16a34a", science: "#ea580c", english: "#2563eb", chinese: "#dc2626" };
+  const SUBJ_COLORS: Record<string, string> = { math: "#16a34a", science: "#7c3aed", english: "#2563eb", chinese: "#dc2626" };
   const SUBJ_LABELS: Record<string, string> = { math: "Math", science: "Science", english: "English", chinese: "Chinese" };
   const MAX_CHART_PTS = 5;
   type ChartLine = { subject: string; color: string; label: string; points: number[]; count: number; avg: number };
