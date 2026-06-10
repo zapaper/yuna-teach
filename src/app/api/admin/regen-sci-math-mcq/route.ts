@@ -18,6 +18,13 @@ import { GoogleGenAI } from "@google/genai";
 import { isSessionAdmin } from "@/lib/session";
 import { mathHeuristicsBlock } from "@/lib/math-heuristics";
 
+// Raise per-request timeout from the default 60s to 300s (5 min) so
+// batches of ~10-20 calls at concurrency 3 don't get killed half-way
+// through. Was the headline reason the auto-loop on the admin page
+// kept dying around question 30 — Vercel cut the function before the
+// batch could land.
+export const maxDuration = 300;
+
 let _ai: GoogleGenAI | null = null;
 function getAI() {
   if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });

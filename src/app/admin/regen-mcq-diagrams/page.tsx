@@ -80,14 +80,30 @@ function Content() {
     setError(null);
     stopRef.current = false;
     try {
-      // Loop until done or user clicks stop. Each iteration runs one
-      // batchSize through the API, so press Stop to land cleanly at
-      // the end of the current batch.
+      // Loop until done or user clicks stop. Tolerant of transient
+      // empty / errored batches — keeps going for up to 3 consecutive
+      // empty rounds before giving up (handles Vercel timeout or a
+      // one-off Gemini 504 wiping a batch). Only exits on:
+      //   - stop button
+      //   - API returns `done: true` (pool genuinely empty)
+      //   - >=3 consecutive batches return processed=0
+      let consecutiveEmpty = 0;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         if (stopRef.current) break;
         const { processed, done } = await runBatch();
-        if (done || processed === 0) break;
+        if (done) break;
+        if (processed === 0) {
+          consecutiveEmpty++;
+          if (consecutiveEmpty >= 3) {
+            setError("3 consecutive empty batches — pausing. Click Run all again to resume.");
+            break;
+          }
+          // Brief breather before retrying.
+          await new Promise((r) => setTimeout(r, 4000));
+          continue;
+        }
+        consecutiveEmpty = 0;
       }
     } finally {
       setRunning(false);
