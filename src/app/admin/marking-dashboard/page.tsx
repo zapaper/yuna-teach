@@ -15,19 +15,25 @@ type Anomaly = {
   markingStatus: string | null;
   ownerName: string | null;
   ownerId: string | null;
+  studentName: string | null;
+  studentId: string | null;
+  parentName: string | null;
+  parentId: string | null;
   score: number | null;
   totalMarks: string | null;
+  scorePct: number | null;
   questionCount: number;
   markedCount?: number;
-  reason: "failed" | "stuck" | "complete-zero-marked";
+  reason: "failed" | "stuck" | "complete-zero-marked" | "low-score" | "zero-score";
 };
 type Data = {
   now: string;
   tz: string;
   hourly: Bucket[];
   daily: Bucket[];
-  totals: { total: number; complete: number; failed: number; stuck: number; zeroMarked: number; inProgress: number };
-  anomalies: { failed: Anomaly[]; stuck: Anomaly[]; zeroMarked: Anomaly[] };
+  totals: { total: number; complete: number; failed: number; stuck: number; zeroMarked: number; inProgress: number; zeroScore: number; lowScore: number };
+  lowScoreThresholdPct: number;
+  anomalies: { failed: Anomaly[]; stuck: Anomaly[]; zeroMarked: Anomaly[]; zeroScore: Anomaly[]; lowScore: Anomaly[] };
 };
 
 export default function Page() {
@@ -120,7 +126,7 @@ function Content() {
         ) : (
           <>
             {/* Headline counters */}
-            <section className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { k: "total", label: "Last 7d", color: "bg-slate-100 text-slate-800" },
                 { k: "complete", label: "Complete", color: "bg-green-50 text-green-700" },
@@ -128,6 +134,8 @@ function Content() {
                 { k: "stuck", label: "Stuck (>5min)", color: "bg-amber-50 text-amber-700" },
                 { k: "failed", label: "Failed", color: "bg-red-50 text-red-700" },
                 { k: "zeroMarked", label: "Silent zero-mark", color: "bg-fuchsia-50 text-fuchsia-700" },
+                { k: "zeroScore", label: "Zero score", color: "bg-rose-50 text-rose-700" },
+                { k: "lowScore", label: `Low score (<${data.lowScoreThresholdPct}%)`, color: "bg-orange-50 text-orange-700" },
               ].map((c) => (
                 <div key={c.k} className={`rounded-xl p-3 ${c.color}`}>
                   <div className="text-[10px] uppercase tracking-wider opacity-70">{c.label}</div>
@@ -208,6 +216,24 @@ function Content() {
               accent="fuchsia"
               emptyLabel="No silent zero-mark anomalies."
             />
+            <AnomalySection
+              title="Zero score (likely scan or marker issue, not student)"
+              items={data.anomalies.zeroScore}
+              userId={userId}
+              onRemark={handleRemark}
+              remarking={remarking}
+              accent="rose"
+              emptyLabel="No zero-score papers in the last 7 days."
+            />
+            <AnomalySection
+              title={`Low score (<${data.lowScoreThresholdPct}%) — investigate scan / marker / struggle`}
+              items={data.anomalies.lowScore}
+              userId={userId}
+              onRemark={handleRemark}
+              remarking={remarking}
+              accent="orange"
+              emptyLabel="No low-scoring papers in the last 7 days."
+            />
           </>
         )}
       </main>
@@ -229,17 +255,21 @@ function AnomalySection({
   userId: string;
   onRemark: (id: string) => void;
   remarking: Set<string>;
-  accent: "red" | "amber" | "fuchsia";
+  accent: "red" | "amber" | "fuchsia" | "rose" | "orange";
   emptyLabel: string;
 }) {
   const ring =
     accent === "red" ? "border-red-200 bg-red-50/40"
     : accent === "amber" ? "border-amber-200 bg-amber-50/40"
-    : "border-fuchsia-200 bg-fuchsia-50/40";
+    : accent === "fuchsia" ? "border-fuchsia-200 bg-fuchsia-50/40"
+    : accent === "rose" ? "border-rose-200 bg-rose-50/40"
+    : "border-orange-200 bg-orange-50/40";
   const dot =
     accent === "red" ? "bg-red-500"
     : accent === "amber" ? "bg-amber-500"
-    : "bg-fuchsia-500";
+    : accent === "fuchsia" ? "bg-fuchsia-500"
+    : accent === "rose" ? "bg-rose-500"
+    : "bg-orange-500";
   return (
     <section className={`rounded-2xl border p-5 space-y-3 ${ring}`}>
       <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -262,12 +292,24 @@ function AnomalySection({
                     {p.paperType && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{p.paperType}</span>
                     )}
-                    <span className="text-[10px] text-slate-500">
-                      by <span className="font-medium text-slate-700">{p.ownerName ?? "?"}</span>
-                    </span>
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-1">
-                    completed {new Date(p.completedAt).toLocaleString()} · age {p.ageMin} min · status <span className="font-bold text-slate-700">{p.markingStatus ?? "?"}</span> · score {p.score ?? "?"}/{p.totalMarks ?? "?"} · {p.questionCount} Q
+                  {/* Score line — only present for low/zero-score rows */}
+                  {p.scorePct !== null && (
+                    <div className="text-[12px] font-bold mt-1.5">
+                      Score: <span className="text-rose-700">{p.score}/{p.totalMarks}</span> · <span className="text-rose-700">{p.scorePct}%</span>
+                    </div>
+                  )}
+                  <div className="text-[11px] text-slate-600 mt-1.5 space-y-0.5">
+                    <div>
+                      <span className="font-semibold text-slate-700">Student:</span>{" "}
+                      {p.studentName ?? <span className="italic text-slate-400">none assigned (self-submit)</span>}
+                      {p.parentName && p.parentName !== p.studentName && (
+                        <>  ·  <span className="font-semibold text-slate-700">Parent:</span> {p.parentName}</>
+                      )}
+                    </div>
+                    <div className="text-slate-500">
+                      completed {new Date(p.completedAt).toLocaleString()} · age {p.ageMin} min · status <span className="font-bold text-slate-700">{p.markingStatus ?? "?"}</span>{p.scorePct === null ? <> · score {p.score ?? "?"}/{p.totalMarks ?? "?"}</> : null} · {p.questionCount} Q
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1 shrink-0">
@@ -279,6 +321,16 @@ function AnomalySection({
                   >
                     Open review ↗
                   </a>
+                  {p.parentId && (
+                    <a
+                      href={`/home/${p.parentId}?userId=${userId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-blue-700 underline hover:text-blue-900"
+                    >
+                      Parent home ↗
+                    </a>
+                  )}
                   <button
                     onClick={() => onRemark(p.id)}
                     disabled={remarking.has(p.id)}
