@@ -1055,8 +1055,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // navy-vs-near-black pair was very hard to tell apart on a phone in
   // daylight. Swapped to green / orange / blue which are also a
   // colourblind-safe trio (Wong palette).
-  const SUBJ_COLORS: Record<string, string> = { math: "#16a34a", science: "#ea580c", english: "#2563eb" };
-  const SUBJ_LABELS: Record<string, string> = { math: "Math", science: "Science", english: "English" };
+  // Chinese added with a fourth distinct hue (rose / red). Wong-safe
+  // four-colour set: green / orange / blue / red.
+  const SUBJ_COLORS: Record<string, string> = { math: "#16a34a", science: "#ea580c", english: "#2563eb", chinese: "#dc2626" };
+  const SUBJ_LABELS: Record<string, string> = { math: "Math", science: "Science", english: "English", chinese: "Chinese" };
   const MAX_CHART_PTS = 5;
   type ChartLine = { subject: string; color: string; label: string; points: number[]; count: number; avg: number };
   const chartLines: ChartLine[] = (() => {
@@ -1064,8 +1066,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     const bySubj: Record<string, number[]> = {};
     const sorted = [...scoredPapers].sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime());
     for (const p of sorted) {
-      const subj = (p.subject ?? "").toLowerCase();
-      const key = subj.includes("math") ? "math" : subj.includes("sci") ? "science" : subj.includes("eng") ? "english" : null;
+      const subjLc = (p.subject ?? "").toLowerCase();
+      const subjRaw = p.subject ?? "";
+      // Chinese subjects may be stored as "Chinese", "华文", "中文" or
+      // "华语" depending on the upload path — match all variants.
+      const isChinese = subjLc.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
+      const key = subjLc.includes("math") ? "math"
+        : subjLc.includes("sci") ? "science"
+        : subjLc.includes("eng") ? "english"
+        : isChinese ? "chinese"
+        : null;
       if (!key) continue;
       if (!bySubj[key]) bySubj[key] = [];
       bySubj[key].push(Math.round((p.score! / parseFloat(p.totalMarks!)) * 100));
@@ -2172,11 +2182,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               })}
             </svg>
           </div>
-          <div className="mt-3 flex gap-3 border-t border-[#e5eeff] pt-2 flex-wrap">
+          <div className="mt-3 flex gap-4 border-t border-[#e5eeff] pt-2 flex-wrap">
             {chartLines.map(l => (
-              <div key={l.subject} className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full" style={{ background: l.color }} />
-                <span className="text-[10px] text-[#43474f] font-medium">{l.label} {l.avg}%</span>
+              <div key={l.subject} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
+                <span className="text-sm text-[#001e40] font-semibold">{l.label} <span className="text-[#43474f] font-medium">{l.avg}%</span></span>
               </div>
             ))}
           </div>
