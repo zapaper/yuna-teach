@@ -113,6 +113,13 @@ function AdminContent() {
       color: "bg-rose-50 text-rose-600",
     },
     {
+      icon: "monitor_heart",
+      label: "Marking Dashboard",
+      description: "Live submission volume (last 24h hourly + last 7d daily) and marker health — failed marks, stuck in_progress, silent zero-mark anomalies. Click in to troubleshoot or re-mark.",
+      href: `/admin/marking-dashboard?userId=${userId}`,
+      color: "bg-blue-50 text-blue-600",
+    },
+    {
       icon: "list_alt",
       label: "Generate Answer Steps",
       description: "P4–P6 Math difficulty 4–5: AI rewrites answer keys as step-by-step working. Mismatches get flagged.",
