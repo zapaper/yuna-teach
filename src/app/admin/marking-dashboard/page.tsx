@@ -96,7 +96,9 @@ function Content() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
-      <main className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* lg:ml-56 — push past the fixed 224-px left sidebar; pb-24 on
+          mobile to clear the bottom bar nav. */}
+      <main className="lg:ml-56 pb-24 lg:pb-0 max-w-6xl mx-auto p-6 space-y-6">
         <header className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Marking Dashboard</h1>

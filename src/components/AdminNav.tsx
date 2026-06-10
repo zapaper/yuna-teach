@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
+  { icon: "monitor_heart", label: "Marking",       path: "/admin/marking-dashboard" },
   { icon: "flag",          label: "Flagged Q&A",  path: "/flagged" },
   { icon: "upload_file",   label: "Upload",        path: "/exam/upload" },
   { icon: "library_books", label: "Papers",        path: "/admin/papers" },
