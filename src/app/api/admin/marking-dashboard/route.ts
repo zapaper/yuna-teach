@@ -32,7 +32,12 @@ export async function GET() {
   }
 
   const now = Date.now();
-  const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  // Window bumped from 7 → 14 days so stuck/failed/anomaly papers
+  // that took longer than a week to be noticed still show up in the
+  // dashboard for triage (e.g. cmpny9tip from 27 May was invisible
+  // under the old 7d window).
+  const WINDOW_DAYS = 14;
+  const since7d = new Date(now - WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   const userScope = excludedIds.length > 0 ? {
     AND: [
@@ -91,9 +96,9 @@ export async function GET() {
   }
   const hourIdx = new Map(hourly.map((h, i) => [h.bucket, i]));
 
-  // Daily volume — last 7 days.
+  // Daily volume — last WINDOW_DAYS days.
   const daily: Array<{ bucket: string; total: number; complete: number; failed: number; inProgress: number; stuck: number }> = [];
-  for (let i = 6; i >= 0; i--) {
+  for (let i = WINDOW_DAYS - 1; i >= 0; i--) {
     const t = new Date(now - i * 24 * 60 * 60 * 1000);
     const { dateKey } = sgtParts(t);
     daily.push({ bucket: dateKey, total: 0, complete: 0, failed: 0, inProgress: 0, stuck: 0 });

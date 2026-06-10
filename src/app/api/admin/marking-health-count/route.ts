@@ -30,7 +30,8 @@ export async function GET() {
     if (s?.admin === true) excludedIds.push(u.id);
   }
 
-  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // 14d window — matches the dashboard's WINDOW_DAYS.
+  const since7d = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
   const stuckBefore = new Date(Date.now() - STUCK_THRESHOLD_MS);
   const userScope = excludedIds.length > 0 ? {
     AND: [

@@ -128,7 +128,7 @@ function Content() {
             {/* Headline counters */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { k: "total", label: "Last 7d", color: "bg-slate-100 text-slate-800" },
+                { k: "total", label: "Last 14d", color: "bg-slate-100 text-slate-800" },
                 { k: "complete", label: "Complete", color: "bg-green-50 text-green-700" },
                 { k: "inProgress", label: "In-progress (active)", color: "bg-blue-50 text-blue-700" },
                 { k: "stuck", label: "Stuck (>5min)", color: "bg-amber-50 text-amber-700" },
@@ -167,9 +167,9 @@ function Content() {
               <p className="text-[10px] text-slate-400 mt-2">Hour labels are SGT (UTC+8). Hover a bar for details.</p>
             </section>
 
-            {/* Daily chart — last 7d */}
+            {/* Daily chart — last 14d */}
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h2 className="text-sm font-bold text-slate-700 mb-3">Last 7 days · {data.tz}</h2>
+              <h2 className="text-sm font-bold text-slate-700 mb-3">Last 14 days · {data.tz}</h2>
               <div className="flex items-end gap-2 h-32">
                 {data.daily.map((b, i) => {
                   const hPct = Math.round((b.total / maxDaily) * 100);
