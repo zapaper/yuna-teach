@@ -1049,7 +1049,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     : null;
 
   // ── Performance chart data (up to 5 most recent per subject, right-aligned) ──
-  const SUBJ_COLORS: Record<string, string> = { math: "#006c49", science: "#3a5f94", english: "#001e40" };
+  // Distinct palette so parents can pick the lines apart at a glance.
+  // Previous colours were #006c49 (dark green), #3a5f94 (muted navy),
+  // #001e40 (almost-black navy) — green vs both navies blurred and the
+  // navy-vs-near-black pair was very hard to tell apart on a phone in
+  // daylight. Swapped to green / orange / blue which are also a
+  // colourblind-safe trio (Wong palette).
+  const SUBJ_COLORS: Record<string, string> = { math: "#16a34a", science: "#ea580c", english: "#2563eb" };
   const SUBJ_LABELS: Record<string, string> = { math: "Math", science: "Science", english: "English" };
   const MAX_CHART_PTS = 5;
   type ChartLine = { subject: string; color: string; label: string; points: number[]; count: number; avg: number };

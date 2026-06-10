@@ -15,7 +15,6 @@ const NAV_ITEMS = [
   { icon: "format_align_left", label: "Key Format", path: "/admin/answer-key-format" },
   { icon: "table_view",    label: "MCQ → Table",  path: "/admin/convert-mcq-tables" },
   { icon: "people",        label: "Manage Users",  path: "/admin/users" },
-  { icon: "function",      label: "LaTeX Convert", path: "/admin/latex-fraction" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },
 ];
 
