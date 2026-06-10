@@ -1,8 +1,16 @@
-// Delete David lim's repeated "P6 English Revision 03 May" attempts.
-// He took the same paper 6 times in one day with mostly 13/90 scores —
-// likely random clicks, not real attempts — and they're skewing his
-// English topic-level averages on the parent dashboard + progress
-// charts.
+// Delete David lim's Master Class revision papers (paperType=
+// "mastery-review"). These are the per-class "revision" papers the
+// student can do after going through a Master Class — David has 9 of
+// them mostly with score=null (created but never completed) plus one
+// with 0/41 score, and they're cluttering his dashboard + skewing
+// any subject average that doesn't filter them out.
+//
+// We intentionally DO NOT touch:
+//   - paperType="mastery" (the actual Master Class quizzes he did
+//     and scored on — those are legitimate practice)
+//   - paperType="quiz" with isRevision=true (the proper
+//     student-revision papers from /api/admin/student-revision —
+//     user explicitly said "the proper revisions are ok")
 //
 // Strategy: hard-delete the ExamPaper rows. Prisma's onDelete: Cascade
 // on the ExamQuestion FK takes care of question rows. Once they're
@@ -26,13 +34,14 @@ import { prisma } from "../src/lib/db";
   console.log(`David lim accounts (${davids.length}): ${davids.map(d => `${d.name} <${d.email ?? "?"}>`).join(", ")}`);
   const davidIds = davids.map(d => d.id);
 
-  // Match any "Revision" paper assigned to a David lim. paperType=quiz
-  // because that's how the student-revision endpoint creates them.
-  // Title prefix narrows to genuine revision papers.
+  // ONLY paperType="mastery-review" — the Master Class revision
+  // papers. Excludes plain "mastery" (the master-class quizzes
+  // themselves) and excludes "quiz" with isRevision=true (proper
+  // student-revision papers).
   const candidates = await prisma.examPaper.findMany({
     where: {
       assignedToId: { in: davidIds },
-      title: { contains: "Revision", mode: "insensitive" },
+      paperType: "mastery-review",
     },
     select: {
       id: true,
@@ -45,11 +54,11 @@ import { prisma } from "../src/lib/db";
       completedAt: true,
       _count: { select: { questions: true } },
     },
-    orderBy: { completedAt: "asc" },
+    orderBy: { createdAt: "asc" },
   });
-  console.log(`\nRevision papers assigned to David lim (${candidates.length}):`);
+  console.log(`\nMaster Class revision papers assigned to David lim (${candidates.length}):`);
   for (const p of candidates) {
-    console.log(`  ${p.completedAt?.toISOString().slice(0, 10) ?? "(no date)"}  ${(p.subject ?? "?").padEnd(20)}  score=${p.score}/${p.totalMarks ?? "?"}  ${p._count.questions}Q  isRevision=${p.isRevision}  "${p.title}"  id=${p.id}`);
+    console.log(`  ${p.completedAt?.toISOString().slice(0, 10) ?? "(never finished)"}  ${(p.subject ?? "?").padEnd(20)}  score=${p.score}/${p.totalMarks ?? "?"}  ${p._count.questions}Q  "${p.title.slice(0, 50)}"  id=${p.id}`);
   }
 
   // Filter to the ones we actually want to drop. The user asked for
