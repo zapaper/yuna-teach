@@ -136,15 +136,65 @@ function drawChart(topics: TopicRow[], avg: number, subject: Subject, studentNam
   return canvas.toBuffer("image/png");
 }
 
+// Resolve a parent by email, userId, or name (case-insensitive
+// fallback). Used so the script can be pointed at any parent without
+// editing code — defaults to "admin" for back-compat.
+async function resolveParent(identifier: string) {
+  // Email match.
+  if (identifier.includes("@")) {
+    const u = await prisma.user.findUnique({
+      where: { email: identifier },
+      select: { id: true, name: true, email: true },
+    });
+    if (u) return u;
+  }
+  // Direct userId match (cuid shape — starts with "cm" + 23 chars).
+  if (/^[a-z0-9]{20,}$/i.test(identifier)) {
+    const u = await prisma.user.findUnique({
+      where: { id: identifier },
+      select: { id: true, name: true, email: true },
+    });
+    if (u) return u;
+  }
+  // Name match — case-insensitive exact, then fuzzy.
+  const exact = await prisma.user.findFirst({
+    where: { name: { equals: identifier, mode: "insensitive" } },
+    select: { id: true, name: true, email: true },
+  });
+  if (exact) return exact;
+  const fuzzy = await prisma.user.findMany({
+    where: { name: { contains: identifier, mode: "insensitive" } },
+    select: { id: true, name: true, email: true },
+    take: 5,
+  });
+  if (fuzzy.length === 1) return fuzzy[0];
+  if (fuzzy.length > 1) {
+    throw new Error(`Multiple parents matched "${identifier}": ${fuzzy.map(f => `${f.name} <${f.email}>`).join(", ")}`);
+  }
+  throw new Error(`No parent found for identifier "${identifier}"`);
+}
+
+function sanitiseFilename(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "parent";
+}
+
 async function main() {
-  // Admin's linked students via ParentStudent.
+  // Parent identifier — defaults to "admin" for back-compat. Accepts:
+  //   - email (py.chua@hotmail.com)
+  //   - userId (cm...)
+  //   - name ("admin", "Pychua", etc.)
+  // Pass via the first positional argument.
+  const parentArg = process.argv[2] ?? "admin";
+  const parent = await resolveParent(parentArg);
+  console.log(`Parent: ${parent.name} <${parent.email ?? "(no email)"}>  id=${parent.id}`);
+
   const adminLinks = await prisma.parentStudent.findMany({
-    where: { parent: { name: { equals: "admin", mode: "insensitive" } } },
+    where: { parentId: parent.id },
     select: { student: { select: { id: true, name: true } } },
   });
-  if (adminLinks.length === 0) throw new Error("No students linked to admin");
+  if (adminLinks.length === 0) throw new Error(`No students linked to parent ${parent.name}`);
   const students = adminLinks.map(l => l.student);
-  console.log(`Admin's students (${students.length}): ${students.map(s => s.name).join(", ")}`);
+  console.log(`${parent.name}'s students (${students.length}): ${students.map(s => s.name).join(", ")}`);
 
   // Pull every marked QUESTION for those students. Aggregate per
   // syllabusTopic so the chart shows topic-level strengths/weaknesses
@@ -208,7 +258,7 @@ async function main() {
   const docChildren: Paragraph[] = [];
   docChildren.push(new Paragraph({
     heading: HeadingLevel.TITLE,
-    children: [new TextRun({ text: "Progress report — admin's children", bold: true })],
+    children: [new TextRun({ text: `Progress report — ${parent.name}'s child${students.length === 1 ? "" : "ren"}`, bold: true })],
   }));
   docChildren.push(new Paragraph({
     children: [new TextRun({
@@ -322,7 +372,14 @@ async function main() {
   const buf = await Packer.toBuffer(doc);
   const outDir = path.join(__dirname, "..", "eval");
   mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, "admin-progress-report.docx");
+  // Per-parent output filename. Keep the legacy "admin-progress-
+  // report.docx" name when the run is for admin (so older instructions
+  // still find it). Anything else: "<slug>-progress-report.docx" using
+  // the parent's name or email.
+  const slug = parent.name.toLowerCase() === "admin"
+    ? "admin"
+    : sanitiseFilename(parent.email ?? parent.name);
+  const outPath = path.join(outDir, `${slug}-progress-report.docx`);
   writeFileSync(outPath, buf);
   console.log(`Wrote ${outPath}`);
 
