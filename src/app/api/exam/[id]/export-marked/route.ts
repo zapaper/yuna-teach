@@ -129,7 +129,7 @@ QUESTION CONTEXT:
 - Question number: ${q.questionNum}
 - Expected answer: ${q.answer ?? "(none provided)"}
 - Marks awarded: ${q.marksAwarded ?? 0} of ${q.marksAvailable ?? 0}
-- Marking notes from AI marker: ${q.markingNotes ?? "(no notes)"}
+- Marking notes from AI marker: ${stripDetectedPrefix(q.markingNotes ?? "") || "(no notes)"}
 
 For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are no subparts, a single entry — output:
 1. "label": the subpart letter without parentheses (e.g. "a"), or "" if there are no subparts.
@@ -193,11 +193,11 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
         xPctEnd: clamp(m.xPctEnd, 0, 100),
         status,
         marksLost: status === "wrong" ? Math.max(0, Number(m.marksLost ?? 1)) : 0,
-        note: m.note ? String(m.note).trim().slice(0, 90) : undefined,
+        note: m.note ? String(m.note).trim().slice(0, 240) : undefined,
       });
     }
     if (cleaned.length === 0) {
-      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: q.markingNotes?.slice(0, 80) });
+      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripDetectedPrefix(q.markingNotes ?? "").slice(0, 200) || undefined });
     }
     // Trust the marker over the classifier when there's only one mark
     // to stamp (MCQ, vocab cloze, single-answer short answer). The
@@ -234,6 +234,23 @@ function fallbackStatus(q: { marksAwarded: number | null; marksAvailable: number
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
+}
+
+// markingNotes is stored as "Detected: <studentAnswer> | <notes>" so
+// the review page can show what the AI read. For the printed paper
+// the "Detected: …" prefix is noise — the student can see their own
+// writing. Strip it so only the marker's actual feedback (key words,
+// reasoning) reaches the PDF.
+function stripDetectedPrefix(s: string): string {
+  if (!s) return s;
+  // Single-line form: "Detected: X | <rest>"
+  const piped = s.replace(/^\s*Detected\s*:\s*[^|]*\|\s*/i, "").trim();
+  if (piped !== s) return piped;
+  // No pipe → the whole markingNotes is just "Detected: X" with no
+  // follow-up notes. Drop the prefix and keep what the marker saw,
+  // so a short blank-style note ("Detected: No answer detected")
+  // becomes "No answer detected".
+  return s.replace(/^\s*Detected\s*:\s*/i, "").trim();
 }
 
 // Strip LaTeX delimiters/commands so a teacher's note like
@@ -439,16 +456,30 @@ async function handle(
     const qs = bySubPage.get(i) ?? [];
     for (const q of qs) flatJobs.push({ pageIdx: i, q });
   }
-  // Only Comp OEQ needs the per-subpart split (the marker emits one
-  // verdict for the whole Q41(a)(b)(c) row; Gemini fans it out into
-  // per-subpart status/marksLost/notes). Every other section is
-  // single-mark — marker's marksAwarded + markingNotes is the whole
-  // truth, the whitespace-band placement decides WHERE notes go, and
-  // calling Gemini there was paying ~$0.05/paper for data we already
-  // have. Fast-path synthesises SubpartMark[] directly.
-  const compOeqJobs = flatJobs.filter(j => isCompOeqLabel(j.q.syllabusTopic));
-  const fastPathJobs = flatJobs.filter(j => !isCompOeqLabel(j.q.syllabusTopic));
-  console.log(`[export-marked] ${flatJobs.length} questions: ${compOeqJobs.length} Comp OEQ via Gemini, ${fastPathJobs.length} via fast-path`);
+  // Per-subpart split needed for any OEQ whose answer key spells out
+  // (a)/(b)/(c) sub-answers — the marker emits one verdict for the
+  // whole question and Gemini's classifier fans it out into per-
+  // subpart status/marksLost/notes so each (a)/(b) gets its own tick
+  // or cross next to it. Originally restricted to Comp OEQ, but PSLE
+  // Science / Math OEQ also have (a)(b) subparts that need individual
+  // marks (parent complaint: "some of the subparts ticks are missing"
+  // on a Science export). Everything else (MCQ, single-blank cloze,
+  // editing) is single-mark and stays on the fast-path.
+  const oeqSubject = (paper.subject ?? "").toLowerCase();
+  const isOeqSubject = oeqSubject.includes("science") || oeqSubject.includes("math");
+  function answerHasSubparts(ans: string | null): boolean {
+    if (!ans) return false;
+    // Two distinct "(a)"/"(b)"/etc labels in the answer key → subparts.
+    const matches = ans.match(/\(\s*[abcdefivx]+\s*\)/gi);
+    return !!matches && new Set(matches.map(m => m.toLowerCase().replace(/\s+/g, ""))).size >= 2;
+  }
+  const aiClassifyJobs = flatJobs.filter(j =>
+    isCompOeqLabel(j.q.syllabusTopic) ||
+    (isOeqSubject && answerHasSubparts(j.q.answer))
+  );
+  const aiClassifyIds = new Set(aiClassifyJobs.map(j => j.q.id));
+  const fastPathJobs = flatJobs.filter(j => !aiClassifyIds.has(j.q.id));
+  console.log(`[export-marked] ${flatJobs.length} questions: ${aiClassifyJobs.length} via Gemini classifier (Comp OEQ + Math/Science subparts), ${fastPathJobs.length} via fast-path`);
   const t0 = Date.now();
 
   // Pre-cropper used by both paths to compute pageRegion. Fast-path
@@ -475,7 +506,7 @@ async function handle(
     const status = fallbackStatus(q);
     const marksLost = fallbackLost(q);
     const note = status === "wrong" && q.markingNotes
-      ? stripLatex(q.markingNotes).trim().slice(0, 200) || undefined
+      ? stripLatex(stripDetectedPrefix(q.markingNotes)).trim().slice(0, 240) || undefined
       : undefined;
     return {
       pageIdx,
@@ -485,9 +516,10 @@ async function handle(
     };
   });
 
-  // Comp OEQ path: classifyQuestion call per question. ~6 calls on a
-  // PSLE English paper instead of ~80.
-  const compOeqResults = await Promise.all(compOeqJobs.map(async ({ pageIdx, q }) => {
+  // AI classifier path: one classifyQuestion call per OEQ (~6-12 per
+  // paper depending on subject). Fans out subparts so each (a)/(b)
+  // gets its own tick AND its own pithy note.
+  const aiClassifyResults = await Promise.all(aiClassifyJobs.map(async ({ pageIdx, q }) => {
     const { jpgBytes, Wpx, Hpx } = pageData[pageIdx];
     const pageRegion = pageRegionFor(pageIdx, q);
     if (Wpx === 0 || Hpx === 0) {
@@ -504,7 +536,7 @@ async function handle(
     return { pageIdx, qId: q.id, pageRegion, marks };
   }));
 
-  const flatResults = [...fastPathResults, ...compOeqResults];
+  const flatResults = [...fastPathResults, ...aiClassifyResults];
   console.log(`[export-marked] classification done in ${Date.now() - t0}ms`);
 
   // Re-bucket by page index for the stamping loop.
@@ -1043,10 +1075,16 @@ async function handle(
           // explanations) and historically got truncated at 2 lines — a
           // note that ends "...because the meaning of the sentence is" mid-
           // sentence is worse than no note. Give the English path room to
-          // breathe. Math/Science notes stay capped at 2 (their format is
-          // ' / '-separated lines and the existing flow already keeps it
-          // tight).
-          const maxNoteLines = (isEnglish && isOeq) ? 8 : 2;
+          // breathe. Science OEQ notes call out missing key words (often
+          // 2-3 of them per subpart, "Missing keywords 'evaporation' and
+          // 'condensation' and named process 'fertilisation'") so they
+          // also need 4-5 lines so the keyword list doesn't get clipped.
+          // Math gets 4 — error-step / correct-step / final-answer plus
+          // one wrap. MCQ/cloze fast-path stays at 2.
+          const maxNoteLines = (isEnglish && isOeq) ? 8
+            : (isScience && isOeq) ? 5
+            : isOeq ? 4
+            : 2;
 
           const rawLines = (isCompCloze
             ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
@@ -1066,7 +1104,13 @@ async function handle(
             provisionalBlockH,
           );
           const TOO_FAR = markSize * 2.5;
-          const labelIt = m.label && !alreadyLabelled && !isCompCloze && (isCompOeq || initialBand.distance > TOO_FAR);
+          // Always prepend the (a)/(b) label on multi-subpart OEQs
+          // (Comp OEQ + the Math/Science questions now routed through
+          // the classifier). The classifier only sets m.label when the
+          // question genuinely has subparts, so this stays off for
+          // single-mark fast-path questions.
+          const isMultiSubpart = (entry.marks.length > 1);
+          const labelIt = m.label && !alreadyLabelled && !isCompCloze && (isCompOeq || isMultiSubpart || initialBand.distance > TOO_FAR);
           const labelPrefix = labelIt ? `(${m.label}) ` : "";
           // Prepend the label to the first raw line so the wrapper keeps
           // them visually attached.
@@ -1088,6 +1132,12 @@ async function handle(
           // If wrapped overflows, drop the cap to add an ellipsis on the
           // final visible line so the parent knows the note continues
           // somewhere (the markingNotes column has the full text).
+          // For OEQs (Math/Science especially, where notes call out
+          // missing key words) we'd rather show all 4-5 lines than cut
+          // a "Missing keywords 'evaporation' and 'condensation'" note
+          // off mid-keyword. Whitespace-band placement already slides
+          // the block down so the extra height doesn't collide with
+          // the next question.
           let capped = wrapped.slice(0, maxNoteLines);
           if (wrapped.length > capped.length) {
             const last = capped[capped.length - 1] ?? "";
