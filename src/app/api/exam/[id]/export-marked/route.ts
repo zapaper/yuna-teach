@@ -168,7 +168,7 @@ For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are
      - "Did not name the process 'fertilisation'"
      - "Wrong unit — should be 'cm', not 'm'"
      - "Diagram missing the arrow showing direction of force"
-   - Cap length at ~15 words. Better to omit detail than to be cryptic.`}
+   - Science OEQ that calls out missing key words (e.g. "Missing keywords 'evaporation' and 'condensation'") may use up to ~25 words; everything else stays under ~15. Better to omit detail than to be cryptic.`}
    - Omit entirely for "correct" subparts.
 
 OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO commentary.`;
@@ -201,7 +201,7 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
         xPctEnd: clamp(m.xPctEnd, 0, 100),
         status,
         marksLost: status === "wrong" ? Math.max(0, Number(m.marksLost ?? 1)) : 0,
-        note: m.note ? String(m.note).trim().slice(0, 240) : undefined,
+        note: m.note ? String(m.note).trim().slice(0, 400) : undefined,
       });
     }
     if (cleaned.length === 0) {
@@ -535,7 +535,7 @@ async function handle(
     const status = fallbackStatus(q);
     const marksLost = fallbackLost(q);
     const note = status === "wrong" && q.markingNotes
-      ? stripLatex(stripDetectedPrefix(q.markingNotes)).trim().slice(0, 240) || undefined
+      ? stripLatex(stripDetectedPrefix(q.markingNotes)).trim().slice(0, 400) || undefined
       : undefined;
     return {
       pageIdx,
@@ -949,12 +949,27 @@ async function handle(
           : 0.10;
         mX = pageW * (1 - inset) - markSize * 0.5;
       }
-      for (const mm of e2.marks) {
-        if (mm.status === "blank") continue;
-        const regionTopPx = e2.pageRegion.topPx;
-        const regionH = e2.pageRegion.heightPx;
-        const yPx = regionTopPx + (mm.yPctEnd / 100) * regionH;
-        const mY = pageH - yPx - markSize * 0.2;
+      // Enforce a minimum vertical gap between subpart marks on the
+      // SAME question. The AI classifier sometimes returns (a)/(b)/(c)
+      // yPctEnd values that are only 3-5% apart (e.g. Q40 with three
+      // tight one-line answers), and at markSize ~5% of page height a
+      // 3% gap means two ticks visually overlap. Sort by yPctEnd
+      // ascending, then for each consecutive pair bump the later
+      // subpart DOWN so its mark sits at least one markSize + gutter
+      // below the previous one. Same logic mirrored in the render
+      // loop below.
+      const MIN_MARK_GAP = markSize + Math.round(markSize * 0.1);
+      const regionTopPx = e2.pageRegion.topPx;
+      const regionH = e2.pageRegion.heightPx;
+      const sortedMarks = [...e2.marks].filter(mm => mm.status !== "blank").sort((a, b) => a.yPctEnd - b.yPctEnd);
+      let lastMarkY: number | null = null;
+      for (const mm of sortedMarks) {
+        const yPxRaw = regionTopPx + (mm.yPctEnd / 100) * regionH;
+        let mY = pageH - yPxRaw - markSize * 0.2;
+        if (lastMarkY !== null && lastMarkY - mY < MIN_MARK_GAP) {
+          mY = lastMarkY - MIN_MARK_GAP;
+        }
+        lastMarkY = mY;
         pageMarkRects.push({
           x: mX - markSize / 2,
           y: mY - markSize / 2,
@@ -998,11 +1013,26 @@ async function handle(
       // to right-align the marker's comment to the same x as the mark.
       const markRightX = markX + markSize * 0.5;
 
-      for (const m of entry.marks) {
+      // Same min-gap enforcement applied in the pre-compute pass: walk
+      // marks sorted by yPctEnd ascending, push later subparts down
+      // when they'd overlap the previous one. Without this, Q40-style
+      // multi-subpart tight rows render two ticks on top of each other.
+      const MIN_MARK_GAP_RENDER = markSize + Math.round(markSize * 0.1);
+      const renderMarks = [...entry.marks].sort((a, b) => a.yPctEnd - b.yPctEnd);
+      let renderLastMarkY: number | null = null;
+      for (const m of renderMarks) {
         const regionTopPx = entry.pageRegion.topPx;
         const regionH = entry.pageRegion.heightPx;
-        const yPx = regionTopPx + (m.yPctEnd / 100) * regionH;
-        const markY = pageH - yPx - markSize * 0.2;
+        const yPxRaw = regionTopPx + (m.yPctEnd / 100) * regionH;
+        let markY = pageH - yPxRaw - markSize * 0.2;
+        if (m.status !== "blank" && renderLastMarkY !== null && renderLastMarkY - markY < MIN_MARK_GAP_RENDER) {
+          markY = renderLastMarkY - MIN_MARK_GAP_RENDER;
+        }
+        if (m.status !== "blank") renderLastMarkY = markY;
+        // yPx in gray-bitmap coords — recompute so the note's whitespace
+        // band search anchors to the spread-adjusted mark, not the
+        // classifier's raw yPctEnd.
+        const yPx = pageH - markY - markSize * 0.2;
 
         const status = m.status;
         if (status === "blank") continue;
