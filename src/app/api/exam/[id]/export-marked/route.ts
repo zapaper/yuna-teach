@@ -64,6 +64,14 @@ async function getHandFontBytes(): Promise<Buffer> {
   return _handFontBytes;
 }
 
+let _handBoldFontBytes: Buffer | null = null;
+async function getHandBoldFontBytes(): Promise<Buffer> {
+  if (_handBoldFontBytes) return _handBoldFontBytes;
+  const fontPath = path.join(process.cwd(), "public", "fonts", "Kalam-Bold.ttf");
+  _handBoldFontBytes = await fs.readFile(fontPath);
+  return _handBoldFontBytes;
+}
+
 // Hand-extracted tick + cross PNGs (public/Marking/tick-*.png and
 // cross-*.png). Each stamp picks one at random per question so the
 // resulting PDF has natural ink variation, not four identical
@@ -288,19 +296,40 @@ function formatMarks(n: number): string {
 // a list of fragments that each measure under maxWidth. Long single
 // words are kept whole — better to overflow slightly than to split mid-
 // word and confuse a reader.
+//
+// Optional boldFont enables markdown-bold awareness: when a line carries
+// **X** segments, width measurements account for the wider bold glyphs
+// so the wrap point is correct in the rendered (post-strip) layout.
+// Word boundaries are also forbidden inside a bold span so a single
+// **two-word** keyword phrase can never wrap mid-span (which would
+// leave a dangling ** on the next line).
 function wrapText(
   line: string,
-  font: { widthOfTextAtSize: (s: string, sz: number) => number },
+  font: PDFFont,
   size: number,
   maxWidth: number,
+  boldFont?: PDFFont,
 ): string[] {
-  if (font.widthOfTextAtSize(line, size) <= maxWidth) return [line];
-  const words = line.split(/\s+/);
+  const measure = (s: string) =>
+    boldFont ? widthOfBoldText(s, font, boldFont, size) : font.widthOfTextAtSize(s, size);
+  if (measure(line) <= maxWidth) return [line];
+  // Tokenise into bold-aware atoms: each atom is either a regular word
+  // or a complete **bold** phrase (possibly multi-word). The wrapper
+  // never breaks inside an atom, so ** markers always come in pairs on
+  // the same wrapped line.
+  const atoms: string[] = [];
+  if (boldFont) {
+    const re = /\*\*[^*]+?\*\*|\S+/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(line)) !== null) atoms.push(m[0]);
+  } else {
+    for (const w of line.split(/\s+/)) if (w) atoms.push(w);
+  }
   const out: string[] = [];
   let current = "";
-  for (const w of words) {
+  for (const w of atoms) {
     const candidate = current ? `${current} ${w}` : w;
-    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+    if (measure(candidate) <= maxWidth) {
       current = candidate;
     } else {
       if (current) out.push(current);
@@ -550,6 +579,12 @@ async function handle(
   doc.registerFontkit(fontkit);
   const handFontBytes = await getHandFontBytes();
   const handFont = await doc.embedFont(handFontBytes);
+  // Kalam-Bold for **bold** spans inside marker notes. AI markers emit
+  // **word** to call attention to the corrected spelling / key word
+  // (e.g. "Missing keyword **evaporation**"). Without a bold font the
+  // asterisks rendered literally on the paper.
+  const handBoldFontBytes = await getHandBoldFontBytes();
+  const handBoldFont = await doc.embedFont(handBoldFontBytes);
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
   const helveticaRegular = await doc.embedFont(StandardFonts.Helvetica);
   const RED = rgb(0.85, 0.10, 0.10);
@@ -674,12 +709,17 @@ async function handle(
       cursorY -= sectionHeaderSize * 1.6;
       const rowH = labelSize * 1.85;
       // Two-column tabular layout: label left-aligned, score right-aligned.
+      // Sections scoring under 50% get drawn in red — same RED used for
+      // the grand-total line so a parent can scan the breakdown and
+      // pick out the weak sections at a glance.
       const colRightX = coverW - padX;
       for (const s of sectionList) {
         const scoreText = `${s.awarded} / ${s.available}`;
         const scoreWidth = helveticaRegular.widthOfTextAtSize(scoreText, labelSize);
-        coverPage.drawText(s.label, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: DARK });
-        coverPage.drawText(scoreText, { x: colRightX - scoreWidth, y: cursorY, size: labelSize, font: helvetica, color: DARK });
+        const sectionPct = s.available > 0 ? s.awarded / s.available : 1;
+        const sectionColor = sectionPct < 0.5 ? RED : DARK;
+        coverPage.drawText(s.label, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: sectionColor });
+        coverPage.drawText(scoreText, { x: colRightX - scoreWidth, y: cursorY, size: labelSize, font: helvetica, color: sectionColor });
         cursorY -= rowH;
       }
       cursorY -= rowH * 0.5;
@@ -797,6 +837,12 @@ async function handle(
     // under the question is actually packed with the next question's
     // text. ≤15% ink allowed for safety (anti-aliasing + faint pencil
     // marks shouldn't disqualify an otherwise empty band).
+    //
+    // Note: this only inspects rowMeans, which sampled the RIGHT 60%
+    // of the page. For a final placement check that needs to be sure
+    // the note's actual rect doesn't sit on top of text on the LEFT
+    // side of the page (where wider notes anchor), use
+    // isRectMostlyWhitespace below.
     function isBandWhitespace(topY: number, h: number): boolean {
       const start = Math.max(0, Math.floor(topY));
       const end = Math.min(grayH, start + Math.ceil(h));
@@ -806,6 +852,36 @@ async function handle(
         if (rowMeans[y] < WS_THRESHOLD) inkRows++;
       }
       return inkRows / (end - start) < 0.15;
+    }
+
+    // Pixel-accurate whitespace check for the note's actual rect. Walks
+    // every pixel inside the bbox and counts ink pixels (any pixel
+    // darker than the WS threshold). Returns true if the rect is at
+    // least 95% white. This catches the case where rowMeans called a
+    // band "whitespace" because the right 60% of the page was blank,
+    // but the left side of the row had question stem text that the
+    // note now sits on top of.
+    function isRectMostlyWhitespace(xPx: number, topY: number, w: number, h: number): boolean {
+      const x0 = Math.max(0, Math.floor(xPx));
+      const x1 = Math.min(grayW, Math.floor(xPx + w));
+      const y0 = Math.max(0, Math.floor(topY));
+      const y1 = Math.min(grayH, Math.floor(topY + h));
+      if (x1 <= x0 || y1 <= y0) return false;
+      let ink = 0;
+      let total = 0;
+      // Stride x and y at ~2px to keep this fast on large pages — the
+      // notes we care about are dozens of px wide and tens tall, so
+      // sub-sampling stays accurate while halving the inner loop count.
+      const sx = 2;
+      const sy = 2;
+      for (let y = y0; y < y1; y += sy) {
+        const rowOff = y * grayW;
+        for (let x = x0; x < x1; x += sx) {
+          total++;
+          if (pageGray[rowOff + x] < WS_THRESHOLD) ink++;
+        }
+      }
+      return total > 0 && ink / total < 0.05;
     }
 
     const qs = bySubPage.get(i) ?? [];
@@ -1082,7 +1158,7 @@ async function handle(
           // Math gets 4 — error-step / correct-step / final-answer plus
           // one wrap. MCQ/cloze fast-path stays at 2.
           const maxNoteLines = (isEnglish && isOeq) ? 8
-            : (isScience && isOeq) ? 5
+            : (isScience && isOeq) ? 6
             : isOeq ? 4
             : 2;
 
@@ -1122,7 +1198,7 @@ async function handle(
           const wrapAt = (maxW: number) => {
             const out: string[] = [];
             for (const line of rawLines) {
-              for (const w of wrapText(line, handFont, effNoteSize, maxW)) out.push(w);
+              for (const w of wrapText(line, handFont, effNoteSize, maxW, handBoldFont)) out.push(w);
             }
             return out;
           };
@@ -1151,7 +1227,7 @@ async function handle(
           // the block so its longest line ends near the mark column,
           // keeping the comment visually attached to the cross without
           // ever wandering off the right edge.
-          const lineWidths = capped.map(l => handFont.widthOfTextAtSize(l, effNoteSize));
+          const lineWidths = capped.map(l => widthOfBoldText(l, handFont, handBoldFont, effNoteSize));
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
@@ -1217,15 +1293,35 @@ async function handle(
             x: r.x - MARK_GUTTER, y: r.y,
             w: r.w + MARK_GUTTER * 2, h: r.h,
           }));
-          for (let guard = 0; guard < 12; guard++) {
+          // Track the first position that cleared mark/note collisions
+          // — if pixel-accurate whitespace never finds a clean rect
+          // (rare on very dense pages), we fall back to this rather
+          // than letting the note slide off the bottom of the page.
+          let firstCollisionFreeTopY: number | null = null;
+          const minPdfTopY = effNoteSize + 4; // don't slide off the bottom
+          for (let guard = 0; guard < 16; guard++) {
             const proposed = { x: noteX, y: pdfTopY - blockH, w: longestW, h: blockH };
             const overlaps = (r: { x: number; y: number; w: number; h: number }) =>
               proposed.x < r.x + r.w &&
               proposed.x + proposed.w > r.x &&
               proposed.y < r.y + r.h &&
               proposed.y + proposed.h > r.y;
-            const collides = placedNoteRects.some(overlaps) || paddedMarks.some(overlaps);
-            if (!collides) break;
+            const rectCollides = placedNoteRects.some(overlaps) || paddedMarks.some(overlaps);
+            if (!rectCollides && firstCollisionFreeTopY === null) firstCollisionFreeTopY = pdfTopY;
+            // Pixel-accurate check: even if the row-mean band detector
+            // said this strip is "whitespace", the LEFT side of the
+            // page (which row-mean ignored) might be packed with the
+            // question stem. Re-check the actual note rect at its real
+            // xy and reject if >5% ink.
+            const grayTopY = pageH - pdfTopY;
+            const onWhitespace = isRectMostlyWhitespace(noteX, grayTopY, longestW, blockH);
+            if (!rectCollides && onWhitespace) break;
+            // Don't slide past the bottom of the page — fall back to
+            // the last collision-free spot we saw.
+            if (pdfTopY - (blockH + lineSpacingPx * 0.5) < minPdfTopY) {
+              if (firstCollisionFreeTopY !== null) pdfTopY = firstCollisionFreeTopY;
+              break;
+            }
             pdfTopY -= blockH + lineSpacingPx * 0.5;
           }
 
@@ -1233,11 +1329,12 @@ async function handle(
           let yCursor = pdfTopY;
           for (let li = 0; li < capped.length; li++) {
             const line = capped[li];
-            drawJitteredText(page, line, {
+            drawJitteredTextBold(page, line, {
               x: noteX,
               y: yCursor,
               size: effNoteSize,
-              font: handFont,
+              regFont: handFont,
+              boldFont: handBoldFont,
               color: RED,
             });
             yCursor -= lineSpacingPx;
@@ -1294,38 +1391,69 @@ async function handle(
 // hand-stamped PNGs from public/Marking/tick-*.png + cross-*.png.)
 type Page = ReturnType<PDFDocument["addPage"]>;
 
-// Render text character-by-character with small per-glyph rotation
-// and y-offset so the same letter never renders identically. Closer to
-// real handwriting than a single straight drawText call. Spaces are
-// skipped (no visible jitter on whitespace).
-type JitterOpts = {
-  x: number;
-  y: number;
-  size: number;
-  font: PDFFont;
-  color: ReturnType<typeof rgb>;
-};
-function drawJitteredText(page: Page, text: string, opts: JitterOpts) {
+// Split a line on ** markers into {text, bold} segments. Even-indexed
+// chunks (outside the markers) are regular; odd-indexed chunks are
+// bold. Treats lone trailing ** as literal (no partner → no toggle).
+type BoldSegment = { text: string; bold: boolean };
+function parseBoldSegments(line: string): BoldSegment[] {
+  const parts: BoldSegment[] = [];
+  const re = /\*\*([^*]+?)\*\*/g;
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line)) !== null) {
+    if (m.index > lastIdx) parts.push({ text: line.slice(lastIdx, m.index), bold: false });
+    parts.push({ text: m[1], bold: true });
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < line.length) parts.push({ text: line.slice(lastIdx), bold: false });
+  return parts;
+}
+
+// Width of a bold-marked line, accounting for the slightly wider bold
+// glyphs on the **X** segments. Used by wrapText so a line with bold
+// text wraps at the right point in the visible (post-strip) layout.
+function widthOfBoldText(
+  line: string,
+  regFont: PDFFont,
+  boldFont: PDFFont,
+  size: number,
+): number {
+  let w = 0;
+  for (const seg of parseBoldSegments(line)) {
+    w += (seg.bold ? boldFont : regFont).widthOfTextAtSize(seg.text, size);
+  }
+  return w;
+}
+
+// Render a line where some segments are bolded via **X** markdown.
+// Walks segments and switches between regular and bold fonts mid-line
+// so a note like "Missing keyword **evaporation**" renders the keyword
+// in bold instead of with literal asterisks on either side.
+function drawJitteredTextBold(
+  page: Page,
+  line: string,
+  opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; color: ReturnType<typeof rgb> },
+) {
   let cx = opts.x;
-  for (const ch of text) {
-    const w = opts.font.widthOfTextAtSize(ch, opts.size);
-    if (ch.trim().length === 0) {
+  for (const seg of parseBoldSegments(line)) {
+    const font = seg.bold ? opts.boldFont : opts.regFont;
+    for (const ch of seg.text) {
+      const w = font.widthOfTextAtSize(ch, opts.size);
+      if (ch.trim().length === 0) {
+        cx += w;
+        continue;
+      }
+      const rotDeg = (Math.random() - 0.5) * 2.8;
+      const dy = (Math.random() - 0.5) * opts.size * 0.08;
+      page.drawText(ch, {
+        x: cx,
+        y: opts.y + dy,
+        size: opts.size,
+        font,
+        color: opts.color,
+        rotate: degrees(rotDeg),
+      });
       cx += w;
-      continue;
     }
-    // ±1.4° rotation, ±opts.size*0.04 y-offset (roughly ±0.6pt at
-    // noteSize 18). Subtle enough that letters stay readable but
-    // perceptibly hand-drawn.
-    const rotDeg = (Math.random() - 0.5) * 2.8;
-    const dy = (Math.random() - 0.5) * opts.size * 0.08;
-    page.drawText(ch, {
-      x: cx,
-      y: opts.y + dy,
-      size: opts.size,
-      font: opts.font,
-      color: opts.color,
-      rotate: degrees(rotDeg),
-    });
-    cx += w;
   }
 }
