@@ -63,6 +63,12 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [inkBlobs, setInkBlobs] = useState<(Blob | null)[]>([]);
+  // True from "PDF rendered" until "ink either applied or confirmed
+  // absent". Drives a per-page overlay spinner so the student knows
+  // their saved writing is on the way — the canvas takes ~5-6s to
+  // pull every page's ink blob in parallel, and a blank PDF in the
+  // meantime makes them think their work was lost.
+  const [inkLoading, setInkLoading] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [view, setView] = useState<"paper" | "questions">("paper");
   const [tool, setTool] = useState<DrawTool>("scroll");
@@ -308,6 +314,12 @@ function ExamPracticeContent({ id }: { id: string }) {
       if (subRes.ok) {
         const sub = await subRes.json();
         if (sub.pageCount > 0) {
+          // Light up the per-page spinner BEFORE the parallel ink
+          // fetch kicks off, then clear it once every page's blob
+          // has settled. Skipped when there's no ink to load (sub
+          // .pageCount === 0) since the student would otherwise see
+          // a spinner with nothing to wait for.
+          setInkLoading(true);
           const blobs = await Promise.all(
             Array.from({ length: sub.pageCount }, (_, i) =>
               fetch(`/api/exam/${id}/submission?page=${i}&type=ink`)
@@ -316,6 +328,7 @@ function ExamPracticeContent({ id }: { id: string }) {
             )
           );
           setInkBlobs(blobs);
+          setInkLoading(false);
         }
       }
     } catch (err) {
@@ -768,6 +781,10 @@ function ExamPracticeContent({ id }: { id: string }) {
                   imageUrl={src}
                   tool={tool}
                   inkBlob={inkBlobs[displayIndex] ?? undefined}
+                  // Spinner overlay shows while we're still fetching the
+                  // ink for this page. Falls off the moment the blob is
+                  // assigned (or confirmed null) so it can't get stuck.
+                  inkLoading={inkLoading}
                   onStrokeStart={() => { lastDrawnPage.current = displayIndex; hasUnsavedInk.current = true; }}
                 />
               </div>
@@ -911,8 +928,8 @@ function ToolButton({
 
 const DrawablePage = forwardRef<
   DrawablePageHandle,
-  { imageUrl: string; tool: DrawTool; inkBlob?: Blob; onStrokeStart: () => void }
->(function DrawablePage({ imageUrl, tool, inkBlob, onStrokeStart }, ref) {
+  { imageUrl: string; tool: DrawTool; inkBlob?: Blob; inkLoading?: boolean; onStrokeStart: () => void }
+>(function DrawablePage({ imageUrl, tool, inkBlob, inkLoading, onStrokeStart }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const isDrawing = useRef(false);
@@ -1174,6 +1191,19 @@ const DrawablePage = forwardRef<
           cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
         }}
       />
+      {/* Loading-your-writing overlay. Translucent so the student
+          can still see the page underneath, but explicit enough that
+          they know their previous work is being restored — not lost.
+          Cleared the moment inkLoading flips to false (blob applied
+          or confirmed absent). */}
+      {inkLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] pointer-events-none">
+          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white shadow-lg border border-slate-200">
+            <div className="w-5 h-5 rounded-full border-2 border-primary-200 border-t-primary-600 animate-spin" />
+            <span className="text-sm font-semibold text-slate-700">Loading your writing…</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
