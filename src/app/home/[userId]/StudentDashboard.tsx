@@ -184,7 +184,28 @@ function findVisibleXpBar(): DOMRect | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
+export default function StudentDashboard({
+  userId,
+  user,
+  firstQuiz,
+  tests,
+  examPapers,
+  setTests,
+  setExamPapers,
+}: {
+  userId: string;
+  user: User;
+  firstQuiz?: boolean;
+  // Owned by page.tsx so the SWR/localStorage prime + polling lives in
+  // one place. StudentDashboard reads + dispatches via setters.
+  // Before this, both page.tsx AND StudentDashboard fetched /api/exam
+  // and /api/tests on mount + polled every 30 s, doubling the load
+  // for every student visit.
+  tests: SpellingTestSummary[];
+  examPapers: ExamPaperSummary[];
+  setTests: React.Dispatch<React.SetStateAction<SpellingTestSummary[]>>;
+  setExamPapers: React.Dispatch<React.SetStateAction<ExamPaperSummary[]>>;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // Rename modal — click the user's name in the side panel to open.
@@ -269,8 +290,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [avatarSrc]);
 
-  const [tests, setTests] = useState<SpellingTestSummary[]>([]);
-  const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
+  // tests + examPapers now flow in from page.tsx (owned at that
+  // level so SWR cache priming + 30 s polling lives in one place).
   // In-app scanner target — opens the DocumentScanner overlay for
   // self-serve scan-back of a paper the parent already printed. Only
   // appears on assignments whose printedAt is set.
@@ -497,26 +518,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   }, [showArena, hasArena, arenaPairs.length]);
   const [arenaData, setArenaData] = useState<{ leaderboard: Array<{ id: string; name: string; points: number; pct: number }>; playerRank: number | null; playerEntry: { id: string; name: string; points: number; pct: number } | null } | null>(null);
 
-  const fetchData = useRef<() => void>(undefined);
-  fetchData.current = () => {
-    fetch(`/api/tests?userId=${userId}`).then(r => r.json()).then(d => setTests(d.tests ?? [])).catch(() => {});
-    fetch(`/api/exam?userId=${userId}`).then(r => r.json()).then(d => setExamPapers(d.papers ?? [])).catch(() => {});
-  };
-
-  useEffect(() => {
-    fetchData.current?.();
-    function onVisible() { if (document.visibilityState === "visible") fetchData.current?.(); }
-    // Refetch on browser back/forward (SPA navigation keeps the component mounted
-    // so the userId dep doesn't re-trigger, and visibilitychange doesn't fire for
-    // in-tab navigation).
-    function onPopState() { fetchData.current?.(); }
-    function onFocus() { fetchData.current?.(); }
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("popstate", onPopState);
-    window.addEventListener("focus", onFocus);
-    const poll = setInterval(() => fetchData.current?.(), 30000);
-    return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("popstate", onPopState); window.removeEventListener("focus", onFocus); clearInterval(poll); };
-  }, [userId]);
+  // Mount fetch + visibility/focus/popstate listeners + 30 s poll used
+  // to live here AND on page.tsx — two parallel /api/exam + /api/tests
+  // round-trips and two pollers per student visit. page.tsx now owns
+  // all of them (with SWR-prime from localStorage), so we just read
+  // the data + dispatch through the setter props.
 
   // (firstQuiz popup removed — accountInfo popup now covers both
   // the welcome-with-first-quiz message and the parent-vs-student

@@ -552,7 +552,15 @@ export default function HomePage({
 
   if (!isAdmin && user) {
     return <>
-      <StudentDashboard userId={userId} user={user} firstQuiz={searchParams.get("firstQuiz") === "1"} />
+      <StudentDashboard
+        userId={userId}
+        user={user}
+        firstQuiz={searchParams.get("firstQuiz") === "1"}
+        tests={tests}
+        examPapers={examPapers}
+        setTests={setTests}
+        setExamPapers={setExamPapers}
+      />
       {adminNotifPopup}
     </>;
   }

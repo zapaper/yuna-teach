@@ -20,13 +20,18 @@ export async function GET(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any = undefined;
   let linkedStudentIds: string[] | null = null; // null = no filter (admin), [] = no students
+  // Determine role + admin flag in a single round-trip. Used to be two
+  // separate findUnique calls (role here, name/settings later in the
+  // Chinese-gating block) — same row, redundant query.
+  let role: string | undefined;
+  let actorIsAdmin = false;
   if (userId) {
-    // Determine role from DB
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true },
+      select: { role: true, name: true, settings: true },
     });
-    const role = user?.role;
+    role = user?.role;
+    actorIsAdmin = isAdmin(user);
 
     if (role === "STUDENT") {
       // Exclude paperType="eval" clones (created by the regression
@@ -53,12 +58,9 @@ export async function GET(request: NextRequest) {
         .map((l) => l.student.level)
         .filter((v): v is number => v != null);
 
-      // Check if this parent is admin
-      const parentUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true, settings: true },
-      });
-      const isAdminUser = isAdmin(parentUser);
+      // actorIsAdmin already resolved at the top of GET — re-use it
+      // rather than a second findUnique on the same parent row.
+      const isAdminUser = actorIsAdmin;
 
       if (studentLevels.length > 0) {
         // Match levels with various formats: "Primary 5", "Pr 5", "P5", etc.
@@ -135,13 +137,8 @@ export async function GET(request: NextRequest) {
 
   // Chinese pathway gating: while the Chinese fork is being built, only
   // admin users see Chinese papers in any list view. Apply on top of
-  // the role-based `where` rather than replacing it.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let actorIsAdmin = false;
-  if (userId) {
-    const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
-    actorIsAdmin = isAdmin(actor);
-  }
+  // the role-based `where` rather than replacing it. (actorIsAdmin
+  // was resolved up-front alongside `role` — see top of GET.)
   if (!actorIsAdmin) {
     // Chinese pathway: hide the MASTER Chinese papers from non-admins
     // (those are the library entries non-admins shouldn't browse / clone
@@ -188,6 +185,14 @@ export async function GET(request: NextRequest) {
   //   parent /api/exam: ~1 s → ~200 ms
   const paperIds = papers.map((p) => p.id);
 
+  // Student-only short-circuit. Students see their OWN assigned clones,
+  // not masters — so all of the master-side aggregates below
+  // (clones bucket, flagged groupBy, tagged/extracted probe) compute
+  // values the student card never reads. Skipping them on student
+  // requests drops /api/exam from ~6 queries to 3 + halves the polling
+  // load (the student dashboard polls this every 30 s).
+  const isStudent = role === "STUDENT";
+
   // Per-master aggregates derived from the clones table. Empty buckets
   // are fine — `.get() ?? 0/{}` covers the masters that have no clones.
   type CloneSummary = {
@@ -198,7 +203,7 @@ export async function GET(request: NextRequest) {
   };
   const clonesByMaster = new Map<string, CloneSummary[]>();
   const flaggedByMaster = new Map<string, number>();
-  if (paperIds.length > 0) {
+  if (!isStudent && paperIds.length > 0) {
     const cloneRows = await prisma.examPaper.findMany({
       where: {
         sourceExamId: { in: paperIds },
@@ -241,7 +246,7 @@ export async function GET(request: NextRequest) {
   // cleanExtracted). Old code pulled one row per paper.
   const hasTaggedPaperIds = new Set<string>();
   const hasExtractedPaperIds = new Set<string>();
-  if (paperIds.length > 0) {
+  if (!isStudent && paperIds.length > 0) {
     const probe = await prisma.examQuestion.groupBy({
       by: ["examPaperId"],
       where: {
