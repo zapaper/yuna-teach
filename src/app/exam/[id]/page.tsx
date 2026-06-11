@@ -79,6 +79,13 @@ function ExamPracticeContent({ id }: { id: string }) {
   >("idle");
   const [showAutoSaved, setShowAutoSaved] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
+  // Back-navigation confirmation. Fires whenever the browser issues a
+  // popstate (back button, iOS edge swipe, 2-finger swipe, Magic
+  // Keyboard cmd-[, Capacitor hardware back) so the student doesn't
+  // get silently booted to home mid-write. Skipped if already
+  // submitted — at that point there's nothing to lose.
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [savingForBack, setSavingForBack] = useState(false);
 
   // ── Timer ──
   const [displaySeconds, setDisplaySeconds] = useState(0);
@@ -190,39 +197,19 @@ function ExamPracticeContent({ id }: { id: string }) {
 
     function onPopState() {
       if (backSaving.current) return;
+      // Already submitted — nothing to lose, just leave.
       if (submitStatusRef.current === "submitted" || !sessionStart.current) {
         router.replace(backPath);
         return;
       }
-      backSaving.current = true;
-
-      // Save ink + time in the background, then navigate
-      (async () => {
-        try {
-          const form = new FormData();
-          form.append("action", "save");
-          for (let i = 0; i < pageHandles.current.length; i++) {
-            const handle = pageHandles.current[i];
-            if (handle) {
-              const [composite, ink] = await Promise.all([
-                handle.exportComposite(),
-                handle.exportInk(),
-              ]);
-              form.append(`page_${i}`, composite, `page_${i}.jpg`);
-              form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
-            }
-          }
-          await Promise.all([
-            fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
-            saveTimeToServer(),
-          ]);
-        } catch (err) {
-          console.warn("[back-button] Save failed:", err);
-        } finally {
-          backSaving.current = false;
-          router.replace(backPath);
-        }
-      })();
+      // Re-push the duplicate history entry so the URL stays at the
+      // exam page while the confirmation modal is open. If we don't,
+      // the address bar shows the previous URL and a second back press
+      // would skip our handler entirely.
+      window.history.pushState(null, "", window.location.href);
+      // Surface the confirmation modal. The student decides whether
+      // to save+leave or stay. NO silent navigation.
+      setShowBackConfirm(true);
     }
 
     window.addEventListener("popstate", onPopState);
@@ -867,6 +854,77 @@ function ExamPracticeContent({ id }: { id: string }) {
           e.target.value = "";
         }}
       />
+
+      {/* ── Back-to-home confirmation ──
+          Surfaces when popstate fires (back gesture, edge swipe,
+          hardware back, cmd-[). Replaces the previous silent
+          save-and-leave behaviour so students don't get booted
+          mid-write. Cancel keeps them on the page; confirm runs
+          the same save-then-route flow as before. */}
+      {showBackConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl px-8 py-7 mx-4 max-w-sm w-full flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-amber-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                className="text-amber-600">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-slate-800">Leave the exam?</h2>
+              <p className="text-sm text-slate-500 mt-1">Your writing will be saved automatically before you leave. You can come back later to continue.</p>
+            </div>
+            <div className="flex flex-col gap-2 w-full mt-1">
+              <button
+                disabled={savingForBack}
+                onClick={async () => {
+                  if (savingForBack) return;
+                  setSavingForBack(true);
+                  backSaving.current = true;
+                  try {
+                    const form = new FormData();
+                    form.append("action", "save");
+                    for (let i = 0; i < pageHandles.current.length; i++) {
+                      const handle = pageHandles.current[i];
+                      if (handle) {
+                        const [composite, ink] = await Promise.all([
+                          handle.exportComposite(),
+                          handle.exportInk(),
+                        ]);
+                        form.append(`page_${i}`, composite, `page_${i}.jpg`);
+                        form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+                      }
+                    }
+                    await Promise.all([
+                      fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
+                      saveTimeToServer(),
+                    ]);
+                  } catch (err) {
+                    console.warn("[back-confirm] Save failed:", err);
+                  } finally {
+                    backSaving.current = false;
+                    setShowBackConfirm(false);
+                    router.replace(backPath);
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors disabled:opacity-50"
+              >
+                {savingForBack ? "Saving…" : "Save & go to home"}
+              </button>
+              <button
+                disabled={savingForBack}
+                onClick={() => setShowBackConfirm(false)}
+                className="w-full py-2.5 rounded-xl border-2 border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Stay on the exam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Submitted modal ── */}
       {showSubmittedModal && (
