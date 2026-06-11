@@ -1961,82 +1961,64 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
-  // Drawable Science electrical-circuit questions need pro-tier
-  // vision: flash can't reliably distinguish series vs parallel
-  // topology on hand-drawn circuits, and getting that wrong on a
-  // single-question re-mark is exactly the case the parent flagged
-  // (Q35: student drew series, flash read parallel, marker awarded
-  // partial credit against the wrong topology). Also runs gpt-5.4
-  // in parallel as a second opinion — see below.
+  // Drawable Science electrical-circuit questions: gpt-5.4 has been
+  // consistently more accurate (and faster) than gemini-3.1-pro on
+  // these — both on topology (series vs parallel) and on the fiddly
+  // details (terminal connections, '+' labels). Route directly to
+  // gpt-5.4 and skip Gemini entirely. Falls back to Gemini if the
+  // OpenAI key isn't set so the path is never broken in test/dev.
   const subjLcRemark = (paper.subject ?? "").toLowerCase();
   const isScienceRemark = subjLcRemark.includes("science");
   const isDrawableRemark = !!question.answer && /\bsee\s+answer\s+(image|diagram|drawing)\b/i.test(question.answer);
   const circuitKeywordReRemark = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
   const stemTopicAns = `${question.transcribedStem ?? ""} ${question.syllabusTopic ?? ""} ${question.answer ?? ""}`;
-  const isElectricalCircuitRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns);
+  const useGpt54PrimaryRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns) && isOpenAIFallbackEnabled();
   const remarkModel = isEditing ? "gemini-2.5-pro"
     : isCloze ? "gemini-3.1-flash-lite-preview"
-    : isElectricalCircuitRemark ? "gemini-3.1-pro-preview"
     : "gemini-2.5-flash";
   if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-2.5-pro)`);
-  if (isElectricalCircuitRemark) console.log(`[marking] Q${question.questionNum} is Science drawable electrical circuit — using gemini-3.1-pro-preview + gpt-5.4 cross-check`);
-  console.log(`[marking] Calling Gemini (${remarkModel}) for remark of question ${questionId} (syllabusTopic="${question.syllabusTopic ?? "none"}")`);
-  // For science circuit questions, run gpt-5.4 in parallel as a
-  // cross-check. Both models see the same image + prompt and return
-  // marking JSON. If they agree on marksAwarded we use the Gemini
-  // result; if they disagree we use the LOWER score (conservative —
-  // a circuit either has the right topology or it doesn't, and a
-  // model that mis-reads the topology will award more marks than
-  // deserved).
-  const geminiPromise = withTimeout(
-    getAI().models.generateContent({
-      model: remarkModel,
-      contents: [{ role: "user", parts }],
-      config: { responseMimeType: "application/json", temperature: 0.1 },
-    }),
-    GEMINI_TIMEOUT_MS,
-    `remark question ${questionId}`
-  );
-  const openaiCrossCheckPromise = (isElectricalCircuitRemark && isOpenAIFallbackEnabled())
-    ? runOpenAIFallback(
-        { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts }], config: { responseMimeType: "application/json", temperature: 0.1 } },
-        `remark-q${question.questionNum}-circuit-xcheck`,
-      ).then(r => ({ ok: true as const, text: r.text ?? "" })).catch(err => ({ ok: false as const, err }))
-    : Promise.resolve({ ok: false as const, err: null });
-  const [response, openaiResult] = await Promise.all([geminiPromise, openaiCrossCheckPromise]);
 
-  const text = response.text;
-  if (!text) throw new Error("Empty Gemini response");
+  let text: string;
+  if (useGpt54PrimaryRemark) {
+    console.log(`[marking] Q${question.questionNum} is Science drawable electrical circuit — routing to gpt-5.4 as primary (skipping Gemini)`);
+    try {
+      const r = await runOpenAIFallback(
+        { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts }], config: { responseMimeType: "application/json", temperature: 0.1 } },
+        `remark-q${question.questionNum}-circuit-gpt54`,
+      );
+      text = r.text ?? "";
+      if (!text) throw new Error("Empty gpt-5.4 response");
+    } catch (err) {
+      console.warn(`[marking] Q${question.questionNum} gpt-5.4 call failed — falling back to Gemini:`, err instanceof Error ? err.message : err);
+      const response = await withTimeout(
+        getAI().models.generateContent({
+          model: "gemini-3.1-pro-preview",
+          contents: [{ role: "user", parts }],
+          config: { responseMimeType: "application/json", temperature: 0.1 },
+        }),
+        GEMINI_TIMEOUT_MS,
+        `remark question ${questionId} (Gemini fallback)`
+      );
+      text = response.text ?? "";
+      if (!text) throw new Error("Empty Gemini response");
+    }
+  } else {
+    console.log(`[marking] Calling Gemini (${remarkModel}) for remark of question ${questionId} (syllabusTopic="${question.syllabusTopic ?? "none"}")`);
+    const response = await withTimeout(
+      getAI().models.generateContent({
+        model: remarkModel,
+        contents: [{ role: "user", parts }],
+        config: { responseMimeType: "application/json", temperature: 0.1 },
+      }),
+      GEMINI_TIMEOUT_MS,
+      `remark question ${questionId}`
+    );
+    text = response.text ?? "";
+    if (!text) throw new Error("Empty Gemini response");
+  }
   const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
   const result = parsed.questions.find((q) => q.questionId === questionId) ?? parsed.questions[0];
   if (!result) throw new Error("No result for question");
-
-  // Circuit cross-check: parse the OpenAI result and compare scores.
-  if (isElectricalCircuitRemark && openaiResult.ok && openaiResult.text) {
-    try {
-      const oaiParsed = extractJson(openaiResult.text) as { questions: QuestionMarkResult[] };
-      const oaiResult = oaiParsed.questions.find(q => q.questionId === questionId) ?? oaiParsed.questions[0];
-      if (oaiResult) {
-        const gemAwarded = result.marksAwarded ?? 0;
-        const oaiAwarded = oaiResult.marksAwarded ?? 0;
-        if (gemAwarded !== oaiAwarded) {
-          const lower = Math.min(gemAwarded, oaiAwarded);
-          console.log(`[marking] Q${question.questionNum} circuit cross-check: DISAGREEMENT — Gemini awarded ${gemAwarded}, gpt-5.4 awarded ${oaiAwarded}. Using LOWER (${lower}) — circuit topology is binary, the higher-scoring model likely mis-read the diagram.`);
-          // Append a cross-check note to the marker's reasoning so the
-          // review page surfaces why the score dropped.
-          const xnote = `\n\n[CIRCUIT CROSS-CHECK: Gemini read this as ${gemAwarded}/${result.marksAvailable ?? "?"} marks; gpt-5.4 read it as ${oaiAwarded}/${oaiResult.marksAvailable ?? "?"} marks. Conservative lower score applied because circuit topology is binary — series vs parallel is not partial credit.]`;
-          result.marksAwarded = lower;
-          result.notes = (result.notes ?? "") + xnote;
-        } else {
-          console.log(`[marking] Q${question.questionNum} circuit cross-check: AGREEMENT (both ${gemAwarded}/${result.marksAvailable ?? "?"})`);
-        }
-      }
-    } catch (err) {
-      console.warn(`[marking] Q${question.questionNum} circuit cross-check parse failed (non-fatal):`, err instanceof Error ? err.message : err);
-    }
-  } else if (isElectricalCircuitRemark && !openaiResult.ok && openaiResult.err) {
-    console.warn(`[marking] Q${question.questionNum} circuit cross-check call failed (non-fatal):`, openaiResult.err instanceof Error ? openaiResult.err.message : openaiResult.err);
-  }
 
   await prisma.examQuestion.update({
     where: { id: questionId },
@@ -2429,10 +2411,10 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       // used by Comp Cloze / Grammar Cloze / Editing right now.
       extraContext?: string,
       // Route the same prompt + image to OpenAI gpt-5.4 instead of
-      // Gemini. Used by the science electrical-circuit cross-check
-      // (caller invokes markBatch twice — once on Gemini, once with
-      // useOpenAI=true — then compares the two verdicts and picks
-      // the lower). No-op (returns []) if OpenAI key isn't set.
+      // Gemini. Used by the science electrical-circuit path as sole
+      // primary (gpt-5.4 has been more accurate than gemini-3.1-pro
+      // on hand-drawn circuit topology). Returns [] if the call
+      // fails so the caller can fall back to Gemini.
       useOpenAI?: boolean
     ): Promise<QuestionMarkResult[]> {
       const questionLines = questions
@@ -2781,46 +2763,41 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                     extraContext = `${heading}\n\n${passage}`;
                   }
                 }
-                // ── Science electrical-circuit cross-check (scan-back path) ──
-                // Mirrors the markQuizPaper / remarkSingleQuestion
-                // cross-check: for drawable science electrical-circuit
-                // questions, also run gpt-5.4 on the same crop and
-                // pick the lower of the two awarded marks. Circuit
-                // topology is binary — if Gemini and gpt-5.4 differ
-                // on the score, the higher-scoring model is almost
-                // always the one that mis-read the diagram (typically
-                // by calling a series circuit "parallel").
+                // ── Science electrical-circuit: gpt-5.4 primary ──
+                // gpt-5.4 has been consistently more accurate (and
+                // faster) than gemini-3.1-pro-preview on these
+                // drawings — both on topology (series vs parallel)
+                // and on the fiddly details (terminal connections,
+                // '+' label placement) that pro Gemini tends to
+                // accept loosely. So for science drawable electrical
+                // circuits we route directly to gpt-5.4 and skip the
+                // Gemini call entirely. Falls back to Gemini if the
+                // OpenAI key isn't set so the path is never broken
+                // in test/dev.
                 const isSciExam = (paper.subject ?? "").toLowerCase().includes("science");
                 const isDrawableExamQ = !!q.answer && /\bsee\s+answer\s+(image|diagram|drawing)\b/i.test(q.answer);
                 const circuitKeywordReExam = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
                 const stemTopicAnsExam = `${q.transcribedStem ?? ""} ${q.syllabusTopic ?? ""} ${q.answer ?? ""}`;
-                const isElectricalCircuitExam = isSciExam && isDrawableExamQ && circuitKeywordReExam.test(stemTopicAnsExam);
-                if (isElectricalCircuitExam) {
-                  console.log(`[marking] Q${q.questionNum} is Science drawable electrical circuit — using gemini-3.1-pro-preview + gpt-5.4 cross-check`);
+                const useGpt54PrimaryExam = isSciExam
+                  && isDrawableExamQ
+                  && circuitKeywordReExam.test(stemTopicAnsExam)
+                  && isOpenAIFallbackEnabled();
+                if (useGpt54PrimaryExam) {
+                  console.log(`[marking] Q${q.questionNum} is Science drawable electrical circuit — routing to gpt-5.4 as primary (skipping Gemini)`);
                 }
-                const [initial, openaiCross] = await Promise.all([
-                  markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, modelOverride, extraContext),
-                  isElectricalCircuitExam && isOpenAIFallbackEnabled()
-                    ? markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped xcheck)`, true, modelOverride, extraContext, true).catch((err) => {
-                        console.warn(`[marking] Q${q.questionNum} circuit cross-check call failed (non-fatal):`, err instanceof Error ? err.message : err);
-                        return [] as QuestionMarkResult[];
-                      })
-                    : Promise.resolve([] as QuestionMarkResult[]),
-                ]);
-                if (isElectricalCircuitExam && initial.length > 0 && openaiCross.length > 0) {
-                  const gem = initial[0];
-                  const oai = openaiCross[0];
-                  const gemAwarded = gem.marksAwarded ?? 0;
-                  const oaiAwarded = oai.marksAwarded ?? 0;
-                  if (gemAwarded !== oaiAwarded) {
-                    const lower = Math.min(gemAwarded, oaiAwarded);
-                    console.log(`[marking] Q${q.questionNum} circuit cross-check: DISAGREEMENT — Gemini ${gemAwarded}, gpt-5.4 ${oaiAwarded}. Using LOWER (${lower}) — circuit topology is binary; the higher-scoring model likely mis-read the diagram.`);
-                    const xnote = `\n\n[CIRCUIT CROSS-CHECK: Gemini read this as ${gemAwarded}/${gem.marksAvailable ?? "?"} marks; gpt-5.4 read it as ${oaiAwarded}/${oai.marksAvailable ?? "?"} marks. Conservative lower score applied because circuit topology is binary — series vs parallel is not partial credit.]`;
-                    gem.marksAwarded = lower;
-                    gem.notes = (gem.notes ?? "") + xnote;
-                  } else {
-                    console.log(`[marking] Q${q.questionNum} circuit cross-check: AGREEMENT (both ${gemAwarded}/${gem.marksAvailable ?? "?"})`);
-                  }
+                const initial = await markBatch(
+                  croppedBase64, [q],
+                  `page ${pageIndex} Q${q.questionNum} (cropped${useGpt54PrimaryExam ? " gpt-5.4" : ""})`,
+                  true, modelOverride, extraContext,
+                  useGpt54PrimaryExam, // useOpenAI
+                );
+                // Safety net: if gpt-5.4 returned nothing for any
+                // reason (transient 5xx, quota), fall back to Gemini
+                // so the question still gets a verdict.
+                if (useGpt54PrimaryExam && initial.length === 0) {
+                  console.warn(`[marking] Q${q.questionNum} gpt-5.4 returned empty — falling back to Gemini`);
+                  const fallback = await markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped Gemini fallback)`, true, modelOverride, extraContext);
+                  if (fallback.length > 0) initial.push(...fallback);
                 }
 
                 // No-detection fallback (Comp Cloze / Editing /
