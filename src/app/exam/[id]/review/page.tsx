@@ -4203,7 +4203,16 @@ function ExamReviewContent({ id }: { id: string }) {
                               x-bounds are null (full-width y-strip is
                               still useful for Booklet A MCQ where the
                               detector reads the rightmost margin). */}
-                          {sessionIsAdmin && hasYBounds && (
+                          {sessionIsAdmin && hasYBounds && (paperType !== "quiz" || (currentQ as { printableBounds?: unknown }).printableBounds != null) && (
+                            // Hide on typed/in-app quizzes — there's no
+                            // "what the marker cropped" view for those
+                            // because markQuizPaper didn't crop a slice;
+                            // it read the student's text/canvas answer
+                            // directly. Only surface when paperType
+                            // isn't "quiz" OR the question carries
+                            // printableBounds (signals the print-and-
+                            // scan flow stamped this question for
+                            // markExamPaper).
                             <div className="mb-4">
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#ba1a1a] mb-2">
                                 Cropped slice (admin) — Q{currentQ.questionNum} · y {currentQ.yStartPct?.toFixed(1)}–{currentQ.yEndPct?.toFixed(1)}%{currentQ.xStartPct != null && currentQ.xEndPct != null ? ` · x ${currentQ.xStartPct.toFixed(1)}–${currentQ.xEndPct.toFixed(1)}%` : " · x full"}

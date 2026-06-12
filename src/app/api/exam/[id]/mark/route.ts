@@ -1,24 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { promises as fs } from "fs";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { markExamPaper, remarkSingleQuestion, markFocusedTest, markQuizPaper } from "@/lib/marking";
-
-// Mirror of SUBMISSIONS_DIR in lib/marking.ts + lib/scan-submit.ts.
-// Used to detect whether a paperType="quiz" paper has been printed
-// and scanned back (submission JPEGs on disk) vs answered in-app
-// (no files).
-const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
-const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
-async function hasSubmissionFiles(paperId: string): Promise<boolean> {
-  try {
-    const entries = await fs.readdir(path.join(SUBMISSIONS_DIR, paperId));
-    return entries.some(e => /^page_\d+\.jpe?g$/i.test(e));
-  } catch {
-    return false; // dir missing or unreadable → no scan
-  }
-}
 
 // Compute per-booklet/paper scores from metadata.papers + questions
 function computeBookletScores(
@@ -301,36 +284,46 @@ export async function POST(
     data: { markingStatus: "in_progress" },
   });
 
-  // Routing key. paperType + presence of submission JPEGs on disk:
+  // Routing key. paperType + count of questions that carry
+  // printableBounds:
   //
-  //   - "focused"/"mastery"  → markFocusedTest (instant-feedback)
-  //   - "quiz" + scan files  → markExamPaper  (printed and scanned back)
-  //   - "quiz" + no scan     → markQuizPaper  (typed / in-app)
-  //   - null                 → markExamPaper  (master OR print-scan clone)
+  //   - "focused"/"mastery"            → markFocusedTest (instant-feedback)
+  //   - "quiz" + printableBounds set  → markExamPaper  (printed and scanned back)
+  //   - "quiz" + no printableBounds   → markQuizPaper  (typed / in-app)
+  //   - null                           → markExamPaper  (master OR print-scan clone)
   //
-  // The scan-files-on-disk check is what distinguishes a typed quiz
-  // from a printed English / Chinese Test Quiz that the student wrote
-  // by hand and scanned back. scan-submit.ts uses a subject heuristic
-  // (English / Chinese paperType="quiz" → markExamPaper) at upload
-  // time; we use the deterministic presence-of-page_N.jpg check here
-  // so re-marks land on the same path regardless of subject. Math /
-  // Science typed quizzes never print, so no false positives.
+  // The print PDF generator stamps printableBounds on every question
+  // when an English / Chinese Test Quiz is printed; the in-app
+  // canvas / typed-input flow never sets them. So presence of
+  // printableBounds is the authoritative "this paper went through
+  // the print-and-scan workflow" signal.
   //
-  // Earlier the router checked print-and-scan signals (printableBounds
-  // count, metadata.answerPages, metadata.skipPages) BEFORE paperType
-  // — those signals were leaking inherited master metadata onto typed
-  // quizzes and routing them to markExamPaper, which then searched
-  // for submission JPEGs that don't exist ("Submission file not found
-  // for page X" 9x → 0 results → marking as failed). The disk check
-  // is the only signal that can't be polluted by inheritance.
+  // A simpler "are there submission JPEGs on disk?" check WAS tried
+  // but turned out to be false: in-app digital quizzes (P4 Daily
+  // Quiz – Science, P6 Daily Quiz – Math) save their OEQ canvas
+  // pages as the same page_N.jpg files. Those quizzes have
+  // pageCount=0, printedAt=null, printableBounds=null, but the
+  // disk check still fired and routed them to markExamPaper, which
+  // looked for "page 0 is an answer page" and gave up with zero
+  // results.
+  //
+  // metadata.answerPages / metadata.skipPages (the earlier
+  // "hasScanBackMetadata" signal) is even worse — typed English
+  // Test Quizzes inherit those arrays from their master and falsely
+  // tripped the check. printableBounds is per-clone, never
+  // inherited.
+  const printableCount = paper.paperType === "quiz"
+    ? await prisma.examQuestion.count({
+        where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
+      })
+    : 0;
   if (paper.paperType === "focused" || paper.paperType === "mastery") {
     markFocusedTest(id).catch((err) =>
       console.error(`${paper.paperType} test marking for ${id} failed:`, err)
     );
   } else if (paper.paperType === "quiz") {
-    const scanned = await hasSubmissionFiles(id);
-    if (scanned) {
-      console.log(`[mark API] paperType=quiz with submission files on disk — routing through markExamPaper (printed-and-scanned path)`);
+    if (printableCount > 0) {
+      console.log(`[mark API] paperType=quiz with printableBounds on ${printableCount} questions — routing through markExamPaper (printed-and-scanned path)`);
       markExamPaper(id).catch((err) =>
         console.error(`Printed-and-scanned quiz marking for ${id} failed:`, err)
       );
