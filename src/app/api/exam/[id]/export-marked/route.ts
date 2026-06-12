@@ -1013,26 +1013,50 @@ async function handle(
       // to right-align the marker's comment to the same x as the mark.
       const markRightX = markX + markSize * 0.5;
 
-      // Same min-gap enforcement applied in the pre-compute pass: walk
-      // marks sorted by yPctEnd ascending, push later subparts down
-      // when they'd overlap the previous one. Without this, Q40-style
-      // multi-subpart tight rows render two ticks on top of each other.
+      // PASS 1: compute markY per subpart with min-gap spread. Walk
+      // ascending yPctEnd so the spread cascade pushes later subparts
+      // DOWN past the previous one (subpart marks of the same Q
+      // otherwise overlap when the classifier returns yPctEnd values
+      // 3-5 % apart at markSize ~5 % of page height).
       const MIN_MARK_GAP_RENDER = markSize + Math.round(markSize * 0.1);
       const renderMarks = [...entry.marks].sort((a, b) => a.yPctEnd - b.yPctEnd);
-      let renderLastMarkY: number | null = null;
-      for (const m of renderMarks) {
+      const markYByMark = new Map<typeof renderMarks[number], number>();
+      {
+        let renderLastMarkY: number | null = null;
+        for (const m of renderMarks) {
+          const regionTopPx = entry.pageRegion.topPx;
+          const regionH = entry.pageRegion.heightPx;
+          const yPxRaw = regionTopPx + (m.yPctEnd / 100) * regionH;
+          let markY = pageH - yPxRaw - markSize * 0.2;
+          if (m.status !== "blank" && renderLastMarkY !== null && renderLastMarkY - markY < MIN_MARK_GAP_RENDER) {
+            markY = renderLastMarkY - MIN_MARK_GAP_RENDER;
+          }
+          if (m.status !== "blank") renderLastMarkY = markY;
+          markYByMark.set(m, markY);
+        }
+      }
+
+      // PASS 2 iteration order. For multi-subpart questions we walk
+      // the notes in REVERSE subpart order (c, b, a). Reason: when
+      // the up-slide fallback kicks in (last question of the page,
+      // no room below), each note slides PAST already-placed notes.
+      // Processing (c) first means (b) lands above (c), then (a)
+      // lands above (b) — final reading order top-to-bottom is
+      // (a),(b),(c). Forward order would invert it. For single-mark
+      // questions the order doesn't matter, so keep forward.
+      const isMultiSubpartQ = entry.marks.length > 1;
+      const orderedMarks = isMultiSubpartQ ? [...renderMarks].reverse() : renderMarks;
+      for (const m of orderedMarks) {
         const regionTopPx = entry.pageRegion.topPx;
         const regionH = entry.pageRegion.heightPx;
-        const yPxRaw = regionTopPx + (m.yPctEnd / 100) * regionH;
-        let markY = pageH - yPxRaw - markSize * 0.2;
-        if (m.status !== "blank" && renderLastMarkY !== null && renderLastMarkY - markY < MIN_MARK_GAP_RENDER) {
-          markY = renderLastMarkY - MIN_MARK_GAP_RENDER;
-        }
-        if (m.status !== "blank") renderLastMarkY = markY;
+        const markY = markYByMark.get(m)!;
         // yPx in gray-bitmap coords — recompute so the note's whitespace
         // band search anchors to the spread-adjusted mark, not the
         // classifier's raw yPctEnd.
         const yPx = pageH - markY - markSize * 0.2;
+        // regionTopPx / regionH currently unused by the rest of the
+        // loop body but kept for parity with the previous code path.
+        void regionTopPx; void regionH;
 
         const status = m.status;
         if (status === "blank") continue;
