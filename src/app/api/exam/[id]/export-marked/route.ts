@@ -1275,7 +1275,7 @@ async function handle(
           const lineSpacingPx = effNoteSize * 1.25;
           const blockH = Math.ceil(effNoteSize * 1.25 * capped.length);
           const belowYEnd = regionTopPx + regionH + Math.round(effNoteSize * 0.3);
-          // Two conditions before we take the "park it right under the
+          // Conditions before we take the "park it right under the
           // question" shortcut:
           //   1. The block fits on the page below the question.
           //   2. The strip below the question is ACTUALLY whitespace —
@@ -1284,7 +1284,16 @@ async function handle(
           //      NEXT question's stem, which is the overlap the parent
           //      keeps reporting. When (2) fails we fall through to the
           //      findWhitespaceBand search above/below.
+          //   3. Not a multi-subpart question. belowYEnd is computed
+          //      from the question region (same value for every subpart
+          //      of the same Q), so taking this shortcut means (a),(b),
+          //      (c)'s notes all stack at the same y and then the slide-
+          //      down loop bottoms out near the page edge with multiple
+          //      notes overlapping. Multi-subpart notes always go
+          //      through the per-mark band search instead so each
+          //      subpart anchors near its OWN tick.
           const fitsBelowYEnd =
+            !isMultiSubpart &&
             belowYEnd + blockH + 4 <= grayH &&
             isBandWhitespace(belowYEnd, blockH);
           let wsTop: number;
@@ -1346,10 +1355,35 @@ async function handle(
             const grayTopY = pageH - pdfTopY;
             const onWhitespace = isRectMostlyWhitespace(noteX, grayTopY, longestW, blockH);
             if (!rectCollides && onWhitespace) break;
-            // Don't slide past the bottom of the page — fall back to
-            // the last collision-free spot we saw.
+            // Don't slide past the bottom of the page — instead try
+            // sliding UP past everything that's already placed. For
+            // the LAST question of a page with multiple subparts,
+            // (a)'s note may take the only spot below the question
+            // and (b)/(c) have nowhere to go down — so we walk
+            // upward, skipping rects that collide, until we land in
+            // a clean spot above the question. Without this, all
+            // three subpart notes pile up at the page bottom.
             if (pdfTopY - (blockH + lineSpacingPx * 0.5) < minPdfTopY) {
-              if (firstCollisionFreeTopY !== null) pdfTopY = firstCollisionFreeTopY;
+              const maxPdfTopY = pageH - effNoteSize;
+              let upY = pdfTopY + blockH + lineSpacingPx * 0.5;
+              let placedAbove = false;
+              for (let upGuard = 0; upGuard < 16 && upY <= maxPdfTopY; upGuard++) {
+                const upRect = { x: noteX, y: upY - blockH, w: longestW, h: blockH };
+                const upOverlaps = (r: { x: number; y: number; w: number; h: number }) =>
+                  upRect.x < r.x + r.w &&
+                  upRect.x + upRect.w > r.x &&
+                  upRect.y < r.y + r.h &&
+                  upRect.y + upRect.h > r.y;
+                const upCollides = placedNoteRects.some(upOverlaps) || paddedMarks.some(upOverlaps);
+                const upWhite = isRectMostlyWhitespace(noteX, pageH - upY, longestW, blockH);
+                if (!upCollides && upWhite) {
+                  pdfTopY = upY;
+                  placedAbove = true;
+                  break;
+                }
+                upY += blockH + lineSpacingPx * 0.5;
+              }
+              if (!placedAbove && firstCollisionFreeTopY !== null) pdfTopY = firstCollisionFreeTopY;
               break;
             }
             pdfTopY -= blockH + lineSpacingPx * 0.5;
