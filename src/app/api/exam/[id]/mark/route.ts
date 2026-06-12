@@ -284,48 +284,24 @@ export async function POST(
     data: { markingStatus: "in_progress" },
   });
 
-  // Routing key: was this a PRINTED-AND-SCANNED submission, or an in-app
-  // typed/canvas one? The bounds-based scan-back marker (markExamPaper)
-  // is ONLY for the printed-and-scanned flow. printableBounds gets
-  // populated on every question when the printable PDF is generated,
-  // so its presence is the authoritative signal — never the subject.
-  // Earlier we routed all English quizzes here, which silently killed
-  // OEQ marking for in-app typed English quizzes (the scan-back marker
-  // has no typed-OEQ branch). See Ruthie's Q61–Q75 incident.
-  const printableCount = await prisma.examQuestion.count({
-    where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
-  });
-  // Chinese papers don't use printableBounds — they signal "this was
-  // printed & scanned" via the OEQ-pad metadata the print flow writes
-  // onto the master. Mirror the same check the GET handler uses for
-  // the review-page flag.
-  const ownMetaForRoute = paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number }; skipPages?: number[]; answerPages?: number[] } | null;
-  let chineseScanBack = !!ownMetaForRoute?.normalExtractChinese?.oeqPadFirstPageIndex;
-  if (!chineseScanBack && paper.sourceExamId) {
-    const srcMeta2 = await prisma.examPaper.findUnique({
-      where: { id: paper.sourceExamId },
-      select: { metadata: true },
-    });
-    const sm = srcMeta2?.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number } } | null;
-    chineseScanBack = !!sm?.normalExtractChinese?.oeqPadFirstPageIndex;
-  }
-  // English / generic scan-back signal: the extraction recorded which
-  // pages of the original paper are NOT printed (skipPages = Paper 1 +
-  // listening / answerPages = answer key). Presence of either means
-  // the user went through the print-and-scan workflow even when no
-  // question got printableBounds populated (older extractions, or
-  // papers where the print PDF generation step set bounds on a
-  // narrower subset). Without this, English PSLE scan-backs fell
-  // through to markQuizPaper — the wrong marker.
-  const hasScanBackMetadata =
-    Array.isArray(ownMetaForRoute?.skipPages) && (ownMetaForRoute!.skipPages!.length > 0) ||
-    Array.isArray(ownMetaForRoute?.answerPages) && (ownMetaForRoute!.answerPages!.length > 0);
-  const isPrintedAndScanned = printableCount > 0 || chineseScanBack || hasScanBackMetadata;
-  if (isPrintedAndScanned) {
-    markExamPaper(id).catch((err) =>
-      console.error(`Printed-and-scanned marking for ${id} failed:`, err)
-    );
-  } else if (paper.paperType === "quiz") {
+  // Routing key. paperType is the authoritative signal — never the
+  // subject, never inherited metadata:
+  //   - "quiz"            → markQuizPaper  (typed / in-app)
+  //   - "focused"/"mastery" → markFocusedTest (instant-feedback)
+  //   - null              → markExamPaper (master paper OR printed-and-scanned clone)
+  //
+  // Previous order tried to detect "is this a print-and-scan?" first
+  // via printableBounds / Chinese OEQ-pad / inherited skipPages-or-
+  // answerPages metadata. The metadata signal was a bug: a typed
+  // English quiz cloned from a real PSLE master inherits the master's
+  // `answerPages` array, which made hasScanBackMetadata=true and
+  // routed the typed quiz into markExamPaper. That marker then
+  // searched for submission JPEGs that don't exist for typed quizzes
+  // ("Submission file not found for page X" 9x → 0 results → marking
+  // as failed). paperType="quiz" must always go to markQuizPaper
+  // regardless of what answer-page metadata the master had. Same for
+  // focused/mastery. Print-and-scan clones carry paperType=null.
+  if (paper.paperType === "quiz") {
     markQuizPaper(id).catch((err) =>
       console.error(`Quiz marking for ${id} failed:`, err)
     );
@@ -341,6 +317,9 @@ export async function POST(
       console.error(`${paper.paperType} test marking for ${id} failed:`, err)
     );
   } else {
+    // paperType === null — master paper OR printed-and-scanned clone.
+    // Either way, markExamPaper handles it (it's no-op-on-master and
+    // does the real scan-back marking on clones with submission JPEGs).
     markExamPaper(id).catch((err) =>
       console.error(`Background marking for ${id} failed:`, err)
     );
