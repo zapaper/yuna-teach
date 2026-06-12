@@ -753,16 +753,19 @@ export async function POST(
           ? "Editing (school variant) — numbered errors in a passage, underlined word sits to the RIGHT of the (N) number inline (no margin column)"
           : "Editing — numbered errors in a passage, (N) sits in the LEFT MARGIN column and the underlined word is on the same row in the body text",
         // y deltas at ±2.5% (5% total) — editing rows are single-line.
-        // "above":  x stays close (5/15), y extends upward 4%.
-        // "right":  x extends rightward 20% (tighter than default
+        // "above":  x stays close (5/16), y extends upward 4%.
+        // "right":  x extends rightward 21% (tighter than default
         //           because the word is inline-tight, not across a
         //           margin gap). y ±2% to keep the row narrow.
-        // DEFAULT:  x extends rightward 25% across the margin gap.
+        // DEFAULT:  x extends rightward 26% across the margin gap.
+        // (xRightDelta bumped +1 across all variants — admin wanted
+        // a little more room past the corrected word so longer
+        // corrections / a trailing answer box edge don't get cropped.)
         ...(qNumPosition === "above"
-          ? { xLeftDelta: 5, xRightDelta: 15, yTopDelta: 4, yBottomDelta: 0 }
+          ? { xLeftDelta: 5, xRightDelta: 16, yTopDelta: 4, yBottomDelta: 0 }
           : qNumPosition === "right"
-          ? { xLeftDelta: 0, xRightDelta: 20, yTopDelta: 2, yBottomDelta: 2 }
-          : { xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5 }),
+          ? { xLeftDelta: 0, xRightDelta: 21, yTopDelta: 2, yBottomDelta: 2 }
+          : { xLeftDelta: 0, xRightDelta: 26, yTopDelta: 2.5, yBottomDelta: 2.5 }),
         pageCount: paper.pageCount ?? undefined,
       });
       break;
