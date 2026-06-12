@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { promises as fs } from "fs";
+import path from "path";
 import { prisma } from "@/lib/db";
 import { markExamPaper, remarkSingleQuestion, markFocusedTest, markQuizPaper } from "@/lib/marking";
+
+// Mirror of SUBMISSIONS_DIR in lib/marking.ts + lib/scan-submit.ts.
+// Used to detect whether a paperType="quiz" paper has been printed
+// and scanned back (submission JPEGs on disk) vs answered in-app
+// (no files).
+const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
+const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
+async function hasSubmissionFiles(paperId: string): Promise<boolean> {
+  try {
+    const entries = await fs.readdir(path.join(SUBMISSIONS_DIR, paperId));
+    return entries.some(e => /^page_\d+\.jpe?g$/i.test(e));
+  } catch {
+    return false; // dir missing or unreadable → no scan
+  }
+}
 
 // Compute per-booklet/paper scores from metadata.papers + questions
 function computeBookletScores(
@@ -284,42 +301,49 @@ export async function POST(
     data: { markingStatus: "in_progress" },
   });
 
-  // Routing key. paperType is the authoritative signal — never the
-  // subject, never inherited metadata:
-  //   - "quiz"            → markQuizPaper  (typed / in-app)
-  //   - "focused"/"mastery" → markFocusedTest (instant-feedback)
-  //   - null              → markExamPaper (master paper OR printed-and-scanned clone)
+  // Routing key. paperType + presence of submission JPEGs on disk:
   //
-  // Previous order tried to detect "is this a print-and-scan?" first
-  // via printableBounds / Chinese OEQ-pad / inherited skipPages-or-
-  // answerPages metadata. The metadata signal was a bug: a typed
-  // English quiz cloned from a real PSLE master inherits the master's
-  // `answerPages` array, which made hasScanBackMetadata=true and
-  // routed the typed quiz into markExamPaper. That marker then
-  // searched for submission JPEGs that don't exist for typed quizzes
-  // ("Submission file not found for page X" 9x → 0 results → marking
-  // as failed). paperType="quiz" must always go to markQuizPaper
-  // regardless of what answer-page metadata the master had. Same for
-  // focused/mastery. Print-and-scan clones carry paperType=null.
-  if (paper.paperType === "quiz") {
-    markQuizPaper(id).catch((err) =>
-      console.error(`Quiz marking for ${id} failed:`, err)
-    );
-  } else if (paper.paperType === "focused" || paper.paperType === "mastery") {
-    // Mastery quizzes share the focused-test shape (cloned questions
-    // with no scanned pages, instant-feedback marking). Route them
-    // through the same marker so MCQ scores and OEQ AI marking both
-    // run. Without this branch, mastery papers fell through to
-    // markExamPaper (the master-paper / scanned-submission marker)
-    // and silently skipped marking — leading to "-%" scores and
-    // empty marking notes.
+  //   - "focused"/"mastery"  → markFocusedTest (instant-feedback)
+  //   - "quiz" + scan files  → markExamPaper  (printed and scanned back)
+  //   - "quiz" + no scan     → markQuizPaper  (typed / in-app)
+  //   - null                 → markExamPaper  (master OR print-scan clone)
+  //
+  // The scan-files-on-disk check is what distinguishes a typed quiz
+  // from a printed English / Chinese Test Quiz that the student wrote
+  // by hand and scanned back. scan-submit.ts uses a subject heuristic
+  // (English / Chinese paperType="quiz" → markExamPaper) at upload
+  // time; we use the deterministic presence-of-page_N.jpg check here
+  // so re-marks land on the same path regardless of subject. Math /
+  // Science typed quizzes never print, so no false positives.
+  //
+  // Earlier the router checked print-and-scan signals (printableBounds
+  // count, metadata.answerPages, metadata.skipPages) BEFORE paperType
+  // — those signals were leaking inherited master metadata onto typed
+  // quizzes and routing them to markExamPaper, which then searched
+  // for submission JPEGs that don't exist ("Submission file not found
+  // for page X" 9x → 0 results → marking as failed). The disk check
+  // is the only signal that can't be polluted by inheritance.
+  if (paper.paperType === "focused" || paper.paperType === "mastery") {
     markFocusedTest(id).catch((err) =>
       console.error(`${paper.paperType} test marking for ${id} failed:`, err)
     );
+  } else if (paper.paperType === "quiz") {
+    const scanned = await hasSubmissionFiles(id);
+    if (scanned) {
+      console.log(`[mark API] paperType=quiz with submission files on disk — routing through markExamPaper (printed-and-scanned path)`);
+      markExamPaper(id).catch((err) =>
+        console.error(`Printed-and-scanned quiz marking for ${id} failed:`, err)
+      );
+    } else {
+      markQuizPaper(id).catch((err) =>
+        console.error(`Quiz marking for ${id} failed:`, err)
+      );
+    }
   } else {
-    // paperType === null — master paper OR printed-and-scanned clone.
-    // Either way, markExamPaper handles it (it's no-op-on-master and
-    // does the real scan-back marking on clones with submission JPEGs).
+    // paperType === null — master paper OR a print-and-scan clone of
+    // a regular exam. markExamPaper handles both (it no-ops on the
+    // master and does the real scan-back marking on clones with
+    // submission JPEGs).
     markExamPaper(id).catch((err) =>
       console.error(`Background marking for ${id} failed:`, err)
     );
