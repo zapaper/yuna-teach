@@ -34,7 +34,7 @@ const EXCLUDED_NAMES = new Set(["admin", "student555", "student666"]);
 const EXCLUDED_FAMILIES = ["mark lim", "david lim", "emily lim"];
 const MIN_QUIZZES = 3;
 const MIN_TOPICS = 5;
-const WEAK_GAP_PP = 10;
+const WEAK_GAP_PP = 8;
 const WEAK_MIN_ATTEMPTS = 5;
 
 function classifySubject(s: string | null | undefined): string | null {
@@ -46,7 +46,20 @@ function classifySubject(s: string | null | undefined): string | null {
   return null;
 }
 
-type TopicRow = { topic: string; attempts: number; awarded: number; available: number; pct: number };
+// Each attempt = one marked question on a paper, timestamped by the
+// paper's completedAt. Used downstream for the "last 5 vs overall"
+// improvement trend on weak topics with ≥10 attempts.
+type Attempt = { ts: Date; awarded: number; available: number };
+type TopicRow = {
+  topic: string; attempts: number; awarded: number; available: number; pct: number;
+  // Optional enrichment populated for the email's chart/CTA logic:
+  attemptsLog?: Attempt[];           // chronological attempts (sorted ascending)
+  alreadyPracticed?: boolean;        // true if a paperType="focused" paper exists with this topic for this student
+  reviewLink?: string | null;        // /exam/<paperId>/review for the most recent focused practice on this topic
+  recentPct?: number | null;         // last 5 attempts' pct (null if < 10 attempts total)
+  trendImproving?: boolean;          // recentPct > overall pct + 5 AND ≥ 10 attempts
+  trendChartCid?: string;            // CID of the inline trend chart PNG, when one was generated
+};
 
 function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studentName: string): Buffer {
   // Font scale: chart text doubled vs the web app's 10-13px palette,
@@ -63,10 +76,19 @@ function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studen
   const FONT_AVG = 22;           // "avg N%" label on the dashed line
 
   const W = 1400;
-  const longest = topics.reduce((m, t) => Math.max(m, t.topic.length), 0);
+  // Truncate over-long topic labels (Science's
+  // "Interaction of forces (Frictional force, …)" is the worst
+  // offender at 78 chars — at 24px rotated -40° its diagonal
+  // footprint exceeded 700 px, dominating padB and leaving every
+  // other label with a giant white strip below it). Cap at 36
+  // chars + ellipsis — still readable, keeps the chart compact.
+  const MAX_TOPIC_LABEL = 36;
+  const displayTopic = (t: string) => t.length > MAX_TOPIC_LABEL ? `${t.slice(0, MAX_TOPIC_LABEL - 1)}…` : t;
+  const longest = topics.reduce((m, t) => Math.max(m, displayTopic(t.topic).length), 0);
   // Rotated -40° label vertical footprint ≈ char-width × sin(40°)
-  // per char. Char-width at 24px ≈ 14px. Plus a bottom buffer.
-  const labelHeight = Math.ceil(longest * 14 * 0.64) + 36;
+  // per char. Char-width at 24px sans-serif ≈ 12 px (was 14 —
+  // wider than reality, which pushed padB further than needed).
+  const labelHeight = Math.ceil(longest * 12 * 0.64) + 24;
   const padL = 80, padR = 30;
   // Header strip (title + subtitle). Need at least:
   //   topMargin (10) + title (44) + gap (10) + subtitle (22) + descender (4)
@@ -163,7 +185,7 @@ function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studen
     ctx.fillStyle = "#43474F";
     ctx.font = `600 ${FONT_XLABEL}px sans-serif`;
     ctx.textAlign = "right";
-    ctx.fillText(t.topic, 0, 0);
+    ctx.fillText(displayTopic(t.topic), 0, 0);
     ctx.restore();
   }
 
@@ -174,6 +196,107 @@ function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studen
   ctx.font = `bold ${FONT_AVG}px sans-serif`;
   ctx.textAlign = "right";
   ctx.fillText(`avg ${avg.toFixed(1)}%`, padL + plotW - 8, y(avg) - 12);
+
+  return canvas.toBuffer("image/png");
+}
+
+// Per-topic trend chart — visual port of SelectedTopicPanel on the
+// Full Report page (src/app/progress/[studentId]/page.tsx:871).
+// Each per-paper dot is a faint purple circle; when ≥6 papers worth
+// of data, we overlay a 3-paper rolling-average line + darker dots
+// (the "main signal"). Subject-average line in dashed red.
+function drawTopicTrendChart(
+  perPaperPoints: Array<{ ts: Date; awarded: number; available: number; pct: number }>,
+  topicLabel: string,
+  topicAvg: number,
+): Buffer {
+  // Drop papers that didn't contribute to this topic (defensive — the
+  // caller already filters).
+  const series = perPaperPoints.filter(p => p.available > 0);
+  if (series.length === 0) return Buffer.alloc(0);
+
+  // 3-paper rolling bucket when ≥6 papers; per-paper otherwise.
+  const BUCKET = 3;
+  const bucketed = series.length >= 2 * BUCKET;
+  const buckets: Array<{ from: number; to: number; pct: number }> = [];
+  if (bucketed) {
+    for (let i = 0; i < series.length; i += BUCKET) {
+      const window = series.slice(i, i + BUCKET);
+      const e = window.reduce((s, p) => s + p.awarded, 0);
+      const a = window.reduce((s, p) => s + p.available, 0);
+      if (a <= 0) continue;
+      buckets.push({ from: i, to: Math.min(i + BUCKET - 1, series.length - 1), pct: (e / a) * 100 });
+    }
+  } else {
+    series.forEach((p, i) => buckets.push({ from: i, to: i, pct: p.pct }));
+  }
+
+  const W = 800, H = 280;
+  const padL = 56, padR = 16, padT = 50, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+
+  // Background + soft border (matches the chart card style).
+  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#DDD6FE"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  // Title.
+  ctx.fillStyle = "#5B21B6"; ctx.font = "bold 16px sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillText(`${topicLabel} — trend`, padL, 22);
+  ctx.font = "14px sans-serif"; ctx.fillStyle = "#43474F";
+  const latest = series[series.length - 1];
+  const latestLabel = bucketed
+    ? `last ${Math.min(BUCKET, series.length)} papers avg ${buckets[buckets.length - 1].pct.toFixed(0)}%`
+    : `latest paper ${latest.pct.toFixed(0)}%`;
+  ctx.fillText(`${series.length} papers · topic avg ${topicAvg.toFixed(1)}% · ${latestLabel}`, padL, 40);
+
+  // y-axis: same shape as SelectedTopicPanel (yMin = min(50, ⌊min/10⌋*10)).
+  const allPcts = [...buckets.map(b => b.pct), ...series.map(s => s.pct), topicAvg];
+  const yMin = Math.min(50, Math.floor(Math.min(...allPcts) / 10) * 10);
+  const y = (pct: number) =>
+    padT + plotH - ((Math.max(yMin, Math.min(100, pct)) - yMin) / (100 - yMin)) * plotH;
+
+  // Gridlines + labels at yMin, midpoint, 100. No topic-average
+  // dashed line here — the parent flagged it as visual clutter on
+  // the per-topic scatter (the top-of-email chart already carries
+  // the same line at the subject level).
+  ctx.strokeStyle = "#E5E7EB"; ctx.lineWidth = 1; ctx.font = "12px sans-serif"; ctx.fillStyle = "#43474F"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (const pct of [yMin, Math.round((yMin + 100) / 2), 100]) {
+    const py = y(pct);
+    ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(padL + plotW, py); ctx.stroke();
+    ctx.fillText(`${pct}%`, padL - 8, py);
+  }
+  ctx.textBaseline = "alphabetic";
+
+  // X-positions.
+  const seriesLast = Math.max(1, series.length - 1);
+  const xForSeriesIdx = (idx: number) =>
+    series.length === 1 ? padL + plotW / 2 : padL + (idx / seriesLast) * plotW;
+  const xForBucket = (b: { from: number; to: number }) => xForSeriesIdx((b.from + b.to) / 2);
+
+  // Faint per-paper dots (the source data).
+  ctx.fillStyle = "#C4B5FD";
+  for (let i = 0; i < series.length; i++) {
+    const p = series[i];
+    ctx.beginPath(); ctx.arc(xForSeriesIdx(i), y(p.pct), 5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Darker rolling-average dots + connecting line.
+  if (buckets.length > 1) {
+    ctx.strokeStyle = "#7C3AED"; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    buckets.forEach((b, i) => {
+      const bx = xForBucket(b), by = y(b.pct);
+      if (i === 0) ctx.moveTo(bx, by); else ctx.lineTo(bx, by);
+    });
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#7C3AED"; ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2.5;
+  for (const b of buckets) {
+    ctx.beginPath(); ctx.arc(xForBucket(b), y(b.pct), 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
 
   return canvas.toBuffer("image/png");
 }
@@ -213,6 +336,7 @@ function buildEmailHtml(args: {
   quizzes: number;
   avg: number;
   weak: TopicRow[];
+  strong: TopicRow[];
   chartCid: string;
 }): { html: string; text: string; subject: string } {
   // "Full Report" link → /progress/<studentId>?userId=<parentId>.
@@ -226,10 +350,41 @@ function buildEmailHtml(args: {
   const progressLink = `${BASE_URL}/progress/${args.studentId}?userId=${args.parentId}`;
   const focusedLink = (topic: string) =>
     `${BASE_URL}/home/${args.parentId}?focused=1&studentId=${args.studentId}&subject=${encodeURIComponent(args.subject.toLowerCase())}&topic=${encodeURIComponent(topic)}`;
-  const overallVerdict = args.avg >= 85 ? "really impressive" : args.avg >= 70 ? "very solid" : args.avg >= 55 ? "coming along" : "an area we can lean into together";
+  // Warmer verdicts. Earlier "coming along" / "lean into together"
+  // language read as a polite way of saying "below" — replaced with
+  // explicitly encouraging phrasing that opens the door rather than
+  // labelling the result.
+  const overallVerdict = args.avg >= 85
+    ? "really impressive"
+    : args.avg >= 70
+    ? "very solid"
+    : args.avg >= 55
+    ? "a strong foundation to build on"
+    : "ready for some focused work — we'll get there together";
   const quizNoun = SUBJECT_QUIZ_NOUN[args.subject] ?? "practice";
   const childFirst = firstName(args.studentName);
 
+  // Top "strong" topics first — celebrate before we talk about
+  // areas to improve. Wins set the tone for the rest of the email.
+  const strongBlock = args.strong.length === 0
+    ? ""
+    : `<h3 style="margin:22px 0 6px 0;font-size:16px;color:#047857;">${args.strong.length === 1 ? "Something to celebrate" : "Some things to celebrate"}</h3>
+       <p style="margin:0 0 12px 0;color:#43474f;font-size:14px;line-height:1.55;">
+         ${childFirst} is doing especially well on ${args.strong.map((s, i, arr) => `<strong style="color:#047857;">${s.topic}</strong> (${s.pct.toFixed(0)}%${arr.length > 1 && i === arr.length - 2 ? ")" : i < arr.length - 1 ? "), " : ")"}`).join("")}${args.strong.length > 1 ? " — " : " — "}well above the ${args.subjectLabel.toLowerCase()} average. Worth a little high-five.
+       </p>`;
+
+  // Weak-topic block. Per-row CTA branches on whether the student
+  // has ALREADY done a Focused Practice on that topic before:
+  //   - First time → "Create focused practice on X" (links to the
+  //     parent dashboard with the modal pre-filled).
+  //   - Already practiced → "Review past mistakes on X" (links to
+  //     the most recent focused-practice review page). Reviewing
+  //     mistakes BEFORE assigning another round usually beats
+  //     doing the same kind of practice on autopilot.
+  // Improvement trend: if there are ≥ 10 attempts and the last 5
+  // outperform the overall topic pct by ≥ 5 pp, we flag it with a
+  // small "improving" badge in the topic row so the parent sees
+  // movement before being asked to act.
   const weakBlock = args.weak.length === 0
     ? `<p style="margin:16px 0 0 0;color:#43474f;font-size:14px;line-height:1.5;">
         Nothing screams out as a weak spot this round — everything's within a healthy band of the average. Keep the practice rhythm going!
@@ -239,17 +394,49 @@ function buildEmailHtml(args: {
          In our experience, the most efficient and effective way to pull up ${childFirst}'s average is to do <strong>Focused Practice</strong> on those weak areas.
          You should be able to see results within a few practices. Each <strong>Focused Practice</strong> is just 10 questions and only takes ${childFirst} ~15 minutes a session.
        </p>
-       ${args.weak.map(w => `
+       ${args.weak.map(w => {
+         const trendBadge = w.trendImproving && w.recentPct != null
+           ? `<span style="display:inline-block;background:#bbf7d0;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;"><span style="color:#047857;">▲</span> improving — last 5: ${w.recentPct.toFixed(0)}%</span>`
+           : "";
+         // Celebratory praise — only when an improving trend was
+         // detected. Keeps the weak-area block from reading as pure
+         // bad news when the child is actually trending up.
+         const improvingPraise = w.trendImproving
+           ? `<p style="margin:4px 0 0 0;color:#047857;font-size:13px;font-weight:700;">Well done! ${childFirst} is making good progress on this topic!</p>`
+           : "";
+         const trendChartImg = w.trendChartCid
+           ? `<img src="cid:${w.trendChartCid}" alt="${w.topic} trend over time" style="width:100%;max-width:680px;display:block;border-radius:10px;border:1px solid #ddd6fe;margin:8px 0 10px 0;" />`
+           : "";
+         // Always pitch the next action as "Create focused practice"
+         // — keeps a single, consistent affordance across every weak
+         // topic. When the child has already practiced this topic
+         // before, surface that fact above the CTA and link the
+         // phrase "review the past mistakes" to the most recent
+         // focused-practice review page so a parent who wants the
+         // older route can still get there in one click.
+         const ctaLabel = `Create focused practice on ${w.topic} →`;
+         const ctaHref = focusedLink(w.topic);
+         const ctaHint = w.alreadyPracticed
+           ? `<p style="margin:4px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">${childFirst} has done a Focused Practice on this topic before — ${
+               w.reviewLink
+                 ? `<a href="${w.reviewLink}" style="color:#737780;text-decoration:underline;">review the past mistakes</a>`
+                 : "review the past mistakes"
+             } before you start another focus practice.</p>`
+           : "";
+         return `
          <div style="border:1px solid #b6f0ce;border-radius:12px;padding:14px;margin-bottom:10px;background:#ecfdf5;">
-           <p style="margin:0;font-weight:700;color:#047857;font-size:14px;">${w.topic}</p>
-           <p style="margin:4px 0 10px 0;color:#43474f;font-size:13px;">
+           <p style="margin:0;font-weight:700;color:#047857;font-size:14px;">${w.topic}${trendBadge}</p>
+           ${improvingPraise}
+           <p style="margin:4px 0 6px 0;color:#43474f;font-size:13px;">
              ${w.attempts} attempts so far · ${w.pct.toFixed(0)}% — about ${Math.round(args.avg - w.pct)} percentage points below ${childFirst}'s ${args.subjectLabel.toLowerCase()} average.
            </p>
-           <a href="${focusedLink(w.topic)}" style="display:inline-block;padding:9px 16px;background:#047857;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;">
-             Create focused practice on ${w.topic} →
+           ${trendChartImg}
+           ${ctaHint}
+           <a href="${ctaHref}" style="display:inline-block;padding:9px 16px;background:#047857;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;">
+             ${ctaLabel}
            </a>
-         </div>
-       `).join("")}`;
+         </div>`;
+       }).join("")}`;
 
   const html = `<!doctype html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#001e40;background:#f4f6fb;margin:0;padding:24px 12px;">
@@ -268,11 +455,14 @@ function buildEmailHtml(args: {
       Green bars are at or above ${childFirst}'s ${args.subjectLabel.toLowerCase()} average; grey bars sit below it. The red dashed line marks the average.
     </p>
 
+    ${strongBlock}
+
     ${weakBlock}
 
     <p style="margin:24px 0 8px 0;color:#43474f;font-size:13px;line-height:1.5;">
       You can also see the full picture anytime on ${childFirst}'s
-      <a href="${progressLink}" style="color:#003366;font-weight:700;">Full Report</a>.
+      <a href="${progressLink}" style="color:#003366;font-weight:700;">Full Report</a>,
+      or open your <a href="${BASE_URL}/home/${args.parentId}" style="color:#003366;font-weight:700;">parent homepage</a>.
     </p>
 
     <p style="margin:24px 0 4px 0;color:#737780;font-size:11px;line-height:1.5;">
@@ -388,17 +578,45 @@ async function loadCandidates(args: { onlyStudentName?: string }) {
       const t = (q.syllabusTopic ?? "").trim();
       if (!t) continue;
       const aw = q.marksAwarded ?? 0, av = q.marksAvailable ?? 0;
-      const cur = agg.topics.get(t) ?? { topic: t, attempts: 0, awarded: 0, available: 0, pct: 0 };
+      const cur = agg.topics.get(t) ?? { topic: t, attempts: 0, awarded: 0, available: 0, pct: 0, attemptsLog: [] };
       cur.attempts++; cur.awarded += aw; cur.available += av;
+      if (p.completedAt) cur.attemptsLog!.push({ ts: p.completedAt, awarded: aw, available: av });
       agg.topics.set(t, cur);
     }
+  }
+
+  // For per-student "already practiced this topic" detection we need
+  // a list of focused-practice papers per student, keyed by syllabus
+  // topic AND with a review URL pointing at the most recent one.
+  // Pulled here so each (student, subject) candidate can resolve it
+  // in O(1) below.
+  type FocusedPracticeRef = { paperId: string; completedAt: Date | null };
+  const focusedByStudentTopic = new Map<string, FocusedPracticeRef[]>();
+  for (const p of papers) {
+    if (p.paperType !== "focused" || !p.assignedToId) continue;
+    const topics = new Set<string>();
+    for (const q of p.questions) {
+      const t = (q.syllabusTopic ?? "").trim();
+      if (t) topics.add(t);
+    }
+    for (const t of topics) {
+      const k = `${p.assignedToId}::${t}`;
+      if (!focusedByStudentTopic.has(k)) focusedByStudentTopic.set(k, []);
+      focusedByStudentTopic.get(k)!.push({ paperId: p.id, completedAt: p.completedAt });
+    }
+  }
+  for (const list of focusedByStudentTopic.values()) {
+    list.sort((a, b) => (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0));
   }
 
   type Candidate = {
     studentId: string; studentName: string; studentLevel: number | null;
     parentId: string; parentName: string; parentEmail: string;
     subject: string; subjectKey: string;
-    quizzes: number; avg: number; topics: TopicRow[]; weak: TopicRow[];
+    quizzes: number; avg: number;
+    topics: TopicRow[];
+    weak: TopicRow[];
+    strong: TopicRow[];
     alreadySent: boolean; alreadySentAt: string | null;
   };
   const candidates: Candidate[] = [];
@@ -417,6 +635,31 @@ async function loadCandidates(args: { onlyStudentName?: string }) {
     const totalAvailable = topics.reduce((s, t) => s + t.available, 0);
     const avg = totalAvailable > 0 ? (totalEarned / totalAvailable) * 100 : 0;
     const weak = pickWeakTopics(topics, avg);
+    // Top "strong" topics — top 2 topics at least 8 pp above the
+    // subject average AND ≥ 5 attempts. Surface them BEFORE the
+    // weak section so the email opens on a wins-first tone.
+    const strong = topics
+      .filter(t => t.attempts >= WEAK_MIN_ATTEMPTS && t.pct >= avg + WEAK_GAP_PP)
+      .slice(0, 2);
+    // Per-weak-topic enrichment: prior-practice flag + improvement
+    // trend. Mutates each weak row in place.
+    for (const w of weak) {
+      const prior = focusedByStudentTopic.get(`${agg.studentId}::${w.topic}`) ?? [];
+      w.alreadyPracticed = prior.length > 0;
+      w.reviewLink = prior.length > 0 ? `${BASE_URL}/exam/${prior[0].paperId}/review` : null;
+      // Improvement trend — only meaningful with ≥ 10 attempts. Take
+      // the last 5 by completedAt; if their pct beats the overall
+      // topic pct by ≥ 5 pp, flag improving.
+      const log = (w.attemptsLog ?? []).filter(a => a.available > 0).sort((a, b) => a.ts.getTime() - b.ts.getTime());
+      if (log.length >= 10) {
+        const last5 = log.slice(-5);
+        const last5Earned = last5.reduce((s, a) => s + a.awarded, 0);
+        const last5Avail = last5.reduce((s, a) => s + a.available, 0);
+        const recentPct = last5Avail > 0 ? (last5Earned / last5Avail) * 100 : 0;
+        w.recentPct = recentPct;
+        w.trendImproving = recentPct >= w.pct + 5;
+      }
+    }
 
     const student = userById.get(agg.studentId);
     if (!student) continue;
@@ -436,7 +679,7 @@ async function loadCandidates(args: { onlyStudentName?: string }) {
       studentId: student.id, studentName: student.name, studentLevel: student.level,
       parentId: parent.id, parentName: parent.name, parentEmail: parent.email!,
       subject: agg.subject, subjectKey,
-      quizzes: agg.eligibilityCount, avg, topics, weak,
+      quizzes: agg.eligibilityCount, avg, topics, weak, strong,
       alreadySent: !!alreadySentAt, alreadySentAt,
     });
   }
@@ -447,6 +690,50 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
   const safeStu = c.studentName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const png = drawTopicChart(c.topics, c.avg, c.subject, c.studentName);
   const chartCid = `chart-${safeStu}-${c.subjectKey}`;
+
+  // Per-weak-topic trend chart. Aggregate the topic's attemptsLog by
+  // paper (= same completedAt) into per-paper points and render the
+  // same line+dot chart the Full Report's SelectedTopicPanel shows.
+  // Only generate when there are ≥ 2 paper points — a single dot
+  // isn't a "trend".
+  const trendAttachments: Array<{ content: string; filename: string; type: string; disposition: string; content_id: string }> = [];
+  const trendPaths: Record<string, string> = {}; // cid → relative filename (dry-run)
+  for (let i = 0; i < c.weak.length; i++) {
+    const w = c.weak[i];
+    const log = (w.attemptsLog ?? []).filter(a => a.available > 0);
+    if (log.length === 0) continue;
+    // Group attempts by completedAt timestamp (= per-paper).
+    const byTs = new Map<number, { ts: Date; awarded: number; available: number }>();
+    for (const a of log) {
+      const key = a.ts.getTime();
+      const cur = byTs.get(key) ?? { ts: a.ts, awarded: 0, available: 0 };
+      cur.awarded += a.awarded; cur.available += a.available;
+      byTs.set(key, cur);
+    }
+    const perPaperPoints = [...byTs.values()]
+      .sort((a, b) => a.ts.getTime() - b.ts.getTime())
+      .map(p => ({ ...p, pct: (p.awarded / p.available) * 100 }));
+    if (perPaperPoints.length < 2) continue;
+    const trendPng = drawTopicTrendChart(perPaperPoints, w.topic, w.pct);
+    if (trendPng.length === 0) continue;
+    const cid = `trend-${safeStu}-${c.subjectKey}-${i}`;
+    w.trendChartCid = cid;
+    const filename = `progress-email-${safeStu}-${c.subjectKey}-trend-${i}.png`;
+    trendAttachments.push({
+      content: trendPng.toString("base64"),
+      filename,
+      type: "image/png",
+      disposition: "inline",
+      content_id: cid,
+    });
+    if (opts.dryRun) {
+      const evalDir = path.join(process.cwd(), "eval");
+      if (!existsSync(evalDir)) mkdirSync(evalDir, { recursive: true });
+      writeFileSync(path.join(evalDir, filename), trendPng);
+      trendPaths[cid] = filename;
+    }
+  }
+
   const { html, text, subject } = buildEmailHtml({
     parentFirstName: firstName(c.parentName),
     parentId: c.parentId,
@@ -457,6 +744,7 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     quizzes: c.quizzes,
     avg: c.avg,
     weak: c.weak,
+    strong: c.strong,
     chartCid,
   });
 
@@ -466,9 +754,13 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     const pngPath = path.join(evalDir, `progress-email-${safeStu}-${c.subjectKey}.png`);
     const htmlPath = path.join(evalDir, `progress-email-${safeStu}-${c.subjectKey}.html`);
     writeFileSync(pngPath, png);
-    // Swap cid: → relative PNG path so the file opens in a browser.
-    writeFileSync(htmlPath, html.replace(`cid:${chartCid}`, path.basename(pngPath)));
-    console.log(`  [dry-run] wrote ${pngPath} + ${htmlPath}`);
+    // Swap cid: → relative PNG paths so the file opens in a browser.
+    let preview = html.replace(`cid:${chartCid}`, path.basename(pngPath));
+    for (const [cid, fname] of Object.entries(trendPaths)) {
+      preview = preview.replaceAll(`cid:${cid}`, fname);
+    }
+    writeFileSync(htmlPath, preview);
+    console.log(`  [dry-run] wrote ${pngPath} + ${htmlPath} (+${trendAttachments.length} trend chart${trendAttachments.length === 1 ? "" : "s"})`);
     return;
   }
 
@@ -484,13 +776,16 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
       subject,
       html,
       text,
-      attachments: [{
-        content: png.toString("base64"),
-        filename: `${safeStu}-${c.subjectKey}.png`,
-        type: "image/png",
-        disposition: "inline",
-        content_id: chartCid,
-      }],
+      attachments: [
+        {
+          content: png.toString("base64"),
+          filename: `${safeStu}-${c.subjectKey}.png`,
+          type: "image/png",
+          disposition: "inline",
+          content_id: chartCid,
+        },
+        ...trendAttachments,
+      ],
       trackingSettings: {
         clickTracking: { enable: false, enableText: false },
         openTracking: { enable: false },
