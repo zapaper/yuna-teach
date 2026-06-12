@@ -970,6 +970,18 @@ export default function ParentDashboard({
   // navigates around.
   const emailAutoOpenedRef = useRef(false);
   useEffect(() => {
+    // Temporary debug — confirms which branch bails when the email
+    // CTA's modal-auto-open doesn't fire. Remove once the parent
+    // verifies the live behavior is correct.
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[email-cta] mount-effect:", {
+        already: emailAutoOpenedRef.current,
+        emailFocused, emailFocusedSubject, emailFocusedTopic, emailFocusedStudentId,
+        linkedStudents: user.linkedStudents.map(s => s.id),
+        hasStudent: emailFocusedStudentId ? user.linkedStudents.some(s => s.id === emailFocusedStudentId) : null,
+      });
+    }
     if (emailAutoOpenedRef.current) return;
     if (!emailFocused || !emailFocusedSubject || !emailFocusedTopic || !emailFocusedStudentId) return;
     if (!user.linkedStudents.some(s => s.id === emailFocusedStudentId)) return;
@@ -982,6 +994,8 @@ export default function ParentDashboard({
     if (!target) return; // Chinese / Other — no Focused Practice path
 
     emailAutoOpenedRef.current = true;
+    // eslint-disable-next-line no-console
+    console.log("[email-cta] firing setShowQuiz", { target, topic: emailFocusedTopic });
     setSelectedStudentId(emailFocusedStudentId);
     setAssignMode("focused");
     setQuizSubject(target);
