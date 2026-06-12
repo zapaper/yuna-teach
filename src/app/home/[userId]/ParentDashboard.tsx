@@ -1233,6 +1233,21 @@ export default function ParentDashboard({
   const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const isToday = (d: Date) => d.toDateString() === todayDate.toDateString();
 
+  // Auto-center today's column in the weekly scheduler (mobile + desktop instances)
+  const mobileTodayRef = useRef<HTMLDivElement | null>(null);
+  const desktopTodayRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const centerInScroller = (cell: HTMLDivElement | null) => {
+      if (!cell) return;
+      const parent = cell.parentElement;
+      if (!parent) return;
+      const target = cell.offsetLeft - parent.clientWidth / 2 + cell.clientWidth / 2;
+      parent.scrollLeft = Math.max(0, target);
+    };
+    centerInScroller(mobileTodayRef.current);
+    centerInScroller(desktopTodayRef.current);
+  }, [dayOfWeek]);
+
   // Group student papers by day of week for scheduler (by scheduledFor, falling back to createdAt)
   const papersByDay = weekDays.map(d => {
     const dayStr = d.toDateString();
@@ -3516,6 +3531,7 @@ export default function ParentDashboard({
                     const overflow = papers.length - MAX_VISIBLE;
                     return (
                       <div key={di}
+                        ref={today ? mobileTodayRef : undefined}
                         onDragOver={e => { e.preventDefault(); }}
                         onDrop={e => {
                           e.preventDefault();
@@ -3849,6 +3865,7 @@ export default function ParentDashboard({
                     const overflow = papers.length - MAX_VISIBLE;
                     return (
                       <div key={di}
+                        ref={today ? desktopTodayRef : undefined}
                         onDragOver={e => { e.preventDefault(); }}
                         onDrop={e => {
                           e.preventDefault();
