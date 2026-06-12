@@ -545,7 +545,20 @@ export default function HomePage({
 
   if (isParent && user) {
     return <>
-      <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? searchParams.get("studentId") ?? undefined} initialView={searchParams.get("view") ?? undefined} initialOpenQuiz={searchParams.get("openQuiz") === "1"} diagnosticWelcome={searchParams.get("diagnosticWelcome") === "1"} diagnosticChoice={searchParams.get("diagnostic") ?? undefined} firstAssignStudentId={searchParams.get("firstAssignStudent") ?? undefined} />
+      <ParentDashboard
+        userId={userId}
+        user={user}
+        initialStudentId={searchParams.get("student") ?? searchParams.get("studentId") ?? undefined}
+        initialView={searchParams.get("view") ?? undefined}
+        initialOpenQuiz={searchParams.get("openQuiz") === "1"}
+        diagnosticWelcome={searchParams.get("diagnosticWelcome") === "1"}
+        diagnosticChoice={searchParams.get("diagnostic") ?? undefined}
+        firstAssignStudentId={searchParams.get("firstAssignStudent") ?? undefined}
+        emailFocused={searchParams.get("focused") === "1"}
+        emailFocusedStudentId={searchParams.get("studentId") ?? undefined}
+        emailFocusedSubject={searchParams.get("subject") ?? undefined}
+        emailFocusedTopic={searchParams.get("topic") ?? undefined}
+      />
       {adminNotifPopup}
     </>;
   }
