@@ -24,7 +24,7 @@ type Anomaly = {
   scorePct: number | null;
   questionCount: number;
   markedCount?: number;
-  reason: "failed" | "stuck" | "complete-zero-marked" | "low-score" | "zero-score";
+  reason: "failed" | "stuck" | "complete-zero-marked" | "low-score" | "zero-score" | "recent-marked";
 };
 type Data = {
   now: string;
@@ -34,6 +34,7 @@ type Data = {
   totals: { total: number; complete: number; failed: number; stuck: number; zeroMarked: number; inProgress: number; zeroScore: number; lowScore: number };
   lowScoreThresholdPct: number;
   anomalies: { failed: Anomaly[]; stuck: Anomaly[]; zeroMarked: Anomaly[]; zeroScore: Anomaly[]; lowScore: Anomaly[] };
+  recentMarked?: Anomaly[];
 };
 
 export default function Page() {
@@ -96,32 +97,17 @@ function Content() {
     </div>
   );
 
-  // Robust Y-axis cap. Absolute max made a single outlier day / hour
-  // dominate the scale and the rest of the bars looked tiny against
-  // it. Use the 90th-percentile bucket total over the 14-day window
-  // — drops a lone spike from the cap while keeping the typical
-  // max visible. Floor at 1 so an empty window doesn't divide by 0.
-  // Hourly chart shares the same metric (using daily totals across
-  // the 14-day window): a single hour-spike at a random time in
-  // the last 24h shouldn't shrink every other hour bar.
-  function robustCap(values: number[]): number {
-    if (values.length === 0) return 1;
-    const sorted = [...values].sort((a, b) => a - b);
-    const p90Idx = Math.max(0, Math.floor(sorted.length * 0.9) - 1);
-    return Math.max(1, sorted[p90Idx] ?? sorted[sorted.length - 1] ?? 1);
-  }
-  // Per-hour rough ceiling derived from daily totals: assume a busy
-  // day's traffic clusters in ~6 active hours, so peak-hour total
-  // ≈ busy day total / 6. Cap hourly Y at the larger of the
-  // observed hourly max (so we don't clip below real data) and
-  // this derived rate (so a quiet 24h period doesn't make every
-  // hour look like the daily peak).
-  const dailyTotals = data ? data.daily.map((b) => b.total) : [];
-  const dailyCap = data ? robustCap(dailyTotals) : 1;
-  const hourlyTotals = data ? data.hourly.map((b) => b.total) : [];
-  const observedHourlyMax = data ? Math.max(1, ...hourlyTotals) : 1;
-  const maxHourly = Math.max(observedHourlyMax, Math.ceil(dailyCap / 6));
-  const maxDaily = dailyCap;
+  // Y-axis = the actual max within the chart's own time window.
+  // Earlier we used a 90th-percentile cap + a cross-chart
+  // hourly-from-daily derivation to dampen outliers, but the result
+  // pushed the hourly ceiling above what the last 24h actually
+  // saw — every bar looked like one tiny unit. The simpler
+  // "max within this window" autoscales bars properly: a busy
+  // single hour fills the hourly chart, a busy single day fills
+  // the daily chart, and quiet windows still show their pattern.
+  // Floor at 1 so an empty window doesn't divide by 0.
+  const maxHourly = data ? Math.max(1, ...data.hourly.map((b) => b.total)) : 1;
+  const maxDaily = data ? Math.max(1, ...data.daily.map((b) => b.total)) : 1;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -193,6 +179,49 @@ function Content() {
               </div>
               <p className="text-[10px] text-slate-400 mt-2">Hour labels are SGT (UTC+8). Hover a bar for details.</p>
             </section>
+
+            {/* Most-recent 5 marked papers. Server returns them in
+                completedAt-desc order, no client-side sort needed. */}
+            {data.recentMarked && data.recentMarked.length > 0 && (
+              <section className="bg-white rounded-2xl border border-slate-200 p-5">
+                <h2 className="text-sm font-bold text-slate-700 mb-3">Last 5 marked</h2>
+                <div className="divide-y divide-slate-100">
+                  {data.recentMarked.map((a) => {
+                    const ago = a.ageMin < 60
+                      ? `${a.ageMin}m ago`
+                      : a.ageMin < 60 * 24
+                        ? `${Math.round(a.ageMin / 60)}h ago`
+                        : `${Math.round(a.ageMin / 60 / 24)}d ago`;
+                    return (
+                      <div key={a.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                        <div className="min-w-0 flex-1">
+                          <a
+                            href={`/exam/${a.id}/review${a.parentId ? `?userId=${a.parentId}` : ""}`}
+                            className="font-semibold text-slate-800 hover:text-blue-600 truncate block"
+                          >
+                            {a.title}
+                          </a>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            {a.studentName ?? "—"}
+                            {a.subject ? ` · ${a.subject}` : ""}
+                            {a.paperType ? ` · ${a.paperType}` : ""}
+                            {a.parentName ? ` · ${a.parentName}` : ""}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-bold text-slate-800 tabular-nums">
+                            {a.score ?? "—"}{a.totalMarks ? ` / ${a.totalMarks}` : ""}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {a.scorePct != null ? `${a.scorePct}%` : ""}{a.scorePct != null ? " · " : ""}{ago}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {/* Daily chart — last 14d */}
             <section className="bg-white rounded-2xl border border-slate-200 p-5">

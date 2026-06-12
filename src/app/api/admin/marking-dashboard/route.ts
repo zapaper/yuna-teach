@@ -124,7 +124,7 @@ export async function GET() {
     scorePct: number | null;
     questionCount: number;
     markedCount?: number;
-    reason: "failed" | "stuck" | "complete-zero-marked" | "low-score" | "zero-score";
+    reason: "failed" | "stuck" | "complete-zero-marked" | "low-score" | "zero-score" | "recent-marked";
   };
   const failed: Anomaly[] = [];
   const stuck: Anomaly[] = [];
@@ -135,6 +135,10 @@ export async function GET() {
   // zero scores are likelier to be genuine "this kid is struggling".
   const zeroScore: Anomaly[] = [];
   const lowScore: Anomaly[] = [];
+  // Last 5 papers that finished marking, newest first. `recent` is
+  // already ordered by completedAt desc, so push the first 5 we hit
+  // with markingStatus in {complete, released} below.
+  const recentMarked: Anomaly[] = [];
   // Threshold: under 30% of total marks. PSLE pass is typically 50%,
   // so under 30% is well below struggle territory and worth a look.
   const LOW_SCORE_THRESHOLD_PCT = 30;
@@ -228,6 +232,11 @@ export async function GET() {
       if (marked === 0) {
         zeroMarked.push({ ...baseAnomaly, reason: "complete-zero-marked", markedCount: 0 });
       }
+      // Drop into the "recently marked" feed too — first 5 hits win
+      // since `recent` is sorted by completedAt desc above.
+      if (recentMarked.length < 5) {
+        recentMarked.push({ ...baseAnomaly, reason: "recent-marked", markedCount: marked });
+      }
       // Score-based anomalies — only look at completed/released papers
       // (in-flight scores are unreliable). Skip when totalMarks is
       // unparseable (legacy rows) or score is still null.
@@ -265,5 +274,6 @@ export async function GET() {
     totals,
     lowScoreThresholdPct: LOW_SCORE_THRESHOLD_PCT,
     anomalies: { failed, stuck, zeroMarked, zeroScore, lowScore },
+    recentMarked,
   });
 }
