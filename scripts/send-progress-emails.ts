@@ -215,12 +215,17 @@ function buildEmailHtml(args: {
   weak: TopicRow[];
   chartCid: string;
 }): { html: string; text: string; subject: string } {
-  // Progress page = the parent's full report for a given child.
-  // CTAs (per-topic + "full picture") both deep-link there; the
-  // parent picks the focused-practice action from the page's
-  // existing "Create Focused Practice" affordance. No prefilled
-  // modal on the dashboard for now.
+  // "Full Report" link → /progress/<studentId>?userId=<parentId>.
+  // Per-topic CTAs → /home/<parentId>?focused=1&studentId=…&subject=…
+  // &topic=…. Page+ParentDashboard read those query params on mount
+  // and auto-open the Focused Practice modal pre-filled with the
+  // weak topic, so the parent lands one click away from creating
+  // the practice. Wiring lives at:
+  //   src/app/home/[userId]/page.tsx (emailFocused* prop passthrough)
+  //   src/app/home/[userId]/ParentDashboard.tsx (mount useEffect)
   const progressLink = `${BASE_URL}/progress/${args.studentId}?userId=${args.parentId}`;
+  const focusedLink = (topic: string) =>
+    `${BASE_URL}/home/${args.parentId}?focused=1&studentId=${args.studentId}&subject=${encodeURIComponent(args.subject.toLowerCase())}&topic=${encodeURIComponent(topic)}`;
   const overallVerdict = args.avg >= 85 ? "really impressive" : args.avg >= 70 ? "very solid" : args.avg >= 55 ? "coming along" : "an area we can lean into together";
   const quizNoun = SUBJECT_QUIZ_NOUN[args.subject] ?? "practice";
   const childFirst = firstName(args.studentName);
@@ -240,7 +245,7 @@ function buildEmailHtml(args: {
            <p style="margin:4px 0 10px 0;color:#43474f;font-size:13px;">
              ${w.attempts} attempts so far · ${w.pct.toFixed(0)}% — about ${Math.round(args.avg - w.pct)} percentage points below ${childFirst}'s ${args.subjectLabel.toLowerCase()} average.
            </p>
-           <a href="${progressLink}" style="display:inline-block;padding:9px 16px;background:#047857;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;">
+           <a href="${focusedLink(w.topic)}" style="display:inline-block;padding:9px 16px;background:#047857;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;">
              Create focused practice on ${w.topic} →
            </a>
          </div>
@@ -286,7 +291,7 @@ ${childFirst}'s Progress Report — ${args.subjectLabel}
 
 ${childFirst} has completed ${args.quizzes} ${quizNoun}${args.quizzes === 1 ? "" : "s"} in ${args.subjectLabel}. ${args.subjectLabel} average: ${args.avg.toFixed(1)}% (${overallVerdict}).
 
-${args.weak.length > 0 ? `In our experience, the most efficient and effective way to pull up ${childFirst}'s average is to do focused practice on those weak areas. You should be able to see results within a few practices. Each focused practice is 10 questions and takes ~15 minutes.\n\nA couple of spots worth a closer look:\n${args.weak.map(w => `- ${w.topic}: ${w.attempts} attempts, ${w.pct.toFixed(0)}% (about ${Math.round(args.avg - w.pct)}pp below ${args.subjectLabel.toLowerCase()} avg)`).join("\n")}\n\nCreate focused practice from ${childFirst}'s Full Report: ${progressLink}` : "No clear weak spots this round — keep the practice rhythm going."}
+${args.weak.length > 0 ? `In our experience, the most efficient and effective way to pull up ${childFirst}'s average is to do Focused Practice on those weak areas. You should be able to see results within a few practices. Each Focused Practice is 10 questions and takes ~15 minutes.\n\nA couple of spots worth a closer look:\n${args.weak.map(w => `- ${w.topic}: ${w.attempts} attempts, ${w.pct.toFixed(0)}% (about ${Math.round(args.avg - w.pct)}pp below ${args.subjectLabel.toLowerCase()} avg)\n  Create focused practice: ${focusedLink(w.topic)}`).join("\n")}` : "No clear weak spots this round — keep the practice rhythm going."}
 
 Full Report: ${progressLink}
 
