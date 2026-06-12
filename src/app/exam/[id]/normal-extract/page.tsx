@@ -1871,15 +1871,18 @@ function NormalExtractTriggerRow({
       //     (Q-number BELOW the blank). "right" toggle sends the
       //     school-variant where (N) sits to the right.
       //   - editing: default PSLE layout is left-of-word margin column.
-      //     "above" toggle sends the school-variant where (N) sits
-      //     BELOW the underlined word inline. The current toggle UI
-      //     uses the "above" button so we pass that through for
-      //     editing too — without it the school-variant editing
-      //     section can't be extracted at all.
+      //     "above" toggle = school-variant where (N) sits BELOW the
+      //     word inline (crop extends upward). "right" toggle =
+      //     school-variant where (N) sits to the RIGHT of the word
+      //     inline (crop extends leftward). Without per-variant
+      //     deltas the extractor grabs the wrong neighbourhood and
+      //     the section can't be extracted at all.
       if ((sectionType === "grammar-cloze" || sectionType === "comp-cloze") && clozeQPosition === "right") {
         body.qNumPosition = "right";
       } else if (sectionType === "editing" && clozeQPosition === "above") {
         body.qNumPosition = "above";
+      } else if (sectionType === "editing" && clozeQPosition === "right") {
+        body.qNumPosition = "right";
       }
       const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
         method: "POST",
@@ -1967,7 +1970,7 @@ function NormalExtractTriggerRow({
             type="button"
             onClick={() => setClozeQPosition("right")}
             className={`px-2.5 py-1 transition-colors border-l border-slate-300 ${clozeQPosition === "right" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="Cloze school variant: (N) printed to the right of the blank, like standard editing. Has no effect on Editing extracts."
+            title="Cloze school variant: (N) printed to the right of the blank, like standard editing. Editing school variant: (N) printed to the right of the underlined word inline (crop extends leftward to catch the word)."
           >
             Right of blank
           </button>
