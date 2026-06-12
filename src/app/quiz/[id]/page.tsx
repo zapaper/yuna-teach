@@ -1849,20 +1849,40 @@ function QuizContent({ id }: { id: string }) {
 
                       {/* Vocab Cloze passage — rich text with formatted blanks.
                           The OCR for this section bundles the passage AND the
-                          numbered questions + options after it (e.g.
-                          "16. (1) excited  (2) shocked  (3) annoyed …  (    )").
-                          McqQuestionCard already renders each question with its
-                          own option list below, so showing the OCR's question
-                          list inside the passage was duplicating it. Strip
-                          everything from the first line that looks like a
-                          numbered question opener — typically "N. (1) <word>"
-                          or "N (1) <word>" — onward. */}
+                          numbered questions + options after it. McqQuestionCard
+                          already renders each question with its own option list
+                          below, so showing the OCR's question list inside the
+                          passage was duplicating it. Strip everything from the
+                          first line that looks like a numbered question opener
+                          onward. Two OCR shapes encountered so far:
+                            (a) "16. (1) excited (2) shocked ..."   — inline
+                            (b) "16.\n(1) instantly\n(2) regularly" — stacked
+                          Both have to be caught: a bare "16." or "16" line is
+                          fine to use as the cut point because the passage body
+                          never contains a row that's only a question number. */}
                       {(() => {
                         const rawPassage = sec.passage;
                         if (!rawPassage || rawPassage.startsWith("[") || rawPassage.startsWith("data:")) return null;
                         const lines = rawPassage.split("\n");
-                        const questionLineRe = /^\s*\d+\s*\.?\s+\(\s*\d+\s*\)\s+\S/;
-                        const firstQ = lines.findIndex(l => questionLineRe.test(l));
+                        // (a) inline: "N. (M) ..." OR "N (M) ..."
+                        const inlineRe = /^\s*\d+\s*\.?\s+\(\s*\d+\s*\)\s+\S/;
+                        // (b) stacked: a bare "N." or "N" line followed (after
+                        //     any blank lines) by a "(M) ..." line.
+                        const bareNumRe = /^\s*\d+\s*\.?\s*$/;
+                        const optionLineRe = /^\s*\(\s*\d+\s*\)\s+\S/;
+                        const isStackedQuestionStart = (idx: number) => {
+                          if (!bareNumRe.test(lines[idx] ?? "")) return false;
+                          for (let j = idx + 1; j < Math.min(lines.length, idx + 4); j++) {
+                            const next = lines[j] ?? "";
+                            if (!next.trim()) continue; // skip blank
+                            return optionLineRe.test(next);
+                          }
+                          return false;
+                        };
+                        let firstQ = -1;
+                        for (let i = 0; i < lines.length; i++) {
+                          if (inlineRe.test(lines[i]) || isStackedQuestionStart(i)) { firstQ = i; break; }
+                        }
                         const passageLines = firstQ >= 0 ? lines.slice(0, firstQ) : lines;
                         // Trim trailing blank lines left behind after the cut.
                         while (passageLines.length > 0 && !passageLines[passageLines.length - 1].trim()) passageLines.pop();
