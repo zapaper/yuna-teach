@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
           syllabusTopic: true,
           marksAwarded: true,
           marksAvailable: true,
+          studentAnswer: true,
         },
       },
     },
@@ -139,6 +140,13 @@ export async function GET(request: NextRequest) {
     const examTopics: Record<string, { earned: number; available: number }> = {};
 
     for (const q of paper.questions) {
+      // Skipped questions don't count toward either the numerator or
+      // the denominator — they distort the average when included.
+      // /api/exam already subtracts skipped marks from the headline
+      // score-vs-total ratio (see exam route's skippedMarks lookup);
+      // this mirrors the same idea at the per-topic level so the
+      // chart / Full Report / progress email all agree.
+      if (q.studentAnswer === "__SKIPPED__") continue;
       const topic = resolveTopic(q, paper.sourceExamId);
 
       // Overall aggregation

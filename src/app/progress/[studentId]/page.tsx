@@ -362,8 +362,14 @@ function ProgressContent({ studentId }: { studentId: string }) {
               </div>
             </div>
 
-            {/* ── Admin-only column chart: per-topic accuracy with subject avg line ── */}
-            {isAdmin && currentSubject && view === "topic" && activeSubject && (
+            {/* ── Per-topic accuracy chart with subject avg line ──
+                Was admin-only behind an isAdmin gate, but the gate
+                ran a /api/admin/check round-trip on mount which made
+                non-admin parents (the actual target) see the old
+                card view for the duration of the fetch, then flip
+                to the chart once isAdmin resolved. Universal now —
+                everyone sees the same chart immediately. */}
+            {currentSubject && view === "topic" && activeSubject && (
               <AdminTopicChart
                 subject={activeSubject}
                 subjectData={currentSubject}
@@ -376,69 +382,9 @@ function ProgressContent({ studentId }: { studentId: string }) {
               />
             )}
 
-            {/* ── Topic view (cards) — hidden for admin: the chart + detail panel above replaces them ── */}
-            {!isAdmin && currentSubject && view === "topic" && (
-              <div className="space-y-4">
-                {Object.entries(currentSubject.topics)
-                  .filter(([topic]) => topic !== "Untagged")
-                  .sort(([, a], [, b]) => {
-                    const pctA = a.available > 0 ? a.earned / a.available : 0;
-                    const pctB = b.available > 0 ? b.earned / b.available : 0;
-                    return pctA - pctB;
-                  })
-                  .map(([topic, td]) => {
-                    const pct = td.available > 0 ? Math.round((td.earned / td.available) * 100) : 0;
-                    const style = topicStyle(pct);
-                    return (
-                      <div
-                        key={topic}
-                        className={`bg-[#eff4ff] rounded-3xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 hover:bg-[#dce9ff] transition-colors border-l-4 ${style.border}`}
-                      >
-                        <div className="flex items-center gap-5 flex-1 w-full">
-                          {/* Percentile badge */}
-                          <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center shrink-0 ${style.badgeBg}`}>
-                            <span className={`text-lg font-bold ${style.badgeText}`}>{pct}</span>
-                            <span className={`text-[10px] font-bold uppercase ${style.badgeText}`}>%tile</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h3 className="text-base lg:text-lg font-bold text-[#0b1c30] font-headline leading-tight">{topic}</h3>
-                                <p className="text-xs text-[#43474f] font-medium mt-0.5">
-                                  {td.earned}/{td.available} marks · {td.count} question{td.count !== 1 ? "s" : ""}
-                                </p>
-                              </div>
-                              <span className={`text-sm font-bold ml-4 shrink-0 ${style.badgeText}`}>{pct}%</span>
-                            </div>
-                            <div className="h-2 w-full bg-white/70 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-700 ${style.bar}`}
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => createFocusedTest(activeSubject!, topic)}
-                          disabled={creating === topic}
-                          className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm border border-[#c3c6d1] text-[#001e40] bg-white hover:bg-[#d5e3ff] transition-colors disabled:opacity-50 shrink-0"
-                        >
-                          {creating === topic ? "Creating..." : "Focus Practice"}
-                        </button>
-                      </div>
-                    );
-                  })}
-
-                {currentSubject.topics["Untagged"] && (
-                  <div className="rounded-3xl border-2 border-dashed border-[#c3c6d1] bg-white/50 p-5 flex items-center justify-between">
-                    <span className="text-sm text-[#43474f]">Untagged questions</span>
-                    <span className="text-xs text-[#737780] tabular-nums">
-                      {currentSubject.topics["Untagged"].earned} / {currentSubject.topics["Untagged"].available} marks
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* (Legacy topic-cards view removed — AdminTopicChart
+                above now serves every viewer. Restore from git if
+                we ever need a card variant again.) */}
 
             {/* ── Time view ── */}
             {view === "time" && (
@@ -787,10 +733,7 @@ function AdminTopicChart({
 
   return (
     <div className="bg-white rounded-2xl border-2 border-violet-200 p-5 mb-4 shadow-sm">
-      <div className="flex items-baseline justify-between gap-3 mb-1">
-        <h3 className="text-sm font-extrabold text-violet-700 uppercase tracking-widest">Admin view · per-topic accuracy</h3>
-        <span className="text-[10px] text-violet-400 font-bold uppercase tracking-wider">Admin only</span>
-      </div>
+      <h3 className="text-sm font-extrabold text-violet-700 uppercase tracking-widest mb-1">Per-topic accuracy</h3>
       <p className="text-xs text-[#43474f] mb-3">
         {studentName} — {subject}. {topics.length} topic{topics.length === 1 ? "" : "s"} with ≥{MIN_QS} attempts · {totalAttempts.toLocaleString()} total attempts · subject avg <span className="font-bold text-rose-600">{avg.toFixed(1)}%</span>
       </p>
