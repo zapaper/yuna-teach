@@ -1847,10 +1847,29 @@ function QuizContent({ id }: { id: string }) {
                         <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
                       </div>
 
-                      {/* Vocab Cloze passage — rich text with formatted blanks */}
-                      {sec.passage && !sec.passage.startsWith("[") && !sec.passage.startsWith("data:") && (
+                      {/* Vocab Cloze passage — rich text with formatted blanks.
+                          The OCR for this section bundles the passage AND the
+                          numbered questions + options after it (e.g.
+                          "16. (1) excited  (2) shocked  (3) annoyed …  (    )").
+                          McqQuestionCard already renders each question with its
+                          own option list below, so showing the OCR's question
+                          list inside the passage was duplicating it. Strip
+                          everything from the first line that looks like a
+                          numbered question opener — typically "N. (1) <word>"
+                          or "N (1) <word>" — onward. */}
+                      {(() => {
+                        const rawPassage = sec.passage;
+                        if (!rawPassage || rawPassage.startsWith("[") || rawPassage.startsWith("data:")) return null;
+                        const lines = rawPassage.split("\n");
+                        const questionLineRe = /^\s*\d+\s*\.?\s+\(\s*\d+\s*\)\s+\S/;
+                        const firstQ = lines.findIndex(l => questionLineRe.test(l));
+                        const passageLines = firstQ >= 0 ? lines.slice(0, firstQ) : lines;
+                        // Trim trailing blank lines left behind after the cut.
+                        while (passageLines.length > 0 && !passageLines[passageLines.length - 1].trim()) passageLines.pop();
+                        if (passageLines.length === 0) return null;
+                        return (
                         <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
-                          {sec.passage.split("\n").map((line, li) => {
+                          {passageLines.map((line, li) => {
                             if (!line.trim()) return <br key={li} />;
                             // Skip table separators
                             if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
@@ -1926,7 +1945,8 @@ function QuizContent({ id }: { id: string }) {
                             );
                           })}
                         </div>
-                      )}
+                        );
+                      })()}
                       {sec.passage && label.includes("vocab") && label.includes("cloze") && (
                         <p className="text-sm text-[#737780] mb-6 italic">Which word best completes the blanks?</p>
                       )}

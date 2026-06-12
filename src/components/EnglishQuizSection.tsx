@@ -848,9 +848,17 @@ function PassageLine({
   onFocusInput?: () => void;
   emptyFieldIds?: Set<string>;
 }) {
-  // Parse bold markers with question numbers: **(29)________** or **(39) beleive**
+  // Parse question-tagged bold markers. Two shapes the OCR extractor
+  // emits for Editing / Cloze:
+  //   1. "**(N) word**"   — number INSIDE the bold (legacy / Comp Cloze)
+  //   2. "(N) **word**"   — number OUTSIDE the bold (newer Editing OCR)
+  // Both mean "question N, error/blank is <word>". Without alternative
+  // (2) the Editing section on Henry Park 2025 P6 English rendered as
+  // plain text with no answer-box inputs — parent flagged the whole
+  // section as unstyled. Match either shape; the handler below pulls
+  // the number + word out of whichever group fired.
   const parts: React.ReactNode[] = [];
-  const regex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+  const regex = /\*\*\((\d+)\)([^*]*)\*\*|\((\d+)\)\s+\*\*([^*]+)\*\*/g;
   let lastIdx = 0;
   let match;
 
@@ -860,9 +868,10 @@ function PassageLine({
       parts.push(<span key={`t${lastIdx}`}>{...renderInlineBold(line.slice(lastIdx, match.index))}</span>);
     }
 
-    const qNum = parseInt(match[1]);
+    // match[1]/[2] = inside-bold form; match[3]/[4] = outside-bold form.
+    const qNum = parseInt(match[1] ?? match[3]);
     const displayNum = qNumToDisplayNum.get(qNum) ?? qNum;
-    const content = match[2].trim();
+    const content = (match[2] ?? match[4] ?? "").trim();
     const qId = qNumToId.get(qNum);
 
     if (sectionType === "grammar-cloze" || sectionType === "comprehension-cloze") {
