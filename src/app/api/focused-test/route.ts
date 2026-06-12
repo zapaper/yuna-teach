@@ -107,6 +107,21 @@ export async function POST(request: NextRequest) {
   else if (m < 7 || (m === 7 && d <= 14)) allowedExamTypes = ["WA1", "WA2", "SA1"];
   else if (m <= 8) allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
 
+  // P6 from June 1st onwards: open the full bank.
+  // The standard time-of-year gate keeps EOY / Prelim / PSLE / SA2
+  // out of the pool to avoid showing material kids haven't covered
+  // yet. For P6 that logic flips: PSLE sits at the end of September,
+  // Prelim papers run from August, and parents revising in June want
+  // their child practising on exactly that material — not WA1/WA2.
+  // (PSLE is end-of-year for P6 — same bucket as "End of Year".)
+  // Without this override, "Life cycles in plants and animals" gave a
+  // 1-question focused practice in early June: 28 P6 questions in
+  // the bank, but only 5 survived the June "WA1/WA2/SA1" gate.
+  const isP6PostJune1 = student?.level === 6 && (m > 6 || (m === 6 && d >= 1));
+  if (isP6PostJune1) {
+    allowedExamTypes = null;
+  }
+
   // Revision mode prefers full year-end papers — the lower level was
   // already covered, so EOY/Prelim/SA2 give the broadest recap.
   const REVISION_PREFERRED_EXAM_TYPES = ["EOY", "End of Year", "Prelim", "Preliminary", "SA2"];

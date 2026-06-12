@@ -471,6 +471,15 @@ export async function POST(request: NextRequest) {
   }
   // Sep-Dec: all types allowed including SA2, Prelim, End of Year etc.
 
+  // P6 from June 1st onwards: open the full bank (PSLE-bound, parents
+  // want Prelim / PSLE / SA2 / EOY material on the daily quiz, not
+  // WA1/WA2). PSLE is end-of-year for P6 — same bucket as "End of
+  // Year". Mirrors the override in focused-test/route.ts.
+  const isP6PostJune1 = student?.level === 6 && (currentMonth > 6 || (currentMonth === 6 && currentDay >= 1));
+  if (isP6PostJune1) {
+    allowedExamTypes = null;
+  }
+
   // Revision-mode prefers full year-end papers — drop the time-of-year
   // gate and try EOY / Prelim / SA2 first.
   const REVISION_PREFERRED_EXAM_TYPES = ["EOY", "End of Year", "Prelim", "Preliminary", "SA2"];
