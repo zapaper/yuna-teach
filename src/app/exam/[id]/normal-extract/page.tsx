@@ -1866,8 +1866,20 @@ function NormalExtractTriggerRow({
   async function runOne(sectionType: string, label: string): Promise<RunSummary> {
     try {
       const body: Record<string, unknown> = { sectionType };
+      // qNumPosition routing:
+      //   - grammar-cloze / comp-cloze: default PSLE layout is "above"
+      //     (Q-number BELOW the blank). "right" toggle sends the
+      //     school-variant where (N) sits to the right.
+      //   - editing: default PSLE layout is left-of-word margin column.
+      //     "above" toggle sends the school-variant where (N) sits
+      //     BELOW the underlined word inline. The current toggle UI
+      //     uses the "above" button so we pass that through for
+      //     editing too — without it the school-variant editing
+      //     section can't be extracted at all.
       if ((sectionType === "grammar-cloze" || sectionType === "comp-cloze") && clozeQPosition === "right") {
         body.qNumPosition = "right";
+      } else if (sectionType === "editing" && clozeQPosition === "above") {
+        body.qNumPosition = "above";
       }
       const res = await fetch(`/api/admin/exam/${paperId}/normal-extract-english`, {
         method: "POST",
@@ -1931,27 +1943,33 @@ function NormalExtractTriggerRow({
         Re-run gemini-3.1-pro-preview to recompute per-question y/x bounds for one section. The
         question cards below refresh on success so the new crops show up immediately.
       </p>
-      {/* Per-paper cloze layout toggle. PSLE: (N) sits BELOW the blank.
-          Some school papers: (N) sits to the RIGHT of the blank, like
-          editing. Toggle applies to Grammar Cloze + Comp Cloze only. */}
+      {/* Q-number position toggle.
+          - Grammar / Comp Cloze: "above" = PSLE standard, (N) sits
+            BELOW the blank. "right" = school variant, (N) sits to
+            the right of the blank.
+          - Editing: "above" toggle means (N) sits BELOW the underlined
+            word inline (school variant). Default (no toggle) is PSLE
+            standard, (N) in the left margin column.
+          One toggle covers both because the "blank-above-the-N" /
+          "answer-area-above-the-N" geometry is the same. */}
       <div className="mb-3 flex items-center gap-2 text-[11px] text-slate-600">
-        <span className="font-semibold">Cloze Q-number position:</span>
+        <span className="font-semibold">Q-number position (Cloze + Editing):</span>
         <div className="inline-flex rounded-md border border-slate-300 overflow-hidden">
           <button
             type="button"
             onClick={() => setClozeQPosition("above")}
             className={`px-2.5 py-1 transition-colors ${clozeQPosition === "above" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="Standard PSLE: (N) printed below the blank"
+            title="Cloze: PSLE default — (N) printed below the blank. Editing: school variant — (N) printed below the underlined word."
           >
-            Above blank (PSLE)
+            Above blank
           </button>
           <button
             type="button"
             onClick={() => setClozeQPosition("right")}
             className={`px-2.5 py-1 transition-colors border-l border-slate-300 ${clozeQPosition === "right" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="School-paper variant: (N) printed to the right, like editing"
+            title="Cloze school variant: (N) printed to the right of the blank, like standard editing. Has no effect on Editing extracts."
           >
-            Right of blank (school)
+            Right of blank
           </button>
         </div>
       </div>
