@@ -282,6 +282,16 @@ function ExamReviewContent({ id }: { id: string }) {
   const [editingMarks, setEditingMarks] = useState<string | null>(null);
   const [savingMarks, setSavingMarks] = useState(false);
   const [remarking, setRemarking] = useState(false);
+  // Tripped when any /api/exam/.../mark call comes back 401. Used to
+  // (a) stop the 5 s status poll so we don't flood middleware logs,
+  // (b) surface a calm "Session paused — sign in to continue" banner
+  // at the top of the page, and (c) swap the Re-mark click's alert +
+  // redirect for an inline message that keeps the parent's context.
+  // Already-rendered data (score, marks, marking notes, scans) stays
+  // visible — those are read straight off React state, not gated on
+  // the session — so the user can still review their work while
+  // signed out.
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -615,12 +625,15 @@ function ExamReviewContent({ id }: { id: string }) {
         const r = await fetch(`/api/exam/${id}/mark`);
         if (r.status === 401 || r.status === 403) {
           // Session expired (or tab left open across a logout). Stop
-          // polling — otherwise this tab hammers /mark every 5s
-          // forever and floods the middleware logs. The user can
-          // refresh after re-login to resume.
+          // polling so the tab doesn't hammer /mark every 5 s + flood
+          // middleware logs, and flip sessionExpired so the inline
+          // "session paused" banner renders. The page DOESN'T redirect
+          // — whatever was already rendered (score, marks, scans)
+          // stays visible so a student isn't yanked away mid-review.
           if (!cancelled) {
             cancelled = true;
             clearInterval(tick);
+            setSessionExpired(true);
           }
           return;
         }
@@ -690,10 +703,13 @@ function ExamReviewContent({ id }: { id: string }) {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
       console.log(`[review] Re-mark POST → status ${res.status}`);
       if (res.status === 401 || res.status === 403) {
-        // Session expired in this tab. Friendlier than "HTTP 401".
-        alert("Your session has expired. Please sign in again and retry the Re-mark.");
+        // Session expired. Don't yank the user out of the review
+        // page — flip the banner state instead so they see a calm
+        // "session paused" message at the top, with a Sign in link
+        // that returns to this same URL. Re-clicking Re-mark while
+        // expired is a no-op until they sign back in.
+        setSessionExpired(true);
         setRemarking(false);
-        router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
       if (!res.ok) {
@@ -1350,6 +1366,33 @@ function ExamReviewContent({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      {/* Session-paused banner — appears at the very top when any
+          /api/exam/.../mark call comes back 401 (poll or re-mark
+          click). Soft amber strip, dismissable, with a Sign-in link
+          that returns to the same URL. We intentionally do NOT
+          redirect: the rendered review state (score, marks, scans)
+          stays visible so the student/parent isn't yanked away
+          mid-review. */}
+      {sessionExpired && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-center gap-3 text-amber-900 text-sm">
+          <span className="material-symbols-outlined text-amber-700">info</span>
+          <span>Session paused — sign in again to see live updates and re-mark.</span>
+          <a
+            href={`/login?next=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname + window.location.search : "/")}`}
+            className="font-bold underline hover:text-amber-700"
+          >
+            Sign in
+          </a>
+          <button
+            onClick={() => setSessionExpired(false)}
+            className="ml-2 text-amber-700/70 hover:text-amber-900"
+            aria-label="Dismiss session-paused banner"
+          >
+            <span className="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+      )}
+
       {/* First-quiz congratulations popup — shown when the student lands here from the diagnostic flow */}
       {showFirstQuizPopup && (
         <div
