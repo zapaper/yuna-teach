@@ -1680,8 +1680,17 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
   // Underline now uses isolated-`__` guards so it doesn't partially
   // match longer runs like "___ word __" (which would otherwise
   // underline " word ").
+  //
+  // Editing section: the OCR extractor sometimes emits "(36) **in**"
+  // (number BEFORE the bold) and sometimes "**(36) in**" (number
+  // INSIDE the bold). Both mean "error word #36 is 'in'". Match
+  // "(N) **word**" as one token here so the renderer can draw the
+  // same numbered tag + red-underlined error + answer box for both
+  // shapes — without this branch, the outside-the-bold form rendered
+  // as a plain "(36) in" with no answer box, which is what the
+  // parent flagged ("editing was not formatted correctly").
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|(?<!_)__(?!_)[^_\n](?:[^\n]*?[^_\n])?__(?!_)|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
+  const regex = /(\(\d+\)\s+\*\*[^*]+\*\*|\*\*[^*]+\*\*|(?<!_)__(?!_)[^_\n](?:[^\n]*?[^_\n])?__(?!_)|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
   let lastIdx = 0;
   let match;
 
@@ -1690,7 +1699,20 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
       parts.push(text.slice(lastIdx, match.index));
     }
     const m = match[0];
-    if (m.startsWith("**") && m.endsWith("**")) {
+    // "(N) **word**" form — number sits OUTSIDE the bold. Render the
+    // same numbered tag + red underline + answer box used by the
+    // "**(N) word**" branch below so both OCR shapes look identical
+    // to the admin reviewing the Editing section.
+    const outsideEditMatch = m.match(/^\((\d+)\)\s+\*\*([^*]+)\*\*$/);
+    if (outsideEditMatch) {
+      parts.push(
+        <span key={match.index} className="inline-flex items-center gap-1">
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({outsideEditMatch[1]})</span>
+          <span className="underline decoration-red-400 decoration-2 font-bold text-red-700">{outsideEditMatch[2]}</span>
+          <span className="inline-block border-2 border-slate-300 rounded px-1 min-w-[10rem] h-6 bg-white" />
+        </span>
+      );
+    } else if (m.startsWith("**") && m.endsWith("**")) {
       const inner = m.slice(2, -2);
       // Check if it's a cloze blank like (29)________
       const clozeMatch = inner.match(/^\((\d+)\)_+$/);
