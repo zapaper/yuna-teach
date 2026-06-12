@@ -3591,6 +3591,28 @@ const BlankCanvas = forwardRef<
       const inkCanvas = inkCanvasRef.current;
       if (!inkCanvas) return;
       pendingSnapshot.current = inkCanvas.getContext("2d")!.getImageData(0, 0, inkCanvas.width, inkCanvas.height);
+      // Continuous backup of the ink to localStorage so a canvas
+      // remount mid-quiz (React re-render / scroll-virtualisation /
+      // mobile WebView memory purge / keyboard pop reflow) doesn't
+      // lose the student's drawings. The on-mount `tryLoadSnapshot`
+      // path (line ~3501) already reads from this key when the
+      // server's savedInkUrl 404s, so this is the missing producer.
+      // Parent flagged it on David's Mastery Forces quiz — Q11–Q15
+      // came back blank after a remount, and the submit-time backup
+      // captured the already-blank canvas because it only runs
+      // INSIDE handleSubmit / handleSaveProgress. Writing here
+      // protects every pause between strokes, fires at most ~3 ×/s
+      // for an actively-drawing student, and is a single
+      // toDataURL → setItem (a few ms on the canvases we draw on).
+      if (snapshotKey) {
+        try {
+          window.localStorage.setItem(snapshotKey, inkCanvas.toDataURL("image/png"));
+        } catch {
+          // quota exceeded / localStorage disabled — silently
+          // skip; the submit-time backup is still in place as
+          // the safety net of last resort.
+        }
+      }
     }, 300);
   }
 

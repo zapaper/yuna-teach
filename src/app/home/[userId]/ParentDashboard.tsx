@@ -290,7 +290,38 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome, diagnosticChoice, firstAssignStudentId }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean; diagnosticChoice?: string; firstAssignStudentId?: string }) {
+export default function ParentDashboard({
+  userId,
+  user,
+  initialStudentId,
+  initialView,
+  initialOpenQuiz,
+  diagnosticWelcome,
+  diagnosticChoice,
+  firstAssignStudentId,
+  // From the auto-progress-report email's "Create focused practice"
+  // CTA: ?focused=1&studentId=…&subject=…&topic=…. When all four are
+  // present we pre-open the Focused Practice modal pinned to that
+  // child, subject and topic — the same path handleWeakTopicClick
+  // takes when a parent taps a weak-topic row inside the dashboard.
+  emailFocused,
+  emailFocusedStudentId,
+  emailFocusedSubject,
+  emailFocusedTopic,
+}: {
+  userId: string;
+  user: User;
+  initialStudentId?: string;
+  initialView?: string;
+  initialOpenQuiz?: boolean;
+  diagnosticWelcome?: boolean;
+  diagnosticChoice?: string;
+  firstAssignStudentId?: string;
+  emailFocused?: boolean;
+  emailFocusedStudentId?: string;
+  emailFocusedSubject?: string;
+  emailFocusedTopic?: string;
+}) {
   const router = useRouter();
   const avatarTypeMap: Record<string, string[]> = Object.fromEntries(
     ["bunny","bear","tiger","fox","otter","uni","dragon","merlion","qilin","whitetiger"].map(k => [
@@ -924,6 +955,65 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     }
     setShowQuiz(true);
   }
+
+  // Auto-open Focused Practice modal when the parent arrived from an
+  // email CTA carrying ?focused=1&studentId=…&subject=…&topic=…
+  //
+  // Previously called handleWeakTopicClick via a setTimeout — that
+  // version captured a stale selectedStudentId closure (which was
+  // still null at mount), and handleWeakTopicClick early-returned.
+  // Result: page loaded, no modal. Now set all the state inline so
+  // there's no dependency on the in-flight setSelectedStudentId.
+  // A ref-guard ensures the auto-open fires AT MOST ONCE — even if
+  // user.linkedStudents hydrates after mount and re-runs the effect,
+  // we won't keep popping the modal back open while the parent
+  // navigates around.
+  const emailAutoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (emailAutoOpenedRef.current) return;
+    if (!emailFocused || !emailFocusedSubject || !emailFocusedTopic || !emailFocusedStudentId) return;
+    if (!user.linkedStudents.some(s => s.id === emailFocusedStudentId)) return;
+    const subjLc = emailFocusedSubject.toLowerCase();
+    const target: "math" | "science" | "english" | null =
+      subjLc.includes("math") ? "math"
+      : subjLc.includes("science") ? "science"
+      : subjLc.includes("english") ? "english"
+      : null;
+    if (!target) return; // Chinese / Other — no Focused Practice path
+
+    emailAutoOpenedRef.current = true;
+    setSelectedStudentId(emailFocusedStudentId);
+    setAssignMode("focused");
+    setQuizSubject(target);
+    setQuizStudentId(emailFocusedStudentId);
+    setQuizTargetDay(null);
+
+    if (target === "english") {
+      const englishTopicToSection: Record<string, string> = {
+        "Grammar MCQ": "grammar-mcq",
+        "Vocabulary MCQ": "vocab-mcq",
+        "Vocabulary Cloze MCQ": "vocab-cloze",
+        "Vocabulary Cloze": "vocab-cloze",
+        "Visual Text Comprehension MCQ": "visual-text",
+        "Visual Text Comprehension": "visual-text",
+        "Grammar Cloze": "grammar-cloze",
+        "Editing (Spelling & Grammar)": "editing",
+        "Editing": "editing",
+        "Comprehension Cloze": "comprehension-cloze",
+        "Synthesis / Transformation": "synthesis",
+        "Synthesis & Transformation": "synthesis",
+        "Comprehension Open Ended": "comprehension-oeq",
+        "Comprehension (Open-ended)": "comprehension-oeq",
+        "Comprehension OEQ": "comprehension-oeq",
+      };
+      const sectionKey = englishTopicToSection[emailFocusedTopic];
+      if (sectionKey) setEnglishSections(new Set([sectionKey]));
+      setFocusedTopic("");
+    } else {
+      setFocusedTopic(emailFocusedTopic);
+    }
+    setShowQuiz(true);
+  }, [emailFocused, emailFocusedSubject, emailFocusedTopic, emailFocusedStudentId, user.linkedStudents]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
