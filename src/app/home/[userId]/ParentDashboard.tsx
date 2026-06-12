@@ -1001,6 +1001,12 @@ export default function ParentDashboard({
     setQuizSubject(target);
     setQuizStudentId(emailFocusedStudentId);
     setQuizTargetDay(null);
+    // Default the MCQ/MCQ+OEQ toggle to the richer mixed option for
+    // Math / Science (where the choice exists). English's focused
+    // path doesn't expose this toggle, so the set is a no-op there.
+    if (target === "math" || target === "science") {
+      setFocusedType("mcq-oeq");
+    }
 
     if (target === "english") {
       const englishTopicToSection: Record<string, string> = {
