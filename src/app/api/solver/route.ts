@@ -4,6 +4,12 @@ import { readFileSync } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { mathHeuristicsBlock } from "@/lib/math-heuristics";
+import {
+  isOpenAIFallbackEnabled,
+  isQuotaExhaustedError,
+  isTransientServerError,
+  runOpenAIFallback,
+} from "@/lib/openai-fallback";
 
 export const maxDuration = 180;
 
@@ -180,8 +186,7 @@ Respond with ONLY valid JSON (no markdown fences):
 }`;
 
   try {
-    console.log("[solver] calling Gemini");
-    const response = await getAI().models.generateContent({
+    const geminiParams = {
       model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
@@ -191,9 +196,29 @@ Respond with ONLY valid JSON (no markdown fences):
         ],
       }],
       config: { temperature: 0.2 },
-    });
-
-    const text = (response.text ?? "").trim();
+    };
+    let text: string;
+    try {
+      console.log("[solver] calling Gemini");
+      const response = await getAI().models.generateContent(geminiParams);
+      text = (response.text ?? "").trim();
+      if (!text) throw new Error("Empty Gemini response");
+    } catch (gerr) {
+      // Fall back to gpt-5.4 when Gemini either timed out (504
+      // DEADLINE_EXCEEDED, 503 UNAVAILABLE, stream cancel) OR is over
+      // its monthly quota (429 RESOURCE_EXHAUSTED). Same translation
+      // the per-OEQ marker uses — same model map, same prompt; we
+      // just hand the JSON back through this route's existing parse
+      // path. No retry on Gemini in between because the timeout
+      // already burned 170 s of the route's 180 s budget.
+      const overloaded = isTransientServerError(gerr) || isQuotaExhaustedError(gerr);
+      if (!overloaded || !isOpenAIFallbackEnabled()) throw gerr;
+      console.warn("[solver] Gemini failed, falling back to gpt-5.4:", gerr instanceof Error ? gerr.message : gerr);
+      const oai = await runOpenAIFallback(geminiParams, "solver");
+      text = (oai.text ?? "").trim();
+      if (!text) throw new Error("Empty gpt-5.4 response");
+      console.log("[solver] gpt-5.4 fallback returned", text.length, "chars");
+    }
     const jsonStr = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed = JSON.parse(jsonStr);
 
