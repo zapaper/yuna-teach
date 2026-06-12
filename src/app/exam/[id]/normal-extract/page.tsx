@@ -1970,7 +1970,7 @@ function NormalExtractTriggerRow({
             type="button"
             onClick={() => setClozeQPosition("right")}
             className={`px-2.5 py-1 transition-colors border-l border-slate-300 ${clozeQPosition === "right" ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}
-            title="Cloze school variant: (N) printed to the right of the blank, like standard editing. Editing school variant: (N) printed to the right of the underlined word inline (crop extends leftward to catch the word)."
+            title="Cloze school variant: (N) printed to the right of the blank, like standard editing. Editing school variant: underlined word sits to the RIGHT of the (N) inline — crop extends rightward past the (N)."
           >
             Right of blank
           </button>

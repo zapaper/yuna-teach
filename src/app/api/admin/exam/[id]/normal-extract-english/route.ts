@@ -717,41 +717,51 @@ export async function POST(
       });
       break;
     case "editing":
-      // Three layouts:
-      //   - DEFAULT (Q-number to the LEFT of the underlined word in a
-      //     margin column, standard PSLE):   x extends RIGHT to catch
-      //     the word.
-      //   - "above" school variant (Q-number sits BELOW the underlined
-      //     word inline in the passage):     x stays close, y extends
-      //     UPWARD to catch the word above.
-      //   - "right" school variant (Q-number sits to the RIGHT of the
-      //     underlined word inline):         x extends LEFT to catch
-      //     the word before it.
-      // qNumPosition is the same toggle the cloze sections use.
-      // Default deltas were tuned for the PSLE margin-column layout;
-      // school-variant editing papers vary on (N) placement, and
-      // without per-variant deltas the extractor grabs the wrong
-      // neighbourhood around each (N).
+      // qNumPosition is named after where the ANSWER AREA sits
+      // relative to the (N) anchor — the same toggle the cloze
+      // sections use. For Editing, the convention an admin uses is
+      // "the word I want to extract sits ABOVE / TO THE RIGHT OF the
+      // (N) number":
+      //
+      //   - "above" (school variant)  : word sits ABOVE the (N) inline.
+      //                                  Crop extends UPWARD.
+      //   - "right" (school variant)  : word sits TO THE RIGHT of the
+      //                                  (N) inline.                Crop
+      //                                  extends RIGHTWARD past the (N).
+      //   - DEFAULT (standard PSLE)   : (N) printed in the LEFT margin
+      //                                  column, word on the same row in
+      //                                  the body.                  Crop
+      //                                  extends RIGHTWARD past the (N).
+      //
+      // DEFAULT and "right" both extend rightward but differ in
+      // anchor-relative tightness: the margin-column default needs
+      // a wide rightward sweep to clear the margin gap before
+      // landing on the word, while the inline "right" variant has
+      // the word tight against the (N) and benefits from a slimmer
+      // y-band so neighbouring lines don't bleed in.
+      //
+      // Earlier rev shipped "right" with xLeftDelta=25 / xRightDelta=0
+      // — that extended LEFTWARD and the admin reported the crop
+      // landed on the wrong side of the (N).
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
         sectionHint: qNumPosition === "above"
-          ? "Editing (school variant) — numbered errors in a passage, question number sits BELOW the underlined word being corrected"
+          ? "Editing (school variant) — numbered errors in a passage, underlined word sits ABOVE the (N) number inline"
           : qNumPosition === "right"
-          ? "Editing (school variant) — numbered errors in a passage, question number sits to the RIGHT of the underlined word being corrected"
-          : "Editing — numbered errors in a passage, question number sits to the left of the word being corrected",
+          ? "Editing (school variant) — numbered errors in a passage, underlined word sits to the RIGHT of the (N) number inline (no margin column)"
+          : "Editing — numbered errors in a passage, (N) sits in the LEFT MARGIN column and the underlined word is on the same row in the body text",
         // y deltas at ±2.5% (5% total) — editing rows are single-line.
-        // "above":  x stays close to the (N) anchor (5/15), y extends
-        //           upward 4% to grab the word above.
-        // "right":  x extends LEFT 25% from the (N) to catch the word
-        //           that sits before it inline. y stays ±2.5%.
-        // DEFAULT:  x extends RIGHT 25% from the (N) margin column to
-        //           catch the underlined word.
+        // "above":  x stays close (5/15), y extends upward 4%.
+        // "right":  x extends rightward 20% (tighter than default
+        //           because the word is inline-tight, not across a
+        //           margin gap). y ±2% to keep the row narrow.
+        // DEFAULT:  x extends rightward 25% across the margin gap.
         ...(qNumPosition === "above"
           ? { xLeftDelta: 5, xRightDelta: 15, yTopDelta: 4, yBottomDelta: 0 }
           : qNumPosition === "right"
-          ? { xLeftDelta: 25, xRightDelta: 0, yTopDelta: 2.5, yBottomDelta: 2.5 }
+          ? { xLeftDelta: 0, xRightDelta: 20, yTopDelta: 2, yBottomDelta: 2 }
           : { xLeftDelta: 0, xRightDelta: 25, yTopDelta: 2.5, yBottomDelta: 2.5 }),
         pageCount: paper.pageCount ?? undefined,
       });
