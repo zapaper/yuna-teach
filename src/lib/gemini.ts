@@ -4451,8 +4451,12 @@ CHINESE PAPER (华文) — language-specific rules:
              |-------|--------|
              | The sun heated the water | |
              | | The plants grew |
+  * Answer lines (where student writes) — render EVERY printed answer line as the marker [LINES: N] on its OWN line at the end of the question stem, where N is the TOTAL number of printed answer lines for that question.
+      - One printed answer line  → [LINES: 1]
+      - Two printed answer lines → [LINES: 2]
+      - Three printed answer lines → [LINES: 3]
+  * THIS OVERRIDES the global rule above ("Keep blank lines as ___"). For COMPREHENSION OEQ stems, NEVER emit raw underscore runs (___, ____________, ____________________) in place of printed answer lines. The [LINES: N] marker is the ONLY accepted representation. The renderer turns it into the correct number of full-width writing lines; leaving raw underscores in the stem renders as literal underscore text on the quiz page.
   * Only include [LINES: N] where there are ACTUAL printed answer lines in the paper. Do NOT add lines that don't exist.
-  * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
   * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. Put EACH tick box on its OWN LINE — never run multiple [ ] markers on a single line. So a question like "Tick two: [ ] determined [ ] weak [ ] persevering" becomes:
        Tick two:
        [ ] determined
@@ -4608,7 +4612,8 @@ For EACH question, extract:
   For Comprehension OEQ: include the FULL question text in RICH TEXT format.
   - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
   - If the question contains checkboxes, use [ ] and [x] — put EACH checkbox on its OWN LINE (newline-separated), never multiple checkboxes on the same line
-  - If there are answer lines, show as [LINES: N]
+  - If there are answer lines, show as [LINES: N] on its OWN line at the END of the stem (N = total printed answer lines for that question; default to [LINES: 1] if exactly one).
+  - NEVER include raw underscore runs (___, ____________, ____________________) at the end of an OEQ stem. The OCR pass may have left them in; CONVERT them: every contiguous block of underscore-only rows at the tail of the stem becomes a SINGLE [LINES: N] marker where N is the number of rows you replaced. The renderer turns [LINES: N] into the correct number of writing lines, while raw underscores render as literal text and look broken on the quiz page.
   - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}${isChineseBooklet ? `
   CHINESE PAPER — language-specific stem rules:
   - Preserve Chinese characters EXACTLY. Do NOT translate or transliterate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.

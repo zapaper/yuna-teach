@@ -120,6 +120,38 @@ function coerceMarks(v: unknown): number | null {
 // "= ..." / dash / punctuation tails that wouldn't appear in a
 // legitimate one-word fill. Synthesis answers can be full sentences —
 // for those, only the parentheticals and pipe-explanation come off.
+// Comp OEQ stems sometimes leak raw underscore runs from the OCR
+// pass — the global "keep blank lines as ___" rule wins over the
+// OEQ-specific [LINES: N] instruction often enough that we need a
+// safety net at the extraction post-process step.
+//
+// Behaviour:
+//   - Find the TAIL block of contiguous lines that are nothing but
+//     whitespace and underscores (length ≥ 3 to avoid false matches
+//     on stray markdown rules).
+//   - Count those underscore-only rows.
+//   - Replace the whole tail with a single "[LINES: N]" marker.
+//   - If the AI already emitted [LINES: N], leave it alone.
+//   - If the stem has NO trailing underscore block, return as-is.
+function normaliseOeqAnswerLines(stem: string): string {
+  if (!stem) return stem;
+  // Already has a final [LINES: N] — assume the AI did the right
+  // thing and don't touch it.
+  if (/\[LINES:\s*\d+\]\s*$/i.test(stem.trim())) return stem;
+  // Match a trailing block of underscore-only lines (≥3 underscores
+  // per line). Newlines + whitespace between rows are allowed.
+  const tailRe = /((?:\s*_{3,}\s*\n?)+)\s*$/;
+  const m = stem.match(tailRe);
+  if (!m) return stem;
+  // Count underscore rows in the matched block. Split on newline and
+  // count rows that contain ≥3 underscores.
+  const block = m[1];
+  const rowCount = block.split(/\n/).filter(r => /_{3,}/.test(r)).length;
+  if (rowCount === 0) return stem;
+  const head = stem.slice(0, m.index ?? stem.length).replace(/\s+$/, "");
+  return `${head}\n[LINES: ${rowCount}]`;
+}
+
 function cleanAnswerKeyExplanation(answer: string, aggressive: boolean): string {
   if (!answer) return "";
   let s = answer.trim();
@@ -479,7 +511,23 @@ async function extractExamPaperCore(
               const t = q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? null;
               return isChineseEarly ? normaliseChineseSectionLabel(t) : t;
             })(),
-            transcribedStem: ext._stem || ext._blankContext || ext._errorWord || undefined,
+            transcribedStem: (() => {
+              const raw = ext._stem || ext._blankContext || ext._errorWord || undefined;
+              if (!raw) return undefined;
+              // Comp OEQ stems sometimes leak raw underscore runs from
+              // the OCR pass — the OCR prompt's global "keep blank
+              // lines as ___" rule wins over the OEQ-specific
+              // [LINES: N] instruction often enough that we need a
+              // safety net. Convert ANY trailing block of
+              // underscore-only rows on Comp OEQ stems to a single
+              // [LINES: N] marker (N = number of rows replaced). The
+              // renderer treats [LINES: N] as N writing lines;
+              // underscores render as literal text and look broken.
+              const topicLc = (q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? "").toLowerCase();
+              const isCompOeqForLines = topicLc.includes("comprehension") && topicLc.includes("open");
+              if (!isCompOeqForLines) return raw;
+              return normaliseOeqAnswerLines(raw);
+            })(),
             transcribedOptions: ext._options || undefined,
           });
         }
