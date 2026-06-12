@@ -301,11 +301,16 @@ function drawTopicTrendChart(
   return canvas.toBuffer("image/png");
 }
 
-function pickWeakTopics(topics: TopicRow[], avg: number, maxOut = 2): TopicRow[] {
-  return topics
-    .filter(t => t.attempts >= WEAK_MIN_ATTEMPTS && t.pct < avg - WEAK_GAP_PP)
-    .sort((a, b) => a.pct - b.pct)
-    .slice(0, maxOut);
+function pickWeakTopics(topics: TopicRow[], _avg: number, maxOut = 2): TopicRow[] {
+  // Just the two lowest-scoring topics. Earlier we required a topic
+  // to be ≥ WEAK_GAP_PP below the subject average (and ≥
+  // WEAK_MIN_ATTEMPTS attempts) before surfacing it, but on
+  // strong-overall children that filter zeroed out and the email
+  // had nothing to recommend. The bottom-2-by-pct rule always
+  // produces actionable rows. We still want enough attempts to
+  // trust the number — the chart already only shows topics with
+  // ≥ 3 attempts, so the topics array reaching us is pre-filtered.
+  return [...topics].sort((a, b) => a.pct - b.pct).slice(0, maxOut);
 }
 
 const SUBJECT_LABEL: Record<string, string> = {
@@ -467,9 +472,8 @@ function buildEmailHtml(args: {
 
     <p style="margin:24px 0 4px 0;color:#737780;font-size:11px;line-height:1.5;">
       This report is generated the first time a child completes at least ${MIN_QUIZZES} ${quizNoun}s
-      covering at least ${MIN_TOPICS} distinct topics in a subject. Weak spots come from topics with at
-      least ${WEAK_MIN_ATTEMPTS} attempts that sit at least ${WEAK_GAP_PP} percentage points below the
-      subject average.
+      covering at least ${MIN_TOPICS} distinct topics in a subject. The "spots worth a closer look" are
+      simply the two lowest-scoring topics on the chart (each based on at least 3 attempts).
     </p>
     <p style="margin:6px 0 0 0;color:#737780;font-size:12px;">— The MarkForYou team</p>
   </div>
@@ -494,7 +498,7 @@ Full Report: ${progressLink}
   };
 }
 
-async function loadCandidates(args: { onlyStudentName?: string }) {
+async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: string }) {
   const allUsers = await prisma.user.findMany({
     select: { id: true, name: true, email: true, settings: true, level: true },
   });
@@ -666,9 +670,25 @@ async function loadCandidates(args: { onlyStudentName?: string }) {
     if (args.onlyStudentName && (student.name ?? "").toLowerCase() !== args.onlyStudentName.toLowerCase()) continue;
     const parentIds = parentOfStudent.get(agg.studentId) ?? [];
     let parent: { id: string; name: string; email: string | null } | null = null;
-    for (const pid of parentIds) {
-      const u = userById.get(pid);
-      if (u?.email) { parent = { id: u.id, name: u.name, email: u.email }; break; }
+    // Optional override: pick the linked parent whose email matches
+    // asParentEmail. Used to preview an email as a specific co-parent
+    // would receive it (e.g. one student linked to admin + a real
+    // parent: by default we pick whichever is first, but for the
+    // preview we want a particular one).
+    if (args.asParentEmail) {
+      for (const pid of parentIds) {
+        const u = userById.get(pid);
+        if (u?.email?.toLowerCase() === args.asParentEmail.toLowerCase()) {
+          parent = { id: u.id, name: u.name, email: u.email };
+          break;
+        }
+      }
+    }
+    if (!parent) {
+      for (const pid of parentIds) {
+        const u = userById.get(pid);
+        if (u?.email) { parent = { id: u.id, name: u.name, email: u.email }; break; }
+      }
     }
     if (!parent) continue;
 
@@ -812,11 +832,23 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
 }
 
 (async () => {
-  const mode = process.argv[2] ?? "--dry-run";
-  const arg = process.argv[3];
+  const argv = process.argv.slice(2);
+  // Pull --as-parent <email> out, leave the positional args (mode +
+  // student name) untouched. Used to preview an email as a specific
+  // linked-parent inbox would receive it, when a student is linked
+  // to more than one parent and the default first-with-email pick
+  // isn't the one you want.
+  let asParentEmail: string | undefined;
+  const asIdx = argv.indexOf("--as-parent");
+  if (asIdx >= 0) {
+    asParentEmail = argv[asIdx + 1];
+    argv.splice(asIdx, 2);
+  }
+  const mode = argv[0] ?? "--dry-run";
+  const arg = argv[1];
 
   if (mode === "--dry-run") {
-    const candidates = await loadCandidates({ onlyStudentName: arg });
+    const candidates = await loadCandidates({ onlyStudentName: arg, asParentEmail });
     console.log(`Dry-run: ${candidates.length} candidate (child, subject) pair${candidates.length === 1 ? "" : "s"}`);
     for (const c of candidates) {
       const flag = c.alreadySent ? ` [SKIP — already sent ${c.alreadySentAt}]` : "";
