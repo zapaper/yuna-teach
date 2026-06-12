@@ -71,9 +71,26 @@ export async function GET(
 
   const requesterIsAdmin = auth.isAdmin;
 
+  // Count actual submission JPEGs on disk. Used by the review page to
+  // tell a typed quiz (no files) from a printed-and-scanned-back quiz
+  // (page_N.jpg files exist) — the old client-side derivation
+  // (pageCount − answerPages.length − skipPages.length) treated any
+  // typed quiz that inherited metadata.answerPages from its master as
+  // a scan-back and surfaced admin-only "Cropped slice" + scanned-
+  // page UI on a quiz that never had a scan.
+  let submissionFileCount = 0;
+  try {
+    const subDir = path.join(SUBMISSIONS_DIR, paper.id);
+    const entries = await fs.readdir(subDir);
+    submissionFileCount = entries.filter(e => /^page_\d+\.jpe?g$/i.test(e)).length;
+  } catch {
+    // dir missing or unreadable → 0 files (typed quiz or fresh clone)
+  }
+
   return NextResponse.json({
     ...paper,
     requesterIsAdmin,
+    submissionFileCount,
     assignedToName: paper.assignedTo?.name ?? null,
     clones: paper.clones.map((c) => ({
       id: c.id,

@@ -447,9 +447,20 @@ function ExamReviewContent({ id }: { id: string }) {
           if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
           if (paper.metadata?.oeqPageMap) setOeqPageMap(paper.metadata.oeqPageMap as Record<string, number>);
           setPageCount(paper.pageCount ?? 0);
-          const ap = paper.metadata?.answerPages ?? [];
-          const sp = paper.metadata?.skipPages ?? [];
-          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length - sp.length);
+          // Prefer the server-side count of actual JPEGs on disk over
+          // the metadata-derived calc. The old formula
+          // (pageCount − answerPages.length − skipPages.length) returned
+          // a positive number for a typed quiz that inherited
+          // metadata.answerPages from its master — admin reviewers then
+          // saw the "Cropped slice" UI on quizzes that never scanned.
+          // The disk count can't be polluted by inheritance.
+          if (typeof paper.submissionFileCount === "number") {
+            setSubmissionPageCount(paper.submissionFileCount);
+          } else {
+            const ap = paper.metadata?.answerPages ?? [];
+            const sp = paper.metadata?.skipPages ?? [];
+            setSubmissionPageCount((paper.pageCount ?? 0) - ap.length - sp.length);
+          }
           // Map questionNum → full question data from paper
           for (const q of paper.questions ?? []) {
             if (q.questionNum) {
