@@ -96,8 +96,32 @@ function Content() {
     </div>
   );
 
-  const maxHourly = data ? Math.max(1, ...data.hourly.map((b) => b.total)) : 1;
-  const maxDaily = data ? Math.max(1, ...data.daily.map((b) => b.total)) : 1;
+  // Robust Y-axis cap. Absolute max made a single outlier day / hour
+  // dominate the scale and the rest of the bars looked tiny against
+  // it. Use the 90th-percentile bucket total over the 14-day window
+  // — drops a lone spike from the cap while keeping the typical
+  // max visible. Floor at 1 so an empty window doesn't divide by 0.
+  // Hourly chart shares the same metric (using daily totals across
+  // the 14-day window): a single hour-spike at a random time in
+  // the last 24h shouldn't shrink every other hour bar.
+  function robustCap(values: number[]): number {
+    if (values.length === 0) return 1;
+    const sorted = [...values].sort((a, b) => a - b);
+    const p90Idx = Math.max(0, Math.floor(sorted.length * 0.9) - 1);
+    return Math.max(1, sorted[p90Idx] ?? sorted[sorted.length - 1] ?? 1);
+  }
+  // Per-hour rough ceiling derived from daily totals: assume a busy
+  // day's traffic clusters in ~6 active hours, so peak-hour total
+  // ≈ busy day total / 6. Cap hourly Y at the larger of the
+  // observed hourly max (so we don't clip below real data) and
+  // this derived rate (so a quiet 24h period doesn't make every
+  // hour look like the daily peak).
+  const dailyTotals = data ? data.daily.map((b) => b.total) : [];
+  const dailyCap = data ? robustCap(dailyTotals) : 1;
+  const hourlyTotals = data ? data.hourly.map((b) => b.total) : [];
+  const observedHourlyMax = data ? Math.max(1, ...hourlyTotals) : 1;
+  const maxHourly = Math.max(observedHourlyMax, Math.ceil(dailyCap / 6));
+  const maxDaily = dailyCap;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -149,7 +173,10 @@ function Content() {
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 24 hours · {data.tz}</h2>
               <div className="flex items-end gap-1 h-32">
                 {data.hourly.map((b, i) => {
-                  const hPct = Math.round((b.total / maxHourly) * 100);
+                  const hPct = Math.min(100, Math.round((b.total / maxHourly) * 100));
+                  // (cap clamped at 100% so the rare outlier bar
+                  // hits the top instead of overflowing — see
+                  // robustCap above for the cap derivation.)
                   const failPct = b.total > 0 ? Math.round((b.failed / b.total) * 100) : 0;
                   const stuckPct = b.total > 0 ? Math.round((b.stuck / b.total) * 100) : 0;
                   return (
@@ -172,7 +199,7 @@ function Content() {
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 14 days · {data.tz}</h2>
               <div className="flex items-end gap-2 h-32">
                 {data.daily.map((b, i) => {
-                  const hPct = Math.round((b.total / maxDaily) * 100);
+                  const hPct = Math.min(100, Math.round((b.total / maxDaily) * 100));
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${b.bucket} — total ${b.total}, complete ${b.complete}, in-progress ${b.inProgress}, stuck ${b.stuck}, failed ${b.failed}`}>
                       <div className="w-full flex-1 flex flex-col-reverse">
