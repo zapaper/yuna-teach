@@ -2470,12 +2470,43 @@ function McqQuestionCard({
             // "Draw on diagrams" precisely to set this expectation.
             // The overlay is pointer-events-none unless tool === pen /
             // eraser, so normal stem reading + scrolling is untouched.
-            <div className="relative mb-5 lg:mb-6">
-              <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
-                <MathText text={question.transcribedStem} />
-              </p>
-              <ScratchOverlay tool={tool} tabletOnly />
-            </div>
+            //
+            // Personal Quiz tip: when the stem begins with a "💡 Tip — "
+            // prefix and is separated from the actual question stem by
+            // a "\n\n—\n\n" marker (added by scripts/_generate-personal-quiz.ts),
+            // render the tip in a green box above the stem so the
+            // student visually distinguishes the technique reminder
+            // from the question they need to answer.
+            (() => {
+              const stem = question.transcribedStem;
+              const SEP = "\n\n—\n\n";
+              if (stem.startsWith("💡 Tip —") && stem.includes(SEP)) {
+                const [tip, rest] = stem.split(SEP);
+                return (
+                  <>
+                    <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
+                      <p className="font-headline text-base lg:text-lg font-semibold leading-relaxed text-[#065f46] whitespace-pre-wrap">
+                        <MathText text={tip} />
+                      </p>
+                    </div>
+                    <div className="relative mb-5 lg:mb-6">
+                      <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
+                        <MathText text={rest} />
+                      </p>
+                      <ScratchOverlay tool={tool} tabletOnly />
+                    </div>
+                  </>
+                );
+              }
+              return (
+                <div className="relative mb-5 lg:mb-6">
+                  <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
+                    <MathText text={stem} />
+                  </p>
+                  <ScratchOverlay tool={tool} tabletOnly />
+                </div>
+              );
+            })()
           )}
 
           {/* Fallback: show question image if no stem text. Even though
