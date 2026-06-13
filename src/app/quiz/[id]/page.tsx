@@ -2482,12 +2482,20 @@ function McqQuestionCard({
               const SEP = "\n\n—\n\n";
               if (stem.startsWith("💡 Tip —") && stem.includes(SEP)) {
                 const [tip, rest] = stem.split(SEP);
+                const nlIdx = tip.indexOf("\n");
+                const tipTitle = nlIdx >= 0 ? tip.slice(0, nlIdx) : tip;
+                const tipBody = nlIdx >= 0 ? tip.slice(nlIdx + 1) : "";
                 return (
                   <>
                     <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
-                      <p className="font-headline text-base lg:text-lg font-semibold leading-relaxed text-[#065f46] whitespace-pre-wrap">
-                        <MathText text={tip} />
+                      <p className="font-headline text-base lg:text-lg font-extrabold leading-relaxed text-[#065f46]">
+                        <MathText text={tipTitle} />
                       </p>
+                      {tipBody && (
+                        <p className="font-headline text-base lg:text-lg font-semibold leading-relaxed text-[#065f46] whitespace-pre-wrap mt-2">
+                          <MathText text={tipBody} />
+                        </p>
+                      )}
                     </div>
                     <div className="relative mb-5 lg:mb-6">
                       <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] whitespace-pre-wrap">
@@ -3213,12 +3221,20 @@ function OeqQuestionCard({
                   const SEP = "\n\n—\n\n";
                   if (fullStem.startsWith("💡 Tip —") && fullStem.includes(SEP)) {
                     const [tip, rest] = fullStem.split(SEP);
+                    const nlIdx = tip.indexOf("\n");
+                    const tipTitle = nlIdx >= 0 ? tip.slice(0, nlIdx) : tip;
+                    const tipBody = nlIdx >= 0 ? tip.slice(nlIdx + 1) : "";
                     return (
                       <>
                         <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
-                          <p className="font-headline text-base lg:text-lg font-semibold text-[#065f46] leading-relaxed whitespace-pre-wrap">
-                            <MathText text={tip} />
+                          <p className="font-headline text-base lg:text-lg font-extrabold text-[#065f46] leading-relaxed">
+                            <MathText text={tipTitle} />
                           </p>
+                          {tipBody && (
+                            <p className="font-headline text-base lg:text-lg font-semibold text-[#065f46] leading-relaxed whitespace-pre-wrap mt-2">
+                              <MathText text={tipBody} />
+                            </p>
+                          )}
                         </div>
                         <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
                           <MathText text={stripQnPrefix(rest)} />
