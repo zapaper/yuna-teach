@@ -157,7 +157,7 @@ function Content() {
             {/* Hourly chart — last 24h */}
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 24 hours · {data.tz}</h2>
-              <div className="flex items-end gap-1 h-32">
+              <div className="flex items-stretch gap-1 h-32">
                 {data.hourly.map((b, i) => {
                   const hPct = Math.min(100, Math.round((b.total / maxHourly) * 100));
                   // (cap clamped at 100% so the rare outlier bar
@@ -226,7 +226,7 @@ function Content() {
             {/* Daily chart — last 14d */}
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 14 days · {data.tz}</h2>
-              <div className="flex items-end gap-2 h-32">
+              <div className="flex items-stretch gap-2 h-32">
                 {data.daily.map((b, i) => {
                   const hPct = Math.min(100, Math.round((b.total / maxDaily) * 100));
                   return (
