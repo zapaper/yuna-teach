@@ -438,11 +438,15 @@ function buildEmailHtml(args: {
            : `Create focused practice on ${w.topic} →`;
          const ctaHref = focusedLink(w.topic, { revise: stuckHighVolume });
          // Encouraging copy for the "lots of practice, still stuck"
-         // case. Language subjects get an extra line about exposure
-         // / context being the lever — Math/Science don't need that
-         // framing.
+         // case. Language vs Math/Science get different tails:
+         //   - English/Chinese — exposure/quantity framing
+         //   - Math/Science — point at the per-question explanations
+         //     on the review page (concept clarification + trap notes)
          const isLanguageSubject = args.subject === "English" || args.subject === "Chinese";
-         const stuckCopy = `${childFirst} has been working hard at this. Let's review the past mistakes before jumping into another practice. Don't give up.${isLanguageSubject ? ` Language is a quantity game — more exposure to different contexts is what starts to move the score.` : ""}`;
+         const stuckTail = isLanguageSubject
+           ? ` Language is a quantity game — more exposure to different contexts is what starts to move the score.`
+           : ` Read our explanations for the questions that ${childFirst} got wrong. They may help clarify some concepts and explain the traps in some of the tricky questions.`;
+         const stuckCopy = `${childFirst} has been working hard at this. Let's review the past mistakes before jumping into another practice. Don't give up.${stuckTail}`;
          const ctaHint = stuckHighVolume
            ? `<p style="margin:4px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">${stuckCopy}</p>`
            : w.alreadyPracticed
