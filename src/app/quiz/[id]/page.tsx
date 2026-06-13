@@ -2489,10 +2489,10 @@ function McqQuestionCard({
                   <>
                     <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
                       <p className="font-headline text-base lg:text-lg font-extrabold leading-relaxed text-[#065f46]">
-                        <MathText text={tipTitle} />
+                        {tipTitle}
                       </p>
                       {tipBody && (
-                        <p className="font-headline text-base lg:text-lg font-semibold leading-relaxed text-[#065f46] whitespace-pre-wrap mt-2">
+                        <p className="font-headline text-base lg:text-lg font-medium leading-relaxed text-[#065f46] whitespace-pre-wrap mt-2">
                           <MathText text={tipBody} />
                         </p>
                       )}
@@ -3228,10 +3228,10 @@ function OeqQuestionCard({
                       <>
                         <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
                           <p className="font-headline text-base lg:text-lg font-extrabold text-[#065f46] leading-relaxed">
-                            <MathText text={tipTitle} />
+                            {tipTitle}
                           </p>
                           {tipBody && (
-                            <p className="font-headline text-base lg:text-lg font-semibold text-[#065f46] leading-relaxed whitespace-pre-wrap mt-2">
+                            <p className="font-headline text-base lg:text-lg font-medium text-[#065f46] leading-relaxed whitespace-pre-wrap mt-2">
                               <MathText text={tipBody} />
                             </p>
                           )}
