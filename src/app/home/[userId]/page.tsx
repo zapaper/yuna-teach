@@ -558,6 +558,7 @@ export default function HomePage({
         emailFocusedStudentId={searchParams.get("studentId") ?? undefined}
         emailFocusedSubject={searchParams.get("subject") ?? undefined}
         emailFocusedTopic={searchParams.get("topic") ?? undefined}
+        emailFocusedRevise={searchParams.get("revise") === "1"}
       />
       {adminNotifPopup}
     </>;

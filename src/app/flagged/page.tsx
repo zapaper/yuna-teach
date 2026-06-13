@@ -153,7 +153,13 @@ function FlaggedContent() {
                         : isQuizOrFocused || isCompletedClone
                           ? `/exam/${examId}/review`
                           : `/exam/${examId}/overview`;
-                      window.open(`${path}?userId=${userId}`, "_blank");
+                      // Mastery rows skip the "Quiz Complete" landing
+                      // (admin wants to vet the question content, not
+                      // the celebration screen).
+                      const qs = isMastery
+                        ? `?userId=${userId}&direct=1`
+                        : `?userId=${userId}`;
+                      window.open(`${path}${qs}`, "_blank");
                     }}
                     className="text-sm font-bold text-primary-600 hover:text-primary-800 underline underline-offset-2"
                   >

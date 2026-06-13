@@ -143,6 +143,11 @@ function QuizContent({ id }: { id: string }) {
   const userId = searchParams.get("userId") ?? "";
   const isDiagnostic = searchParams.get("diagnostic") === "1";
   const diagnosticParentId = searchParams.get("parentId") ?? "";
+  // ?direct=1 — flagged-Q&A vetting flow. Skips the "Quiz Complete"
+  // post-submission screen so the admin lands directly on the
+  // question content even for a quiz the student has already
+  // submitted. The student-facing flow never sets this.
+  const directInspect = searchParams.get("direct") === "1";
   // Build the URL suffix that forwards the diagnostic flag (and parent id) to the review page
   // so the first-quiz popup + 'Open parent homepage' button render there instead of here.
   const diagnosticSuffix = isDiagnostic && diagnosticParentId ? `&diagnostic=1&parentId=${diagnosticParentId}` : "";
@@ -736,7 +741,7 @@ function QuizContent({ id }: { id: string }) {
         // Load saved canvas heights
         const savedHeights = (data.metadata as { canvasHeights?: Record<string, number> } | null)?.canvasHeights;
         if (savedHeights) canvasHeights.current = savedHeights;
-        if (data.completedAt) {
+        if (data.completedAt && !directInspect) {
           setSubmitted(true);
           if (data.markingStatus === "complete" || data.markingStatus === "released") {
             setMarkingDone(true);

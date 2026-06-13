@@ -59,6 +59,7 @@ type TopicRow = {
   recentPct?: number | null;         // last 5 attempts' pct (null if < 10 attempts total)
   trendImproving?: boolean;          // recentPct > overall pct + 5 AND ≥ 10 attempts
   trendChartCid?: string;            // CID of the inline trend chart PNG, when one was generated
+  paperCount?: number;               // distinct papers (by completedAt) that touched this topic
 };
 
 function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studentName: string): Buffer {
@@ -206,7 +207,7 @@ function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studen
 // of data, we overlay a 3-paper rolling-average line + darker dots
 // (the "main signal"). Subject-average line in dashed red.
 function drawTopicTrendChart(
-  perPaperPoints: Array<{ ts: Date; awarded: number; available: number; pct: number }>,
+  perPaperPoints: Array<{ ts: Date; awarded: number; available: number; pct: number; count: number }>,
   topicLabel: string,
   topicAvg: number,
 ): Buffer {
@@ -216,19 +217,24 @@ function drawTopicTrendChart(
   if (series.length === 0) return Buffer.alloc(0);
 
   // 3-paper rolling bucket when ≥6 papers; per-paper otherwise.
+  // bucket.count = total questions across the bucket's papers — shown
+  // as `n=N` next to each dot so the parent sees the scale behind
+  // each rolling-average value (mirrors the main chart's per-bar
+  // n=X annotation).
   const BUCKET = 3;
   const bucketed = series.length >= 2 * BUCKET;
-  const buckets: Array<{ from: number; to: number; pct: number }> = [];
+  const buckets: Array<{ from: number; to: number; pct: number; count: number }> = [];
   if (bucketed) {
     for (let i = 0; i < series.length; i += BUCKET) {
       const window = series.slice(i, i + BUCKET);
       const e = window.reduce((s, p) => s + p.awarded, 0);
       const a = window.reduce((s, p) => s + p.available, 0);
+      const n = window.reduce((s, p) => s + p.count, 0);
       if (a <= 0) continue;
-      buckets.push({ from: i, to: Math.min(i + BUCKET - 1, series.length - 1), pct: (e / a) * 100 });
+      buckets.push({ from: i, to: Math.min(i + BUCKET - 1, series.length - 1), pct: (e / a) * 100, count: n });
     }
   } else {
-    series.forEach((p, i) => buckets.push({ from: i, to: i, pct: p.pct }));
+    series.forEach((p, i) => buckets.push({ from: i, to: i, pct: p.pct, count: p.count }));
   }
 
   const W = 800, H = 280;
@@ -343,6 +349,7 @@ function buildEmailHtml(args: {
   weak: TopicRow[];
   strong: TopicRow[];
   chartCid: string;
+  totalAttempts: number;
 }): { html: string; text: string; subject: string } {
   // "Full Report" link → /progress/<studentId>?userId=<parentId>.
   // Per-topic CTAs → /home/<parentId>?focused=1&studentId=…&subject=…
@@ -353,8 +360,8 @@ function buildEmailHtml(args: {
   //   src/app/home/[userId]/page.tsx (emailFocused* prop passthrough)
   //   src/app/home/[userId]/ParentDashboard.tsx (mount useEffect)
   const progressLink = `${BASE_URL}/progress/${args.studentId}?userId=${args.parentId}`;
-  const focusedLink = (topic: string) =>
-    `${BASE_URL}/home/${args.parentId}?focused=1&studentId=${args.studentId}&subject=${encodeURIComponent(args.subject.toLowerCase())}&topic=${encodeURIComponent(topic)}`;
+  const focusedLink = (topic: string, opts?: { revise?: boolean }) =>
+    `${BASE_URL}/home/${args.parentId}?focused=1&studentId=${args.studentId}&subject=${encodeURIComponent(args.subject.toLowerCase())}&topic=${encodeURIComponent(topic)}${opts?.revise ? "&revise=1" : ""}`;
   // Warmer verdicts. Earlier "coming along" / "lean into together"
   // language read as a polite way of saying "below" — replaced with
   // explicitly encouraging phrasing that opens the door rather than
@@ -411,23 +418,40 @@ function buildEmailHtml(args: {
            : "";
          const trendChartImg = w.trendChartCid
            ? `<img src="cid:${w.trendChartCid}" alt="${w.topic} trend over time" style="width:100%;max-width:680px;display:block;border-radius:10px;border:1px solid #ddd6fe;margin:8px 0 10px 0;" />`
-           : "";
-         // Always pitch the next action as "Create focused practice"
-         // — keeps a single, consistent affordance across every weak
-         // topic. When the child has already practiced this topic
-         // before, surface that fact above the CTA and link the
-         // phrase "review the past mistakes" to the most recent
-         // focused-practice review page so a parent who wants the
-         // older route can still get there in one click.
-         const ctaLabel = `Create focused practice on ${w.topic} →`;
-         const ctaHref = focusedLink(w.topic);
-         const ctaHint = w.alreadyPracticed
-           ? `<p style="margin:4px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">${childFirst} has done a Focused Practice on this topic before — ${
-               w.reviewLink
-                 ? `<a href="${w.reviewLink}" style="color:#737780;text-decoration:underline;">review the past mistakes</a>`
-                 : "review the past mistakes"
-             } before you start another focus practice.</p>`
-           : "";
+           : w.paperCount === 1
+             ? `<p style="margin:6px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">Only 1 paper attempted on this topic so far — we'll be able to show a trend after the next focused practice.</p>`
+             : "";
+         // CTA branches three ways:
+         //   1. High-volume but stuck (≥ 40 attempts AND not
+         //      improving) — likely doing more new questions won't
+         //      help; better to revise past mistakes first. CTA
+         //      opens the focused-practice modal pre-set to revision
+         //      mode (revise=1 → setRevisionMode(true)).
+         //   2. Already did a Focused Practice on this topic before —
+         //      surface a "review past mistakes" link to the most
+         //      recent focused-practice review page above the
+         //      standard "Create focused practice" CTA.
+         //   3. Default — straight "Create focused practice" CTA.
+         const stuckHighVolume = w.attempts >= 40 && !w.trendImproving;
+         const ctaLabel = stuckHighVolume
+           ? `Revise past mistakes — focused practice on ${w.topic} →`
+           : `Create focused practice on ${w.topic} →`;
+         const ctaHref = focusedLink(w.topic, { revise: stuckHighVolume });
+         // Encouraging copy for the "lots of practice, still stuck"
+         // case. Language subjects get an extra line about exposure
+         // / context being the lever — Math/Science don't need that
+         // framing.
+         const isLanguageSubject = args.subject === "English" || args.subject === "Chinese";
+         const stuckCopy = `${childFirst} has been working hard at this. Let's review the past mistakes before jumping into another practice. Don't give up.${isLanguageSubject ? ` Language is a quantity game — more exposure to different contexts is what starts to move the score.` : ""}`;
+         const ctaHint = stuckHighVolume
+           ? `<p style="margin:4px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">${stuckCopy}</p>`
+           : w.alreadyPracticed
+             ? `<p style="margin:4px 0 10px 0;color:#737780;font-size:12px;font-style:italic;">${childFirst} has done a Focused Practice on this topic before — ${
+                 w.reviewLink
+                   ? `<a href="${w.reviewLink}" style="color:#737780;text-decoration:underline;">review the past mistakes</a>`
+                   : "review the past mistakes"
+               } before you start another focus practice.</p>`
+             : "";
          return `
          <div style="border:1px solid #b6f0ce;border-radius:12px;padding:14px;margin-bottom:10px;background:#ecfdf5;">
            <p style="margin:0;font-weight:700;color:#047857;font-size:14px;">${w.topic}${trendBadge}</p>
@@ -473,7 +497,7 @@ function buildEmailHtml(args: {
     <p style="margin:24px 0 4px 0;color:#737780;font-size:11px;line-height:1.5;">
       This report is generated the first time a child completes at least ${MIN_QUIZZES} ${quizNoun}s
       covering at least ${MIN_TOPICS} distinct topics in a subject. The "spots worth a closer look" are
-      simply the two lowest-scoring topics on the chart (each based on at least 3 attempts).
+      simply the two lowest-scoring topics on the chart (each based on at least 3 attempts).${args.totalAttempts < 100 ? ` With more practices, we can also build a more accurate picture.` : ""}
     </p>
     <p style="margin:6px 0 0 0;color:#737780;font-size:12px;">— The MarkForYou team</p>
   </div>
@@ -494,26 +518,37 @@ Full Report: ${progressLink}
   return {
     html,
     text,
-    subject: `${childFirst}'s Progress Report and Recommended Next Steps`,
+    // Subject line leads with the school subject so it shows up
+    // before any inbox truncation on mobile — "Science Progress
+    // Report for Benjamin ong" reads as a clear tagged report.
+    // childName uses the DB-stored form (which may be lowercase
+    // surname) to match what the parent calls the child.
+    subject: `${args.subject} Progress Report for ${args.studentName}`,
   };
 }
 
-async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: string }) {
+async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: string; includeExcluded?: boolean }) {
   const allUsers = await prisma.user.findMany({
     select: { id: true, name: true, email: true, settings: true, level: true },
   });
-  const excludedIds = new Set(
-    allUsers
-      .filter(u => {
-        const lower = (u.name ?? "").toLowerCase();
-        if (EXCLUDED_NAMES.has(lower)) return true;
-        if (EXCLUDED_FAMILIES.some(f => lower.includes(f))) return true;
-        const s = u.settings as { admin?: unknown } | null;
-        if (s?.admin === true) return true;
-        return false;
-      })
-      .map(u => u.id),
-  );
+  // includeExcluded turns off the test-account / admin / lim-family
+  // filter — used by the preview path so we can render the email for
+  // a normally-excluded student (e.g. Mark Lim) before deciding
+  // whether to send it.
+  const excludedIds = args.includeExcluded
+    ? new Set<string>()
+    : new Set(
+        allUsers
+          .filter(u => {
+            const lower = (u.name ?? "").toLowerCase();
+            if (EXCLUDED_NAMES.has(lower)) return true;
+            if (EXCLUDED_FAMILIES.some(f => lower.includes(f))) return true;
+            const s = u.settings as { admin?: unknown } | null;
+            if (s?.admin === true) return true;
+            return false;
+          })
+          .map(u => u.id),
+      );
   const userById = new Map(allUsers.map(u => [u.id, u]));
   const links = await prisma.parentStudent.findMany({
     select: { parentId: true, studentId: true },
@@ -564,13 +599,18 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
       agg = { studentId: p.assignedToId, subject: subj, eligibilityCount: 0, topics: new Map() };
       byKey.set(k, agg);
     }
-    // Eligibility counter — only daily quizzes (Math/Sci) and
-    // focused practices (Eng/Ch) advance the milestone gate.
+    // Eligibility counter — Math/Sci require "Daily Quiz" titled
+    // papers (the mixed-topic diagnostic). Eng/Ch count any quiz or
+    // focused practice — English daily quizzes are titled by format
+    // ("P6 Grammar MCQ+", "P6 Compre Cloze+") and don't carry the
+    // "Daily Quiz" label, so the title filter would zero out kids
+    // doing the standard daily English flow.
     const isMathSci = subj === "Math" || subj === "Science";
     const isEngCh = subj === "English" || subj === "Chinese";
     const isDailyQuiz = p.paperType === "quiz" && (p.title?.toLowerCase().includes("daily quiz") ?? false);
     const isFocused = p.paperType === "focused";
-    if ((isMathSci && isDailyQuiz) || (isEngCh && isFocused)) agg.eligibilityCount++;
+    const isAnyQuiz = p.paperType === "quiz";
+    if ((isMathSci && isDailyQuiz) || (isEngCh && (isFocused || isAnyQuiz))) agg.eligibilityCount++;
     // Chart + average data — every question on every paper in this
     // subject EXCEPT explicit "__SKIPPED__" rows (the canonical
     // skipped sentinel). /api/student-progress drops the same set,
@@ -651,11 +691,14 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
       const prior = focusedByStudentTopic.get(`${agg.studentId}::${w.topic}`) ?? [];
       w.alreadyPracticed = prior.length > 0;
       w.reviewLink = prior.length > 0 ? `${BASE_URL}/exam/${prior[0].paperId}/review` : null;
-      // Improvement trend — only meaningful with ≥ 10 attempts. Take
-      // the last 5 by completedAt; if their pct beats the overall
-      // topic pct by ≥ 5 pp, flag improving.
       const log = (w.attemptsLog ?? []).filter(a => a.available > 0).sort((a, b) => a.ts.getTime() - b.ts.getTime());
-      if (log.length >= 10) {
+      const distinctPapers = new Set(log.map(a => a.ts.getTime())).size;
+      w.paperCount = distinctPapers;
+      // Improvement trend — only meaningful with ≥ 10 attempts AND
+      // ≥ 2 distinct papers. A 12-question paper on a single topic
+      // would otherwise compute a "last 5 vs overall" trend within
+      // one sitting, which isn't a trend.
+      if (log.length >= 10 && distinctPapers >= 2) {
         const last5 = log.slice(-5);
         const last5Earned = last5.reduce((s, a) => s + a.awarded, 0);
         const last5Avail = last5.reduce((s, a) => s + a.available, 0);
@@ -669,39 +712,64 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
     if (!student) continue;
     if (args.onlyStudentName && (student.name ?? "").toLowerCase() !== args.onlyStudentName.toLowerCase()) continue;
     const parentIds = parentOfStudent.get(agg.studentId) ?? [];
-    let parent: { id: string; name: string; email: string | null } | null = null;
-    // Optional override: pick the linked parent whose email matches
-    // asParentEmail. Used to preview an email as a specific co-parent
-    // would receive it (e.g. one student linked to admin + a real
-    // parent: by default we pick whichever is first, but for the
-    // preview we want a particular one).
+
+    // Build the recipient list. Default: every linked parent who
+    // has an email on file — so a child linked to two parents
+    // generates two candidate rows and both get a copy. (A parent
+    // linked to two eligible kids naturally gets two emails the
+    // same way — those come through as separate (child, subject)
+    // candidates.) The preview path can narrow to a single
+    // recipient via --as-parent <email>.
+    type ResolvedParent = { id: string; name: string; email: string };
+    const recipients: ResolvedParent[] = [];
     if (args.asParentEmail) {
+      // Preview path — exactly one recipient. Either a linked
+      // parent matching that email, or a synthesized one when no
+      // linked parent matches.
+      let matched: ResolvedParent | null = null;
       for (const pid of parentIds) {
         const u = userById.get(pid);
         if (u?.email?.toLowerCase() === args.asParentEmail.toLowerCase()) {
-          parent = { id: u.id, name: u.name, email: u.email };
+          matched = { id: u.id, name: u.name, email: u.email };
           break;
         }
       }
-    }
-    if (!parent) {
+      if (!matched) {
+        const local = args.asParentEmail.split("@")[0] ?? args.asParentEmail;
+        const niceName = local.split(/[._-]+/)[0].replace(/^./, c => c.toUpperCase());
+        // id "" is fine — only used for dashboard / progress-page
+        // links, which are inert previews when no real account.
+        matched = { id: "", name: niceName, email: args.asParentEmail };
+      }
+      recipients.push(matched);
+    } else {
+      // Real path — fan out to EVERY linked parent who has an
+      // email. Deduplicated by email so a parent linked twice
+      // doesn't get the report twice.
+      const seenEmails = new Set<string>();
       for (const pid of parentIds) {
         const u = userById.get(pid);
-        if (u?.email) { parent = { id: u.id, name: u.name, email: u.email }; break; }
+        const e = u?.email?.toLowerCase();
+        if (!u || !u.email || !e) continue;
+        if (seenEmails.has(e)) continue;
+        seenEmails.add(e);
+        recipients.push({ id: u.id, name: u.name, email: u.email });
       }
     }
-    if (!parent) continue;
+    if (recipients.length === 0) continue;
 
     const subjectKey = agg.subject.toLowerCase();
     const sentMap = (student.settings as { progressReportsSent?: Record<string, string> } | null)?.progressReportsSent ?? {};
     const alreadySentAt = sentMap[subjectKey] ?? null;
-    candidates.push({
-      studentId: student.id, studentName: student.name, studentLevel: student.level,
-      parentId: parent.id, parentName: parent.name, parentEmail: parent.email!,
-      subject: agg.subject, subjectKey,
-      quizzes: agg.eligibilityCount, avg, topics, weak, strong,
-      alreadySent: !!alreadySentAt, alreadySentAt,
-    });
+    for (const r of recipients) {
+      candidates.push({
+        studentId: student.id, studentName: student.name, studentLevel: student.level,
+        parentId: r.id, parentName: r.name, parentEmail: r.email,
+        subject: agg.subject, subjectKey,
+        quizzes: agg.eligibilityCount, avg, topics, weak, strong,
+        alreadySent: !!alreadySentAt, alreadySentAt,
+      });
+    }
   }
   return candidates;
 }
@@ -723,11 +791,13 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     const log = (w.attemptsLog ?? []).filter(a => a.available > 0);
     if (log.length === 0) continue;
     // Group attempts by completedAt timestamp (= per-paper).
-    const byTs = new Map<number, { ts: Date; awarded: number; available: number }>();
+    // count = how many questions on this paper were tagged to this
+    // topic, so the trend chart can render n=N alongside each dot.
+    const byTs = new Map<number, { ts: Date; awarded: number; available: number; count: number }>();
     for (const a of log) {
       const key = a.ts.getTime();
-      const cur = byTs.get(key) ?? { ts: a.ts, awarded: 0, available: 0 };
-      cur.awarded += a.awarded; cur.available += a.available;
+      const cur = byTs.get(key) ?? { ts: a.ts, awarded: 0, available: 0, count: 0 };
+      cur.awarded += a.awarded; cur.available += a.available; cur.count += 1;
       byTs.set(key, cur);
     }
     const perPaperPoints = [...byTs.values()]
@@ -754,6 +824,7 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     }
   }
 
+  const totalAttempts = c.topics.reduce((s, t) => s + t.attempts, 0);
   const { html, text, subject } = buildEmailHtml({
     parentFirstName: firstName(c.parentName),
     parentId: c.parentId,
@@ -766,6 +837,7 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     weak: c.weak,
     strong: c.strong,
     chartCid,
+    totalAttempts,
   });
 
   if (opts.dryRun) {
@@ -844,11 +916,13 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     asParentEmail = argv[asIdx + 1];
     argv.splice(asIdx, 2);
   }
+  const includeExcluded = argv.includes("--include-excluded");
+  if (includeExcluded) argv.splice(argv.indexOf("--include-excluded"), 1);
   const mode = argv[0] ?? "--dry-run";
   const arg = argv[1];
 
   if (mode === "--dry-run") {
-    const candidates = await loadCandidates({ onlyStudentName: arg, asParentEmail });
+    const candidates = await loadCandidates({ onlyStudentName: arg, asParentEmail, includeExcluded });
     console.log(`Dry-run: ${candidates.length} candidate (child, subject) pair${candidates.length === 1 ? "" : "s"}`);
     for (const c of candidates) {
       const flag = c.alreadySent ? ` [SKIP — already sent ${c.alreadySentAt}]` : "";
@@ -857,21 +931,52 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
     }
   } else if (mode === "--send-one") {
     if (!arg) throw new Error("Usage: --send-one <studentName>");
-    const candidates = await loadCandidates({ onlyStudentName: arg });
+    const candidates = await loadCandidates({ onlyStudentName: arg, includeExcluded });
     if (candidates.length === 0) throw new Error(`No eligible candidates for "${arg}"`);
+    // Per-recipient throttle: Gmail and other major receivers
+    // sometimes drop the 2nd of 3 emails when they land within ~1s of
+    // each other. A 6s gap between back-to-back sends to the same
+    // address spaces them out enough that each appears as a separate
+    // event in the receiver's pipeline. Tracked by recipient email
+    // (lowercased) — different inboxes don't have to wait on each
+    // other.
+    const PER_RECIPIENT_GAP_MS = 6000;
+    const lastSendAt = new Map<string, number>();
+    const throttle = async (email: string) => {
+      const k = email.toLowerCase();
+      const last = lastSendAt.get(k);
+      if (last) {
+        const wait = PER_RECIPIENT_GAP_MS - (Date.now() - last);
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      }
+      lastSendAt.set(k, Date.now());
+    };
     for (const c of candidates) {
       if (c.alreadySent) {
         console.log(`  ${c.studentName} ${c.subject} already sent ${c.alreadySentAt} — skipping`);
         continue;
       }
+      await throttle(c.parentEmail);
       await sendOne(c, { dryRun: false });
     }
   } else if (mode === "--send-all") {
     const candidates = await loadCandidates({});
     console.log(`Send-all: ${candidates.length} candidate (child, subject) pair${candidates.length === 1 ? "" : "s"}`);
     let sent = 0; let skipped = 0;
+    const PER_RECIPIENT_GAP_MS = 6000;
+    const lastSendAt = new Map<string, number>();
+    const throttle = async (email: string) => {
+      const k = email.toLowerCase();
+      const last = lastSendAt.get(k);
+      if (last) {
+        const wait = PER_RECIPIENT_GAP_MS - (Date.now() - last);
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      }
+      lastSendAt.set(k, Date.now());
+    };
     for (const c of candidates) {
       if (c.alreadySent) { skipped++; continue; }
+      await throttle(c.parentEmail);
       await sendOne(c, { dryRun: false });
       sent++;
     }

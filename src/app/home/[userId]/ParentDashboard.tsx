@@ -308,6 +308,7 @@ export default function ParentDashboard({
   emailFocusedStudentId,
   emailFocusedSubject,
   emailFocusedTopic,
+  emailFocusedRevise,
 }: {
   userId: string;
   user: User;
@@ -321,6 +322,7 @@ export default function ParentDashboard({
   emailFocusedStudentId?: string;
   emailFocusedSubject?: string;
   emailFocusedTopic?: string;
+  emailFocusedRevise?: boolean;
 }) {
   const router = useRouter();
   const avatarTypeMap: Record<string, string[]> = Object.fromEntries(
@@ -987,6 +989,7 @@ export default function ParentDashboard({
     setQuizSubject(target);
     setQuizStudentId(emailFocusedStudentId);
     setQuizTargetDay(null);
+    if (emailFocusedRevise) setRevisionMode(true);
     // Default the MCQ/MCQ+OEQ toggle to the richer mixed option for
     // Math / Science (where the choice exists). English's focused
     // path doesn't expose this toggle, so the set is a no-op there.
@@ -1019,7 +1022,7 @@ export default function ParentDashboard({
       setFocusedTopic(emailFocusedTopic);
     }
     setShowQuiz(true);
-  }, [emailFocused, emailFocusedSubject, emailFocusedTopic, emailFocusedStudentId, user.linkedStudents]);
+  }, [emailFocused, emailFocusedSubject, emailFocusedTopic, emailFocusedStudentId, emailFocusedRevise, user.linkedStudents]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
