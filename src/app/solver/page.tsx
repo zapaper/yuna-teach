@@ -569,7 +569,7 @@ function SolverContent() {
           </button>
           <div className="flex items-center gap-2">
             <img src="/logo_t.png" alt="Owl" className="w-8 h-8 object-contain" />
-            <span className="text-xl font-headline font-extrabold text-[#001e40]">AI Solver</span>
+            <span className="text-xl font-headline font-extrabold text-[#001e40]">Solver</span>
           </div>
         </div>
         <span className="material-symbols-outlined text-slate-400">account_circle</span>
@@ -581,10 +581,9 @@ function SolverContent() {
           <section className="mb-10 text-center">
             <div className="inline-flex items-center justify-center p-4 mb-6 rounded-3xl bg-[#d3e4fe] relative">
               <span className="material-symbols-outlined text-5xl text-[#001e40]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
-              <span className="absolute -top-2 -right-2 bg-[#006c49] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
             </div>
             <h1 className="text-2xl font-headline font-extrabold text-[#001e40] mb-3 leading-tight tracking-tight">Capture &amp; Solve</h1>
-            <p className="text-[#43474f] text-sm px-4 leading-relaxed">Take a photo or upload an image of a question and let AI solve it.</p>
+            <p className="text-[#43474f] text-sm px-4 leading-relaxed">Take a photo or upload an image of a question and let Solver work on it.</p>
           </section>
         )}
 
@@ -629,7 +628,7 @@ function SolverContent() {
           <div className="flex flex-col items-center justify-center py-16 gap-6">
             {imageDataUrl && <img src={imageDataUrl} alt="Question" className="w-full max-h-48 object-contain rounded-2xl shadow-sm border border-slate-100" />}
             <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#003366]/20 border-t-[#003366]" />
-            <p className="text-sm font-medium text-[#43474f]">AI is working on it…</p>
+            <p className="text-sm font-medium text-[#43474f]">Solver is working on it…</p>
           </div>
         )}
 
@@ -655,7 +654,7 @@ function SolverContent() {
             <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
               <FormattedText text={solution} className="text-sm text-slate-800 leading-relaxed whitespace-pre-line" />
-              <p className="text-xs text-slate-400 mt-3 italic">The AI is not yet trained on PSLE, so answers may sometimes be incorrect.</p>
+              <p className="text-xs text-slate-400 mt-3 italic">Solver is not yet trained on PSLE, so answers may sometimes be incorrect.</p>
             </div>
             <button onClick={handleShare} disabled={sharing}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#001e40] text-white text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50">
