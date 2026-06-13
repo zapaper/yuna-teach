@@ -26,6 +26,7 @@ type StudentRow = {
   lastLoginAt: string | null;
   paperCount: number;
   parents: { id: string; name: string; displayName: string | null; email: string | null }[];
+  progressEmailsSent: { subjectKey: string; sentAt: string }[];
 };
 
 // Friendly relative-time label, falling back to the local date for
@@ -303,6 +304,7 @@ function AdminUsersContent() {
                     : "no linked parents",
                   linksLabel: "Linked parents",
                   role: "STUDENT" as const,
+                  progressEmailsSent: s.progressEmailsSent,
                 }))}
                 deleting={deleting}
                 onDelete={(id, name, role) => setConfirmDelete({ id, name, role })}
@@ -361,6 +363,7 @@ function UserSection({
     links: string;
     linksLabel: string;
     role: "PARENT" | "STUDENT";
+    progressEmailsSent?: { subjectKey: string; sentAt: string }[];
   }[];
   deleting: string | null;
   onDelete: (id: string, name: string, role: "PARENT" | "STUDENT") => void;
@@ -392,6 +395,14 @@ function UserSection({
               <p className="text-[11px] text-slate-500 mt-1.5">
                 <span className="font-semibold">{r.linksLabel}:</span> {r.links}
               </p>
+              {r.progressEmailsSent && r.progressEmailsSent.length > 0 && (
+                <p className="text-[11px] text-green-700 mt-1.5 font-semibold">
+                  Progress report sent:{" "}
+                  {r.progressEmailsSent
+                    .map(p => `${p.subjectKey.charAt(0).toUpperCase()}${p.subjectKey.slice(1)} (${new Date(p.sentAt).toLocaleDateString()})`)
+                    .join(", ")}
+                </p>
+              )}
             </div>
             <a
               href={`/home/${r.id}?userId=${r.id}`}

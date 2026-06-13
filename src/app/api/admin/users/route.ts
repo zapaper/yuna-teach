@@ -52,6 +52,7 @@ export async function GET() {
         level: true,
         createdAt: true,
         lastLoginAt: true,
+        settings: true,
         studentLinks: {
           select: { parent: { select: { id: true, name: true, displayName: true, email: true } } },
         },
@@ -84,16 +85,24 @@ export async function GET() {
         level: l.student.level,
       })),
     })),
-    students: students.map(s => ({
-      id: s.id,
-      name: s.name,
-      displayName: s.displayName,
-      email: s.email,
-      level: s.level,
-      createdAt: s.createdAt.toISOString(),
-      lastLoginAt: s.lastLoginAt?.toISOString() ?? null,
-      paperCount: s._count.assignedExamPapers,
-      parents: s.studentLinks.map(l => l.parent),
-    })),
+    students: students.map(s => {
+      // Surface progress-email "already sent" subjects so the admin
+      // panel can show a green badge per subject the family has
+      // received a one-time report for.
+      const sentMap = (s.settings as { progressReportsSent?: Record<string, string> } | null)?.progressReportsSent ?? {};
+      const progressEmailsSent = Object.entries(sentMap).map(([subjectKey, sentAt]) => ({ subjectKey, sentAt }));
+      return {
+        id: s.id,
+        name: s.name,
+        displayName: s.displayName,
+        email: s.email,
+        level: s.level,
+        createdAt: s.createdAt.toISOString(),
+        lastLoginAt: s.lastLoginAt?.toISOString() ?? null,
+        paperCount: s._count.assignedExamPapers,
+        parents: s.studentLinks.map(l => l.parent),
+        progressEmailsSent,
+      };
+    }),
   });
 }

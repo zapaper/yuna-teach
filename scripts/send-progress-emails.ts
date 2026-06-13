@@ -37,7 +37,7 @@ const MIN_TOPICS = 5;
 const WEAK_GAP_PP = 8;
 const WEAK_MIN_ATTEMPTS = 5;
 
-function classifySubject(s: string | null | undefined): string | null {
+export function classifySubject(s: string | null | undefined): string | null {
   const t = (s ?? "").toLowerCase();
   if (t.includes("english")) return "English";
   if (t.includes("math")) return "Math";
@@ -531,7 +531,7 @@ Full Report: ${progressLink}
   };
 }
 
-async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: string; includeExcluded?: boolean }) {
+export async function loadCandidates(args: { onlyStudentName?: string; onlyStudentId?: string; asParentEmail?: string; includeExcluded?: boolean }) {
   const allUsers = await prisma.user.findMany({
     select: { id: true, name: true, email: true, settings: true, level: true },
   });
@@ -715,6 +715,7 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
     const student = userById.get(agg.studentId);
     if (!student) continue;
     if (args.onlyStudentName && (student.name ?? "").toLowerCase() !== args.onlyStudentName.toLowerCase()) continue;
+    if (args.onlyStudentId && student.id !== args.onlyStudentId) continue;
     const parentIds = parentOfStudent.get(agg.studentId) ?? [];
 
     // Build the recipient list. Default: every linked parent who
@@ -782,7 +783,7 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
   return candidates;
 }
 
-async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], opts: { dryRun: boolean }) {
+export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], opts: { dryRun: boolean }) {
   const safeStu = c.studentName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const png = drawTopicChart(c.topics, c.avg, c.subject, c.studentName);
   const chartCid = `chart-${safeStu}-${c.subjectKey}`;
@@ -911,7 +912,51 @@ async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], op
   }
 }
 
-(async () => {
+// Event-driven trigger: called from the marking API route the moment
+// a paper's markingStatus flips to complete/released. Single-student,
+// single-subject path — runs the same eligibility logic + email send
+// as the CLI's --send-all, but scoped tightly so the marker doesn't
+// pay for a whole-DB scan on every paper completion.
+//
+// Idempotent: the existing progressReportsSent[subject] flag means a
+// student already mailed for this subject is a no-op here (no candidate
+// is generated because alreadySent is set, and we skip those).
+//
+// Non-throwing — the marker should never fail because of this hook.
+export async function triggerForStudentSubject(studentId: string, subjectRaw: string | null) {
+  try {
+    const subject = classifySubject(subjectRaw);
+    if (!subject) return;
+    const candidates = await loadCandidates({ onlyStudentId: studentId });
+    const matching = candidates.filter(c => c.subject === subject && !c.alreadySent);
+    if (matching.length === 0) return;
+    console.log(`[progress-email trigger] firing for student=${studentId} subject=${subject} candidates=${matching.length}`);
+    // Same per-recipient throttle as the CLI — if a single (student,
+    // subject) fans out to 2 linked parents, space the sends so Gmail
+    // doesn't drop the second.
+    const PER_RECIPIENT_GAP_MS = 6000;
+    const lastSendAt = new Map<string, number>();
+    for (const c of matching) {
+      const k = c.parentEmail.toLowerCase();
+      const last = lastSendAt.get(k);
+      if (last) {
+        const wait = PER_RECIPIENT_GAP_MS - (Date.now() - last);
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      }
+      lastSendAt.set(k, Date.now());
+      await sendOne(c, { dryRun: false });
+    }
+  } catch (err) {
+    console.error("[progress-email trigger] failed:", err);
+  }
+}
+
+// CLI guard: only run the main IIFE when this file is invoked directly
+// (via `tsx scripts/send-progress-emails.ts ...`). Importing the file
+// from Next.js routes should NOT fire the CLI.
+const isCli = !!process.argv[1] && /send-progress-emails\.(ts|js)$/.test(process.argv[1]);
+
+if (isCli) (async () => {
   const argv = process.argv.slice(2);
   // Pull --as-parent <email> out, leave the positional args (mode +
   // student name) untouched. Used to preview an email as a specific

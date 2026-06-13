@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { markExamPaper, remarkSingleQuestion, markFocusedTest, markQuizPaper } from "@/lib/marking";
+import { triggerProgressEmailFromPaper } from "@/lib/progress-email-trigger";
 
 // Compute per-booklet/paper scores from metadata.papers + questions
 function computeBookletScores(
@@ -317,29 +318,36 @@ export async function POST(
         where: { examPaperId: id, printableBounds: { not: Prisma.AnyNull } },
       })
     : 0;
-  if (paper.paperType === "focused" || paper.paperType === "mastery") {
-    markFocusedTest(id).catch((err) =>
-      console.error(`${paper.paperType} test marking for ${id} failed:`, err)
+  // Fire-and-forget post-mark hook: triggers a one-time progress email
+  // for this (student, subject) when the paper crosses the eligibility
+  // threshold (≥3 papers + ≥5 topics for the subject). Already-sent
+  // gate inside the trigger means each kid only gets one report per
+  // subject. Always swallows its own errors so marking never fails
+  // because of a SendGrid hiccup.
+  const triggerEmailAfter = (markerName: string) => (err?: unknown) => {
+    if (err) {
+      console.error(`${markerName} marking for ${id} failed:`, err);
+      return;
+    }
+    triggerProgressEmailFromPaper(id).catch(e =>
+      console.error(`[progress-email-trigger] post-${markerName} hook failed:`, e)
     );
+  };
+  if (paper.paperType === "focused" || paper.paperType === "mastery") {
+    markFocusedTest(id).then(() => triggerEmailAfter(`${paper.paperType}`)(undefined), triggerEmailAfter(`${paper.paperType}`));
   } else if (paper.paperType === "quiz") {
     if (printableCount > 0) {
       console.log(`[mark API] paperType=quiz with printableBounds on ${printableCount} questions — routing through markExamPaper (printed-and-scanned path)`);
-      markExamPaper(id).catch((err) =>
-        console.error(`Printed-and-scanned quiz marking for ${id} failed:`, err)
-      );
+      markExamPaper(id).then(() => triggerEmailAfter("Printed-and-scanned quiz")(undefined), triggerEmailAfter("Printed-and-scanned quiz"));
     } else {
-      markQuizPaper(id).catch((err) =>
-        console.error(`Quiz marking for ${id} failed:`, err)
-      );
+      markQuizPaper(id).then(() => triggerEmailAfter("Quiz")(undefined), triggerEmailAfter("Quiz"));
     }
   } else {
     // paperType === null — master paper OR a print-and-scan clone of
     // a regular exam. markExamPaper handles both (it no-ops on the
     // master and does the real scan-back marking on clones with
     // submission JPEGs).
-    markExamPaper(id).catch((err) =>
-      console.error(`Background marking for ${id} failed:`, err)
-    );
+    markExamPaper(id).then(() => triggerEmailAfter("Background")(undefined), triggerEmailAfter("Background"));
   }
 
   return NextResponse.json({ status: "in_progress" });
