@@ -749,12 +749,16 @@ async function loadCandidates(args: { onlyStudentName?: string; asParentEmail?: 
     } else {
       // Real path — fan out to EVERY linked parent who has an
       // email. Deduplicated by email so a parent linked twice
-      // doesn't get the report twice.
+      // doesn't get the report twice. Service / admin accounts are
+      // suppressed — TEAM_BCC (jessica@markforyou.com) already
+      // covers oversight, so no need to also email admin.
+      const SERVICE_EMAILS = new Set(["admin@yunateach.com"]);
       const seenEmails = new Set<string>();
       for (const pid of parentIds) {
         const u = userById.get(pid);
         const e = u?.email?.toLowerCase();
         if (!u || !u.email || !e) continue;
+        if (SERVICE_EMAILS.has(e)) continue;
         if (seenEmails.has(e)) continue;
         seenEmails.add(e);
         recipients.push({ id: u.id, name: u.name, email: u.email });
