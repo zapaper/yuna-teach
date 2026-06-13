@@ -3204,11 +3204,34 @@ function OeqQuestionCard({
           <div className="relative">
             <div className="flex justify-between items-start gap-4">
               <div className="flex-1 min-w-0">
-                {question.transcribedStem && (
-                  <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                    <MathText text={stripQnPrefix(question.transcribedStem)} />
-                  </p>
-                )}
+                {question.transcribedStem && (() => {
+                  // Personal Quiz tip: when the stem begins with the
+                  // "💡 Tip — " prefix + "\n\n—\n\n" separator (added
+                  // by scripts/_generate-personal-quiz.ts), render
+                  // the tip in a green box above the actual question.
+                  const fullStem = question.transcribedStem;
+                  const SEP = "\n\n—\n\n";
+                  if (fullStem.startsWith("💡 Tip —") && fullStem.includes(SEP)) {
+                    const [tip, rest] = fullStem.split(SEP);
+                    return (
+                      <>
+                        <div className="mb-4 rounded-2xl border border-[#b6f0ce] bg-[#ecfdf5] px-4 py-3">
+                          <p className="font-headline text-base lg:text-lg font-semibold text-[#065f46] leading-relaxed whitespace-pre-wrap">
+                            <MathText text={tip} />
+                          </p>
+                        </div>
+                        <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                          <MathText text={stripQnPrefix(rest)} />
+                        </p>
+                      </>
+                    );
+                  }
+                  return (
+                    <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                      <MathText text={stripQnPrefix(fullStem)} />
+                    </p>
+                  );
+                })()}
                 {/* When the main stem is empty we deliberately leave it empty. The
                     real content comes from the subparts renderer below (e.g. (a) is
                     the actual question). An empty parent stem on a multi-part row
