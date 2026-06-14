@@ -115,10 +115,21 @@ function TutorContent({ parentId }: { parentId: string }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/users?userId=${parentId}`).then(r => r.ok ? r.json() : null).then(d => {
-      const linked = d?.user?.linkedStudents as LinkedStudent[] | undefined;
-      if (!linked) return;
-      const list = linked.filter(s => !!s.id);
+    // Fetch the parent's linked students + (if the caller is an admin)
+    // every student we have a cached diagnosis for. The admin-students
+    // endpoint returns 403 for non-admins, in which case we silently
+    // fall back to the linked list. Merged + de-duped here so an admin
+    // who happens to also have linked kids doesn't see them twice.
+    Promise.all([
+      fetch(`/api/users?userId=${parentId}`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null),
+    ]).then(([parentResp, adminResp]) => {
+      const linked = (parentResp?.user?.linkedStudents as LinkedStudent[] | undefined) ?? [];
+      const adminExtras = (adminResp?.students as LinkedStudent[] | undefined) ?? [];
+      const merged = new Map<string, LinkedStudent>();
+      for (const s of linked) if (s.id) merged.set(s.id, s);
+      for (const s of adminExtras) if (s.id) merged.set(s.id, s);
+      const list = [...merged.values()];
       setStudents(list);
       if (!studentId && list.length > 0) setStudentId(list[0].id);
     });

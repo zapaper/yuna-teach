@@ -100,18 +100,35 @@ export type TutorData =
 // ---- Standard taxonomy ----
 type StandardBucket = MistakeCard["bucket"] | ConceptCard["bucket"] | "incomplete_answer" | "topical";
 
-const BUCKET_RULES: Array<{ bucket: StandardBucket; re: RegExp }> = [
-  { bucket: "final_consequence",  re: /final\s+consequence|stops?\s+short|stopping\s+(one\s+)?step\s+short/i },
-  { bucket: "vague_terminology",  re: /vague\s+(everyday\s+)?language|scientific\s+(term|vocab)|terminology|precise\s+scientific|imprecise/i },
-  { bucket: "trend_description",  re: /trend|describe.*data|describe.*graph|data\s+(and\s+)?(trend|graph|diagram)\s+(description|misinterp)/i },
-  { bucket: "inverse_data",       re: /inverse|inverted|reciprocal|opposite\s+relationship/i },
-  { bucket: "missing_context",    re: /\b(context|setup|specific\s+context|ignoring\s+(key\s+)?context|missing\s+context|scenario|provided\s+data)/i },
-  { bucket: "concept_confusion",  re: /conflat|confus(e|ing|ion)\s+|misattribut|misappl|wrong\s+process|misidentif|misjudg|misinterpret(ing)?\s+(heat|light|forces|energy|biological)/i },
-  { bucket: "incomplete_answer",  re: /blank|skipping?\s+(sub|initial)|incomplete\s+(or\s+blank|sub|explanation|answer)|leaving|left\s+blank/i },
-  { bucket: "diagram_analysis",   re: /diagram(?!.*interpret)|superficial|diagram\s+(misinterp|misanalysis)/i },
-];
+// Patterns that map to one of the two CONCEPT buckets — these are the
+// "the kid is confusing two ideas / has the relationship backwards"
+// patterns, which power the Conceptual Gaps section + the concept-pair
+// quiz. The earlier regex was much narrower (only caught "misinterpret"
+// when followed by a specific term like heat/light/biological), which
+// meant kids like Jeremiah and Ruthie surfaced 0 conceptual gaps even
+// when their diagnosis had patterns like "Reversing Energy Flow" or
+// "Misinterpreting Visual Data".
+const INVERSE_RE = /\binverse|inverted|reciprocal|opposite\s+relationship|revers(e|ing|al)\b/i;
+const CONCEPT_RE = /conflat|confus(e|ing|ion)\b|misattribut|misappl|wrong\s+(process|concept|idea)|misidentif|misjudg|misinterpret|mix(ing|es)?\s+up|mis-?understand|faulty\s+(logic|reasoning|deduction)/i;
+const INCOMPLETE_RE = /\bblank|skipping?\s+(sub|initial|or\s+incomplete)|incomplete\s+(or\s+blank|sub|explanation|answer|response)|left\s+blank|skipped\s+sub-?questions?/i;
+const FINAL_RE = /final\s+consequence|stops?\s+short|stopping\s+(one\s+)?step\s+short/i;
+const VAGUE_RE = /vague\s+(everyday\s+)?language|scientific\s+(term|vocab|keyword)|terminology|precise\s+scientific|imprecise|missing\s+scientific/i;
+const TREND_RE = /trend|describe.*data|describe.*graph|data\s+(and\s+)?(trend|graph|diagram)\s+(description|misinterp)/i;
+const CONTEXT_RE = /\b(context|setup|specific\s+context|ignor(es|ing)\s+.*(key\s+)?(context|data|information|clues?)|missing\s+context|scenario|provided\s+(data|context))/i;
+const DIAGRAM_RE = /\bdiagram(?!.*interpret)|superficial|diagram\s+(misinterp|misanalysis)/i;
+
 function bucketFor(patternName: string): StandardBucket {
-  for (const r of BUCKET_RULES) if (r.re.test(patternName)) return r.bucket;
+  // Order matters: incomplete and final_consequence are checked first
+  // because their phrasing can overlap concept terms (e.g. "skipping
+  // explanations" might also contain "confus").
+  if (INCOMPLETE_RE.test(patternName)) return "incomplete_answer";
+  if (FINAL_RE.test(patternName))      return "final_consequence";
+  if (INVERSE_RE.test(patternName))    return "inverse_data";
+  if (CONCEPT_RE.test(patternName))    return "concept_confusion";
+  if (VAGUE_RE.test(patternName))      return "vague_terminology";
+  if (TREND_RE.test(patternName))      return "trend_description";
+  if (CONTEXT_RE.test(patternName))    return "missing_context";
+  if (DIAGRAM_RE.test(patternName))    return "diagram_analysis";
   return "topical";
 }
 
@@ -336,11 +353,19 @@ function shapeTutorData(args: {
     patternStats[c.patternIndex].marksLost += w.marksLost;
   }
 
-  const TECHNIQUE_BUCKETS: Array<MistakeCard["bucket"]> = ["final_consequence", "vague_terminology", "trend_description", "missing_context", "diagram_analysis"];
   const CONCEPT_BUCKETS: Array<ConceptCard["bucket"]> = ["concept_confusion", "inverse_data"];
-
+  // Common Mistakes = anything Gemini surfaced that ISN'T explicitly a
+  // concept-confusion or an incomplete-blank pattern. Allowlisting only
+  // specific technique buckets (final_consequence / vague_terminology /
+  // trend_description / missing_context / diagram_analysis) was too
+  // brittle — Gemini frequently named patterns like "Ignores Specific
+  // Question Data" or "Missing Scientific Keywords" that fell through
+  // to `topical` and were silently dropped, leaving David with one
+  // common mistake and Jeremiah/Kaiyang with none. Now `topical`
+  // patterns flow through here so they surface at the kid's actual
+  // weak spots.
   const commonMistakes: MistakeCard[] = patternStats
-    .filter(p => TECHNIQUE_BUCKETS.includes(p.bucket as MistakeCard["bucket"]))
+    .filter(p => !CONCEPT_BUCKETS.includes(p.bucket as ConceptCard["bucket"]) && p.bucket !== "incomplete_answer")
     .sort((a, b) => b.marksLost - a.marksLost)
     .slice(0, 2)
     .map(p => ({
