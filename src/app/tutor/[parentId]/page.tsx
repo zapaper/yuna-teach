@@ -11,6 +11,35 @@ type ProgressData = {
   timeline: Record<string, TimelineEntry[]>;
 };
 
+// Cache helpers — strip the huge base64 diagrams + prune stale keys.
+function stripImagesForCache(d: unknown): unknown {
+  if (!d || typeof d !== "object") return d;
+  const obj = d as { kind?: string; commonMistakes?: Array<{ examples?: unknown[] }>; conceptualGaps?: Array<{ examples?: unknown[] }> };
+  if (obj.kind !== "ready") return d;
+  const stripExamples = (exs: unknown[]) =>
+    exs.map(ex => {
+      if (!ex || typeof ex !== "object") return ex;
+      const e = ex as Record<string, unknown>;
+      return { ...e, diagramImageData: null };
+    });
+  return {
+    ...obj,
+    commonMistakes: obj.commonMistakes?.map(m => ({ ...m, examples: stripExamples(m.examples ?? []) })) ?? [],
+    conceptualGaps: obj.conceptualGaps?.map(c => ({ ...c, examples: stripExamples(c.examples ?? []) })) ?? [],
+  };
+}
+function pruneOldTutorCacheKeys(currentKey: string) {
+  if (typeof window === "undefined") return;
+  const keys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith("tutor-") && k !== currentKey) keys.push(k);
+  }
+  for (const k of keys) {
+    try { localStorage.removeItem(k); } catch { /* ignore */ }
+  }
+}
+
 type Topline = {
   avgPct: number;
   totalAwarded: number;
@@ -110,7 +139,18 @@ function TutorContent({ parentId }: { parentId: string }) {
       .then(d => {
         if (d) {
           setData(d as TutorData);
-          try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch { /* quota — ignore */ }
+          // Cache a SLIMMED version — diagramImageData is a base64
+          // JPEG that can run into hundreds of KB per example. Multiplied
+          // by examples × students × subjects × days, that blew out
+          // the 5MB localStorage quota and crashed unrelated pages
+          // (e.g. the review page's celebration setItem). Strip the
+          // images for cache; the next page-load fetches fresh from
+          // the API anyway, where images live in memory only.
+          try {
+            const slim = stripImagesForCache(d as TutorData);
+            localStorage.setItem(cacheKey, JSON.stringify(slim));
+            pruneOldTutorCacheKeys(cacheKey);
+          } catch { /* quota — ignore */ }
         }
       })
       .finally(() => setLoading(false));

@@ -354,7 +354,12 @@ function ExamReviewContent({ id }: { id: string }) {
     if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
     if (typeof window === "undefined") return;
     const celebrationKey = `mfy-celebration-shown-${id}`;
-    if (localStorage.getItem(celebrationKey)) return;
+    // getItem can throw a SecurityError in private-browsing iframes —
+    // be defensive so storage edge cases don't crash the whole review
+    // page. setItem can throw QuotaExceededError when localStorage is
+    // full; we still want the celebration to fire and the page to
+    // render, we just skip the "don't replay" guard.
+    try { if (localStorage.getItem(celebrationKey)) return; } catch { /* ignore */ }
     const rawTotal = totalMarks ? Number(totalMarks) : null;
     if (!rawTotal || rawTotal <= 0) return;
     const skippedMarks = data.questions
@@ -365,7 +370,7 @@ function ExamReviewContent({ id }: { id: string }) {
     const pctValue = Math.min(100, Math.round(((data.score ?? 0) / totalM) * 100));
     if (pctValue < 90) return;
     celebrationFiredRef.current = true;
-    localStorage.setItem(celebrationKey, "1");
+    try { localStorage.setItem(celebrationKey, "1"); } catch { /* quota / security — non-fatal */ }
     (async () => {
       // Slight celebratory haptic on mobile — a short pop for the main volley
       // and a two-tap burst when the stars fire. No-ops on iOS Safari / desktop.
