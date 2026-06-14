@@ -265,14 +265,18 @@ type DetailView =
 function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string }) {
   const [view, setView] = useState<DetailView | null>(null);
   const isOverview = view === null;
-  // When the swipe slides in the detail panel, scroll the page back
-  // to the top so the user lands at the start of the panel and isn't
-  // looking at empty space below where they clicked. Same on the way
-  // back to overview — they came from somewhere they'd already
-  // scrolled past, but on overview we want them at the top of the
-  // bar chart again.
+  const stageRef = useRef<HTMLDivElement>(null);
+  // When the swipe transitions in either direction, scroll the page
+  // so the SWIPE STAGE sits right at the top of the viewport — that
+  // way the detail panel's own heading ('Common Mistake · …', 'Conceptual
+  // Gap · …') lands flush with the top instead of the user staring
+  // at the empty top of the Lumi greeting card above. The -4 px nudge
+  // accounts for sub-pixel layout so the section's rounded corner
+  // doesn't peek above the fold.
   useEffect(() => {
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window === "undefined" || !stageRef.current) return;
+    const top = stageRef.current.getBoundingClientRect().top + window.scrollY - 4;
+    window.scrollTo({ top, behavior: "smooth" });
   }, [view]);
   return (
     <>
@@ -296,7 +300,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
       {/* Swipe stage — flex row holds both panels side-by-side; we
           translate the whole row by -100% to slide overview off
           screen left and bring the detail in from the right. */}
-      <div className="overflow-hidden">
+      <div ref={stageRef} className="overflow-hidden scroll-mt-4">
         <div className={`flex transition-transform duration-500 ease-out will-change-transform ${isOverview ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="w-full shrink-0">
             <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} />
@@ -635,7 +639,7 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
       <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
-        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Jane&apos;s Advice</p>
+        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
         <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
         {card.triggerKeywords.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -675,7 +679,7 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
       <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
-        <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Jane&apos;s Explanation</p>
+        <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
         <p className="text-sm text-orange-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
       </div>
 
