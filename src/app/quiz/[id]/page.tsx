@@ -1766,15 +1766,21 @@ function QuizContent({ id }: { id: string }) {
                   // that sections render in document order, all
                   // pending Continue buttons are visible at once
                   // rather than gated one-by-one.
+                  // Continue card gating moved from lg → xl so it
+                  // matches the split-screen breakpoint in
+                  // EnglishQuizSection. iPad landscape (1024 px) no
+                  // longer crams the comp questions into a ~360 px
+                  // column; instead it shows the section inline like
+                  // every other section.
                   const continueCard = (wantsSplit && !isEntered) ? (
-                    <div className="hidden lg:block mb-12 lg:mb-16">
+                    <div className="hidden xl:block mb-12 xl:mb-16">
                       <button
                         type="button"
                         onClick={() => setEnteredCompSections(prev => { const next = new Set(prev); next.add(si); return next; })}
-                        className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 lg:p-12 text-left"
+                        className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 xl:p-12 text-left"
                       >
                         <p className="text-xs font-extrabold text-[#003366] uppercase tracking-wider mb-2">Next section</p>
-                        <h2 className="font-headline font-extrabold text-2xl lg:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
+                        <h2 className="font-headline font-extrabold text-2xl xl:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
                         <p className="text-sm text-[#43474f] leading-relaxed mb-6">
                           On this section, the passage will sit on the left and the questions on the right so you can read and answer without scrolling between them.
                         </p>
@@ -1785,11 +1791,9 @@ function QuizContent({ id }: { id: string }) {
                       </button>
                     </div>
                   ) : null;
-                  // The section content itself is hidden on lg+ when
-                  // it's a comp section that hasn't been entered yet
-                  // (Continue card replaces it). Below lg the section
-                  // always shows.
-                  const lgHiddenWhenGated = wantsSplit && !isEntered ? "lg:hidden" : "";
+                  // Section body hidden on xl+ when its Continue card
+                  // is showing. Below xl the section always shows.
+                  const lgHiddenWhenGated = wantsSplit && !isEntered ? "xl:hidden" : "";
 
                   if (isTypedSection) {
                     return (

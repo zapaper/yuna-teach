@@ -47,31 +47,34 @@ interface Props {
  */
 export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen }: Props) {
   // Split-screen renders the passage column and the questions column
-  // side-by-side in a 50/50 grid that fills the viewport on lg+
-  // (tablet/desktop). Each column scrolls independently. Only applied
-  // to passage-bound comp sections — other section types ignore the
-  // flag. Below lg, falls back to the single-column stacked layout.
+  // side-by-side in a 60/40 grid that fills the viewport on xl+
+  // (laptop / desktop, ≥1280px). Each column scrolls independently.
+  // Only applied to passage-bound comp sections — other section types
+  // ignore the flag. Below xl (including iPad landscape at 1024px),
+  // falls back to the single-column stacked layout — at 1024 the 40%
+  // questions column collapses to ~360 px which is too narrow for the
+  // OEQ answer textareas.
   const useSplitScreen = !!splitScreen && (sectionType === "visual-text-mcq" || sectionType === "comprehension-oeq");
-  // Full-bleed: break out of the parent's max-w-4xl on lg+ so the
+  // Full-bleed: break out of the parent's max-w-4xl on xl+ so the
   // split panes use the entire viewport width. The
   // `mx-[calc(-50vw+50%)] w-screen` trick centers the element across
   // the viewport regardless of how narrow the parent container is.
   // Re-add comfortable horizontal padding so the content doesn't sit
   // against the edge.
   const outerCls = useSplitScreen
-    ? "mb-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-8 xl:px-16 lg:py-4"
+    ? "mb-12 xl:grid xl:grid-cols-[3fr_2fr] xl:gap-6 xl:grid-rows-[auto_1fr] xl:h-[calc(100vh-96px)] xl:w-screen xl:max-w-none xl:mx-[calc(-50vw+50%)] xl:my-[-32px] xl:px-8 2xl:px-16 xl:py-4"
     : "mb-12";
   // Tighten the section header in split-screen — the header bar
   // shouldn't eat into the precious viewport-height the passage and
   // questions panes rely on. Smaller bottom margin + smaller heading
-  // font on lg+.
-  const headerCls = useSplitScreen ? "lg:col-span-2 lg:mb-0" : "";
-  const headerInnerCls = useSplitScreen ? "mb-6 lg:mb-2" : "mb-6";
+  // font on xl+.
+  const headerCls = useSplitScreen ? "xl:col-span-2 xl:mb-0" : "";
+  const headerInnerCls = useSplitScreen ? "mb-6 xl:mb-2" : "mb-6";
   const headerTitleCls = useSplitScreen
-    ? "font-headline text-xl lg:text-base font-extrabold text-[#001e40] tracking-tight"
+    ? "font-headline text-xl xl:text-base font-extrabold text-[#001e40] tracking-tight"
     : "font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight";
-  const splitPassageCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
-  const splitQuestionsCls = useSplitScreen ? "lg:row-start-2 lg:col-start-2 lg:overflow-y-auto lg:pl-2 lg:min-h-0" : "";
+  const splitPassageCls = useSplitScreen ? "xl:row-start-2 xl:col-start-1 xl:overflow-y-auto xl:pr-2 xl:min-h-0" : "";
+  const splitQuestionsCls = useSplitScreen ? "xl:row-start-2 xl:col-start-2 xl:overflow-y-auto xl:pl-2 xl:min-h-0" : "";
   return (
     <div className={outerCls}>
       <div className={headerCls}>
