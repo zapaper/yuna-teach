@@ -1,0 +1,213 @@
+{
+  "patterns": [
+    {
+      "name": "Reversing Energy Transfer Direction",
+      "what": "The student traces the path of light or heat backwards, confusing the source of energy with the receiver.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Incorrectly thought the air gains heat from sweat, rather than the sweat gaining heat from the body to evaporate."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Chose arrows showing light traveling from the eye to the object, instead of from the light source to the object and then to the eye."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Failed to recognize that melting ice gains heat from its surroundings rather than losing heat."
+        }
+      ],
+      "strategic_advice": "When a question involves heat transfer or seeing an object, always identify the SOURCE of the energy first. Draw an arrow from the hotter object to the colder object, or from the light source to the object and then to the eye. **Trace the arrows** on the paper before looking at the options.",
+      "trigger_keywords": [
+        "gains heat",
+        "loses heat",
+        "direction of light",
+        "arrows show"
+      ]
+    },
+    {
+      "name": "Overlooking Critical Qualifiers",
+      "what": "The student misses key negative words or specific conditions in the question stem or options, leading them to select the exact opposite of the correct answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Missed the word 'not' in the question stem and selected a true statement instead of the false one."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Overlooked the word 'unfertilised' and incorrectly agreed that an unfertilised egg can develop into a baby."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Agreed that a life cycle 'begins' with an egg, missing the conceptual qualifier that a cycle is continuous and has no true beginning."
+        }
+      ],
+      "strategic_advice": "When you see words like 'not', 'wrong', or specific conditions like 'unfertilised', circle them immediately. Treat these words as stop signs that completely change the meaning of the sentence. **Double-check the exact wording** of each option against the circled words before confirming your choice.",
+      "trigger_keywords": [
+        "not correct",
+        "wrong",
+        "unfertilised",
+        "on its own",
+        "begins"
+      ]
+    },
+    {
+      "name": "Confusing Similar Biological Structures",
+      "what": "The student mixes up closely related biological terms or misidentifies the exact locations where specific reproductive processes occur.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Confused 'many ovaries' with 'many ovules' when analyzing a fruit that contains multiple seeds."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Incorrectly thought that the human egg is produced in the womb rather than in the ovary."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Misidentified the analogous male reproductive parts (anther and testis) between a flower and a human."
+        }
+      ],
+      "strategic_advice": "When you see questions comparing reproductive parts or asking about seeds and fruits, quickly sketch or visualize the system. Remember the rule: 'ovules become seeds' and 'ovary becomes fruit'. **Map the specific function** to the exact part in your head before reading the options.",
+      "trigger_keywords": [
+        "ovary",
+        "ovules",
+        "womb",
+        "testis",
+        "similar function",
+        "seeds"
+      ]
+    },
+    {
+      "name": "Incomplete or Blank Explanations",
+      "what": "The student struggles to articulate the 'why' in open-ended questions, often leaving the explanation part blank or stopping short of the final scientific reason.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Correctly identified the best material from the data but completely forgot to write the explanation for why it was the best choice."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Failed to explain that a shadow puppet screen needs a translucent material to show shadows from behind, choosing an opaque one instead."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Left the entire application question about how reflective strips help drivers see clearly completely blank."
+        }
+      ],
+      "strategic_advice": "When you see 'explain why' or 'based on the results', use the CER method: Claim, Evidence, Reasoning. Always include a 'because' or 'so that' clause to connect your choice to a scientific concept. **Never leave an explanation blank**; write down the relevant science keywords even if you are unsure.",
+      "trigger_keywords": [
+        "explain why",
+        "based on the results",
+        "explain your answer",
+        "reason"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    }
+  ]
+}

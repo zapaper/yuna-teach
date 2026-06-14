@@ -1,0 +1,405 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping the Invisible Mechanism",
+      "what": "The student jumps straight to the final visible outcome in explanations, skipping the underlying scientific keywords or invisible processes.",
+      "specific_examples": [
+        {
+          "questionRef": "[37]",
+          "type": "oeq",
+          "whatWentWrong": "Stated that the chocolate expanded and burst, but skipped the crucial invisible step that it 'gained heat' first."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "Identified that the sleeve prevents scalding, but failed to explain the scientific mechanism that 'air is a poor conductor of heat'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Explained that more heat energy is needed for more fishballs, but missed stating the core physical reason: 'more mass'."
+        }
+      ],
+      "strategic_advice": "When you see **explain why** or **explain how**, don't just state the final result. Always bridge the gap by including the invisible scientific mechanism. Ask yourself: 'What is happening at the particle level?' or 'What property makes this happen?' Use specific keywords like **gained heat**, **poor conductor**, or **more mass**.",
+      "trigger_keywords": [
+        "Explain why",
+        "Explain how",
+        "Give a reason"
+      ]
+    },
+    {
+      "name": "Misjudging Light and Shadows",
+      "what": "The student struggles with geometric optics, consistently failing to relate an object's distance from a light source to its shadow size, and misunderstanding how light reflects into the eye.",
+      "specific_examples": [
+        {
+          "questionRef": "[43]",
+          "type": "mcq",
+          "whatWentWrong": "Failed to recognize that the object closest to the light source casts the largest shadow on the screen."
+        },
+        {
+          "questionRef": "[51]",
+          "type": "mcq",
+          "whatWentWrong": "Misidentified the path of light, not realizing light must travel from the source, reflect off the object, and then enter the eye."
+        },
+        {
+          "questionRef": "[53]",
+          "type": "mcq",
+          "whatWentWrong": "Struggled to match the materials (transparent, translucent, opaque) to the darkness of the shadows they cast."
+        }
+      ],
+      "strategic_advice": "For shadow questions, remember the golden rule: **closer to the light source = larger shadow**. For vision questions, always trace the arrows starting from the **light source**, bouncing off the **object**, and ending at the **eye**.",
+      "trigger_keywords": [
+        "shadow",
+        "screen",
+        "direction of light rays",
+        "cut out some shapes"
+      ]
+    },
+    {
+      "name": "Misinterpreting Heat and Temperature",
+      "what": "The student frequently misidentifies good versus poor conductors of heat, misunderstands factors affecting evaporation, and mistakenly believes heat is only gained during state changes.",
+      "specific_examples": [
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Assumed ice/water only gains heat during melting, forgetting that a rise in temperature also means heat is being gained."
+        },
+        {
+          "questionRef": "[62]",
+          "type": "mcq",
+          "whatWentWrong": "Chose glass instead of metal, misunderstanding that a good conductor is needed to lose heat and reach the lowest temperature quickly."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "Failed to identify that a wider beaker has a larger exposed surface area, leading to more evaporation and condensation."
+        }
+      ],
+      "strategic_advice": "When a graph shows temperature rising, the substance is **gaining heat**—not just when it melts or boils. For cooling questions, remember that **good conductors** (like metal) lose heat the fastest. For evaporation, always look for the setup with the **largest exposed surface area**.",
+      "trigger_keywords": [
+        "lowest temperature",
+        "gaining heat",
+        "water droplets formed",
+        "poorer conductor"
+      ]
+    },
+    {
+      "name": "Misidentifying Forces and Energy",
+      "what": "The student frequently mislabels the types of forces (e.g., friction, gravity) acting on objects and misunderstands how energy converts from one form to another in everyday systems.",
+      "specific_examples": [
+        {
+          "questionRef": "[46]",
+          "type": "mcq",
+          "whatWentWrong": "Incorrectly identified the direction of frictional and gravitational forces acting on a pulled box."
+        },
+        {
+          "questionRef": "[65]",
+          "type": "mcq",
+          "whatWentWrong": "Confused the starting energy of a mobile phone, choosing potential energy instead of electrical energy."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Incorrectly identified the energy of the hot air above a candle as potential energy instead of kinetic energy."
+        }
+      ],
+      "strategic_advice": "Always draw arrows for forces: **gravity** always points straight down, and **friction** always points opposite to the movement. For energy conversions, identify the **starting energy** (e.g., battery = electrical/chemical) and the **useful output energy** (e.g., movement = kinetic).",
+      "trigger_keywords": [
+        "energy conversion",
+        "forces acting",
+        "gravitational force",
+        "frictional force"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 0
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    },
+    {
+      "idx": 43,
+      "patternIndex": 1
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": 3
+    },
+    {
+      "idx": 46,
+      "patternIndex": 3
+    },
+    {
+      "idx": 47,
+      "patternIndex": 3
+    },
+    {
+      "idx": 48,
+      "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 1
+    },
+    {
+      "idx": 50,
+      "patternIndex": 1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 1
+    },
+    {
+      "idx": 56,
+      "patternIndex": 1
+    },
+    {
+      "idx": 57,
+      "patternIndex": 3
+    },
+    {
+      "idx": 58,
+      "patternIndex": 3
+    },
+    {
+      "idx": 59,
+      "patternIndex": 3
+    },
+    {
+      "idx": 60,
+      "patternIndex": 3
+    },
+    {
+      "idx": 61,
+      "patternIndex": 2
+    },
+    {
+      "idx": 62,
+      "patternIndex": 2
+    },
+    {
+      "idx": 63,
+      "patternIndex": 3
+    },
+    {
+      "idx": 64,
+      "patternIndex": 3
+    },
+    {
+      "idx": 65,
+      "patternIndex": 3
+    },
+    {
+      "idx": 66,
+      "patternIndex": 1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 2
+    },
+    {
+      "idx": 68,
+      "patternIndex": 2
+    },
+    {
+      "idx": 69,
+      "patternIndex": 2
+    },
+    {
+      "idx": 70,
+      "patternIndex": 3
+    },
+    {
+      "idx": 71,
+      "patternIndex": 2
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    }
+  ]
+}

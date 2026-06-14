@@ -1,0 +1,213 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Precise Scientific Terminology",
+      "what": "The student uses everyday language or out-of-syllabus concepts instead of the specific scientific keywords required for marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Referred vaguely to the rubber band instead of specifying the key term 'stored elastic potential energy'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Described the energy source as 'the wind from the turbine' instead of accurately identifying 'moving air'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "Used the out-of-syllabus term 'inertia' instead of explaining the balloon's movement using 'kinetic energy'."
+        }
+      ],
+      "strategic_advice": "When a question asks you to **explain in terms of energy** or identify a source, avoid everyday words. Always scan your memory for the exact **scientific keywords** taught in the syllabus (e.g., 'kinetic energy', 'elastic potential energy'). Before writing, ask yourself: 'Is there a more scientific way to name this object or process?'",
+      "trigger_keywords": [
+        "What is the source",
+        "Explain your answer in terms of",
+        "Give a reason why"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "The student correctly identifies the initial step or trend but fails to state the final consequence or link it back to the data.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Stated the correct temperature and water vapour levels but failed to explain that the graph showed the most eggs hatched there."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Correctly stated that the plant releases oxygen, but stopped short of mentioning that the fish needs it for respiration."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Identified the initial increasing trend but completely missed the plateau effect shown in the data after 20 turns."
+        }
+      ],
+      "strategic_advice": "When you see **explain how** or **based on the results**, do not just state the first thing that happens. Always build a complete chain by adding a **'so that...'** or **'which means...'** clause to show the final consequence. If describing a graph, trace the line to the very end to ensure you don't miss any **plateaus or changes in the trend**.",
+      "trigger_keywords": [
+        "Explain how",
+        "Based on the results",
+        "Explain your answer",
+        "relationship between"
+      ]
+    },
+    {
+      "name": "Misinterpreting Experimental Design",
+      "what": "The student struggles with the scientific method, such as identifying the correct variable being tested, setting up a fair test, or stating an aim properly.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Chose a control setup that changed multiple variables (removing the glass cover) instead of isolating just the carbon dioxide variable."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Stated that germination requires water, completely ignoring that the experiment was specifically testing the effect of temperature."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "Stated the aim vaguely as 'to see how rough each surface is' instead of explicitly linking the changed variable to the measured variable."
+        }
+      ],
+      "strategic_advice": "Whenever an experiment is described, immediately identify the **changed variable** and the **measured variable**. When asked for an aim, always use the format: **'To find out how [changed variable] affects [measured variable]'**. For control setups, ensure **only one variable** is different while everything else remains exactly the same.",
+      "trigger_keywords": [
+        "control for his experiment",
+        "effect of",
+        "State the aim",
+        "conclude about"
+      ]
+    },
+    {
+      "name": "Superficial Analysis of Diagrams",
+      "what": "The student makes quick assumptions based on the visual appearance of a diagram or graph without systematically tracing the data points or paths.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Guessed that track Q would work without carefully comparing its starting height to the final height of point Z."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Saw 5 bars on the graph and quickly chose '5 organisms', failing to read the axis showing it was 5 types of organisms."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Chose switch S2 without systematically tracing the full circuit path to see that the electricity would be blocked by open switches."
+        }
+      ],
+      "strategic_advice": "Do not rely on a quick glance at a diagram. Use your pencil to physically **trace the path** of a circuit, a food web, or a moving object. For graphs, always read the **axis labels** carefully before looking at the bars or lines, so you don't confuse 'number of types' with 'total number'.",
+      "trigger_keywords": [
+        "diagram below shows",
+        "recorded her results in the graph",
+        "set up the circuit shown",
+        "Which one of the following statements"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    }
+  ]
+}

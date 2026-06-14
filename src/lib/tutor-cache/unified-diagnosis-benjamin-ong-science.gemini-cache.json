@@ -1,0 +1,231 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping One Step Short",
+      "what": "The student identifies an initial cause or partial effect but fails to state the final consequence or link it back to the specific context of the question.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Correctly noted the decrease in grasshoppers but failed to state the final consequence that this results in less food for the birds."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Stated the final observation about the tomato but stopped short of explaining the structural cause (the removal of the food-carrying tubes)."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Failed to trace the cascading effects of the food chain all the way down to the plant population, stopping at the immediate predator-prey impact."
+        }
+      ],
+      "strategic_advice": "When you see 'explain why' or 'what happens', use the 'Cause -> Intermediate Effect -> Final Consequence' framework. Always ask yourself 'So what?' after your first thought. Wrap your final outcome in a **'so that...'** or **'resulting in...'** clause to ensure you've answered the prompt fully.",
+      "trigger_keywords": [
+        "explain why",
+        "explain your observation",
+        "what would happen",
+        "effect of"
+      ]
+    },
+    {
+      "name": "Misinterpreting Inverse Data",
+      "what": "The student misreads experimental results, often confusing inverse relationships (e.g., less time = faster rate) or missing turning points in graphs.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Misinterpreted a 'time taken' graph, incorrectly assuming a shorter bar meant less water was lost rather than water being lost more quickly."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Misunderstood the inverse experimental setup, picking the soil that let the most water drip through instead of the one that held the most water."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Only noticed the initial increase in leaf size on the graph, completely missing the turning point where leaf size started to decrease."
+        }
+      ],
+      "strategic_advice": "When you see 'graph shows' or 'table shows', before looking at the options, always trace the axes of a graph or the headers of a table and write down the relationship. If a graph shows 'time taken', write **'shorter time = faster process'** next to it. For experiments, explicitly write down what the collected variable means (e.g., **'more water collected = less water held'**).",
+      "trigger_keywords": [
+        "graph shows",
+        "table shows",
+        "time taken",
+        "amount collected",
+        "conclude about the effect"
+      ]
+    },
+    {
+      "name": "Vague Everyday Language",
+      "what": "The student uses imprecise, everyday words instead of the specific scientific terminology required to earn marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Used the general word 'Potential' instead of the specific term 'Elastic potential energy', and gave a vague reason for a fair test."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Used the non-scientific phrase 'new no friction' instead of applying the correct concepts of kinetic and potential energy."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "Vaguely wrote 'It has less things' instead of explaining the scientific mechanism involving clearer water and light for photosynthesis."
+        }
+      ],
+      "strategic_advice": "When you see 'explain how' or 'in terms of energy', remember that science answers require specific vocabulary. Scan your answer for vague words like 'things', 'it', or 'more'. Replace them with precise scientific terms like **'kinetic energy'**, **'photosynthesis'**, or **'light intensity'**. Always name the specific type of energy or force involved.",
+      "trigger_keywords": [
+        "explain how",
+        "in terms of energy",
+        "give a reason",
+        "state the relationship"
+      ]
+    },
+    {
+      "name": "Conflating Independent Systems",
+      "what": "The student mixes up distinct biological or physical systems, assuming that if one part is affected or absent, an independent system is also affected.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Assumed that cutting the plant's food-carrying tubes would also stop water from reaching the flowers, confusing the two independent transport systems."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "Incorrectly thought that as a spring's elastic force decreases, the gravitational force acting on it also changes, forgetting that gravity depends only on mass."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Concluded that because white petals didn't receive colored water during the experiment, they must not have water tubes at all."
+        }
+      ],
+      "strategic_advice": "When you see 'which statements can be concluded' or 'statements about', treat different biological tubes (food vs. water) and physical forces (gravity vs. elastic) as separate systems. When a question alters one system, explicitly ask yourself, **'Does this actually affect the other system?'** Do not assume a whole system is missing just because it isn't currently active.",
+      "trigger_keywords": [
+        "which statements can be concluded",
+        "statements about",
+        "concluded from her observations",
+        "which of the following statements"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    }
+  ]
+}
