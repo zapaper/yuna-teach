@@ -2532,7 +2532,11 @@ export default function ParentDashboard({
   };
   const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
     ...(isAdminUser ? [{ icon: "home", label: "Home", onClick: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-    { icon: "insights", label: "Progress", onClick: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
+    // Non-admins: the existing chart-and-papers view IS their home, so
+    // relabel to 'Home' (with the home icon) while we workshop the
+    // Lumi/Tutor experience. The same nav slot will become 'Progress'
+    // (Lumi) for parents once it ships to them.
+    { icon: isAdminUser ? "insights" : "home", label: isAdminUser ? "Progress" : "Home", onClick: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
@@ -4207,10 +4211,10 @@ export default function ParentDashboard({
       {/* ════════════════════════════════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
-          // Admin: Home stays inline (chart view), Progress also stays
-          // inline now but swaps to the Lumi/Tutor body.
+          // Admin: Home (chart) + Progress (Lumi) inline.
+          // Non-admin: single Home item (the chart view relabelled).
           ...(isAdminUser ? [{ icon: "home", label: "Home", action: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-          { icon: "insights", label: "Progress", action: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
+          { icon: isAdminUser ? "insights" : "home", label: isAdminUser ? "Progress" : "Home", action: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
           { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
           { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
