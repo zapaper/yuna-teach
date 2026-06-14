@@ -129,6 +129,35 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
       .catch(() => setIsAdmin(false));
   }, []);
 
+  // Admin shortcut — the new canonical Lumi/Tutor surface lives inside
+  // the parent dashboard so the left sidebar is the same one the rest
+  // of the app uses (Home / Progress / Quiz / Set Papers / Students).
+  // Hopping straight there means /progress/<id> deep links work and
+  // there's no second, parallel sidebar to maintain.
+  //
+  // skipAdminRedirect is the recursion guard — when ParentDashboard's
+  // Home tab renders the original ProgressContent inline for its
+  // 'progress' view, that inner instance also goes through this
+  // component, and we MUST NOT bounce it back to /home or we infinite-
+  // loop.
+  useEffect(() => {
+    if (!isAdmin || skipAdminRedirect) return;
+    let parentForHome = parentId;
+    if (!parentForHome) {
+      // No parentId in the URL — fall back to the admin's own user id
+      // (admin is also a parent for the purposes of /home routing).
+      fetch("/api/users/me")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          const adminId = d?.user?.id;
+          if (adminId) router.replace(`/home/${adminId}?view=lumi&student=${studentId}`);
+        })
+        .catch(() => { /* leave the legacy chart up if the lookup fails */ });
+      return;
+    }
+    router.replace(`/home/${parentForHome}?view=lumi&student=${studentId}`);
+  }, [isAdmin, parentId, studentId, router, skipAdminRedirect]);
+
   // English syllabus topic → daily-quiz section key (matches the parent-
   // dashboard Assign English Focus flow). Anything not in this map falls
   // through to /api/focused-test.
@@ -228,13 +257,14 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
     );
   }
 
-  // Admin shell: sidebar with Home (chart) + Progress (Lumi) tabs.
-  // `skipAdminRedirect` is the recursion escape hatch — when the Home
-  // tab inside AdminProgressView renders ProgressContent to show the
-  // chart, it sets this flag so we don't bounce back into the shell.
-  if (isAdmin && !skipAdminRedirect) {
-    return <AdminProgressView studentId={studentId} parentId={parentId} studentName={data?.student?.name ?? ""} />;
-  }
+  // (Old AdminProgressView shell removed. Admin redirect to
+  // /home/<parentId>?view=lumi&student=<id> fires from the useEffect
+  // above so the canonical sidebar is the parent dashboard's. While
+  // the redirect resolves, the legacy chart renders briefly — the
+  // redirect lands in tens of ms so it's not perceptible. The
+  // AdminProgressView component itself is kept further down in this
+  // file (currently unreferenced) so we can revive it if the inline
+  // approach needs to be undone in a hurry.)
 
   const subjects = data ? Object.keys(data.subjects) : [];
   const currentSubject = activeSubject && data?.subjects[activeSubject];
