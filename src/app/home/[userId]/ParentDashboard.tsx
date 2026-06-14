@@ -710,7 +710,7 @@ export default function ParentDashboard({
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   // Independent filter for the All Activities view — kept separate so a
   // parent narrowing one view doesn't accidentally affect the other.
-  const [activitiesSubjectFilter, setActivitiesSubjectFilter] = useState<"math" | "science" | "english" | null>(null);
+  const [activitiesSubjectFilter, setActivitiesSubjectFilter] = useState<"math" | "science" | "english" | "chinese" | null>(null);
   const [examTypeFilter, setExamTypeFilter] = useState<string | null>(null);
   const [expandedWeekDay, setExpandedWeekDay] = useState<number | null>(null);
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
@@ -3258,10 +3258,16 @@ export default function ParentDashboard({
             {(() => {
               // Subject filter — applied to both unstarted and completed lists.
               // 'math' / 'science' / 'english' match anywhere in the subject
-              // string ('Mathematics', 'Science', 'English' etc.).
+              // string ('Mathematics', 'Science', 'English' etc.). Chinese
+              // additionally matches the CJK aliases the upload pipeline
+              // can store (华文 / 中文 / 华语).
               const matchesSubject = (p: ExamPaperSummary) => {
                 if (!activitiesSubjectFilter) return true;
-                const s = (p.subject ?? "").toLowerCase();
+                const raw = p.subject ?? "";
+                const s = raw.toLowerCase();
+                if (activitiesSubjectFilter === "chinese") {
+                  return s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
+                }
                 return s.includes(activitiesSubjectFilter);
               };
               const unstartedPapers = studentPapers
@@ -3278,7 +3284,8 @@ export default function ParentDashboard({
                       { key: "math", label: "Math" },
                       { key: "science", label: "Science" },
                       { key: "english", label: "English" },
-                    ] as { key: "math" | "science" | "english" | null; label: string }[]).map(opt => (
+                      { key: "chinese", label: "Chinese" },
+                    ] as { key: "math" | "science" | "english" | "chinese" | null; label: string }[]).map(opt => (
                       <button
                         key={opt.label}
                         onClick={() => setActivitiesSubjectFilter(opt.key)}
