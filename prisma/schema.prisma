@@ -296,12 +296,13 @@ model ExamQuestion {
   // - examPaperId: every nested-question query filters by this — most
   //   common Prisma table lookup in the whole app.
   // - sourceQuestionId: tutor + workshop wrongs lookups.
-  // - (examPaperId, studentAnswer): the skipped-marks scan in /api/exam
-  //   asks 'questions in this set of papers where studentAnswer =
-  //   __SKIPPED__'; a composite index makes that an index-only scan.
+  // (The (examPaperId, studentAnswer) composite was removed: studentAnswer
+  //  can hold the student's full OEQ working — Mark's run exceeded the
+  //  8 KB B-tree row cap. A partial index over the __SKIPPED__ subset
+  //  is created via raw SQL in the migration instead — same skipped-marks
+  //  scan speedup, vanishingly small index size.)
   @@index([examPaperId])
   @@index([sourceQuestionId])
-  @@index([examPaperId, studentAnswer])
   @@map("exam_questions")
 }
 
