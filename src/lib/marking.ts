@@ -5161,12 +5161,42 @@ ${expectedAnswer}
           // block per row so the marker can compare 1:1 with the
           // expected answer's (a)/(b)/(c) breakdown.
           let displayAnswer = fullStudentAnswer;
-          const isTableAnswer = fullStudentAnswer.startsWith("{");
-          if (isTableAnswer) {
+          const isCellWrapped = fullStudentAnswer.startsWith("{");
+          // Three flavours of `{...}` answer:
+          //  • TRUE table  — keys like r1c1/r1c2 → labelled (a)/(b)/(c) format
+          //  • Line-based  — keys like line0/line1 → join the lines verbatim
+          //  • Tick-style  — keys like tick0/tick1 → comma-separated picks
+          // Only the TRUE table case gets the "match labelled rows 1:1"
+          // hint. The other two used to be wrapped as `[TABLE] line0: …`
+          // and given the same hint, which caused the marker to score
+          // them 0 because it couldn't find the promised (a)/(b)/(c)
+          // labels in what was actually a free-form answer.
+          let labelledTableFormat = false;
+          if (isCellWrapped) {
             try {
               const cells = JSON.parse(fullStudentAnswer) as Record<string, string>;
               const labelled = formatLabelledTableAnswer(q.transcribedStem ?? "", cells);
-              displayAnswer = labelled ?? `[TABLE] ${Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`).join(", ")}`;
+              if (labelled) {
+                displayAnswer = labelled;
+                labelledTableFormat = true;
+              } else if (Object.keys(cells).every(k => /^line\d+$/.test(k))) {
+                // Line-based: just the lines, one per blank, no JSON noise.
+                displayAnswer = Object.entries(cells)
+                  .sort(([a], [b]) => parseInt(a.slice(4), 10) - parseInt(b.slice(4), 10))
+                  .map(([, v]) => v?.trim() ?? "")
+                  .filter(Boolean)
+                  .join("\n");
+              } else if (Object.keys(cells).every(k => /^tick\d+$/.test(k))) {
+                // Tick-style: list the picks (1-indexed for human-readable).
+                const picks = Object.entries(cells)
+                  .filter(([, v]) => v === "true" || v === true as unknown as string)
+                  .map(([k]) => `option ${parseInt(k.slice(4), 10) + 1}`);
+                displayAnswer = picks.length > 0 ? picks.join(", ") : "(no ticks)";
+              } else {
+                // Mixed / unknown — keep the legacy [TABLE] dump rather
+                // than risk losing data.
+                displayAnswer = `[TABLE] ${Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`).join(", ")}`;
+              }
             } catch { /* use raw */ }
           }
           const lastChar = displayAnswer.trim().slice(-1);
@@ -5174,7 +5204,7 @@ ${expectedAnswer}
           // — punctuation is irrelevant for that section and surfacing the
           // last char makes the AI fixate on the missing period.
           const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… to match the expected answer's subparts. Match each row 1:1 with the same letter in the expected answer. Do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${labelledTableFormat ? "\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… to match the expected answer's subparts. Match each row 1:1 with the same letter in the expected answer. Do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
