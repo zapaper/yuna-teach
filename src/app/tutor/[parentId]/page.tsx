@@ -318,14 +318,19 @@ function softenTone(text: string, childFirst: string): string {
   // "Ruthie misreads charts" → "Ruthie sometimes misreads charts".
   const directVerbs = "misreads|misinterprets|misjudges|misapplies|misidentifies|confuses|conflates|ignores|forgets|skips|drops|reverses|stops|fails|loses|writes|gives|uses";
   const directVerbRe = new RegExp(`\\b(${fn})\\s+(?!(?:sometimes|often|occasionally|tends to|usually|may|might)\\b)(${directVerbs})\\b`, "g");
+  // Even "often" reads heavier than the parent voice we want — bumped
+  // down to "sometimes" specifically when it follows the kid's name
+  // ("Kaiyangnggg often reverses…" → "Kaiyangnggg sometimes reverses…").
+  const namedOftenRe = new RegExp(`\\b(${fn})\\s+often\\b`, "g");
   return text
     .replace(/\bThe student\b/g, fn)
     .replace(/\bthe student\b/g, fn.toLowerCase())
     .replace(directVerbRe, "$1 sometimes $2")
+    .replace(namedOftenRe, "$1 sometimes")
     .replace(/\bstruggles to\b/gi, "sometimes finds it tricky to")
     .replace(/\bstruggles with\b/gi, "sometimes finds")
     .replace(/\bfails to\b/gi, "sometimes misses")
-    .replace(/\bconsistently\b/gi, "often")
+    .replace(/\bconsistently\b/gi, "sometimes")
     .replace(/\bcannot\b/gi, "doesn't always");
 }
 
