@@ -5161,7 +5161,17 @@ ${expectedAnswer}
           // block per row so the marker can compare 1:1 with the
           // expected answer's (a)/(b)/(c) breakdown.
           let displayAnswer = fullStudentAnswer;
-          const isCellWrapped = fullStudentAnswer.startsWith("{");
+          // CRITICAL: we re-parse from the ORIGINAL q.studentAnswer
+          // because the block at line ~5051 already pre-processes
+          // fullStudentAnswer for r-key answers into "[TABLE] r1c1:
+          // \"False\", …" before this point. Checking
+          // fullStudentAnswer.startsWith("{") here would miss every
+          // table-shaped answer (the pre-processing strips the leading
+          // `{`), which is why an earlier version of this branch
+          // never fired for Caleb's Q8/Q3/Q6 and they kept getting
+          // mis-marked.
+          const rawAnswer = q.studentAnswer ?? "";
+          const isCellWrapped = rawAnswer.startsWith("{");
           // Three flavours of `{...}` answer:
           //  • TRUE table  — keys like r1c1/r1c2 → labelled (a)/(b)/(c) format
           //  • Line-based  — keys like line0/line1 → join the lines verbatim
@@ -5174,7 +5184,7 @@ ${expectedAnswer}
           let labelledTableFormat = false;
           if (isCellWrapped) {
             try {
-              const cells = JSON.parse(fullStudentAnswer) as Record<string, string>;
+              const cells = JSON.parse(rawAnswer) as Record<string, string>;
               const labelled = formatLabelledTableAnswer(q.transcribedStem ?? "", cells);
               if (labelled) {
                 displayAnswer = labelled;
@@ -5192,11 +5202,14 @@ ${expectedAnswer}
                   .filter(([, v]) => v === "true" || v === true as unknown as string)
                   .map(([k]) => `option ${parseInt(k.slice(4), 10) + 1}`);
                 displayAnswer = picks.length > 0 ? picks.join(", ") : "(no ticks)";
-              } else {
-                // Mixed / unknown — keep the legacy [TABLE] dump rather
-                // than risk losing data.
+              } else if (Object.keys(cells).some(k => /^r\d+c\d+$/.test(k))) {
+                // r-keys present but stem table didn't parse → keep the
+                // legacy [TABLE] dump rather than risk losing data.
                 displayAnswer = `[TABLE] ${Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`).join(", ")}`;
               }
+              // else: leave displayAnswer as the pre-processed
+              // fullStudentAnswer (synthesis-reconstructed sentence,
+              // text-only typed OEQ, etc.) — don't override it.
             } catch { /* use raw */ }
           }
           const lastChar = displayAnswer.trim().slice(-1);
