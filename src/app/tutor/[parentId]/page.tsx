@@ -259,7 +259,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
           <p className="text-[#001e40] text-base leading-relaxed">
             Hi! I&apos;m <strong>Loomi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
-          <p className="text-[#001e40] text-sm leading-relaxed mt-3" dangerouslySetInnerHTML={{ __html: boldifyHtml(buildActionSummary(data)) }} />
+          <LoomiSummary data={data} />
         </div>
       </section>
 
@@ -286,22 +286,81 @@ function pctOfSubject(marksLost: number, totalAvailable: number): string {
   return `${Math.round((marksLost / totalAvailable) * 100)}%`;
 }
 
-// Synthesise Loomi's "what to do this week" paragraph from cached
-// diagnosis fields — no fresh Gemini call. Names the top weak topic
-// + top common mistake, then nudges toward the concept gap if there
-// is one. Falls back gracefully when any section is empty.
-function buildActionSummary(data: Extract<TutorData, { kind: "ready" }>): string {
-  const { childFirst, topline, commonMistakes, conceptualGaps } = data;
-  const bits: string[] = [];
+// Smooth-scroll helper for the (here) anchor links inside Loomi's
+// action summary — keeps the URL clean (no #hash sticking around)
+// and ensures the section animates into view from the long-scroll
+// shell that the AdminProgressView lives in.
+function scrollToSection(id: string) {
+  return (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+}
+
+// Loomi's structured action summary — bulleted briefing pulled from
+// the cached diagnosis. Each bullet ends with a (here) link that
+// jumps to the relevant section further down the page (mistakes /
+// concepts / topics) so the admin can act on the headline without
+// scrolling around to find the matching card.
+function LoomiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
+  const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
   const weak = topline.weakTopics[0];
-  const topMistake = commonMistakes[0];
-  const topConcept = conceptualGaps[0];
-  if (weak) bits.push(`${childFirst}'s weakest topic is **${weak.topic}** (${weak.pct}%).`);
-  if (topMistake) bits.push(`The biggest mark-leak is **${topMistake.name.toLowerCase()}** — ${topMistake.marksLost} marks lost (${pctOfSubject(topMistake.marksLost, topline.totalAvailable)} of the subject).`);
-  if (topConcept) bits.push(`Worth a concept quiz on **${topConcept.name.toLowerCase()}** before the next paper.`);
-  if (bits.length === 0) return `Not enough patterns yet — keep assigning practice and check back once ${childFirst} has more papers in.`;
-  bits.push(`Focus there this week.`);
-  return bits.join(" ");
+  const m1 = commonMistakes[0];
+  const m2 = commonMistakes[1];
+  const concept = conceptualGaps[0];
+  const avg = topline.avgPct;
+  const status = avg >= 75 ? "good" : avg >= 60 ? "steady" : "tough";
+
+  // Empty cache → simple fallback (the action briefing needs at
+  // least one of weak topic / mistake / concept to be meaningful).
+  if (!weak && !m1 && !concept) {
+    return (
+      <p className="text-[#001e40] text-sm leading-relaxed mt-3">
+        Not enough patterns yet — keep assigning practice and check back once {childFirst} has more papers marked.
+      </p>
+    );
+  }
+
+  const link = (id: string, label: string) => (
+    <a href={`#${id}`} onClick={scrollToSection(id)} className="text-violet-700 font-semibold underline decoration-violet-300 hover:decoration-violet-700 underline-offset-2">
+      {label}
+    </a>
+  );
+
+  return (
+    <div className="text-[#001e40] text-sm leading-relaxed mt-3 space-y-2.5">
+      <p>
+        {childFirst} is making <strong>{status}</strong> progress in {subject}. A few things to take note:
+      </p>
+      <ul className="space-y-2 list-disc pl-5">
+        {weak && (
+          <li>
+            {childFirst}&apos;s weakest topic is <strong>{weak.topic}</strong> ({weak.pct}%).
+            A focused practice on this would help — pick this topic in the bar chart above to assign one,
+            or jump to {link("topics-section", "Topics for Practice")} below.
+          </li>
+        )}
+        {m1 && (
+          <li>
+            There are common trends in the mistakes. The biggest pattern is
+            {" "}<strong>&ldquo;{m1.name}&rdquo;</strong> ({pctOfSubject(m1.marksLost, topline.totalAvailable)} of the subject score)
+            {m2 && <> and <strong>&ldquo;{m2.name}&rdquo;</strong> ({pctOfSubject(m2.marksLost, topline.totalAvailable)})</>}.
+            Let&apos;s go through these answering techniques with him {link("mistakes-section", "here")}.
+          </li>
+        )}
+        {concept && (
+          <li>
+            Lastly, there are concepts worth refreshing with {childFirst}. I notice
+            {" "}<strong>&ldquo;{concept.name}&rdquo;</strong> is one to revisit
+            — he&apos;s lost {pctOfSubject(concept.marksLost, topline.totalAvailable)} on questions involving it.
+            I&apos;ve put a short module {link("concepts-section", "here")} we can walk through together, plus a quick quiz.
+          </li>
+        )}
+      </ul>
+    </div>
+  );
 }
 function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -337,7 +396,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
 
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
+        <section id="mistakes-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Common Mistakes</h2>
           <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
           <div className="space-y-3">
@@ -359,7 +418,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
 
       {/* Conceptual Gaps */}
       {data.conceptualGaps.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
+        <section id="concepts-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Conceptual Gaps</h2>
           <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
           <div className="space-y-3">
@@ -381,7 +440,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
 
       {/* Topics for Practice */}
       {data.topicsForPractice.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
+        <section id="topics-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Topics for Practice</h2>
           <p className="text-sm text-slate-500 mb-5">Below average — a Focused Practice on each will lift the score.</p>
           <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl bg-slate-50/50">
