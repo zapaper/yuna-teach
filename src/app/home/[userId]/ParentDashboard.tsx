@@ -4763,19 +4763,31 @@ function LumiViewBody({ studentId, parentId, studentName }: { studentId: string;
   const firstName = studentName.split(/\s+/)[0] ?? "";
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3 mb-5">
-        <div>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress · Lumi</p>
-          <h2 className="text-xl font-headline font-extrabold text-[#001e40]">
-            {firstName ? `${firstName}'s ${subject}` : subject}
-          </h2>
+      {/* Pad above the heading so the subject pills clear the fixed
+          top bar (~64 px) on desktop. The pills themselves are big
+          tab-style buttons so the choice reads as a primary action,
+          not a tucked-away select. */}
+      <div className="pt-8 lg:pt-10 mb-6">
+        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Progress · Lumi</p>
+        <h2 className="text-2xl font-headline font-extrabold text-[#001e40] mb-4">
+          {firstName ? `${firstName}'s ${subject}` : subject}
+        </h2>
+        <div className="flex gap-2 flex-wrap">
+          {(["Science", "Math", "English", "Chinese"] as const).map(s => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSubject(s)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wider transition-all ${
+                subject === s
+                  ? "bg-[#003366] text-white shadow-sm"
+                  : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
-        <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-          <option>Science</option>
-          <option>Math</option>
-          <option>English</option>
-          <option>Chinese</option>
-        </select>
       </div>
       <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={studentName} />
     </div>
