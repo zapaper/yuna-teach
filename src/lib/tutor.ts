@@ -35,7 +35,16 @@ type GeminiPattern = {
   trigger_keywords: string[];
 };
 type GeminiClassification = { idx: number; patternIndex: number };
-type GeminiReport = { patterns: GeminiPattern[]; classification: GeminiClassification[] };
+type GeminiReport = {
+  patterns: GeminiPattern[];
+  classification: GeminiClassification[];
+  // Resolution + staleness metadata added by the workshop. Old caches
+  // (regenerated before this shipped) won't have these — code falls
+  // back to idx-based resolution and skips the staleness check.
+  questionIdByIdx?: Record<string, string>;
+  generatedAt?: string;
+  wrongCounts?: { total: number; oeq: number; mcq: number };
+};
 
 // ---- Public TutorData type ----
 export type Topline = {
@@ -87,6 +96,15 @@ export type ConceptCard = {
 };
 export type TopicCard = { topic: string; pct: number; attempts: number };
 
+// Surface drift between the cached diagnosis and current papers so
+// the Tutor UI can warn the parent + offer a refresh. `kind` says
+// what got out of sync; counts let the UI describe how much.
+export type StaleInfo = {
+  kind: "fresh" | "stale";
+  cachedAt: string | null;
+  cachedWrongs: number;
+  currentWrongs: number;
+};
 export type TutorData =
   | { kind: "ineligible"; reason: string; paperCount: number }
   | {
@@ -99,6 +117,7 @@ export type TutorData =
       conceptualGaps: ConceptCard[];
       topicsForPractice: TopicCard[];
       generatedAt: string;
+      stale: StaleInfo;
     };
 
 // ---- Standard taxonomy ----
@@ -299,14 +318,26 @@ function shapeTutorData(args: {
 
   // Pattern → bucket + marks lost
   const wrongs = reconstructWrongs(papers);
-  // wrongs-by-idx lets us join Gemini's "[49]" example refs to the
-  // actual DB question + answer.
+  // Two-way resolution:
+  //   1. By questionId (preferred): stable across new papers — a
+  //      cached example from June still maps to the same DB question
+  //      regardless of how many papers the kid has finished since.
+  //   2. By idx (fallback): for caches written before this metadata
+  //      shipped. Still works when the paper set hasn't changed.
   const wrongByIdx = new Map(wrongs.map(w => [w.idx, w]));
+  const wrongByQuestionId = new Map(wrongs.map(w => [w.questionId, w]));
+  const questionIdByIdx = report.questionIdByIdx ?? {};
   type PatternStat = { name: string; bucket: StandardBucket; what: string; advice: string; triggerKeywords: string[]; examples: MistakeExample[]; marksLost: number };
   const refToWrong = (ref: string): WrongRecord | null => {
     const m = /\[(\d+)\]/.exec(ref);
     if (!m) return null;
-    return wrongByIdx.get(parseInt(m[1], 10)) ?? null;
+    const idx = parseInt(m[1], 10);
+    const cachedQid = questionIdByIdx[String(idx)];
+    if (cachedQid) {
+      const w = wrongByQuestionId.get(cachedQid);
+      if (w) return w;
+    }
+    return wrongByIdx.get(idx) ?? null;
   };
   const enrichExample = (ex: GeminiExample): MistakeExample => {
     const w = refToWrong(ex.questionRef);
@@ -353,7 +384,10 @@ function shapeTutorData(args: {
   }));
   for (const c of report.classification) {
     if (c.patternIndex < 0 || c.patternIndex >= patternStats.length) continue;
-    const w = wrongByIdx.get(c.idx);
+    // Same two-step resolution as enrichExample so marks-lost per
+    // pattern survives idx drift from new paper completions.
+    const cachedQid = questionIdByIdx[String(c.idx)];
+    const w = cachedQid ? wrongByQuestionId.get(cachedQid) : wrongByIdx.get(c.idx);
     if (!w) continue;
     patternStats[c.patternIndex].marksLost += w.marksLost;
   }
@@ -409,6 +443,20 @@ function shapeTutorData(args: {
   const strongTopics = [...topics].sort((a, b) => b.pct - a.pct).slice(0, 2);
   const weakTopics = [...topics].sort((a, b) => a.pct - b.pct).slice(0, 3);
 
+  // Staleness — drift between the cached wrong count and the current
+  // one. If the cache predates wrongCounts being stamped we can't
+  // tell, so we treat that as "fresh" rather than alarming the
+  // parent over a missing field. Threshold: any growth at all flips
+  // the flag, because even one new paper means the patterns may be
+  // missing examples the parent has just seen.
+  const cachedWrongs = report.wrongCounts?.total ?? wrongs.length;
+  const currentWrongs = wrongs.length;
+  const stale: StaleInfo = {
+    kind: report.wrongCounts && currentWrongs > cachedWrongs ? "stale" : "fresh",
+    cachedAt: report.generatedAt ?? null,
+    cachedWrongs,
+    currentWrongs,
+  };
   return {
     kind: "ready",
     childFirst,
@@ -427,6 +475,7 @@ function shapeTutorData(args: {
     conceptualGaps,
     topicsForPractice: weakTopics,
     generatedAt: new Date().toISOString(),
+    stale,
   };
 }
 
@@ -513,6 +562,9 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       conceptualGaps: [],
       topicsForPractice: [...topics].sort((a, b) => a.pct - b.pct).slice(0, 3),
       generatedAt: new Date().toISOString(),
+      // No cached diagnosis at all → the empty mistakes/concepts are
+      // already a stronger signal than a stale flag; treat as fresh.
+      stale: { kind: "fresh", cachedAt: null, cachedWrongs: 0, currentWrongs: 0 },
     };
   }
   const shaped = shapeTutorData({ studentName: student.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });

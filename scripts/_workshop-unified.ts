@@ -441,7 +441,19 @@ ${records}`;
   type Example = { questionRef: string; type: "oeq" | "mcq"; whatWentWrong: string };
   type Pattern = { name: string; what: string; specific_examples: Example[]; strategic_advice: string; trigger_keywords: string[] };
   type Classification = { idx: number; patternIndex: number };
-  type Report = { patterns: Pattern[]; classification: Classification[] };
+  type Report = {
+    patterns: Pattern[];
+    classification: Classification[];
+    // Resolution metadata — added so the runtime tutor loader can
+    // resolve examples + classifications by stable questionId instead
+    // of an idx that drifts every time a new paper is completed. The
+    // generatedAt timestamp + wrongs counts let the loader detect when
+    // a kid's cache is stale (new wrong records have appeared since
+    // the workshop run) and flag the response for the UI banner.
+    questionIdByIdx?: Record<string, string>;
+    generatedAt?: string;
+    wrongCounts?: { total: number; oeq: number; mcq: number };
+  };
 
   let report: Report;
   let proCost = 0;
@@ -462,6 +474,14 @@ ${records}`;
     });
     console.log(`Pro responded in ${((Date.now() - t0) / 1000).toFixed(1)}s, ${(resp.text ?? "").length} chars`);
     report = JSON.parse((resp.text ?? "").trim()) as Report;
+    // Stamp resolution metadata into the cache. questionIdByIdx maps
+    // every idx the diagnosis references back to the actual question
+    // id, so the runtime loader can resolve by stable identity even
+    // after new papers shift the idx ordering. generatedAt + wrongCounts
+    // power the staleness check.
+    report.questionIdByIdx = Object.fromEntries(wrongs.map(w => [String(w.idx), w.questionId]));
+    report.generatedAt = new Date().toISOString();
+    report.wrongCounts = { total: wrongs.length, oeq: wrongOeq.length, mcq: wrongMcq.length };
     writeFileSync(cachePath, JSON.stringify(report, null, 2));
     // Cost estimate: $1.25/M input + $10/M output.
     const promptTokens = Math.round(prompt.length / 4);

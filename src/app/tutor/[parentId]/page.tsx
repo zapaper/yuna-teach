@@ -81,6 +81,12 @@ type ConceptCard = {
 };
 type TopicCard = { topic: string; pct: number; attempts: number };
 
+type StaleInfo = {
+  kind: "fresh" | "stale";
+  cachedAt: string | null;
+  cachedWrongs: number;
+  currentWrongs: number;
+};
 type TutorData =
   | { kind: "ineligible"; reason: string; paperCount: number }
   | {
@@ -93,6 +99,7 @@ type TutorData =
       conceptualGaps: ConceptCard[];
       topicsForPractice: TopicCard[];
       generatedAt: string;
+      stale: StaleInfo;
     };
 
 type LinkedStudent = { id: string; name: string };
@@ -277,6 +284,15 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
             Hi! I&apos;m <strong>Lumi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
           <LumiSummary data={data} />
+          {data.stale?.kind === "stale" && (
+            <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-700 text-base shrink-0 mt-0.5">refresh</span>
+              <div className="flex-1 text-sm text-amber-900 leading-relaxed">
+                <strong>This diagnosis is from {data.stale.cachedAt ? new Date(data.stale.cachedAt).toLocaleDateString() : "an earlier run"}</strong> — {data.childFirst} has completed {data.stale.currentWrongs - data.stale.cachedWrongs} new wrong answer{data.stale.currentWrongs - data.stale.cachedWrongs === 1 ? "" : "s"} since then. The patterns + examples are still safe to use (resolved by question id, not order), but the marks-lost percentages and weak topics may be slightly outdated. Re-run the workshop to refresh:
+                <code className="block mt-2 text-xs bg-white/60 border border-amber-200 rounded px-2 py-1 font-mono">npx tsx scripts/_workshop-unified.ts &quot;{data.childFullName}&quot; {data.subject} --refresh</code>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
