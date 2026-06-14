@@ -13,6 +13,7 @@ import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
 import ReviseWorkModal from "@/components/ReviseWorkModal";
 import TrialReminder from "@/components/TrialReminder";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
+import { TutorBodyForStudent } from "../../tutor/[parentId]/page";
 import { isNative } from "@/lib/native";
 import { printPdf } from "@/lib/print-pdf";
 
@@ -444,9 +445,9 @@ export default function ParentDashboard({
   };
   const [showStudentMenu, setShowStudentMenu] = useState(false);
   const [, setSettingsTick] = useState(0);
-  type ActiveView = "progress" | "papers" | "activities";
+  type ActiveView = "progress" | "papers" | "activities" | "lumi";
   const parseView = (v: string | undefined): ActiveView =>
-    v === "papers" || v === "activities" ? v : "progress";
+    v === "papers" || v === "activities" || v === "lumi" ? v : "progress";
   const [activeView, setActiveViewRaw] = useState<ActiveView>(parseView(initialView));
   // Sync activeView to the URL so browser back/forward, refresh, and deep links all work.
   const setActiveView: typeof setActiveViewRaw = (next) => {
@@ -2520,21 +2521,18 @@ export default function ParentDashboard({
 
   // ── Desktop nav items ──────────────────────────────────────────────────────
 
-  // Admin gets a Home + Progress split — Home is the inline dashboard
-  // (the old "progress" view embedded in this page), Progress hops to
-  // /progress/<id> which renders the new Lumi tutor view with its
-  // own Home/Progress tab shell. Non-admins keep the single Progress
-  // entry that swaps the inline view.
+  // Admin gets a Home + Progress split — Home is the inline parent
+  // dashboard (chart + papers list), Progress is the Lumi/Tutor view
+  // rendered INLINE in the same page (same left sidebar stays in
+  // place, just the main column swaps). Non-admins keep the single
+  // Progress entry that selects the inline 'progress' view.
   const progressNavClick = () => {
-    if (isAdminUser && selectedStudentId) {
-      router.push(`/progress/${selectedStudentId}?parentId=${userId}`);
-    } else {
-      setActiveView("progress");
-    }
+    if (isAdminUser) setActiveView("lumi");
+    else setActiveView("progress");
   };
   const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
     ...(isAdminUser ? [{ icon: "home", label: "Home", onClick: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-    { icon: "insights", label: "Progress", onClick: progressNavClick, active: !isAdminUser && activeView === "progress" },
+    { icon: "insights", label: "Progress", onClick: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
@@ -3008,6 +3006,23 @@ export default function ParentDashboard({
           mobile header on that breakpoint and the spacing reads as
           breathing room. */}
       <main className="lg:ml-72 pt-2 lg:pt-24 pb-32 lg:pb-12">
+
+        {/* ── Lumi (Tutor) view ────────────────────────────────────────────
+              Admin-only. Renders inline so the left sidebar (Home,
+              Progress, Set Papers, etc.) stays in place — clicking
+              between students or back to Home doesn't full-page-navigate. */}
+        {activeView === "lumi" && isAdminUser && selectedStudentId && (
+          <div className="px-5 lg:px-8 max-w-5xl">
+            <LumiViewBody studentId={selectedStudentId} parentId={userId} studentName={selectedStudent?.name ?? ""} />
+          </div>
+        )}
+        {activeView === "lumi" && (!isAdminUser || !selectedStudentId) && (
+          <div className="px-5 lg:px-8 max-w-4xl">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+              <p className="text-sm text-slate-500">{!isAdminUser ? "Admin-only view." : "Select a student first."}</p>
+            </div>
+          </div>
+        )}
 
         {/* ── Papers / Set Papers view ─────────────────────────────────────── */}
         {activeView === "papers" && (
@@ -4192,9 +4207,10 @@ export default function ParentDashboard({
       {/* ════════════════════════════════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
-          // Admin: Home stays inline, Progress hops to /progress/<id>.
+          // Admin: Home stays inline (chart view), Progress also stays
+          // inline now but swaps to the Lumi/Tutor body.
           ...(isAdminUser ? [{ icon: "home", label: "Home", action: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-          { icon: "insights", label: "Progress", action: progressNavClick, active: !isAdminUser && activeView === "progress" },
+          { icon: "insights", label: "Progress", action: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
           { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
           { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
@@ -4729,6 +4745,35 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// ── Lumi inline body (admin-only) ────────────────────────────────────
+// Wraps TutorBodyForStudent with a small subject selector. Lives in
+// the parent dashboard's main column so the existing left sidebar
+// stays visible — clicking between Home / Progress / Set Papers /
+// students is one in-page state change, no full-page navigation.
+function LumiViewBody({ studentId, parentId, studentName }: { studentId: string; parentId: string; studentName: string }) {
+  const [subject, setSubject] = useState<string>("Science");
+  const firstName = studentName.split(/\s+/)[0] ?? "";
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3 mb-5">
+        <div>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress · Lumi</p>
+          <h2 className="text-xl font-headline font-extrabold text-[#001e40]">
+            {firstName ? `${firstName}'s ${subject}` : subject}
+          </h2>
+        </div>
+        <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
+          <option>Science</option>
+          <option>Math</option>
+          <option>English</option>
+          <option>Chinese</option>
+        </select>
+      </div>
+      <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={studentName} />
     </div>
   );
 }
