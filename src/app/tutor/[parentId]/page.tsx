@@ -464,7 +464,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
         <section id="mistakes-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
-          <h2 className="font-headline text-xl font-extrabold text-violet-700 mb-2">Common Mistakes</h2>
+          <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Common Mistakes</h2>
           <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
           <div className="space-y-3">
             {data.commonMistakes.map((m, i) => (
@@ -486,7 +486,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       {/* Conceptual Gaps */}
       {data.conceptualGaps.length > 0 && (
         <section id="concepts-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
-          <h2 className="font-headline text-xl font-extrabold text-orange-600 mb-2">Conceptual Gaps</h2>
+          <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Conceptual Gaps</h2>
           <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
           <div className="space-y-3">
             {data.conceptualGaps.map((c, i) => (
@@ -508,7 +508,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       {/* Topics for Practice */}
       {data.topicsForPractice.length > 0 && (
         <section id="topics-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
-          <h2 className="font-headline text-xl font-extrabold text-emerald-700 mb-2">Topics for Practice</h2>
+          <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Topics for Practice</h2>
           <p className="text-sm text-slate-500 mb-5">Below average — a Focused Practice on each will lift the score.</p>
           <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl bg-slate-50/50">
             {data.topicsForPractice.map(t => (
