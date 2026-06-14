@@ -312,6 +312,11 @@ export async function loadTutorData(studentId: string, subject: string): Promise
         },
       },
     },
+    // CRITICAL: match the workshop's wrongs index ordering. The
+    // cached classification array references idx values assigned in
+    // this order. Mismatched ordering = mis-attributed marks lost
+    // per pattern.
+    orderBy: { completedAt: "desc" },
   });
   const subjectPapers = papers.filter(p => subjectMatches(p.subject, subject));
 
