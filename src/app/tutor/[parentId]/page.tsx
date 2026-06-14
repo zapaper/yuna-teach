@@ -677,9 +677,10 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
         </div>
       )}
 
-      <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-base shadow-md hover:opacity-95">
-        Take a quick Concept Quiz →
-      </button>
+      {/* Concept Quiz CTA parked — the concept-pair quiz generator
+          (per the workshop discussion: real master questions that
+          test BOTH concepts the kid confuses) isn't built yet. Bring
+          this button back once the generator ships. */}
     </section>
   );
 }
