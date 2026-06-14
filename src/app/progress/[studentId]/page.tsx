@@ -664,7 +664,7 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
 // so strongest topics surface first; topics with <3 questions filtered out
 // to suppress single-question noise. Uses the same SubjectData feeding the
 // existing topic cards below, so no extra API.
-function AdminTopicChart({
+export function AdminTopicChart({
   subject,
   subjectData,
   timeline,
@@ -868,7 +868,7 @@ function AdminTopicChart({
 // selected. Plots the rolling-3-paper average of the topic's accuracy
 // over time and offers an Assign Focus Practice button for the same
 // topic. Hidden until a bar/label is tapped.
-function SelectedTopicPanel({
+export function SelectedTopicPanel({
   subject,
   topic,
   timeline,

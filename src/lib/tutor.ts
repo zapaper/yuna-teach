@@ -289,7 +289,16 @@ function shapeTutorData(args: {
   };
   const enrichExample = (ex: GeminiExample): MistakeExample => {
     const w = refToWrong(ex.questionRef);
-    if (!w) {
+    // Type-mismatch guard — if the cached example says it was an OEQ
+    // but the resolved wrong record is an MCQ (or vice versa), the
+    // idx mapping has drifted (different paper order, different
+    // question order, or the cache predates the current DB state).
+    // Returning the bare diagnosis text without misleading question
+    // detail is safer than showing the wrong question.
+    const typeMatch = !ex.type || !w
+      ? true
+      : (ex.type === "mcq" ? w.isMcq : !w.isMcq);
+    if (!w || !typeMatch) {
       return {
         questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
         paperTitle: null, questionText: null, studentAnswer: null,
@@ -421,6 +430,11 @@ export async function loadTutorData(studentId: string, subject: string): Promise
           transcribedSubparts: true,
           diagramImageData: true,
         },
+        // Deterministic question order — without this Prisma can
+        // shuffle nested includes by physical row position, which
+        // silently drifts the wrongs idx between the workshop run
+        // and the page reconstruction.
+        orderBy: { orderIndex: "asc" },
       },
     },
     // CRITICAL: match the workshop's wrongs index ordering. The

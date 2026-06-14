@@ -3,6 +3,13 @@
 import { Suspense, useEffect, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
+
+type ProgressData = {
+  student: { id: string; name: string } | null;
+  subjects: Record<string, SubjectData>;
+  timeline: Record<string, TimelineEntry[]>;
+};
 
 type Topline = {
   avgPct: number;
@@ -339,22 +346,7 @@ function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extrac
         Back to overview
       </button>
       {view.kind === "fullProgress" && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Full Progress Report</h2>
-          <p className="text-sm text-slate-600 leading-relaxed mb-6">
-            {data.childFirst}&apos;s topic-by-topic accuracy with the clickable bar chart + per-topic detail panel lives on the main Progress page.
-          </p>
-          <a
-            href={`/progress/${studentId}?parentId=${parentId}`}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#003366] text-white font-bold text-sm hover:opacity-95"
-          >
-            Open Full Progress Report
-            <span className="material-symbols-outlined text-base">open_in_new</span>
-          </a>
-          <p className="text-xs text-slate-400 mt-6 italic">Embedding the chart directly into the Tutor page is on the roadmap — for now it opens in a new tab.</p>
-        </section>
+        <FullProgressEmbed studentId={studentId} parentId={parentId} subject={data.subject} childFirst={data.childFirst} />
       )}
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
         <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
@@ -434,6 +426,102 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
       <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-base shadow-md hover:opacity-95">
         Take a quick Concept Quiz →
       </button>
+    </section>
+  );
+}
+
+function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { studentId: string; parentId: string; subject: string; childFirst: string }) {
+  const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [progressErr, setProgressErr] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [creating, setCreating] = useState<string | null>(null);
+  const [assignedToast, setAssignedToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/student-progress?parentId=${parentId}&studentId=${studentId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d ? setProgress(d as ProgressData) : setProgressErr(true))
+      .catch(() => setProgressErr(true));
+  }, [studentId, parentId]);
+
+  // Match Tutor's subject label to the keys used by /api/student-progress
+  // ("Science", "Mathematics", "English", "Chinese") — same fallback as
+  // the progress page.
+  const subjectKey = (() => {
+    if (!progress) return null;
+    const keys = Object.keys(progress.subjects);
+    const t = subject.toLowerCase();
+    if (t === "math") return keys.find(k => k.toLowerCase().includes("math")) ?? null;
+    return keys.find(k => k.toLowerCase().includes(t)) ?? null;
+  })();
+  const subjectData = subjectKey ? progress?.subjects[subjectKey] : undefined;
+  const timeline = subjectKey ? progress?.timeline[subjectKey] : undefined;
+
+  const ENGLISH_TOPIC_TO_SECTION: Record<string, string> = {
+    "Grammar MCQ": "grammar-mcq", "Vocabulary MCQ": "vocab-mcq", "Vocabulary Cloze MCQ": "vocab-cloze",
+    "Visual Text Comprehension MCQ": "visual-text", "Grammar Cloze": "grammar-cloze",
+    "Editing (Spelling & Grammar)": "editing", "Comprehension Cloze": "comprehension-cloze",
+    "Synthesis & Transformation": "synthesis", "Synthesis / Transformation": "synthesis",
+    "Comprehension (Open-ended)": "comprehension-oeq", "Comprehension Open Ended": "comprehension-oeq",
+  };
+  async function assignFocus(topic: string) {
+    if (!subjectKey) return;
+    setCreating(topic);
+    try {
+      const isEnglish = subjectKey.toLowerCase().includes("english");
+      const englishSection = isEnglish ? ENGLISH_TOPIC_TO_SECTION[topic] : undefined;
+      const res = englishSection
+        ? await fetch("/api/daily-quiz", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: studentId, quizType: "mcq", subject: "english", englishSections: [englishSection], focused: true }),
+          })
+        : await fetch("/api/focused-test", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              parentId, studentId,
+              subject: subjectKey.toLowerCase().includes("math") ? "Mathematics" : subjectKey.toLowerCase().includes("science") ? "Science" : subjectKey,
+              topic,
+            }),
+          });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(j.error || "Failed to create test"); return; }
+      setAssignedToast(topic);
+      setTimeout(() => setAssignedToast(null), 2500);
+    } finally {
+      setCreating(null);
+    }
+  }
+
+  return (
+    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Full Progress Report</h2>
+      <p className="text-sm text-slate-600 leading-relaxed mb-6">{childFirst}&apos;s per-topic accuracy with the clickable bar chart. Tap any bar to see history + assign focused practice.</p>
+      {assignedToast && (
+        <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold">
+          Focus practice assigned: {assignedToast}
+        </div>
+      )}
+      {!progress && !progressErr && (
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
+        </div>
+      )}
+      {progressErr && <p className="text-sm text-rose-600">Couldn&apos;t load progress data.</p>}
+      {progress && !subjectData && (
+        <p className="text-sm text-slate-500 italic">No {subject} data yet for {childFirst}.</p>
+      )}
+      {progress && subjectKey && subjectData && (
+        <AdminTopicChart
+          subject={subjectKey}
+          subjectData={subjectData}
+          timeline={Array.isArray(timeline) ? timeline : []}
+          studentName={progress.student?.name ?? childFirst}
+          selectedTopic={selectedTopic}
+          onSelectTopic={setSelectedTopic}
+          onAssignFocus={assignFocus}
+          creating={creating}
+        />
+      )}
     </section>
   );
 }
