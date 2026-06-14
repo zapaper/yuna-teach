@@ -416,6 +416,39 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
   // request is in flight so we can spinner that row only.
   const [creatingTopic, setCreatingTopic] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // Look up existing focused-practice papers per topic so we can
+  // surface a "Revise here" link before the Assign button when the
+  // kid has already attempted one on this topic.
+  const [existingByTopic, setExistingByTopic] = useState<Record<string, { id: string; completed: boolean }>>({});
+  useEffect(() => {
+    fetch(`/api/exam?userId=${studentId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        const papers = (d?.papers ?? []) as Array<{ id: string; title: string; paperType: string | null; subject: string | null; completedAt: string | null }>;
+        const subjLc = data.subject.toLowerCase();
+        const map: Record<string, { id: string; completed: boolean }> = {};
+        for (const p of papers) {
+          if (p.paperType !== "focused") continue;
+          const pSubj = (p.subject ?? "").toLowerCase();
+          if (subjLc === "math" && !pSubj.includes("math")) continue;
+          if (subjLc === "science" && !pSubj.includes("science")) continue;
+          if (subjLc === "english" && !pSubj.includes("english")) continue;
+          if (subjLc === "chinese" && !pSubj.includes("chinese") && !pSubj.includes("华") && !pSubj.includes("中")) continue;
+          // Title-contains match against each topic in the Topics-for-
+          // Practice list. Take the most recent matching paper per
+          // topic (papers are returned createdAt desc already).
+          for (const tc of data.topicsForPractice) {
+            const titleLc = p.title.toLowerCase();
+            const topicLc = tc.topic.toLowerCase();
+            if (titleLc.includes(topicLc) && !map[tc.topic]) {
+              map[tc.topic] = { id: p.id, completed: !!p.completedAt };
+            }
+          }
+        }
+        setExistingByTopic(map);
+      })
+      .catch(() => { /* best-effort — no link shown */ });
+  }, [studentId, data.subject, data.topicsForPractice]);
 
   async function assignTopic(topic: string) {
     if (creatingTopic) return;
@@ -519,24 +552,37 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Topics for Practice</h2>
           <p className="text-sm text-slate-500 mb-5">Below average — a Focused Practice on each will lift the score.</p>
           <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl bg-slate-50/50">
-            {data.topicsForPractice.map(t => (
-              <div key={t.topic} className="flex justify-between items-center p-5">
-                <div>
-                  <p className="font-semibold text-[#001e40] text-base">{t.topic}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{t.attempts} attempts · {t.pct}% avg</p>
+            {data.topicsForPractice.map(t => {
+              const existing = existingByTopic[t.topic];
+              const reviseHref = existing
+                ? (existing.completed
+                    ? `/exam/${existing.id}/review?userId=${parentId || studentId}`
+                    : `/quiz/${existing.id}?userId=${studentId}`)
+                : null;
+              return (
+                <div key={t.topic} className="flex justify-between items-center gap-3 p-5 flex-wrap">
+                  <div>
+                    <p className="font-semibold text-[#001e40] text-base">{t.topic}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.attempts} attempts · {t.pct}% avg</p>
+                    {existing && (
+                      <p className="text-xs text-amber-700 mt-1.5">
+                        💡 {data.childFirst} already has a focused practice on this — review it (<a href={reviseHref ?? "#"} target="_blank" rel="noopener" className="underline font-semibold text-amber-800 hover:text-amber-900">here</a>) with him before assigning another.
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => assignTopic(t.topic)}
+                    disabled={creatingTopic === t.topic}
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {creatingTopic === t.topic
+                      ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Assigning…</>
+                      : <><span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>target</span>{existing ? "Assign Another" : "Assign Focused Practice"}</>}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => assignTopic(t.topic)}
-                  disabled={creatingTopic === t.topic}
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap"
-                >
-                  {creatingTopic === t.topic
-                    ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Assigning…</>
-                    : <><span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>target</span>Assign Focused Practice</>}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
