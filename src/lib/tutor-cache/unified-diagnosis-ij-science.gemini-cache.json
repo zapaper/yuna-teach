@@ -1,119 +1,115 @@
 {
   "patterns": [
     {
-      "name": "Ignoring Constraints & Absolutes",
-      "what": "The student overlooks negative constraints, absolute words, or specific limiting details provided in the question stem.",
-      "specific_examples": [
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "Student suggested adding oil despite the prompt explicitly stating 'Without adding or removing any materials'."
-        },
-        {
-          "questionRef": "[37]",
-          "type": "mcq",
-          "whatWentWrong": "Student failed to recognize that the absolute statement 'All the oxygen... goes into the blood' is biologically false."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Student explained the population decline but ignored the specific constraint provided in the prompt that the eagle 'lays only one or two eggs'."
-        }
-      ],
-      "strategic_advice": "When you see trigger words like **without**, **all**, **only**, or specific numbers, circle them immediately. These are strict rules you must follow. Before writing your final answer, double-check that you haven't broken any of these **negative constraints** or ignored **absolute statements**.",
-      "trigger_keywords": [
-        "without",
-        "all",
-        "only",
-        "must",
-        "always",
-        "never"
-      ]
-    },
-    {
       "name": "Stopping One Step Short",
-      "what": "The student identifies the immediate effect but fails to link it to the final scientific consequence or misses the intermediate mechanism.",
+      "what": "IJ sometimes explains the beginning of a scientific process beautifully, but occasionally stops just one step short of stating the final consequence or conclusion.",
       "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Student noted the shorter dispersal distance but left the thought incomplete, missing the final consequence of 'overcrowding'."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "Student stated multiple entrances make the burrow accessible, but missed the crucial survival mechanism of being able to 'escape' if one is blocked."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "Student identified that polar bears would lack a resting platform and die, but missed the intermediate step that they are forced to 'swim longer distances'."
-        }
-      ],
-      "strategic_advice": "When you see 'explain why' or 'describe how', always build a complete cause-and-effect chain. Use linking phrases like **which leads to** or **so that** to ensure you connect the initial change all the way to the **final consequence** for the organism or system.",
-      "trigger_keywords": [
-        "explain why",
-        "describe how",
-        "what would happen",
-        "consequence"
-      ]
-    },
-    {
-      "name": "Loose Application of Definitions",
-      "what": "The student relies on everyday understanding rather than strict scientific definitions, leading to incorrect assumptions.",
-      "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Student counted 9 populations by likely treating different life stages as separate, misunderstanding the strict definition of a 'population'."
-        },
-        {
-          "questionRef": "[24]",
-          "type": "mcq",
-          "whatWentWrong": "Student incorrectly agreed that heredity is passing traits 'from one young to another', misapplying the definition which strictly involves passing traits from 'parents'."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Student loosely assigned multiple organs to specific digestive functions, failing to pinpoint the exact organ responsible for absorbing water or breaking down food."
-        }
-      ],
-      "strategic_advice": "When a question tests specific biological terms, recall the **exact textbook definition** before looking at the options. Do not rely on everyday logic; instead, ask yourself, 'What is the **strict scientific rule** for this term?'",
-      "trigger_keywords": [
-        "population",
-        "heredity",
-        "digestion",
-        "characteristics",
-        "concluded"
-      ]
-    },
-    {
-      "name": "Missing Material & Context Clues",
-      "what": "The student fails to translate the physical properties of materials or environments described in the setup into their scientific implications.",
-      "specific_examples": [
-        {
-          "questionRef": "[35]",
-          "type": "mcq",
-          "whatWentWrong": "Student missed that a 'metal box' is opaque, meaning no light can enter, which completely stops photosynthesis."
-        },
         {
           "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Student chose a pond instead of 'leaf litter', failing to match the 'dark and damp' experimental conditions to the correct real-world microhabitat."
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly identified that air is a poor conductor of heat, but missed the final link that this means less heat is transferred to the fingers."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "Student incorrectly calculated the final volume of air by forgetting the fundamental property that 'water has a definite volume' and will displace the air."
+          "whatWentWrong": "IJ correctly noted that the seeds would travel a shorter distance, but stopped before mentioning the final consequence, which is overcrowding."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "IJ knew the bulbs were in a parallel circuit, but needed to add the final linking phrase that electricity can still flow because it remains a closed circuit."
         }
       ],
-      "strategic_advice": "Whenever a setup mentions specific materials or environments, immediately annotate their **physical properties**. Ask yourself, 'Why did they use a **metal** box instead of glass?' or 'What are the **light and moisture** conditions here?' to unlock the hidden clues.",
+      "strategic_advice": "When you see **explain why** or **describe how**, try to use the 'So what?' test. After writing your answer, ask yourself, 'So what happens next?' Always include a **so that...** or **resulting in...** clause to show the final consequence. For example, don't just say 'it traps heat'—add **so that the temperature increases**.",
       "trigger_keywords": [
-        "metal box",
-        "leaf litter",
-        "solar panels",
-        "material",
-        "set-up"
+        "explain how",
+        "explain why",
+        "describe how",
+        "what is the advantage"
+      ]
+    },
+    {
+      "name": "Overlooking Hidden Clues",
+      "what": "IJ tends to read questions quickly and occasionally misses small but crucial constraint words or specific data clues hidden in the text.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "The question specifically asked what to do without adding or removing any materials, but IJ suggested adding oil."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "IJ missed the clue that the plant was in a metal box, which blocks sunlight and prevents photosynthesis even when placed under the Sun."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "mcq",
+          "whatWentWrong": "IJ overlooked the word 'not' in the question asking which statement is not correct, leading to an incorrect choice."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **based on the information**, **without adding**, or **not correct**, treat them as stop signs. Take a moment to **highlight or circle** these constraint words before looking at the options. Always double-check your final answer against the specific rules set by the question.",
+      "trigger_keywords": [
+        "without adding",
+        "not correct",
+        "based on the information",
+        "false"
+      ]
+    },
+    {
+      "name": "Extracting Data from Visuals",
+      "what": "When faced with graphs, tables, or complex diagrams, IJ sometimes misinterprets the visual data or overlooks the specific labels on the axes and columns.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "IJ misread the bar graph by counting individual plants instead of recognizing that different types of plants form separate populations."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "When looking at the data table for reflected light, IJ accidentally picked the second-highest value instead of the material that reflected the most light."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "IJ misread the line graph's time axis, stating the chocolate was added at 7 minutes instead of the correct 1 minute mark."
+        }
+      ],
+      "strategic_advice": "When you see a **graph, table, or diagram**, pause before reading the question. First, read the **titles, labels, and units** on the axes or columns. Use your pencil to **trace lines** on graphs or **circle the highest/lowest numbers** in tables so your eyes don't accidentally skip to the wrong row.",
+      "trigger_keywords": [
+        "based on the graph",
+        "shows the results",
+        "in the table below",
+        "diagram shows"
+      ]
+    },
+    {
+      "name": "Leaving Complex Questions Blank",
+      "what": "When a question involves a multi-step experiment, drawing a circuit, or looks unfamiliar, IJ occasionally leaves it completely blank instead of attempting the parts he/she knows.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Faced with explaining the advantage of a high hydro-electric turbine, IJ left the space blank instead of trying to trace the energy conversion."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the steps for an experimental design blank, even though he/she likely knows the basics of changing one variable and keeping others constant."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "Faced with a complex circuit diagram involving springs and platforms, IJ left the multiple-choice question blank instead of eliminating the obvious wrong options."
+        }
+      ],
+      "strategic_advice": "When you see **list down the steps**, **draw**, or a very long setup, don't panic! Even if you aren't 100% sure of the perfect answer, write down the **science keywords** or draw the basic parts you do know. You can often earn partial marks just by stating the **energy conversion** or the **changed variable**.",
+      "trigger_keywords": [
+        "list down the steps",
+        "draw wires to complete",
+        "design an experiment",
+        "suggest what"
       ]
     }
   ],
@@ -124,63 +120,63 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
-    },
-    {
-      "idx": 3,
-      "patternIndex": -1
-    },
-    {
-      "idx": 4,
-      "patternIndex": -1
-    },
-    {
-      "idx": 5,
-      "patternIndex": 2
-    },
-    {
-      "idx": 6,
-      "patternIndex": -1
-    },
-    {
-      "idx": 7,
-      "patternIndex": -1
-    },
-    {
-      "idx": 8,
-      "patternIndex": -1
-    },
-    {
-      "idx": 9,
-      "patternIndex": -1
-    },
-    {
-      "idx": 10,
-      "patternIndex": -1
-    },
-    {
-      "idx": 11,
-      "patternIndex": 1
-    },
-    {
-      "idx": 12,
-      "patternIndex": 2
-    },
-    {
-      "idx": 13,
       "patternIndex": 0
     },
     {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 17,
@@ -192,43 +188,43 @@
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 23,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 25,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 28,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 29,
@@ -236,35 +232,55 @@
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": 2
-    },
-    {
-      "idx": 32,
-      "patternIndex": -1
-    },
-    {
-      "idx": 33,
-      "patternIndex": -1
-    },
-    {
-      "idx": 34,
-      "patternIndex": -1
-    },
-    {
-      "idx": 35,
       "patternIndex": 3
     },
     {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 3
+    },
+    {
+      "idx": 35,
+      "patternIndex": 1
+    },
+    {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 37,
-      "patternIndex": 0
+      "patternIndex": 2
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 2
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 2
+    },
+    {
+      "idx": 42,
+      "patternIndex": 1
     }
   ]
 }

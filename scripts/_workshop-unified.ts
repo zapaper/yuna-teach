@@ -520,7 +520,6 @@ ${records}`;
   if (otherCount > 0) console.log(`  -- Other (${otherCount} records) ${otherMarksLost} marks`);
 
   // ----- HTML rendering -----
-  const childFirst = (student.name ?? "").trim().split(/\s+/)[0] ?? student.name;
   const subjectLower = subjectArg.toLowerCase();
   const boldify = (s: string) => esc(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   const cleanPaperTitle = (t: string) =>
