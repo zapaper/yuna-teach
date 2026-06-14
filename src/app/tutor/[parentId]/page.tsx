@@ -269,14 +269,14 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   }, [view]);
   return (
     <>
-      {/* Loomi greeting — always visible above the swipe stage */}
+      {/* Lumi greeting — always visible above the swipe stage */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-start gap-6">
-        <LoomiAvatar />
+        <LumiAvatar />
         <div className="flex-1">
           <p className="text-[#001e40] text-base leading-relaxed">
-            Hi! I&apos;m <strong>Loomi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
+            Hi! I&apos;m <strong>Lumi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
-          <LoomiSummary data={data} />
+          <LumiSummary data={data} />
         </div>
       </section>
 
@@ -321,7 +321,7 @@ function softenTone(text: string, childFirst: string): string {
     .replace(/\bcannot\b/gi, "doesn't always");
 }
 
-// Smooth-scroll helper for the (here) anchor links inside Loomi's
+// Smooth-scroll helper for the (here) anchor links inside Lumi's
 // action summary — keeps the URL clean (no #hash sticking around)
 // and ensures the section animates into view from the long-scroll
 // shell that the AdminProgressView lives in.
@@ -334,12 +334,12 @@ function scrollToSection(id: string) {
   };
 }
 
-// Loomi's structured action summary — bulleted briefing pulled from
+// Lumi's structured action summary — bulleted briefing pulled from
 // the cached diagnosis. Each bullet ends with a (here) link that
 // jumps to the relevant section further down the page (mistakes /
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
-function LoomiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
+function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
   const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
   const weak = topline.weakTopics[0];
   const m1 = commonMistakes[0];
@@ -625,7 +625,7 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
   );
 }
 
-// Loomi — the Tutor mascot. Cycles through 3 short owl clips. Source
+// Lumi — the Tutor mascot. Cycles through 3 short owl clips. Source
 // material is owl[1-3].mp4 but we serve animated WebP versions
 // instead — <video> autoplay on Safari iPad refused to render even
 // with muted + playsInline + autoplay (see commits b7af32ee, fa55ac56),
@@ -634,7 +634,7 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 // Cycling: every ~4 s we bump cur; the unused two stay mounted in a
 // `hidden` div so the browser keeps them decoded and the swap is
 // instant.
-function LoomiAvatar() {
+function LumiAvatar() {
   const clips = ["/avatars/owl1.webp", "/avatars/owl2.webp", "/avatars/owl3.webp"];
   const [cur, setCur] = useState(0);
   useEffect(() => {
@@ -647,7 +647,7 @@ function LoomiAvatar() {
       <img
         key={clips[cur]}
         src={clips[cur]}
-        alt="Loomi the owl"
+        alt="Lumi the owl"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
       {/* Keep the other two decoded so the swap is instant. */}

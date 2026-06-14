@@ -2522,7 +2522,7 @@ export default function ParentDashboard({
 
   // Admin gets a Home + Progress split — Home is the inline dashboard
   // (the old "progress" view embedded in this page), Progress hops to
-  // /progress/<id> which renders the new Loomi tutor view with its
+  // /progress/<id> which renders the new Lumi tutor view with its
   // own Home/Progress tab shell. Non-admins keep the single Progress
   // entry that swaps the inline view.
   const progressNavClick = () => {

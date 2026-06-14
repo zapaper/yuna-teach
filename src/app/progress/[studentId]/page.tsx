@@ -228,7 +228,7 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
     );
   }
 
-  // Admin shell: sidebar with Home (chart) + Progress (Loomi) tabs.
+  // Admin shell: sidebar with Home (chart) + Progress (Lumi) tabs.
   // `skipAdminRedirect` is the recursion escape hatch — when the Home
   // tab inside AdminProgressView renders ProgressContent to show the
   // chart, it sets this flag so we don't bounce back into the shell.
@@ -1055,7 +1055,7 @@ export function SelectedTopicPanel({
 }
 
 // ─── Admin view ───────────────────────────────────────────────────────────────
-// Renders the Loomi/tutor experience at /progress/[studentId] when the
+// Renders the Lumi/tutor experience at /progress/[studentId] when the
 // signed-in user is an admin. Non-admins fall through to the chart view
 // above. The left sidebar lists every student we have a cached
 // diagnosis for (from /api/tutor/admin-students) so admins can switch
@@ -1067,8 +1067,8 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
   const [students, setStudents] = useState<AdminStudent[]>([]);
   const [subject, setSubject] = useState<string>("Science");
   // Sidebar tabs: Home = the old chart-only progress page, Progress
-  // = the new Loomi/tutor body. Default = Progress so admins land
-  // straight on the Loomi diagnosis (the whole point of this view).
+  // = the new Lumi/tutor body. Default = Progress so admins land
+  // straight on the Lumi diagnosis (the whole point of this view).
   // Home is one click away in the sidebar.
   const [tab, setTab] = useState<"home" | "progress">("progress");
 
@@ -1131,7 +1131,7 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
 
       {/* Main column. Home tab renders the original chart-only page
           (ProgressContent with skipAdminRedirect to avoid recursing
-          back into this shell); Progress tab renders the Loomi/tutor
+          back into this shell); Progress tab renders the Lumi/tutor
           body with its own subject select. */}
       <div className="flex-1 lg:ml-64 min-w-0">
         {tab === "home" && (
@@ -1142,7 +1142,7 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
             <header className="border-b border-slate-100 bg-white sticky top-0 z-30">
               <div className="max-w-5xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress · Loomi</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress · Lumi</p>
                   <h1 className="text-lg font-headline font-extrabold text-[#001e40] truncate">
                     {displayName ? `${displayName.split(/\s+/)[0]}'s ${subject}` : subject}
                   </h1>
