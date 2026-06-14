@@ -68,9 +68,10 @@ function parseArgs() {
   const cleanup = args.includes("--cleanup");
   const verbose = args.includes("--verbose");
   const paper = args.find(a => a.startsWith("--paper="))?.split("=")[1];
+  const subject = args.find(a => a.startsWith("--subject="))?.split("=")[1]?.toLowerCase();
   const tolArg = args.find(a => a.startsWith("--tolerance="))?.split("=")[1];
   const tolerance = tolArg !== undefined ? parseFloat(tolArg) : 0.5;
-  return { cleanup, paper, tolerance, verbose };
+  return { cleanup, paper, subject, tolerance, verbose };
 }
 
 // Silence the marker's console.* spam during a run, so the only thing
@@ -375,11 +376,21 @@ async function evalPaper(snap: SnapshotPaper, tolerance: number, cleanup: boolea
 }
 
 async function main() {
-  const { cleanup, paper: paperFilter, tolerance, verbose } = parseArgs();
+  const { cleanup, paper: paperFilter, subject: subjectFilter, tolerance, verbose } = parseArgs();
   const raw = await fs.readFile(SNAPSHOT_PATH, "utf8");
   const snapshot: Snapshot = JSON.parse(raw);
   let papers = snapshot.papers;
   if (paperFilter) papers = papers.filter(p => p.id === paperFilter);
+  if (subjectFilter) {
+    papers = papers.filter(p => {
+      const s = (p.subject ?? "").toLowerCase();
+      if (subjectFilter === "math") return s.includes("math");
+      if (subjectFilter === "english") return s.includes("english");
+      if (subjectFilter === "science") return s.includes("science");
+      if (subjectFilter === "chinese") return s.includes("chinese") || (p.subject ?? "").includes("华") || (p.subject ?? "").includes("中");
+      return s.includes(subjectFilter);
+    });
+  }
   if (papers.length === 0) {
     console.error(`No papers matched. Run snapshot-eval-papers.ts first.`);
     process.exit(1);

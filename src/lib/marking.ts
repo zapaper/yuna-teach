@@ -686,6 +686,61 @@ function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
   return syllabusTopic === "Grammar Cloze" || syllabusTopic === "Comprehension Cloze";
 }
 
+/** Format a table-cell student answer ({"r1c1":"False","r1c2":"…"}) into a
+ *  marker-friendly labelled block by parsing the markdown table in the
+ *  question stem to extract row labels (a/b/c) and column headers
+ *  (True/False, Reason). Returns null if the stem doesn't contain a
+ *  parseable table — caller should fall back to the raw cells output.
+ *
+ *  Why: the raw "r1c1: …, r2c1: …" representation forces the marker to
+ *  guess that row 1 corresponds to subpart (a), row 2 to (b), etc., AND
+ *  guess which student column maps to "True/False" vs "Reason". This
+ *  often misfires — a correct subpart gets flagged wrong because the
+ *  marker couldn't line up the table cells with the expected answer's
+ *  (a)/(b)/(c) breakdown. */
+function formatLabelledTableAnswer(stem: string, cells: Record<string, string>): string | null {
+  const lines = stem.split("\n").map(l => l.trim());
+  const tableLines = lines.filter(l => l.startsWith("|"));
+  if (tableLines.length < 2) return null;
+  const splitRow = (l: string) =>
+    l.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+
+  // First table line is the header (column names). The separator line
+  // is the one made of dashes — data rows come after it. Some stems
+  // skip the separator (poorly formatted markdown); in that case we
+  // treat everything after the header as data.
+  const sepIdx = tableLines.findIndex(l => /\|\s*:?-+:?\s*\|/.test(l));
+  const headerCells = splitRow(tableLines[0]);
+  const dataLines = sepIdx >= 0 ? tableLines.slice(sepIdx + 1) : tableLines.slice(1);
+  if (dataLines.length === 0) return null;
+
+  // First header column is usually the statement/label column — student
+  // input lives in columns 2+ (True/False, Reason, etc.).
+  const rowLabel = (firstCell: string): { label: string; text: string } => {
+    const m = firstCell.match(/^\(?\s*([a-z0-9]+)\s*[).:]\s*(.*)$/i);
+    if (m) return { label: `(${m[1].toLowerCase()})`, text: m[2].trim() };
+    return { label: "", text: firstCell };
+  };
+
+  const blocks: string[] = [];
+  dataLines.forEach((line, rowIdx) => {
+    const rowCells = splitRow(line);
+    const first = rowCells[0] ?? "";
+    const { label, text } = rowLabel(first);
+    const rowKey = rowIdx + 1; // r1, r2, …
+    const fillableHeaders = headerCells.slice(1);
+    const studentParts: string[] = [];
+    fillableHeaders.forEach((header, colIdx) => {
+      const key = `r${rowKey}c${colIdx + 1}`;
+      const v = cells[key];
+      if (v && v.trim()) studentParts.push(`    ${header || `column ${colIdx + 1}`}: ${v.trim()}`);
+    });
+    if (studentParts.length === 0) return;
+    blocks.push(`${label}${text ? ` "${text}"` : ""}\n${studentParts.join("\n")}`.trim());
+  });
+  return blocks.length > 0 ? blocks.join("\n\n") : null;
+}
+
 /** Normalize MCQ answer for comparison: strip parens, drop any explanation
  *  trailing after a " | " separator, uppercase.
  *  Capital "I" is treated as "1" — they are visually identical in handwriting
@@ -5094,14 +5149,24 @@ ${expectedAnswer}
             }
           }
 
-          // Format table answers into readable text
+          // Format table answers into readable text. The legacy
+          // `[TABLE] r1c1: "False", r2c1: "False", ...` shape forced
+          // the marker to mentally map row keys to the stem's row
+          // labels ((a)/(b)/(c)) AND column keys to the stem's column
+          // headers (True/False, Reason). It often got it wrong —
+          // e.g. flagging a correct (b) as incorrect because it
+          // couldn't match `r2c1` to the (b) subpart of the expected
+          // answer. We now parse the markdown table in the stem to
+          // pull row labels + column headers and emit a labelled
+          // block per row so the marker can compare 1:1 with the
+          // expected answer's (a)/(b)/(c) breakdown.
           let displayAnswer = fullStudentAnswer;
           const isTableAnswer = fullStudentAnswer.startsWith("{");
           if (isTableAnswer) {
             try {
               const cells = JSON.parse(fullStudentAnswer) as Record<string, string>;
-              const cellEntries = Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`);
-              displayAnswer = `[TABLE] ${cellEntries.join(", ")}`;
+              const labelled = formatLabelledTableAnswer(q.transcribedStem ?? "", cells);
+              displayAnswer = labelled ?? `[TABLE] ${Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`).join(", ")}`;
             } catch { /* use raw */ }
           }
           const lastChar = displayAnswer.trim().slice(-1);
@@ -5109,7 +5174,7 @@ ${expectedAnswer}
           // — punctuation is irrelevant for that section and surfacing the
           // last char makes the AI fixate on the missing period.
           const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… to match the expected answer's subparts. Match each row 1:1 with the same letter in the expected answer. Do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
