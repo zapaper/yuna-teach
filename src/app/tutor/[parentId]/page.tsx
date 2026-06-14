@@ -307,13 +307,21 @@ function pctOfSubject(marksLost: number, totalAvailable: number): string {
 // Older caches were written before the workshop prompt was updated to
 // ask for warm, first-name phrasing; this rewrites the harshest stock
 // phrases at render time so admins don't see "The student struggles
-// to…" until every kid's cache has been regenerated.
+// to…" or "Ruthie misreads charts" until every kid's cache has been
+// regenerated.
 function softenTone(text: string, childFirst: string): string {
   if (!text) return text;
   const fn = childFirst.replace(/[^A-Za-z]/g, "");
+  // Direct-claim verbs — when these follow the kid's first name without
+  // already being qualified ("sometimes"/"often"/"occasionally"), prefix
+  // "sometimes" so the line reads as a tendency rather than a label.
+  // "Ruthie misreads charts" → "Ruthie sometimes misreads charts".
+  const directVerbs = "misreads|misinterprets|misjudges|misapplies|misidentifies|confuses|conflates|ignores|forgets|skips|drops|reverses|stops|fails|loses|writes|gives|uses";
+  const directVerbRe = new RegExp(`\\b(${fn})\\s+(?!(?:sometimes|often|occasionally|tends to|usually|may|might)\\b)(${directVerbs})\\b`, "g");
   return text
     .replace(/\bThe student\b/g, fn)
     .replace(/\bthe student\b/g, fn.toLowerCase())
+    .replace(directVerbRe, "$1 sometimes $2")
     .replace(/\bstruggles to\b/gi, "sometimes finds it tricky to")
     .replace(/\bstruggles with\b/gi, "sometimes finds")
     .replace(/\bfails to\b/gi, "sometimes misses")
