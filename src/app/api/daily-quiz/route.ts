@@ -292,6 +292,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Pick at least one Chinese section." }, { status: 400 });
     }
     const wanted = new Set(chineseSections);
+    // Resolve the target student's level so we only pick from masters
+    // at that level. Without this filter the picker was sourcing P5
+    // questions for P6 students because masters[] is newest-first and
+    // P5 papers were uploaded more recently than P6 in this period.
+    const targetStudent = await prisma.user.findUnique({
+      where: { id: targetStudentId },
+      select: { level: true },
+    });
+    const levelMap: Record<number, string> = { 3: "Primary 3", 4: "Primary 4", 5: "Primary 5", 6: "Primary 6" };
+    const targetLevelStr = targetStudent?.level ? levelMap[targetStudent.level] : null;
     // Pull all uploaded Chinese masters (newest first), pool their
     // questions for the selected sections. `paperType: null` excludes
     // earlier Chinese Test Quizzes (paperType="quiz") from the pool —
@@ -304,6 +314,7 @@ export async function POST(request: NextRequest) {
         sourceExamId: null,
         paperType: null,
         extractionStatus: "ready",
+        ...(targetLevelStr ? { level: targetLevelStr } : {}),
       },
       orderBy: { createdAt: "desc" },
       include: { questions: { orderBy: { orderIndex: "asc" } } },
@@ -391,7 +402,12 @@ export async function POST(request: NextRequest) {
       data: {
         title: titleLabel,
         subject: "Chinese",
-        level: masters[0].level,
+        // Stamp the clone with the TARGET STUDENT'S level (e.g.
+        // "Primary 6"), not the picked master's level. Pre-fix the
+        // clone inherited the first master's level which, combined
+        // with the missing master-query level filter, surfaced as
+        // "P6 student gets a P5-tagged Chinese quiz".
+        level: targetLevelStr ?? masters[0].level,
         userId,
         assignedToId: targetStudentId,
         ...(scheduledForDate2 ? { scheduledFor: scheduledForDate2 } : {}),
