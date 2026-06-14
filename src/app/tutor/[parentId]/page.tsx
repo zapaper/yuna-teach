@@ -107,7 +107,7 @@ function TutorContent({ parentId }: { parentId: string }) {
             <div>
               <p className="text-xs text-slate-500 font-medium">Tutor</p>
               <h1 className="text-lg font-headline font-extrabold text-[#001e40]">
-                {currentChild ? `${currentChild.name.split(/\s+/)[0]}'s ${subject}` : "Loading…"}
+                {currentChild ? `${currentChild.name.split(/\s+/)[0]}'s ${subject}` : `${subject}`}
               </h1>
             </div>
           </div>
