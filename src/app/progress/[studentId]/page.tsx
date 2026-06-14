@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef, useCallback, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, forwardRef } from "react";
+import Link from "next/link";
+import { TutorBodyForStudent } from "../../tutor/[parentId]/page";
 
 export default function ProgressPage({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = use(params);
@@ -224,6 +226,14 @@ function ProgressContent({ studentId }: { studentId: string }) {
         <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#dce9ff] border-t-[#003366]" />
       </div>
     );
+  }
+
+  // Admin view — the Tutor/Loomi experience served at /progress/[id].
+  // Non-admins continue to see the original chart view below. The
+  // current /tutor/[parentId] page still works as a fallback while
+  // we workshop this; it just lives at a different URL.
+  if (isAdmin) {
+    return <AdminProgressView studentId={studentId} parentId={parentId} studentName={data?.student?.name ?? ""} />;
   }
 
   const subjects = data ? Object.keys(data.subjects) : [];
@@ -1040,6 +1050,92 @@ export function SelectedTopicPanel({
         <span className="material-symbols-outlined text-base">target</span>
         {creating ? `Creating ${subject} focus…` : `Assign Focus Practice — ${topic}`}
       </button>
+    </div>
+  );
+}
+
+// ─── Admin view ───────────────────────────────────────────────────────────────
+// Renders the Loomi/tutor experience at /progress/[studentId] when the
+// signed-in user is an admin. Non-admins fall through to the chart view
+// above. The left sidebar lists every student we have a cached
+// diagnosis for (from /api/tutor/admin-students) so admins can switch
+// kids inline — clicking a name navigates to /progress/<id>.
+
+type AdminStudent = { id: string; name: string; level?: number | null };
+
+function AdminProgressView({ studentId, parentId, studentName }: { studentId: string; parentId: string; studentName: string }) {
+  const [students, setStudents] = useState<AdminStudent[]>([]);
+  const [subject, setSubject] = useState<string>("Science");
+
+  useEffect(() => {
+    fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.students) setStudents(d.students as AdminStudent[]);
+    });
+  }, []);
+
+  const current = students.find(s => s.id === studentId);
+  const displayName = current?.name ?? studentName;
+
+  return (
+    <div className="min-h-screen bg-[#f8f9ff] flex">
+      {/* Left sidebar — student selector. Hidden on tablet/mobile since
+          the tutor view is desktop-first; on small screens we just
+          show the body content stacked. */}
+      <aside className="hidden lg:flex fixed left-0 top-0 w-64 h-screen bg-slate-50 border-r border-slate-200 flex-col p-5 z-40">
+        <div className="flex items-center gap-2 mb-6">
+          <span className="material-symbols-outlined text-violet-600">school</span>
+          <p className="font-headline font-extrabold text-[#001e40] text-sm">Progress</p>
+        </div>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">Students</p>
+        <nav className="flex-1 space-y-1 overflow-y-auto">
+          {students.map(s => {
+            const active = s.id === studentId;
+            const initials = s.name.split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+            return (
+              <Link key={s.id} href={`/progress/${s.id}${parentId ? `?parentId=${parentId}` : ""}`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${active ? "bg-[#d3e4fe] text-[#001e40]" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 ${active ? "bg-[#003366]" : "bg-slate-400"}`}>
+                  {initials}
+                </div>
+                <span className={`text-sm truncate ${active ? "font-bold" : "font-medium"}`}>{s.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        {parentId && (
+          <Link href={`/home/${parentId}`} className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-[#003366]">
+            <span className="material-symbols-outlined text-base">arrow_back</span>
+            Back to home
+          </Link>
+        )}
+      </aside>
+
+      {/* Main column — top bar with subject pills + tutor body. */}
+      <div className="flex-1 lg:ml-64">
+        <header className="border-b border-slate-100 bg-white sticky top-0 z-30">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress</p>
+              <h1 className="text-lg font-headline font-extrabold text-[#001e40] truncate">
+                {displayName ? `${displayName.split(/\s+/)[0]}'s ${subject}` : subject}
+              </h1>
+            </div>
+            <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
+              <option>Science</option>
+              <option>Math</option>
+              <option>English</option>
+              <option>Chinese</option>
+            </select>
+          </div>
+        </header>
+        <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8 hidden lg:block">
+          <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={displayName} />
+        </main>
+        <main className="lg:hidden max-w-5xl mx-auto px-6 py-12 text-center">
+          <p className="text-sm text-slate-500">Progress is best viewed on a larger screen — please open this on a desktop.</p>
+        </main>
+      </div>
     </div>
   );
 }

@@ -106,20 +106,71 @@ export default function TutorPage({ params }: { params: Promise<{ parentId: stri
   );
 }
 
+// Fetches + caches the per-student tutor data and renders loading /
+// ineligible / ready states. Extracted so /progress/[studentId] (admin
+// branch) can reuse the same body without duplicating the data wiring.
+export function TutorBodyForStudent({ studentId, parentId, subject, currentChildName }: {
+  studentId: string;
+  parentId: string;
+  subject: string;
+  currentChildName?: string;
+}) {
+  const [data, setData] = useState<TutorData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setData(null);
+    const cacheKey = `tutor-${studentId}-${subject}-${new Date().toDateString()}`;
+    const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
+    if (cached) {
+      try { setData(JSON.parse(cached) as TutorData); setLoading(false); return; } catch { /* ignore */ }
+    }
+    fetch(`/api/tutor/${studentId}?subject=${encodeURIComponent(subject)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) {
+          setData(d as TutorData);
+          try {
+            const slim = stripImagesForCache(d as TutorData);
+            localStorage.setItem(cacheKey, JSON.stringify(slim));
+            pruneOldTutorCacheKeys(cacheKey);
+          } catch { /* quota — ignore */ }
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [studentId, subject]);
+
+  const firstName = currentChildName?.split(/\s+/)[0] ?? "";
+  return (
+    <>
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-32 gap-6">
+          <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
+          <p className="text-sm font-medium text-slate-500">Loading {firstName ? `${firstName}'s` : ""} {subject.toLowerCase()} tutor view…</p>
+        </div>
+      )}
+      {!loading && data && data.kind === "ineligible" && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+          <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
+          <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
+        </div>
+      )}
+      {!loading && data && data.kind === "ready" && <ReadyView data={data} parentId={parentId} studentId={studentId} />}
+      <p className="text-[11px] text-slate-400 mt-12 text-center">
+        {data && data.kind === "ready" && `Refreshed once a day. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
+      </p>
+    </>
+  );
+}
+
 function TutorContent({ parentId }: { parentId: string }) {
   const searchParams = useSearchParams();
   const [students, setStudents] = useState<LinkedStudent[]>([]);
   const [studentId, setStudentId] = useState<string | null>(searchParams.get("studentId"));
   const [subject, setSubject] = useState<string>(searchParams.get("subject") ?? "Science");
-  const [data, setData] = useState<TutorData | null>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch the parent's linked students + (if the caller is an admin)
-    // every student we have a cached diagnosis for. The admin-students
-    // endpoint returns 403 for non-admins, in which case we silently
-    // fall back to the linked list. Merged + de-duped here so an admin
-    // who happens to also have linked kids doesn't see them twice.
     Promise.all([
       fetch(`/api/users?userId=${parentId}`).then(r => r.ok ? r.json() : null),
       fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null),
@@ -134,38 +185,6 @@ function TutorContent({ parentId }: { parentId: string }) {
       if (!studentId && list.length > 0) setStudentId(list[0].id);
     });
   }, [parentId, studentId]);
-
-  useEffect(() => {
-    if (!studentId) return;
-    setLoading(true);
-    setData(null);
-    // Cache key — mirror AI insights: per-day per (student, subject).
-    const cacheKey = `tutor-${studentId}-${subject}-${new Date().toDateString()}`;
-    const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
-    if (cached) {
-      try { setData(JSON.parse(cached) as TutorData); setLoading(false); return; } catch { /* ignore */ }
-    }
-    fetch(`/api/tutor/${studentId}?subject=${encodeURIComponent(subject)}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d) {
-          setData(d as TutorData);
-          // Cache a SLIMMED version — diagramImageData is a base64
-          // JPEG that can run into hundreds of KB per example. Multiplied
-          // by examples × students × subjects × days, that blew out
-          // the 5MB localStorage quota and crashed unrelated pages
-          // (e.g. the review page's celebration setItem). Strip the
-          // images for cache; the next page-load fetches fresh from
-          // the API anyway, where images live in memory only.
-          try {
-            const slim = stripImagesForCache(d as TutorData);
-            localStorage.setItem(cacheKey, JSON.stringify(slim));
-            pruneOldTutorCacheKeys(cacheKey);
-          } catch { /* quota — ignore */ }
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [studentId, subject]);
 
   const currentChild = students.find(s => s.id === studentId);
 
@@ -201,23 +220,7 @@ function TutorContent({ parentId }: { parentId: string }) {
       </header>
 
       <main className="max-w-5xl mx-auto px-8 py-10 hidden lg:block">
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-32 gap-6">
-            <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
-            <p className="text-sm font-medium text-slate-500">Loading {currentChild ? `${currentChild.name.split(/\s+/)[0]}'s` : ""} {subject.toLowerCase()} tutor view…</p>
-          </div>
-        )}
-        {!loading && data && data.kind === "ineligible" && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
-            <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
-          </div>
-        )}
-        {!loading && data && data.kind === "ready" && studentId && <ReadyView data={data} parentId={parentId} studentId={studentId} />}
-
-        <p className="text-[11px] text-slate-400 mt-12 text-center">
-          {data && data.kind === "ready" && `Refreshed once a day. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
-        </p>
+        {studentId && <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={currentChild?.name} />}
       </main>
 
       <main className="lg:hidden max-w-5xl mx-auto px-6 py-12 text-center">
