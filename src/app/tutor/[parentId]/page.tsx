@@ -158,6 +158,18 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
   const t = data.topline;
   return (
     <>
+      {/* Jane greeting */}
+      <section className="bg-white rounded-2xl border border-slate-100 px-8 py-6 mb-6 flex items-center gap-5">
+        <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-[#a7c8ff] to-[#5b21b6] flex items-center justify-center text-white font-headline font-extrabold text-lg shadow-sm">
+          J
+        </div>
+        <div>
+          <p className="text-[#001e40] text-base leading-relaxed">
+            Hi, I'm <strong>Jane</strong>, your online tutor assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let's review {data.childFirst}'s progress in {data.subject}.
+          </p>
+        </div>
+      </section>
+
       {/* Topline */}
       <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
         <div className="flex items-baseline justify-between mb-1">
