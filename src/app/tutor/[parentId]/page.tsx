@@ -512,7 +512,11 @@ function LoomiAvatar() {
           preload="auto"
           autoPlay={i === 0}
           onEnded={() => setCur(prev => (prev + 1) % videos.length)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ${i === cur ? "opacity-100" : "opacity-0"}`}
+          // mixBlendMode multiply drops the white background of the
+          // source video so the owl shows on the white circle. Mirrors
+          // the student-dashboard avatar.
+          className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-150 ${i === cur ? "opacity-100" : "opacity-0"}`}
+          style={{ mixBlendMode: "multiply" }}
         />
       ))}
     </div>
