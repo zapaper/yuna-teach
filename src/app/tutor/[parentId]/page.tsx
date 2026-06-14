@@ -138,7 +138,7 @@ function TutorContent({ parentId }: { parentId: string }) {
           </div>
         )}
         {!loading && data && data.kind === "ineligible" && (
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
             <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
             <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
           </div>
@@ -168,7 +168,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   return (
     <>
       {/* Jane greeting — always visible above the swipe stage */}
-      <section className="bg-white rounded-2xl border border-slate-100 px-8 py-6 mb-6 flex items-center gap-5">
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-center gap-5">
         <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-[#a7c8ff] to-[#5b21b6] flex items-center justify-center text-white font-headline font-extrabold text-lg shadow-sm">
           J
         </div>
@@ -197,7 +197,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
   return (
     <>
       {/* Topline */}
-      <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
         <div className="flex items-baseline justify-between mb-1">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overview</h2>
           <div className="flex items-baseline gap-3">
@@ -240,7 +240,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
 
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Common Mistakes</h2>
           <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
           <div className="space-y-3">
@@ -262,7 +262,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
 
       {/* Conceptual Gaps */}
       {data.conceptualGaps.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Conceptual Gaps</h2>
           <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
           <div className="space-y-3">
@@ -284,7 +284,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
 
       {/* Topics for Practice */}
       {data.topicsForPractice.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Topics for Practice</h2>
           <p className="text-sm text-slate-500 mb-5">Below average — a Focused Practice on each will lift the score.</p>
           <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl bg-slate-50/50">
@@ -314,7 +314,7 @@ function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extrac
         Back to overview
       </button>
       {view.kind === "fullProgress" && (
-        <section className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-baseline gap-3">
             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Full Progress Report</h2>
             <p className="text-xs text-slate-400">— {data.childFirst}&apos;s topic-by-topic accuracy. Click a bar to drill in.</p>
@@ -341,7 +341,7 @@ function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
   // Strip **markdown** → bold for the advice paragraph.
   const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   return (
-    <section className="bg-white rounded-2xl border border-slate-100 p-8">
+    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
@@ -383,7 +383,7 @@ function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
 function ConceptDetail({ card, childFirst }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string }) {
   const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   return (
-    <section className="bg-white rounded-2xl border border-slate-100 p-8">
+    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
