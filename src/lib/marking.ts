@@ -5287,7 +5287,8 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               })
             );
             totalAwarded += awarded;
-            console.log(`[quiz-marking] Typed Q${q.questionNum}: "${q.studentAnswer}" → ${awarded}/${marksAvailable}`);
+            const promptShape = labelledTableFormat ? "labelled-table" : isCellWrapped ? "cell-wrapped" : "free-text";
+            console.log(`[quiz-marking] Typed Q${q.questionNum} shape=${promptShape}: "${q.studentAnswer}" → ${awarded}/${marksAvailable}`);
           } catch (err) {
             console.error(`[quiz-marking] Typed Q${q.questionNum} marking failed:`, err);
             updates.push(
