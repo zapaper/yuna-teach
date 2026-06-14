@@ -47,7 +47,23 @@ export type Topline = {
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;  // e.g. "Mark sometimes leaves the last sub-question blank…"
 };
-export type MistakeExample = { questionRef: string; whatWentWrong: string };
+export type MistakeExample = {
+  questionRef: string;
+  whatWentWrong: string;
+  // Rich example data (recycled from the diagnosis workshop HTML).
+  // When present, the detail panel can render an expandable card
+  // with the full question, the student's answer, and the marker
+  // notes the kid missed.
+  paperTitle: string | null;
+  questionText: string | null;
+  studentAnswer: string | null;
+  markingNotes: string | null;
+  diagramImageData: string | null;
+  isMcq: boolean;
+  options: string[];
+  picked: string | null;
+  correct: string | null;
+};
 export type MistakeCard = {
   bucket: "final_consequence" | "vague_terminology" | "trend_description" | "missing_context" | "diagram_analysis";
   name: string;
@@ -156,18 +172,34 @@ function computeTopline(
 // We need to mirror the workshop's wrongs index → classification.idx
 // linkage so we know which kid wrongs contributed to which bucket.
 const mcqMarkerShape = /Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i;
+type WrongRecord = {
+  idx: number;
+  marksLost: number;
+  topic: string;
+  isMcq: boolean;
+  paperTitle: string;
+  questionText: string;
+  studentAnswer: string;
+  correctAnswer: string;
+  markingNotes: string;
+  diagramImageData: string | null;
+  options: string[];
+};
 function reconstructWrongs(papers: Array<{
+  title: string;
   metadata: unknown;
   subject: string | null;
   questions: Array<{
     studentAnswer: string | null; answer: string | null;
     marksAwarded: number | null; marksAvailable: number | null;
     markingNotes: string | null; transcribedOptions: unknown;
+    transcribedStem: string | null;
+    diagramImageData: string | null;
     syllabusTopic: string | null;
   }>;
-}>): Array<{ idx: number; marksLost: number; topic: string; isMcq: boolean }> {
+}>): WrongRecord[] {
   const nonRev = papers.filter(p => !((p.metadata as { revisionMode?: unknown } | null)?.revisionMode));
-  const wrongs: Array<{ idx: number; marksLost: number; topic: string; isMcq: boolean }> = [];
+  const wrongs: WrongRecord[] = [];
   let idx = 0;
   for (const p of nonRev) {
     for (const q of p.questions) {
@@ -175,15 +207,32 @@ function reconstructWrongs(papers: Array<{
       if (av === 0 || aw >= av) continue;
       if (q.studentAnswer === "__SKIPPED__") continue;
       const opts = q.transcribedOptions as unknown;
-      const optsLen = Array.isArray(opts) ? opts.length : 0;
-      const isMcq = optsLen >= 2 || mcqMarkerShape.test(q.markingNotes ?? "");
+      const optsArr: string[] = Array.isArray(opts)
+        ? (opts as unknown[]).map(o => typeof o === "string" ? o : (o as { text?: string })?.text ?? "").filter(Boolean)
+        : [];
+      const isMcq = optsArr.length >= 2 || mcqMarkerShape.test(q.markingNotes ?? "");
       if (!isMcq && (!q.markingNotes || q.markingNotes.trim().length < 10)) continue;
       idx++;
+      // Strip the canonical "Detected: …|" marker-note prefix that
+      // repeats the student answer — the workshop did this too.
+      let cleanedNotes = (q.markingNotes ?? "").trim();
+      const pipeIdx = cleanedNotes.search(/\s*\|\s*/);
+      if (pipeIdx >= 0 && /detected\s*:/i.test(cleanedNotes.slice(0, pipeIdx))) {
+        cleanedNotes = cleanedNotes.slice(pipeIdx).replace(/^\s*\|\s*/, "");
+      }
+      cleanedNotes = cleanedNotes.replace(/^detected\s*:\s*[^.\n]*\.?\s*/i, "").trim();
       wrongs.push({
         idx,
         marksLost: av - aw,
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
+        paperTitle: p.title,
+        questionText: (q.transcribedStem ?? "").trim(),
+        studentAnswer: (q.studentAnswer ?? "").trim(),
+        correctAnswer: (q.answer ?? "").trim(),
+        markingNotes: cleanedNotes,
+        diagramImageData: q.diagramImageData ?? null,
+        options: optsArr,
       });
     }
   }
@@ -206,15 +255,46 @@ function shapeTutorData(args: {
 
   // Pattern → bucket + marks lost
   const wrongs = reconstructWrongs(papers);
+  // wrongs-by-idx lets us join Gemini's "[49]" example refs to the
+  // actual DB question + answer.
   const wrongByIdx = new Map(wrongs.map(w => [w.idx, w]));
   type PatternStat = { name: string; bucket: StandardBucket; what: string; advice: string; triggerKeywords: string[]; examples: MistakeExample[]; marksLost: number };
+  const refToWrong = (ref: string): WrongRecord | null => {
+    const m = /\[(\d+)\]/.exec(ref);
+    if (!m) return null;
+    return wrongByIdx.get(parseInt(m[1], 10)) ?? null;
+  };
+  const enrichExample = (ex: GeminiExample): MistakeExample => {
+    const w = refToWrong(ex.questionRef);
+    if (!w) {
+      return {
+        questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
+        paperTitle: null, questionText: null, studentAnswer: null,
+        markingNotes: null, diagramImageData: null, isMcq: false,
+        options: [], picked: null, correct: null,
+      };
+    }
+    return {
+      questionRef: ex.questionRef,
+      whatWentWrong: ex.whatWentWrong,
+      paperTitle: w.paperTitle.replace(/^\s*\[[A-Z_-]+\]\s*/g, "").replace(/\s*\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z)?\)\s*$/g, "").trim(),
+      questionText: w.questionText,
+      studentAnswer: w.studentAnswer,
+      markingNotes: w.markingNotes,
+      diagramImageData: w.diagramImageData,
+      isMcq: w.isMcq,
+      options: w.options,
+      picked: w.isMcq ? w.studentAnswer : null,
+      correct: w.isMcq ? w.correctAnswer : null,
+    };
+  };
   const patternStats: PatternStat[] = report.patterns.map(p => ({
     name: p.name,
     bucket: bucketFor(p.name),
     what: p.what,
     advice: p.strategic_advice,
     triggerKeywords: p.trigger_keywords ?? [],
-    examples: (p.specific_examples ?? []).map(ex => ({ questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong })),
+    examples: (p.specific_examples ?? []).map(enrichExample),
     marksLost: 0,
   }));
   for (const c of report.classification) {
@@ -308,13 +388,14 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   const papers = await prisma.examPaper.findMany({
     where: { assignedToId: studentId, markingStatus: { in: ["complete", "released"] } },
     select: {
-      metadata: true, subject: true,
+      title: true, metadata: true, subject: true,
       questions: {
         select: {
           studentAnswer: true, answer: true,
           marksAwarded: true, marksAvailable: true,
           markingNotes: true, syllabusTopic: true,
-          transcribedOptions: true,
+          transcribedOptions: true, transcribedStem: true,
+          diagramImageData: true,
         },
       },
     },

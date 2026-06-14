@@ -13,7 +13,19 @@ type Topline = {
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;
 };
-type MistakeExample = { questionRef: string; whatWentWrong: string };
+type MistakeExample = {
+  questionRef: string;
+  whatWentWrong: string;
+  paperTitle: string | null;
+  questionText: string | null;
+  studentAnswer: string | null;
+  markingNotes: string | null;
+  diagramImageData: string | null;
+  isMcq: boolean;
+  options: string[];
+  picked: string | null;
+  correct: string | null;
+};
 type MistakeCard = {
   bucket: string;
   name: string;
@@ -196,6 +208,15 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   );
 }
 
+// Helpers for inline-bold (**word**) and percent display.
+function pctOfSubject(marksLost: number, totalAvailable: number): string {
+  if (totalAvailable <= 0) return "";
+  return `${Math.round((marksLost / totalAvailable) * 100)}%`;
+}
+function boldifyHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
 function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgress }: { data: Extract<TutorData, { kind: "ready" }>; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void; onShowFullProgress: () => void }) {
   const t = data.topline;
   return (
@@ -251,7 +272,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
             {data.commonMistakes.map((m, i) => (
               <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
                 <div>
-                  <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost</p>
+                  <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{m.what}</p>
                 </div>
@@ -273,7 +294,7 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
             {data.conceptualGaps.map((c, i) => (
               <button key={c.bucket} onClick={() => onSelectConcept(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-orange-50/40 hover:border-orange-200 transition-colors group">
                 <div>
-                  <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost</p>
+                  <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{c.what}</p>
                 </div>
@@ -336,21 +357,21 @@ function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extrac
         </section>
       )}
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
-        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} />
+        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
       )}
       {view.kind === "concept" && data.conceptualGaps[view.index] && (
-        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} />
+        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
       )}
     </div>
   );
 }
 
-function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string }) {
-  // Strip **markdown** → bold for the advice paragraph.
-  const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
+  const adviceHtml = boldifyHtml(card.advice);
+  const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost</p>
+      <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
 
@@ -372,10 +393,7 @@ function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Examples from {childFirst}&apos;s work</p>
           <div className="space-y-3">
             {card.examples.map((ex, i) => (
-              <div key={i} className="border border-slate-100 rounded-xl p-4 bg-slate-50/50">
-                <p className="text-xs font-bold text-violet-600 mb-1">Example {i + 1}</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{ex.whatWentWrong}</p>
-              </div>
+              <ExpandableExample key={i} ex={ex} index={i} accent="violet" childFirst={childFirst} />
             ))}
           </div>
         </div>
@@ -388,11 +406,12 @@ function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
   );
 }
 
-function ConceptDetail({ card, childFirst }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string }) {
-  const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
+  const adviceHtml = boldifyHtml(card.advice);
+  const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost</p>
+      <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
 
@@ -406,10 +425,7 @@ function ConceptDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Where {childFirst} got mixed up</p>
           <div className="space-y-3">
             {card.examples.map((ex, i) => (
-              <div key={i} className="border border-slate-100 rounded-xl p-4 bg-slate-50/50">
-                <p className="text-xs font-bold text-orange-600 mb-1">Example {i + 1}</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{ex.whatWentWrong}</p>
-              </div>
+              <ExpandableExample key={i} ex={ex} index={i} accent="orange" childFirst={childFirst} />
             ))}
           </div>
         </div>
@@ -419,5 +435,79 @@ function ConceptDetail({ card, childFirst }: { card: Extract<TutorData, { kind: 
         Take a quick Concept Quiz →
       </button>
     </section>
+  );
+}
+
+function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExample; index: number; accent: "violet" | "orange"; childFirst: string }) {
+  const [open, setOpen] = useState(false);
+  const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
+  const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
+  const diagnosisHtml = boldifyHtml(ex.whatWentWrong);
+  const hasFullData = ex.questionText !== null;
+  const imgSrc = ex.diagramImageData
+    ? (ex.diagramImageData.startsWith("data:") ? ex.diagramImageData : `data:image/jpeg;base64,${ex.diagramImageData}`)
+    : null;
+  return (
+    <div className="border border-slate-200 rounded-xl bg-white">
+      <div className="p-4">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <p className={`text-xs font-bold ${accentClass}`}>
+            Example {index + 1}{ex.paperTitle ? ` · ${ex.paperTitle}` : ""}
+          </p>
+          {hasFullData && (
+            <button onClick={() => setOpen(o => !o)} className="text-xs font-semibold text-[#003366] hover:opacity-75 whitespace-nowrap">
+              {open ? "Hide question ↑" : "See full question ↓"}
+            </button>
+          )}
+        </div>
+        <p className="text-sm text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: diagnosisHtml }} />
+      </div>
+      {open && hasFullData && (
+        <div className={`border-t border-slate-200 p-4 ${accentBg} rounded-b-xl space-y-3`}>
+          <div>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Question</p>
+            <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-line">{ex.questionText}</p>
+          </div>
+          {imgSrc && (
+            <div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imgSrc} alt="Question diagram" className="max-w-full rounded-lg border border-slate-200" />
+            </div>
+          )}
+          {ex.isMcq && ex.options.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Options</p>
+              <div className="space-y-1">
+                {ex.options.map((o, k) => {
+                  const num = String(k + 1);
+                  const isPicked = !!ex.picked && ex.picked.includes(num);
+                  const isCorrect = !!ex.correct && ex.correct.includes(num);
+                  const bg = isCorrect ? "bg-emerald-100 text-emerald-900" : isPicked ? "bg-rose-100 text-rose-900" : "bg-white text-slate-700";
+                  return (
+                    <div key={k} className={`px-3 py-1.5 rounded text-sm ${bg}`}>
+                      <strong>({num})</strong> {o}
+                      {isCorrect && <span className="text-xs font-bold ml-2">✓ correct</span>}
+                      {isPicked && !isCorrect && <span className="text-xs font-bold ml-2">✗ {childFirst} picked</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {!ex.isMcq && ex.studentAnswer && (
+            <div>
+              <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-1">{childFirst} wrote</p>
+              <p className="text-sm text-rose-900 leading-relaxed whitespace-pre-line">{ex.studentAnswer}</p>
+            </div>
+          )}
+          {ex.markingNotes && (
+            <div>
+              <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">What {childFirst} missed</p>
+              <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: boldifyHtml(ex.markingNotes) }} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
