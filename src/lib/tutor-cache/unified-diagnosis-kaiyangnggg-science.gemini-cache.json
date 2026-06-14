@@ -1,121 +1,121 @@
 {
   "patterns": [
     {
-      "name": "Skipping the Invisible Mechanism",
-      "what": "The student jumps straight to the final visible outcome in explanations, skipping the underlying scientific keywords or invisible processes.",
+      "name": "Incomplete Scientific Explanations",
+      "what": "The student understands the general concept but loses marks by omitting specific scientific keywords, comparative terms, or the underlying mechanism.",
       "specific_examples": [
         {
-          "questionRef": "[37]",
+          "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "Stated that the chocolate expanded and burst, but skipped the crucial invisible step that it 'gained heat' first."
+          "whatWentWrong": "Missed the comparative keyword 'more mass' and the mechanism 'gained heat' when explaining expansion and cooking time."
         },
         {
-          "questionRef": "[39]",
+          "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "Identified that the sleeve prevents scalding, but failed to explain the scientific mechanism that 'air is a poor conductor of heat'."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Explained that more heat energy is needed for more fishballs, but missed stating the core physical reason: 'more mass'."
-        }
-      ],
-      "strategic_advice": "When you see **explain why** or **explain how**, don't just state the final result. Always bridge the gap by including the invisible scientific mechanism. Ask yourself: 'What is happening at the particle level?' or 'What property makes this happen?' Use specific keywords like **gained heat**, **poor conductor**, or **more mass**.",
-      "trigger_keywords": [
-        "Explain why",
-        "Explain how",
-        "Give a reason"
-      ]
-    },
-    {
-      "name": "Misjudging Light and Shadows",
-      "what": "The student struggles with geometric optics, consistently failing to relate an object's distance from a light source to its shadow size, and misunderstanding how light reflects into the eye.",
-      "specific_examples": [
-        {
-          "questionRef": "[43]",
-          "type": "mcq",
-          "whatWentWrong": "Failed to recognize that the object closest to the light source casts the largest shadow on the screen."
-        },
-        {
-          "questionRef": "[51]",
-          "type": "mcq",
-          "whatWentWrong": "Misidentified the path of light, not realizing light must travel from the source, reflect off the object, and then enter the eye."
-        },
-        {
-          "questionRef": "[53]",
-          "type": "mcq",
-          "whatWentWrong": "Struggled to match the materials (transparent, translucent, opaque) to the darkness of the shadows they cast."
-        }
-      ],
-      "strategic_advice": "For shadow questions, remember the golden rule: **closer to the light source = larger shadow**. For vision questions, always trace the arrows starting from the **light source**, bouncing off the **object**, and ending at the **eye**.",
-      "trigger_keywords": [
-        "shadow",
-        "screen",
-        "direction of light rays",
-        "cut out some shapes"
-      ]
-    },
-    {
-      "name": "Misinterpreting Heat and Temperature",
-      "what": "The student frequently misidentifies good versus poor conductors of heat, misunderstands factors affecting evaporation, and mistakenly believes heat is only gained during state changes.",
-      "specific_examples": [
-        {
-          "questionRef": "[35]",
-          "type": "mcq",
-          "whatWentWrong": "Assumed ice/water only gains heat during melting, forgetting that a rise in temperature also means heat is being gained."
-        },
-        {
-          "questionRef": "[62]",
-          "type": "mcq",
-          "whatWentWrong": "Chose glass instead of metal, misunderstanding that a good conductor is needed to lose heat and reach the lowest temperature quickly."
+          "whatWentWrong": "Used everyday language like 'give out water' instead of the scientific term 'reduce water loss'."
         },
         {
           "questionRef": "[38]",
-          "type": "mcq",
-          "whatWentWrong": "Failed to identify that a wider beaker has a larger exposed surface area, leading to more evaporation and condensation."
+          "type": "oeq",
+          "whatWentWrong": "Defined boiling by its temperature (100°C) rather than the scientific mechanism of 'change in state from liquid to gas'."
         }
       ],
-      "strategic_advice": "When a graph shows temperature rising, the substance is **gaining heat**—not just when it melts or boils. For cooling questions, remember that **good conductors** (like metal) lose heat the fastest. For evaporation, always look for the setup with the **largest exposed surface area**.",
+      "strategic_advice": "When you see 'explain why' or 'give a reason', do not just state what happens. Always include the scientific mechanism (e.g., 'gained heat', 'change in state') and use comparative words (e.g., 'more mass', 'expanded more than') if comparing two things. Ask yourself: **'What is the invisible science rule making this happen?'**",
       "trigger_keywords": [
-        "lowest temperature",
-        "gaining heat",
-        "water droplets formed",
-        "poorer conductor"
+        "Explain why",
+        "Give a reason",
+        "Explain how",
+        "State what"
       ]
     },
     {
-      "name": "Misidentifying Forces and Energy",
-      "what": "The student frequently mislabels the types of forces (e.g., friction, gravity) acting on objects and misunderstands how energy converts from one form to another in everyday systems.",
+      "name": "Reversing Light and Shadow Rules",
+      "what": "The student consistently reverses the direction of light needed for sight and misunderstands how an object's distance from a light source affects its shadow size.",
       "specific_examples": [
         {
-          "questionRef": "[46]",
+          "questionRef": "[52]",
           "type": "mcq",
-          "whatWentWrong": "Incorrectly identified the direction of frictional and gravitational forces acting on a pulled box."
+          "whatWentWrong": "Chose arrows showing light traveling from the eye to the door, rather than from the light source to the door and reflecting into the eye."
         },
         {
-          "questionRef": "[65]",
+          "questionRef": "[41]",
           "type": "mcq",
-          "whatWentWrong": "Confused the starting energy of a mobile phone, choosing potential energy instead of electrical energy."
+          "whatWentWrong": "Incorrectly matched the largest shadow to the object furthest from the torch, reversing the rule that closer objects cast larger shadows."
         },
         {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "Incorrectly identified the energy of the hot air above a candle as potential energy instead of kinetic energy."
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "Selected light rays moving away from the painting instead of reflecting off the painting into the person's eyes."
         }
       ],
-      "strategic_advice": "Always draw arrows for forces: **gravity** always points straight down, and **friction** always points opposite to the movement. For energy conversions, identify the **starting energy** (e.g., battery = electrical/chemical) and the **useful output energy** (e.g., movement = kinetic).",
+      "strategic_advice": "For sight questions, always draw arrows starting from the **light source**, bouncing off the **object**, and ending at the **eye**. For shadow questions, remember the rule: **closer to the light = bigger shadow**. Imagine bringing your hand closer to a flashlight; the shadow on the wall gets huge!",
       "trigger_keywords": [
-        "energy conversion",
-        "forces acting",
-        "gravitational force",
-        "frictional force"
+        "correct direction of light rays",
+        "shadow",
+        "cut out some shapes",
+        "enable Peter to see"
+      ]
+    },
+    {
+      "name": "Misinterpreting Heating Graphs",
+      "what": "The student incorrectly believes that substances only gain heat during a phase change (flat line on a graph) and fails to recognize that a temperature rise also indicates heat gain.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Thought ice/water only gained heat during the melting phase (flat line), missing that rising temperature also means heat is being gained."
+        },
+        {
+          "questionRef": "[61]",
+          "type": "mcq",
+          "whatWentWrong": "Struggled to interpret the timeline of a melting ice graph to find how long it took to reach a specific temperature after melting."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Repeatedly missed that heat is gained continuously throughout heating, melting, and further heating phases."
+        }
+      ],
+      "strategic_advice": "When analyzing a temperature-time graph, remember that if the heat source is on, the substance is **always gaining heat**. A rising line means heat is increasing the temperature, while a flat line means heat is being used to **change the state** (like melting or boiling).",
+      "trigger_keywords": [
+        "gaining heat",
+        "changes in its temperature",
+        "graph shows the change"
+      ]
+    },
+    {
+      "name": "Misjudging Heat Conductors",
+      "what": "The student struggles to identify good vs. poor conductors of heat and misunderstands that good conductors lose heat the fastest.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Chose glass instead of metal for the container that would reach the lowest temperature, not realizing metal is a good conductor that loses heat fastest."
+        },
+        {
+          "questionRef": "[71]",
+          "type": "mcq",
+          "whatWentWrong": "Failed to identify that ceramic feels colder than wood because it is a better conductor of heat, drawing heat away from the feet faster."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Did not mention that the corrugated sleeve 'traps air' and that 'air is a poor conductor of heat' to prevent scalding."
+        }
+      ],
+      "strategic_advice": "When asked about keeping things hot or cold, identify the materials. **Metals are good conductors** (they gain and lose heat very fast). **Air, wood, and plastics are poor conductors** (they trap heat and change temperature slowly). If you want the 'lowest temperature' quickly, choose the good conductor!",
+      "trigger_keywords": [
+        "lowest temperature",
+        "poorer conductor",
+        "prevent from scalding",
+        "keep cold"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 2,
@@ -127,19 +127,19 @@
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
@@ -155,15 +155,15 @@
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -175,7 +175,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 17,
@@ -183,27 +183,27 @@
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -211,11 +211,11 @@
     },
     {
       "idx": 25,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 26,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 27,
@@ -247,7 +247,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 35,
@@ -255,15 +255,15 @@
     },
     {
       "idx": 36,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 39,
@@ -279,27 +279,27 @@
     },
     {
       "idx": 42,
-      "patternIndex": 0
-    },
-    {
-      "idx": 43,
       "patternIndex": 1
     },
     {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
       "idx": 44,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 46,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 47,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -323,7 +323,7 @@
     },
     {
       "idx": 53,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 54,
@@ -339,19 +339,19 @@
     },
     {
       "idx": 57,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 58,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 59,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 61,
@@ -359,19 +359,19 @@
     },
     {
       "idx": 62,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 66,
@@ -379,11 +379,11 @@
     },
     {
       "idx": 67,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 68,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 69,
@@ -391,11 +391,11 @@
     },
     {
       "idx": 70,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 71,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 72,

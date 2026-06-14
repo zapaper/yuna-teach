@@ -1,26 +1,54 @@
 {
   "patterns": [
     {
-      "name": "Reversing Energy Transfer Direction",
-      "what": "The student traces the path of light or heat backwards, confusing the source of energy with the receiver.",
+      "name": "Over-Selecting Multi-Statements",
+      "what": "The student tends to choose options that group many statements together without critically evaluating each clause for subtle false words.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Selected 'A, B, C and D' without noticing that statement B (unfertilised egg develops) and C (ovary fertilises) contain subtle factual errors."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Selected 'A, B and C' by failing to spot that statement B incorrectly states the egg is produced in the womb instead of the ovary."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Selected 'A and B' because they missed the logical trap in statement B that a continuous life cycle does not have a 'beginning'."
+        }
+      ],
+      "strategic_advice": "When you see questions asking **'Which of the following statement(s)'** are true, treat every single option (A, B, C, D) as a separate True/False question. **Underline the verbs and locations** in each statement to spot hidden errors (e.g., 'unfertilised', 'womb' instead of 'ovary'). If you find even one wrong word, **cross out that statement immediately** and eliminate any multiple-choice options that include it.",
+      "trigger_keywords": [
+        "Which of the following statement(s)",
+        "A, B, C",
+        "true",
+        "correct"
+      ]
+    },
+    {
+      "name": "Reversing Energy Flow Pathways",
+      "what": "The student traces the movement of heat or light backwards, confusing heat gain with heat loss, or thinking light travels from the eye instead of into it.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Incorrectly thought the air gains heat from sweat, rather than the sweat gaining heat from the body to evaporate."
+          "whatWentWrong": "Thought the air gains heat from sweat, missing the core concept that sweat must gain heat from the body to evaporate and cool us down."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Chose arrows showing light traveling from the eye to the object, instead of from the light source to the object and then to the eye."
+          "whatWentWrong": "Chose arrows showing light traveling out of the eye, rather than tracing the correct path from the light source, bouncing off the object, and into the eye."
         },
         {
-          "questionRef": "[15]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "Failed to recognize that melting ice gains heat from its surroundings rather than losing heat."
+          "whatWentWrong": "Failed to identify that statement B is wrong, mistakenly believing that cold ice cubes lose heat to the warmer surrounding air instead of gaining it."
         }
       ],
-      "strategic_advice": "When a question involves heat transfer or seeing an object, always identify the SOURCE of the energy first. Draw an arrow from the hotter object to the colder object, or from the light source to the object and then to the eye. **Trace the arrows** on the paper before looking at the options.",
+      "strategic_advice": "When a question asks about the **'direction of light'** or which object **'gains heat'** or **'loses heat'**, always ask yourself: **'Where is the source?'** For light, draw an arrow from the lamp to the object, then bouncing to the eye. For heat, draw an arrow from the **hotter object to the colder object**. Remember that cold things (like ice or sweat) must **gain heat** from their surroundings to melt or evaporate.",
       "trigger_keywords": [
         "gains heat",
         "loses heat",
@@ -29,97 +57,64 @@
       ]
     },
     {
-      "name": "Overlooking Critical Qualifiers",
-      "what": "The student misses key negative words or specific conditions in the question stem or options, leading them to select the exact opposite of the correct answer.",
+      "name": "Confusing Analogous Biological Systems",
+      "what": "The student struggles to map equivalent parts that perform the same function when comparing two different systems, specifically plant and human reproduction.",
       "specific_examples": [
         {
-          "questionRef": "[10]",
+          "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Missed the word 'not' in the question stem and selected a true statement instead of the false one."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "Overlooked the word 'unfertilised' and incorrectly agreed that an unfertilised egg can develop into a baby."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "mcq",
-          "whatWentWrong": "Agreed that a life cycle 'begins' with an egg, missing the conceptual qualifier that a cycle is continuous and has no true beginning."
-        }
-      ],
-      "strategic_advice": "When you see words like 'not', 'wrong', or specific conditions like 'unfertilised', circle them immediately. Treat these words as stop signs that completely change the meaning of the sentence. **Double-check the exact wording** of each option against the circled words before confirming your choice.",
-      "trigger_keywords": [
-        "not correct",
-        "wrong",
-        "unfertilised",
-        "on its own",
-        "begins"
-      ]
-    },
-    {
-      "name": "Confusing Similar Biological Structures",
-      "what": "The student mixes up closely related biological terms or misidentifies the exact locations where specific reproductive processes occur.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "Confused 'many ovaries' with 'many ovules' when analyzing a fruit that contains multiple seeds."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "Incorrectly thought that the human egg is produced in the womb rather than in the ovary."
+          "whatWentWrong": "Incorrectly matched the reproductive parts of a flower to a human, failing to link the ovary of the plant to the ovary/womb of the human."
         },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Misidentified the analogous male reproductive parts (anther and testis) between a flower and a human."
-        }
-      ],
-      "strategic_advice": "When you see questions comparing reproductive parts or asking about seeds and fruits, quickly sketch or visualize the system. Remember the rule: 'ovules become seeds' and 'ovary becomes fruit'. **Map the specific function** to the exact part in your head before reading the options.",
-      "trigger_keywords": [
-        "ovary",
-        "ovules",
-        "womb",
-        "testis",
-        "similar function",
-        "seeds"
-      ]
-    },
-    {
-      "name": "Incomplete or Blank Explanations",
-      "what": "The student struggles to articulate the 'why' in open-ended questions, often leaving the explanation part blank or stopping short of the final scientific reason.",
-      "specific_examples": [
+          "whatWentWrong": "Could not correctly identify which parts of the male flower (anther) and male human (testis) share the same function of producing male reproductive cells."
+        },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Correctly identified the best material from the data but completely forgot to write the explanation for why it was the best choice."
+          "whatWentWrong": "Wrote the wrong number when asked to match the reproductive systems of humans and a flowering plant, showing a gap in mapping equivalent functions."
+        }
+      ],
+      "strategic_advice": "When asked to compare the **'reproductive parts of a flower and a human'** or find parts with a **'similar function'**, create a quick matching table in the margins. Write down **'Male Maker'** (Anther = Testis) and **'Female Maker'** (Ovary = Ovary). By **labeling the specific function** of each part before looking at the options, you will avoid getting tricked by the diagram letters.",
+      "trigger_keywords": [
+        "similar function",
+        "same function",
+        "reproductive parts of a flower and a human"
+      ]
+    },
+    {
+      "name": "Skipping or Incomplete Explanations",
+      "what": "The student identifies the correct choice or material but loses marks by leaving the required scientific explanation completely blank or stopping halfway.",
+      "specific_examples": [
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "Successfully chose the correct material based on the data, but lost marks by completely leaving out the explanation of why it is a better heat conductor."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Left the entire explanation blank for why a flower could still grow into a fruit after the male parts were removed, missing out on achievable marks."
         },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Failed to explain that a shadow puppet screen needs a translucent material to show shadows from behind, choosing an opaque one instead."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "Left the entire application question about how reflective strips help drivers see clearly completely blank."
+          "whatWentWrong": "Left the entire multi-part question blank, missing out on easy marks for arranging the materials and stating the changed variable."
         }
       ],
-      "strategic_advice": "When you see 'explain why' or 'based on the results', use the CER method: Claim, Evidence, Reasoning. Always include a 'because' or 'so that' clause to connect your choice to a scientific concept. **Never leave an explanation blank**; write down the relevant science keywords even if you are unsure.",
+      "strategic_advice": "When you see **'Explain your answer'** or **'Explain why'**, you must provide the 'Why' behind your choice. Always use the **CER method: Claim, Evidence, Reasoning**. State your choice, quote the data, and then write **'This is because...'** to link it to a science concept. Never leave these blank; even writing the science concept alone can earn partial marks!",
       "trigger_keywords": [
-        "explain why",
-        "based on the results",
-        "explain your answer",
-        "reason"
+        "Explain your answer",
+        "Explain why",
+        "Based on the results"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
@@ -127,11 +122,11 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 5,
@@ -139,15 +134,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -155,7 +150,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 11,
@@ -163,15 +158,15 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -187,23 +182,23 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 1
-    },
-    {
-      "idx": 20,
       "patternIndex": -1
     },
     {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 23,

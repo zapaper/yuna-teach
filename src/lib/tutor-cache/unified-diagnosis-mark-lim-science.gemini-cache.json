@@ -2,117 +2,112 @@
   "patterns": [
     {
       "name": "Stopping One Step Short",
-      "what": "The student correctly identifies the initial cause or process but fails to state the final consequence or link it back to the question's specific context.",
+      "what": "The student correctly identifies the initial cause or intermediate scientific process but fails to explicitly state the final outcome or consequence required by the question.",
       "specific_examples": [
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "Correctly identified that the plant could not photosynthesize, but stopped short of stating the final consequence that the plant died."
+          "whatWentWrong": "Correctly identified that bacteria decompose the plant and respire, but stopped short of stating the final consequence: this uses up oxygen in the water."
         },
         {
-          "questionRef": "[26]",
+          "questionRef": "[65]",
           "type": "oeq",
-          "whatWentWrong": "Correctly explained there would be less food for the birds, but failed to state the final outcome that the birds would die or move away."
+          "whatWentWrong": "Correctly explained that less algae leads to fewer tadpoles, but failed to state the final consequence that the fish would starve."
         },
         {
-          "questionRef": "[35]",
+          "questionRef": "[101]",
           "type": "oeq",
-          "whatWentWrong": "Suggested adding more batteries to increase magnetism, but stopped short of explaining how this leads to a greater push from the spring."
+          "whatWentWrong": "Correctly explained that the electromagnet attracts the iron bolt, but stopped short of stating that this moves the bolt away from the catch to unlock the door."
         }
       ],
-      "strategic_advice": "When you see **explain why** or **explain how**, always ask yourself 'And then what happens?' until you reach the final outcome. Use a **cause-and-effect chain** (e.g., A leads to B, which results in C) and make sure your final point directly answers the question asked.",
+      "strategic_advice": "When you see 'explain why' or 'explain how', always ask yourself 'And then what happens?' at the end of your answer. Keep extending your logical chain until you reach the final consequence that directly answers the prompt. Use a **'so that...'** or **'resulting in...'** clause to ensure you link your scientific process to the final outcome.",
       "trigger_keywords": [
-        "explain why",
-        "explain how",
-        "give a reason",
-        "consequence"
+        "Explain why",
+        "Explain how",
+        "Give a reason"
       ]
     },
     {
       "name": "Vague Data Trend Descriptions",
-      "what": "The student provides a vague, general, or grammatically confused statement instead of detailing the specific trend or relationship shown in the data.",
-      "specific_examples": [
-        {
-          "questionRef": "[41]",
-          "type": "oeq",
-          "whatWentWrong": "Gave a confused statement about temperature increasing or decreasing hatching, instead of describing the specific trend of an increase followed by a decrease."
-        },
-        {
-          "questionRef": "[113]",
-          "type": "oeq",
-          "whatWentWrong": "Correctly noted that the height increases with more rubber bands, but missed the second part of the trend where the height remains the same after 4 bands."
-        },
-        {
-          "questionRef": "[29]",
-          "type": "oeq",
-          "whatWentWrong": "Incorrectly stated that the population decreases when the graph clearly shows an upward trend."
-        }
-      ],
-      "strategic_advice": "When you see **describe what** or **conclude**, look closely at the data for a turning point. Break your answer into parts: 'As X increases from [start] to [middle], Y [increases/decreases]. As X increases further, Y [increases/decreases/remains the same].' Always use **specific data points** if there is a change in the trend.",
-      "trigger_keywords": [
-        "describe what",
-        "conclude",
-        "relationship",
-        "based on the graph",
-        "effect of"
-      ]
-    },
-    {
-      "name": "Blank or Skipped Sub-Questions",
-      "what": "The student frequently leaves specific sub-questions completely blank, especially when multiple questions are nested or require recalling definitions.",
+      "what": "When asked to describe a relationship or trend from a graph or table, the student gives a vague, generalized statement instead of detailing specific intervals, turning points, or exact variables.",
       "specific_examples": [
         {
           "questionRef": "[39]",
           "type": "oeq",
-          "whatWentWrong": "Left the first part of the question asking how shadows are formed completely blank."
+          "whatWentWrong": "Gave a vague statement about temperature affecting hatching instead of describing the specific trend: hatching increases up to 28°C and then decreases."
         },
         {
-          "questionRef": "[105]",
+          "questionRef": "[113]",
           "type": "oeq",
-          "whatWentWrong": "Left the explanation for the change in the amount of digested food completely blank."
+          "whatWentWrong": "Correctly noted that height increases with more rubber bands, but missed the crucial detail that the height plateaus (remains the same) from 4 to 6 rubber bands."
         },
         {
-          "questionRef": "[3]",
+          "questionRef": "[111]",
           "type": "oeq",
-          "whatWentWrong": "Answered the first part of the question but left the subsequent explanation and suggestion parts blank."
+          "whatWentWrong": "Simply stated that the heart rate decreased, without citing the specific evidence from the graph (e.g., 'after point S')."
         }
       ],
-      "strategic_advice": "When you see a question with multiple parts like **(a) (i)** and **(ii)**, circle every single question mark or command word. Even if you are unsure, **write down your best guess** using relevant scientific keywords—a partial answer can often earn you partial marks, whereas a blank answer guarantees zero.",
+      "strategic_advice": "When asked to describe a trend or relationship from data, do not just say it 'changes' or 'increases/decreases' generally. Break the data into parts and describe each segment. Use phrases like **'As [Variable A] increases from X to Y, [Variable B] increases, but as it increases further, [Variable B] decreases.'** Always mention the specific turning points or plateaus shown in the data.",
       "trigger_keywords": [
-        "state how",
-        "describe",
-        "explain",
-        "blank",
-        "(i)"
+        "Describe what",
+        "State the relationship",
+        "Based on the graph",
+        "conclude about the effect"
       ]
     },
     {
-      "name": "Misapplying Scientific Concepts",
-      "what": "The student applies a related but incorrect scientific concept to the scenario, misidentifying the mechanism at play.",
+      "name": "Ignoring Provided Contextual Information",
+      "what": "The student relies on general knowledge or guesses the wrong process, failing to use the specific characteristics, roles, or conditions explicitly provided in the question stem.",
       "specific_examples": [
         {
-          "questionRef": "[38]",
+          "questionRef": "[42]",
           "type": "oeq",
-          "whatWentWrong": "Confused pollination with seed dispersal, incorrectly stating that the animal pollinates the plant to spread it over a wider area."
+          "whatWentWrong": "Guessed that the plant spread due to pollination by animal G, ignoring the prompt's specific clue that animal H eats the fruits (leading to seed dispersal)."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Used the concept of gravity overcoming magnetic force instead of explaining that the electromagnet loses its magnetism when the circuit is open."
+          "whatWentWrong": "Identified that the nest helps the organism hide and feed, but failed to use the provided context that the predator lives on land while the prey lives in water."
         },
         {
-          "questionRef": "[116]",
-          "type": "mcq",
-          "whatWentWrong": "Incorrectly identified the lungs and gills as part of the circulatory system instead of the respiratory system."
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Concluded the spring would decrease in length but failed to explicitly state the contextual reason: the new block is made of wood, which is a non-magnetic material."
         }
       ],
-      "strategic_advice": "When you see **explain why** or **how does**, pause and identify the specific topic the question is testing (e.g., reproduction vs. dispersal, magnetism vs. gravity). Write down the **key scientific terms** related to that topic before forming your answer to ensure you are using the right mechanism.",
+      "strategic_advice": "Before answering, highlight the specific properties, habitats, or roles given in the question stem (e.g., 'eats fruits', 'lives on land', 'wooden block'). When you write your explanation, you must explicitly mention these details to prove why your scientific reasoning applies to this exact scenario. Always link your general science knowledge back to the **specific clues provided in the text**.",
       "trigger_keywords": [
-        "explain why",
-        "how does",
-        "benefit",
-        "property",
-        "which statement"
+        "Using the information above",
+        "Based on the diagram",
+        "Explain your answer"
+      ]
+    },
+    {
+      "name": "Skipping Sub-Questions Completely",
+      "what": "The student completely overlooks or leaves blank specific sub-parts of a multi-part question, resulting in an automatic loss of marks for that section.",
+      "specific_examples": [
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "Answered part (a)(ii) correctly but completely left part (a)(i) blank, missing out on marks for explaining how shadows are formed."
+        },
+        {
+          "questionRef": "[104]",
+          "type": "oeq",
+          "whatWentWrong": "Answered part (a) perfectly but left part (b)(ii) completely blank, missing the chance to explain the absorption of digested food."
+        },
+        {
+          "questionRef": "[107]",
+          "type": "oeq",
+          "whatWentWrong": "Answered part (a) and (b)(i) but left part (b)(ii) blank, losing marks for not explaining the change in heart rate."
+        }
+      ],
+      "strategic_advice": "Multi-part questions often have small roman numerals like (i) and (ii) that are easy to miss. When you finish a question, quickly **re-read the entire prompt** and check off each sub-question to ensure you have written an answer for every single part. Even if you are unsure, **always write down your best guess**—a blank answer guarantees zero marks, but a partial answer might earn you something!",
+      "trigger_keywords": [
+        "(a) (i)",
+        "(b) (ii)",
+        "State how",
+        "Draw"
       ]
     }
   ],
@@ -123,7 +118,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -135,7 +130,7 @@
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 6,
@@ -143,15 +138,15 @@
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -159,11 +154,11 @@
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -175,19 +170,19 @@
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -195,7 +190,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 21,
@@ -207,11 +202,11 @@
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 25,
@@ -219,11 +214,11 @@
     },
     {
       "idx": 26,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 27,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 28,
@@ -231,19 +226,19 @@
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 32,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 33,
@@ -251,7 +246,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 35,
@@ -263,15 +258,15 @@
     },
     {
       "idx": 37,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 39,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 40,
@@ -279,15 +274,15 @@
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 43,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 44,
@@ -295,11 +290,11 @@
     },
     {
       "idx": 45,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 46,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 47,
@@ -307,15 +302,15 @@
     },
     {
       "idx": 48,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 49,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 50,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 51,
@@ -323,11 +318,11 @@
     },
     {
       "idx": 52,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 53,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 54,
@@ -343,83 +338,83 @@
     },
     {
       "idx": 57,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 58,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 59,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 60,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 61,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 62,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 64,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 65,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 66,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 68,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 69,
-      "patternIndex": 0
-    },
-    {
-      "idx": 70,
-      "patternIndex": 1
-    },
-    {
-      "idx": 71,
-      "patternIndex": 2
-    },
-    {
-      "idx": 72,
       "patternIndex": 3
     },
     {
-      "idx": 73,
+      "idx": 70,
+      "patternIndex": 2
+    },
+    {
+      "idx": 71,
+      "patternIndex": 1
+    },
+    {
+      "idx": 72,
       "patternIndex": 0
+    },
+    {
+      "idx": 73,
+      "patternIndex": 3
     },
     {
       "idx": 74,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 75,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 76,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 77,
@@ -427,19 +422,19 @@
     },
     {
       "idx": 78,
-      "patternIndex": 0
-    },
-    {
-      "idx": 79,
       "patternIndex": 2
     },
     {
+      "idx": 79,
+      "patternIndex": 1
+    },
+    {
       "idx": 80,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 81,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 82,
@@ -451,7 +446,7 @@
     },
     {
       "idx": 84,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 85,
@@ -463,7 +458,7 @@
     },
     {
       "idx": 87,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 88,
@@ -475,23 +470,23 @@
     },
     {
       "idx": 90,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 91,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 92,
-      "patternIndex": 3
-    },
-    {
-      "idx": 93,
       "patternIndex": 0
     },
     {
+      "idx": 93,
+      "patternIndex": 3
+    },
+    {
       "idx": 94,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 95,
@@ -499,15 +494,15 @@
     },
     {
       "idx": 96,
-      "patternIndex": 3
-    },
-    {
-      "idx": 97,
       "patternIndex": 1
     },
     {
+      "idx": 97,
+      "patternIndex": 0
+    },
+    {
       "idx": 98,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 99,
@@ -515,11 +510,11 @@
     },
     {
       "idx": 100,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 101,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 102,
@@ -531,7 +526,7 @@
     },
     {
       "idx": 104,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 105,
@@ -543,7 +538,7 @@
     },
     {
       "idx": 107,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 108,
@@ -551,7 +546,7 @@
     },
     {
       "idx": 109,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 110,
@@ -559,7 +554,7 @@
     },
     {
       "idx": 111,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 112,
@@ -571,15 +566,15 @@
     },
     {
       "idx": 114,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 115,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 116,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 117,
@@ -587,7 +582,7 @@
     },
     {
       "idx": 118,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 119,

@@ -1,116 +1,119 @@
 {
   "patterns": [
     {
-      "name": "Ignoring Key Context Clues",
-      "what": "The student overlooks specific conditions, constraints, or descriptive details provided in the question stem.",
+      "name": "Ignoring Constraints & Absolutes",
+      "what": "The student overlooks negative constraints, absolute words, or specific limiting details provided in the question stem.",
       "specific_examples": [
         {
-          "questionRef": "[6]",
+          "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Suggested adding oil, completely ignoring the explicit instruction 'Without adding or removing any materials'."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "Guessed 'sound' energy because they missed the crucial detail that the backpack had 'solar panels'."
+          "whatWentWrong": "Student suggested adding oil despite the prompt explicitly stating 'Without adding or removing any materials'."
         },
         {
           "questionRef": "[37]",
           "type": "mcq",
-          "whatWentWrong": "Failed to notice the plant was in a 'metal box', which blocks light and prevents photosynthesis."
+          "whatWentWrong": "Student failed to recognize that the absolute statement 'All the oxygen... goes into the blood' is biologically false."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Student explained the population decline but ignored the specific constraint provided in the prompt that the eagle 'lays only one or two eggs'."
         }
       ],
-      "strategic_advice": "Before answering, **highlight or underline** every descriptive word and constraint in the question stem. When you see phrases like 'without adding' or specific materials like 'metal box', ask yourself **how this specific detail changes the normal rules**. Always double-check your final answer against the **highlighted constraints** to ensure you haven't violated them.",
+      "strategic_advice": "When you see trigger words like **without**, **all**, **only**, or specific numbers, circle them immediately. These are strict rules you must follow. Before writing your final answer, double-check that you haven't broken any of these **negative constraints** or ignored **absolute statements**.",
       "trigger_keywords": [
-        "Without adding",
-        "Based on the information",
-        "Given that",
-        "metal box",
-        "solar panels"
+        "without",
+        "all",
+        "only",
+        "must",
+        "always",
+        "never"
       ]
     },
     {
       "name": "Stopping One Step Short",
-      "what": "The student identifies the immediate effect but fails to state the final scientific consequence required for full marks.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Noted that seeds are not dispersed far but left the thought incomplete, missing the final consequence of 'overcrowding'."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "Stated the burrows are 'easily accessible' but stopped short of explaining this allows them to 'escape' from predators."
-        },
-        {
-          "questionRef": "[20]",
-          "type": "oeq",
-          "whatWentWrong": "Mentioned 'separate pathways' for a parallel circuit but failed to explicitly state it forms a 'closed circuit'."
-        }
-      ],
-      "strategic_advice": "When you see 'explain why' or 'what is the advantage', do not stop at the first thing that happens. Always use a **'so that...' or 'which leads to...'** clause to connect your thought to the final outcome. Keep asking yourself **'And then what happens?'** until you reach the ultimate survival advantage or physical result.",
-      "trigger_keywords": [
-        "Explain why",
-        "Explain how",
-        "What is the advantage",
-        "Why do"
-      ]
-    },
-    {
-      "name": "Data and Diagram Misinterpretation",
-      "what": "The student misreads graphs, tables, or diagrams, leading to incorrect data extraction or flawed comparisons.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "Misread the data table, incorrectly selecting Material Q instead of Material S which reflected the most light."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Misinterpreted the temperature graph, incorrectly identifying 7 minutes instead of 1 minute for when the chocolate was added."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "mcq",
-          "whatWentWrong": "Failed to correctly correlate the visual gap between magnets with the force values on the provided graph."
-        }
-      ],
-      "strategic_advice": "When a question includes a graph or table, **trace the lines with your pencil** and write the exact values next to the data points before reading the options. For diagrams, **label the parts** and note the differences (like gaps or sizes) explicitly. When asked 'Based on the graph', ensure your answer is **strictly supported by the numbers**, not just a quick glance.",
-      "trigger_keywords": [
-        "The graph shows",
-        "Based on the table",
-        "The diagram shows",
-        "recorded his observation"
-      ]
-    },
-    {
-      "name": "Forgetting Fundamental Properties",
-      "what": "The student forgets or misapplies basic properties of matter, forces, or biological definitions when evaluating scenarios.",
+      "what": "The student identifies the immediate effect but fails to link it to the final scientific consequence or misses the intermediate mechanism.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "Incorrectly assumed gravitational force changes as a ball moves up a short distance, rather than remaining constant."
+          "whatWentWrong": "Student noted the shorter dispersal distance but left the thought incomplete, missing the final consequence of 'overcrowding'."
         },
         {
-          "questionRef": "[19]",
+          "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "Forgot the fundamental property that water has a definite volume when calculating the final volume of air in a container."
+          "whatWentWrong": "Student stated multiple entrances make the burrow accessible, but missed the crucial survival mechanism of being able to 'escape' if one is blocked."
         },
         {
-          "questionRef": "[30]",
-          "type": "mcq",
-          "whatWentWrong": "Failed to recognize that a dented can is a classic example of a force changing the shape of an object."
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Student identified that polar bears would lack a resting platform and die, but missed the intermediate step that they are forced to 'swim longer distances'."
         }
       ],
-      "strategic_advice": "When evaluating statements about physical or biological systems, pause to recall the **core definitions** of the topics involved. If a question involves air and water, explicitly write down **'definite volume' or 'no definite volume'**. For forces, remind yourself of the **three effects of a force** (shape, speed, direction) before looking at the options.",
+      "strategic_advice": "When you see 'explain why' or 'describe how', always build a complete cause-and-effect chain. Use linking phrases like **which leads to** or **so that** to ensure you connect the initial change all the way to the **final consequence** for the organism or system.",
       "trigger_keywords": [
-        "Which of the following statements",
-        "What will be the final",
-        "Which statement is correct",
-        "can be concluded"
+        "explain why",
+        "describe how",
+        "what would happen",
+        "consequence"
+      ]
+    },
+    {
+      "name": "Loose Application of Definitions",
+      "what": "The student relies on everyday understanding rather than strict scientific definitions, leading to incorrect assumptions.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Student counted 9 populations by likely treating different life stages as separate, misunderstanding the strict definition of a 'population'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "Student incorrectly agreed that heredity is passing traits 'from one young to another', misapplying the definition which strictly involves passing traits from 'parents'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Student loosely assigned multiple organs to specific digestive functions, failing to pinpoint the exact organ responsible for absorbing water or breaking down food."
+        }
+      ],
+      "strategic_advice": "When a question tests specific biological terms, recall the **exact textbook definition** before looking at the options. Do not rely on everyday logic; instead, ask yourself, 'What is the **strict scientific rule** for this term?'",
+      "trigger_keywords": [
+        "population",
+        "heredity",
+        "digestion",
+        "characteristics",
+        "concluded"
+      ]
+    },
+    {
+      "name": "Missing Material & Context Clues",
+      "what": "The student fails to translate the physical properties of materials or environments described in the setup into their scientific implications.",
+      "specific_examples": [
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Student missed that a 'metal box' is opaque, meaning no light can enter, which completely stops photosynthesis."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Student chose a pond instead of 'leaf litter', failing to match the 'dark and damp' experimental conditions to the correct real-world microhabitat."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Student incorrectly calculated the final volume of air by forgetting the fundamental property that 'water has a definite volume' and will displace the air."
+        }
+      ],
+      "strategic_advice": "Whenever a setup mentions specific materials or environments, immediately annotate their **physical properties**. Ask yourself, 'Why did they use a **metal** box instead of glass?' or 'What are the **light and moisture** conditions here?' to unlock the hidden clues.",
+      "trigger_keywords": [
+        "metal box",
+        "leaf litter",
+        "solar panels",
+        "material",
+        "set-up"
       ]
     }
   ],
@@ -121,11 +124,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -133,11 +136,11 @@
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -145,11 +148,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -157,27 +160,27 @@
     },
     {
       "idx": 11,
-      "patternIndex": 3
-    },
-    {
-      "idx": 12,
       "patternIndex": 1
     },
     {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
       "idx": 13,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 17,
@@ -189,31 +192,31 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
-    },
-    {
-      "idx": 20,
-      "patternIndex": 1
-    },
-    {
-      "idx": 21,
-      "patternIndex": 2
-    },
-    {
-      "idx": 22,
-      "patternIndex": 0
-    },
-    {
-      "idx": 23,
-      "patternIndex": 2
-    },
-    {
-      "idx": 24,
       "patternIndex": -1
     },
     {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
       "idx": 25,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -225,7 +228,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 29,
@@ -233,11 +236,11 @@
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 32,
@@ -245,15 +248,15 @@
     },
     {
       "idx": 33,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 36,

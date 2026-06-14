@@ -1,111 +1,114 @@
 {
   "patterns": [
     {
-      "name": "Stopping Short of Final Consequence",
-      "what": "The student correctly explains the underlying reason or mechanism but fails to state the final observable outcome or direct consequence required by the question.",
-      "specific_examples": [
-        {
-          "questionRef": "[46]",
-          "type": "oeq",
-          "whatWentWrong": "Explained that the body needs less energy and oxygen, but failed to state the final consequence that the breathing rate decreases."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Explained that melting ice results in less area to rest, but stopped short of stating the final consequence that the polar bears would drown."
-        },
-        {
-          "questionRef": "[43]",
-          "type": "oeq",
-          "whatWentWrong": "Stated that the amount of digested food decreased, but stopped short of explaining the final consequence that it was absorbed into the bloodstream."
-        }
-      ],
-      "strategic_advice": "When you see **explain what happened** or **explain how**, always ensure you state the final visible result or action. Do not stop at the hidden mechanism. Use a **so that...** or **resulting in...** clause to connect your scientific reasoning directly to the final consequence.",
-      "trigger_keywords": [
-        "explain what happened",
-        "explain how",
-        "describe the changes"
-      ]
-    },
-    {
-      "name": "Vague Language Instead of Scientific Terms",
-      "what": "The student uses general, everyday language instead of the precise scientific concepts, components, or physiological terms expected.",
+      "name": "Stops Short of Final Consequence",
+      "what": "The student identifies an intermediate step or observation but fails to state the underlying scientific mechanism or the final resulting consequence.",
       "specific_examples": [
         {
           "questionRef": "[56]",
           "type": "oeq",
-          "whatWentWrong": "Used the general phrase 'needs less energy' instead of the specific physiological requirement 'less oxygen and digested food is needed'."
+          "whatWentWrong": "Correctly noted the body needed less energy and oxygen, but stopped short of stating the final observation that the breathing rate decreases."
         },
         {
-          "questionRef": "[143]",
+          "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "Stated the control is to 'ensure a fair test' instead of providing the specific scientific purpose 'to show that water level does not decrease due to evaporation'."
+          "whatWentWrong": "Suggested using a heavier block, but failed to explain the energy conversion from greater gravitational potential energy to kinetic energy."
         },
-        {
-          "questionRef": "[29]",
-          "type": "oeq",
-          "whatWentWrong": "Mentioned 'decomposition' generally but failed to use specific terms like 'decomposers' or 'bacteria' that 'respire' and use up oxygen."
-        }
-      ],
-      "strategic_advice": "When a question asks you to **explain why** or **give a reason**, avoid generic phrases like 'needs less energy' or 'to ensure a fair test'. Always ask yourself if there is a specific **scientific term** (like 'oxygen and digested food', 'decomposers', or 'evaporation') that accurately describes the process.",
-      "trigger_keywords": [
-        "explain why",
-        "give a reason",
-        "explain the purpose"
-      ]
-    },
-    {
-      "name": "Ignoring Specific Context or Provided Data",
-      "what": "The student provides a theoretically correct answer but fails to link it to the specific data, graph, or contextual clues provided in the question stem.",
-      "specific_examples": [
         {
           "questionRef": "[50]",
           "type": "oeq",
-          "whatWentWrong": "Stated that the heart rate decreased but failed to cite specific evidence from the graph, such as 'after point S'."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "Gave generic advantages of a nest instead of using the provided context that predator G lives on land and food sources B and C live in water."
-        },
-        {
-          "questionRef": "[141]",
-          "type": "oeq",
-          "whatWentWrong": "Listed general conditions for fungal growth instead of identifying only the condition specifically tested in the provided experiment."
+          "whatWentWrong": "Observed that the amount of digested food decreased, but missed the final consequence that it was absorbed into the bloodstream."
         }
       ],
-      "strategic_advice": "When you see trigger phrases like **based on the graph** or **using the information above**, you must explicitly quote or reference the provided data. Do not just state general facts; show exactly **where in the data** your conclusion comes from.",
+      "strategic_advice": "When you see **explain why** or **explain how**, use a cause-and-effect chain. Always ask yourself 'so what?' until you reach the final consequence. Ensure you link the scientific concept (e.g., **less oxygen needed**) to the final observation (e.g., **breathing rate decreases**).",
       "trigger_keywords": [
-        "based on the graph",
-        "using the information above",
-        "based on the experiment"
+        "Explain why",
+        "Explain how",
+        "Give a reason"
       ]
     },
     {
-      "name": "Skipping Initial States or Intermediate Steps",
-      "what": "The student describes a process or sequence but omits crucial initial conditions, intermediate energy conversions, or specific anatomical pathways.",
+      "name": "Ignores Specific Question Data",
+      "what": "The student gives a generic, memorised answer instead of extracting specific evidence, names, or values from the provided graphs, tables, or diagrams.",
       "specific_examples": [
-        {
-          "questionRef": "[47]",
-          "type": "oeq",
-          "whatWentWrong": "Described the respiratory system supplying blood with oxygen but skipped the intermediate anatomical steps like 'through the nose' and 'travels to the lungs'."
-        },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Explained that touching the wire forms a closed circuit but skipped mentioning the initial state of there being a 'gap' or 'open circuit'."
+          "whatWentWrong": "Gave a generic advantage of hiding from predators, ignoring the specific food web data showing predator G lives on land."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[146]",
           "type": "oeq",
-          "whatWentWrong": "Explained that a heavier block hits with more force but skipped the intermediate energy conversion step from 'gravitational potential energy' to 'kinetic energy'."
+          "whatWentWrong": "Described the general trend of fungal growth but failed to use the specific time frame (Day 1 to Day 4) provided in the experiment's data table."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Described a general increase in length but failed to calculate the specific 2 cm increase using the data provided in the table."
         }
       ],
-      "strategic_advice": "When asked to **describe how** or **trace the path**, imagine you are telling a story from the very beginning. Always state the **initial condition** (e.g., 'open circuit') and include every **intermediate step** (e.g., 'travels to the lungs') before reaching the end.",
+      "strategic_advice": "When a question says **based on the graph** or **using the information**, you must quote specific data points or names. Do not just write 'predator'; write **predator G on land**. Always pair your scientific concept with **evidence from the diagram**.",
       "trigger_keywords": [
-        "describe how",
-        "explain how",
-        "trace the path"
+        "Based on the graph",
+        "Based on the information",
+        "Using the food web",
+        "From the results"
+      ]
+    },
+    {
+      "name": "Missing Scientific Keywords",
+      "what": "The student describes processes in everyday language, omitting mandatory scientific vocabulary, anatomical parts, or the initial state of a system.",
+      "specific_examples": [
+        {
+          "questionRef": "[54]",
+          "type": "oeq",
+          "whatWentWrong": "Described the respiratory process in general terms but omitted mandatory anatomical keywords like 'through the nose' and 'travels to the lungs'."
+        },
+        {
+          "questionRef": "[43]",
+          "type": "oeq",
+          "whatWentWrong": "Correctly identified the exchange of oxygen and carbon dioxide but failed to name the specific scientific processes: 'photosynthesis' and 'respiration'."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "Explained that touching the wire forms a closed circuit, but missed stating the crucial initial state of the system: an 'open circuit'."
+        }
+      ],
+      "strategic_advice": "When asked to **describe how** a system works, use precise scientific vocabulary. Name the specific processes like **photosynthesis** or **respiration**, and specific parts like **lungs** or **nose**. For physics questions, always state the initial condition, such as an **open circuit**, before describing the change.",
+      "trigger_keywords": [
+        "Describe how",
+        "State the function",
+        "What process"
+      ]
+    },
+    {
+      "name": "Confusing Experimental Variables",
+      "what": "The student misidentifies the changed, measured, or constant variables, or gives generic reasons for control setups instead of specific ones.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Incorrectly identified the 'weight of the toy car' as the constant variable instead of the 'type of toy car'."
+        },
+        {
+          "questionRef": "[149]",
+          "type": "oeq",
+          "whatWentWrong": "Gave a generic 'to ensure a fair test' reason for a control setup, instead of specifying that it proves evaporation didn't cause the water loss."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "Misidentified the changed variable as 'how polluted the water was' instead of 'the different lakes'."
+        }
+      ],
+      "strategic_advice": "For experimental setups, identify the one thing being tested—that is your **changed variable**. Everything else must be a **constant variable**. When asked about a **control setup**, explain exactly what alternative cause it is ruling out, rather than just writing 'to ensure a fair test'.",
+      "trigger_keywords": [
+        "fair test",
+        "reliable",
+        "variable",
+        "control",
+        "aim of the experiment"
       ]
     }
   ],
@@ -116,7 +119,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 3,
@@ -124,15 +127,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 7,
@@ -144,43 +147,43 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 1
-    },
-    {
-      "idx": 11,
       "patternIndex": 0
     },
     {
-      "idx": 12,
+      "idx": 11,
       "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 19,
@@ -188,7 +191,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 21,
@@ -196,7 +199,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -208,7 +211,7 @@
     },
     {
       "idx": 25,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 26,
@@ -216,27 +219,27 @@
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
@@ -248,7 +251,7 @@
     },
     {
       "idx": 35,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 36,
@@ -256,19 +259,19 @@
     },
     {
       "idx": 37,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 41,
@@ -276,11 +279,11 @@
     },
     {
       "idx": 42,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 43,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 44,
@@ -288,15 +291,15 @@
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 46,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 47,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -304,11 +307,11 @@
     },
     {
       "idx": 49,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 50,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 51,
@@ -320,7 +323,7 @@
     },
     {
       "idx": 53,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 54,
@@ -332,15 +335,15 @@
     },
     {
       "idx": 56,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 57,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 58,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 59,
@@ -348,39 +351,39 @@
     },
     {
       "idx": 60,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 61,
-      "patternIndex": 1
-    },
-    {
-      "idx": 62,
-      "patternIndex": -1
-    },
-    {
-      "idx": 63,
-      "patternIndex": 2
-    },
-    {
-      "idx": 64,
       "patternIndex": 0
     },
     {
+      "idx": 62,
+      "patternIndex": 0
+    },
+    {
+      "idx": 63,
+      "patternIndex": 0
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
       "idx": 65,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 66,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 67,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 68,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 69,
@@ -388,71 +391,71 @@
     },
     {
       "idx": 70,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 71,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 72,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 73,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 74,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 75,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 76,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 77,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 78,
-      "patternIndex": 2
-    },
-    {
-      "idx": 79,
-      "patternIndex": 3
-    },
-    {
-      "idx": 80,
-      "patternIndex": 2
-    },
-    {
-      "idx": 81,
       "patternIndex": 0
     },
     {
+      "idx": 79,
+      "patternIndex": 0
+    },
+    {
+      "idx": 80,
+      "patternIndex": 0
+    },
+    {
+      "idx": 81,
+      "patternIndex": -1
+    },
+    {
       "idx": 82,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 83,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 84,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 85,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 86,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 87,
@@ -472,7 +475,7 @@
     },
     {
       "idx": 91,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 92,
@@ -484,19 +487,19 @@
     },
     {
       "idx": 94,
-      "patternIndex": 0
-    },
-    {
-      "idx": 95,
-      "patternIndex": 3
-    },
-    {
-      "idx": 96,
       "patternIndex": 2
     },
     {
+      "idx": 95,
+      "patternIndex": 0
+    },
+    {
+      "idx": 96,
+      "patternIndex": 0
+    },
+    {
       "idx": 97,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 98,
@@ -508,19 +511,19 @@
     },
     {
       "idx": 100,
-      "patternIndex": 0
-    },
-    {
-      "idx": 101,
-      "patternIndex": 3
-    },
-    {
-      "idx": 102,
       "patternIndex": 2
     },
     {
+      "idx": 101,
+      "patternIndex": 0
+    },
+    {
+      "idx": 102,
+      "patternIndex": 0
+    },
+    {
       "idx": 103,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 104,
@@ -528,23 +531,23 @@
     },
     {
       "idx": 105,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 106,
-      "patternIndex": -1
-    },
-    {
-      "idx": 107,
       "patternIndex": 2
     },
     {
+      "idx": 107,
+      "patternIndex": 0
+    },
+    {
       "idx": 108,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 109,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 110,
@@ -552,7 +555,7 @@
     },
     {
       "idx": 111,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 112,
@@ -560,15 +563,15 @@
     },
     {
       "idx": 113,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 114,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 115,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 116,
@@ -576,23 +579,23 @@
     },
     {
       "idx": 117,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 118,
-      "patternIndex": 0
-    },
-    {
-      "idx": 119,
-      "patternIndex": 3
-    },
-    {
-      "idx": 120,
       "patternIndex": 2
     },
     {
+      "idx": 119,
+      "patternIndex": 0
+    },
+    {
+      "idx": 120,
+      "patternIndex": 0
+    },
+    {
       "idx": 121,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 122,
@@ -600,123 +603,123 @@
     },
     {
       "idx": 123,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 124,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 125,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 126,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 127,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 128,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 129,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 130,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 131,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 132,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 133,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 134,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 135,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 136,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 137,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 138,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 139,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 140,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 141,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 142,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 143,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 144,
-      "patternIndex": 3
-    },
-    {
-      "idx": 145,
-      "patternIndex": -1
-    },
-    {
-      "idx": 146,
-      "patternIndex": -1
-    },
-    {
-      "idx": 147,
-      "patternIndex": 3
-    },
-    {
-      "idx": 148,
-      "patternIndex": 2
-    },
-    {
-      "idx": 149,
-      "patternIndex": -1
-    },
-    {
-      "idx": 150,
-      "patternIndex": 3
-    },
-    {
-      "idx": 151,
       "patternIndex": 1
     },
     {
-      "idx": 152,
+      "idx": 145,
+      "patternIndex": 1
+    },
+    {
+      "idx": 146,
+      "patternIndex": 1
+    },
+    {
+      "idx": 147,
+      "patternIndex": 1
+    },
+    {
+      "idx": 148,
+      "patternIndex": 0
+    },
+    {
+      "idx": 149,
+      "patternIndex": 3
+    },
+    {
+      "idx": 150,
+      "patternIndex": 0
+    },
+    {
+      "idx": 151,
       "patternIndex": -1
+    },
+    {
+      "idx": 152,
+      "patternIndex": 3
     },
     {
       "idx": 153,
@@ -728,15 +731,15 @@
     },
     {
       "idx": 155,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 156,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 157,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 158,
@@ -764,6 +767,34 @@
     },
     {
       "idx": 164,
+      "patternIndex": 1
+    },
+    {
+      "idx": 165,
+      "patternIndex": -1
+    },
+    {
+      "idx": 166,
+      "patternIndex": -1
+    },
+    {
+      "idx": 167,
+      "patternIndex": -1
+    },
+    {
+      "idx": 168,
+      "patternIndex": -1
+    },
+    {
+      "idx": 169,
+      "patternIndex": -1
+    },
+    {
+      "idx": 170,
+      "patternIndex": -1
+    },
+    {
+      "idx": 171,
       "patternIndex": -1
     }
   ]
