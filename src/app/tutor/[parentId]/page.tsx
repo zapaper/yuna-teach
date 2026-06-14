@@ -228,7 +228,6 @@ function TutorContent({ parentId }: { parentId: string }) {
 }
 
 type DetailView =
-  | { kind: "fullProgress" }
   | { kind: "mistake"; index: number }
   | { kind: "concept"; index: number };
 
@@ -238,12 +237,13 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   return (
     <>
       {/* Loomi greeting — always visible above the swipe stage */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-center gap-6">
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-start gap-6">
         <LoomiAvatar />
-        <div>
+        <div className="flex-1">
           <p className="text-[#001e40] text-base leading-relaxed">
             Hi! I&apos;m <strong>Loomi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
+          <p className="text-[#001e40] text-sm leading-relaxed mt-3" dangerouslySetInnerHTML={{ __html: boldifyHtml(buildActionSummary(data)) }} />
         </div>
       </section>
 
@@ -253,10 +253,10 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
       <div className="overflow-hidden">
         <div className={`flex transition-transform duration-500 ease-out will-change-transform ${isOverview ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="w-full shrink-0">
-            <OverviewPanel data={data} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} onShowFullProgress={() => setView({ kind: "fullProgress" })} />
+            <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} />
           </div>
           <div className="w-full shrink-0">
-            {view !== null && <DetailPanel data={data} view={view} parentId={parentId} studentId={studentId} onBack={() => setView(null)} />}
+            {view !== null && <DetailPanel data={data} view={view} onBack={() => setView(null)} />}
           </div>
         </div>
       </div>
@@ -269,55 +269,55 @@ function pctOfSubject(marksLost: number, totalAvailable: number): string {
   if (totalAvailable <= 0) return "";
   return `${Math.round((marksLost / totalAvailable) * 100)}%`;
 }
+
+// Synthesise Loomi's "what to do this week" paragraph from cached
+// diagnosis fields — no fresh Gemini call. Names the top weak topic
+// + top common mistake, then nudges toward the concept gap if there
+// is one. Falls back gracefully when any section is empty.
+function buildActionSummary(data: Extract<TutorData, { kind: "ready" }>): string {
+  const { childFirst, topline, commonMistakes, conceptualGaps } = data;
+  const bits: string[] = [];
+  const weak = topline.weakTopics[0];
+  const topMistake = commonMistakes[0];
+  const topConcept = conceptualGaps[0];
+  if (weak) bits.push(`${childFirst}'s weakest topic is **${weak.topic}** (${weak.pct}%).`);
+  if (topMistake) bits.push(`The biggest mark-leak is **${topMistake.name.toLowerCase()}** — ${topMistake.marksLost} marks lost (${pctOfSubject(topMistake.marksLost, topline.totalAvailable)} of the subject).`);
+  if (topConcept) bits.push(`Worth a concept quiz on **${topConcept.name.toLowerCase()}** before the next paper.`);
+  if (bits.length === 0) return `Not enough patterns yet — keep assigning practice and check back once ${childFirst} has more papers in.`;
+  bits.push(`Focus there this week.`);
+  return bits.join(" ");
+}
 function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
-function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgress }: { data: Extract<TutorData, { kind: "ready" }>; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void; onShowFullProgress: () => void }) {
+function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void }) {
   const t = data.topline;
   return (
     <>
-      {/* Topline */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
-        <div className="flex items-baseline justify-between mb-1">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overview</h2>
-          <div className="flex items-baseline gap-3">
-            <p className="text-xs text-slate-400">{t.paperCount} {data.subject} paper{t.paperCount === 1 ? "" : "s"}</p>
-            <button onClick={onShowFullProgress} className="text-xs font-semibold text-[#003366] hover:text-violet-600">Show me more →</button>
-          </div>
-        </div>
-        <div className="flex items-baseline gap-3 mt-3 mb-6">
-          <span className="text-5xl font-headline font-black text-[#001e40]">{t.avgPct}%</span>
-          <span className="text-sm text-slate-500">avg ({t.totalAwarded}/{t.totalAvailable} marks)</span>
-        </div>
-        <div className="grid grid-cols-2 gap-6">
+      {/* Topline — small headline strip; the chart below is the
+          primary signal now, so this is just the avg-% summary line. */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <div className="flex items-baseline justify-between">
           <div>
-            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Strong on</p>
-            {t.strongTopics.length === 0 ? <p className="text-sm text-slate-400 italic">No standouts yet</p>
-              : t.strongTopics.map(s => (
-                <div key={s.topic} className="flex items-baseline justify-between py-1">
-                  <span className="text-sm text-[#001e40] font-medium">{s.topic}</span>
-                  <span className="text-xs font-bold text-emerald-700">{s.pct}%</span>
-                </div>
-              ))}
-          </div>
-          <div>
-            <p className="text-xs font-bold text-rose-700 uppercase tracking-wider mb-2">Weak on</p>
-            {t.weakTopics.length === 0 ? <p className="text-sm text-slate-400 italic">Nothing flagged</p>
-              : t.weakTopics.map(w => (
-                <div key={w.topic} className="flex items-baseline justify-between py-1">
-                  <span className="text-sm text-[#001e40] font-medium">{w.topic}</span>
-                  <span className="text-xs font-bold text-rose-700">{w.pct}%</span>
-                </div>
-              ))}
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{data.subject} overview</h2>
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl font-headline font-black text-[#001e40]">{t.avgPct}%</span>
+              <span className="text-sm text-slate-500">avg ({t.totalAwarded}/{t.totalAvailable} marks · {t.paperCount} paper{t.paperCount === 1 ? "" : "s"})</span>
+            </div>
           </div>
         </div>
         {t.nudge && (
-          <div className="mt-6 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+          <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
             <p className="text-sm text-amber-900 leading-relaxed">💛 {t.nudge}</p>
           </div>
         )}
       </section>
+
+      {/* Bar chart upfront — clickable bars surface a topic detail
+          panel + Assign Focus Practice CTA without needing the user
+          to swipe to a separate "Full Progress" view. */}
+      <FullProgressEmbed studentId={studentId} parentId={parentId} subject={data.subject} childFirst={data.childFirst} />
 
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
@@ -387,16 +387,13 @@ function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgr
   );
 }
 
-function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; parentId: string; studentId: string; onBack: () => void }) {
+function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; onBack: () => void }) {
   return (
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#003366] mb-4">
         <span className="material-symbols-outlined text-base">arrow_back</span>
         Back to overview
       </button>
-      {view.kind === "fullProgress" && (
-        <FullProgressEmbed studentId={studentId} parentId={parentId} subject={data.subject} childFirst={data.childFirst} />
-      )}
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
         <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
       )}
