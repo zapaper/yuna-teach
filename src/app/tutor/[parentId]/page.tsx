@@ -119,8 +119,12 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Don't wipe `data` immediately — when switching students, that
+    // would flash a spinner for every nav. Instead set loading=true
+    // and keep the previous content visible (slightly dimmed in the
+    // render below) until the new payload lands. Spinner only shows
+    // when there is genuinely nothing to display.
     setLoading(true);
-    setData(null);
     const cacheKey = `tutor-${studentId}-${subject}-${new Date().toDateString()}`;
     const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     if (cached) {
@@ -142,21 +146,30 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
   }, [studentId, subject]);
 
   const firstName = currentChildName?.split(/\s+/)[0] ?? "";
+  // Show spinner ONLY when there's no prior payload to display — i.e.
+  // on a true first paint. When the student/subject changes, keep the
+  // previous render visible and dim it slightly so the user can see
+  // the new payload swap in without a jarring flash.
+  const showSpinner = loading && !data;
   return (
     <>
-      {loading && (
+      {showSpinner && (
         <div className="flex flex-col items-center justify-center py-32 gap-6">
           <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
           <p className="text-sm font-medium text-slate-500">Loading {firstName ? `${firstName}'s` : ""} {subject.toLowerCase()} tutor view…</p>
         </div>
       )}
-      {!loading && data && data.kind === "ineligible" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+      {data && data.kind === "ineligible" && (
+        <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center transition-opacity ${loading ? "opacity-50" : ""}`}>
           <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
           <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
         </div>
       )}
-      {!loading && data && data.kind === "ready" && <ReadyView data={data} parentId={parentId} studentId={studentId} />}
+      {data && data.kind === "ready" && (
+        <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
+          <ReadyView data={data} parentId={parentId} studentId={studentId} />
+        </div>
+      )}
       <p className="text-[11px] text-slate-400 mt-12 text-center">
         {data && data.kind === "ready" && `Refreshed once a day. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
       </p>
@@ -480,44 +493,37 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 }
 
 // Loomi — the Tutor mascot. Cycles through 3 short owl videos
-// (~4 s each) seamlessly. All three are mounted with preload="auto"
-// from the first paint so the browser keeps them buffered and the
-// swap between clips is instant. The visible clip is whichever idx
-// matches `cur`; the rest sit hidden at opacity-0 in the same stack.
+// (~4 s each). Single video element whose src swaps on `onEnded`,
+// plus two hidden preload elements so the next two clips are already
+// buffered when the swap happens. Earlier shape used 3 stacked
+// videos with opacity, but having autoPlay AND a useEffect.play()
+// race on the same element produced "no video at all" on iPad
+// Safari — Safari's autoplay heuristic seems to bail when the same
+// element gets a programmatic play() during the initial paint.
 function LoomiAvatar() {
   const videos = ["/avatars/owl1.mp4", "/avatars/owl2.mp4", "/avatars/owl3.mp4"];
   const [cur, setCur] = useState(0);
-  const ref0 = useRef<HTMLVideoElement>(null);
-  const ref1 = useRef<HTMLVideoElement>(null);
-  const ref2 = useRef<HTMLVideoElement>(null);
-  const refs = [ref0, ref1, ref2];
-
-  // Whenever the active index flips, rewind + play the new one so it
-  // starts cleanly from the first frame.
-  useEffect(() => {
-    const v = refs[cur].current;
-    if (v) { v.currentTime = 0; v.play().catch(() => {}); }
-  }, [cur]);
-
   return (
     <div className="relative shrink-0 w-32 h-32 rounded-full border-2 border-violet-300 overflow-hidden bg-white shadow-sm">
-      {videos.map((src, i) => (
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <video
+        key={videos[cur]}
+        src={videos[cur]}
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        onEnded={() => setCur(prev => (prev + 1) % videos.length)}
+        // mixBlendMode multiply drops the white background of the
+        // source video so the owl shows on the white circle. Mirrors
+        // the student-dashboard avatar.
+        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+        style={{ mixBlendMode: "multiply" }}
+      />
+      {/* Hidden preloaders for the other two clips so the swap is instant. */}
+      {videos.filter((_, i) => i !== cur).map(src => (
         // eslint-disable-next-line jsx-a11y/media-has-caption
-        <video
-          key={src}
-          ref={refs[i]}
-          src={src}
-          muted
-          playsInline
-          preload="auto"
-          autoPlay={i === 0}
-          onEnded={() => setCur(prev => (prev + 1) % videos.length)}
-          // mixBlendMode multiply drops the white background of the
-          // source video so the owl shows on the white circle. Mirrors
-          // the student-dashboard avatar.
-          className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-150 ${i === cur ? "opacity-100" : "opacity-0"}`}
-          style={{ mixBlendMode: "multiply" }}
-        />
+        <video key={`pre-${src}`} src={src} muted playsInline preload="auto" className="hidden" />
       ))}
     </div>
   );

@@ -1067,9 +1067,10 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
   const [students, setStudents] = useState<AdminStudent[]>([]);
   const [subject, setSubject] = useState<string>("Science");
   // Sidebar tabs: Home = the old chart-only progress page, Progress
-  // = the new Loomi/tutor body. Default = Home so admins land on the
-  // chart they're used to; flipping to Progress shows the diagnosis.
-  const [tab, setTab] = useState<"home" | "progress">("home");
+  // = the new Loomi/tutor body. Default = Progress so admins land
+  // straight on the Loomi diagnosis (the whole point of this view).
+  // Home is one click away in the sidebar.
+  const [tab, setTab] = useState<"home" | "progress">("progress");
 
   useEffect(() => {
     fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null).then(d => {
