@@ -5204,7 +5204,20 @@ ${expectedAnswer}
           // — punctuation is irrelevant for that section and surfacing the
           // last char makes the AI fixate on the missing period.
           const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${labelledTableFormat ? "\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… to match the expected answer's subparts. Match each row 1:1 with the same letter in the expected answer. Do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
+          // Labelled-table hint includes an explicit per-row scoring
+          // rubric. Without "score each row 1:1 against the same
+          // letter in the expected answer", Gemini consistently
+          // hallucinated wrong T/F verdicts on parts where the
+          // student's letter actually matched (Caleb's Q8(b)
+          // True/False=False matched the expected False but kept
+          // coming back as "incorrect" until this was spelled out).
+          const tableHint = labelledTableFormat
+            ? `\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… and lines up 1:1 with the same letter in the expected answer (the expected answer separates subparts with " | "). For EACH row, score independently:
+   1. Does the row's first field (e.g. True/False) match the expected letter's first field? If not, that row earns 0 for the choice portion.
+   2. Does the row's reason / second field convey the same idea as the expected letter's reason? Synonyms / paraphrasing accepted.
+   Award the row's full marks only if BOTH match. Do NOT decide a row is wrong because the choice and reason seem to contradict each other — judge each row against the EXPECTED answer, not against the row's own internal consistency. Do NOT penalise for punctuation.)`
+            : "";
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${tableHint}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}

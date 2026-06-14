@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-06-14T02:04:43.022Z",
+  "ranAt": "2026-06-14T03:02:26.648Z",
   "tolerance": 0.5,
   "summary": {
     "papers": {
@@ -14,7 +14,7 @@
   "results": [
     {
       "sourceId": "cmpffd3wu000i1032c8w0t5pm",
-      "cloneId": "cmqd54d3f0001jmpvbzy4qjvi",
+      "cloneId": "cmqd76qd40001bpkn0ctnsc04",
       "title": "P6 Grammar MCQ+",
       "expectedTotal": 25,
       "actualTotal": 25,
@@ -215,7 +215,7 @@
     },
     {
       "sourceId": "cmp0z7a390001ypkf6juin4qb",
-      "cloneId": "cmqd55707000ujmpvwgdjlnqh",
+      "cloneId": "cmqd77ifz000ubpkn7ioxljsr",
       "title": "P6 Editing+",
       "expectedTotal": 32,
       "actualTotal": 32,
