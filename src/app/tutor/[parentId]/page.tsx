@@ -13,12 +13,14 @@ type Topline = {
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;
 };
+type MistakeExample = { questionRef: string; whatWentWrong: string };
 type MistakeCard = {
   bucket: string;
   name: string;
   what: string;
   advice: string;
   triggerKeywords: string[];
+  examples: MistakeExample[];
   marksLost: number;
 };
 type ConceptCard = {
@@ -26,6 +28,7 @@ type ConceptCard = {
   name: string;
   what: string;
   advice: string;
+  examples: MistakeExample[];
   marksLost: number;
 };
 type TopicCard = { topic: string; pct: number; attempts: number };
@@ -140,7 +143,7 @@ function TutorContent({ parentId }: { parentId: string }) {
             <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
           </div>
         )}
-        {!loading && data && data.kind === "ready" && <ReadyView data={data} />}
+        {!loading && data && data.kind === "ready" && studentId && <ReadyView data={data} parentId={parentId} studentId={studentId} />}
 
         <p className="text-[11px] text-slate-400 mt-12 text-center">
           {data && data.kind === "ready" && `Refreshed once a day. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
@@ -154,11 +157,17 @@ function TutorContent({ parentId }: { parentId: string }) {
   );
 }
 
-function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
-  const t = data.topline;
+type DetailView =
+  | { kind: "fullProgress" }
+  | { kind: "mistake"; index: number }
+  | { kind: "concept"; index: number };
+
+function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string }) {
+  const [view, setView] = useState<DetailView | null>(null);
+  const isOverview = view === null;
   return (
     <>
-      {/* Jane greeting */}
+      {/* Jane greeting — always visible above the swipe stage */}
       <section className="bg-white rounded-2xl border border-slate-100 px-8 py-6 mb-6 flex items-center gap-5">
         <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-[#a7c8ff] to-[#5b21b6] flex items-center justify-center text-white font-headline font-extrabold text-lg shadow-sm">
           J
@@ -170,11 +179,31 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
         </div>
       </section>
 
+      {/* Swipe stage — Overview slides left, Detail slides in from right */}
+      <div className="relative overflow-hidden">
+        <div className={`transition-all duration-300 ease-out ${isOverview ? "translate-x-0 opacity-100" : "-translate-x-[8%] opacity-0 pointer-events-none absolute inset-0"}`}>
+          <OverviewPanel data={data} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} onShowFullProgress={() => setView({ kind: "fullProgress" })} />
+        </div>
+        <div className={`transition-all duration-300 ease-out ${!isOverview ? "translate-x-0 opacity-100" : "translate-x-[8%] opacity-0 pointer-events-none absolute inset-0"}`}>
+          {view && <DetailPanel data={data} view={view} parentId={parentId} studentId={studentId} onBack={() => setView(null)} />}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function OverviewPanel({ data, onSelectMistake, onSelectConcept, onShowFullProgress }: { data: Extract<TutorData, { kind: "ready" }>; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void; onShowFullProgress: () => void }) {
+  const t = data.topline;
+  return (
+    <>
       {/* Topline */}
       <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
         <div className="flex items-baseline justify-between mb-1">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overview</h2>
-          <p className="text-xs text-slate-400">{t.paperCount} {data.subject} paper{t.paperCount === 1 ? "" : "s"}</p>
+          <div className="flex items-baseline gap-3">
+            <p className="text-xs text-slate-400">{t.paperCount} {data.subject} paper{t.paperCount === 1 ? "" : "s"}</p>
+            <button onClick={onShowFullProgress} className="text-xs font-semibold text-[#003366] hover:text-violet-600">Show me more →</button>
+          </div>
         </div>
         <div className="flex items-baseline gap-3 mt-3 mb-6">
           <span className="text-5xl font-headline font-black text-[#001e40]">{t.avgPct}%</span>
@@ -216,16 +245,16 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
           <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
           <div className="space-y-3">
             {data.commonMistakes.map((m, i) => (
-              <div key={m.bucket} className="border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50">
+              <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
                 <div>
                   <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{m.what}</p>
                 </div>
-                <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-violet-600 ml-4 whitespace-nowrap">
+                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 ml-4 whitespace-nowrap">
                   Tell me more →
-                </button>
-              </div>
+                </span>
+              </button>
             ))}
           </div>
         </section>
@@ -237,17 +266,17 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Conceptual Gaps</h2>
           <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
           <div className="space-y-3">
-            {data.conceptualGaps.map(c => (
-              <div key={c.bucket} className="border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50">
+            {data.conceptualGaps.map((c, i) => (
+              <button key={c.bucket} onClick={() => onSelectConcept(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-orange-50/40 hover:border-orange-200 transition-colors group">
                 <div>
                   <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{c.what}</p>
                 </div>
-                <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-orange-600 ml-4 whitespace-nowrap">
+                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 ml-4 whitespace-nowrap">
                   Explain →
-                </button>
-              </div>
+                </span>
+              </button>
             ))}
           </div>
         </section>
@@ -274,5 +303,113 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
         </section>
       )}
     </>
+  );
+}
+
+function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; parentId: string; studentId: string; onBack: () => void }) {
+  return (
+    <div>
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#003366] mb-4">
+        <span className="material-symbols-outlined text-base">arrow_back</span>
+        Back to overview
+      </button>
+      {view.kind === "fullProgress" && (
+        <section className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-baseline gap-3">
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Full Progress Report</h2>
+            <p className="text-xs text-slate-400">— {data.childFirst}&apos;s topic-by-topic accuracy. Click a bar to drill in.</p>
+          </div>
+          <iframe
+            src={`/progress/${studentId}?parentId=${parentId}`}
+            className="w-full"
+            style={{ height: "78vh", border: 0 }}
+            title={`${data.childFirst} full progress`}
+          />
+        </section>
+      )}
+      {view.kind === "mistake" && data.commonMistakes[view.index] && (
+        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} />
+      )}
+      {view.kind === "concept" && data.conceptualGaps[view.index] && (
+        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} />
+      )}
+    </div>
+  );
+}
+
+function MistakeDetail({ card, childFirst }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string }) {
+  // Strip **markdown** → bold for the advice paragraph.
+  const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  return (
+    <section className="bg-white rounded-2xl border border-slate-100 p-8">
+      <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost</p>
+      <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
+      <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
+
+      <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
+        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Jane&apos;s Advice</p>
+        <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
+        {card.triggerKeywords.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="text-xs font-bold text-emerald-700">Watch for:</span>
+            {card.triggerKeywords.map(k => (
+              <span key={k} className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded">{k}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {card.examples.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Examples from {childFirst}&apos;s work</p>
+          <div className="space-y-3">
+            {card.examples.map((ex, i) => (
+              <div key={i} className="border border-slate-100 rounded-xl p-4 bg-slate-50/50">
+                <p className="text-xs font-bold text-violet-600 mb-1">Example {i + 1}</p>
+                <p className="text-sm text-slate-700 leading-relaxed">{ex.whatWentWrong}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#003366] to-[#5b21b6] text-white font-bold text-base shadow-md hover:opacity-95">
+        Generate Personal Quiz with Guidance →
+      </button>
+    </section>
+  );
+}
+
+function ConceptDetail({ card, childFirst }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string }) {
+  const adviceHtml = card.advice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  return (
+    <section className="bg-white rounded-2xl border border-slate-100 p-8">
+      <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost</p>
+      <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
+      <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
+
+      <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
+        <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Jane&apos;s Explanation</p>
+        <p className="text-sm text-orange-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
+      </div>
+
+      {card.examples.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Where {childFirst} got mixed up</p>
+          <div className="space-y-3">
+            {card.examples.map((ex, i) => (
+              <div key={i} className="border border-slate-100 rounded-xl p-4 bg-slate-50/50">
+                <p className="text-xs font-bold text-orange-600 mb-1">Example {i + 1}</p>
+                <p className="text-sm text-slate-700 leading-relaxed">{ex.whatWentWrong}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-base shadow-md hover:opacity-95">
+        Take a quick Concept Quiz →
+      </button>
+    </section>
   );
 }
