@@ -13,9 +13,9 @@ export default function ProgressPage({ params }: { params: Promise<{ studentId: 
   );
 }
 
-interface TopicData { earned: number; available: number; count: number; }
-interface SubjectData { examCount: number; topics: Record<string, TopicData>; }
-interface TimelineEntry {
+export interface TopicData { earned: number; available: number; count: number; }
+export interface SubjectData { examCount: number; topics: Record<string, TopicData>; }
+export interface TimelineEntry {
   title: string;
   date: string;
   topics: Record<string, number>;

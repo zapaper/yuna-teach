@@ -193,7 +193,7 @@ function reconstructWrongs(papers: Array<{
     studentAnswer: string | null; answer: string | null;
     marksAwarded: number | null; marksAvailable: number | null;
     markingNotes: string | null; transcribedOptions: unknown;
-    transcribedStem: string | null;
+    transcribedStem: string | null; transcribedSubparts: unknown;
     diagramImageData: string | null;
     syllabusTopic: string | null;
   }>;
@@ -221,14 +221,37 @@ function reconstructWrongs(papers: Array<{
         cleanedNotes = cleanedNotes.slice(pipeIdx).replace(/^\s*\|\s*/, "");
       }
       cleanedNotes = cleanedNotes.replace(/^detected\s*:\s*[^.\n]*\.?\s*/i, "").trim();
+      // Stitch the transcribedStem with the subparts so multi-part
+      // questions show the full prompt (a)/(b)/(c).
+      let questionText = (q.transcribedStem ?? "").trim();
+      const sps = q.transcribedSubparts as unknown;
+      if (Array.isArray(sps)) {
+        const lines = (sps as Array<{ label?: string; text?: string }>)
+          .map(sp => `${sp.label ? `(${sp.label}) ` : ""}${sp.text ?? ""}`.trim())
+          .filter(Boolean);
+        if (lines.length > 0) questionText = [questionText, lines.join("\n")].filter(Boolean).join("\n\n");
+      }
+      // Strip the canonical typed-OEQ noise from the student's answer:
+      // "Working: …" / "Final answer: …" labels and "(no working shown)"
+      // — same cleanup the diagnosis HTML uses.
+      const cleanedAnswer = (q.studentAnswer ?? "")
+        .replace(/\bworking\s*:\s*[\s\S]*?(?=\bfinal\s*ans|\bans(?:wer)?\s*:|$)/gi, "")
+        .replace(/\bfinal\s*ans(?:wer)?\s*:\s*/gi, "")
+        .replace(/^ans(?:wer)?\s*:\s*/gi, "")
+        .replace(/\(\s*no\s+working\s+(shown|done|written)?\s*\)/gi, "")
+        .replace(/\bno\s+working\s+(shown|done|written)\b/gi, "")
+        .replace(/\(\s*working\s+shown\s+above\s*\)/gi, "")
+        .replace(/^detected\s*:\s*[^.\n]*\.?\s*/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
       wrongs.push({
         idx,
         marksLost: av - aw,
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
         paperTitle: p.title,
-        questionText: (q.transcribedStem ?? "").trim(),
-        studentAnswer: (q.studentAnswer ?? "").trim(),
+        questionText,
+        studentAnswer: cleanedAnswer,
         correctAnswer: (q.answer ?? "").trim(),
         markingNotes: cleanedNotes,
         diagramImageData: q.diagramImageData ?? null,
@@ -395,6 +418,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
           marksAwarded: true, marksAvailable: true,
           markingNotes: true, syllabusTopic: true,
           transcribedOptions: true, transcribedStem: true,
+          transcribedSubparts: true,
           diagramImageData: true,
         },
       },
