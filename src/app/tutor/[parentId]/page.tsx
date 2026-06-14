@@ -368,8 +368,61 @@ function boldifyHtml(s: string): string {
 
 function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void }) {
   const t = data.topline;
+  // Pending-assignment topic: when set, the confirmation modal is
+  // visible. Confirming POSTs to /api/focused-test (or /api/daily-quiz
+  // for English sections), clears `pending`, and shows a toast.
+  const [pending, setPending] = useState<{ topic: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  async function confirmAssign() {
+    if (!pending) return;
+    const topic = pending.topic;
+    setCreating(true);
+    try {
+      const subjLc = data.subject.toLowerCase();
+      const subjectArg = subjLc.includes("math") ? "Mathematics" : subjLc.includes("science") ? "Science" : data.subject;
+      const res = await fetch("/api/focused-test", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId, studentId, subject: subjectArg, topic }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(j.error || "Failed to create focused practice"); return; }
+      setPending(null);
+      setToast(`Focused practice assigned: ${topic}`);
+      setTimeout(() => setToast(null), 2800);
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <>
+      {/* Assigned toast (top-centre, fades after ~3s). */}
+      {toast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[110] bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2">
+          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <span className="font-bold text-sm">{toast}</span>
+        </div>
+      )}
+      {/* Confirmation modal — dim backdrop + centred card. */}
+      {pending && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => !creating && setPending(null)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="font-headline font-extrabold text-xl text-[#001e40] mb-2">Assign Focused Practice?</h3>
+            <p className="text-sm text-slate-600 leading-relaxed mb-5">
+              Loomi will build {data.childFirst} a Focused Practice paper on <strong className="text-[#001e40]">{pending.topic}</strong> ({data.subject}). It will appear in {data.childFirst}&apos;s home as a new assignment.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setPending(null)} disabled={creating} className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+              <button type="button" onClick={confirmAssign} disabled={creating} className="px-5 py-2 rounded-xl text-sm font-bold bg-[#003366] text-white hover:bg-[#001e40] disabled:opacity-50 inline-flex items-center gap-2">
+                {creating && <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {creating ? "Assigning…" : "Assign"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Topline — small headline strip; the chart below is the
           primary signal now, so this is just the avg-% summary line. */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
@@ -450,7 +503,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                   <p className="font-semibold text-[#001e40] text-base">{t.topic}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{t.attempts} attempts · {t.pct}% avg</p>
                 </div>
-                <button className="text-sm font-semibold text-[#003366] hover:text-violet-600 whitespace-nowrap">
+                <button onClick={() => setPending({ topic: t.topic })} className="text-sm font-semibold text-[#003366] hover:text-violet-600 whitespace-nowrap">
                   Assign Focused Practice →
                 </button>
               </div>
@@ -551,42 +604,38 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
   );
 }
 
-// Loomi — the Tutor mascot. Cycles through 3 short owl videos
-// (~4 s each). Single video element whose src swaps on `onEnded`,
-// plus two hidden preload elements so the next two clips are already
-// buffered when the swap happens. Earlier shape used 3 stacked
-// videos with opacity, but having autoPlay AND a useEffect.play()
-// race on the same element produced "no video at all" on iPad
-// Safari — Safari's autoplay heuristic seems to bail when the same
-// element gets a programmatic play() during the initial paint.
+// Loomi — the Tutor mascot. Cycles through 3 short owl clips. Source
+// material is owl[1-3].mp4 but we serve animated WebP versions
+// instead — <video> autoplay on Safari iPad refused to render even
+// with muted + playsInline + autoplay (see commits b7af32ee, fa55ac56),
+// while <img>-served animated images have no autoplay gating at all.
+// 256×256 animations at ~600 KB each, fits 4 s of looped motion.
+// Cycling: every ~4 s we bump cur; the unused two stay mounted in a
+// `hidden` div so the browser keeps them decoded and the swap is
+// instant.
 function LoomiAvatar() {
-  const videos = ["/avatars/owl1.mp4", "/avatars/owl2.mp4", "/avatars/owl3.mp4"];
+  const clips = ["/avatars/owl1.webp", "/avatars/owl2.webp", "/avatars/owl3.webp"];
   const [cur, setCur] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setCur(p => (p + 1) % clips.length), 4000);
+    return () => window.clearInterval(id);
+  }, [clips.length]);
   return (
     <div className="relative shrink-0 w-32 h-32 rounded-full border-2 border-violet-300 overflow-hidden bg-white shadow-sm">
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video
-        key={videos[cur]}
-        src={videos[cur]}
-        autoPlay
-        muted
-        playsInline
-        loop
-        preload="auto"
-        onEnded={() => setCur(prev => (prev + 1) % videos.length)}
-        // object-cover so the owl fills the circle; the source video
-        // already has a near-white background that blends cleanly
-        // with the white circle BG, so we no longer need mixBlendMode
-        // multiply (which appears to suppress the entire <video> render
-        // on Safari iPad — owl was invisible inside the circle even
-        // though the source frames clearly show it).
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={clips[cur]}
+        src={clips[cur]}
+        alt="Loomi the owl"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
-      {/* Hidden preloaders for the other two clips so the swap is instant. */}
-      {videos.filter((_, i) => i !== cur).map(src => (
-        // eslint-disable-next-line jsx-a11y/media-has-caption
-        <video key={`pre-${src}`} src={src} muted playsInline preload="auto" className="hidden" />
-      ))}
+      {/* Keep the other two decoded so the swap is instant. */}
+      <div className="hidden">
+        {clips.filter((_, i) => i !== cur).map(src => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={`pre-${src}`} src={src} alt="" />
+        ))}
+      </div>
     </div>
   );
 }
