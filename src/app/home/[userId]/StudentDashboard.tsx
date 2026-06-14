@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+import { ExamPaperSummary, User } from "@/types";
 import { playClick, playExp } from "@/lib/sfx";
 import { canSeeMasterClass } from "@/lib/master-class-access";
 import TrialReminder from "@/components/TrialReminder";
@@ -188,9 +188,7 @@ export default function StudentDashboard({
   userId,
   user,
   firstQuiz,
-  tests,
   examPapers,
-  setTests,
   setExamPapers,
 }: {
   userId: string;
@@ -198,12 +196,10 @@ export default function StudentDashboard({
   firstQuiz?: boolean;
   // Owned by page.tsx so the SWR/localStorage prime + polling lives in
   // one place. StudentDashboard reads + dispatches via setters.
-  // Before this, both page.tsx AND StudentDashboard fetched /api/exam
-  // and /api/tests on mount + polled every 30 s, doubling the load
-  // for every student visit.
-  tests: SpellingTestSummary[];
+  // Spelling tests no longer flow through — the home page used to
+  // pull /api/tests just to count them in an unused AI-tip; the
+  // dedicated /spelling page owns the list now.
   examPapers: ExamPaperSummary[];
-  setTests: React.Dispatch<React.SetStateAction<SpellingTestSummary[]>>;
   setExamPapers: React.Dispatch<React.SetStateAction<ExamPaperSummary[]>>;
 }) {
   const router = useRouter();
@@ -597,16 +593,15 @@ export default function StudentDashboard({
   // mutable greeting label. Falls back to the username when not set.
   const displayName = user.displayName ?? user.name;
 
-  // Generate a simple AI tip from available data
+  // Generate a simple AI tip from available data. Previously this
+  // branched on the spelling-test count too, but /api/tests is no
+  // longer fetched on the home page — for users with at least one
+  // paper we now show the generic encouragement instead.
   useEffect(() => {
-    if (tests.length === 0 && examPapers.length === 0) return;
+    if (examPapers.length === 0) return;
     const name = displayName.split(" ")[0];
-    if (tests.length > 0) {
-      setAiTip(`${name}, you've completed ${tests.length} spelling test${tests.length !== 1 ? "s" : ""}. Keep scanning to track your progress!`);
-    } else {
-      setAiTip(`${name}, start by scanning your spelling list — AI will correct it in seconds!`);
-    }
-  }, [tests, examPapers, displayName]);
+    setAiTip(`${name}, start by scanning your spelling list — AI will correct it in seconds!`);
+  }, [examPapers, displayName]);
 
   async function fetchMyCode() {
     setMyCodeLoading(true);
@@ -645,14 +640,6 @@ export default function StudentDashboard({
       setTimeout(() => { window.location.reload(); }, 1500);
     } catch { setEnterError("Something went wrong"); }
     finally { setEnterLoading(false); }
-  }
-
-  async function handleDeleteTest(e: React.MouseEvent, testId: string) {
-    e.stopPropagation();
-    try {
-      await fetch(`/api/tests/${testId}`, { method: "DELETE" });
-      setTests(prev => prev.filter(t => t.id !== testId));
-    } catch { /* silent fail */ }
   }
 
   async function handleDeletePaper(e: React.MouseEvent, paperId: string) {
@@ -739,7 +726,6 @@ export default function StudentDashboard({
       const bTime = b.completedAt ? new Date(b.completedAt).getTime() : 0;
       return bTime - aTime;
     });
-  const recentTests = tests.slice(0, 6);
 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   // Crystals = number of parent-reviewed (released) quizzes / papers. Used as

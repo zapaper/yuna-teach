@@ -47,19 +47,26 @@ export default function HomePage({
       // Fetch only the current user — the old /api/users (no param) pulled
       // every user in the DB with parent/student links expanded, which grew
       // linearly with signups and dominated page load.
-      const [userRes, testsRes, examsRes] = await Promise.all([
+      //
+      // /api/tests is NOT in the initial load anymore. Spelling tests
+      // surface on /spelling and don't gate any home-page render
+      // (the student dashboard used to pull them only to count them
+      // in an AI-tip string; the parent dashboard stored them and
+      // never read them). Dropping the fetch saves ~4.5 s on
+      // Mark-sized accounts because SpellingTest.userId has no
+      // Postgres index → every call did a seq scan plus a per-row
+      // word _count aggregate. The legacy admin spelling section
+      // below still lazy-fetches on demand if it ever needs to render.
+      const [userRes, examsRes] = await Promise.all([
         fetch(`/api/users?userId=${userId}`),
-        fetch(`/api/tests?userId=${userId}`),
         fetch(`/api/exam?userId=${userId}`),
       ]);
-      const [userData, testsData, examsData] = await Promise.all([
+      const [userData, examsData] = await Promise.all([
         userRes.json(),
-        testsRes.json(),
         examsRes.json(),
       ]);
 
       const foundUser: User | null = userData.user ?? null;
-      const freshTests = testsData.tests ?? [];
       const freshExams = examsData.papers ?? [];
       setUser(foundUser);
       // `?? []` guards against transient 502 / partial JSON responses
@@ -67,7 +74,6 @@ export default function HomePage({
       // undefined and the next .some() call in the polling effect
       // throws "Cannot read properties of undefined (reading 'some')"
       // — surfacing as a generic "Application error" page.
-      setTests(freshTests);
       setExamPapers(freshExams);
       // Default quiz target = first linked student for parents.
       if (foundUser?.linkedStudents && foundUser.linkedStudents.length > 0 && !quizStudentId) {
@@ -85,7 +91,7 @@ export default function HomePage({
       if (foundUser) {
         try {
           window.localStorage.setItem(cacheKey, JSON.stringify({
-            user: foundUser, tests: freshTests, examPapers: freshExams, ts: Date.now(),
+            user: foundUser, examPapers: freshExams, ts: Date.now(),
           }));
         } catch { /* ignore — quota or private-mode disabled */ }
       } else {
@@ -111,7 +117,6 @@ export default function HomePage({
       if (cached) {
         const parsed = JSON.parse(cached) as {
           user: User | null;
-          tests: SpellingTestSummary[];
           examPapers: ExamPaperSummary[];
           ts: number;
         };
@@ -120,9 +125,8 @@ export default function HomePage({
         // background fetch lands — defeats SWR's purpose. (Writer
         // also no longer caches null users; this is belt-and-braces
         // for old caches written before that fix.)
-        if (parsed && parsed.user && Array.isArray(parsed.examPapers) && Array.isArray(parsed.tests)) {
+        if (parsed && parsed.user && Array.isArray(parsed.examPapers)) {
           setUser(parsed.user);
-          setTests(parsed.tests);
           setExamPapers(parsed.examPapers);
           setLoading(false); // first paint immediately; background fetch will refine
         }
@@ -208,6 +212,22 @@ export default function HomePage({
   const isParent = user?.role === "PARENT";
   const isAdmin = isAdminUser(user);
   const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
+
+  // Lazy spelling-tests fetch. Only the legacy admin view (admin user
+  // whose role isn't PARENT — ParentDashboard returns earlier so it
+  // never sees this) renders the spelling list, so we defer the
+  // /api/tests call until we know we'll actually need it. Saves the
+  // 4.5 s SpellingTest.userId seq-scan on every student / parent home
+  // load.
+  const needsLegacyTests = !!user && isAdmin && !isParent;
+  useEffect(() => {
+    if (!needsLegacyTests) return;
+    fetch(`/api/tests?userId=${userId}`)
+      .then(r => r.ok ? r.json() : { tests: [] })
+      .then((d: { tests: SpellingTestSummary[] }) => setTests(d.tests ?? []))
+      .catch(() => { /* legacy view will show empty */ });
+  }, [needsLegacyTests, userId]);
+
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
   const [showAllPapers, setShowAllPapers] = useState(false);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
@@ -570,9 +590,7 @@ export default function HomePage({
         userId={userId}
         user={user}
         firstQuiz={searchParams.get("firstQuiz") === "1"}
-        tests={tests}
         examPapers={examPapers}
-        setTests={setTests}
         setExamPapers={setExamPapers}
       />
       {adminNotifPopup}

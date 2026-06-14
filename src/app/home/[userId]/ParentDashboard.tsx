@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
+import { ExamPaperSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
 import { canAssignChinese } from "@/lib/chinese-access";
 import { hasSessionCookie } from "@/lib/session-client";
@@ -694,7 +694,8 @@ export default function ParentDashboard({
       setRenameSaving(false);
     }
   }
-  const [spellingTests, setSpellingTests] = useState<SpellingTestSummary[]>([]);
+  // (spellingTests state removed — was set from /api/tests but never
+  // read anywhere in the dashboard render.)
   const [assigningPaperId, setAssigningPaperId] = useState<string | null>(null);
   const [assignToast, setAssignToast] = useState<string | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -797,9 +798,7 @@ export default function ParentDashboard({
     const fp = (fpInline >>> 0).toString(36);
 
     const progKey = `progress-${selectedStudentId}`;
-    const testsKey = `tests-${selectedStudentId}`;
     const cachedProgress = readCache<ProgressData>(progKey, fp);
-    const cachedTests = readCache<SpellingTestSummary[]>(testsKey, fp);
     if (cachedProgress) {
       setProgressData(cachedProgress);
       setLoadingProgress(false);
@@ -815,18 +814,10 @@ export default function ParentDashboard({
         .catch(() => {})
         .finally(() => setLoadingProgress(false));
     }
-    if (cachedTests) {
-      setSpellingTests(cachedTests);
-    } else {
-      fetch(`/api/tests?userId=${selectedStudentId}`)
-        .then(r => r.ok ? r.json() : { tests: [] })
-        .then((d: { tests: SpellingTestSummary[] }) => {
-          const tests = d.tests ?? [];
-          setSpellingTests(tests);
-          writeCache(testsKey, fp, tests);
-        })
-        .catch(() => setSpellingTests([]));
-    }
+    // /api/tests was previously also fetched + cached here for the
+    // selected student. Removed — the result was set into spellingTests
+    // state that nothing in the dashboard read. Saves an extra slow
+    // SpellingTest seq-scan per parent visit.
   // examPapers deliberately included — when the fingerprint changes
   // (a paper finishes marking, a new assignment lands), we want the
   // cache lookup to miss and the fetch to refresh.
