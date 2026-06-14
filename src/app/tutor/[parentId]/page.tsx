@@ -149,10 +149,18 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
   // Show spinner ONLY when there's no prior payload to display — i.e.
   // on a true first paint. When the student/subject changes, keep the
   // previous render visible and dim it slightly so the user can see
-  // the new payload swap in without a jarring flash.
+  // the new payload swap in without a jarring flash, AND surface a
+  // small floating loading pill so it's obvious something is happening.
   const showSpinner = loading && !data;
+  const showSwitchPill = loading && !!data;
   return (
     <>
+      {showSwitchPill && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[120] bg-[#003366] text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+          <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          Loading {firstName ? `${firstName}'s` : ""} {subject.toLowerCase()}…
+        </div>
+      )}
       {showSpinner && (
         <div className="flex flex-col items-center justify-center py-32 gap-6">
           <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
@@ -293,6 +301,24 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
 function pctOfSubject(marksLost: number, totalAvailable: number): string {
   if (totalAvailable <= 0) return "";
   return `${Math.round((marksLost / totalAvailable) * 100)}%`;
+}
+
+// Soften the tone of cached Gemini text rendered to the parent.
+// Older caches were written before the workshop prompt was updated to
+// ask for warm, first-name phrasing; this rewrites the harshest stock
+// phrases at render time so admins don't see "The student struggles
+// to…" until every kid's cache has been regenerated.
+function softenTone(text: string, childFirst: string): string {
+  if (!text) return text;
+  const fn = childFirst.replace(/[^A-Za-z]/g, "");
+  return text
+    .replace(/\bThe student\b/g, fn)
+    .replace(/\bthe student\b/g, fn.toLowerCase())
+    .replace(/\bstruggles to\b/gi, "sometimes finds it tricky to")
+    .replace(/\bstruggles with\b/gi, "sometimes finds")
+    .replace(/\bfails to\b/gi, "sometimes misses")
+    .replace(/\bconsistently\b/gi, "often")
+    .replace(/\bcannot\b/gi, "doesn't always");
 }
 
 // Smooth-scroll helper for the (here) anchor links inside Loomi's
@@ -446,7 +472,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl">{m.what}</p>
+                  <p className="text-sm text-slate-600 max-w-2xl">{softenTone(m.what, data.childFirst)}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 ml-4 whitespace-nowrap">
                   Tell me more →
@@ -468,7 +494,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl">{c.what}</p>
+                  <p className="text-sm text-slate-600 max-w-2xl">{softenTone(c.what, data.childFirst)}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 ml-4 whitespace-nowrap">
                   Explain →
@@ -528,13 +554,13 @@ function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: 
 }
 
 function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(card.advice);
+  const adviceHtml = boldifyHtml(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
+      <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Jane&apos;s Advice</p>
@@ -568,13 +594,13 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 }
 
 function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(card.advice);
+  const adviceHtml = boldifyHtml(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6">{card.what}</p>
+      <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Jane&apos;s Explanation</p>
@@ -735,7 +761,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const [open, setOpen] = useState(false);
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
-  const diagnosisHtml = boldifyHtml(ex.whatWentWrong);
+  const diagnosisHtml = boldifyHtml(softenTone(ex.whatWentWrong, childFirst));
   const hasFullData = ex.questionText !== null;
   const imgSrc = ex.diagramImageData
     ? (ex.diagramImageData.startsWith("data:") ? ex.diagramImageData : `data:image/jpeg;base64,${ex.diagramImageData}`)

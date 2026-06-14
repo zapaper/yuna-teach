@@ -400,19 +400,22 @@ ${w.imageDescription ? `  image: ${w.imageDescription.replace(/\s+/g, " ")}\n` :
     ? `\n\nIMPORTANT — SAME-QUESTION REPEATS: This student got the SAME question wrong multiple times. Weight heavily. Clusters:\n${repeatClusters.slice(0, 8).map(arr => `  ×${arr.length} attempts — refs: ${arr.map(w => `[${w.idx}]`).join(" ")}`).join("\n")}`
     : "";
 
-  const prompt = `You are an experienced primary-school tutor producing a personalised diagnosis for ONE student in ${subjectArg}. Below are every question this student got partially or fully wrong (${wrongs.length} records total: ${wrongOeq.length} open-ended + ${wrongMcq.length} multiple-choice). For OEQ records you have the marker's analytical notes. For MCQ records you have the options, the student's pick, the correct pick, and the AI-generated explanation of the correct answer.
+  const childFirst = student.name.split(/\s+/)[0] ?? student.name;
+  const prompt = `You are an experienced primary-school tutor producing a personalised diagnosis for ${childFirst} in ${subjectArg}. Below are every question ${childFirst} got partially or fully wrong (${wrongs.length} records total: ${wrongOeq.length} open-ended + ${wrongMcq.length} multiple-choice). For OEQ records you have the marker's analytical notes. For MCQ records you have the options, ${childFirst}'s pick, the correct pick, and the AI-generated explanation of the correct answer.
 
-Identify the TOP 4 RECURRING ERROR PATTERNS that may span both formats. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY the student loses marks (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
+TONE — this report is read by a parent who will work through it WITH their child. Be warm and constructive, never clinical. Use ${childFirst}'s first name (NEVER "the student"). Use gentle qualifiers: "${childFirst} sometimes…", "occasionally", "tends to" — NOT "struggles", "fails", "cannot", "consistently". The goal is to point at fixable habits, not to label a deficiency.
+
+Identify the TOP 4 RECURRING ERROR PATTERNS that may span both formats. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY ${childFirst} loses marks (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
 
 THEN classify EVERY record [1..${wrongs.length}] into exactly one of the 4 patterns (patternIndex 0-3). Records that don't fit → patternIndex -1.
 
 For each pattern provide:
   name — short vivid label (3-6 words)
-  what — one sentence describing the pattern
+  what — one warm sentence describing the pattern, naming ${childFirst} (NOT "the student") and using gentle qualifiers as above.
   specific_examples — 3 examples (pick from records classified into this pattern, prefer a MIX of OEQ and MCQ when both formats are present). Each:
     questionRef — e.g. "[49]"
     type — "oeq" or "mcq"
-    whatWentWrong — one sentence diagnosis (concise, parent-readable)
+    whatWentWrong — one sentence diagnosis (concise, parent-readable, same warm tone — use the first name or "he/she" not "the student")
   strategic_advice — advice keyed to question-stem TRIGGER WORDS, not topic. E.g. "When you see 'explain why', always include a 'so that...' clause showing the final consequence." 2-4 sentences. WRAP KEY PHRASES IN **double-asterisk markdown** to render bold.
   trigger_keywords — question-stem phrases that flag this pattern
 
