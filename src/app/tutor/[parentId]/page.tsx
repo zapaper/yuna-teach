@@ -813,6 +813,28 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
               </div>
             </div>
           )}
+          {/* Fallback for MCQ examples where the workshop wrongs record
+              didn't capture the full options list (older papers, or
+              options that lived in a diagram image). Still surface what
+              picks are known so the parent can see the wrong/right
+              choice numbers — better than rendering nothing. */}
+          {ex.isMcq && ex.options.length === 0 && (ex.picked || ex.correct) && (
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Answer</p>
+              <div className="flex gap-3 text-sm">
+                {ex.picked && (
+                  <span className="px-3 py-1.5 rounded bg-rose-100 text-rose-900">
+                    <span className="font-bold">{childFirst} picked:</span> ({ex.picked})
+                  </span>
+                )}
+                {ex.correct && (
+                  <span className="px-3 py-1.5 rounded bg-emerald-100 text-emerald-900">
+                    <span className="font-bold">Correct:</span> ({ex.correct})
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           {!ex.isMcq && ex.studentAnswer && (
             <div>
               <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-1">{childFirst} wrote</p>
