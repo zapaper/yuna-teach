@@ -64,9 +64,10 @@ function TutorContent({ parentId }: { parentId: string }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/users/${parentId}`).then(r => r.ok ? r.json() : null).then(d => {
-      if (!d?.linkedStudents) return;
-      const list = (d.linkedStudents as LinkedStudent[]).filter(s => !!s.id);
+    fetch(`/api/users?userId=${parentId}`).then(r => r.ok ? r.json() : null).then(d => {
+      const linked = d?.user?.linkedStudents as LinkedStudent[] | undefined;
+      if (!linked) return;
+      const list = linked.filter(s => !!s.id);
       setStudents(list);
       if (!studentId && list.length > 0) setStudentId(list[0].id);
     });
@@ -127,7 +128,12 @@ function TutorContent({ parentId }: { parentId: string }) {
       </header>
 
       <main className="max-w-5xl mx-auto px-8 py-10 hidden lg:block">
-        {loading && <p className="text-sm text-slate-500">Loading tutor view…</p>}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-32 gap-6">
+            <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
+            <p className="text-sm font-medium text-slate-500">Loading {currentChild ? `${currentChild.name.split(/\s+/)[0]}'s` : ""} {subject.toLowerCase()} tutor view…</p>
+          </div>
+        )}
         {!loading && data && data.kind === "ineligible" && (
           <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
             <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
