@@ -284,8 +284,13 @@ function scorePct(paper: ExamPaperSummary) {
   // misleads the parent into thinking marking finished.
   if (paper.markingStatus !== "complete" && paper.markingStatus !== "released") return null;
   if (paper.score === null || !paper.totalMarks) return null;
-  const total = parseFloat(paper.totalMarks);
-  return total > 0 ? Math.round((paper.score / total) * 100) : null;
+  // Match StudentDashboard + review page: subtract skipped marks
+  // from the denominator so a student isn't penalised for questions
+  // they chose not to attempt. The API surfaces paper.skippedMarks
+  // as the sum of marksAvailable for __SKIPPED__ answers.
+  const totalRaw = parseFloat(paper.totalMarks);
+  const denom = Math.max(0, totalRaw - (paper.skippedMarks ?? 0));
+  return denom > 0 ? Math.round((paper.score / denom) * 100) : null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -1142,9 +1147,13 @@ export default function ParentDashboard({
   // to track which auto-graded papers they've personally
   // acknowledged. markingStatus stays "complete" until release.
   const pendingRelease = completedPapers.filter(p => p.markingStatus === "complete");
-  const scoredPapers = completedPapers.filter(p => p.score !== null && p.totalMarks && parseFloat(p.totalMarks) > 0);
+  // Effective denominator subtracts skipped-question marks so a
+  // skipped MCQ never drags the displayed % down. Mirrors the
+  // per-paper scorePct() above + the review page's headline.
+  const effectiveDenom = (p: ExamPaperSummary) => Math.max(0, parseFloat(p.totalMarks!) - (p.skippedMarks ?? 0));
+  const scoredPapers = completedPapers.filter(p => p.score !== null && p.totalMarks && effectiveDenom(p) > 0);
   const avgScore = scoredPapers.length > 0
-    ? Math.round(scoredPapers.reduce((s, p) => s + (p.score! / parseFloat(p.totalMarks!) * 100), 0) / scoredPapers.length)
+    ? Math.round(scoredPapers.reduce((s, p) => s + (p.score! / effectiveDenom(p) * 100), 0) / scoredPapers.length)
     : null;
 
   // ── Performance chart data (up to 5 most recent per subject, right-aligned) ──
@@ -1177,7 +1186,7 @@ export default function ParentDashboard({
         : null;
       if (!key) continue;
       if (!bySubj[key]) bySubj[key] = [];
-      bySubj[key].push(Math.round((p.score! / parseFloat(p.totalMarks!)) * 100));
+      bySubj[key].push(Math.round((p.score! / effectiveDenom(p)) * 100));
     }
     const lines: ChartLine[] = [];
     for (const [subj, scores] of Object.entries(bySubj)) {
