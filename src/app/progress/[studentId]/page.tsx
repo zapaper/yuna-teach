@@ -84,7 +84,7 @@ function topicStyle(pct: number) {
   };
 }
 
-function ProgressContent({ studentId }: { studentId: string }) {
+function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; skipAdminRedirect?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const parentId = searchParams.get("parentId") ?? "";
@@ -228,11 +228,11 @@ function ProgressContent({ studentId }: { studentId: string }) {
     );
   }
 
-  // Admin view — the Tutor/Loomi experience served at /progress/[id].
-  // Non-admins continue to see the original chart view below. The
-  // current /tutor/[parentId] page still works as a fallback while
-  // we workshop this; it just lives at a different URL.
-  if (isAdmin) {
+  // Admin shell: sidebar with Home (chart) + Progress (Loomi) tabs.
+  // `skipAdminRedirect` is the recursion escape hatch — when the Home
+  // tab inside AdminProgressView renders ProgressContent to show the
+  // chart, it sets this flag so we don't bounce back into the shell.
+  if (isAdmin && !skipAdminRedirect) {
     return <AdminProgressView studentId={studentId} parentId={parentId} studentName={data?.student?.name ?? ""} />;
   }
 
@@ -1066,6 +1066,10 @@ type AdminStudent = { id: string; name: string; level?: number | null };
 function AdminProgressView({ studentId, parentId, studentName }: { studentId: string; parentId: string; studentName: string }) {
   const [students, setStudents] = useState<AdminStudent[]>([]);
   const [subject, setSubject] = useState<string>("Science");
+  // Sidebar tabs: Home = the old chart-only progress page, Progress
+  // = the new Loomi/tutor body. Default = Home so admins land on the
+  // chart they're used to; flipping to Progress shows the diagnosis.
+  const [tab, setTab] = useState<"home" | "progress">("home");
 
   useEffect(() => {
     fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null).then(d => {
@@ -1075,17 +1079,30 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
 
   const current = students.find(s => s.id === studentId);
   const displayName = current?.name ?? studentName;
+  const navItemCls = (active: boolean) =>
+    `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${active ? "bg-[#d3e4fe] text-[#001e40] font-semibold" : "text-slate-600 hover:bg-slate-100 font-medium"}`;
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] flex">
-      {/* Left sidebar — student selector. Hidden on tablet/mobile since
-          the tutor view is desktop-first; on small screens we just
-          show the body content stacked. */}
+      {/* Left sidebar — Home / Progress tabs + per-student selector. */}
       <aside className="hidden lg:flex fixed left-0 top-0 w-64 h-screen bg-slate-50 border-r border-slate-200 flex-col p-5 z-40">
         <div className="flex items-center gap-2 mb-6">
           <span className="material-symbols-outlined text-violet-600">school</span>
-          <p className="font-headline font-extrabold text-[#001e40] text-sm">Progress</p>
+          <p className="font-headline font-extrabold text-[#001e40] text-sm">Admin view</p>
         </div>
+        {/* Tab buttons */}
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">View</p>
+        <div className="space-y-1 mb-6">
+          <button type="button" className={navItemCls(tab === "home")} onClick={() => setTab("home")}>
+            <span className="material-symbols-outlined text-xl" style={tab === "home" ? { fontVariationSettings: "'FILL' 1" } : {}}>home</span>
+            <span className="text-sm">Home</span>
+          </button>
+          <button type="button" className={navItemCls(tab === "progress")} onClick={() => setTab("progress")}>
+            <span className="material-symbols-outlined text-xl" style={tab === "progress" ? { fontVariationSettings: "'FILL' 1" } : {}}>insights</span>
+            <span className="text-sm">Progress</span>
+          </button>
+        </div>
+        {/* Student list */}
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">Students</p>
         <nav className="flex-1 space-y-1 overflow-y-auto">
           {students.map(s => {
@@ -1106,35 +1123,45 @@ function AdminProgressView({ studentId, parentId, studentName }: { studentId: st
         {parentId && (
           <Link href={`/home/${parentId}`} className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-[#003366]">
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back to home
+            Back to parent home
           </Link>
         )}
       </aside>
 
-      {/* Main column — top bar with subject pills + tutor body. */}
-      <div className="flex-1 lg:ml-64">
-        <header className="border-b border-slate-100 bg-white sticky top-0 z-30">
-          <div className="max-w-5xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress</p>
-              <h1 className="text-lg font-headline font-extrabold text-[#001e40] truncate">
-                {displayName ? `${displayName.split(/\s+/)[0]}'s ${subject}` : subject}
-              </h1>
-            </div>
-            <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-              <option>Science</option>
-              <option>Math</option>
-              <option>English</option>
-              <option>Chinese</option>
-            </select>
-          </div>
-        </header>
-        <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8 hidden lg:block">
-          <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={displayName} />
-        </main>
-        <main className="lg:hidden max-w-5xl mx-auto px-6 py-12 text-center">
-          <p className="text-sm text-slate-500">Progress is best viewed on a larger screen — please open this on a desktop.</p>
-        </main>
+      {/* Main column. Home tab renders the original chart-only page
+          (ProgressContent with skipAdminRedirect to avoid recursing
+          back into this shell); Progress tab renders the Loomi/tutor
+          body with its own subject select. */}
+      <div className="flex-1 lg:ml-64 min-w-0">
+        {tab === "home" && (
+          <ProgressContent studentId={studentId} skipAdminRedirect />
+        )}
+        {tab === "progress" && (
+          <>
+            <header className="border-b border-slate-100 bg-white sticky top-0 z-30">
+              <div className="max-w-5xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress · Loomi</p>
+                  <h1 className="text-lg font-headline font-extrabold text-[#001e40] truncate">
+                    {displayName ? `${displayName.split(/\s+/)[0]}'s ${subject}` : subject}
+                  </h1>
+                </div>
+                <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
+                  <option>Science</option>
+                  <option>Math</option>
+                  <option>English</option>
+                  <option>Chinese</option>
+                </select>
+              </div>
+            </header>
+            <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8 hidden lg:block">
+              <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={displayName} />
+            </main>
+            <main className="lg:hidden max-w-5xl mx-auto px-6 py-12 text-center">
+              <p className="text-sm text-slate-500">Progress is best viewed on a larger screen — please open this on a desktop.</p>
+            </main>
+          </>
+        )}
       </div>
     </div>
   );
