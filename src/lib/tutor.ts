@@ -59,6 +59,10 @@ export type MistakeExample = {
   studentAnswer: string | null;
   markingNotes: string | null;
   diagramImageData: string | null;
+  // Used by loadTutorData to know which questions actually need a
+  // diagram fetched. Always null in the public response — we wipe it
+  // before returning to the client so the wire payload stays lean.
+  questionId?: string | null;
   isMcq: boolean;
   options: string[];
   picked: string | null;
@@ -191,6 +195,7 @@ function computeTopline(
 const mcqMarkerShape = /Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i;
 type WrongRecord = {
   idx: number;
+  questionId: string;
   marksLost: number;
   topic: string;
   isMcq: boolean;
@@ -199,7 +204,6 @@ type WrongRecord = {
   studentAnswer: string;
   correctAnswer: string;
   markingNotes: string;
-  diagramImageData: string | null;
   options: string[];
 };
 function reconstructWrongs(papers: Array<{
@@ -207,11 +211,11 @@ function reconstructWrongs(papers: Array<{
   metadata: unknown;
   subject: string | null;
   questions: Array<{
+    id: string;
     studentAnswer: string | null; answer: string | null;
     marksAwarded: number | null; marksAvailable: number | null;
     markingNotes: string | null; transcribedOptions: unknown;
     transcribedStem: string | null; transcribedSubparts: unknown;
-    diagramImageData: string | null;
     syllabusTopic: string | null;
   }>;
 }>): WrongRecord[] {
@@ -263,6 +267,7 @@ function reconstructWrongs(papers: Array<{
         .trim();
       wrongs.push({
         idx,
+        questionId: q.id,
         marksLost: av - aw,
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
@@ -271,7 +276,6 @@ function reconstructWrongs(papers: Array<{
         studentAnswer: cleanedAnswer,
         correctAnswer: (q.answer ?? "").trim(),
         markingNotes: cleanedNotes,
-        diagramImageData: q.diagramImageData ?? null,
         options: optsArr,
       });
     }
@@ -330,7 +334,8 @@ function shapeTutorData(args: {
       questionText: w.questionText,
       studentAnswer: w.studentAnswer,
       markingNotes: w.markingNotes,
-      diagramImageData: w.diagramImageData,
+      diagramImageData: null,        // filled in by a targeted follow-up query below
+      questionId: w.questionId,      // wiped before returning to the client
       isMcq: w.isMcq,
       options: w.options,
       picked: w.isMcq ? w.studentAnswer : null,
@@ -442,18 +447,23 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   });
   if (!student) return { kind: "ineligible", reason: "Student not found", paperCount: 0 };
 
+  // CRITICAL: keep diagramImageData OUT of this bulk select. It's a
+  // base64 JPEG per question; Mark has 36 papers × ~12 questions of
+  // these, which used to pull megabytes over the wire on every fresh
+  // Tutor load. Diagrams are fetched in a targeted second query after
+  // we know which 3-4 example questions per card we'll actually show.
   const papers = await prisma.examPaper.findMany({
     where: { assignedToId: studentId, markingStatus: { in: ["complete", "released"] } },
     select: {
       title: true, metadata: true, subject: true,
       questions: {
         select: {
+          id: true,
           studentAnswer: true, answer: true,
           marksAwarded: true, marksAvailable: true,
           markingNotes: true, syllabusTopic: true,
           transcribedOptions: true, transcribedStem: true,
           transcribedSubparts: true,
-          diagramImageData: true,
         },
         // Deterministic question order — without this Prisma can
         // shuffle nested includes by physical row position, which
@@ -505,5 +515,29 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       generatedAt: new Date().toISOString(),
     };
   }
-  return shapeTutorData({ studentName: student.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
+  const shaped = shapeTutorData({ studentName: student.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
+  if (shaped.kind !== "ready") return shaped;
+
+  // Targeted diagram fetch — collect the questionIds we'll actually
+  // show (3 examples × 2 mistake cards + 3 × 2 concept cards = ~12
+  // max) and hydrate just those. Then wipe the temporary questionId
+  // field so it doesn't leak in the wire payload.
+  const exampleIds = new Set<string>();
+  const allExamples = [
+    ...shaped.commonMistakes.flatMap(c => c.examples),
+    ...shaped.conceptualGaps.flatMap(c => c.examples),
+  ];
+  for (const ex of allExamples) if (ex.questionId) exampleIds.add(ex.questionId);
+  if (exampleIds.size > 0) {
+    const diagrams = await prisma.examQuestion.findMany({
+      where: { id: { in: [...exampleIds] } },
+      select: { id: true, diagramImageData: true },
+    });
+    const diagramById = new Map(diagrams.map(d => [d.id, d.diagramImageData]));
+    for (const ex of allExamples) {
+      if (ex.questionId) ex.diagramImageData = diagramById.get(ex.questionId) ?? null;
+    }
+  }
+  for (const ex of allExamples) ex.questionId = null;
+  return shaped;
 }

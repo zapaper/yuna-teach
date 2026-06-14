@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, use } from "react";
+import { Suspense, useEffect, useRef, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
@@ -237,14 +237,12 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   const isOverview = view === null;
   return (
     <>
-      {/* Jane greeting — always visible above the swipe stage */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-center gap-5">
-        <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-[#a7c8ff] to-[#5b21b6] flex items-center justify-center text-white font-headline font-extrabold text-lg shadow-sm">
-          J
-        </div>
+      {/* Loomi greeting — always visible above the swipe stage */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-center gap-6">
+        <LoomiAvatar />
         <div>
           <p className="text-[#001e40] text-base leading-relaxed">
-            Hi, I'm <strong>Jane</strong>, your online tutor assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let's review {data.childFirst}'s progress in {data.subject}.
+            Hi! I&apos;m <strong>Loomi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
         </div>
       </section>
@@ -478,6 +476,46 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
         Take a quick Concept Quiz →
       </button>
     </section>
+  );
+}
+
+// Loomi — the Tutor mascot. Cycles through 3 short owl videos
+// (~4 s each) seamlessly. All three are mounted with preload="auto"
+// from the first paint so the browser keeps them buffered and the
+// swap between clips is instant. The visible clip is whichever idx
+// matches `cur`; the rest sit hidden at opacity-0 in the same stack.
+function LoomiAvatar() {
+  const videos = ["/avatars/owl1.mp4", "/avatars/owl2.mp4", "/avatars/owl3.mp4"];
+  const [cur, setCur] = useState(0);
+  const ref0 = useRef<HTMLVideoElement>(null);
+  const ref1 = useRef<HTMLVideoElement>(null);
+  const ref2 = useRef<HTMLVideoElement>(null);
+  const refs = [ref0, ref1, ref2];
+
+  // Whenever the active index flips, rewind + play the new one so it
+  // starts cleanly from the first frame.
+  useEffect(() => {
+    const v = refs[cur].current;
+    if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+  }, [cur]);
+
+  return (
+    <div className="relative shrink-0 w-32 h-32 rounded-full border-2 border-violet-300 overflow-hidden bg-white shadow-sm">
+      {videos.map((src, i) => (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          key={src}
+          ref={refs[i]}
+          src={src}
+          muted
+          playsInline
+          preload="auto"
+          autoPlay={i === 0}
+          onEnded={() => setCur(prev => (prev + 1) % videos.length)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ${i === cur ? "opacity-100" : "opacity-0"}`}
+        />
+      ))}
+    </div>
   );
 }
 
