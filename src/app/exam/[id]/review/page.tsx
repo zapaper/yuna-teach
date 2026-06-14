@@ -4238,6 +4238,22 @@ function ExamReviewContent({ id }: { id: string }) {
                       // Non-English/Chinese OEQ: already shown side-by-
                       // side at the top — skip the duplicate down here.
                       if (!isEng && !isChn && !isMcqQ) return null;
+                      // Skip digital quizzes that never went through the
+                      // print/scan loop. A mastery / focused / quiz paper
+                      // without printableBounds on this question means
+                      // the student answered MCQs by clicking and OEQs on
+                      // the in-app canvas — there is no scanned paper to
+                      // show. Without this gate, every Math-mastery MCQ
+                      // and every typed-numeric OEQ kept rendering page 0
+                      // of the submission (the first OEQ's canvas),
+                      // misleadingly labelled with the current Q's
+                      // number. printableBounds is the strong signal that
+                      // the print-and-scan pipeline actually stamped this
+                      // question — if it's null on a quiz / focused /
+                      // mastery paper, there's nothing useful to display.
+                      const hasPrintableBounds = (currentQ as { printableBounds?: unknown }).printableBounds != null;
+                      const isDigitalQuiz = (paperType === "quiz" || paperType === "focused" || paperType === "mastery") && !hasPrintableBounds;
+                      if (isDigitalQuiz) return null;
                       const sub = getSubmissionPage(currentQ.pageIndex);
                       const hasYBounds = currentQ.yStartPct != null && currentQ.yEndPct != null;
                       return (
