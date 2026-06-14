@@ -211,50 +211,54 @@ function ReadyView({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
 
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Common Mistakes</h2>
-          <p className="text-sm text-slate-500 mb-4">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
-          {data.commonMistakes.map((m, i) => (
-            <div key={m.bucket} className="bg-white rounded-2xl border border-slate-100 p-6 mb-3 flex justify-between items-center">
-              <div>
-                <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1}</p>
-                <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
-                <p className="text-sm text-slate-600 max-w-2xl">{m.what}</p>
+        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Common Mistakes</h2>
+          <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
+          <div className="space-y-3">
+            {data.commonMistakes.map((m, i) => (
+              <div key={m.bucket} className="border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost</p>
+                  <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
+                  <p className="text-sm text-slate-600 max-w-2xl">{m.what}</p>
+                </div>
+                <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-violet-600 ml-4 whitespace-nowrap">
+                  Tell me more →
+                </button>
               </div>
-              <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-violet-600 ml-4 whitespace-nowrap">
-                Tell me more →
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </section>
       )}
 
       {/* Conceptual Gaps */}
       {data.conceptualGaps.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Conceptual Gaps</h2>
-          <p className="text-sm text-slate-500 mb-4">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
-          {data.conceptualGaps.map(c => (
-            <div key={c.bucket} className="bg-white rounded-2xl border border-slate-100 p-6 mb-3 flex justify-between items-center">
-              <div>
-                <p className="text-xs font-bold text-orange-600 mb-1">Concept</p>
-                <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
-                <p className="text-sm text-slate-600 max-w-2xl">{c.what}</p>
+        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Conceptual Gaps</h2>
+          <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
+          <div className="space-y-3">
+            {data.conceptualGaps.map(c => (
+              <div key={c.bucket} className="border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost</p>
+                  <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
+                  <p className="text-sm text-slate-600 max-w-2xl">{c.what}</p>
+                </div>
+                <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-orange-600 ml-4 whitespace-nowrap">
+                  Explain →
+                </button>
               </div>
-              <button className="shrink-0 text-sm font-semibold text-[#003366] hover:text-orange-600 ml-4 whitespace-nowrap">
-                Explain →
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </section>
       )}
 
       {/* Topics for Practice */}
       {data.topicsForPractice.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Topics for Practice</h2>
-          <p className="text-sm text-slate-500 mb-4">Below average — a Focused Practice on each will lift the score.</p>
-          <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100">
+        <section className="bg-white rounded-2xl border border-slate-100 p-8 mb-6">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Topics for Practice</h2>
+          <p className="text-sm text-slate-500 mb-5">Below average — a Focused Practice on each will lift the score.</p>
+          <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl bg-slate-50/50">
             {data.topicsForPractice.map(t => (
               <div key={t.topic} className="flex justify-between items-center p-5">
                 <div>

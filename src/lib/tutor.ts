@@ -47,12 +47,14 @@ export type Topline = {
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;  // e.g. "Mark sometimes leaves the last sub-question blank…"
 };
+export type MistakeExample = { questionRef: string; whatWentWrong: string };
 export type MistakeCard = {
   bucket: "final_consequence" | "vague_terminology" | "trend_description" | "missing_context" | "diagram_analysis";
   name: string;
   what: string;
   advice: string;
   triggerKeywords: string[];
+  examples: MistakeExample[];
   marksLost: number;
 };
 export type ConceptCard = {
@@ -60,6 +62,7 @@ export type ConceptCard = {
   name: string;
   what: string;
   advice: string;
+  examples: MistakeExample[];
   marksLost: number;
 };
 export type TopicCard = { topic: string; pct: number; attempts: number };
@@ -204,13 +207,14 @@ function shapeTutorData(args: {
   // Pattern → bucket + marks lost
   const wrongs = reconstructWrongs(papers);
   const wrongByIdx = new Map(wrongs.map(w => [w.idx, w]));
-  type PatternStat = { name: string; bucket: StandardBucket; what: string; advice: string; triggerKeywords: string[]; marksLost: number };
+  type PatternStat = { name: string; bucket: StandardBucket; what: string; advice: string; triggerKeywords: string[]; examples: MistakeExample[]; marksLost: number };
   const patternStats: PatternStat[] = report.patterns.map(p => ({
     name: p.name,
     bucket: bucketFor(p.name),
     what: p.what,
     advice: p.strategic_advice,
     triggerKeywords: p.trigger_keywords ?? [],
+    examples: (p.specific_examples ?? []).map(ex => ({ questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong })),
     marksLost: 0,
   }));
   for (const c of report.classification) {
@@ -233,6 +237,7 @@ function shapeTutorData(args: {
       what: p.what,
       advice: p.advice,
       triggerKeywords: p.triggerKeywords,
+      examples: p.examples,
       marksLost: p.marksLost,
     }));
 
@@ -245,6 +250,7 @@ function shapeTutorData(args: {
       name: p.name,
       what: p.what,
       advice: p.advice,
+      examples: p.examples,
       marksLost: p.marksLost,
     }));
 
