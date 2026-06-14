@@ -403,7 +403,18 @@ function shapeTutorData(args: {
   // common mistake and Jeremiah/Kaiyang with none. Now `topical`
   // patterns flow through here so they surface at the kid's actual
   // weak spots.
-  const commonMistakes: MistakeCard[] = patternStats
+  // Below 15 analysable wrong records, Gemini's patterns are noisy —
+  // 3-4 wrong answers can be entirely coincidental, the workshop just
+  // hasn't seen enough to call a recurring habit. Mirror the
+  // `_find-p6-science-kids.ts` filter (≥15) so Lumi only shows the
+  // diagnostic-grade sections (Common Mistakes + Conceptual Gaps) when
+  // the underlying data supports them. Below the threshold we still
+  // render the bar chart + Topics for Practice (the "what to assign"
+  // surface) — the parent still gets actionable advice; we just don't
+  // pretend to read fine-grained patterns that aren't there yet.
+  const MIN_ANALYSABLE_WRONGS = 15;
+  const enoughForPatterns = wrongs.length >= MIN_ANALYSABLE_WRONGS;
+  const commonMistakes: MistakeCard[] = !enoughForPatterns ? [] : patternStats
     .filter(p => !CONCEPT_BUCKETS.includes(p.bucket as ConceptCard["bucket"]) && p.bucket !== "incomplete_answer")
     .sort((a, b) => b.marksLost - a.marksLost)
     .slice(0, 2)
@@ -417,7 +428,7 @@ function shapeTutorData(args: {
       marksLost: p.marksLost,
     }));
 
-  const conceptualGaps: ConceptCard[] = patternStats
+  const conceptualGaps: ConceptCard[] = !enoughForPatterns ? [] : patternStats
     .filter(p => CONCEPT_BUCKETS.includes(p.bucket as ConceptCard["bucket"]))
     .sort((a, b) => b.marksLost - a.marksLost)
     .slice(0, 2)
