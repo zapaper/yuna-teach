@@ -2,53 +2,52 @@
   "patterns": [
     {
       "name": "Stopping One Step Short",
-      "what": "IJ sometimes explains the beginning of a scientific process beautifully, but occasionally stops just one step short of stating the final consequence or conclusion.",
+      "what": "IJ sometimes identifies the correct scientific concept but occasionally stops just before stating the final consequence or linking it back to the question.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "IJ correctly identified that air is a poor conductor of heat, but missed the final link that this means less heat is transferred to the fingers."
+          "whatWentWrong": "IJ correctly noted that air is a poor conductor of heat, but missed the final step of explaining that this means less heat is transferred to Lauren's fingers."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "IJ correctly noted that the seeds would travel a shorter distance, but stopped before mentioning the final consequence, which is overcrowding."
+          "whatWentWrong": "IJ correctly identified that the seeds wouldn't travel far, but stopped short of stating the final consequence, which is overcrowding."
         },
         {
-          "questionRef": "[22]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "IJ knew the bulbs were in a parallel circuit, but needed to add the final linking phrase that electricity can still flow because it remains a closed circuit."
+          "whatWentWrong": "IJ beautifully explained that air has no definite volume, but forgot to complete the comparison by stating that water does have a definite volume."
         }
       ],
-      "strategic_advice": "When you see **explain why** or **describe how**, try to use the 'So what?' test. After writing your answer, ask yourself, 'So what happens next?' Always include a **so that...** or **resulting in...** clause to show the final consequence. For example, don't just say 'it traps heat'—add **so that the temperature increases**.",
+      "strategic_advice": "When you see **explain how** or **explain why**, try to use the 'Cause-and-Effect' method. Always ask yourself, 'And so what happens next?' until you reach the final result. Use linking phrases like **which results in...** or **so that...** to ensure you have completed the chain.",
       "trigger_keywords": [
         "explain how",
         "explain why",
-        "describe how",
-        "what is the advantage"
+        "give a reason"
       ]
     },
     {
-      "name": "Overlooking Hidden Clues",
-      "what": "IJ tends to read questions quickly and occasionally misses small but crucial constraint words or specific data clues hidden in the text.",
+      "name": "Missing Question Constraints",
+      "what": "IJ tends to understand the science well, but occasionally overlooks specific conditions, negative words, or unique clues hidden in the question stem.",
       "specific_examples": [
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "The question specifically asked what to do without adding or removing any materials, but IJ suggested adding oil."
-        },
-        {
-          "questionRef": "[40]",
-          "type": "mcq",
-          "whatWentWrong": "IJ missed the clue that the plant was in a metal box, which blocks sunlight and prevents photosynthesis even when placed under the Sun."
+          "whatWentWrong": "IJ suggested adding a lubricant, which is a great scientific idea, but missed the specific instruction that said 'Without adding or removing any materials'."
         },
         {
           "questionRef": "[42]",
           "type": "mcq",
-          "whatWentWrong": "IJ overlooked the word 'not' in the question asking which statement is not correct, leading to an incorrect choice."
+          "whatWentWrong": "IJ missed the word 'not' in the question stem, looking for a true statement instead of the false one."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "IJ missed the specific clue in the story about the eagle laying 'only one or two eggs', which was the key to explaining why the population would drop so quickly."
         }
       ],
-      "strategic_advice": "When you see phrases like **based on the information**, **without adding**, or **not correct**, treat them as stop signs. Take a moment to **highlight or circle** these constraint words before looking at the options. Always double-check your final answer against the specific rules set by the question.",
+      "strategic_advice": "Before answering, take a moment to become a 'clue hunter.' When you see phrases like **based on the information**, **without adding**, or **not correct**, underline or highlight them immediately. Always double-check your final answer against these highlighted constraints to make sure you haven't accidentally broken a rule.",
       "trigger_keywords": [
         "without adding",
         "not correct",
@@ -57,66 +56,65 @@
       ]
     },
     {
-      "name": "Extracting Data from Visuals",
-      "what": "When faced with graphs, tables, or complex diagrams, IJ sometimes misinterprets the visual data or overlooks the specific labels on the axes and columns.",
+      "name": "Misreading Graphs and Tables",
+      "what": "When presented with data in graphs or tables, IJ sometimes extracts the wrong data point or misaligns the rows and columns.",
       "specific_examples": [
         {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "IJ misread the bar graph by counting individual plants instead of recognizing that different types of plants form separate populations."
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "IJ read the graph slightly off, identifying the time as 7 minutes instead of the correct 1 minute where the temperature change started."
         },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "When looking at the data table for reflected light, IJ accidentally picked the second-highest value instead of the material that reflected the most light."
+          "whatWentWrong": "IJ chose Material Q from the table, accidentally overlooking Material S, which actually reflected the most units of light."
         },
         {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "IJ misread the line graph's time axis, stating the chocolate was added at 7 minutes instead of the correct 1 minute mark."
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "IJ misread the line graph's trends, picking an organism that didn't match the highest population at the required light depth."
         }
       ],
-      "strategic_advice": "When you see a **graph, table, or diagram**, pause before reading the question. First, read the **titles, labels, and units** on the axes or columns. Use your pencil to **trace lines** on graphs or **circle the highest/lowest numbers** in tables so your eyes don't accidentally skip to the wrong row.",
+      "strategic_advice": "When you see a graph or table, especially with **record your observation** or **based on the results**, use your pencil as a guide. Draw physical lines on the paper to connect the X and Y axes, or use your ruler to track across table rows. This physical habit prevents your eyes from accidentally jumping to the wrong line.",
       "trigger_keywords": [
-        "based on the graph",
-        "shows the results",
-        "in the table below",
-        "diagram shows"
+        "based on the results",
+        "record your observation",
+        "graph shows",
+        "table shows"
       ]
     },
     {
-      "name": "Leaving Complex Questions Blank",
-      "what": "When a question involves a multi-step experiment, drawing a circuit, or looks unfamiliar, IJ occasionally leaves it completely blank instead of attempting the parts he/she knows.",
+      "name": "Over-Selecting and Extra Labeling",
+      "what": "IJ occasionally provides more answers or labels than necessary, which can sometimes introduce errors or dilute a perfectly good answer.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
+          "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "Faced with explaining the advantage of a high hydro-electric turbine, IJ left the space blank instead of trying to trace the energy conversion."
+          "whatWentWrong": "IJ was asked to label specific parts of the digestive system but labeled four boxes instead of just the two required."
         },
         {
-          "questionRef": "[31]",
+          "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "IJ left the steps for an experimental design blank, even though he/she likely knows the basics of changing one variable and keeping others constant."
+          "whatWentWrong": "IJ correctly identified part J, but then added parts L and M, which made the final answer incorrect."
         },
         {
-          "questionRef": "[34]",
+          "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "Faced with a complex circuit diagram involving springs and platforms, IJ left the multiple-choice question blank instead of eliminating the obvious wrong options."
+          "whatWentWrong": "IJ selected the option containing all four statements instead of narrowing it down to just the two definitely correct ones."
         }
       ],
-      "strategic_advice": "When you see **list down the steps**, **draw**, or a very long setup, don't panic! Even if you aren't 100% sure of the perfect answer, write down the **science keywords** or draw the basic parts you do know. You can often earn partial marks just by stating the **energy conversion** or the **changed variable**.",
+      "strategic_advice": "Remember that in Science, more isn't always better! When a question asks you to **state the part(s)** or **which of the following**, be very strict about only including what you are 100% sure about. If you are asked to label a diagram, count exactly how many letters you are given and only fill in that exact number of boxes.",
       "trigger_keywords": [
-        "list down the steps",
-        "draw wires to complete",
-        "design an experiment",
-        "suggest what"
+        "state the part(s)",
+        "which of the following",
+        "write the letter"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -124,19 +122,19 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -148,27 +146,27 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -180,11 +178,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 19,
@@ -208,7 +206,7 @@
     },
     {
       "idx": 24,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 25,
@@ -220,11 +218,11 @@
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 29,
@@ -236,11 +234,11 @@
     },
     {
       "idx": 31,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
@@ -248,31 +246,31 @@
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 41,
@@ -282,5 +280,55 @@
       "idx": 42,
       "patternIndex": 1
     }
-  ]
+  ],
+  "questionIdByIdx": {
+    "1": "cmqdjbthv000x149y8u6ldu8i",
+    "2": "cmqdjbthw000z149yv073n1vv",
+    "3": "cmqdjbthw0010149yy0uff1th",
+    "4": "cmqdjbthw0011149yeszswa4u",
+    "5": "cmqdjbthw0012149yvb6vjgk4",
+    "6": "cmqc95mqq006ily3ht4z5n0km",
+    "7": "cmqc95mqr006qly3hpcmacizt",
+    "8": "cmqc95mqr006rly3hxf036m1x",
+    "9": "cmqc80kjg0068ly3hyupnefdv",
+    "10": "cmqc80kjh006ely3h4mv55y2r",
+    "11": "cmq819nbf0006bxufaes0uj5y",
+    "12": "cmq819nbf000abxufqjx700ky",
+    "13": "cmq819nbf000bbxufh8cb9cii",
+    "14": "cmq819nbg000obxufaoiwdebp",
+    "15": "cmq819nbg000qbxufu3buz8lm",
+    "16": "cmq819nbh000vbxufy5wo8i41",
+    "17": "cmq819nbh000wbxuf72kmq4n8",
+    "18": "cmq819nbh000ybxufuabmtf3q",
+    "19": "cmq819nbh000zbxuftkj7c6dk",
+    "20": "cmq819nbh0010bxufgc5xmw8z",
+    "21": "cmq819nbi0011bxuf582jfeih",
+    "22": "cmq819nbi0013bxufh7tf84ga",
+    "23": "cmq819nbi0015bxufc8851zc4",
+    "24": "cmq819nbi0017bxuf7bi6fa2g",
+    "25": "cmq819nbi0018bxufk1ub4lbp",
+    "26": "cmq819nbj0019bxuf2ybkob8s",
+    "27": "cmq819nbj001abxufnazwy7hb",
+    "28": "cmq6rj8da0004o0vaidkii359",
+    "29": "cmq6rj8da0006o0vazdru1dcv",
+    "30": "cmq6rj8db0008o0va657cqm3y",
+    "31": "cmq6rj8db0009o0valj9q4gxa",
+    "32": "cmq4st4rb0078ualapj66rgok",
+    "33": "cmq4st4rc007duala5x2sfz5z",
+    "34": "cmq4st4rd007kuala1acd0cu7",
+    "35": "cmq3jqwp1000413292lqvwc4c",
+    "36": "cmq3jqwp2000c1329ttlguu10",
+    "37": "cmq3jqwp4000j13291dale7ym",
+    "38": "cmq3jqwp4000l13296kp8nr9o",
+    "39": "cmq3jr5pr000q1329ylk4x3on",
+    "40": "cmq3jr5ps000x1329t48sr1ug",
+    "41": "cmq3jr5pt00161329tdur5gky",
+    "42": "cmq3jr5pt00171329t54i1vn3"
+  },
+  "generatedAt": "2026-06-14T14:24:02.198Z",
+  "wrongCounts": {
+    "total": 42,
+    "oeq": 19,
+    "mcq": 23
+  }
 }

@@ -1,139 +1,140 @@
 {
   "patterns": [
     {
-      "name": "Stopping One Step Short",
-      "what": "The student states an immediate observation or intermediate step but fails to link it to the final consequence or the root cause required by the question.",
-      "specific_examples": [
-        {
-          "questionRef": "[20]",
-          "type": "oeq",
-          "whatWentWrong": "Identified that grasshoppers would decrease, but stopped short of explaining that this leads to less food for the birds."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Stated that no food reached the tomato, but failed to link this back to the root cause of the food-carrying tubes being removed."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Mentioned keeping the surface the same, but stopped short of explaining that this ensures a fair test by keeping only one changed variable."
-        }
-      ],
-      "strategic_advice": "When you see 'explain why' or 'explain how', use the **Cause-Effect-Consequence** framework. Don't just state what happens; always include a **'so that...'** or **'which means...'** clause to show the final result. Ask yourself, 'Did I answer the *why* all the way to the end?'",
-      "trigger_keywords": [
-        "Explain why",
-        "Explain how",
-        "Give a reason",
-        "Explain"
-      ]
-    },
-    {
-      "name": "Misinterpreting Experimental Data",
-      "what": "The student misreads graphs, tables, or experimental proxies, often confusing the measured variable with the actual concept being tested.",
+      "name": "Misreading Graphs and Data",
+      "what": "Benjamin sometimes misinterprets what graphs or experimental results are showing, such as assuming a shorter bar means less of an outcome rather than less time taken.",
       "specific_examples": [
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Misinterpreted the bar graph by assuming a shorter time meant less water lost, rather than water being lost more quickly."
+          "whatWentWrong": "Benjamin misread the graph, thinking a shorter bar meant less water was lost, rather than less time taken to lose water."
         },
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "Confused the amount of water collected with the amount of water held by the soil, picking the soil that let the most water pass through instead of the least."
+          "whatWentWrong": "He misunderstood the experiment's results, forgetting that the soil collecting the least water in the cylinder is actually the one holding the most water."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Failed to recognize that flat lines on a heating curve (melting and boiling) still represent the substance gaining heat."
+          "whatWentWrong": "He didn't realize that the flat lines on the temperature graph still represent the water gaining heat to change its state."
         }
       ],
-      "strategic_advice": "Before looking at the options, take a moment to **annotate the graph or table**. If a graph shows 'time taken', write down **'shorter time = faster rate'**. When an experiment uses a proxy (like water dripping through soil), explicitly write down the relationship: **'less water collected = more water held'**.",
+      "strategic_advice": "When you see a **graph or table**, always read the **axis labels and headings** carefully. Ask yourself, 'Does a smaller number mean less of the item, or does it mean it happened faster?'",
       "trigger_keywords": [
-        "Based on the graph",
+        "graph",
         "table",
         "results",
-        "conclude",
-        "observed"
+        "collected",
+        "time taken"
       ]
     },
     {
-      "name": "Vague Language & Missing Keywords",
-      "what": "The student uses everyday language or broad terms instead of the specific scientific vocabulary and key phrases required to earn full marks.",
+      "name": "Stopping Short in Explanations",
+      "what": "When explaining how things work, Benjamin tends to state the final outcome but occasionally misses the intermediate steps or the specific mechanism that causes it.",
       "specific_examples": [
         {
-          "questionRef": "[19]",
+          "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Used the vague phrase 'less things' instead of specific scientific terms like 'clearer water', 'more light', and 'photosynthesis'."
+          "whatWentWrong": "Benjamin correctly noted there would be fewer grasshoppers, but missed the connecting step that this means less food for the birds."
         },
         {
-          "questionRef": "[22]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Mentioned 'friction' but failed to explain the process in terms of energy conversion (kinetic energy converted to heat and sound energy)."
+          "whatWentWrong": "He observed that no food reached the tomato, but forgot to explain the mechanism, which is that the food-carrying tubes were removed."
         },
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Gave a generic answer about tubes bringing up water, missing crucial specific details like 'red-coloured water' and 'to all parts of the plant'."
+          "whatWentWrong": "He identified the food-carrying tubes but missed the crucial detail that the food is made in the leaves."
         }
       ],
-      "strategic_advice": "Avoid everyday words like 'things', 'stronger', or 'brought up'. When a question asks you to 'describe' or 'explain in terms of', scan your memory for the **exact scientific keywords** related to the topic (e.g., 'kinetic energy', 'photosynthesis', 'clearer water'). Always be as specific as possible.",
+      "strategic_advice": "When you see **explain why** or **describe how**, try to build a chain of events. Use phrases like **'which leads to'** or **'because the...'** to ensure you don't skip the middle steps.",
       "trigger_keywords": [
-        "Explain in terms of",
-        "State",
-        "Describe",
-        "What is the effect"
+        "explain why",
+        "describe how",
+        "give a reason",
+        "explain"
       ]
     },
     {
-      "name": "Faulty Logical Deductions",
-      "what": "The student makes incorrect logical leaps, such as assuming a lack of observation means a lack of structure, or confusing two distinct biological systems.",
+      "name": "Overlooking Specific Conditions",
+      "what": "Benjamin occasionally misses key constraint words in the question stem, such as 'not', or forgets which specific parts were altered in an experiment.",
       "specific_examples": [
         {
-          "questionRef": "[13]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Incorrectly deduced that because the white parts of the flower didn't change color, they must not have water tubes at all."
+          "whatWentWrong": "Benjamin missed the word 'not' in the question, choosing an example of a force instead of something that isn't."
         },
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "Confused the plant's transport systems, assuming that removing the food-carrying tubes would also prevent the flowers from getting water."
+          "whatWentWrong": "He forgot that only the food-carrying tubes were cut, meaning the water-carrying tubes were still working perfectly fine."
         },
         {
-          "questionRef": "[5]",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "Conflated the respiratory system with the circulatory system, incorrectly grouping lungs and gills into the latter."
+          "whatWentWrong": "He chose statements that might be true in general, rather than focusing strictly on what could be concluded from the specific observations in the experiment."
         }
       ],
-      "strategic_advice": "When evaluating statements, be careful not to overgeneralize. Just because a part didn't receive colored water doesn't mean it lacks tubes entirely. **Read each statement literally** and ask yourself, 'Does the experiment *prove* this, or am I making an assumption?' Keep distinct systems (like food vs. water tubes) strictly separate in your mind.",
+      "strategic_advice": "When you read a question, use your pencil to **circle words like 'not', 'only', or 'concluded from'**. This will remind you of the specific rules for that question.",
       "trigger_keywords": [
-        "Which statements can be concluded",
-        "observations",
-        "correct statement",
-        "Which of the following"
+        "not",
+        "only",
+        "concluded from",
+        "removed",
+        "false"
+      ]
+    },
+    {
+      "name": "Using General Scientific Terms",
+      "what": "Benjamin sometimes uses everyday descriptions instead of the precise scientific vocabulary needed to secure full marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin wrote 'Potential' energy, but the question required the more specific term, 'Elastic potential' energy."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He described the balloon stopping due to friction, but missed explaining it using the required energy terms like kinetic energy converting to heat and sound."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He mentioned the magnet 'is stronger', rather than describing the scientific effect on the ball, which is an increase in speed."
+        }
+      ],
+      "strategic_advice": "When a question asks about topics like energy or forces, always scan your memory for the **exact scientific terms**. Instead of saying 'it gets stronger', try to describe the **change in speed, direction, or energy conversion**.",
+      "trigger_keywords": [
+        "state the energy",
+        "explain in terms of",
+        "what is the effect",
+        "energy conversion"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
-    },
-    {
-      "idx": 2,
       "patternIndex": -1
     },
     {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -141,15 +142,15 @@
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 10,
@@ -161,27 +162,27 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 18,
@@ -189,23 +190,23 @@
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 24,
@@ -213,19 +214,55 @@
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 26,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 28,
       "patternIndex": -1
     }
-  ]
+  ],
+  "questionIdByIdx": {
+    "1": "cmp9ft2yj0018yrzr1cf5j8vi",
+    "2": "cmp9ft2ym001nyrzrmgavcts6",
+    "3": "cmp9ft2ym001oyrzrp2ijeggy",
+    "4": "cmp9ft2ym001ryrzr4jxv1wvf",
+    "5": "cmp9ftcjp0021yrzr46f387br",
+    "6": "cmp9ftcjp0022yrzr1dkp5w78",
+    "7": "cmp9caq1d000li9m6omfu5jgw",
+    "8": "cmp9caq1e000mi9m6scekksrk",
+    "9": "cmp9caq1e000ni9m6atbmyg4r",
+    "10": "cmp9djkcd0007tejjfluqhx8j",
+    "11": "cmp9djkcd0008tejj1rp7dqco",
+    "12": "cmoy16rbn0002lsp2fabqlvj6",
+    "13": "cmoy16rbn0003lsp285g4bin8",
+    "14": "cmoy16rbn0004lsp29yg24bv0",
+    "15": "cmoy16rbn0007lsp2t1ll070h",
+    "16": "cmoy16rbn0008lsp2586xrt9r",
+    "17": "cmoxyv0cl0029oeurya3100jf",
+    "18": "cmoxyv0cl002aoeurqab56k1f",
+    "19": "cmoxyv0cm002eoeur83f4cyuy",
+    "20": "cmoxyv0cm002foeurp38p525n",
+    "21": "cmoxyv0cm002goeurnbentt4z",
+    "22": "cmoxyv0cm002hoeur2htf2f2l",
+    "23": "cmoxyv0cm002ioeuri33e9llf",
+    "24": "cmoxyv4w3002moeurt9f4wes5",
+    "25": "cmoxyv4w3002roeur55hxyjol",
+    "26": "cmoxyv4w4002toeur8ok98pna",
+    "27": "cmoxyv4w4002zoeuruotgidx6",
+    "28": "cmoxyv4w50032oeur3ydh2ige"
+  },
+  "generatedAt": "2026-06-14T14:19:51.728Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 10,
+    "mcq": 18
+  }
 }

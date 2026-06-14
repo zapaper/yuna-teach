@@ -1,123 +1,119 @@
 {
   "patterns": [
     {
-      "name": "Incomplete Explanations",
-      "what": "The student states a correct claim or observation but stops one step short of providing the underlying scientific reason or citing specific evidence from the data.",
-      "specific_examples": [
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Identified the correct temperature and water vapour conditions but failed to cite the graph as evidence that the most eggs hatched there."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Identified the correct toy car but failed to explain that its rubber band was stretched by the greatest amount."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Chose the correct set-up but gave a vague reason ('Because it germinated') instead of citing the specific data showing it germinated earliest."
-        }
-      ],
-      "strategic_advice": "When you see 'explain why' or 'give a reason', always back up your claim with specific evidence from the data provided. Use a **so that...** or **because the data shows...** clause to connect your observation to the final scientific consequence. **Never assume the marker knows what you mean**; explicitly state the evidence.",
-      "trigger_keywords": [
-        "explain why",
-        "give a reason",
-        "based on the results",
-        "explain your answer"
-      ]
-    },
-    {
-      "name": "Vague Scientific Terminology",
-      "what": "The student describes a scientific phenomenon using everyday language or related concepts instead of the precise scientific keywords required.",
+      "name": "Using Precise Scientific Vocabulary",
+      "what": "Ruthie sometimes uses everyday words to describe her ideas, and would benefit from using specific scientific terms to make her answers stronger.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Described the exchange of gases between the fish and plant but failed to use the key terms 'respiration' and 'photosynthesis'."
+          "whatWentWrong": "Ruthie correctly understood the gas exchange between the fish and the plant, but she missed using the key scientific terms 'respiration' and 'photosynthesis'."
         },
         {
-          "questionRef": "[11]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Described the energy source as 'the wind from the turbine' instead of the precise scientific term 'moving air'."
+          "whatWentWrong": "She correctly identified the rubber band as the source of movement, but needed to use the specific term 'elastic potential energy'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Used the physics concept 'inertia' to explain the balloon's movement instead of the required energy term 'kinetic energy'."
+          "whatWentWrong": "Ruthie used the everyday word 'inertia' to explain the balloon's movement instead of the expected scientific term 'kinetic energy'."
         }
       ],
-      "strategic_advice": "Before writing your answer, pause and ask yourself: 'What is the specific Science topic being tested here?' Identify the **key scientific terms** related to that topic (e.g., kinetic energy, respiration) and use them instead of everyday words. **Avoid vague descriptions** when a specific term exists.",
+      "strategic_advice": "When a question asks about energy or processes, pause and think of the **exact scientific term** you learned in class. Instead of everyday words like 'wind' or 'rubber band', use terms like **moving air** or **elastic potential energy**.",
       "trigger_keywords": [
-        "what is the source",
-        "explain how",
-        "state one way",
-        "in terms of"
+        "What is the source",
+        "Explain how",
+        "State the energy"
       ]
     },
     {
-      "name": "Flawed Experimental Design Logic",
-      "what": "The student struggles with the rules of fair testing, such as identifying the correct control setup, stating the aim, or distinguishing between reliability and controlling variables.",
+      "name": "Linking Claims to Data",
+      "what": "When asked to explain her choices, Ruthie occasionally gives the correct final answer but forgets to include the specific evidence from the graph or table to prove it.",
       "specific_examples": [
         {
-          "questionRef": "[13]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Suggested repeating the experiment to improve accuracy, confusing reliability with the need to control a variable for a fair test."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "Chose a control setup that removed the glass cover, failing to realize that a valid control must only change one variable at a time."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "Stated the aim vaguely as 'to see how rough each surface is' instead of linking the independent variable to the dependent variable."
-        }
-      ],
-      "strategic_advice": "When dealing with experiments, always identify the **changed variable** (independent) and the **measured variable** (dependent). A fair test or control setup must keep **all other variables exactly the same**. When asked for an aim, use the format: **'To find out how [changed variable] affects [measured variable].'**",
-      "trigger_keywords": [
-        "control",
-        "fair test",
-        "aim of",
-        "more accurate",
-        "ensure"
-      ]
-    },
-    {
-      "name": "Misinterpreting Visual Data",
-      "what": "The student misreads charts, graphs, or diagrams by overlooking key labels, confusing categories with individual counts, or missing trend changes.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Looked at the habitat diagram and missed the distinction between individual counts and populations, ignoring the plants shown."
+          "whatWentWrong": "Ruthie correctly identified the best conditions for hatching, but forgot to explicitly state that the graph showed the most eggs hatched there."
         },
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "Looked at a bar graph and chose '5 organisms' instead of recognizing it showed 5 types of organisms with 30 individuals total."
+          "whatWentWrong": "Ruthie misread the graph's labels, confusing the number of types of organisms with the total number of individual organisms."
         },
         {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "Misinterpreted the kinetic energy graph, failing to recognize that the ball still has kinetic energy at point C because it is still moving."
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She correctly picked Set-up U, but her reason was a bit too general and didn't reference the specific data showing it germinated earliest."
         }
       ],
-      "strategic_advice": "Take an extra 10 seconds to carefully read the **axes, labels, and titles** of any graph or diagram. Pay attention to specific wording like 'types of' versus 'number of'. When analyzing a trend, trace the line with your finger to spot any **sudden changes or plateaus** before looking at the options.",
+      "strategic_advice": "When you see 'Based on the results' or 'Give a reason', always include a **'because the graph shows...'** clause. Make sure to quote the **specific data or trend** that led you to your answer.",
       "trigger_keywords": [
-        "based on the graph",
-        "based on the diagram",
-        "which of the following statements",
-        "results shown above"
+        "Based on the results",
+        "Based on the graph",
+        "Give a reason"
+      ]
+    },
+    {
+      "name": "Mastering Experimental Design",
+      "what": "Ruthie occasionally finds it tricky to pinpoint exactly what an experiment is testing, which can make it hard to state the aim or choose a fair control setup.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "She suggested repeating the experiment to make it more accurate, rather than controlling a variable like release height to ensure a fair test."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Ruthie had trouble identifying the correct control set-up, which needs to keep all conditions normal except for the one variable being tested."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "When stating the aim of the experiment, she missed mentioning how the changed variable (the surface) affects the measured variable (the distance)."
+        }
+      ],
+      "strategic_advice": "When asked about the aim or a fair test, always identify the **changed variable** and the **measured variable**. Use the formula: **'To find out how [changed variable] affects [measured variable]'**.",
+      "trigger_keywords": [
+        "control for his experiment",
+        "State the aim",
+        "make his results more accurate"
+      ]
+    },
+    {
+      "name": "Tracing Step-by-Step Processes",
+      "what": "In questions with multiple steps or moving parts, like energy conversions or food webs, Ruthie sometimes jumps to the end or misses a step in the sequence.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "When predicting the effect of a disease in a food web, she missed a step in how the population changes ripple through the different organisms."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Ruthie missed tracing the full electrical path, which led her to choose a switch that didn't complete the circuit for the most bulbs."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "She confused the starting energy of the battery, missing that it stores potential energy before converting it to electrical energy."
+        }
+      ],
+      "strategic_advice": "For questions involving circuits, food webs, or energy, use your pencil to **trace the path** or write out the **step-by-step sequence**. Don't skip straight to the end; check each connection one by one.",
+      "trigger_keywords": [
+        "energy conversion",
+        "affect the population",
+        "circuit",
+        "path"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -125,7 +121,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -133,31 +129,31 @@
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 8,
-      "patternIndex": 1
-    },
-    {
-      "idx": 9,
       "patternIndex": 0
     },
     {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 12,
@@ -173,7 +169,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 16,
@@ -181,7 +177,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -189,15 +185,15 @@
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 22,
@@ -209,7 +205,39 @@
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 3
     }
-  ]
+  ],
+  "questionIdByIdx": {
+    "1": "cmq5abzo20005r29w6ihwu4wc",
+    "2": "cmq5abzo30009r29wbajy5276",
+    "3": "cmq5abzo4000ir29w1q44i9hz",
+    "4": "cmq5abzo5000lr29wl5mdql5y",
+    "5": "cmp2ldext0005gnabf8tene22",
+    "6": "cmp2ldklp000ignaber8u2qnp",
+    "7": "cmozn9end0008gf4go8pnvbmq",
+    "8": "cmozn9end000agf4g5wgqhy7v",
+    "9": "cmozn9end000bgf4gbh2b9na4",
+    "10": "cmowtq1ts001kexaiti764dg1",
+    "11": "cmowtq1ts001lexaii5jz0tgi",
+    "12": "cmowtq1tu001mexaibu1203a7",
+    "13": "cmowtq1tw001pexaigidddyrj",
+    "14": "cmowtnrao000vexai58djz6l8",
+    "15": "cmowtnrap000zexai6gag3xhm",
+    "16": "cmowtnrap0012exai4yo1ltiy",
+    "17": "cmowtnrap0013exai04ex9la2",
+    "18": "cmos5pzvx000714n1sqiv9w5u",
+    "19": "cmos5pzvy000c14n15ep4t99f",
+    "20": "cmos5pzvy000g14n1gukcma9n",
+    "21": "cmos5pzvz000i14n1ksnxufkz",
+    "22": "cmos5pzvz000j14n1elan2op0",
+    "23": "cmou110da002r954y6ri0hi34",
+    "24": "cmou110dc0036954yhxbdcwtn"
+  },
+  "generatedAt": "2026-06-14T14:25:22.405Z",
+  "wrongCounts": {
+    "total": 24,
+    "oeq": 9,
+    "mcq": 15
+  }
 }
