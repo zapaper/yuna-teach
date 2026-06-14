@@ -179,13 +179,17 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
         </div>
       </section>
 
-      {/* Swipe stage — Overview slides left, Detail slides in from right */}
-      <div className="relative overflow-hidden">
-        <div className={`transition-all duration-300 ease-out ${isOverview ? "translate-x-0 opacity-100" : "-translate-x-[8%] opacity-0 pointer-events-none absolute inset-0"}`}>
-          <OverviewPanel data={data} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} onShowFullProgress={() => setView({ kind: "fullProgress" })} />
-        </div>
-        <div className={`transition-all duration-300 ease-out ${!isOverview ? "translate-x-0 opacity-100" : "translate-x-[8%] opacity-0 pointer-events-none absolute inset-0"}`}>
-          {view && <DetailPanel data={data} view={view} parentId={parentId} studentId={studentId} onBack={() => setView(null)} />}
+      {/* Swipe stage — flex row holds both panels side-by-side; we
+          translate the whole row by -100% to slide overview off
+          screen left and bring the detail in from the right. */}
+      <div className="overflow-hidden">
+        <div className={`flex transition-transform duration-500 ease-out will-change-transform ${isOverview ? "translate-x-0" : "-translate-x-full"}`}>
+          <div className="w-full shrink-0">
+            <OverviewPanel data={data} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} onShowFullProgress={() => setView({ kind: "fullProgress" })} />
+          </div>
+          <div className="w-full shrink-0">
+            {view !== null && <DetailPanel data={data} view={view} parentId={parentId} studentId={studentId} onBack={() => setView(null)} />}
+          </div>
         </div>
       </div>
     </>
@@ -314,17 +318,21 @@ function DetailPanel({ data, view, parentId, studentId, onBack }: { data: Extrac
         Back to overview
       </button>
       {view.kind === "fullProgress" && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-baseline gap-3">
-            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Full Progress Report</h2>
-            <p className="text-xs text-slate-400">— {data.childFirst}&apos;s topic-by-topic accuracy. Click a bar to drill in.</p>
-          </div>
-          <iframe
-            src={`/progress/${studentId}?parentId=${parentId}`}
-            className="w-full"
-            style={{ height: "78vh", border: 0 }}
-            title={`${data.childFirst} full progress`}
-          />
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Full Progress Report</h2>
+          <p className="text-sm text-slate-600 leading-relaxed mb-6">
+            {data.childFirst}&apos;s topic-by-topic accuracy with the clickable bar chart + per-topic detail panel lives on the main Progress page.
+          </p>
+          <a
+            href={`/progress/${studentId}?parentId=${parentId}`}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#003366] text-white font-bold text-sm hover:opacity-95"
+          >
+            Open Full Progress Report
+            <span className="material-symbols-outlined text-base">open_in_new</span>
+          </a>
+          <p className="text-xs text-slate-400 mt-6 italic">Embedding the chart directly into the Tutor page is on the roadmap — for now it opens in a new tab.</p>
         </section>
       )}
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
