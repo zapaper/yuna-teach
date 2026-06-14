@@ -725,7 +725,7 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { stude
 
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Full Progress Report</h2>
+      <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Full Progress Report</h2>
       <p className="text-sm text-slate-600 leading-relaxed mb-6">{childFirst}&apos;s per-topic accuracy with the clickable bar chart. Tap any bar to see history + assign focused practice.</p>
       {assignedToast && (
         <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold">
