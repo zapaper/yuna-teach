@@ -1,0 +1,852 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping One Step Short",
+      "what": "Mark sometimes does the heavy lifting to find an intermediate value, but occasionally stops one step short of the final consequence requested by the question.",
+      "specific_examples": [
+        {
+          "questionRef": "[43]",
+          "type": "mcq",
+          "whatWentWrong": "He correctly found the fraction of the cake left for the two friends, but forgot to divide it by two to find what each friend got."
+        },
+        {
+          "questionRef": "[108]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully calculated the number of steps in the pattern, but stopped just before adding 1 to state the final Figure Number."
+        },
+        {
+          "questionRef": "[118]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly computed the fraction division, but left the answer as an improper fraction instead of converting it to a mixed number as requested."
+        }
+      ],
+      "strategic_advice": "When you finish a calculation, make it a habit to re-read the very last sentence of the question. Look out for **trigger words** like 'each', 'mixed number', or 'Figure Number'. Ask yourself, 'Did I answer the specific question being asked, or just find a useful middle step?'",
+      "trigger_keywords": [
+        "each",
+        "mixed number",
+        "figure number",
+        "usual price"
+      ]
+    },
+    {
+      "name": "Misidentifying the Reference Whole",
+      "what": "Mark tends to calculate the correct numbers but occasionally assigns them to the wrong target, such as using the total amount instead of a specific part, or swapping answers for different parts.",
+      "specific_examples": [
+        {
+          "questionRef": "[122]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for the fraction of savings compared to expenditure, he compared the savings to the total amount instead."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly calculated both angles, but accidentally swapped the answers for part (a) and part (b)."
+        },
+        {
+          "questionRef": "[60]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly understood the tray arrangement, but wrote down the total number of trays instead of the specific number of trays with 10 eggs."
+        }
+      ],
+      "strategic_advice": "Pay close attention to the wording around fractions and ratios. When you see phrases like 'fraction of his expenditure' or 'ratio of men to women', circle the **reference words** so you don't accidentally use the total. For multi-part questions, double-check that your final numbers are written next to the correct letter!",
+      "trigger_keywords": [
+        "fraction of",
+        "ratio of",
+        "part (a)",
+        "part (b)"
+      ]
+    },
+    {
+      "name": "Unit Omissions and Mix-ups",
+      "what": "Mark occasionally forgets to write the final units, or mixes up units of length with units of area or angles.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct numerical area but forgot to include the 'cm²' unit in his final answer."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly calculated the perimeter but accidentally used 'cm²' (which is for area) instead of 'cm' (for length)."
+        },
+        {
+          "questionRef": "[144]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully found the total weight in grams, but missed the instruction to give the final answer in kilograms."
+        }
+      ],
+      "strategic_advice": "Always check if the question provides a unit. If it asks 'How many kilograms' or 'Find the area', write the unit down immediately next to your working space so you don't forget it. Remember that **perimeter is a length (cm)**, while **area is a surface (cm²)**.",
+      "trigger_keywords": [
+        "area",
+        "perimeter",
+        "kilograms",
+        "cm²",
+        "cm"
+      ]
+    },
+    {
+      "name": "Partial Circle Perimeter Traps",
+      "what": "When finding the perimeter of semicircles or quarter-circles, Mark sometimes uses the formula for a full circle or forgets to include the straight edges.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He calculated the circumference of a full circle and added the diameter, instead of halving the circumference for a semicircle."
+        },
+        {
+          "questionRef": "[93]",
+          "type": "mcq",
+          "whatWentWrong": "He correctly found the curved length of the quarter-circle, but forgot to add the two straight radius edges to complete the perimeter."
+        },
+        {
+          "questionRef": "[97]",
+          "type": "oeq",
+          "whatWentWrong": "He calculated the curved parts of the figure beautifully, but overlooked the straight line segments when finding the total perimeter."
+        }
+      ],
+      "strategic_advice": "When a question asks for the perimeter of a shape with curves, trace the entire outside edge with your pencil. This physical action will remind you to include **both the curved arcs and the straight edges**. Also, double-check if the shape is a **semicircle (divide by 2)** or a **quarter-circle (divide by 4)**.",
+      "trigger_keywords": [
+        "perimeter",
+        "semicircle",
+        "quarter-circle",
+        "figure"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 1
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": 1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 0
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": 1
+    },
+    {
+      "idx": 58,
+      "patternIndex": 0
+    },
+    {
+      "idx": 59,
+      "patternIndex": -1
+    },
+    {
+      "idx": 60,
+      "patternIndex": 1
+    },
+    {
+      "idx": 61,
+      "patternIndex": 0
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": 1
+    },
+    {
+      "idx": 64,
+      "patternIndex": 0
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": 1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 0
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": 1
+    },
+    {
+      "idx": 70,
+      "patternIndex": 0
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": 1
+    },
+    {
+      "idx": 73,
+      "patternIndex": 0
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": 1
+    },
+    {
+      "idx": 76,
+      "patternIndex": 0
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": 1
+    },
+    {
+      "idx": 79,
+      "patternIndex": 0
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": 1
+    },
+    {
+      "idx": 82,
+      "patternIndex": 0
+    },
+    {
+      "idx": 83,
+      "patternIndex": -1
+    },
+    {
+      "idx": 84,
+      "patternIndex": 1
+    },
+    {
+      "idx": 85,
+      "patternIndex": -1
+    },
+    {
+      "idx": 86,
+      "patternIndex": 2
+    },
+    {
+      "idx": 87,
+      "patternIndex": 2
+    },
+    {
+      "idx": 88,
+      "patternIndex": -1
+    },
+    {
+      "idx": 89,
+      "patternIndex": -1
+    },
+    {
+      "idx": 90,
+      "patternIndex": -1
+    },
+    {
+      "idx": 91,
+      "patternIndex": -1
+    },
+    {
+      "idx": 92,
+      "patternIndex": -1
+    },
+    {
+      "idx": 93,
+      "patternIndex": 3
+    },
+    {
+      "idx": 94,
+      "patternIndex": 3
+    },
+    {
+      "idx": 95,
+      "patternIndex": -1
+    },
+    {
+      "idx": 96,
+      "patternIndex": -1
+    },
+    {
+      "idx": 97,
+      "patternIndex": 3
+    },
+    {
+      "idx": 98,
+      "patternIndex": -1
+    },
+    {
+      "idx": 99,
+      "patternIndex": -1
+    },
+    {
+      "idx": 100,
+      "patternIndex": -1
+    },
+    {
+      "idx": 101,
+      "patternIndex": -1
+    },
+    {
+      "idx": 102,
+      "patternIndex": -1
+    },
+    {
+      "idx": 103,
+      "patternIndex": 2
+    },
+    {
+      "idx": 104,
+      "patternIndex": -1
+    },
+    {
+      "idx": 105,
+      "patternIndex": -1
+    },
+    {
+      "idx": 106,
+      "patternIndex": -1
+    },
+    {
+      "idx": 107,
+      "patternIndex": -1
+    },
+    {
+      "idx": 108,
+      "patternIndex": 0
+    },
+    {
+      "idx": 109,
+      "patternIndex": -1
+    },
+    {
+      "idx": 110,
+      "patternIndex": 0
+    },
+    {
+      "idx": 111,
+      "patternIndex": -1
+    },
+    {
+      "idx": 112,
+      "patternIndex": -1
+    },
+    {
+      "idx": 113,
+      "patternIndex": 1
+    },
+    {
+      "idx": 114,
+      "patternIndex": -1
+    },
+    {
+      "idx": 115,
+      "patternIndex": -1
+    },
+    {
+      "idx": 116,
+      "patternIndex": -1
+    },
+    {
+      "idx": 117,
+      "patternIndex": -1
+    },
+    {
+      "idx": 118,
+      "patternIndex": 0
+    },
+    {
+      "idx": 119,
+      "patternIndex": -1
+    },
+    {
+      "idx": 120,
+      "patternIndex": 3
+    },
+    {
+      "idx": 121,
+      "patternIndex": 3
+    },
+    {
+      "idx": 122,
+      "patternIndex": 1
+    },
+    {
+      "idx": 123,
+      "patternIndex": 3
+    },
+    {
+      "idx": 124,
+      "patternIndex": 1
+    },
+    {
+      "idx": 125,
+      "patternIndex": -1
+    },
+    {
+      "idx": 126,
+      "patternIndex": -1
+    },
+    {
+      "idx": 127,
+      "patternIndex": -1
+    },
+    {
+      "idx": 128,
+      "patternIndex": -1
+    },
+    {
+      "idx": 129,
+      "patternIndex": 3
+    },
+    {
+      "idx": 130,
+      "patternIndex": 1
+    },
+    {
+      "idx": 131,
+      "patternIndex": -1
+    },
+    {
+      "idx": 132,
+      "patternIndex": 1
+    },
+    {
+      "idx": 133,
+      "patternIndex": 3
+    },
+    {
+      "idx": 134,
+      "patternIndex": -1
+    },
+    {
+      "idx": 135,
+      "patternIndex": 1
+    },
+    {
+      "idx": 136,
+      "patternIndex": 1
+    },
+    {
+      "idx": 137,
+      "patternIndex": -1
+    },
+    {
+      "idx": 138,
+      "patternIndex": -1
+    },
+    {
+      "idx": 139,
+      "patternIndex": 3
+    },
+    {
+      "idx": 140,
+      "patternIndex": -1
+    },
+    {
+      "idx": 141,
+      "patternIndex": 1
+    },
+    {
+      "idx": 142,
+      "patternIndex": -1
+    },
+    {
+      "idx": 143,
+      "patternIndex": -1
+    },
+    {
+      "idx": 144,
+      "patternIndex": 2
+    },
+    {
+      "idx": 145,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq4sza6e00ekualaa4ysns0m",
+    "2": "cmq4sza6f00elualao02cwxpf",
+    "3": "cmq4sc52a00043bw7h1l1chqw",
+    "4": "cmq4sc52a00073bw7zfkf1wgl",
+    "5": "cmq4sc52a00083bw7u09khlhg",
+    "6": "cmq4sc52b00093bw7avgszxy5",
+    "7": "cmq4sc52b000a3bw7rm03qeeh",
+    "8": "cmq4sc52b000b3bw7519xte0g",
+    "9": "cmq3h3lbp000g60isj2ldddtt",
+    "10": "cmq3489bb001dj5dj5nac1gz4",
+    "11": "cmq3489bb001fj5djovuapwda",
+    "12": "cmpz7qong00eax52f34b1bj83",
+    "13": "cmpmewwjb000bfk6tuvo1zvsm",
+    "14": "cmpmefp8v000poa94sn1shtyq",
+    "15": "cmpmefp8w000uoa94j53w1nvr",
+    "16": "cmq0oc6fc003bc8ksjyddfq4j",
+    "17": "cmozcbl4g001j11l7415hbsld",
+    "18": "cmozcbl4g001k11l7f437t80r",
+    "19": "cmq60bjz0003cpove1zxna1wp",
+    "20": "cmq60bjyz0036pove0w5ffedg",
+    "21": "cmq25eq61003be8x4808gqf7o",
+    "22": "cmq25eq62003fe8x4qfykr5m1",
+    "23": "cmq1vu75m003brupk4sol792b",
+    "24": "cmq1vu75m003frupk7pgjiptc",
+    "25": "cmq0a0204003bd3mfay8gde0m",
+    "26": "cmq0a0204003fd3mfy5mf0nfv",
+    "27": "cmq0uty5h003by88mr9kn58yk",
+    "28": "cmq0uty5h003fy88mst9ntl0n",
+    "29": "cmq1v49ng003bfbd5hhgj3u3s",
+    "30": "cmq1v49ng003ffbd59bmmbovj",
+    "31": "cmpzn471h003bbd1aqq7qgzof",
+    "32": "cmpzn471h003fbd1alo7s0wcb",
+    "33": "cmq0u4a8b003b6ipxo3o722q1",
+    "34": "cmq0u4a8b003f6ipxprtk8919",
+    "35": "cmq1lynj7003bi8061vuznid8",
+    "36": "cmq1lynj7003fi806ymp1fwcj",
+    "37": "cmq0n0s4i003b9ahmjhih0lrv",
+    "38": "cmq130a14003bgqr9lfzoxnid",
+    "39": "cmpuium230007xpplnr0x96ps",
+    "40": "cmpuium23000bxppla8qrvn86",
+    "41": "cmq1xmurh003bjek6hm3kacsp",
+    "42": "cmq1xmurh003fjek65yfd186c",
+    "43": "cmq1v3kyb0033fbd5ep5dvdg6",
+    "44": "cmq1v3kya0031fbd5dfuow5sw",
+    "45": "cmq1v3kya0032fbd5pgfpiwh6",
+    "46": "cmq0u3cxn00336ipxqdultslo",
+    "47": "cmq0u3cxn00316ipxvv5i15ur",
+    "48": "cmq0u3cxn00326ipxo1d58fvh",
+    "49": "cmq0mztkd00339ahmp1lnwkh4",
+    "50": "cmq0mztkd00319ahmj3ke0dlo",
+    "51": "cmq0mztkd00329ahmlnjugbes",
+    "52": "cmq1xlzxs0033jek689akb0sf",
+    "53": "cmq1xlzxs0031jek6zqjyn4ch",
+    "54": "cmq1xlzxs0032jek6v08uisvt",
+    "55": "cmq1lxn3r0033i806xziq7120",
+    "56": "cmq1lxn3r0031i806k5x7eqv5",
+    "57": "cmq1lxn3r0032i806vwiujmfe",
+    "58": "cmq609zga002upovemp0rc04q",
+    "59": "cmq609zgb0032poveblrnxz9h",
+    "60": "cmq609zgb0033poveuz8x3iky",
+    "61": "cmq25dnya0033e8x4h6hnvti0",
+    "62": "cmq25dnya0031e8x4fel3lvo0",
+    "63": "cmq25dnya0032e8x4j6j0hrxl",
+    "64": "cmq12zday0033gqr94vee29t2",
+    "65": "cmq12zday0031gqr9ltl1gu0k",
+    "66": "cmq12zday0032gqr98ib6tdus",
+    "67": "cmpzn39nm0033bd1ae88hcx3c",
+    "68": "cmpzn39nl0031bd1azxcl1lrx",
+    "69": "cmpzn39nl0032bd1a1ggn1i13",
+    "70": "cmq0ob8vg0033c8kszjroeua0",
+    "71": "cmq0ob8vg0031c8kss7o892ga",
+    "72": "cmq0ob8vg0032c8ksei795wn7",
+    "73": "cmq0ut44p0033y88mcur4372w",
+    "74": "cmq0ut44p0031y88m73u8wqv0",
+    "75": "cmq0ut44p0032y88mdl2s2np5",
+    "76": "cmq09yz1h0033d3mfwgd9c8tn",
+    "77": "cmq09yz1h0031d3mfgtd18fls",
+    "78": "cmq09yz1h0032d3mf1a636s8h",
+    "79": "cmq1vt4zt0033rupkpr0rlsog",
+    "80": "cmq1vt4zt0031rupkxk7quwie",
+    "81": "cmq1vt4zt0032rupk34xld36k",
+    "82": "cmozc5ics000i11l7afgmmk27",
+    "83": "cmozc5ics000k11l75z4mv8xc",
+    "84": "cmozc5ics000m11l7u83ajdmr",
+    "85": "cmoy6367o000wlsp29f4hl2rb",
+    "86": "cmoxn0s960005nwgmb6ywue8a",
+    "87": "cmoxn0s97000bnwgm7s0d1jlj",
+    "88": "cmotxzsv3004yd15stdps1vop",
+    "89": "cmotxzsv30050d15shpyqymfy",
+    "90": "cmow6nmvh000kwvlemanberft",
+    "91": "cmotxzo8h004pd15syqakvzs4",
+    "92": "cmotxzo8h004qd15suhefikzo",
+    "93": "cmo7yv1sa000g12ohffl5454o",
+    "94": "cmo7yv1sa000h12ohuymzj71n",
+    "95": "cmo7yv1sb000i12ohjac3ybxq",
+    "96": "cmo7yv1sb000j12ohbtt0q5ee",
+    "97": "cmo7yv1sb000k12oh7ku9vxp5",
+    "98": "cmo8eh2vk000213zzzf72zd6c",
+    "99": "cmo8eh2vk000513zzgqclqg8r",
+    "100": "cmo8eh2vk000a13zzfgb41fdr",
+    "101": "cmo8eh2vk000f13zz7a07q7x5",
+    "102": "cmnzo3llc003sp5jjq1gy330z",
+    "103": "cmo2so82k000k425b9xt4he3w",
+    "104": "cmo2so82k000m425brpzg2i08",
+    "105": "cmnzrh5nn001opnvpzh20ne45",
+    "106": "cmnx6kwyd000gi16wx63g3ytr",
+    "107": "cmnx4bosh002v133dkkn75qgd",
+    "108": "cmntmt2i200b51330q52b8g2b",
+    "109": "cmnsw23f8000d5nic0m6ti94i",
+    "110": "cmnsw23f8000g5nicjmzv8moe",
+    "111": "cmnsvqj2h00261te77vrjzg84",
+    "112": "cmnsvlpia001i1te7hh9xahh9",
+    "113": "cmnsvlpia001n1te71ii7qq6p",
+    "114": "cmnsv4zrs00041te7a05yaiy2",
+    "115": "cmnsv4zrt000c1te71z97jm8d",
+    "116": "cmnsv4zrt000e1te7jbwzfsmx",
+    "117": "cmniebk9o000d5pijd76iqbqu",
+    "118": "cmniebk9o000e5pij4946h1r9",
+    "119": "cmniebk9o000g5pijb0gd1aff",
+    "120": "cmnh76ndz005de0gjn9iam3ng",
+    "121": "cmnh4m38g0032e0gjpuwscwcb",
+    "122": "cmnh4g1ox001te0gjqj21l0xw",
+    "123": "cmnfyx6wd004qalke8ehn15lm",
+    "124": "cmnfyx6wd004yalkepc3pkzup",
+    "125": "cmnfyx6wd0051alke1bpz5rrk",
+    "126": "cmnfyulo70046alke1fzmeoqz",
+    "127": "cmnfyulo8004balkessrdr5x8",
+    "128": "cmnfyqdhl003halkecuruf83p",
+    "129": "cmnfyqdhm003kalkemxavp5tq",
+    "130": "cmnfyqdhm003nalkel7d765se",
+    "131": "cmnfyqdhm003talkekv41wnce",
+    "132": "cmnfyqdhm003xalkegwt7ta9h",
+    "133": "cmnfydywn002dalke0xhx77ke",
+    "134": "cmnfydywo002falkedyogn5mj",
+    "135": "cmnfydywo002galke216tacrx",
+    "136": "cmnfydywo002nalkebirkwkpl",
+    "137": "cmnfydywo002ralkebuf5u2qq",
+    "138": "cmnfxwsoh000oalke73rkybdu",
+    "139": "cmnfxwsoi000salkeqsuwj0pz",
+    "140": "cmnfxwsoi000walkeui4co64k",
+    "141": "cmnfxwsoi000xalke7ts49c52",
+    "142": "cmnd16sg90013f406kamx7fc1",
+    "143": "cmnd0zblc000bf406s970wspy",
+    "144": "cmnbkbkq8000fstjgtdans86k",
+    "145": "cmn9vsfnh000910ti521fqwng"
+  },
+  "generatedAt": "2026-06-14T15:22:10.155Z",
+  "wrongCounts": {
+    "total": 145,
+    "oeq": 91,
+    "mcq": 54
+  }
+}
