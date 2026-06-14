@@ -512,13 +512,16 @@ function LoomiAvatar() {
         autoPlay
         muted
         playsInline
+        loop
         preload="auto"
         onEnded={() => setCur(prev => (prev + 1) % videos.length)}
-        // mixBlendMode multiply drops the white background of the
-        // source video so the owl shows on the white circle. Mirrors
-        // the student-dashboard avatar.
-        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-        style={{ mixBlendMode: "multiply" }}
+        // object-cover so the owl fills the circle; the source video
+        // already has a near-white background that blends cleanly
+        // with the white circle BG, so we no longer need mixBlendMode
+        // multiply (which appears to suppress the entire <video> render
+        // on Safari iPad — owl was invisible inside the circle even
+        // though the source frames clearly show it).
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
       {/* Hidden preloaders for the other two clips so the swap is instant. */}
       {videos.filter((_, i) => i !== cur).map(src => (
