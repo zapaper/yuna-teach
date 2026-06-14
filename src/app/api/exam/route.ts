@@ -4,6 +4,10 @@ import { isAdmin } from "@/lib/admin";
 import { bumpUserActivity } from "@/lib/track-activity";
 import { resolveActor } from "@/lib/auth-guard";
 
+// Throttle for the stale-extraction cleanup (see GET below). Module-
+// scoped so it survives across requests on the same Node instance.
+let LAST_STALE_CLEANUP = 0;
+
 export async function GET(request: NextRequest) {
   // Caller from session. Admins may pass ?userId=<target> to view
   // another user's papers (legacy admin "view as user"); non-admins
@@ -125,15 +129,19 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Auto-fail papers stuck in "processing" for more than 15 minutes (based on updatedAt)
-  const staleThreshold = new Date(Date.now() - 15 * 60 * 1000);
-  await prisma.examPaper.updateMany({
-    where: {
-      extractionStatus: "processing",
-      updatedAt: { lt: staleThreshold },
-    },
-    data: { extractionStatus: "failed" },
-  });
+  // Auto-fail papers stuck in "processing" for more than 15 minutes.
+  // Used to run on every GET, which added ~1 s to every dashboard
+  // load. Now throttled to once per process per 5 minutes via an
+  // in-memory timestamp — there are dozens of GETs every minute on
+  // a busy dashboard but at most one stale-cleanup write per 5 min.
+  if (Date.now() - LAST_STALE_CLEANUP > 5 * 60 * 1000) {
+    LAST_STALE_CLEANUP = Date.now();
+    const staleThreshold = new Date(Date.now() - 15 * 60 * 1000);
+    prisma.examPaper.updateMany({
+      where: { extractionStatus: "processing", updatedAt: { lt: staleThreshold } },
+      data: { extractionStatus: "failed" },
+    }).catch(err => console.warn("[exam] stale-cleanup updateMany failed:", err));
+  }
 
   // Chinese pathway gating: while the Chinese fork is being built, only
   // admin users see Chinese papers in any list view. Apply on top of
@@ -163,11 +171,17 @@ export async function GET(request: NextRequest) {
     where = where ? { AND: [where as any, hideChineseMaster] } : hideChineseMaster;
   }
 
+  // Students never have clone children (clones are MASTER-side rows);
+  // pulling that aggregate runs a wasted subquery per paper. Limit
+  // the _count to what each role's response actually consumes.
+  const isStudentForSelect = role === "STUDENT";
   const papers = await prisma.examPaper.findMany({
     where,
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { questions: true, clones: true } },
+      _count: isStudentForSelect
+        ? { select: { questions: true } }
+        : { select: { questions: true, clones: true } },
       assignedTo: { select: { id: true, name: true } },
     },
   });
@@ -327,7 +341,10 @@ export async function GET(request: NextRequest) {
         completedAt: p.completedAt?.toISOString() ?? null,
         markingStatus: p.markingStatus ?? null,
         extractionStatus: p.extractionStatus ?? null,
-        assignmentCount: p._count.clones,
+        // _count.clones is omitted from the student select above (no
+        // student ever has clones). Fall back to 0 so the response
+        // shape stays uniform.
+        assignmentCount: (p._count as { clones?: number }).clones ?? 0,
         // Per-student last-assigned timestamp lookup. UI shows the entry for
         // the currently selected student so the parent sees 'Last assigned
         // 3 days ago' inline next to the Assign button.

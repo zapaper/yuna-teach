@@ -368,17 +368,15 @@ function boldifyHtml(s: string): string {
 
 function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void }) {
   const t = data.topline;
-  // Pending-assignment topic: when set, the confirmation modal is
-  // visible. Confirming POSTs to /api/focused-test (or /api/daily-quiz
-  // for English sections), clears `pending`, and shows a toast.
-  const [pending, setPending] = useState<{ topic: string } | null>(null);
-  const [creating, setCreating] = useState(false);
+  // Inline (no modal) assign flow — clicking the topic button POSTs
+  // straight to /api/focused-test. `creatingTopic` is the topic whose
+  // request is in flight so we can spinner that row only.
+  const [creatingTopic, setCreatingTopic] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  async function confirmAssign() {
-    if (!pending) return;
-    const topic = pending.topic;
-    setCreating(true);
+  async function assignTopic(topic: string) {
+    if (creatingTopic) return;
+    setCreatingTopic(topic);
     try {
       const subjLc = data.subject.toLowerCase();
       const subjectArg = subjLc.includes("math") ? "Mathematics" : subjLc.includes("science") ? "Science" : data.subject;
@@ -388,11 +386,10 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) { alert(j.error || "Failed to create focused practice"); return; }
-      setPending(null);
       setToast(`Focused practice assigned: ${topic}`);
       setTimeout(() => setToast(null), 2800);
     } finally {
-      setCreating(false);
+      setCreatingTopic(null);
     }
   }
 
@@ -403,24 +400,6 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[110] bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2">
           <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           <span className="font-bold text-sm">{toast}</span>
-        </div>
-      )}
-      {/* Confirmation modal — dim backdrop + centred card. */}
-      {pending && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => !creating && setPending(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-headline font-extrabold text-xl text-[#001e40] mb-2">Assign Focused Practice?</h3>
-            <p className="text-sm text-slate-600 leading-relaxed mb-5">
-              Loomi will build {data.childFirst} a Focused Practice paper on <strong className="text-[#001e40]">{pending.topic}</strong> ({data.subject}). It will appear in {data.childFirst}&apos;s home as a new assignment.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setPending(null)} disabled={creating} className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
-              <button type="button" onClick={confirmAssign} disabled={creating} className="px-5 py-2 rounded-xl text-sm font-bold bg-[#003366] text-white hover:bg-[#001e40] disabled:opacity-50 inline-flex items-center gap-2">
-                {creating && <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-                {creating ? "Assigning…" : "Assign"}
-              </button>
-            </div>
-          </div>
         </div>
       )}
       {/* Topline — small headline strip; the chart below is the
@@ -503,8 +482,15 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                   <p className="font-semibold text-[#001e40] text-base">{t.topic}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{t.attempts} attempts · {t.pct}% avg</p>
                 </div>
-                <button onClick={() => setPending({ topic: t.topic })} className="text-sm font-semibold text-[#003366] hover:text-violet-600 whitespace-nowrap">
-                  Assign Focused Practice →
+                <button
+                  type="button"
+                  onClick={() => assignTopic(t.topic)}
+                  disabled={creatingTopic === t.topic}
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap"
+                >
+                  {creatingTopic === t.topic
+                    ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Assigning…</>
+                    : <><span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>target</span>Assign Focused Practice</>}
                 </button>
               </div>
             ))}

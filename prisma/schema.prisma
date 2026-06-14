@@ -99,6 +99,11 @@ model SpellingTest {
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   words Word[]
 
+  // /api/tests filters by userId. With no index, the seq-scan + per-row
+  // word _count aggregate was 4.5 s on a busy DB. Index drops it to
+  // ~50 ms. (The home page no longer fetches tests on mount, but
+  // /spelling and the legacy admin view still query it.)
+  @@index([userId])
   @@map("spelling_tests")
 }
 
@@ -181,6 +186,18 @@ model ExamPaper {
   clones     ExamPaper[]    @relation("ExamClones")
   questions  ExamQuestion[]
 
+  // Indexes for the hot home / dashboard paths.
+  // - assignedToId: every student-home /api/exam call filters by this.
+  // - userId: the parent path filters here.
+  // - sourceExamId: clone-fan-out lookups + the print-stamp updateMany.
+  // - completedAt: skippedMarks scans + recent-activity filters.
+  // - markingStatus + paperType: list filters across the dashboards.
+  @@index([assignedToId])
+  @@index([userId])
+  @@index([sourceExamId])
+  @@index([completedAt])
+  @@index([markingStatus])
+  @@index([paperType])
   @@map("exam_papers")
 }
 
@@ -275,6 +292,16 @@ model ExamQuestion {
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
+  // Hot path indexes:
+  // - examPaperId: every nested-question query filters by this — most
+  //   common Prisma table lookup in the whole app.
+  // - sourceQuestionId: tutor + workshop wrongs lookups.
+  // - (examPaperId, studentAnswer): the skipped-marks scan in /api/exam
+  //   asks 'questions in this set of papers where studentAnswer =
+  //   __SKIPPED__'; a composite index makes that an index-only scan.
+  @@index([examPaperId])
+  @@index([sourceQuestionId])
+  @@index([examPaperId, studentAnswer])
   @@map("exam_questions")
 }
 
@@ -309,6 +336,12 @@ model ParentStudent {
   student User @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([parentId, studentId])
+  // The composite unique above gives us a (parentId, studentId) index,
+  // which Postgres can use for queries filtering on parentId (leftmost
+  // prefix). For the student's user lookup at /api/users, we filter on
+  // studentId alone — which the composite can't service efficiently
+  // — so add a standalone studentId index.
+  @@index([studentId])
   @@map("parent_students")
 }
 
