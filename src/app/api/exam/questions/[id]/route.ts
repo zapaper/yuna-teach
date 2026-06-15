@@ -40,12 +40,23 @@ export async function PATCH(
   // Per-question PATCH fires once per MCQ submission. Logging on every
   // success was burying signal in noise (dozens of identical lines per
   // submitted paper). Only log on errors / unusual paths.
+  //
+  // Performance: when the patch ONLY touches studentAnswer (the common
+  // case — fires per kid click), skip the include of the parent paper +
+  // every sibling's marksAwarded AND skip the follow-up score-recalc
+  // update. Both are only needed when marksAwarded itself is being
+  // patched. This used to make every studentAnswer PATCH 2-3s instead
+  // of ~200ms, which compounded into 30-45s of (b2) PATCH 15 answers
+  // in the smoke test.
+  const needsScoreRecalc = "marksAwarded" in body;
   let question;
   try {
     question = await prisma.examQuestion.update({
       where: { id },
       data,
-      include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+      ...(needsScoreRecalc
+        ? { include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } } }
+        : { select: { id: true, examPaperId: true } }),
     });
   } catch (err: unknown) {
     console.warn("[questions PATCH] error for id:", id, "fields:", Object.keys(data), err);
@@ -56,13 +67,14 @@ export async function PATCH(
   }
 
   // If marks changed, recalculate paper total score
-  if ("marksAwarded" in body) {
-    const total = question.examPaper.questions.reduce(
-      (sum, q) => sum + (q.marksAwarded ?? 0),
+  if (needsScoreRecalc) {
+    const q = question as typeof question & { examPaper: { questions: Array<{ marksAwarded: number | null }> } };
+    const total = q.examPaper.questions.reduce(
+      (sum, qq) => sum + (qq.marksAwarded ?? 0),
       0
     );
     await prisma.examPaper.update({
-      where: { id: question.examPaperId },
+      where: { id: q.examPaperId },
       data: { score: total },
     });
   }
