@@ -740,15 +740,23 @@ export default function ParentDashboard({
   // visibilitychange). Without this, a paper the student just completed
   // stays as 'Not started' on the parent dashboard until manual refresh —
   // the initial fetch is the only one we'd otherwise do.
+  //
+  // Also listen for the in-page "lumi-paper-assigned" CustomEvent that
+  // the Tutor view dispatches after a successful focused-practice /
+  // daily-quiz assignment, so the new paper shows up on Home without
+  // the parent having to leave and come back.
   useEffect(() => {
     function onActive() {
       if (document.visibilityState === "visible") refreshPapers();
     }
+    function onAssigned() { refreshPapers(); }
     window.addEventListener("focus", onActive);
     document.addEventListener("visibilitychange", onActive);
+    window.addEventListener("lumi-paper-assigned", onAssigned);
     return () => {
       window.removeEventListener("focus", onActive);
       document.removeEventListener("visibilitychange", onActive);
+      window.removeEventListener("lumi-paper-assigned", onAssigned);
     };
   }, [refreshPapers]);
 

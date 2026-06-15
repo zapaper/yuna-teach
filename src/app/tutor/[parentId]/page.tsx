@@ -660,6 +660,9 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       if (okDays > 0) {
         setToast(`${okDays} daily quiz${okDays === 1 ? "" : "zes"} scheduled for ${data.childFirst}.`);
         setTimeout(() => setToast(null), 3000);
+        // Tell the parent dashboard to re-pull its papers list — see
+        // assignTopic for rationale.
+        window.dispatchEvent(new CustomEvent("lumi-paper-assigned"));
       }
     } finally {
       setSchedulingDays(null);
@@ -680,6 +683,11 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       if (!res.ok) { alert(j.error || "Failed to create focused practice"); return; }
       setToast(`Focused practice assigned: ${topic}`);
       setTimeout(() => setToast(null), 2800);
+      // Notify the parent dashboard so its paper list re-fetches and
+      // the new focused practice shows up immediately when the parent
+      // switches back to Home (otherwise refreshPapers only runs on
+      // mount + tab focus, and an in-page view switch missed it).
+      window.dispatchEvent(new CustomEvent("lumi-paper-assigned"));
     } finally {
       setCreatingTopic(null);
     }
@@ -1012,6 +1020,9 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { stude
       if (!res.ok) { alert(j.error || "Failed to create test"); return; }
       setAssignedToast(topic);
       setTimeout(() => setAssignedToast(null), 2500);
+      // Tell the parent dashboard to re-pull its papers list — see
+      // assignTopic above for the same pattern + rationale.
+      window.dispatchEvent(new CustomEvent("lumi-paper-assigned"));
     } finally {
       setCreating(null);
     }
