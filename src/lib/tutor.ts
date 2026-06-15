@@ -846,11 +846,31 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
 // papers + cache so the demo has rich content under an anonymous
 // account. The display name STAYS as Student666 — only the
 // underlying data source swaps. Keep this list tightly scoped; this
-// is for marketing demos only.
-const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string }> = {
+// is for marketing demos only. sourceFirstName is the literal name
+// the workshop wrote into the cache text ("Adriel sometimes…");
+// post-shape we replace every occurrence with the display student's
+// first name so the demo doesn't leak the original kid.
+const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string }> = {
   // Student666 → David lim
-  "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim" },
+  "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
 };
+
+// Walk every string field on the TutorData "ready" branch and apply
+// the given replace. Used by the demo redirect to swap the source
+// kid's name out of cached pattern text + examples.
+function replaceStringsInTutorData<T>(data: T, replace: (s: string) => string): T {
+  if (data === null || data === undefined) return data;
+  if (typeof data === "string") return replace(data) as unknown as T;
+  if (Array.isArray(data)) return (data.map(v => replaceStringsInTutorData(v, replace)) as unknown) as T;
+  if (typeof data === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+      out[k] = replaceStringsInTutorData(v, replace);
+    }
+    return out as T;
+  }
+  return data;
+}
 
 export async function loadTutorData(studentId: string, subject: string): Promise<TutorData> {
   const displayStudent = await prisma.user.findUnique({
@@ -964,5 +984,16 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     }
   }
   for (const ex of allExamples) ex.questionId = null;
+
+  // Demo redirect post-process: the cache text was written for the
+  // source kid ("David sometimes overlooks…"). Swap David → display
+  // student's first name AND the possessive form so the rendered
+  // diagnosis reads as Student666's. \b ensures we don't catch
+  // longer words that contain "David" as a substring.
+  if (redirect) {
+    const displayFirst = displayStudent.name.split(/\s+/)[0] ?? displayStudent.name;
+    const srcRe = new RegExp(`\\b${redirect.sourceFirstName}\\b`, "g");
+    return replaceStringsInTutorData(shaped, s => s.replace(srcRe, displayFirst));
+  }
   return shaped;
 }
