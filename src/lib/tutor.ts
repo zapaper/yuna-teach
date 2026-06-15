@@ -317,15 +317,21 @@ type WrongRecord = {
 };
 // Cloze passages stored in transcribedSubparts._passage carry the whole
 // multi-paragraph text with 10-15 inline blanks like `**(46)________**`.
-// For a single Lumi example we want just the sentence around THIS
+// For a single Lumi example we want just the context around THIS
 // question's blank — the parent can't be expected to scan a 1500-char
 // passage for the one blank Adriel got wrong.
 //
-// blankPosition is 0-indexed within the cloze section. We scan the
-// passage for every `(N)` token, pick the Nth one, then expand its
-// position outward to the surrounding sentence (bounded by ./!/?
-// punctuation OR paragraph breaks).
-function sliceClozePassageToSentence(passage: string, blankPosition: number): string {
+// scope:
+//   - "sentence": Grammar Cloze / Vocab Cloze — the test is purely
+//     within one sentence; expand to ./!/? punctuation.
+//   - "paragraph": Comprehension Cloze — the kid needs the
+//     surrounding ideas to find the right word; expand to paragraph
+//     break (blank line or \n\n).
+function sliceClozePassageToContext(
+  passage: string,
+  blankPosition: number,
+  scope: "sentence" | "paragraph",
+): string {
   if (!passage) return "";
   const re = /\(\d+\)/g;
   const matches: Array<{ index: number; length: number; label: string }> = [];
@@ -339,22 +345,31 @@ function sliceClozePassageToSentence(passage: string, blankPosition: number): st
   // fall back to the whole passage so we never hide content.
   if (blankPosition < 0 || blankPosition >= matches.length) return passage;
   const blank = matches[blankPosition];
-  // Expand backward to the previous sentence terminator OR paragraph
-  // break OR start of string.
+
+  if (scope === "paragraph") {
+    // Paragraphs are separated by a blank line (one or more \n with no
+    // word characters between them). Find the nearest blank-line
+    // boundary backwards from the blank, and forwards.
+    const before = passage.slice(0, blank.index);
+    const after = passage.slice(blank.index);
+    const startMatch = before.match(/\n\s*\n(?=[\s\S]*$)/g);
+    const start = startMatch ? before.lastIndexOf(startMatch[startMatch.length - 1]) + startMatch[startMatch.length - 1].length : 0;
+    const endRel = after.search(/\n\s*\n/);
+    const end = endRel < 0 ? passage.length : blank.index + endRel;
+    const sliced = passage.slice(start, end).trim();
+    if (sliced.length < blank.length + 2) return passage;
+    return sliced;
+  }
+
+  // sentence scope (default for Grammar / Vocab Cloze)
   const SENTENCE_END = /[.!?。！？\n]/;
   let start = blank.index;
   while (start > 0 && !SENTENCE_END.test(passage[start - 1])) start--;
-  // Trim any leading whitespace / quote that survived the boundary.
   while (start < passage.length && /\s/.test(passage[start])) start++;
-  // Expand forward to the next sentence terminator. Include the
-  // punctuation itself so "...the rescue." renders cleanly.
   let end = blank.index + blank.length;
   while (end < passage.length && !SENTENCE_END.test(passage[end])) end++;
-  if (end < passage.length) end++;  // include the terminator char itself
+  if (end < passage.length) end++;
   const sliced = passage.slice(start, end).trim();
-  // Safety: if the slice somehow collapsed to nothing or to just the
-  // blank label, return the whole passage so the parent always sees
-  // SOMETHING.
   if (sliced.length < blank.length + 2) return passage;
   return sliced;
 }
@@ -452,8 +467,15 @@ function reconstructWrongs(papers: Array<{
           const isPassageSubpart = sp.label === "_passage" || sp.label === "_passageText";
           if (!(stemIsEmpty && isPassageSubpart)) continue;
           const passageText = sp.text ?? "";
+          // Comprehension Cloze needs the whole paragraph for context;
+          // Grammar / Vocab Cloze are sentence-bound (the grammatical
+          // signal sits inside one sentence).
+          const topicLc = (q.syllabusTopic ?? "").toLowerCase();
+          const scope: "sentence" | "paragraph" = topicLc.includes("comprehension") && topicLc.includes("cloze")
+            ? "paragraph"
+            : "sentence";
           const sliced = blankPositionInSection >= 0
-            ? sliceClozePassageToSentence(passageText, blankPositionInSection)
+            ? sliceClozePassageToContext(passageText, blankPositionInSection, scope)
             : passageText;
           if (sliced) lines.push(sliced);
         }
