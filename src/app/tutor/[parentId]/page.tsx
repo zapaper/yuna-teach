@@ -144,11 +144,13 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
   const [currentPaperCount, setCurrentPaperCount] = useState<number | null>(null);
 
   useEffect(() => {
-    // Don't wipe `data` immediately — when switching students, that
-    // would flash a spinner for every nav. Instead set loading=true
-    // and keep the previous content visible (slightly dimmed in the
-    // render below) until the new payload lands. Spinner only shows
-    // when there is genuinely nothing to display.
+    // Clear `data` on every student / subject switch — the previous
+    // payload's Common Mistakes / Conceptual Gaps cards otherwise stay
+    // visible (under dimmed opacity) while the new fetch runs, which
+    // reads as wrong content under the new heading (e.g. Jeremiah's
+    // Math mistakes showing while the English tab is selected and
+    // loading). Spinner is fine; stale content under a new heading
+    // is not.
     //
     // Stale-response guard: if the parent switches student A → B
     // before A's fetch resolves, A's late response would otherwise
@@ -157,6 +159,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // either has changed — and AbortController kills the in-flight
     // request entirely.
     setLoading(true);
+    setData(null);
     setCurrentPaperCount(null);
     // Persistent cache keyed by (student, subject). Cache is good for
     // 5 days — short enough that a stale diagnosis self-corrects soon
