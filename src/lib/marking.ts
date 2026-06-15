@@ -713,6 +713,14 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
   const headerCells = splitRow(tableLines[0]);
   const dataLines = sepIdx >= 0 ? tableLines.slice(sepIdx + 1) : tableLines.slice(1);
   if (dataLines.length === 0) return null;
+  // Quiz player numbers `r${ri}c${col}` keys based on table-row count
+  // BEFORE the data row, skipping only the separator. So if the stem
+  // has N rows above the separator (i.e. real header rows), the first
+  // data row's ri = N (zero-based). When the separator sits at index 0
+  // — Q77 layout, labels live in the FIRST data row, no header — that
+  // becomes ri = 0 for dataLines[0]. The old `rowIdx + 1` assumed a
+  // single header row, which mis-keyed every cell on a sep-first table.
+  const headerCount = sepIdx >= 0 ? sepIdx : 1;
 
   // First header column is usually the statement/label column — student
   // input lives in columns 2+ (True/False, Reason, etc.).
@@ -721,23 +729,60 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
     if (m) return { label: `(${m[1].toLowerCase()})`, text: m[2].trim() };
     return { label: "", text: firstCell };
   };
+  // Multi-label header row: every cell starts with a label like "(a)…"
+  // / "a) …". When detected, the labels apply column-wise to the NEXT
+  // data row (which is the empty answer row). Q77 PSLE Comp OEQ:
+  //   | (a) How Aunt Lily acted on… | (b) How the writer responded… |
+  //   |                             |                                |   ← answers
+  //   | (c) What Aunt Lily thought  | (d) How the writer responded   |
+  //   |                             |                                |   ← answers
+  // The old single-column-label assumption silently dropped (b)/(d)
+  // entirely and pulled (a)/(c) values from the wrong columns.
+  const detectMultiLabel = (rowCells: string[]): Array<{ label: string; text: string } | null> | null => {
+    if (rowCells.length < 2) return null;
+    const parsed = rowCells.map(c => {
+      const m = c.match(/^\(?\s*([a-z0-9]+)\s*[).:]\s*(.*)$/i);
+      return m ? { label: m[1].toLowerCase(), text: m[2].trim() } : null;
+    });
+    return parsed.every(p => p !== null) ? parsed : null;
+  };
 
   const blocks: string[] = [];
-  dataLines.forEach((line, rowIdx) => {
-    const rowCells = splitRow(line);
+  let i = 0;
+  while (i < dataLines.length) {
+    const rowCells = splitRow(dataLines[i]);
+    const ri = headerCount + i;
+    const multiLabels = detectMultiLabel(rowCells);
+    if (multiLabels && i + 1 < dataLines.length) {
+      const ansCells = splitRow(dataLines[i + 1]);
+      const sameWidth = ansCells.length === rowCells.length;
+      const allBlank = sameWidth && ansCells.every(c => !c);
+      if (sameWidth && allBlank) {
+        const ansRi = headerCount + i + 1;
+        multiLabels.forEach((ml, colIdx) => {
+          if (!ml) return;
+          const v = cells[`r${ansRi}c${colIdx}`];
+          if (v && v.trim()) {
+            blocks.push(`(${ml.label})${ml.text ? ` "${ml.text}"` : ""}\n    ${v.trim()}`);
+          }
+        });
+        i += 2;
+        continue;
+      }
+    }
     const first = rowCells[0] ?? "";
     const { label, text } = rowLabel(first);
-    const rowKey = rowIdx + 1; // r1, r2, …
     const fillableHeaders = headerCells.slice(1);
     const studentParts: string[] = [];
     fillableHeaders.forEach((header, colIdx) => {
-      const key = `r${rowKey}c${colIdx + 1}`;
-      const v = cells[key];
+      const v = cells[`r${ri}c${colIdx + 1}`];
       if (v && v.trim()) studentParts.push(`    ${header || `column ${colIdx + 1}`}: ${v.trim()}`);
     });
-    if (studentParts.length === 0) return;
-    blocks.push(`${label}${text ? ` "${text}"` : ""}\n${studentParts.join("\n")}`.trim());
-  });
+    if (studentParts.length > 0) {
+      blocks.push(`${label}${text ? ` "${text}"` : ""}\n${studentParts.join("\n")}`.trim());
+    }
+    i++;
+  }
   return blocks.length > 0 ? blocks.join("\n\n") : null;
 }
 
