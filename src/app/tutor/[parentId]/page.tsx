@@ -131,15 +131,26 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // and keep the previous content visible (slightly dimmed in the
     // render below) until the new payload lands. Spinner only shows
     // when there is genuinely nothing to display.
+    //
+    // Stale-response guard: if the parent switches student A → B
+    // before A's fetch resolves, A's late response would otherwise
+    // overwrite B's freshly-set data. We capture the (studentId,
+    // subject) the effect was queued with and bail in the .then if
+    // either has changed — and AbortController kills the in-flight
+    // request entirely.
     setLoading(true);
     const cacheKey = `tutor-${studentId}-${subject}-${new Date().toDateString()}`;
     const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     if (cached) {
       try { setData(JSON.parse(cached) as TutorData); setLoading(false); return; } catch { /* ignore */ }
     }
-    fetch(`/api/tutor/${studentId}?subject=${encodeURIComponent(subject)}`)
+    const queuedFor = { studentId, subject };
+    const ctrl = new AbortController();
+    fetch(`/api/tutor/${studentId}?subject=${encodeURIComponent(subject)}`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
+        // Drop the response if the effect has been superseded.
+        if (queuedFor.studentId !== studentId || queuedFor.subject !== subject) return;
         if (d) {
           setData(d as TutorData);
           try {
@@ -149,7 +160,16 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
           } catch { /* quota — ignore */ }
         }
       })
-      .finally(() => setLoading(false));
+      .catch(err => {
+        // Ignore the AbortError thrown by ctrl.abort() on cleanup —
+        // any other failure is logged but doesn't disturb the prior
+        // payload still on screen.
+        if (err?.name !== "AbortError") console.warn("[tutor] fetch failed:", err);
+      })
+      .finally(() => {
+        if (queuedFor.studentId === studentId && queuedFor.subject === subject) setLoading(false);
+      });
+    return () => ctrl.abort();
   }, [studentId, subject]);
 
   const firstName = currentChildName?.split(/\s+/)[0] ?? "";
