@@ -315,6 +315,50 @@ type WrongRecord = {
   markingNotes: string;
   options: string[];
 };
+// Cloze passages stored in transcribedSubparts._passage carry the whole
+// multi-paragraph text with 10-15 inline blanks like `**(46)________**`.
+// For a single Lumi example we want just the sentence around THIS
+// question's blank — the parent can't be expected to scan a 1500-char
+// passage for the one blank Adriel got wrong.
+//
+// blankPosition is 0-indexed within the cloze section. We scan the
+// passage for every `(N)` token, pick the Nth one, then expand its
+// position outward to the surrounding sentence (bounded by ./!/?
+// punctuation OR paragraph breaks).
+function sliceClozePassageToSentence(passage: string, blankPosition: number): string {
+  if (!passage) return "";
+  const re = /\(\d+\)/g;
+  const matches: Array<{ index: number; length: number; label: string }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(passage)) !== null) {
+    matches.push({ index: m.index, length: m[0].length, label: m[0] });
+  }
+  if (matches.length === 0) return passage;
+  // If the question's blank position is out of range (e.g. the
+  // passage's blank count doesn't match the section's question count),
+  // fall back to the whole passage so we never hide content.
+  if (blankPosition < 0 || blankPosition >= matches.length) return passage;
+  const blank = matches[blankPosition];
+  // Expand backward to the previous sentence terminator OR paragraph
+  // break OR start of string.
+  const SENTENCE_END = /[.!?。！？\n]/;
+  let start = blank.index;
+  while (start > 0 && !SENTENCE_END.test(passage[start - 1])) start--;
+  // Trim any leading whitespace / quote that survived the boundary.
+  while (start < passage.length && /\s/.test(passage[start])) start++;
+  // Expand forward to the next sentence terminator. Include the
+  // punctuation itself so "...the rescue." renders cleanly.
+  let end = blank.index + blank.length;
+  while (end < passage.length && !SENTENCE_END.test(passage[end])) end++;
+  if (end < passage.length) end++;  // include the terminator char itself
+  const sliced = passage.slice(start, end).trim();
+  // Safety: if the slice somehow collapsed to nothing or to just the
+  // blank label, return the whole passage so the parent always sees
+  // SOMETHING.
+  if (sliced.length < blank.length + 2) return passage;
+  return sliced;
+}
+
 function reconstructWrongs(papers: Array<{
   title: string;
   metadata: unknown;
@@ -334,7 +378,16 @@ function reconstructWrongs(papers: Array<{
   const wrongs: WrongRecord[] = [];
   let idx = 0;
   for (const p of nonRev) {
-    for (const q of p.questions) {
+    // Section info for cloze passage slicing. paper.metadata.englishSections
+    // lists each section's startIndex / endIndex as positions in the
+    // p.questions array. We use these to figure out which (N) blank
+    // marker inside a cloze section's _passage corresponds to THIS
+    // specific question, so we can slice the passage down to just
+    // the sentence around that blank instead of dumping the full
+    // multi-paragraph cloze passage into every example.
+    const englishSections = ((p.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number }> } | null)?.englishSections) ?? [];
+    for (let qPos = 0; qPos < p.questions.length; qPos++) {
+      const q = p.questions[qPos];
       const av = q.marksAvailable ?? 0, aw = q.marksAwarded ?? 0;
       if (av === 0 || aw >= av) continue;
       if (q.studentAnswer === "__SKIPPED__") continue;
@@ -371,18 +424,39 @@ function reconstructWrongs(papers: Array<{
       const stemIsEmpty = stemRaw.length === 0;
       let questionText = stemRaw;
       const sps = q.transcribedSubparts as unknown;
+      // Find the cloze blank LABEL for this question (only relevant when
+      // we'll be showing the _passage subpart). The question's position
+      // within its section maps to the Nth `(<digits>)` marker in the
+      // passage — section.startIndex is the array index of the section's
+      // first question, so (qPos - section.startIndex) is the 0-indexed
+      // blank position.
+      const section = englishSections.find(s => qPos >= s.startIndex && qPos <= s.endIndex) ?? null;
+      const blankPositionInSection = section ? qPos - section.startIndex : -1;
+
       if (Array.isArray(sps)) {
-        const lines = (sps as Array<{ label?: string; text?: string }>)
-          .filter(sp => {
-            if (!sp.label) return true;
-            // Stem-less question → keep the _passage so the parent can
-            // see the cloze context. Otherwise drop underscore-prefixed
-            // marker context.
-            if (stemIsEmpty && (sp.label === "_passage" || sp.label === "_passageText")) return true;
-            return !sp.label.startsWith("_");
-          })
-          .map(sp => `${sp.label && !sp.label.startsWith("_") ? `(${sp.label}) ` : ""}${sp.text ?? ""}`.trim())
-          .filter(Boolean);
+        const subpartArr = sps as Array<{ label?: string; text?: string }>;
+        const lines: string[] = [];
+        for (const sp of subpartArr) {
+          if (!sp.label) {
+            if (sp.text) lines.push(sp.text.trim());
+            continue;
+          }
+          if (!sp.label.startsWith("_")) {
+            const txt = `(${sp.label}) ${sp.text ?? ""}`.trim();
+            if (txt) lines.push(txt);
+            continue;
+          }
+          // Stem-less question → keep the _passage so the parent can see
+          // the cloze context. Otherwise drop underscore-prefixed marker
+          // context (Comp-OEQ _passage etc).
+          const isPassageSubpart = sp.label === "_passage" || sp.label === "_passageText";
+          if (!(stemIsEmpty && isPassageSubpart)) continue;
+          const passageText = sp.text ?? "";
+          const sliced = blankPositionInSection >= 0
+            ? sliceClozePassageToSentence(passageText, blankPositionInSection)
+            : passageText;
+          if (sliced) lines.push(sliced);
+        }
         if (lines.length > 0) questionText = [questionText, lines.join("\n")].filter(Boolean).join("\n\n");
       }
       // Strip the canonical typed-OEQ noise from the student's answer:
