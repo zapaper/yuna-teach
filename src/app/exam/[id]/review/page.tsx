@@ -971,6 +971,7 @@ function ExamReviewContent({ id }: { id: string }) {
       const isChineseGrouped =
         rawLabel.includes("短文填空") ||         // vocab cloze MCQ inline pickers
         rawLabel.includes("完成对话") || rawLabel.includes("对话填空") ||  // word-bank dialogue cloze
+        rawLabel.includes("词语搭配") ||         // P4 word-collocation matching — same render shape as 完成对话
         rawLabel.includes("阅读理解");           // 阅读理解 MCQ / 阅读理解 A / 阅读理解 B OEQ
       const isGrouped = isChineseGrouped ||
         label.includes("grammar cloze") || label.includes("editing") ||
