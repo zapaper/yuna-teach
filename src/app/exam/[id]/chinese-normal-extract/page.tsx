@@ -1799,7 +1799,7 @@ const NORMAL_EXTRACT_SECTIONS: Array<{ type: "yuwen-mcq" | "duanwen" | "comp-mcq
   { type: "yuwen-mcq", label: "语文应用 MCQ", stateKey: "yuwenMcq" },
   { type: "duanwen", label: "短文填空", stateKey: "duanwen" },
   { type: "comp-mcq", label: "阅读理解 MCQ", stateKey: "compMcq" },
-  { type: "duihua", label: "完成对话", stateKey: "duihua" },
+  { type: "duihua", label: "完成对话 / 词语搭配", stateKey: "duihua" },
   { type: "comp-oeq", label: "阅读理解 OEQ", stateKey: "compOeq" },
 ];
 
