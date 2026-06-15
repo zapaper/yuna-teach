@@ -2022,7 +2022,14 @@ export default function ParentDashboard({
                   if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                   setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
                   maybeShowFirstAssignPrompt(quizStudentId);
-                  await refreshPapers();
+                  // Don't await — the modal is already closed and the
+                  // button should re-enable for a fast second assign.
+                  // refreshPapers fires in the background and updates
+                  // the calendar when it returns. (Was holding the
+                  // Create button disabled for ~5s after a successful
+                  // assign because refreshPapers ran before the
+                  // finally block's setCreatingQuiz(false).)
+                  void refreshPapers();
                   return;
                 }
                 const res = await fetch("/api/daily-quiz", fetchOpts({
@@ -2046,7 +2053,8 @@ export default function ParentDashboard({
                 setShowQuiz(false);
                 setQuizTargetDay(null);
                 maybeShowFirstAssignPrompt(quizStudentId);
-                await refreshPapers();
+                // Background refresh — see note above.
+                void refreshPapers();
               } catch (err) {
                 // AbortError surfaces here when the 2-minute timer
                 // tripped before the server responded — present that
