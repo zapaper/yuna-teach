@@ -727,6 +727,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
             </button>
           ))}
         </div>
+        <p className="text-xs text-slate-500 mt-4 italic">After I assign, you can move these around in the weekly calendar at your homepage.</p>
       </section>
     </>
   );
