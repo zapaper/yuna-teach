@@ -39,6 +39,12 @@ const HEADER_HEIGHT = 24;
 const LONG_OEQ_ROW_HEIGHT = 52;   // ~half-page worth for 9 rows
 const SHORT_ROW_HEIGHT = 24;
 const SHORT_Q_GAP = 12;
+// Half-row breathing room between each comprehension OEQ header
+// ("3. [2 marks]") and its first writing line. Without this the line
+// sits flush under the printed Chinese characters of the question
+// number and there's no space to start the first character of the
+// answer above the rule. Half a row is enough to clear ascenders.
+const SHORT_FIRST_LINE_GAP = SHORT_ROW_HEIGHT / 2;
 
 type OeqQuestion = { id: string; questionNum: string; marksAvailable: number | null };
 type PadBound = { id: string; padPageOffset: number; yStartPct: number; yEndPct: number };
@@ -90,13 +96,13 @@ function computePadBounds(oeqQuestions: OeqQuestion[], level: string | null, tit
   for (const q of others) {
     const marks = q.marksAvailable ?? 1;
     const rows = Math.max(1, marks * 2);
-    const blockHeight = HEADER_HEIGHT + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
+    const blockHeight = HEADER_HEIGHT + SHORT_FIRST_LINE_GAP + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
     if (cursorPdf - blockHeight < MARGIN) {
       padPageOffset++;
       cursorPdf = PAGE_H - MARGIN - TOP_INSET;
     }
     const topPdf = cursorPdf;
-    const bottomPdf = cursorPdf - HEADER_HEIGHT - rows * SHORT_ROW_HEIGHT;
+    const bottomPdf = cursorPdf - HEADER_HEIGHT - SHORT_FIRST_LINE_GAP - rows * SHORT_ROW_HEIGHT;
     out.push({
       id: q.id,
       padPageOffset,
@@ -145,7 +151,7 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], level: string | null,
   for (const q of others) {
     const marks = q.marksAvailable ?? 1;
     const rows = Math.max(1, marks * 2);
-    const blockHeight = HEADER_HEIGHT + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
+    const blockHeight = HEADER_HEIGHT + SHORT_FIRST_LINE_GAP + rows * SHORT_ROW_HEIGHT + SHORT_Q_GAP;
     // New page when this block won't fit.
     if (cursorY - blockHeight < MARGIN) {
       page = doc.addPage([PAGE_W, PAGE_H]);
@@ -153,7 +159,7 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], level: string | null,
     }
     page.drawText(`${q.questionNum}.`, { x: MARGIN, y: cursorY - 12, size: 12, font: helvBold });
     page.drawText(`[${marks} mark${marks === 1 ? "" : "s"}]`, { x: MARGIN + 34, y: cursorY - 12, size: 10, font: helv, color: rgb(0.4, 0.4, 0.4) });
-    cursorY -= HEADER_HEIGHT;
+    cursorY -= HEADER_HEIGHT + SHORT_FIRST_LINE_GAP;
     for (let i = 0; i < rows; i++) {
       const y = cursorY - i * SHORT_ROW_HEIGHT;
       page.drawLine({
