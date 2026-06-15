@@ -660,7 +660,13 @@ export async function POST(request: NextRequest) {
     syllabusTopic: true,
     pageIndex: true,
     transcribedStem: true,
-    transcribedSubparts: true,
+    // transcribedSubparts INTENTIONALLY OMITTED — the `_passage`
+    // subpart on cloze rows holds 1500-2000 char passage text, which
+    // multiplies bulk-fetch wire size on English pools (4-5MB across
+    // 2800 rows). Hydrated below for: (1) English passage-builder
+    // firstQs before the loop, (2) Math/Science OEQ group members in
+    // the existing oeq-diagram-hydrate fan-out, (3) final selected
+    // questions via hydrateBlobs.
     transcribedOptions: true,
     transcribedOptionImages: true,
     transcribedOptionTable: true,
@@ -785,21 +791,25 @@ export async function POST(request: NextRequest) {
   for (const q of siblings) if (!qById.has(q.id)) qById.set(q.id, q);
   const allQuestions = [...qById.values()];
 
-  // Q is the light-pool row. diagramImageData is no longer in the
-  // bulk select (the base64 blob blew up wire size for 700-row Math
-  // pools — we hydrate it lazily for the selected OEQ group members
-  // just before mergeOeqGroup, see oeq-diagram-hydrate below). Keep
-  // it as an optional field on the type so mergeOeqGroup compiles.
-  type Q = typeof allQuestions[number] & { diagramImageData?: string | null };
+  // Q is the light-pool row. `diagramImageData` and `transcribedSubparts`
+  // are no longer in the bulk select (both blow up wire size on large
+  // pools — the diagram is a base64 blob, the subparts hold cloze
+  // _passage strings 1500+ chars long on every row). Both are hydrated
+  // lazily for the small set of selected questions that actually need
+  // them (see oeq-member-hydrate for Math/Science and the firstQSubpartRows
+  // fetch in the English passage builder). Keep them as optional on
+  // the type so the existing code that reads them still compiles.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptions: any; transcribedOptionImages: any; diagramImageData: string | null };
+  type Q = typeof allQuestions[number] & { diagramImageData?: string | null; transcribedSubparts?: any };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptions: any; transcribedOptionImages: any; diagramImageData: string | null; transcribedSubparts: any };
 
   // Hydrate lightweight questions with large blob fields — only for the final selected set
   async function hydrateBlobs(ids: string[]): Promise<Map<string, Record<string, unknown>>> {
     if (ids.length === 0) return new Map();
     const rows = await prisma.examQuestion.findMany({
       where: { id: { in: ids } },
-      select: { id: true, imageData: true, answerImageData: true, transcribedOptions: true, transcribedOptionImages: true, transcribedOptionTable: true, diagramImageData: true },
+      select: { id: true, imageData: true, answerImageData: true, transcribedOptions: true, transcribedOptionImages: true, transcribedOptionTable: true, transcribedSubparts: true, diagramImageData: true },
     });
     return new Map(rows.map(r => [r.id, r]));
   }
@@ -877,7 +887,11 @@ export async function POST(request: NextRequest) {
     const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
     const freshQs = allQuestions.filter(q => !usedSourceIds.has(q.id));
     const usedQs = allQuestions.filter(q => usedSourceIds.has(q.id));
-    const allPool = [...freshQs, ...usedQs]; // prefer fresh, fall back to used
+    // Cast through the Q-with-optionals alias so reads like
+    // `firstQ.transcribedSubparts` later in the passage-build loop
+    // compile — Q includes that field as optional even though we
+    // omit it from the bulk select.
+    const allPool: Q[] = [...freshQs, ...usedQs] as Q[]; // prefer fresh, fall back to used
 
     // Pool by syllabusTopic — match various naming patterns including "Section X: Grammar MCQ"
     // MCQ pools require a stem (or image) to display — exclude blank questions
@@ -1135,13 +1149,33 @@ export async function POST(request: NextRequest) {
     }
     T.mark(`english section-build (selected=${allSelected.length})`);
 
-    // Pre-fetch all source paper metadata in one batch
+    // Pre-fetch all source paper metadata + transcribedSubparts for
+    // each section's firstQ in parallel. The passage builder reads
+    // firstQ.transcribedSubparts as a fallback when the paper meta
+    // doesn't carry sectionOcrTexts (Comp OEQ `_passageText`). Pull
+    // them now in ONE round-trip alongside the paper meta instead of
+    // leaving them in the bulk pool select (where 2800 cloze rows
+    // each carry 1500+ char _passage strings, dominating wire size).
     const sourcePaperIds = [...new Set(selectedExtra.map(q => q.examPaperId))];
-    const sourcePapers = sourcePaperIds.length > 0
-      ? await prisma.examPaper.findMany({ where: { id: { in: sourcePaperIds } }, select: { id: true, metadata: true } })
-      : [];
+    const firstQIds = [...new Set(extraSectionGroups.map(g => g.questions[0]?.id).filter((x): x is string => !!x))];
+    const [sourcePapers, firstQSubpartRows] = await Promise.all([
+      sourcePaperIds.length > 0
+        ? prisma.examPaper.findMany({ where: { id: { in: sourcePaperIds } }, select: { id: true, metadata: true } })
+        : Promise.resolve([]),
+      firstQIds.length > 0
+        ? prisma.examQuestion.findMany({ where: { id: { in: firstQIds } }, select: { id: true, transcribedSubparts: true } })
+        : Promise.resolve([]),
+    ]);
     const sourcePaperMap = new Map(sourcePapers.map(p => [p.id, p.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null]));
-    T.mark(`english sourcePapers-meta (n=${sourcePaperIds.length})`);
+    // Attach transcribedSubparts back onto each section's firstQ so
+    // the passage-build loop's `firstQ.transcribedSubparts` access
+    // still works.
+    const subpartsById = new Map(firstQSubpartRows.map(r => [r.id, r.transcribedSubparts]));
+    for (const g of extraSectionGroups) {
+      const q = g.questions[0];
+      if (q) (q as unknown as { transcribedSubparts?: unknown }).transcribedSubparts = subpartsById.get(q.id);
+    }
+    T.mark(`english sourcePapers-meta + firstQ-subparts (papers=${sourcePaperIds.length}, firstQs=${firstQIds.length})`);
 
     // Build section metadata for quiz display
     const sections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; sourceExamId?: string }> = [];
@@ -1745,25 +1779,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not enough questions available" }, { status: 404 });
     }
     selectedMcq = mcqPool.slice(0, 10);
-    // Targeted diagramImageData hydrate for the selected OEQ groups.
-    // questionSelectLight no longer carries diagramImageData (38MB+
-    // base64 over the wire for 700-row pools); mergeOeqGroup needs it
-    // for non-first sibling questions, so we re-fetch just those.
-    // ≤ 5 groups × ~3 members = 15 ids max.
+    // Targeted hydrate for selected OEQ groups. mergeOeqGroup reads
+    // both `diagramImageData` (for refImageBase64 on sub-parts) and
+    // `transcribedSubparts` (for the actual sub-part list) — neither
+    // is in questionSelectLight anymore, so we pull them in one
+    // findMany for the ≤ 5 groups × ~3 members = 15 ids max.
     const oeqGroups = oeqPool.slice(0, 5);
     const oeqMemberIds = [...new Set(oeqGroups.flatMap(g => g.map(q => q.id)))];
     if (oeqMemberIds.length > 0) {
-      const diagrams = await prisma.examQuestion.findMany({
+      const memberRows = await prisma.examQuestion.findMany({
         where: { id: { in: oeqMemberIds } },
-        select: { id: true, diagramImageData: true },
+        select: { id: true, diagramImageData: true, transcribedSubparts: true },
       });
-      const dById = new Map(diagrams.map(d => [d.id, d.diagramImageData]));
+      const byId = new Map(memberRows.map(r => [r.id, r]));
       for (const group of oeqGroups) {
         for (const q of group) {
-          if (!q.diagramImageData) (q as unknown as { diagramImageData: string | null }).diagramImageData = dById.get(q.id) ?? null;
+          const row = byId.get(q.id);
+          if (!row) continue;
+          const qx = q as unknown as { diagramImageData?: string | null; transcribedSubparts?: unknown };
+          if (!qx.diagramImageData) qx.diagramImageData = row.diagramImageData;
+          if (!qx.transcribedSubparts) qx.transcribedSubparts = row.transcribedSubparts;
         }
       }
-      T.mark(`oeq-diagram-hydrate (members=${oeqMemberIds.length})`);
+      T.mark(`oeq-member-hydrate (members=${oeqMemberIds.length})`);
     }
     selectedOeq = oeqGroups.map(mergeOeqGroup);
   }
