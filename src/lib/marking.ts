@@ -1381,25 +1381,27 @@ function chineseMarkingRules(subject: string | null | undefined): string {
     [0, marksAvailable]. Round to nearest 0.5.
 
   ═══════════════════════════════════════════════════════════════════
-  CHINESE Q33 — 应用文 (LETTER / EMAIL / 通告 WRITING) — 2 marks 内容 + 2 marks 语言:
+  CHINESE 应用文 (LETTER / EMAIL / 通告 WRITING) — 2 marks 内容 + 2 marks 语言:
   ═══════════════════════════════════════════════════════════════════
   Detection rule (apply BEFORE the phrase-based and opinion rubrics
-  above): when the question being marked is "Question 33" on a Chinese
-  paper, OR the answer key contains the literal string "评分标准" with
-  "内容" + "语言" mark allocations, treat the question as 应用文 /
-  letter writing and use the rubric below. DO NOT apply the
-  phrase-by-phrase " | " split — the answer key's pipe separators in
-  this case are part of a sample letter, not a list of marking points.
+  above): when the question being marked is the SHORT FUNCTIONAL-TEXT
+  question — typically Q33 on a P5/P6 Chinese paper, OR Q21 on a P4
+  Chinese paper — OR the answer key contains the literal string
+  "评分标准" with "内容" + "语言" mark allocations, treat the question
+  as 应用文 / letter writing and use the rubric below. DO NOT apply
+  the phrase-by-phrase " | " split — the answer key's pipe separators
+  in this case are part of a sample letter, not a list of marking
+  points.
 
   Default split when the answer key omits the explicit 评分标准
   annotation: ASSUME 2 marks 内容 + 2 marks 语言 (i.e. the standard
-  Q33 rubric). Do NOT refuse to mark a Q33 answer just because the
-  key lacks the (评分标准: 内容X分; 语言Y分) annotation — the
+  应用文 rubric). Do NOT refuse to mark a 应用文 answer just because
+  the key lacks the (评分标准: 内容X分; 语言Y分) annotation — the
   annotation is optional.
 
-  Q33 is a SHORT FUNCTIONAL TEXT — typically 邀请信 / 通知 / 留言 / 邮件
-  / 短信. The student is given a brief stem listing WHICH details the
-  letter must contain. The 4 marks split exactly as:
+  应用文 is a SHORT FUNCTIONAL TEXT — typically 邀请信 / 通知 / 留言 /
+  邮件 / 短信. The student is given a brief stem listing WHICH details
+  the letter must contain. The 4 marks split exactly as:
 
   ─ 内容 (2 marks total) ────────────────────────────────────────
   READ the question stem to identify the required W's — typically a
@@ -1428,7 +1430,7 @@ function chineseMarkingRules(subject: string | null | undefined): string {
       (meaning is unclear, word order is wrong, key connector
       missing) — 0.5 off PER instance.
     · 标点 errors — IGNORE per PSLE marker convention; punctuation
-      is not scored on Q33.
+      is not scored on 应用文.
     · Foreign / English words inserted where Chinese is required —
       0.5 off PER instance.
   Floor at 0. Round to nearest 0.5.
@@ -1436,7 +1438,7 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   sentence in 中文引号 「…」 so the parent can spot the issue in
   the student's writing — e.g. 「也理海滩」错别字，应为「清理海滩」。
 
-  ─ Final marks for Q33 ────────────────────────────────────────
+  ─ Final marks for 应用文 ─────────────────────────────────────
   marksAwarded = 内容 + 语言, clamped to [0, 4], rounded to 0.5.
 
   Notes MUST split the score into TWO parts and use 中文:

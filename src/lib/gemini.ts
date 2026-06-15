@@ -4542,7 +4542,20 @@ Output ONLY the clean passage/question text, no commentary.` });
 
           // Step 2: Extract individual questions with content from OCR text
           const secTypeLower = (sec.type ?? "").toLowerCase();
-          const isMcqSection = secLabel.toLowerCase().includes("mcq") || secTypeLower === "mcq";
+          // P4 Chinese papers have two quirks that look like MCQ at first
+          // glance but aren't: 词语搭配 (phrase-collocation matching) and
+          // 短文填空 (passage fill-in) both use a SHARED 8-phrase numbered
+          // bank at the top of the section. Each question is a prompt
+          // with a blank; the student writes the number (1-8) from the
+          // bank. P5/P6 短文填空 by contrast has per-question 4-option
+          // MCQ choices. The gate below stops Gemini from inventing
+          // per-question options for these P4 sections.
+          const detectedLevelLower = (structure.header.level ?? "").toLowerCase();
+          const isP4Chinese = isChineseBooklet && detectedLevelLower.includes("primary 4");
+          const isP4SharedBankSection = isP4Chinese && (
+            secLabel.includes("词语搭配") || secLabel.includes("短文填空")
+          );
+          const isMcqSection = !isP4SharedBankSection && (secLabel.toLowerCase().includes("mcq") || secTypeLower === "mcq");
           console.log(`[Exam Pipeline] ${secLabel}: type="${sec.type}" isMcq=${isMcqSection} isCloze=${secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq")} isEditing=${secLabel.toLowerCase().includes("editing")}`);
           const isClozeSection = secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq");
           const isEditingSection = secLabel.toLowerCase().includes("editing");
@@ -4622,7 +4635,8 @@ For EACH question, extract:
   - STRIP THE SECTION INSTRUCTION FROM EVERY STEM. The section header that says e.g. "下面各题的句子里都有一个词语用横线划起来。从甲，乙，丙，丁四个答案中选出意思最相近的一个。" appears ONCE at the top of section 一 in the OCR text — it is NOT part of any question. Same for section 三 / 五's "根据短文内容回答下列问题。" and section 四's "请把适当的词语填入对话框里。" Do NOT prepend these instructions to any individual question's stem. Every question's stem begins with the question's OWN text only.
   - CRITICAL — EMPHASIS MARKUP PASS-THROUGH: the OCR text you are reading has already wrapped every bold / underlined / bold+underlined phrase in markdown (**phrase** for bold, __phrase__ for underline, **__phrase__** for both). You MUST copy these markers VERBATIM into the stem AND every option string. Never strip them. Never "clean them up". Never decide the markdown looks like noise. If the OCR text shows __快乐__ inside the stem, the stem you emit must also contain __快乐__. If option 3 in the OCR text reads "**马虎** 地写字", the options[2] you emit must read "**马虎** 地写字". This applies to 语文应用 MCQ Q1-15 most heavily (the tested word is the WHOLE POINT of the question) but holds for every Chinese section.
   - 拼音读音 questions (typically Q1-Q2 of 语文应用): the stem must contain EXACTLY ONE character wrapped in __ __ — the character whose pronunciation is being tested (the OCR marked it as underline because the original printed page shows a 着重号 dot below that character). The 4 options are pinyin strings with tone marks. Copy the pinyin verbatim including the tone diacritics (ā á ǎ à etc.) — do NOT normalise to plain ASCII (do NOT write "zhen3" or "zhen"). If you see options like "(1) zhēn (2) zhèn (3) chèn (4) chēn", emit options exactly as ["zhēn", "zhèn", "chèn", "chēn"].
-  - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.
+  - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.${isP4SharedBankSection ? `
+  - P4 OVERRIDE — SHARED PHRASE BANK SECTION (${secLabel}): this is a Primary 4 ${secLabel.includes("词语搭配") ? "词语搭配 (phrase-collocation matching)" : "短文填空 (passage cloze with shared bank)"} section. There is a NUMBERED BANK of 8 phrases at the TOP of the section (labels (1)–(8)). Each question is a prompt with a blank; the student writes the NUMBER from the bank that completes it. DO NOT extract per-question options — leave "options" null or omit it entirely. The "answer" field must be just the number wrapped in parens like "(3)" — NEVER include the phrase text after the number (no "(3) 摇摆身体"). For 词语搭配 the stem is the short phrase prompt with its blank, e.g. "摇摆 ( )" or "( ) 规则". For 短文填空 the stem is the passage sentence containing the blank, with the blank marked as "______". This override TAKES PRECEDENCE over the "4 options go in the options array" rule above.` : ""}
   - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line. When the section is supposed to have EXACTLY ONE question (e.g. the 长 OEQ in 五-A: Q${secFirstQ}, single question) and the OCR text doesn't carry an explicit "Q${secFirstQ}" or "${secFirstQ}." marker, emit ONE entry with questionNum "${prefix}${secFirstQ}" and stem = the WHOLE OCR text (minus instruction headers like "请把答案写在作答簿上"). The long-OEQ stem is a multi-sentence instruction (e.g. 邀请短信 / 写一段话) — never return an empty stem or zero questions for a section that's expected to have one.
   - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.
   - CHINESE PAPER 2 — default marks per question when not explicitly printed:
