@@ -2052,8 +2052,16 @@ function QuizContent({ id }: { id: string }) {
                   // route them through the grammar-cloze renderer when
                   // the paper is P4. P5/P6 短文填空 keeps the inline
                   // 4-option layout unchanged.
-                  const isP4 = paper.level === 4;
-                  const isP4SharedBank = isP4 && (label.includes("词语搭配") || label.includes("短文填空"));
+                  //
+                  // P4 detection: prefer the structured paper.level
+                  // field, but fall back to a title regex because
+                  // older / re-extracted papers can have level=null
+                  // even when the title clearly says "PRIMARY 4".
+                  const isP4 = paper.level === 4 || /\b(primary\s*4|p\s*4|level\s*4|小四|四年级)\b/i.test(paper.title ?? "");
+                  // 词语搭配 is P4-only by nature so always treat as
+                  // shared-bank regardless of level signal. 短文填空
+                  // is P4-only-shared-bank — P5/P6 use 4-option MCQ.
+                  const isP4SharedBank = label.includes("词语搭配") || (isP4 && label.includes("短文填空"));
                   const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空") || isP4SharedBank;
                   const isShortClozeMcq = label.includes("短文填空") && !isP4SharedBank;
                   // "阅读理解 MCQ", "阅读理解 OEQ", "阅读理解A",
