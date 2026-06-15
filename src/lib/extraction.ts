@@ -1195,7 +1195,13 @@ export function buildChineseSections(
           if (lastCompPassagePages) secPassagePages.set(sec, new Set(lastCompPassagePages));
         }
       }
-    } else if (sec.label.includes("短文填空") || sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
+    } else if (sec.label.includes("短文填空") || sec.label.includes("完成对话") || sec.label.includes("对话填空") || sec.label.includes("词语搭配")) {
+      // 词语搭配 (P4-only) has the SAME structural shape as 完成对话 —
+      // a numbered phrase bank at the TOP of the section that every
+      // question's blank refers back to. The section OCR captures it
+      // inline; without this branch the bank gets discarded and the
+      // quiz renderer has no way to show the student what (1)-(8)
+      // mean. Same treatment as the cloze / duihua siblings.
       sec.passage = entry?.ocrText;
     }
     // 语文应用 MCQ / Visual Text MCQ: no passage attached.
