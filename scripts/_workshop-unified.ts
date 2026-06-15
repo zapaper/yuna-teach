@@ -22,10 +22,17 @@ import path from "path";
 
 const [, , studentNameArg, subjectArg, ...rest] = process.argv;
 if (!studentNameArg || !subjectArg) {
-  console.error("Usage: <studentName> <subject> [--refresh]");
+  console.error("Usage: <studentName> <subject> [--refresh] [--max N]");
   process.exit(1);
 }
 const forceRefresh = rest.includes("--refresh");
+// --max N — cap wrong records before prompting Gemini. Used for kids
+// with hundreds of wrongs (Mark lim, 372) where the full prompt is too
+// big for the Node process or for Gemini to emit clean JSON. We keep
+// the top-N highest marksLost wrongs so the signal-richest examples
+// drive the diagnosis.
+const maxIdx = rest.indexOf("--max");
+const maxWrongs = maxIdx >= 0 && rest[maxIdx + 1] ? parseInt(rest[maxIdx + 1], 10) : null;
 
 function subjectMatches(rawSubject: string | null, target: string): boolean {
   const t = (rawSubject ?? "").toLowerCase();
@@ -300,6 +307,16 @@ function lostSubpartLabels(notes: string): Set<string> {
     }
   }
   const totalSubjectMarksLost = totalSubjectMarksAvailable - totalSubjectMarksAwarded;
+  // Apply --max cap BEFORE computing the split + cost / log lines. We
+  // sort by marksLost descending (ties → keep original idx ordering so
+  // examples stay reproducible) and slice.
+  if (maxWrongs !== null && wrongs.length > maxWrongs) {
+    console.log(`[compress] capping ${wrongs.length} wrongs → top ${maxWrongs} by marksLost`);
+    wrongs.sort((a, b) => (b.marksLost - a.marksLost) || (a.idx - b.idx));
+    wrongs.length = maxWrongs;
+    // Re-stamp idx so Classification array stays 1..N contiguous.
+    wrongs.forEach((w, i) => { w.idx = i + 1; });
+  }
   const totalWrongMarksLost = wrongs.reduce((s, w) => s + w.marksLost, 0);
   const wrongMcq = wrongs.filter(w => w.type === "mcq");
   const wrongOeq = wrongs.filter(w => w.type === "oeq");
@@ -441,6 +458,16 @@ ${records}`;
   type Example = { questionRef: string; type: "oeq" | "mcq"; whatWentWrong: string };
   type Pattern = { name: string; what: string; specific_examples: Example[]; strategic_advice: string; trigger_keywords: string[] };
   type Classification = { idx: number; patternIndex: number };
+  // Snapshot of the prior assessment, carried into the new cache when
+  // we refresh — lets the runtime LumiSummary call out which patterns
+  // the kid has moved past since the last check.
+  type PreviousAssessment = {
+    generatedAt: string;
+    patternNames: string[];
+    wrongCounts: { total: number; oeq: number; mcq: number } | null;
+    toplineSnapshot: { avgPct: number; totalAwarded: number; totalAvailable: number; paperCount: number } | null;
+  };
+  type ToplineSnapshot = { avgPct: number; totalAwarded: number; totalAvailable: number; paperCount: number };
   type Report = {
     patterns: Pattern[];
     classification: Classification[];
@@ -453,6 +480,31 @@ ${records}`;
     questionIdByIdx?: Record<string, string>;
     generatedAt?: string;
     wrongCounts?: { total: number; oeq: number; mcq: number };
+    // Topline snapshot at workshop time — frozen so the next refresh
+    // can compute "avg up 4pp since last check" without re-running the
+    // prior assessment's prisma query.
+    toplineSnapshot?: ToplineSnapshot;
+    // Single-step history. When the workshop overwrites a prior cache,
+    // we lift the prior's diagnosis summary into this field so the
+    // runtime can say e.g. "since last check, these 2 patterns dropped
+    // out of the top 4 — nice work".
+    previousAssessment?: PreviousAssessment | null;
+  };
+
+  // Compute the topline snapshot up front; the same numbers were
+  // already logged earlier in this run.
+  const paperCountForSnapshot = (() => {
+    // Count distinct nonRevPapers wrong records touched. We don't have
+    // a clean handle to nonRevPapers here, but totalSubjectMarksAvailable
+    // is already in scope, and the wrongs array is per-question. Re-use
+    // the count we already logged.
+    return papers.filter(p => !(p.metadata as { revisionMode?: unknown } | null)?.revisionMode && subjectMatches(p.subject, subjectArg)).length;
+  })();
+  const currentToplineSnapshot: ToplineSnapshot = {
+    avgPct: totalSubjectMarksAvailable > 0 ? Math.round((totalSubjectMarksAwarded / totalSubjectMarksAvailable) * 100) : 0,
+    totalAwarded: totalSubjectMarksAwarded,
+    totalAvailable: totalSubjectMarksAvailable,
+    paperCount: paperCountForSnapshot,
   };
 
   let report: Report;
@@ -461,6 +513,26 @@ ${records}`;
     console.log(`Using cached Pro analysis (${cachePath}). Pass --refresh to force.`);
     report = JSON.parse(readFileSync(cachePath, "utf8"));
   } else {
+    // Snapshot the prior assessment BEFORE we overwrite it. The new
+    // cache carries forward enough of the old to compute a delta at
+    // render time.
+    let previousAssessment: PreviousAssessment | null = null;
+    if (existsSync(cachePath)) {
+      try {
+        const prior = JSON.parse(readFileSync(cachePath, "utf8")) as Report;
+        if (prior.generatedAt) {
+          previousAssessment = {
+            generatedAt: prior.generatedAt,
+            patternNames: (prior.patterns ?? []).map(p => p.name),
+            wrongCounts: prior.wrongCounts ?? null,
+            toplineSnapshot: prior.toplineSnapshot ?? null,
+          };
+          console.log(`Prior assessment from ${prior.generatedAt} archived as previousAssessment.`);
+        }
+      } catch (e) {
+        console.warn(`Could not parse prior cache to snapshot previousAssessment: ${e instanceof Error ? e.message : e}`);
+      }
+    }
     console.log(`Calling Gemini 3.1 Pro…\n`);
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 170_000 } });
     const t0 = Date.now();
@@ -482,6 +554,8 @@ ${records}`;
     report.questionIdByIdx = Object.fromEntries(wrongs.map(w => [String(w.idx), w.questionId]));
     report.generatedAt = new Date().toISOString();
     report.wrongCounts = { total: wrongs.length, oeq: wrongOeq.length, mcq: wrongMcq.length };
+    report.toplineSnapshot = currentToplineSnapshot;
+    report.previousAssessment = previousAssessment;
     writeFileSync(cachePath, JSON.stringify(report, null, 2));
     // Cost estimate: $1.25/M input + $10/M output.
     const promptTokens = Math.round(prompt.length / 4);

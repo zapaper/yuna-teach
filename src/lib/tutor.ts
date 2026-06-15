@@ -121,7 +121,15 @@ export type MistakeExample = {
   correct: string | null;
 };
 export type MistakeCard = {
-  bucket: "final_consequence" | "vague_terminology" | "trend_description" | "missing_context" | "diagram_analysis";
+  bucket:
+    // Science / cross-subject buckets:
+    | "final_consequence" | "vague_terminology" | "trend_description" | "missing_context" | "diagram_analysis"
+    // English-specific buckets (added so the personalised-quiz puller
+    // can pool questions across kids with similar gaps — e.g. all
+    // "collocation" examples become one drilling pool):
+    | "collocation" | "grammar_signals" | "spelling_slips" | "synthesis_transformation" | "vocab_precision"
+    // Fallback when no bucket regex matches:
+    | "topical";
   name: string;
   what: string;
   advice: string;
@@ -148,6 +156,19 @@ export type StaleInfo = {
   cachedWrongs: number;
   currentWrongs: number;
 };
+// Single-step assessment history surfaced to the UI so the LumiSummary
+// can say "since last check on X, you've moved past patterns Y, Z" /
+// "your average improved by N pp". Computed at runtime by diffing the
+// current diagnosis against the previousAssessment snapshot the
+// workshop stamped into the cache.
+export type PreviousAssessmentDelta = {
+  generatedAt: string;             // when the prior assessment ran
+  patternsCleared: string[];       // pattern names that dropped out of the top 4
+  patternsNew: string[];           // pattern names that appeared this run
+  avgDelta: number | null;         // current avg% - prior avg% (positive = improvement)
+  paperCountDelta: number | null;  // current paper count - prior paper count
+};
+
 export type TutorData =
   | { kind: "ineligible"; reason: string; paperCount: number }
   | {
@@ -161,6 +182,7 @@ export type TutorData =
       topicsForPractice: TopicCard[];
       generatedAt: string;
       stale: StaleInfo;
+      previousAssessment: PreviousAssessmentDelta | null;
     };
 
 // ---- Standard taxonomy ----
@@ -176,12 +198,18 @@ type StandardBucket = MistakeCard["bucket"] | ConceptCard["bucket"] | "incomplet
 // "Misinterpreting Visual Data".
 const INVERSE_RE = /\binverse|inverted|reciprocal|opposite\s+relationship|revers(e|ing|al)\b/i;
 const CONCEPT_RE = /conflat|confus(e|ing|ion)\b|misattribut|misappl|wrong\s+(process|concept|idea)|misidentif|misjudg|misinterpret|mix(ing|es)?\s+up|mis-?understand|faulty\s+(logic|reasoning|deduction)/i;
-const INCOMPLETE_RE = /\bblank|skipping?\s+(sub|initial|or\s+incomplete)|incomplete\s+(or\s+blank|sub|explanation|answer|response)|left\s+blank|skipped\s+sub-?questions?/i;
-const FINAL_RE = /final\s+consequence|stops?\s+short|stopping\s+(one\s+)?step\s+short/i;
+const INCOMPLETE_RE = /\bblank\s+(answer|submission)|skipping?\s+(sub|initial|or\s+incomplete|open[- ]?ended)|incomplete\s+(or\s+blank|sub|explanation|answer|response)|left\s+blank|skipped\s+sub-?questions?|holding\s+back\s+(on\s+)?(written\s+)?evidence|overly\s+general\s+explanation/i;
+const FINAL_RE = /final\s+consequence|stops?\s+short|stopping\s+(one\s+)?step\s+short|stopping\s+at\s+the\s+immediate|connecting\s+(the\s+)?(final\s+)?dot/i;
 const VAGUE_RE = /vague\s+(everyday\s+)?language|scientific\s+(term|vocab|keyword)|terminology|precise\s+scientific|imprecise|missing\s+scientific/i;
 const TREND_RE = /trend|describe.*data|describe.*graph|data\s+(and\s+)?(trend|graph|diagram)\s+(description|misinterp)/i;
-const CONTEXT_RE = /\b(context|setup|specific\s+context|ignor(es|ing)\s+.*(key\s+)?(context|data|information|clues?)|missing\s+context|scenario|provided\s+(data|context))/i;
+const CONTEXT_RE = /\b(context(ual)?|setup|specific\s+context|ignor(es|ing)\s+.*(key\s+)?(context|data|information|clues?)|missing\s+context|scenario|provided\s+(data|context)|hidden\s+nuance|key\s+question\s+condition|sentence\s+(context|flow|clue)|surrounding\s+context|visual\s+text|small\s+sentence\s+clue|matching\s+(words|details)\s+(to|in)\s+(context|visual))/i;
 const DIAGRAM_RE = /\bdiagram(?!.*interpret)|superficial|diagram\s+(misinterp|misanalysis)/i;
+// English-specific buckets — see MistakeCard bucket union.
+const COLLOCATION_RE = /partnership|partner\s+words?|fixed\s+(word|english\s+)?(pair|phrase)|fixed\s+phrases?|word\s+pair|pairing\s+(words?|prepositions?)|preposition\s+(after|pair|verb)|noticing\s+prepositions/i;
+const GRAMMAR_SIGNALS_RE = /grammar\s+(signpost|rule|clue|cue)|hidden\s+grammar|tricky\s+grammar|structural\s+grammar|singular\s+subject|reported\s+speech|word\s+form|qualifier\s+words?|grammar\s+conversion/i;
+const SPELLING_RE = /spelling|capitali[sz]ation|caps?\s+(and\s+spelling|slip)|typo|spell\s+by\s+sound|spelling\s+based\s+on\s+sound|mechanics|spell.{0,15}sound|irregular\s+verb/i;
+const SYNTHESIS_RE = /synthesis|transformation|complex\s+grammar|advanced\s+grammar|connecting\s+words?|linking\s+ideas?|sentence\s+rewriting/i;
+const VOCAB_PRECISION_RE = /unfamiliar\s+vocab|exact\s+vocab(ulary)?\s+fit|precise\s+vocab(ulary)?|vocabulary\s+(precision|fit)|hesitating\s+on\s+(unfamiliar\s+)?vocab/i;
 
 function bucketFor(patternName: string): StandardBucket {
   // Order matters: incomplete and final_consequence are checked first
@@ -193,6 +221,15 @@ function bucketFor(patternName: string): StandardBucket {
   if (CONCEPT_RE.test(patternName))    return "concept_confusion";
   if (VAGUE_RE.test(patternName))      return "vague_terminology";
   if (TREND_RE.test(patternName))      return "trend_description";
+  // English buckets BEFORE the broad CONTEXT_RE — "Context Clues in
+  // Cloze" should bucket as collocation/grammar-signals etc. when it
+  // names a more specific shape, but the existing missing_context
+  // bucket is fine as a catch-all for "missing context" patterns.
+  if (COLLOCATION_RE.test(patternName))       return "collocation";
+  if (GRAMMAR_SIGNALS_RE.test(patternName))   return "grammar_signals";
+  if (SPELLING_RE.test(patternName))          return "spelling_slips";
+  if (SYNTHESIS_RE.test(patternName))         return "synthesis_transformation";
+  if (VOCAB_PRECISION_RE.test(patternName))   return "vocab_precision";
   if (CONTEXT_RE.test(patternName))    return "missing_context";
   if (DIAGRAM_RE.test(patternName))    return "diagram_analysis";
   return "topical";
@@ -576,6 +613,7 @@ function shapeTutorData(args: {
     cachedWrongs,
     currentWrongs,
   };
+  const previousAssessment = buildPreviousAssessmentDelta(report, topline);
   return {
     kind: "ready",
     childFirst,
@@ -595,8 +633,43 @@ function shapeTutorData(args: {
     topicsForPractice: weakTopics,
     generatedAt: new Date().toISOString(),
     stale,
+    previousAssessment,
   };
 }
+
+// Diff the previousAssessment snapshot carried in the cache against the
+// current run's pattern names + topline. Returns null when there is no
+// prior to compare against (first-ever workshop run).
+function buildPreviousAssessmentDelta(
+  report: { patterns?: Array<{ name: string }>; previousAssessment?: PrevAssessmentCacheShape | null },
+  topline: { avgPct: number; paperCount: number },
+): PreviousAssessmentDelta | null {
+  const prior = report.previousAssessment;
+  if (!prior || !prior.generatedAt) return null;
+  const currentNames = new Set((report.patterns ?? []).map(p => p.name));
+  const priorNames = new Set(prior.patternNames ?? []);
+  const patternsCleared = [...priorNames].filter(n => !currentNames.has(n));
+  const patternsNew = [...currentNames].filter(n => !priorNames.has(n));
+  const priorAvg = prior.toplineSnapshot?.avgPct ?? null;
+  const priorPapers = prior.toplineSnapshot?.paperCount ?? null;
+  return {
+    generatedAt: prior.generatedAt,
+    patternsCleared,
+    patternsNew,
+    avgDelta: priorAvg !== null ? topline.avgPct - priorAvg : null,
+    paperCountDelta: priorPapers !== null ? topline.paperCount - priorPapers : null,
+  };
+}
+
+// Mirrors the shape the workshop writes into the cache (see
+// _workshop-unified.ts PreviousAssessment). Local to tutor.ts since
+// nothing else consumes the cache directly.
+type PrevAssessmentCacheShape = {
+  generatedAt: string;
+  patternNames: string[];
+  wrongCounts?: { total: number; oeq: number; mcq: number } | null;
+  toplineSnapshot?: { avgPct: number; totalAwarded: number; totalAvailable: number; paperCount: number } | null;
+};
 
 function subjectMatches(rawSubject: string | null, target: string): boolean {
   const t = (rawSubject ?? "").toLowerCase();
@@ -685,6 +758,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       // No cached diagnosis at all → the empty mistakes/concepts are
       // already a stronger signal than a stale flag; treat as fresh.
       stale: { kind: "fresh", cachedAt: null, cachedWrongs: 0, currentWrongs: 0 },
+      previousAssessment: null,
     };
   }
   const shaped = shapeTutorData({ studentName: student.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });

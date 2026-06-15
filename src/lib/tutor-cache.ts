@@ -34,6 +34,18 @@ import student66666English from "./tutor-cache/unified-diagnosis-student66666-en
 export type CachedReport = {
   patterns: Array<{ name: string; what: string; specific_examples: Array<{ questionRef: string; type?: "oeq" | "mcq"; whatWentWrong: string }>; strategic_advice: string; trigger_keywords: string[] }>;
   classification: Array<{ idx: number; patternIndex: number }>;
+  // Optional — only present on caches written after the
+  // assessment-history feature shipped. The runtime tutor.ts uses
+  // these to compute the LumiSummary "since last check" delta.
+  generatedAt?: string;
+  wrongCounts?: { total: number; oeq: number; mcq: number };
+  toplineSnapshot?: { avgPct: number; totalAwarded: number; totalAvailable: number; paperCount: number };
+  previousAssessment?: {
+    generatedAt: string;
+    patternNames: string[];
+    wrongCounts: { total: number; oeq: number; mcq: number } | null;
+    toplineSnapshot: { avgPct: number; totalAwarded: number; totalAvailable: number; paperCount: number } | null;
+  } | null;
 };
 
 // Key shape: `<safeName>:<subject>` lowercased, dashes for whitespace.

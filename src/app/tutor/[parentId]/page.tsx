@@ -87,6 +87,16 @@ type StaleInfo = {
   cachedWrongs: number;
   currentWrongs: number;
 };
+// Mirrors src/lib/tutor.ts PreviousAssessmentDelta. Surfaced when the
+// workshop has overwritten a prior assessment in this kid's cache, so
+// the LumiSummary can call out improvements / patterns cleared since.
+type PreviousAssessmentDelta = {
+  generatedAt: string;
+  patternsCleared: string[];
+  patternsNew: string[];
+  avgDelta: number | null;
+  paperCountDelta: number | null;
+};
 type TutorData =
   | { kind: "ineligible"; reason: string; paperCount: number }
   | {
@@ -100,6 +110,7 @@ type TutorData =
       topicsForPractice: TopicCard[];
       generatedAt: string;
       stale: StaleInfo;
+      previousAssessment: PreviousAssessmentDelta | null;
     };
 
 type LinkedStudent = { id: string; name: string };
@@ -438,7 +449,7 @@ function scrollToSection(id: string) {
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
 function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
-  const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
+  const { childFirst, topline, commonMistakes, conceptualGaps, subject, previousAssessment } = data;
   const weak = topline.weakTopics[0];
   const m1 = commonMistakes[0];
   const m2 = commonMistakes[1];
@@ -463,12 +474,35 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
     </a>
   );
 
+  // "Since last check" callout — only renders when the workshop
+  // archived a prior assessment in this kid's cache. The first time
+  // we run the workshop for a kid, previousAssessment is null and we
+  // skip the bullet entirely.
+  const sinceLast = previousAssessment ? (() => {
+    const date = new Date(previousAssessment.generatedAt).toLocaleDateString();
+    const cleared = previousAssessment.patternsCleared.slice(0, 2);
+    const avgDelta = previousAssessment.avgDelta;
+    const papersGained = previousAssessment.paperCountDelta ?? 0;
+    const hasMovement = cleared.length > 0 || (avgDelta !== null && Math.abs(avgDelta) >= 2) || papersGained > 0;
+    if (!hasMovement) return null;
+    return (
+      <li>
+        Since the last check on <strong>{date}</strong>:
+        {avgDelta !== null && avgDelta >= 2 && <> {childFirst}&apos;s average is <strong>up {Math.round(avgDelta)} percentage points</strong>.</>}
+        {avgDelta !== null && avgDelta <= -2 && <> the average has slipped <strong>{Math.abs(Math.round(avgDelta))} percentage points</strong> — worth a look.</>}
+        {cleared.length > 0 && <> The pattern{cleared.length > 1 ? "s" : ""} <strong>&ldquo;{cleared.join("”, “")}&rdquo;</strong> {cleared.length > 1 ? "have" : "has"} dropped out of the top 4 — nice progress.</>}
+        {papersGained > 0 && cleared.length === 0 && (avgDelta === null || Math.abs(avgDelta) < 2) && <> {childFirst} has completed {papersGained} more {subject.toLowerCase()} paper{papersGained === 1 ? "" : "s"} since.</>}
+      </li>
+    );
+  })() : null;
+
   return (
     <div className="text-[#001e40] text-sm leading-relaxed mt-3 space-y-2.5">
       <p>
         {childFirst} is making <strong>{status}</strong> progress in {subject}. A few things to take note:
       </p>
       <ul className="space-y-2 list-disc pl-5">
+        {sinceLast}
         {avg < 80 && (
           <li>
             Daily quizzes are a good way to get more practices in a short and fun way for {childFirst}.
