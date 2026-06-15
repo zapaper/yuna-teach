@@ -49,15 +49,21 @@ export async function PATCH(
   // of ~200ms, which compounded into 30-45s of (b2) PATCH 15 answers
   // in the smoke test.
   const needsScoreRecalc = "marksAwarded" in body;
-  let question;
+  let question: { id: string; examPaperId: string; examPaper?: { questions: Array<{ marksAwarded: number | null }> } };
   try {
-    question = await prisma.examQuestion.update({
-      where: { id },
-      data,
-      ...(needsScoreRecalc
-        ? { include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } } }
-        : { select: { id: true, examPaperId: true } }),
-    });
+    if (needsScoreRecalc) {
+      question = await prisma.examQuestion.update({
+        where: { id },
+        data,
+        include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+      });
+    } else {
+      question = await prisma.examQuestion.update({
+        where: { id },
+        data,
+        select: { id: true, examPaperId: true },
+      });
+    }
   } catch (err: unknown) {
     console.warn("[questions PATCH] error for id:", id, "fields:", Object.keys(data), err);
     if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
@@ -67,14 +73,13 @@ export async function PATCH(
   }
 
   // If marks changed, recalculate paper total score
-  if (needsScoreRecalc) {
-    const q = question as typeof question & { examPaper: { questions: Array<{ marksAwarded: number | null }> } };
-    const total = q.examPaper.questions.reduce(
+  if (needsScoreRecalc && question.examPaper) {
+    const total = question.examPaper.questions.reduce(
       (sum, qq) => sum + (qq.marksAwarded ?? 0),
       0
     );
     await prisma.examPaper.update({
-      where: { id: q.examPaperId },
+      where: { id: question.examPaperId },
       data: { score: total },
     });
   }
