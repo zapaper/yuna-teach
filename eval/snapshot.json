@@ -8,7 +8,7 @@
       "level": "P4",
       "paperType": "focused",
       "totalMarks": "23",
-      "score": 19.5,
+      "score": 18.5,
       "questionCount": 10,
       "questions": [
         {
@@ -68,7 +68,7 @@
         {
           "questionNum": "10",
           "marksAvailable": 2,
-          "marksAwarded": 2,
+          "marksAwarded": 0,
           "syllabusTopic": "Cycles in matter"
         }
       ],

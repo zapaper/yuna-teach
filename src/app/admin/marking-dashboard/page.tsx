@@ -180,11 +180,11 @@ function Content() {
               <p className="text-[10px] text-slate-400 mt-2">Hour labels are SGT (UTC+8). Hover a bar for details.</p>
             </section>
 
-            {/* Most-recent 5 marked papers. Server returns them in
+            {/* Most-recent 10 marked papers. Server returns them in
                 completedAt-desc order, no client-side sort needed. */}
             {data.recentMarked && data.recentMarked.length > 0 && (
               <section className="bg-white rounded-2xl border border-slate-200 p-5">
-                <h2 className="text-sm font-bold text-slate-700 mb-3">Last 5 marked</h2>
+                <h2 className="text-sm font-bold text-slate-700 mb-3">Last 10 marked</h2>
                 <div className="divide-y divide-slate-100">
                   {data.recentMarked.map((a) => {
                     const ago = a.ageMin < 60
