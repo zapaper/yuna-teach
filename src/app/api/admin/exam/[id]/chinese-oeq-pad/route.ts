@@ -1,10 +1,10 @@
 // Generates the blank-answer writing pad PDF that gets appended to
 // the end of Paper 2 for Chinese exam papers. Layout:
 //
-//   Page 1 — Q33 (long answer comprehension)
-//     Q33 header + 9 horizontal writing rows (~half page tall)
+//   Page 1 — long OEQ (Q33 on PSLE / P5 / P6, Q21 on P4)
+//     header + 9 horizontal writing rows (~half page tall)
 //
-//   Page 2 — Q34 through Q40 (short answer)
+//   Page 2 — remaining 阅读理解 OEQ questions (short answer)
 //     Each question gets a header (label + [N marks]) and
 //     (marksAvailable × 2) horizontal writing rows.
 //
@@ -36,42 +36,56 @@ const MARGIN = 50;
 // Only applies to the pad pages, not the main paper.
 const TOP_INSET = 36;
 const HEADER_HEIGHT = 24;
-const Q33_ROW_HEIGHT = 52;   // ~half-page worth for 9 rows
+const LONG_OEQ_ROW_HEIGHT = 52;   // ~half-page worth for 9 rows
 const SHORT_ROW_HEIGHT = 24;
 const SHORT_Q_GAP = 12;
 
 type OeqQuestion = { id: string; questionNum: string; marksAvailable: number | null };
 type PadBound = { id: string; padPageOffset: number; yStartPct: number; yEndPct: number };
 
+// Which question number is the long-form OEQ on this paper. PSLE / P5 /
+// P6 standard layout: Q33. P4 papers have fewer comprehension items so
+// the long OEQ sits at Q21. Title regex covers Primary 4 / P4 / 小四 /
+// 四年级; falls back to the lowest OEQ number on the paper when the
+// title doesn't match either pattern (defensive — keeps existing
+// PSLE / P5 / P6 behaviour when level is missing).
+function longOeqNum(level: string | null, title: string | null, sorted: OeqQuestion[]): string {
+  const haystack = `${level ?? ""} ${title ?? ""}`;
+  const isP4 = /\b(primary\s*4|p\s*4|level\s*4|小四|四年级)\b/i.test(haystack);
+  if (isP4) return "21";
+  return "33";
+}
+
 // Same layout logic as the PDF generator. Used to write bounds back
 // to each OEQ question after generation so the scan-back marker
 // knows to crop from the pad page rather than the original paper.
-function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
+function computePadBounds(oeqQuestions: OeqQuestion[], level: string | null, title: string | null): PadBound[] {
   const sorted = [...oeqQuestions].sort((a, b) => {
     const an = parseInt(a.questionNum, 10);
     const bn = parseInt(b.questionNum, 10);
     return (Number.isFinite(an) ? an : 999) - (Number.isFinite(bn) ? bn : 999);
   });
-  const q33 = sorted.find(q => q.questionNum === "33");
-  const others = sorted.filter(q => q.questionNum !== "33");
+  const longNum = longOeqNum(level, title, sorted);
+  const longQ = sorted.find(q => q.questionNum === longNum);
+  const others = sorted.filter(q => q.questionNum !== longNum);
   const out: PadBound[] = [];
 
-  // ─── Page 0 of pad: Q33 — entire writing area ──────────────
-  if (q33) {
+  // ─── Page 0 of pad: long OEQ — entire writing area ──────────
+  if (longQ) {
     // Writing area starts at PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT and
-    // covers 9 rows × Q33_ROW_HEIGHT = 468pt. From top pct:
+    // covers 9 rows × LONG_OEQ_ROW_HEIGHT = 468pt. From top pct:
     const topPdf = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
-    const bottomPdf = topPdf - 9 * Q33_ROW_HEIGHT;
+    const bottomPdf = topPdf - 9 * LONG_OEQ_ROW_HEIGHT;
     out.push({
-      id: q33.id,
+      id: longQ.id,
       padPageOffset: 0,
       yStartPct: ((PAGE_H - topPdf) / PAGE_H) * 100,
       yEndPct: ((PAGE_H - bottomPdf) / PAGE_H) * 100,
     });
   }
 
-  // ─── Page 1+ of pad: Q34-Q40 ───────────────────────────────
-  let padPageOffset = q33 ? 1 : 0;
+  // ─── Page 1+ of pad: remaining 阅读理解 OEQ questions ───────
+  let padPageOffset = longQ ? 1 : 0;
   let cursorPdf = PAGE_H - MARGIN - TOP_INSET;
   for (const q of others) {
     const marks = q.marksAvailable ?? 1;
@@ -94,28 +108,29 @@ function computePadBounds(oeqQuestions: OeqQuestion[]): PadBound[] {
   return out;
 }
 
-async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false): Promise<Uint8Array> {
+async function generatePadPdf(oeqQuestions: OeqQuestion[], level: string | null, title: string | null, overlayBounds = false): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const helv = await doc.embedFont(StandardFonts.Helvetica);
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
 
-  // Sort by questionNum so Q33 leads and Q34+ follow.
+  // Sort by questionNum so the long OEQ leads and the rest follow.
   const sorted = [...oeqQuestions].sort((a, b) => {
     const an = parseInt(a.questionNum, 10);
     const bn = parseInt(b.questionNum, 10);
     return (Number.isFinite(an) ? an : 999) - (Number.isFinite(bn) ? bn : 999);
   });
-  const q33 = sorted.find(q => q.questionNum === "33");
-  const others = sorted.filter(q => q.questionNum !== "33");
+  const longNum = longOeqNum(level, title, sorted);
+  const longQ = sorted.find(q => q.questionNum === longNum);
+  const others = sorted.filter(q => q.questionNum !== longNum);
 
-  // ─── Page 1: Q33 ───────────────────────────────────────────
+  // ─── Page 1: long OEQ (Q33 on PSLE / P5 / P6, Q21 on P4) ────
   const p1 = doc.addPage([PAGE_W, PAGE_H]);
-  const marks33 = q33?.marksAvailable ?? 10;
-  p1.drawText("33.", { x: MARGIN, y: PAGE_H - MARGIN - TOP_INSET, size: 14, font: helvBold });
-  p1.drawText(`[${marks33} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN - TOP_INSET, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
+  const longMarks = longQ?.marksAvailable ?? 10;
+  p1.drawText(`${longNum}.`, { x: MARGIN, y: PAGE_H - MARGIN - TOP_INSET, size: 14, font: helvBold });
+  p1.drawText(`[${longMarks} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN - TOP_INSET, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
   const startY1 = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
   for (let i = 0; i < 9; i++) {
-    const y = startY1 - i * Q33_ROW_HEIGHT;
+    const y = startY1 - i * LONG_OEQ_ROW_HEIGHT;
     p1.drawLine({
       start: { x: MARGIN, y },
       end: { x: PAGE_W - MARGIN, y },
@@ -124,7 +139,7 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false
     });
   }
 
-  // ─── Page 2 (and overflow if needed): Q34-Q40 ──────────────
+  // ─── Page 2 (and overflow if needed): remaining OEQ ─────────
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let cursorY = PAGE_H - MARGIN - TOP_INSET;
   for (const q of others) {
@@ -152,12 +167,12 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], overlayBounds = false
   }
 
   // Overlay: dashed violet rectangles around each question's scan-back
-  // bounds, with a "Q33 → bounds" label. Lets admin sanity-check that
+  // bounds, with a "Q<n> → bounds" label. Lets admin sanity-check that
   // the writing rows the scan-back marker will crop actually cover the
   // ruled rows the student will write on. Not part of the printed PDF
   // (the print flow uses the cached no-overlay version).
   if (overlayBounds) {
-    const bounds = computePadBounds(oeqQuestions);
+    const bounds = computePadBounds(oeqQuestions, level, title);
     const pages = doc.getPages();
     const byQId = new Map(sorted.map(q => [q.id, q]));
     for (const b of bounds) {
@@ -204,7 +219,7 @@ export async function POST(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, subject: true, pageCount: true, metadata: true,
+      id: true, subject: true, level: true, title: true, pageCount: true, metadata: true,
       questions: {
         select: { id: true, questionNum: true, marksAvailable: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
@@ -229,7 +244,7 @@ export async function POST(
     }, { status: 400 });
   }
 
-  const pdfBytes = await generatePadPdf(oeqQuestions);
+  const pdfBytes = await generatePadPdf(oeqQuestions, paper.level, paper.title);
 
   // Cache to disk so the print flow can append it without
   // re-generating.
@@ -247,7 +262,7 @@ export async function POST(
   // minus left/right margin); y range is the writing strip of each
   // question on its pad page.
   const masterPageCount = paper.pageCount ?? 0;
-  const bounds = computePadBounds(oeqQuestions);
+  const bounds = computePadBounds(oeqQuestions, paper.level, paper.title);
   const updates = bounds.map(b => prisma.examQuestion.update({
     where: { id: b.id },
     data: {
@@ -314,6 +329,7 @@ export async function GET(
     const paper = await prisma.examPaper.findUnique({
       where: { id },
       select: {
+        level: true, title: true,
         questions: {
           select: { id: true, questionNum: true, marksAvailable: true, syllabusTopic: true },
           orderBy: { orderIndex: "asc" },
@@ -327,7 +343,7 @@ export async function GET(
     if (oeqQuestions.length === 0) {
       return NextResponse.json({ error: "No 阅读理解 OEQ questions on this paper." }, { status: 400 });
     }
-    const pdfBytes = await generatePadPdf(oeqQuestions, true);
+    const pdfBytes = await generatePadPdf(oeqQuestions, paper.level, paper.title, true);
     return new NextResponse(new Uint8Array(pdfBytes), {
       status: 200,
       headers: {
