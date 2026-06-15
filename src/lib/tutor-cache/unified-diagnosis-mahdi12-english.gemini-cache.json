@@ -1,0 +1,272 @@
+{
+  "patterns": [
+    {
+      "name": "Pairing Prepositions and Phrasal Verbs",
+      "what": "Mahdi12 sometimes mixes up the specific prepositions that belong with certain verbs, which is very common when learning tricky phrasal verbs.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'fell apart' instead of 'fell out', which is the specific phrasal verb used for friends having a disagreement."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked 'from' instead of 'to', missing the fixed preposition pair 'similar to'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 selected 'with' instead of 'in', as the verb 'confide' always pairs naturally with 'in' when sharing a secret."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after a verb, check if it's a **phrasal verb** or a word that needs a specific **preposition partner**. Try reading the sentence silently with each option to see which one 'clicks' naturally. It helps to keep a small notebook of these tricky pairs, like 'similar to' or 'confide in', to review before tests!",
+      "trigger_keywords": [
+        "blank after a verb",
+        "preposition choices",
+        "phrasal verbs"
+      ]
+    },
+    {
+      "name": "Spotting Natural Word Combinations",
+      "what": "Mahdi12 occasionally chooses a word that makes logical sense but isn't the exact 'partner' word typically used in everyday English phrases (collocations).",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'prevented' instead of 'impeded', missing that a lack of confidence hinders (impedes) rather than completely stops (prevents) an action."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked 'intensive' instead of 'overwhelming', which is the natural word partner used to describe a very strong smell."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 selected 'bustle' instead of 'flurry', missing the common English expression 'a flurry of activity'."
+        }
+      ],
+      "strategic_advice": "When you see vocabulary options that have similar meanings, look for the **collocation**—the word that naturally pairs with the noun in the sentence. Ask yourself, 'Have I heard these two words together before, like *poor visibility* or *flurry of activity*?' If a word means the right thing but sounds a bit awkward in the phrase, it might not be the best fit.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "vocabulary choices",
+        "describing a noun"
+      ]
+    },
+    {
+      "name": "Catching Hidden Context Clues",
+      "what": "When deciding between similar vocabulary words, Mahdi12 tends to overlook small clues in the sentence that point to the most precise choice.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'speculated' instead of 'pondered', overlooking the clue 'tried to put the pieces together' which implies deep thought rather than guessing."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked 'energetically' instead of 'nimbly', missing the context clues 'weaved' and 'dodging' which require agility, not just energy."
+        },
+        {
+          "questionRef": "[29]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 selected 'searched' instead of 'scrutinised', which is the exact synonym needed to match the intensity of 'peered intently'."
+        }
+      ],
+      "strategic_advice": "When you see a sentence with lots of descriptive details, treat it like a detective game and look for **context clues**. Words like 'dodging' or 'maze' are hints that point to a very specific answer, like 'nimbly' instead of just 'energetically'. Always underline the **action words** in the sentence before choosing your answer.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "descriptive sentences",
+        "vocabulary cloze"
+      ]
+    },
+    {
+      "name": "Applying Specific Grammar Rules",
+      "what": "Mahdi12 sometimes gets caught out by specific grammar rules, like forming question tags, matching singular/plural nouns, or choosing the right pronoun after an action.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'I' instead of 'me', forgetting to use the object pronoun when receiving the action from the teacher."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked 'didn't he' instead of 'hasn't he', missing that 'Ahmad's cleaned' is short for 'Ahmad has cleaned', which dictates the tag."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 selected the plural 'those' instead of the singular 'that', focusing on the plural 'books' rather than the singular 'stack'."
+        }
+      ],
+      "strategic_advice": "When you see a question tag at the end of a sentence (like '___ he?'), always check the **tense and positive/negative tone** of the main sentence first. For pronoun questions like 'Sally and ___', try the **hide-and-seek trick**: cover up 'Sally and' to see if 'I' or 'me' sounds correct on its own!",
+      "trigger_keywords": [
+        "question tags",
+        "comma followed by a blank",
+        "pronouns"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 2
+    },
+    {
+      "idx": 29,
+      "patternIndex": 2
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuk7rv2005fep4ecdjthhto",
+    "2": "cmpuk7rv2005gep4ep2it0pwb",
+    "3": "cmpuk7rv2005jep4eqipjn87p",
+    "4": "cmpuk3nsn001sep4ekzt51wun",
+    "5": "cmpuk3nsn001tep4ezrebtrd4",
+    "6": "cmpuk3nso001vep4en17emwvh",
+    "7": "cmpuk3nso001xep4ezilddhly",
+    "8": "cmpuk3nso001yep4eh8qi55lm",
+    "9": "cmpuk3nso001zep4ek2vxwc3v",
+    "10": "cmpujt2ww0003ep4eyf0qhnry",
+    "11": "cmpujt2ww0004ep4ew4we29i8",
+    "12": "cmpujt2wx0007ep4e9b6v0zmg",
+    "13": "cmpujt2wx0008ep4es725pdgo",
+    "14": "cmpujt2wx0009ep4ekmw6i9ut",
+    "15": "cmpujt2wx000aep4e1k9mbehi",
+    "16": "cmpujt2wx000bep4ev1f15ob5",
+    "17": "cmpujp8x0001z14eogqlbyver",
+    "18": "cmpujp8x1002314eobnevckax",
+    "19": "cmpujp8x1002414eotbkxgyjh",
+    "20": "cmpujp8x1002514eollsxlo4w",
+    "21": "cmpujp8x1002614eoq4g7pkwb",
+    "22": "cmpujk6hx001514eoo4k8iap8",
+    "23": "cmpujk6hx001614eojp763qbl",
+    "24": "cmpujk6hx001814eor3wbcv48",
+    "25": "cmpujk6hx001914eofdujpz17",
+    "26": "cmpujk6hx001a14eo5nx2o9wl",
+    "27": "cmpujk6hx001b14eons9siajc",
+    "28": "cmpujk6hx001c14eoi2fhz9lq",
+    "29": "cmpujk6hx001e14eo4uxm3d7u",
+    "30": "cmpujk6hx001g14eo694grk9o"
+  },
+  "generatedAt": "2026-06-15T03:05:13.647Z",
+  "wrongCounts": {
+    "total": 30,
+    "oeq": 0,
+    "mcq": 30
+  }
+}
