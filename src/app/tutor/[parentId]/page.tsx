@@ -113,7 +113,7 @@ type TutorData =
       previousAssessment: PreviousAssessmentDelta | null;
     };
 
-type LinkedStudent = { id: string; name: string };
+type LinkedStudent = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
 
 export default function TutorPage({ params }: { params: Promise<{ parentId: string }> }) {
   const { parentId } = use(params);
@@ -278,20 +278,23 @@ function TutorContent({ parentId }: { parentId: string }) {
   const [subject, setSubject] = useState<string>(searchParams.get("subject") ?? "Science");
 
   useEffect(() => {
+    // Re-fetch on subject change so the admin list reflects who
+    // qualifies in that subject (≥15 analysable wrongs), not just who
+    // has a cached diagnosis.
     Promise.all([
       fetch(`/api/users?userId=${parentId}`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/tutor/admin-students`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/tutor/admin-students?subject=${encodeURIComponent(subject)}`).then(r => r.ok ? r.json() : null),
     ]).then(([parentResp, adminResp]) => {
       const linked = (parentResp?.user?.linkedStudents as LinkedStudent[] | undefined) ?? [];
       const adminExtras = (adminResp?.students as LinkedStudent[] | undefined) ?? [];
       const merged = new Map<string, LinkedStudent>();
       for (const s of linked) if (s.id) merged.set(s.id, s);
-      for (const s of adminExtras) if (s.id) merged.set(s.id, s);
+      for (const s of adminExtras) if (s.id) merged.set(s.id, { ...merged.get(s.id), ...s });
       const list = [...merged.values()];
       setStudents(list);
       if (!studentId && list.length > 0) setStudentId(list[0].id);
     });
-  }, [parentId, studentId]);
+  }, [parentId, studentId, subject]);
 
   const currentChild = students.find(s => s.id === studentId);
 
@@ -313,7 +316,15 @@ function TutorContent({ parentId }: { parentId: string }) {
           <div className="flex gap-2 items-center">
             {students.length > 1 && (
               <select value={studentId ?? ""} onChange={e => setStudentId(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {students.map(s => {
+                  const noDx = s.hasDiagnosis === false;
+                  const level = s.level ? `P${s.level} ` : "";
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {level}{s.name}{noDx ? " — no diagnosis yet" : ""}
+                    </option>
+                  );
+                })}
               </select>
             )}
             <select value={subject} onChange={e => setSubject(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
