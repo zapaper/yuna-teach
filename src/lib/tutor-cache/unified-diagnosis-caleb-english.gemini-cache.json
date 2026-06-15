@@ -1,0 +1,240 @@
+{
+  "patterns": [
+    {
+      "name": "Overlooking Small Qualifier Words",
+      "what": "Caleb occasionally reads past small but crucial words like 'only', 'new', or 'again' that completely change the requirements of the question.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Caleb missed the word 'only' in the first option, which was the key to identifying it as the false statement."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He accidentally left out the word 'new' when rewriting the sentence, which slightly changed its meaning."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'again' in the question, which was a clue that Mindy qualified for the returning customer discount."
+        }
+      ],
+      "strategic_advice": "When you see trigger words like **not true**, **only**, or **again**, circle them immediately. These small words often change the entire meaning of the question. Before writing your final answer, do a quick check to ensure you haven't accidentally dropped any descriptive words from the original sentence.",
+      "trigger_keywords": [
+        "not true",
+        "only",
+        "again",
+        "new",
+        "except"
+      ]
+    },
+    {
+      "name": "Spelling by Sound Rather Than Rule",
+      "what": "Caleb tends to spell complex words exactly as they sound, which sometimes leads to adding extra letters or swapping vowels.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Caleb spelled the word exactly as it sounds by adding an extra 'r', writing 'perservering' instead of 'persevering'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He accidentally swapped the vowels, writing 'buisness' instead of 'business'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "He kept the 'i' from the root word 'reclaim', writing 'reclaimation' instead of 'reclamation'."
+        }
+      ],
+      "strategic_advice": "When you see an **editing** or **comprehension** question requiring a long word, try to break it down into its root parts. For example, remember that 'reclamation' comes from 'reclaim' but drops the 'i', and 'persevering' has no 'r' after the 'v'. Sounding it out is a great first step, but always double-check the spelling rules!",
+      "trigger_keywords": [
+        "spelling",
+        "editing",
+        "correct the word"
+      ]
+    },
+    {
+      "name": "Overlooking Contextual Clues in Cloze",
+      "what": "Caleb sometimes chooses a word that makes sense grammatically on its own, but doesn't quite fit the specific tone or reference of the surrounding sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Caleb chose 'supposedly' instead of 'moderately', missing the contextual clue that the beach was fairly clean but still had a severe littering issue."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'introduce' instead of 'expose', missing the negative, vulnerable tone associated with cyberbullying."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'school' instead of a referencing word like 'such' or 'these' to point back to the specific issues just mentioned."
+        }
+      ],
+      "strategic_advice": "When you see a **fill-in-the-blank** or **cloze** passage, always read the sentence before and the sentence after. Look for negative situations (like bullying or problems) that require a negative word like **expose** or **poor**, rather than neutral words. Ask yourself if the word you chose matches the exact feeling of the paragraph.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "most suitable word",
+        "cloze"
+      ]
+    },
+    {
+      "name": "Providing Overly General Explanations",
+      "what": "Caleb occasionally provides a good general idea in his comprehension answers, but tends to stop one step short of giving the exact, specific detail the question requires.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Caleb wrote 'the student' generally, instead of specifying that it referred to 'the first boy in the line'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "He focused on the broad idea of avoiding a ruined life, rather than the specific, immediate relief of avoiding another stroke."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly identified the principal as strict, but missed the second part of the explanation about his light-hearted sense of humour."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **explain clearly** or **what do the words refer to**, always ask yourself if you can be more specific. Instead of just giving a general category like 'the student', look back at the text to identify exactly **which** student the author means. Always try to include the final consequence or specific detail to get full marks.",
+      "trigger_keywords": [
+        "explain clearly",
+        "refer to",
+        "state how",
+        "evidence"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq7rnedu00257yw2cd1v5uo5",
+    "2": "cmq7rnedu00287yw216bmz0lx",
+    "3": "cmq7rnedu002a7yw2j9socdrp",
+    "4": "cmq7rnedu002b7yw2udvj4ck5",
+    "5": "cmq7rnedu002c7yw2wqains5t",
+    "6": "cmq7rg183000l7yw2j1i702qs",
+    "7": "cmq7rg18300107yw2hs0plv13",
+    "8": "cmq7rg18300117yw22hl5ns16",
+    "9": "cmq7rg184001c7yw2f9xl9ux9",
+    "10": "cmq7rg184001f7yw2exazwk0s",
+    "11": "cmq7rg184001j7yw2ll3cdw0r",
+    "12": "cmq621oo10004eykwi0b078ku",
+    "13": "cmq621oo10006eykwjuojwn84",
+    "14": "cmq621oo1000eeykwe8paswgs",
+    "15": "cmq621oo1000leykwhnhqbxed",
+    "16": "cmq621oo3001jeykwqt8hwez8",
+    "17": "cmq4y9enk000l9dsbqi1a0uwe",
+    "18": "cmq4y9enl000n9dsbkws2uz2f",
+    "19": "cmq4y9enl00159dsbupunxy5w",
+    "20": "cmq4y9enl00169dsbb2misk31",
+    "21": "cmq4y9enm001k9dsbsoymafs6",
+    "22": "cmq4y9enm001m9dsbov2f3136",
+    "23": "cmq4y9enm001o9dsb0cxiceru"
+  },
+  "generatedAt": "2026-06-15T02:20:54.913Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 17,
+    "mcq": 6
+  }
+}

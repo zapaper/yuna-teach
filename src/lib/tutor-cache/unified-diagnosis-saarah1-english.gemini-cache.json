@@ -1,0 +1,264 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Open-Ended Comprehension",
+      "what": "Saarah1 tends to leave the longer open-ended comprehension questions completely blank, missing out on marks she could easily pick up by trying.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 left this question blank, missing a chance to find the two-word phrase 'cheerful personality' right in the first paragraph."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "By leaving this blank, Saarah1 missed out on marks she could have earned by explaining Sam's feelings of envy towards his friends."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 skipped this question, but she could have found the answer by scanning the text for the keywords 'Mrs Raju' and 'approvingly'."
+        }
+      ],
+      "strategic_advice": "When you see an open-ended question, always write down your best guess based on the passage. Look for **keywords in the question** and scan the text for those same words to find the answer. Even a partial answer can earn you marks!",
+      "trigger_keywords": [
+        "Explain clearly why",
+        "What did",
+        "From lines",
+        "Pick out"
+      ]
+    },
+    {
+      "name": "Tricky Vocabulary and Word Pairs",
+      "what": "Saarah1 occasionally picks vocabulary words that make sense generally but aren't the exact match for the specific phrase or context.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 chose 'vague' instead of 'poor', missing the common English word pair 'poor visibility' used for bad weather."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 wrote 'put attention' instead of the standard English phrase 'give attention' or 'pay attention'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields', which is the specific word used when a garden produces a crop."
+        }
+      ],
+      "strategic_advice": "When you see a vocabulary question, read the **words immediately before and after** the blank. Ask yourself if you have heard those words used together before, like 'poor visibility' or 'give attention', as English often uses specific word pairs called collocations.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "best describes",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Small Slips in Spelling and Tenses",
+      "what": "Saarah1 sometimes loses marks due to minor spelling mistakes or forgetting to match the past or present tense of the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 wrote 'disappoint' instead of 'disappointed', missing the past tense clue in the passage."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 spelled 'accidentally' with only one 'l', which is a very common and easily fixable slip."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 accidentally wrote 'famer' instead of 'farmer', losing marks for a minor spelling slip in an otherwise great sentence."
+        }
+      ],
+      "strategic_advice": "When you see an editing or synthesis question, always check the **time clues** in the sentence to decide if it should be past or present tense. After writing your answer, take a moment to **double-check your spelling**, especially for words with double letters!",
+      "trigger_keywords": [
+        "correct the spelling",
+        "rewrite the sentence",
+        "editing"
+      ]
+    },
+    {
+      "name": "Overlooking Small Sentence Clues",
+      "what": "Saarah1 occasionally misses small but important words, like adjectives or the true subject of a sentence, which changes the meaning of her answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 chose 'themselves' instead of 'himself', overlooking that the true subject of the sentence was the singular 'Mr. Tan'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 used 'in' instead of 'during', missing the clue that the sentence was talking about the entire time period of the ordeal."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 forgot to include the word 'sudden' in her new sentence, which slightly changed the original meaning."
+        }
+      ],
+      "strategic_advice": "When you see a grammar or transformation question, underline the **main subject** and any **descriptive words** (like 'sudden') in the original sentence. Make sure every underlined detail makes it into your final answer so the meaning stays exactly the same.",
+      "trigger_keywords": [
+        "rewrite",
+        "grammar",
+        "choose the correct word",
+        "synthesis"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuvi054001lxnergvyuj7w6",
+    "2": "cmpuvi054001mxneryg06q7lu",
+    "3": "cmpuvi055001nxnerykgt92tj",
+    "4": "cmpuvi055001oxner7stzpfvk",
+    "5": "cmpuvi055001qxner2i90rbd0",
+    "6": "cmpuvi055001sxner4eulyxog",
+    "7": "cmpuvi055001yxnerzo0cf5ug",
+    "8": "cmpuvi0550029xnermrqnelwy",
+    "9": "cmpuvi056002cxner6mluv39r",
+    "10": "cmpuvi056002exner4chrw1qu",
+    "11": "cmpuvi056002fxner6b8wplh0",
+    "12": "cmpuvi056002ixner5e5f23ml",
+    "13": "cmpuvi057002vxnerj8l7tecm",
+    "14": "cmpuvi057002wxner0k860uad",
+    "15": "cmpuvi057002zxnergxvj5jgy",
+    "16": "cmpuvi0570030xnerkpl3pk2i",
+    "17": "cmpuvi0570031xnert3po4trj",
+    "18": "cmpuvi0570035xnervznuxu6t",
+    "19": "cmpuvi0570036xner6gjiufb8",
+    "20": "cmpuvi0570037xnerhi3kxq9i",
+    "21": "cmpuvi0570038xner882q8ily",
+    "22": "cmpuvi0570039xner3c8kwbqu",
+    "23": "cmpuvi057003axnerom3gei6j",
+    "24": "cmpuvi057003bxnero8x91xxr",
+    "25": "cmpuvi057003cxneruk24wf5x",
+    "26": "cmpuvi057003dxnerqixq96ka",
+    "27": "cmpuvi058003exnerdxxjlqdw",
+    "28": "cmpuvi058003fxner7u4ruj0a"
+  },
+  "generatedAt": "2026-06-15T02:19:38.028Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 21,
+    "mcq": 7
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "patterns": [
+    {
+      "name": "Spotting Hidden Singular Subjects",
+      "what": "Adriel sometimes gets tricked by plural words hiding right next to a singular or uncountable subject.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel saw the plural word 'friends' and chose 'are', but the true subject 'Ahmad' is singular."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He noticed the plural meaning of bags, but the word 'luggage' is actually an uncountable noun that needs a singular verb."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel chose 'those' for the shoes, but the word 'pair' makes it a single item requiring 'that'."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'together with' or 'as well as', **cross out the extra information** to find the true subject. For uncountable nouns like 'luggage' or collective nouns like 'a pair', **always treat them as a single item**.",
+      "trigger_keywords": [
+        "together with",
+        "as well as",
+        "luggage",
+        "pair of"
+      ]
+    },
+    {
+      "name": "Choosing the Exact Vocabulary Fit",
+      "what": "Adriel occasionally selects a vocabulary word that has a similar meaning but isn't the exact match for the specific situation or common English phrase.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'adaptable', but the specific phrase 'to the weather' pairs best with 'accustomed'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel picked 'vague', but the common English pairing for bad weather on the roads is 'poor visibility'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'reaps' which is what a farmer does, rather than 'yields' which describes what the garden itself naturally produces."
+        }
+      ],
+      "strategic_advice": "When you see a few words that seem to mean the same thing, **look at the words right next to the blank** for clues. Ask yourself if the word is describing a person's action or a thing's natural process, and **read the whole sentence quietly to yourself** to see if it sounds like a natural English pairing.",
+      "trigger_keywords": [
+        "choose the most suitable word",
+        "fill in the blank",
+        "meaning"
+      ]
+    },
+    {
+      "name": "Pairing Prepositions and Verbs",
+      "what": "Adriel occasionally mixes up which small preposition words belong with certain verbs or phrases.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel chose 'over', but the verb 'congratulated' is traditionally partnered with the preposition 'on'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'fell apart', but the correct phrasal verb for friends having a misunderstanding is 'fell out'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "Adriel used 'with', but the sentence needed 'during' to show that the boys stayed strong throughout the entire time of the ordeal."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by a blank, **think of the action as a complete phrase** rather than just a single word. It helps to **keep a small notebook of 'partner words'** (like 'congratulated on' or 'accustomed to') to review before tests.",
+      "trigger_keywords": [
+        "congratulated",
+        "fell",
+        "used to",
+        "accustomed to"
+      ]
+    },
+    {
+      "name": "Using Clues for Sentence Flow",
+      "what": "When working through longer passages or complex sentences, Adriel sometimes overlooks the surrounding structural clues that help determine the exact missing word.",
+      "specific_examples": [
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'used', but the word 'Although' earlier in the sentence was a clue that the answer needed to show something difficult or 'hard'."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Adriel wrote 'less', but the phrase 'For example' was needed to introduce the story about the boys in Thailand."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'when', but the special phrase 'No sooner' always pairs with 'than' to show one event happening right after another."
+        }
+      ],
+      "strategic_advice": "When you see a blank in a passage, **read the sentence before and after** to understand the full context. Look out for contrast words like 'Although' or transition phrases, and **ask yourself what job the missing word needs to do**—like showing a contrast, giving an example, or pointing to a pronoun.",
+      "trigger_keywords": [
+        "Although",
+        "For",
+        "In",
+        "No sooner",
+        "wrote"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 2
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpz0jmhl005wx52fa5r7jp34",
+    "2": "cmpz0jmhl0061x52fehgp3oma",
+    "3": "cmpyz7tk50008x52fvpghfax0",
+    "4": "cmpyz7tk5000ax52fxqeqcfz4",
+    "5": "cmpyz7tk6000fx52f88e30c7w",
+    "6": "cmpyz7tk6000gx52fp1pnh8r1",
+    "7": "cmpy2u8d9004s12ohsj161r91",
+    "8": "cmpy2rzf1004j12ohe47xk34z",
+    "9": "cmpy2kr8q003712ohx1gs812m",
+    "10": "cmpy2kr8q003812ohn81xr57c",
+    "11": "cmpwo7gx9000bmuphloblyiid",
+    "12": "cmpwnfrmn003o3u30qiwjdw8u",
+    "13": "cmpwnfrmn003q3u309hq727l0",
+    "14": "cmpwnenrz003j3u30lzmpstgz",
+    "15": "cmpwncc5j003c3u30msmodeit",
+    "16": "cmpwncc5j003d3u3067m5dqhi",
+    "17": "cmpwncc5j003e3u309njqhhhq",
+    "18": "cmpwnam63002z3u30unsyalmq",
+    "19": "cmpwn7g48002m3u302zucaltz",
+    "20": "cmpwn65z4002d3u30mwzvdmax",
+    "21": "cmpuxahg6000tn2qph8da5zls",
+    "22": "cmpuxahg6000wn2qppe1i6xx4",
+    "23": "cmpuxahg6000zn2qpfm096xfl",
+    "24": "cmpuxahg7001fn2qpxo6rgzy3",
+    "25": "cmpuxahg7001hn2qpz19325nf",
+    "26": "cmpuxahg7001ln2qp8hkrjk3b",
+    "27": "cmpuxahg7001nn2qpq0oq3y5m",
+    "28": "cmpuxahg7001on2qplpa8lbpk",
+    "29": "cmpuxahg7001pn2qpnj0axpwn"
+  },
+  "generatedAt": "2026-06-15T02:18:42.473Z",
+  "wrongCounts": {
+    "total": 29,
+    "oeq": 6,
+    "mcq": 23
+  }
+}

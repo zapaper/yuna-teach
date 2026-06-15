@@ -1,0 +1,202 @@
+{
+  "patterns": [
+    {
+      "name": "Spelling Based on Sound",
+      "what": "Shadow sometimes relies on how a word sounds when spelling, which occasionally leads to slips with tricky vowel pairs or double letters.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow spelled 'squeal' as 'squeel', relying on the sound rather than remembering the 'ea' vowel team."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow added an extra 'r' in 'apparently', likely guessing the double letters based on how the word is pronounced."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow wrote 'vurtue' instead of 'virtue', spelling the 'ir' sound with a 'ur'."
+        }
+      ],
+      "strategic_advice": "When you see instructions to correct a **spelling or grammatical error**, **sound the word out** but also pause to check if it needs a specific vowel team or double consonant. It helps to **break the word into syllables** and visualize how you have seen it written in books before.",
+      "trigger_keywords": [
+        "spelling or grammatical error",
+        "write the correct word",
+        "editing"
+      ]
+    },
+    {
+      "name": "Overlooking Sentence Context Clues",
+      "what": "Shadow occasionally chooses a word that fits the general topic but misses the specific clue words in the sentence that point to the exact answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow chose 'released', missing the clues 'entered illegally' and 'home country' which point to 'deported'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow picked 'squinted', overlooking the clue 'intently' which suggests a closer, more careful look like 'scrutinised'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow used 'While', missing the clue word 'also' later in the sentence which requires an adding word like 'Besides'."
+        }
+      ],
+      "strategic_advice": "When you are asked to **choose the correct word** for a blank, always **highlight the surrounding clue words** before making your choice. Look out for transition words like 'also' or 'therefore' that **tell you exactly what kind of word** is needed to complete the thought.",
+      "trigger_keywords": [
+        "choose the correct word",
+        "closest in meaning",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Recalling Fixed English Phrases",
+      "what": "Shadow tends to use words that make logical sense on their own, occasionally missing the exact fixed phrases or idioms that are commonly used together in English.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow wrote 'no problem as challenging', missing the common English phrase 'no longer as challenging'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow used 'first it takes', whereas the fixed expression for 'the only thing required' is 'all it takes'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow chose 'clearer idea', but the more natural phrase in this specific context is getting a 'better idea'."
+        }
+      ],
+      "strategic_advice": "When the question asks you to **fill in each blank with a suitable word**, try reading the whole phrase aloud to see if it sounds like a **common everyday expression**. If a word feels a bit clunky, ask yourself if there is a **more familiar phrase** that fits the sentence perfectly.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "suitable word",
+        "comprehension cloze"
+      ]
+    },
+    {
+      "name": "Matching Details in Visual Texts",
+      "what": "Shadow sometimes skims the options in visual text questions, occasionally overlooking the fine print or specific conditions mentioned in the poster.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow selected the option about electronic devices, missing the poster's specific detail that participants will have a chance to make new friends."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow guessed that registration is needed for all activities, missing the specific timing detail that they are held in the afternoon."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow picked the option about becoming a member, missing the specific benefit stated in the poster about paying less."
+        }
+      ],
+      "strategic_advice": "When a question asks **which of the following is true** about a poster, **underline the key conditions** in the question like 'must', 'all', or 'free'. Then, **scan the text carefully** to find the exact match, making sure no small details contradict your choice.",
+      "trigger_keywords": [
+        "according to the poster",
+        "which of the following is true",
+        "visual text"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpnxkhf20022t6qwggllj6ov",
+    "2": "cmpnxkhf30027t6qws5sgtwj1",
+    "3": "cmpnxkhf3002ct6qw9oe87p34",
+    "4": "cmpnxkhf3002dt6qwng3yy7gj",
+    "5": "cmpnxkhf3002et6qwkd009f1z",
+    "6": "cmpnxkhf4002vt6qwc8vou5wc",
+    "7": "cmpnxkhf50033t6qwzb04ag1n",
+    "8": "cmpnxkhf50036t6qw91axjp0z",
+    "9": "cmpnxkhf50038t6qwa6i8z3fg",
+    "10": "cmpnxkhf50039t6qw6d5ecrx4",
+    "11": "cmpnxkhf5003bt6qwwczo60gu",
+    "12": "cmpnxkhf5003dt6qwlu5uzhl6",
+    "13": "cmpnxkhf5003et6qwqcy627wa",
+    "14": "cmpnxkhf5003gt6qwxil2ft74",
+    "15": "cmpnxkhf6003it6qwwm37s2py",
+    "16": "cmpnxkhf6003kt6qwh4ri3mvv"
+  },
+  "generatedAt": "2026-06-15T02:37:41.916Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 11,
+    "mcq": 5
+  }
+}

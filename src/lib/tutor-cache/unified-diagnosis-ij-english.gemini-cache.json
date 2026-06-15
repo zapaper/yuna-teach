@@ -1,0 +1,348 @@
+{
+  "patterns": [
+    {
+      "name": "Tricky Word Partnerships",
+      "what": "IJ sometimes picks a vocabulary word that makes sense in meaning, but doesn't quite match the 'partner words' around it, like specific prepositions or subjects.",
+      "specific_examples": [
+        {
+          "questionRef": "[27]",
+          "type": "mcq",
+          "whatWentWrong": "IJ chose 'celebrate', but the blank is followed by 'in', and we say 'revel in' rather than 'celebrate in'."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "IJ picked 'discouraged', but the sentence is about an 'ability', and we usually discourage people, not abilities."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "IJ chose 'bustle', but the specific English phrase for a sudden burst of panic is a 'flurry of activity'."
+        }
+      ],
+      "strategic_advice": "When you see a blank, always look at the words immediately **before and after** it. If there is a preposition like 'in', 'to', or 'with', test if your chosen word sounds right with it. Ask yourself, **'Does this verb match the exact subject doing the action?'** to find the perfect fit.",
+      "trigger_keywords": [
+        "blank followed by a preposition",
+        "phrasal verb",
+        "collocation"
+      ]
+    },
+    {
+      "name": "Catching the Hidden Nuance",
+      "what": "IJ occasionally chooses a word that is very close in meaning, but might miss a subtle clue in the sentence about whether the feeling is positive, negative, physical, or mental.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "IJ picked 'excessive', which has a negative feeling, instead of 'inexhaustible', which matches the positive, joyful energy in the sentence."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "IJ chose 'compelled' (which means forced), missing the gentler, motivating tone of 'spurred'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "IJ selected 'trembled' (a physical shaking), but the clue 'unsure of what to make of it' points to 'hesitated', which is a mental pause."
+        }
+      ],
+      "strategic_advice": "When you see words that seem very similar, look for **emotion words** in the sentence. Is the situation happy or strict? Is the action happening in the character's mind or to their body? Choose the word that matches the **exact mood** of the sentence.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "replace the word",
+        "describes the"
+      ]
+    },
+    {
+      "name": "Spotting Grammar Signposts",
+      "what": "In cloze passages and grammar questions, IJ tends to fill in words that sound okay on their own, but occasionally misses the structural clues that point to a specific grammar rule or pairing.",
+      "specific_examples": [
+        {
+          "questionRef": "[31]",
+          "type": "mcq",
+          "whatWentWrong": "IJ picked 'Owing to' (which shows cause), missing the contrast in the sentence that requires 'Despite'."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "IJ wrote 'between', but since the sentence talks about students as a large group (more than two), 'among' is the right grammar signpost."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "IJ used 'some', missing the classic pairing rule where 'some' in the first part of the sentence pairs with 'others' in the second part."
+        }
+      ],
+      "strategic_advice": "When you see a blank in a cloze passage, zoom out and read the **whole sentence**. Look for **pairing words** like 'some' which often pairs with 'others'. Check if you are talking about two things or many things, and make sure pronouns point back to the **exact people** mentioned earlier.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "passage",
+        "grammar cloze"
+      ]
+    },
+    {
+      "name": "Connecting the Final Dots",
+      "what": "In open-ended sections, IJ often understands the main idea perfectly, but sometimes stops one step short of providing the full explanation or transferring all the details.",
+      "specific_examples": [
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "IJ successfully combined the sentences but accidentally left out the small detail 'on television' from the original text."
+        },
+        {
+          "questionRef": "[44]",
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly identified that the writer felt she didn't guide Timmy well, but missed the second part of the answer about feeling burdened by expectations."
+        },
+        {
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "IJ beautifully explained the traits the writer developed, but missed the causal link explaining exactly how her childhood experiences led to those traits."
+        }
+      ],
+      "strategic_advice": "When you see 'explain clearly' or 'in what ways', always check if the question needs a **two-part answer**. Use a **'so that...' or 'because...'** clause to make sure you link the cause to the final result. Double-check that you haven't left any small details behind!",
+      "trigger_keywords": [
+        "explain clearly",
+        "in what ways",
+        "how",
+        "instead of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 0
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 2
+    },
+    {
+      "idx": 40,
+      "patternIndex": 2
+    },
+    {
+      "idx": 41,
+      "patternIndex": 3
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqcbtivp006xly3hzcarbxne",
+    "2": "cmqcbtivp0072ly3h8gdjxxce",
+    "3": "cmqc7qujc0060ly3hipvxorab",
+    "4": "cmqc7qujc0061ly3hwl3ggohy",
+    "5": "cmqc7q74z005lly3hwxqh502i",
+    "6": "cmqc7q750005oly3huhge4an5",
+    "7": "cmqc7q750005ply3h2ufjhtik",
+    "8": "cmqc7l8i2005dly3hwnkysgrt",
+    "9": "cmq965snz00slbxuftn72g7eh",
+    "10": "cmq965snz00sqbxufvy1zb1k6",
+    "11": "cmq965snz00srbxufzof2ug0g",
+    "12": "cmq95v7yb00sabxufkj6mb0gb",
+    "13": "cmq6rl780000oo0vac59e4hef",
+    "14": "cmq6rl780000qo0vafocsbabx",
+    "15": "cmq6rl780000so0var0wzas8h",
+    "16": "cmq6rl781000vo0vaw9wr2igb",
+    "17": "cmq6rl781000wo0vadhoer079",
+    "18": "cmq6rl781000xo0vadh1cqgi5",
+    "19": "cmq6rkpil000co0vah8wxaf47",
+    "20": "cmq6rkpil000eo0va1gymmk5n",
+    "21": "cmq4w9k7f0002gqk63ooyuhfl",
+    "22": "cmq4w9k7f0008gqk6yxt8dvm0",
+    "23": "cmq4w9k7f000bgqk6r5ebr7it",
+    "24": "cmq4vdshb0003g2owjvuq9ajm",
+    "25": "cmq4uxuzp0004a7mg6c2mynew",
+    "26": "cmq4uxuzp0005a7mggjx0dhl9",
+    "27": "cmq4uxuzp0006a7mgvj388z5n",
+    "28": "cmq4uxuzp0008a7mgctncj2pt",
+    "29": "cmq4uxuzp0009a7mgojkqyo8g",
+    "30": "cmq4uxuzp000aa7mgq4t3y17j",
+    "31": "cmq3745pp000jrnvdhofww78j",
+    "32": "cmq3745pq000trnvdni42k5x5",
+    "33": "cmq3745pq000vrnvdj626pud0",
+    "34": "cmq3745pq000wrnvdvd684l42",
+    "35": "cmq3745pq0011rnvdq6tlikee",
+    "36": "cmq3745pr0019rnvdqabpi5r8",
+    "37": "cmq3745pr001ernvd3gsldujh",
+    "38": "cmq3745ps001xrnvddho7okib",
+    "39": "cmq3745ps0022rnvdvtwn2r9e",
+    "40": "cmq3745ps0023rnvd66yawe8h",
+    "41": "cmq3745ps0025rnvd0gmqzvmo",
+    "42": "cmq3745ps0029rnvdjj9lkfja",
+    "43": "cmq3745ps002crnvdnvoa96wa",
+    "44": "cmq3745ps002drnvdj14hlymy",
+    "45": "cmq3745pt002irnvdvqlqqx1o"
+  },
+  "generatedAt": "2026-06-15T02:15:22.983Z",
+  "wrongCounts": {
+    "total": 45,
+    "oeq": 10,
+    "mcq": 35
+  }
+}

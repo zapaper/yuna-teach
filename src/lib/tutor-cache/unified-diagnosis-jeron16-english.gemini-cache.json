@@ -1,0 +1,198 @@
+{
+  "patterns": [
+    {
+      "name": "Choosing the Right Word Form",
+      "what": "Jeron16 sometimes understands the meaning needed but occasionally writes down the wrong form of the word, like using an adjective when a noun or verb is required.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 used 'past', but the sentence needed the continuous adjective form 'passing' to describe the minutes."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 wrote 'enthuasitic', which is an adjective, but the sentence required the plural noun 'enthusiasts' to refer to the people."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 chose 'alike', which is an adjective, instead of a verb like 'resemble' to show the action of looking similar."
+        }
+      ],
+      "strategic_advice": "When you see instructions to **Fill in each blank** in a passage, always look at the words immediately before and after the blank to decide its job. Ask yourself, 'Does this spot need an action, a thing, or a describing word?' **Read the whole sentence aloud** with your chosen word to check if it sounds grammatically complete.",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "passage"
+      ]
+    },
+    {
+      "name": "Mastering Fixed Phrases",
+      "what": "Jeron16 occasionally uses words that make logical sense but don't quite fit the exact fixed phrases or idioms commonly used in English.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 wrote 'to reach', but the correct English idiom is 'within reach'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 suggested 'stand on straight', but the correct fixed expression for hair standing up is 'stand on end'."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 used 'spite', but the phrase 'in addition to' was needed to add information, rather than 'in spite of' which shows contrast."
+        }
+      ],
+      "strategic_advice": "When you are asked to provide a **suitable word** and notice prepositions near the blank, they are often part of a fixed phrase. Try to **memorise common word partnerships** and idioms as complete chunks. If you are unsure, **test different prepositions** in your head to see which one sounds like a familiar phrase you have read.",
+      "trigger_keywords": [
+        "suitable word",
+        "passage"
+      ]
+    },
+    {
+      "name": "Pairing Words Correctly",
+      "what": "Jeron16 tends to pick vocabulary that relates to the topic, but occasionally misses the specific word that naturally pairs with the surrounding words.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Jeron16 picked 'get through', which means to survive, but 'get ahead' is the correct phrase for succeeding in life."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 wrote 'exist a purpose', but the natural English pairing is to 'have a purpose'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 chose 'preventing', but 'protecting' is the precise word we use when keeping someone safe from the wind and cold."
+        }
+      ],
+      "strategic_advice": "When the question asks for a **suitable word**, pay close attention to the specific nouns or verbs nearby. Ask yourself, 'Which word naturally goes with this idea?' **Look for context clues** in the surrounding sentences to ensure the word you choose matches the exact meaning of the passage.",
+      "trigger_keywords": [
+        "suitable word",
+        "so as to"
+      ]
+    },
+    {
+      "name": "Spotting Hidden Grammar Clues",
+      "what": "Jeron16 sometimes overlooks small clues in the sentence, like time markers or structural words, that point to the correct tense or grammar rule.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Jeron16 missed the time clue 'at first', which signals that the past tense 'had' is needed."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Jeron16 picked 'Will', missing that 'Should' can be used formally at the start of a sentence to mean 'If'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 used 'which', but 'what' is needed here to create a noun clause meaning 'the thing that'."
+        }
+      ],
+      "strategic_advice": "When you see a blank **___** in a grammar question, always play detective and look for hidden clues before choosing your answer. **Highlight time words** like 'at first' to help you find the correct tense. For tricky sentence structures, **look out for conditional words** that change how the sentence is built.",
+      "trigger_keywords": [
+        "___",
+        "choose the correct"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpsi4op4000yji8484eb057d",
+    "2": "cmpsi4op4000zji84s4qritmr",
+    "3": "cmpsi4op40014ji847ulphiwc",
+    "4": "cmpsi4op40016ji84lklc3qzs",
+    "5": "cmpsi4op40018ji84honqtm92",
+    "6": "cmpsi4op4001cji84rx56irsr",
+    "7": "cmpsi4op4001dji84mhzmoovu",
+    "8": "cmpsi4op4001eji84qzvo7vr8",
+    "9": "cmpsi4op4001iji84u85gaja2",
+    "10": "cmpsi4op4001jji84wz7m8lil",
+    "11": "cmpsi4op4001kji84uezy123w",
+    "12": "cmpsi4op5001lji8430xhrcod",
+    "13": "cmpsi4op5001pji84dy9g93y9",
+    "14": "cmpsi4op5001qji846xaulble",
+    "15": "cmpsi4op5001rji84u4ocvfd7",
+    "16": "cmpsi4op5001vji84qaujvcsi"
+  },
+  "generatedAt": "2026-06-15T02:38:51.792Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 13,
+    "mcq": 3
+  }
+}

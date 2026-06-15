@@ -1,0 +1,234 @@
+{
+  "patterns": [
+    {
+      "name": "Spelling and Capitalisation Slips",
+      "what": "EG sometimes loses marks on otherwise great answers due to minor spelling mistakes or forgetting to capitalise words like 'I' and proper names.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "EG correctly transformed the sentence but accidentally used a lowercase 'i' instead of a capital 'I'."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "EG successfully combined the sentences but added an extra 'd' to the word 'sadness'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "EG got the sentence structure perfectly right but forgot to capitalise Henry's name."
+        }
+      ],
+      "strategic_advice": "When you finish writing a sentence, do a quick **capitalisation check** specifically for names and the pronoun 'I'. For longer words, try to **break them down into syllables** in your head to double-check the spelling before moving on to the next question.",
+      "trigger_keywords": [
+        "Rewrite the sentence",
+        "Fill in each blank",
+        "Synthesis"
+      ]
+    },
+    {
+      "name": "Matching Words to Context Clues",
+      "what": "In cloze passages, EG tends to pick words that make sense on their own, but occasionally misses the specific grammatical clues or idioms hidden in the surrounding words.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "EG chose 'through', which makes sense for the general meaning, but the phrase 'of a partnership' requires the word 'because'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "EG suggested 'number', but the phrase 'increasing the risk of' is the correct idiom to describe a growing danger like food poisoning."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "EG used 'satisfy', but 'provide' is the exact word needed to match the phrase 'everyone with a place'."
+        }
+      ],
+      "strategic_advice": "When you fill in a blank, always **read the three words before and after** it to check for hidden rules. If you see prepositions like 'of' or 'with', ask yourself which specific word **pairs perfectly with that preposition**.",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "suitable word",
+        "passage"
+      ]
+    },
+    {
+      "name": "Tracking Details in Transformations",
+      "what": "When rewriting sentences, EG occasionally leaves out a small detail from the original quote, forgets to shift a tense, or accidentally adds an extra word.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "EG captured the main action beautifully but missed translating the 'Don't worry' part of Tommy's quote."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "EG remembered to change the sentence structure but forgot to shift the tense from 'has' to 'had' for reported speech."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "EG arranged the ideas well but accidentally left out the linking verb 'is' in the middle of the sentence."
+        }
+      ],
+      "strategic_advice": "When you see 'wanted to know' or 'asked', remember to **take one step back in time** by changing present tenses to past tenses. After writing your new sentence, **tick off each piece of information** from the original sentence to ensure nothing was left behind.",
+      "trigger_keywords": [
+        "wanted to know",
+        "asked me",
+        "told me",
+        "what I"
+      ]
+    },
+    {
+      "name": "Linking Ideas with Advanced Grammar",
+      "what": "EG occasionally finds it tricky to choose the exact linking word, such as deciding between 'who' and 'whom', or picking the correct participle form to connect two past events.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "EG chose the simple past tense 'gave', but a perfect participle like 'having given' is needed to show the action was completely finished before the next one began."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "EG picked 'whom', but 'who' is the correct choice here because it acts as the subject doing the action of helping the elderly."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "EG selected 'who', but 'whom' is needed right after a preposition like 'to'."
+        }
+      ],
+      "strategic_advice": "When deciding between 'who' and 'whom', check if the word is doing the action (use **who**) or receiving it (use **whom**). If the blank comes right after a preposition like 'to' or 'with', **always choose whom**.",
+      "trigger_keywords": [
+        "who",
+        "whom",
+        "having",
+        "grammar"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqc4hzn5003lly3hsb1z4hks",
+    "2": "cmqc4hzn5003qly3h4ew8f74k",
+    "3": "cmqc4hzn6003sly3ht8m18n9b",
+    "4": "cmqc4a8cd003ely3hpuyq4nrl",
+    "5": "cmqc4a8cd003fly3ht2io1tph",
+    "6": "cmqc4a8cd003gly3h1ngq1kj8",
+    "7": "cmqc4a8cd003ily3hlyp6o7bk",
+    "8": "cmqbz5ffl004u4eho7yym3znz",
+    "9": "cmqbz5ffl004v4eho20766yhv",
+    "10": "cmqbz5ffm004z4ehopvaazbnk",
+    "11": "cmqbz5ffm00514ehogu76bwka",
+    "12": "cmqbz5ffm005d4ehor3cytvil",
+    "13": "cmqbz5ffm005e4ehopxtp6d72",
+    "14": "cmqbspuvc00e1mxygkpo6rlbh",
+    "15": "cmqbspuvc00e3mxygmdnyz6gx",
+    "16": "cmqbz4qkb004a4ehoyvc50147",
+    "17": "cmqbz4qkb004c4ehoixugp3tq",
+    "18": "cmqbz4qkb004d4ehov6bgo7rv",
+    "19": "cmqbz4qkb004e4ehouxeq8jfz",
+    "20": "cmqbz4qkb004f4eho6pg2kp66",
+    "21": "cmqbz4qkb004g4eho2o5n4v38",
+    "22": "cmqbz4qkb004i4eholsdsawbd"
+  },
+  "generatedAt": "2026-06-15T02:21:49.691Z",
+  "wrongCounts": {
+    "total": 22,
+    "oeq": 19,
+    "mcq": 3
+  }
+}

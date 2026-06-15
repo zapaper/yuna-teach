@@ -1,0 +1,371 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Surrounding Context Clues",
+      "what": "Student66666 sometimes focuses closely on the immediate blank and occasionally misses signpost words or the overall tone of the paragraph.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He/she missed the contrast word 'Although' and chose 'useful' instead of a word showing difficulty like 'hard'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He/she used 'your' instead of 'our', missing the consistent use of 'we' and 'our' throughout the passage."
+        },
+        {
+          "questionRef": "[32]",
+          "type": "oeq",
+          "whatWentWrong": "He/she chose 'are' instead of 'because', missing the cause-and-effect relationship between relaxing and peaceful surroundings."
+        }
+      ],
+      "strategic_advice": "When you see a cloze blank, always read the sentence before and the sentence after. Look out for **contrast words** like 'although' or 'however', and **cause-and-effect words** like 'because' or 'hence'. Check the pronouns used in the rest of the paragraph to ensure yours match!",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "choose the most suitable word",
+        "Although",
+        "However"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "Student66666 occasionally provides a good initial response but tends to miss the second required detail or the final grammatical tweak needed for full marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He/she correctly identified one action Robert took, but missed the second action required by the question."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "He/she correctly noted that Mike bit the string, but missed the two-step process of nibbling and then cutting it."
+        },
+        {
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "He/she successfully combined the sentences but forgot to change the second 'Sam' to the pronoun 'he'."
+        }
+      ],
+      "strategic_advice": "When you see questions asking for 'two actions' or 'explain clearly', always double-check if you have included **all parts of the answer**. For synthesis questions, read your final sentence aloud to catch any **repeated names** that should be changed to pronouns.",
+      "trigger_keywords": [
+        "What two actions",
+        "Explain clearly",
+        "On account of",
+        "two separate phrases"
+      ]
+    },
+    {
+      "name": "Slips in Spelling and Mechanics",
+      "what": "Student66666 tends to make small spelling or capitalisation slips, occasionally losing marks even when he/she clearly knows the correct word.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "He/she knew the word was 'when' but accidentally typed 'wheb' and missed the capital letter at the start of the sentence."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He/she understood the meaning but accidentally misspelled 'their' as 'thdir'."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "oeq",
+          "whatWentWrong": "He/she correctly transformed the sentence but accidentally wrote 'dramed' instead of 'framed'."
+        }
+      ],
+      "strategic_advice": "When you finish a section, take a moment to do a quick **spelling and capitalisation check**. Pay special attention to the **first letter of a sentence** and ensure your fingers haven't slipped on the keyboard!",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "Editing",
+        "Spelling & Grammar",
+        "Rewrite"
+      ]
+    },
+    {
+      "name": "Rushing Through Multiple-Choice",
+      "what": "Student66666 sometimes appears to rush through multiple-choice sections, occasionally selecting the first option without verifying the details against the text.",
+      "specific_examples": [
+        {
+          "questionRef": "[33]",
+          "type": "mcq",
+          "whatWentWrong": "He/she selected the first option about birthday parties instead of checking the poster's main aim of outdoor learning."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "He/she chose the first option rather than verifying the registration requirement mentioned in the text."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked the first option instead of scanning the text to find the false statement about nymphs shedding their skin."
+        }
+      ],
+      "strategic_advice": "When you see multiple-choice questions, especially for visual texts, always use the **process of elimination**. Cross out the options you know are wrong, and **point to the evidence** in the text before confirming your final choice.",
+      "trigger_keywords": [
+        "According to the poster",
+        "Which of the following is true",
+        "main aim",
+        "Based on the article"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 3
+    },
+    {
+      "idx": 34,
+      "patternIndex": 3
+    },
+    {
+      "idx": 35,
+      "patternIndex": 3
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
+      "idx": 39,
+      "patternIndex": 3
+    },
+    {
+      "idx": 40,
+      "patternIndex": 3
+    },
+    {
+      "idx": 41,
+      "patternIndex": 3
+    },
+    {
+      "idx": 42,
+      "patternIndex": 3
+    },
+    {
+      "idx": 43,
+      "patternIndex": 3
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": 3
+    },
+    {
+      "idx": 46,
+      "patternIndex": 3
+    },
+    {
+      "idx": 47,
+      "patternIndex": 3
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmo3y667y000dnx6j6exhyq6u",
+    "2": "cmo0pvnds000i45cfey1lnioh",
+    "3": "cmo0pvnds000j45cfardt9fal",
+    "4": "cmo0pvnds000k45cfifx4tr6q",
+    "5": "cmo0pvnds000m45cf9h6b8i1k",
+    "6": "cmo0plj8q000zzczd2knj92so",
+    "7": "cmo0plj8q0016zczd4tpmanmf",
+    "8": "cmo0pglv90007zczddn3c2kxa",
+    "9": "cmo0pglv9000azczd3ddu8lgt",
+    "10": "cmo0pglv9000izczdmgbpi1yi",
+    "11": "cmo0pglv9000kzczdnarnubvy",
+    "12": "cmo0pglv9000mzczd501vm9dq",
+    "13": "cmo0pglv9000uzczdh9ps0hnb",
+    "14": "cmo0p66n20073zqnqcolgt4s4",
+    "15": "cmo0p66n30078zqnqilcc6rb0",
+    "16": "cmo0p66n3007bzqnqx2pvlzjs",
+    "17": "cmo0p66n3007dzqnq1b28cp0h",
+    "18": "cmo0p66n3007nzqnqqiljpvmb",
+    "19": "cmo026h2y000k136mrhqcvrze",
+    "20": "cmo026h2y000p136mhaqcqv4d",
+    "21": "cmo00no1n003hlasxsgflvrgi",
+    "22": "cmo00no1n003ilasxveq8b3ni",
+    "23": "cmo00no1n003jlasxuycrcy2v",
+    "24": "cmo00no1n003mlasxkqpey7nt",
+    "25": "cmo00no1n003nlasx5j92ds10",
+    "26": "cmo00no1n003olasx3ji4s9y2",
+    "27": "cmo00nke00034lasxn2unsxah",
+    "28": "cmo00nke00038lasx0a5fcvha",
+    "29": "cmo00nke0003blasxteknnu9l",
+    "30": "cmo00nd91001plasxyhcmwm8g",
+    "31": "cmo00nd92001zlasx7xc6ovbw",
+    "32": "cmo00na1x0012lasx1zxvq2ri",
+    "33": "cmo00n5uz000flasxqdifx7ho",
+    "34": "cmo00n5uz000glasx24tg007z",
+    "35": "cmo00n5uz000hlasx12nwk4xi",
+    "36": "cmo00n5uz000ilasxir8ll4mt",
+    "37": "cmo00n5uz000jlasxxvzvgrbe",
+    "38": "cmo00n5uz000klasx57ymisqr",
+    "39": "cmo00n5uz000llasx87a56nar",
+    "40": "cmo00n5uz000nlasxk541p6hu",
+    "41": "cmo00n5uz000olasx988eaf6p",
+    "42": "cmo00n5uz000rlasxwcup6zj3",
+    "43": "cmo00n5uz000tlasx7ezxlkyu",
+    "44": "cmnzy7ui00013sh11jwgr1mvr",
+    "45": "cmnzy7ui00015sh11abg5ueuv",
+    "46": "cmnzy7ui00016sh113cbedo7p",
+    "47": "cmnzy7ui00017sh11x0xchjzt",
+    "48": "cmnzy7ol0000tsh11ens4z7v4",
+    "49": "cmnzy7ol0000wsh11f1pnt32l"
+  },
+  "generatedAt": "2026-06-15T02:13:04.290Z",
+  "wrongCounts": {
+    "total": 49,
+    "oeq": 33,
+    "mcq": 16
+  }
+}

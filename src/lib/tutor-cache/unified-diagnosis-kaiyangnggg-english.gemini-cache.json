@@ -1,0 +1,557 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Key Details and Context",
+      "what": "Kaiyangnggg sometimes leaves out important descriptive words in sentence transformations, or provides answers that are a bit too general when specific details from the text are needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully combined the sentences but accidentally left out the word 'sudden', which slightly changed the original meaning."
+        },
+        {
+          "questionRef": "[80]",
+          "type": "oeq",
+          "whatWentWrong": "He transformed the first part perfectly but forgot to include the phrase 'to cheer me up' at the end."
+        },
+        {
+          "questionRef": "[84]",
+          "type": "oeq",
+          "whatWentWrong": "He gave a general answer ('encouraged him') instead of stating the specific action the teacher took ('asked everyone to dance in socks')."
+        }
+      ],
+      "strategic_advice": "When you see **rewrite** or **combine**, always do a quick 'word-matching check' between your new sentence and the original ones to ensure no descriptive words were left behind. For comprehension questions that ask you to **explain** or **refer to**, avoid general summaries; instead, point directly to the **specific actions or details** mentioned in the text.",
+      "trigger_keywords": [
+        "rewrite",
+        "explain",
+        "why",
+        "how",
+        "refer to"
+      ]
+    },
+    {
+      "name": "Reported Speech Conversions",
+      "what": "When changing direct speech to reported speech, Kaiyangnggg occasionally misses one of the necessary shifts, such as taking a step back in tense, updating pronouns, or converting time words.",
+      "specific_examples": [
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "He remembered to change the time word to 'the previous night', but forgot to shift the past tense 'saw' back to the past perfect 'had seen'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly changed the tense but missed converting the time word 'now' to 'then', and used the wrong pronoun."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "He used the plural pronouns 'they/their' instead of the singular 'he/his' to refer to the student."
+        }
+      ],
+      "strategic_advice": "When you see trigger words like **asked** or **wanted to know**, remember the 'Three-Step Check' for reported speech. Always check that you have shifted the **tense** one step back, updated the **pronouns** to match the speaker, and changed any **time or place words** (like 'now' to 'then' or 'here' to 'there').",
+      "trigger_keywords": [
+        "asked",
+        "wanted to know",
+        "said",
+        "told"
+      ]
+    },
+    {
+      "name": "Capitalisation and Spelling Slips",
+      "what": "Kaiyangnggg tends to lose marks on minor mechanical errors, such as forgetting to capitalise proper nouns or the first word of a sentence, or occasional spelling mistakes in editing.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He capitalised the word 'If' in the middle of the sentence, which is a common but easily fixable slip."
+        },
+        {
+          "questionRef": "[56]",
+          "type": "oeq",
+          "whatWentWrong": "He forgot to capitalise the 'L' in 'Linda', which is a proper noun."
+        },
+        {
+          "questionRef": "[61]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'commotion' correctly but forgot to capitalise it, even though it was the first word of the sentence."
+        }
+      ],
+      "strategic_advice": "When you finish writing an answer, take three seconds to do a **capitalisation sweep**. Check that the **first word** of your sentence and any **names or proper nouns** are capitalised, and ensure no random words in the middle are capitalised. For editing questions, sound out the word carefully to catch hidden **spelling traps**.",
+      "trigger_keywords": [
+        "rewrite",
+        "correct word",
+        "boxes",
+        "punctuation"
+      ]
+    },
+    {
+      "name": "Fixed Word Pairs and Idioms",
+      "what": "Kaiyangnggg occasionally finds it tricky to recall the exact prepositions that pair with certain words or the precise wording of common idioms and phrasal verbs.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'preference of... than' instead of the correct fixed pair 'preference for... over'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the preposition 'in' right after the blank, which perfectly pairs with the word 'revel' to mean enjoying a success."
+        },
+        {
+          "questionRef": "[73]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'go down in the knees' instead of the correct idiom 'go weak in the knees'."
+        }
+      ],
+      "strategic_advice": "When you see words like **prefer** or **preference**, remember they have strict partners: 'prefer X **to** Y' and 'preference **for** X **over** Y'. For vocabulary blanks, always look at the **preposition immediately after the blank** (like 'in' or 'up')—it is usually the biggest clue to finding the correct phrasal verb or idiom.",
+      "trigger_keywords": [
+        "preference",
+        "prefer",
+        "blank",
+        "choose"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": 1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 0
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": 2
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 3
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 3
+    },
+    {
+      "idx": 55,
+      "patternIndex": 3
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": 3
+    },
+    {
+      "idx": 59,
+      "patternIndex": 2
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": 2
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": 2
+    },
+    {
+      "idx": 64,
+      "patternIndex": 2
+    },
+    {
+      "idx": 65,
+      "patternIndex": 2
+    },
+    {
+      "idx": 66,
+      "patternIndex": -1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 3
+    },
+    {
+      "idx": 68,
+      "patternIndex": 3
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": 3
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": 3
+    },
+    {
+      "idx": 74,
+      "patternIndex": 3
+    },
+    {
+      "idx": 75,
+      "patternIndex": -1
+    },
+    {
+      "idx": 76,
+      "patternIndex": -1
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": -1
+    },
+    {
+      "idx": 79,
+      "patternIndex": -1
+    },
+    {
+      "idx": 80,
+      "patternIndex": 0
+    },
+    {
+      "idx": 81,
+      "patternIndex": 0
+    },
+    {
+      "idx": 82,
+      "patternIndex": 2
+    },
+    {
+      "idx": 83,
+      "patternIndex": 0
+    },
+    {
+      "idx": 84,
+      "patternIndex": 0
+    },
+    {
+      "idx": 85,
+      "patternIndex": 0
+    },
+    {
+      "idx": 86,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq80by5o001wnumwm68ifsmx",
+    "2": "cmq80by5o001xnumwa2ktvzna",
+    "3": "cmq80by5o001ynumw5iw1wxsj",
+    "4": "cmq6oepu5000guibgyky8pqp3",
+    "5": "cmq4v6wlk000fa7mg82c6z4ol",
+    "6": "cmq4v6wlk000ha7mg8ligpuqq",
+    "7": "cmq4v6wlk000ja7mg4fqpb5q8",
+    "8": "cmq4v6wlk000ka7mg1bj9wxyf",
+    "9": "cmq4v6wlk000la7mgk2utpfvz",
+    "10": "cmq1yce2500204os1qtvbjznf",
+    "11": "cmq1yce2500264os10jwomslu",
+    "12": "cmpt7a7zi0035bohso4l5jnp2",
+    "13": "cmpt7a7zi0038bohsxeci7bii",
+    "14": "cmprrl9120004gq07p9xmdat1",
+    "15": "cmprrl9120005gq071hlrdnix",
+    "16": "cmprrl9120006gq07549y9oot",
+    "17": "cmprooie0000amwxzf350eigm",
+    "18": "cmprooie0000bmwxzgwprkwek",
+    "19": "cmpmlv6d50019hfvwkk3oncxe",
+    "20": "cmpmlv6d5001ahfvwezztgmbj",
+    "21": "cmpmlv6d5001bhfvwvkjdqbnu",
+    "22": "cmpmlv6d5001chfvwb5g9obja",
+    "23": "cmpmlv6d5001dhfvwzl280trr",
+    "24": "cmpmlv6d5001ehfvwqxdwatn7",
+    "25": "cmpmlv6d5001ghfvwv7spcv48",
+    "26": "cmowj8zw000395uayf1tdkpme",
+    "27": "cmowj8zw0003a5uayoyosnpz5",
+    "28": "cmowj8zw0003f5uayi5a3fgjd",
+    "29": "cmowj8qv4002z5uayq7ukjdoj",
+    "30": "cmonqz2kj003s8eodxdukhcuf",
+    "31": "cmonqz2kj003u8eodsjjyd1tj",
+    "32": "cmonqz2kj003w8eodlbc8aym3",
+    "33": "cmok2q1vg00cjd4vncty5ltv3",
+    "34": "cmok2q1vg00ckd4vnnrajaa39",
+    "35": "cmok2q1vg00cmd4vnd0ihlcyo",
+    "36": "cmok2q1vg00cnd4vnohi2o1sg",
+    "37": "cmok2q1vg00cod4vn8tsda1gn",
+    "38": "cmok2q1vg00cpd4vn48d6blyg",
+    "39": "cmok2q1vg00cqd4vnbbriqatv",
+    "40": "cmok2q1vg00crd4vnxxbft6cl",
+    "41": "cmok2q1vg00csd4vn396fftgl",
+    "42": "cmomhgmf1003uizdkplpjpgk8",
+    "43": "cmomhgmf2003xizdkcm8ik7mh",
+    "44": "cmomhgmf20045izdkr91c6157",
+    "45": "cmolevlgv00mbqlmb6liq30ww",
+    "46": "cmolevlgv00mdqlmb828d9dkb",
+    "47": "cmolevlgw00mlqlmbzf85bqk5",
+    "48": "cmolfaln500mtqlmbr7hie7cn",
+    "49": "cmol7p2lr002513njuw3prm6w",
+    "50": "cmol7p2lr002813njb2ko477d",
+    "51": "cmol7p2lr002a13njk32mttaa",
+    "52": "cmol7p2ls002c13njqp9hzaxh",
+    "53": "cmol7p2ls002d13njk4s3frzt",
+    "54": "cmok2qko900d4d4vnr4246nd4",
+    "55": "cmok2qko900d6d4vnb363x6g9",
+    "56": "cmok2qko900d7d4vn00e5cte7",
+    "57": "cmol7oqig001s13nj0tff0ja0",
+    "58": "cmol7oqig001u13njduudr3sc",
+    "59": "cmol84ubo00033j8tbo6moqmv",
+    "60": "cmol84ubo000b3j8tu0vl80ow",
+    "61": "cmol84ubo000c3j8tmbuxmqdk",
+    "62": "cmol84ubo000f3j8tkk8866zy",
+    "63": "cmol84ubo000h3j8tlnapvj7d",
+    "64": "cmol84ubo000k3j8tu6rpxgu9",
+    "65": "cmol84ubo000m3j8tmn9ouvrn",
+    "66": "cmol64xi90017qt104mjsi422",
+    "67": "cmol64xi90018qt1034eim90f",
+    "68": "cmol64xi90019qt107vr6v7cf",
+    "69": "cmok07at8005ld4vnbtkn2rmx",
+    "70": "cmok07at8005rd4vn3y1orea0",
+    "71": "cmok07at8005sd4vnx830vj5c",
+    "72": "cmok07at8005td4vneeyuaaeb",
+    "73": "cmok07at8005wd4vnhy8qql1k",
+    "74": "cmok07at80062d4vnwfubyc7h",
+    "75": "cmok07at80063d4vnk9qkq7ii",
+    "76": "cmok07at80065d4vnemy3ca98",
+    "77": "cmok07at80067d4vn5huszne0",
+    "78": "cmok07at8006ad4vnjbd6prk7",
+    "79": "cmok07at9006bd4vn8ykonxz1",
+    "80": "cmok07at9006cd4vnqnlo4rxt",
+    "81": "cmok07at9006gd4vnetm2g19u",
+    "82": "cmok07at9006id4vney10geji",
+    "83": "cmok07at9006jd4vnn81hfxkf",
+    "84": "cmok07at9006ld4vncr6fzznq",
+    "85": "cmok07at9006md4vnhst1ikn4",
+    "86": "cmok07at9006od4vnksk4v1te"
+  },
+  "generatedAt": "2026-06-15T02:11:38.575Z",
+  "wrongCounts": {
+    "total": 86,
+    "oeq": 53,
+    "mcq": 33
+  }
+}

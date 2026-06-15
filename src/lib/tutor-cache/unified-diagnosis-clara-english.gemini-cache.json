@@ -1,0 +1,284 @@
+{
+  "patterns": [
+    {
+      "name": "Hesitating on Unfamiliar Vocabulary",
+      "what": "Clara occasionally skips vocabulary questions when she encounters unfamiliar words, missing the chance to use surrounding context clues to make an educated guess.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Clara left this blank, but the clue 'bountiful crop' points to 'yields' as the action for a garden."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Clara skipped this, but the phrase 'with food waste' is a strong hint for the word 'contaminated'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "Clara hesitated here, but the timeline 'by 2025' suggests a gradual process, pointing to 'eliminate gradually'."
+        }
+      ],
+      "strategic_advice": "When you see a blank in a vocabulary question, always look for **context clues** in the surrounding words. Even if you don't know every option, try to **eliminate the obvious wrong answers** and make your best guess. Never leave a multiple-choice question blank!",
+      "trigger_keywords": [
+        "closest in meaning",
+        "fill in the blank",
+        "most suitable word"
+      ]
+    },
+    {
+      "name": "Overlooking Keywords in Visual Texts",
+      "what": "Clara tends to leave visual text questions unanswered, which might happen when she feels unsure about scanning posters or flyers for specific details.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Clara left this blank, but looking for the 'main aim' usually involves checking the largest text or introductory paragraph."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Clara skipped this, but scanning for the specific event 'Step Out and Be Active' would quickly reveal the correct statement."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Clara hesitated, but matching Pamela's available time to the schedule in the text would lead straight to the answer."
+        }
+      ],
+      "strategic_advice": "When you see questions asking 'According to the poster' or 'Which of the following is true', always **underline the keywords** in the question first. Then, **scan the visual text** specifically for those words or numbers, like times and dates, to find the exact match.",
+      "trigger_keywords": [
+        "according to the poster",
+        "which of the following is true",
+        "main aim"
+      ]
+    },
+    {
+      "name": "Hesitating on Complex Grammar Rules",
+      "what": "Clara sometimes gets tripped up by complex grammar rules, like subject-verb agreement, or hesitates to attempt sentence transformations.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Clara picked 'signs' instead of 'sign', likely looking at 'one' instead of the immediate plural noun 'students' before 'who'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank, missing the chance to apply the 'would rather... than' structure to combine the sentences."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Clara hesitated to attempt this reported speech transformation, which requires changing the tense and pronouns."
+        }
+      ],
+      "strategic_advice": "When you see transformation trigger words like 'would rather' or 'wanted to know', remember to **check your tenses and pronouns**. For grammar MCQs, always identify the **true subject** of the verb before making your choice. Attempting every question helps you secure partial marks!",
+      "trigger_keywords": [
+        "would rather",
+        "wanted to know",
+        "whom",
+        "no matter"
+      ]
+    },
+    {
+      "name": "Holding Back on Written Evidence",
+      "what": "Clara sometimes leaves open-ended comprehension questions blank, missing out on marks that could be earned by simply extracting evidence or explaining character actions.",
+      "specific_examples": [
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank, but scanning for Robert's name in the passage would help identify his specific actions."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "Clara hesitated on this True/False question, missing the chance to earn partial marks by finding the reasons directly in the text."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this explanation question, but she could have earned marks by describing Mike's step-by-step actions to free the chicken."
+        }
+      ],
+      "strategic_advice": "When you see 'explain clearly' or 'pick out a sentence', always go back to the passage and **bracket the relevant lines**. Don't worry about perfect phrasing; just **write down the evidence** you find to ensure you get partial marks.",
+      "trigger_keywords": [
+        "explain clearly",
+        "pick out a sentence",
+        "state whether each statement",
+        "explain with evidence"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmo3sgcrr001f114hkutrmaia",
+    "2": "cmo3sgcrr001k114hgz3u021l",
+    "3": "cmo3sgcrr001l114hnkxl7qf1",
+    "4": "cmo3sgcrs001m114ht0igq59p",
+    "5": "cmo3sgcrs001n114hj90jzxd0",
+    "6": "cmo3sgcrs001o114hvpbutyg5",
+    "7": "cmo3sgcrs001p114h34bvq3u3",
+    "8": "cmo3sgcrs001q114hrluhrpym",
+    "9": "cmo3sgcrs001r114h6uhody65",
+    "10": "cmo3sgcrs001s114hhkktd4f5",
+    "11": "cmo3sgcrs001t114harqhjqgh",
+    "12": "cmo3sgcrs001u114hm0uu87ii",
+    "13": "cmo3sgcrs001v114hkx3qg9x6",
+    "14": "cmo3sgcrs001w114hdhf1xnp2",
+    "15": "cmo3sgcrs001x114hv2q3kv3u",
+    "16": "cmo3sgcrs001y114h6wt14rjh",
+    "17": "cmo3sgcrs001z114hyn5i8r61",
+    "18": "cmo3sgcrt002z114he3rhsza9",
+    "19": "cmo3sgcrt0030114hjwihyns1",
+    "20": "cmo3sgcrt0031114hqtwocb92",
+    "21": "cmo3sgcrt0032114ham7mxlim",
+    "22": "cmo3sgcrt0033114hb4p8koo3",
+    "23": "cmo3sgcrt0034114h2b9scjl4",
+    "24": "cmo3sgcrt0035114hl873x4av",
+    "25": "cmo3sgcrt0036114h4ywr67lc",
+    "26": "cmo3sgcrt0037114hpnrmgu64",
+    "27": "cmo3sgcrt0038114h1ph4mmkq",
+    "28": "cmo3sgcru0039114hw3oi22ar",
+    "29": "cmo3sgcru003a114hl99p8nwh",
+    "30": "cmo3sgcru003b114h8yqsyapp",
+    "31": "cmo3sgcru003c114hxmarenrw",
+    "32": "cmo3sgcru003d114hoskhf3so"
+  },
+  "generatedAt": "2026-06-15T02:17:50.834Z",
+  "wrongCounts": {
+    "total": 32,
+    "oeq": 15,
+    "mcq": 17
+  }
+}

@@ -15,6 +15,21 @@ import davidMath from "./tutor-cache/unified-diagnosis-david-lim-math.gemini-cac
 import kaiyangMath from "./tutor-cache/unified-diagnosis-kaiyangnggg-math.gemini-cache.json";
 import benjaminMath from "./tutor-cache/unified-diagnosis-benjamin-ong-math.gemini-cache.json";
 import hooperMath from "./tutor-cache/unified-diagnosis-hooper-math.gemini-cache.json";
+import adrielEnglish from "./tutor-cache/unified-diagnosis-adriel-english.gemini-cache.json";
+import allisonteoEnglish from "./tutor-cache/unified-diagnosis-allisonteo-english.gemini-cache.json";
+import calebEnglish from "./tutor-cache/unified-diagnosis-caleb-english.gemini-cache.json";
+import claraEnglish from "./tutor-cache/unified-diagnosis-clara-english.gemini-cache.json";
+import davidEnglish from "./tutor-cache/unified-diagnosis-david-lim-english.gemini-cache.json";
+import egEnglish from "./tutor-cache/unified-diagnosis-eg-english.gemini-cache.json";
+import el44English from "./tutor-cache/unified-diagnosis-el44-english.gemini-cache.json";
+import ijEnglish from "./tutor-cache/unified-diagnosis-ij-english.gemini-cache.json";
+import jeron16English from "./tutor-cache/unified-diagnosis-jeron16-english.gemini-cache.json";
+import kaiyangEnglish from "./tutor-cache/unified-diagnosis-kaiyangnggg-english.gemini-cache.json";
+import lohxy2014English from "./tutor-cache/unified-diagnosis-lohxy2014-english.gemini-cache.json";
+import saarah1English from "./tutor-cache/unified-diagnosis-saarah1-english.gemini-cache.json";
+import shadowDemonEnglish from "./tutor-cache/unified-diagnosis-shadow-demon-english.gemini-cache.json";
+import shayaneEnglish from "./tutor-cache/unified-diagnosis-shayane-english.gemini-cache.json";
+import student66666English from "./tutor-cache/unified-diagnosis-student66666-english.gemini-cache.json";
 
 export type CachedReport = {
   patterns: Array<{ name: string; what: string; specific_examples: Array<{ questionRef: string; type?: "oeq" | "mcq"; whatWentWrong: string }>; strategic_advice: string; trigger_keywords: string[] }>;
@@ -35,4 +50,19 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "kaiyangnggg:math":     kaiyangMath as CachedReport,
   "benjamin-ong:math":    benjaminMath as CachedReport,
   "hooper:math":          hooperMath as CachedReport,
+  "adriel:english":       adrielEnglish as CachedReport,
+  "allisonteo:english":   allisonteoEnglish as CachedReport,
+  "caleb:english":        calebEnglish as CachedReport,
+  "clara:english":        claraEnglish as CachedReport,
+  "david-lim:english":    davidEnglish as CachedReport,
+  "eg:english":           egEnglish as CachedReport,
+  "el44:english":         el44English as CachedReport,
+  "ij:english":           ijEnglish as CachedReport,
+  "jeron16:english":      jeron16English as CachedReport,
+  "kaiyangnggg:english":  kaiyangEnglish as CachedReport,
+  "lohxy2014:english":    lohxy2014English as CachedReport,
+  "saarah1:english":      saarah1English as CachedReport,
+  "shadow-demon:english": shadowDemonEnglish as CachedReport,
+  "shayane:english":      shayaneEnglish as CachedReport,
+  "student66666:english": student66666English as CachedReport,
 };

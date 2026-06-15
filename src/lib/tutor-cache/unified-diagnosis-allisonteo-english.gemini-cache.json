@@ -1,0 +1,358 @@
+{
+  "patterns": [
+    {
+      "name": "Tricky Spelling and Typos",
+      "what": "Allisonteo sometimes spells challenging words exactly how they sound, which occasionally leads to small letter mix-ups or phonetic typos.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo sounded out the word but missed the silent 'h' and exact vowel placement for 'exhilaration'."
+        },
+        {
+          "questionRef": "[44]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo swapped the 'a' and 'u' around, which is a very common phonetic slip when spelling 'restaurant'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo kept the 'i' from the root word 'reclaim', but the noun form 'reclamation' actually drops it."
+        }
+      ],
+      "strategic_advice": "When you see **spelling or grammatical error**, try breaking longer words into syllables on your scratch paper. If a word comes from a root word (like 'reclaim' to 'reclamation'), double-check if the spelling shifts slightly. For tricky vowels, try creating a visual memory trick or mnemonic for the tricky part!",
+      "trigger_keywords": [
+        "spelling or grammatical error",
+        "correct word in each of the boxes"
+      ]
+    },
+    {
+      "name": "Overlooking Partner Words",
+      "what": "When choosing vocabulary, Allisonteo occasionally focuses on the main meaning but misses the small prepositions or context clues right next to the blank.",
+      "specific_examples": [
+        {
+          "questionRef": "[36]",
+          "type": "mcq",
+          "whatWentWrong": "Allisonteo chose a happy word ('frolic'), but missed that the blank is followed by 'in', making 'revel in' the perfect partner phrase."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "mcq",
+          "whatWentWrong": "Allisonteo picked a strong vocabulary word ('aggravate'), but the context of playing an active role to help means we need a positive action like 'alleviate'."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo missed the common English idiom 'ripple effect', which perfectly describes how one good deed inspires others."
+        }
+      ],
+      "strategic_advice": "When you see **fill in the blank** or **closest in meaning**, always highlight the words immediately before and after the blank. Ask yourself, \"Does my choice form a natural **partner phrase** with the next word?\" If you see prepositions like 'in', 'to', or 'with', test each option to see which one naturally pairs with it.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "choose the most suitable word",
+        "closest in meaning"
+      ]
+    },
+    {
+      "name": "Hidden Grammar Rules",
+      "what": "Allisonteo tends to rely on what sounds conversational, which occasionally masks specific written grammar rules like past participles or singular subjects.",
+      "specific_examples": [
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "Allisonteo used a plural verb, but the word 'Neither' is a special trigger that always requires a singular verb like 'attends'."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo used the simple past tense, but the helper word 'had' requires the past participle form 'undergone'."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Allisonteo missed that 'rarely' is already a negative word, so the question tag needs to be the positive 'does she'."
+        }
+      ],
+      "strategic_advice": "When you see **grammar MCQs** or **Rewrite the given sentence**, look out for 'ninja' words like 'neither', 'rarely', or 'had'. Wrap these **trigger words** in a circle so you remember to apply their specific rules. For perfect tenses, always pair 'has/have/had' with the **past participle** form of the verb.",
+      "trigger_keywords": [
+        "Neither",
+        "rarely",
+        "had",
+        "Rewrite the given sentence"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "In open-ended sections, Allisonteo often captures the main idea but occasionally misses a secondary detail or the exact format requested.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo found the first great point, but stopped just short of including the second reason about feeling burdened by expectations."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo wrote full sentences, but the question specifically asked to pick out exactly two words."
+        },
+        {
+          "questionRef": "[33]",
+          "type": "oeq",
+          "whatWentWrong": "Allisonteo successfully applied the 'No matter' structure but accidentally changed 'Mrs Lim' to 'Mr Lim' and missed placing the final phrase."
+        }
+      ],
+      "strategic_advice": "When you see **explain clearly** or **state two ways**, use your pencil to number the parts of the question. Before moving on, do a quick **matching check**: \"Did I provide exactly what was asked (e.g., a word vs. a sentence)?\" and \"Did I include all the details from the passage without changing names?\"",
+      "trigger_keywords": [
+        "explain clearly",
+        "state two",
+        "pick out",
+        "true or false, then give one reason"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 3
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 1
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": 0
+    },
+    {
+      "idx": 45,
+      "patternIndex": 2
+    },
+    {
+      "idx": 46,
+      "patternIndex": 1
+    },
+    {
+      "idx": 47,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq9lv8uk0004u41ea9mhvmbs",
+    "2": "cmq9lv8uk0005u41e87pyjx19",
+    "3": "cmq9lv8uk0006u41eao7gt56g",
+    "4": "cmq9lv8uk0007u41esm5f6khc",
+    "5": "cmq9lv8uk0008u41en00jpuqx",
+    "6": "cmq9lv8uk000bu41e0aj5vh7w",
+    "7": "cmq9lvl2p000eu41etgg93wyn",
+    "8": "cmq9lvl2p000gu41e125tbsjj",
+    "9": "cmq9lvl2p000hu41eq946ikvh",
+    "10": "cmq9lvl2p000iu41eofc58bb9",
+    "11": "cmq9lvl2p000ku41erk6wnowx",
+    "12": "cmq9lvl2p000lu41e55m8yhnl",
+    "13": "cmq9lvl2p000pu41e82qg0mj3",
+    "14": "cmq85s9cs001gbxufuxlify99",
+    "15": "cmq85s9cs001hbxuf0t5lxqhh",
+    "16": "cmq85s9cs001ibxufb7y4etxw",
+    "17": "cmq85s9cs001kbxufqy53t860",
+    "18": "cmq85s9cs001lbxuf82bj5srm",
+    "19": "cmq85s9cs001mbxuf3amhyu9s",
+    "20": "cmq85s9cs001nbxufvckt8e6i",
+    "21": "cmq3sot7o007gy4pbg64ckx8a",
+    "22": "cmq3sot7o007iy4pbetxmo37d",
+    "23": "cmq3sot7o007ly4pb08xtlx65",
+    "24": "cmq107er50005akoe4q0ksfd5",
+    "25": "cmq107er5000aakoenhzljxy5",
+    "26": "cmq107er5000eakoexlq1ghay",
+    "27": "cmq107er6000fakoefwkf0nmv",
+    "28": "cmq107er6000gakoeds9j7oa8",
+    "29": "cmq107er6000kakoeyozw0kf2",
+    "30": "cmq107er6000wakoeprhlm0c0",
+    "31": "cmq107er70010akoe1p79te17",
+    "32": "cmq107er70011akoewir87jaj",
+    "33": "cmq107er70012akoe3jh3brbd",
+    "34": "cmpzm589p001je3tvzu2t1zcl",
+    "35": "cmpzm589q001me3tv5v1t0lr7",
+    "36": "cmpzm589q001re3tvy8nhzbx0",
+    "37": "cmpzm589q001ve3tv4i8f72qm",
+    "38": "cmpy4e09c000nar0poxdwd0e0",
+    "39": "cmpy4e09c000uar0phn35fdal",
+    "40": "cmpy4e09c0010ar0pi28ri5ad",
+    "41": "cmpy4e09c0011ar0pjt1a070v",
+    "42": "cmpy4e09d0013ar0p537s3vq9",
+    "43": "cmpy4e09d0017ar0p05il8bjx",
+    "44": "cmpy4e09d0019ar0puudis7rk",
+    "45": "cmpwiea45000qpwrhdynsl3tw",
+    "46": "cmpwiea46000rpwrh5zqriegh",
+    "47": "cmpwiea460011pwrhnmrtyg8m"
+  },
+  "generatedAt": "2026-06-15T02:14:04.803Z",
+  "wrongCounts": {
+    "total": 47,
+    "oeq": 31,
+    "mcq": 16
+  }
+}

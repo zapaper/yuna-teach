@@ -1,0 +1,232 @@
+{
+  "patterns": [
+    {
+      "name": "Selecting Precise Vocabulary in Context",
+      "what": "Shayane occasionally picks a vocabulary word that has a similar meaning but doesn't quite fit the specific situation, tone, or word partnerships in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane chose 'reaps', but in this specific context, a garden 'yields' a crop, whereas a person 'reaps' it."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane selected 'pandering to', which carries a slightly negative tone, instead of the more positive and fitting 'tailoring to'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'retreated' for a hand movement, but 'yanked' perfectly captures the sudden, quick action needed when someone is startled."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **choose the most suitable word** or **closest in meaning**, always look at the surrounding words for clues. Ask yourself, **'Who or what is doing the action?'** and **'Is the feeling of the sentence positive or negative?'** to help narrow down the best fit.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "most suitable word",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Catching Key Question Conditions",
+      "what": "Shayane sometimes reads past important qualifier words in the question stem, which changes the specific detail she needs to look for in the text.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane occasionally reads past small but crucial words like 'not', which led her to pick an option that actually describes the virtual experience."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "She successfully found a way to save money, but overlooked the word 'biggest', missing the option that offers the maximum discount."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane focused on a specific detail about a new game instead of zooming out to identify the 'main purpose' of the entire website."
+        }
+      ],
+      "strategic_advice": "When you see questions asking for the **main purpose**, **most**, or containing words like **not** or **except**, grab your highlighter! Always **highlight these condition words** before looking at the options, so your brain knows exactly what specific clue to hunt for.",
+      "trigger_keywords": [
+        "not",
+        "most",
+        "biggest",
+        "main purpose",
+        "true",
+        "except"
+      ]
+    },
+    {
+      "name": "Pairing Words with Prepositions",
+      "what": "Shayane tends to choose a preposition that sounds okay on its own, but isn't the exact traditional match for the specific noun or verb next to it.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane chose 'of' after 'congratulated', but the natural pairing in English is to congratulate someone 'on' something."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "She used 'since' instead of 'about' to connect the word 'conclusion' to the specific topic being discussed."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Shayane wrote 'by ancient times', but when talking about an action continuing from the past until now, 'since' is the best fit."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after an action word or before a time phrase in a **grammar cloze**, treat it as a **matching game**. Read the **verb and the blank together** out loud in your head (like 'congratulate on' or 'conclusion about') to see which combination sounds like a natural pair.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "grammar cloze",
+        "preposition"
+      ]
+    },
+    {
+      "name": "Spotting Structural Grammar Clues",
+      "what": "Shayane occasionally misses structural signposts in a sentence—like contrast words or specific pronouns—that tell her exactly which grammar rule to apply.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed the clue 'Although he was poor', which signals a contrast and shows he could only give the 'little' that he had."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "She chose a plural verb, overlooking that the word 'Neither' acts as a singular subject and needs a singular verb."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Shayane filled in 'only', missing that the sentence structure needed the pronoun 'what' to smoothly connect the two ideas."
+        }
+      ],
+      "strategic_advice": "When you see sentence starters like **Although**, **Neither**, or **If**, circle them immediately! These are **grammar signposts** that tell you whether to look for a singular/plural verb or a contrasting idea in the second half of the sentence.",
+      "trigger_keywords": [
+        "although",
+        "neither",
+        "either",
+        "if",
+        "unless"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq3shx7u001ay4pbn63yvoer",
+    "2": "cmq3shx7u001dy4pbt26m7p5h",
+    "3": "cmq3shx7u001ey4pbz3xs8v3v",
+    "4": "cmq3shx7u001fy4pbi6c7uzcf",
+    "5": "cmq3shx7v001iy4pbo1p7t3ua",
+    "6": "cmq3shx7v001ny4pbqnw3z6nw",
+    "7": "cmq3shx7v001oy4pbsa2r3zf1",
+    "8": "cmq3shx7v001py4pbncjoj8zg",
+    "9": "cmq3shx7v001qy4pbqp5yxd6q",
+    "10": "cmq3shx7v001ry4pbuerqpf4y",
+    "11": "cmq3shx7v001ty4pbfjmmrtxc",
+    "12": "cmq3shx7v001wy4pbyu4jvj2u",
+    "13": "cmpurkl30000613h334nbijny",
+    "14": "cmpurkl30000d13h3iwcd7wcg",
+    "15": "cmpurkl30000e13h3b4u0i1sf",
+    "16": "cmpurkl31000f13h3xavaypa2",
+    "17": "cmpurkl31000k13h39yoldp6d",
+    "18": "cmpurkl31000m13h3pgrzn5rm",
+    "19": "cmpurkl31000p13h3238ucf4k",
+    "20": "cmpurkl31000s13h3iuhgud73",
+    "21": "cmpurkl31000x13h3qm5i29bu"
+  },
+  "generatedAt": "2026-06-15T02:22:58.024Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 3,
+    "mcq": 18
+  }
+}
