@@ -827,7 +827,11 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           the Lumi summary scrolls down to this section. */}
       <section id="daily-practices-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
         <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Daily Practices</h2>
-        <p className="text-sm text-slate-500 mb-5">Daily bite-sized practices are a good way to level up in a short and fun way.{(data.subject === "English" || data.subject === "Chinese") && " I'll rotate the sections each day so " + data.childFirst + " covers the whole subject."}</p>
+        <p className="text-sm text-slate-500 mb-2">Daily bite-sized practices are a good way to level up in a short and fun way.{(data.subject === "English" || data.subject === "Chinese") && " I'll rotate the sections each day so " + data.childFirst + " covers the whole subject."}</p>
+        <p className="text-xs text-amber-700 mb-5 flex items-center gap-1">
+          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>schedule</span>
+          Heads up: this may take a minute or so — I build each day&apos;s quiz one at a time.
+        </p>
         <div className="flex gap-3 flex-wrap">
           {[3, 5, 7].map(n => (
             <button
@@ -838,11 +842,17 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60"
             >
               {schedulingDays === n
-                ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Scheduling…</>
+                ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Scheduling {n} day{n === 1 ? "" : "s"}…</>
                 : <><span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_month</span>{n} day{n === 1 ? "" : "s"} of daily quizzes</>}
             </button>
           ))}
         </div>
+        {schedulingDays !== null && (
+          <p className="text-xs text-[#003366] mt-3 flex items-center gap-2 animate-pulse">
+            <span className="w-3 h-3 border-2 border-[#003366]/30 border-t-[#003366] rounded-full animate-spin" />
+            Building {schedulingDays} quiz{schedulingDays === 1 ? "" : "zes"} for {data.childFirst} — please don&apos;t close this tab.
+          </p>
+        )}
         <p className="text-xs text-slate-500 mt-4 italic">After I assign, you can move these around in the weekly calendar at your homepage.</p>
       </section>
     </>
