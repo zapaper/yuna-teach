@@ -578,7 +578,12 @@ function shapeTutorData(args: {
       isMcq: w.isMcq,
       options: w.options,
       picked: w.isMcq ? w.studentAnswer : null,
-      correct: w.isMcq ? w.correctAnswer : null,
+      // Surface correctAnswer for BOTH MCQ and typed-cloze examples.
+      // The page previously hid the correct answer for non-MCQ rows
+      // (set null), leaving the parent reading "Adriel wrote 'used'"
+      // with no indication of what the right answer was. Cloze sections
+      // store the correct word in q.answer; show it.
+      correct: w.correctAnswer || null,
     };
   };
   const patternStats: PatternStat[] = report.patterns.map(p => ({

@@ -1326,6 +1326,12 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
               <div className="text-sm text-rose-900 leading-relaxed">{formatStudentAnswer(ex.studentAnswer)}</div>
             </div>
           )}
+          {!ex.isMcq && ex.correct && (
+            <div>
+              <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Correct answer</p>
+              <div className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">{ex.correct}</div>
+            </div>
+          )}
           {ex.markingNotes && (
             <div>
               <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">What {childFirst} missed</p>
