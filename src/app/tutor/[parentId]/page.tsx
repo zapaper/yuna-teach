@@ -745,13 +745,13 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Let&apos;s go through these and get some practices to fix these mistakes.</p>
           <div className="space-y-3">
             {data.commonMistakes.map((m, i) => (
-              <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
+              <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-2 bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
                 <div>
                   <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{softenTone(m.what, data.childFirst)}</p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 ml-4 whitespace-nowrap">
+                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 md:ml-4 whitespace-nowrap">
                   Tell me more →
                 </span>
               </button>
@@ -767,13 +767,13 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           <p className="text-sm text-slate-500 mb-5">Concepts {data.childFirst} consistently mixes up — worth explaining and quizzing on.</p>
           <div className="space-y-3">
             {data.conceptualGaps.map((c, i) => (
-              <button key={c.bucket} onClick={() => onSelectConcept(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-orange-50/40 hover:border-orange-200 transition-colors group">
+              <button key={c.bucket} onClick={() => onSelectConcept(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-2 bg-slate-50/50 hover:bg-orange-50/40 hover:border-orange-200 transition-colors group">
                 <div>
                   <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl">{softenTone(c.what, data.childFirst)}</p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 ml-4 whitespace-nowrap">
+                <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 md:ml-4 whitespace-nowrap">
                   Explain →
                 </span>
               </button>
