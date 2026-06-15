@@ -364,7 +364,7 @@ function AnomalySection({
                       )}
                     </div>
                     <div className="text-slate-500">
-                      completed {new Date(p.completedAt).toLocaleString()} · age {p.ageMin} min · status <span className="font-bold text-slate-700">{p.markingStatus ?? "?"}</span>{p.scorePct === null ? <> · score {p.score ?? "?"}/{p.totalMarks ?? "?"}</> : null} · {p.questionCount} Q
+                      completed {new Date(p.completedAt).toLocaleString()} · age {p.ageMin < 60 ? `${p.ageMin} min` : p.ageMin < 60 * 24 ? `${Math.round(p.ageMin / 60)}h` : `${Math.round(p.ageMin / 60 / 24)}d`} · status <span className="font-bold text-slate-700">{p.markingStatus ?? "?"}</span>{p.scorePct === null ? <> · score {p.score ?? "?"}/{p.totalMarks ?? "?"}</> : null} · {p.questionCount} Q
                     </div>
                   </div>
                 </div>

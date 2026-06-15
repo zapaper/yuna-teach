@@ -893,7 +893,6 @@ export async function POST(request: NextRequest) {
         return t.includes("vocabulary") && t.includes("cloze") && isMcq(q.answer);
       });
       if (filtered.length > 0) {
-        console.log(`[English Quiz] vocab-cloze backfill for ${paperId}: +${filtered.length} sibling(s)`);
         vocabClozePaperGroups.set(paperId, [...qs, ...filtered]);
       }
     }
@@ -943,18 +942,17 @@ export async function POST(request: NextRequest) {
       isFocusedEnglish && englishSections?.length === 1 && englishSections[0] === "synthesis";
     // Select Grammar/Vocab MCQ based on user choices
     const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
-    // Debug: show why grammar/vocab pools might be empty
+    // Warn (not log) when a pool comes out empty — that's the only
+    // case where the per-pool diagnostic detail is worth keeping. The
+    // healthy-path "Pools:" / "Selected:" lines were noise.
     if (grammarMcqPool.length === 0 || vocabMcqPool.length === 0) {
       const grammarAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
       const vocabAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("vocab") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
-      console.log(`[English Quiz] Grammar candidates: ${grammarAll.length} (MCQ: ${grammarAll.filter(q => isMcq(q.answer)).length}), sample answers: [${grammarAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
-      console.log(`[English Quiz] Vocab candidates: ${vocabAll.length} (MCQ: ${vocabAll.filter(q => isMcq(q.answer)).length}), sample answers: [${vocabAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
+      console.warn(`[English Quiz] empty pool — grammar candidates=${grammarAll.length} (MCQ=${grammarAll.filter(q => isMcq(q.answer)).length}), vocab candidates=${vocabAll.length} (MCQ=${vocabAll.filter(q => isMcq(q.answer)).length})`);
     }
-    console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
     const mcqTake = isFocusedEnglish ? 10 : 5;
     const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, mcqTake) : [];
     const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, mcqTake) : [];
-    console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
       "vocab-cloze": "Vocab Cloze", "visual-text": "Visual Text",
@@ -1061,7 +1059,6 @@ export async function POST(request: NextRequest) {
         });
         const missing = siblings.filter((q) => matcher((q.syllabusTopic ?? "").toLowerCase()));
         if (missing.length > 0) {
-          console.log(`[English Quiz] ${section} backfill for ${paperId}: +${missing.length} sibling(s)`);
           papersMap.set(paperId, [...qs, ...missing]);
         }
       }
@@ -1128,35 +1125,21 @@ export async function POST(request: NextRequest) {
         if (!passage && group.key === "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
-            const ocrKeys = Object.keys(meta.sectionOcrTexts);
-            console.log(`[English Quiz] Comp OEQ: sectionOcrTexts keys = [${ocrKeys.join(", ")}]`);
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
               if (isCompOeqLabel(secName)) {
                 const fullData = secData as Record<string, unknown>;
-                console.log(`[English Quiz] Comp OEQ: matched "${secName}", keys = [${Object.keys(fullData).join(", ")}]`);
                 const passageText = fullData.passageOcrText as string | undefined;
-                if (passageText) {
-                  passage = passageText;
-                  console.log(`[English Quiz] Comp OEQ: loaded reading passage (${passageText.length} chars)`);
-                } else {
-                  console.log(`[English Quiz] Comp OEQ: no passageOcrText in "${secName}"`);
-                }
+                if (passageText) passage = passageText;
                 break;
               }
             }
-          } else {
-            console.log(`[English Quiz] Comp OEQ: source paper ${firstQ.examPaperId} has no sectionOcrTexts`);
           }
           // Fallback: try loading from question's transcribedSubparts (_passageText)
           if (!passage && firstQ.transcribedSubparts) {
             const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }>;
             const passageSub = subs.find(s => s.label === "_passageText");
-            if (passageSub) {
-              passage = passageSub.text;
-              console.log(`[English Quiz] Comp OEQ: loaded passage from _passageText subpart (${passage.length} chars)`);
-            }
+            if (passageSub) passage = passageSub.text;
           }
-          if (!passage) console.log(`[English Quiz] Comp OEQ: no reading passage found`);
         }
         if (!passage && !skipOcrLookup && group.key !== "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
@@ -1181,7 +1164,6 @@ export async function POST(request: NextRequest) {
                   const nameLower = secName.toLowerCase();
                   if (words.every(w => nameLower.includes(w))) {
                     passage = secData.ocrText;
-                    console.log(`[English Quiz] Fuzzy matched "${secName}" for ${group.key}`);
                     break;
                   }
                 }
@@ -1193,24 +1175,18 @@ export async function POST(request: NextRequest) {
         // Try 3: Visual Text — compute passage page indices from source paper
         if (group.key === "visual-text" && !passage) {
           const sourcePaperId = firstQ.examPaperId;
-          console.log(`[English Quiz] Visual Text: source paper ${sourcePaperId}`);
-
           // First try sectionOcrTexts.passagePageIndices
           const meta = sourcePaperMap.get(sourcePaperId);
           if (meta?.sectionOcrTexts) {
-            console.log(`[English Quiz] Visual Text: sectionOcrTexts keys = [${Object.keys(meta.sectionOcrTexts).join(", ")}]`);
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
               if (secName.toLowerCase().includes("visual") && secName.toLowerCase().includes("text")) {
                 const pageIndices = (secData as { passagePageIndices?: number[] }).passagePageIndices;
-                console.log(`[English Quiz] Visual Text: found "${secName}", passagePageIndices = ${JSON.stringify(pageIndices)}`);
                 if (pageIndices?.length) {
                   passage = `[VISUAL_PAGES:${sourcePaperId}:${pageIndices.join(",")}]`;
                 }
                 break;
               }
             }
-          } else {
-            console.log(`[English Quiz] Visual Text: no sectionOcrTexts in source paper metadata`);
           }
 
           // Fallback: compute visual text context pages from ALL source paper questions
@@ -1221,14 +1197,12 @@ export async function POST(request: NextRequest) {
                 select: { pageIndex: true, syllabusTopic: true, questionNum: true },
                 orderBy: { orderIndex: "asc" },
               });
-              console.log(`[English Quiz] Visual Text: source paper has ${sourcePaperQuestions.length} questions`);
               const vtQs = sourcePaperQuestions.filter(q =>
                 (q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text")
               );
               const nonVtQs = sourcePaperQuestions.filter(q =>
                 !((q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text"))
               );
-              console.log(`[English Quiz] Visual Text: ${vtQs.length} VT questions on pages [${[...new Set(vtQs.map(q => q.pageIndex))]}], ${nonVtQs.length} non-VT on pages [${[...new Set(nonVtQs.map(q => q.pageIndex))]}]`);
 
               if (vtQs.length > 0 && nonVtQs.length > 0) {
                 const vtPages = new Set(vtQs.map(q => q.pageIndex));
@@ -1236,7 +1210,6 @@ export async function POST(request: NextRequest) {
                 const lastNonVtPage = Math.max(...nonVtPages);
                 const firstVtPage = Math.min(...vtPages);
                 const totalPages = (firstQ as any).examPaper?.pageCount ?? 0;
-                console.log(`[English Quiz] Visual Text: lastNonVtPage=${lastNonVtPage}, firstVtPage=${firstVtPage}, totalPages=${totalPages}`);
                 const contextPages: number[] = [];
                 for (let p = lastNonVtPage + 1; p < firstVtPage && p < totalPages; p++) {
                   contextPages.push(p);
@@ -1244,12 +1217,10 @@ export async function POST(request: NextRequest) {
                 // If no context pages found, use the VT question pages themselves
                 const pagesToUse = contextPages.length > 0 ? contextPages : [...vtPages].sort((a, b) => a - b);
                 passage = `[VISUAL_PAGES:${sourcePaperId}:${pagesToUse.join(",")}]`;
-                console.log(`[English Quiz] Visual Text: using pages [${pagesToUse}] (${contextPages.length > 0 ? "context" : "question pages"})`);
               } else if (vtQs.length > 0) {
                 // No non-VT questions, use VT question pages
                 const vtPages = [...new Set(vtQs.map(q => q.pageIndex))].sort((a, b) => a - b);
                 passage = `[VISUAL_PAGES:${sourcePaperId}:${vtPages.join(",")}]`;
-                console.log(`[English Quiz] Visual Text: using VT question pages [${vtPages}]`);
               }
             } catch (err) {
               console.warn(`[English Quiz] Visual Text: failed to compute context pages:`, err);
@@ -1257,7 +1228,7 @@ export async function POST(request: NextRequest) {
           }
 
           if (!passage) {
-            console.warn(`[English Quiz] Visual Text: ALL methods failed, using VISUAL_TEXT_SOURCE fallback`);
+            console.warn(`[English Quiz] Visual Text: all methods failed, using VISUAL_TEXT_SOURCE fallback`);
             passage = `[VISUAL_TEXT_SOURCE:${sourcePaperId}]`;
           }
         }
@@ -1286,7 +1257,6 @@ export async function POST(request: NextRequest) {
             let endNl = passage.indexOf("\n\n", last);
             if (endNl < 0) endNl = passage.length;
             passage = passage.slice(start, endNl).trim();
-            console.log(`[English Quiz] ${group.label}: narrowed passage to paragraph(s) containing Q${[...targetNums].sort((a,b)=>a-b).join(",")}`);
           }
         }
       }
@@ -1334,13 +1304,11 @@ export async function POST(request: NextRequest) {
               passage = passage.slice(0, m.index) + passage.slice(m.index + m.fullMatch.length);
               removed++;
             }
-            console.log(`[English Quiz] ${group.label}: surgically removed ${removed} unselected markers (kept ${matchableMarkers.length})`);
           } else {
             const lastKept = allMarkers[qCount - 1];
             const cutPoint = lastKept.index + lastKept.fullMatch.length;
             const nextNewline = passage.indexOf("\n", cutPoint);
             passage = passage.slice(0, nextNewline >= 0 ? nextNewline : cutPoint).trimEnd();
-            console.log(`[English Quiz] ${group.label}: truncated passage to ${qCount} markers (was ${allMarkers.length})`);
           }
         } else if (usesInlineMarkersHere && allMarkers.length > 0 && allMarkers.length < qCount) {
           // Passage has too few markers — trim the questions to match so we don't end
@@ -1369,23 +1337,16 @@ export async function POST(request: NextRequest) {
         endIndex: idx + group.questions.length - 1,
         ...(passage ? { passage } : {}),
       });
-      if (!passage && firstQ) {
-        const meta = sourcePaperMap.get(firstQ.examPaperId);
-        console.log(`[English Quiz] ${group.key}: NO passage. sectionOcrTexts keys: [${meta?.sectionOcrTexts ? Object.keys(meta.sectionOcrTexts).join(", ") : "none"}]`);
-      }
-      // Log passage details for debugging (skip marker check for sections that don't use inline markers)
+      // Only warn on the unhealthy case: a marker/question mismatch
+      // for an inline-marker section. The happy-path per-section trace
+      // wasn't actionable.
       const usesInlineMarkers = ["grammar-cloze", "editing", "comprehension-cloze", "vocab-cloze"].includes(group.key);
-      if (passage && !passage.startsWith("[")) {
+      if (passage && !passage.startsWith("[") && usesInlineMarkers) {
         const markerCount = (passage.match(/\*\*\(\d+\)/g) ?? []).length;
-        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: yes${usesInlineMarkers ? `, markers: ${markerCount}` : ""}`);
-        if (usesInlineMarkers && markerCount !== group.questions.length) {
-          console.warn(`[English Quiz] WARNING: passage has ${markerCount} markers but section has ${group.questions.length} questions!`);
+        if (markerCount !== group.questions.length) {
           const markers = [...passage.matchAll(/\*\*\((\d+)\)/g)].map(m => m[1]);
-          console.warn(`[English Quiz] Passage markers: [${markers.join(", ")}]`);
-          console.warn(`[English Quiz] Question nums: [${group.questions.map(q => q.questionNum).join(", ")}]`);
+          console.warn(`[English Quiz] ${group.label}: passage has ${markerCount} markers but section has ${group.questions.length} questions (markers=[${markers.join(", ")}], qNums=[${group.questions.map(q => q.questionNum).join(", ")}])`);
         }
-      } else {
-        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: ${passage ? passage.substring(0, 40) : "no"}`);
       }
       idx += group.questions.length;
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
