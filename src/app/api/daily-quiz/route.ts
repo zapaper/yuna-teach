@@ -877,23 +877,32 @@ export async function POST(request: NextRequest) {
     // are all-or-nothing — a 5-marker passage with only 4
     // questions in the pool would otherwise render the wrong
     // marker against the wrong word.
-    for (const [paperId, qs] of [...vocabClozePaperGroups.entries()]) {
-      const haveIds = new Set(qs.map(q => q.id));
-      const masterSiblings = await prisma.examQuestion.findMany({
-        where: {
-          examPaperId: paperId,
-          answer: { not: null },
-          syllabusTopic: { contains: "vocabulary", mode: "insensitive" },
-          id: { notIn: [...haveIds] },
-        },
-        select: questionSelectLight,
-      });
-      const filtered = masterSiblings.filter((q) => {
-        const t = (q.syllabusTopic ?? "").toLowerCase();
-        return t.includes("vocabulary") && t.includes("cloze") && isMcq(q.answer);
-      });
-      if (filtered.length > 0) {
-        vocabClozePaperGroups.set(paperId, [...qs, ...filtered]);
+    // Parallel backfill — fire all per-paper sibling queries at once
+    // and merge their results. Sequential await-in-for was the single
+    // biggest cost in English quiz construction (8–10 papers × ~150ms
+    // round-trip = 1.5s of pure latency that paralellises to ~150ms).
+    {
+      const entries = [...vocabClozePaperGroups.entries()];
+      const results = await Promise.all(entries.map(([paperId, qs]) => {
+        const haveIds = new Set(qs.map(q => q.id));
+        return prisma.examQuestion.findMany({
+          where: {
+            examPaperId: paperId,
+            answer: { not: null },
+            syllabusTopic: { contains: "vocabulary", mode: "insensitive" },
+            id: { notIn: [...haveIds] },
+          },
+          select: questionSelectLight,
+        }).then(masterSiblings => ({ paperId, qs, masterSiblings }));
+      }));
+      for (const { paperId, qs, masterSiblings } of results) {
+        const filtered = masterSiblings.filter((q) => {
+          const t = (q.syllabusTopic ?? "").toLowerCase();
+          return t.includes("vocabulary") && t.includes("cloze") && isMcq(q.answer);
+        });
+        if (filtered.length > 0) {
+          vocabClozePaperGroups.set(paperId, [...qs, ...filtered]);
+        }
       }
     }
 
@@ -1047,19 +1056,29 @@ export async function POST(request: NextRequest) {
       // present, even if individual questions failed the allPool
       // freshness / level filters. Same reasoning as the
       // vocab-cloze backfill above.
-      for (const [paperId, qs] of [...papersMap.entries()]) {
-        const haveIds = new Set(qs.map(q => q.id));
-        const siblings = await prisma.examQuestion.findMany({
-          where: {
-            examPaperId: paperId,
-            answer: { not: null },
-            id: { notIn: [...haveIds] },
-          },
-          select: questionSelectLight,
-        });
-        const missing = siblings.filter((q) => matcher((q.syllabusTopic ?? "").toLowerCase()));
-        if (missing.length > 0) {
-          papersMap.set(paperId, [...qs, ...missing]);
+      //
+      // Parallelised: the sequential await-in-for was the largest
+      // single cost in English quiz construction. 4-6 sections × 5-8
+      // papers × ~150ms each = 3-7s of pure latency that the
+      // Promise.all collapses to one round-trip's worth.
+      {
+        const entries = [...papersMap.entries()];
+        const results = await Promise.all(entries.map(([paperId, qs]) => {
+          const haveIds = new Set(qs.map(q => q.id));
+          return prisma.examQuestion.findMany({
+            where: {
+              examPaperId: paperId,
+              answer: { not: null },
+              id: { notIn: [...haveIds] },
+            },
+            select: questionSelectLight,
+          }).then(siblings => ({ paperId, qs, siblings }));
+        }));
+        for (const { paperId, qs, siblings } of results) {
+          const missing = siblings.filter((q) => matcher((q.syllabusTopic ?? "").toLowerCase()));
+          if (missing.length > 0) {
+            papersMap.set(paperId, [...qs, ...missing]);
+          }
         }
       }
 
