@@ -342,7 +342,8 @@ function TutorContent({ parentId }: { parentId: string }) {
               <option>Science</option>
               <option>Math</option>
               <option>English</option>
-              <option>Chinese</option>
+              {/* Chinese intentionally omitted — no Chinese diagnoses
+                  bundled yet; re-add when Chinese workshops ship. */}
             </select>
           </div>
         </div>

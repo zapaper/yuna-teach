@@ -3025,7 +3025,7 @@ export default function ParentDashboard({
               between students or back to Home doesn't full-page-navigate. */}
         {activeView === "lumi" && isAdminUser && selectedStudentId && (
           <div className="px-5 lg:px-8 max-w-5xl">
-            <LumiViewBody studentId={selectedStudentId} parentId={userId} studentName={selectedStudent?.name ?? ""} />
+            <LumiViewBody studentId={selectedStudentId} parentId={userId} studentName={selectedStudent?.name ?? ""} isAdmin={isAdminUser} />
           </div>
         )}
         {activeView === "lumi" && (!isAdminUser || !selectedStudentId) && (
@@ -4767,13 +4767,16 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
 // stays visible — clicking between Home / Progress / Set Papers /
 // students is one in-page state change, no full-page navigation.
 type LumiAdminCandidate = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
-function LumiViewBody({ studentId, parentId, studentName }: { studentId: string; parentId: string; studentName: string }) {
+function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { studentId: string; parentId: string; studentName: string; isAdmin?: boolean }) {
   const [subject, setSubject] = useState<string>("Science");
   // Admin override: when the caller is an admin, /api/tutor/admin-students
   // returns every kid who qualifies for the current subject — including
-  // ones not linked to this parent account. The override below lets the
-  // admin pick any of those without leaving the dashboard. For
-  // non-admin parents, the endpoint 401s and the selector stays hidden.
+  // ones not linked to this parent account. Belt-and-braces gating:
+  // (a) skip the fetch entirely when isAdmin is false (saves a 401
+  //     round-trip and ensures non-admins never even hit the endpoint
+  //     in normal use); (b) hide the selector unless isAdmin AND there
+  //     are candidates (the endpoint still rejects non-admin tokens at
+  //     the server, so this is a defence-in-depth layer).
   const [adminCandidates, setAdminCandidates] = useState<LumiAdminCandidate[]>([]);
   const [override, setOverride] = useState<{ id: string; name: string } | null>(null);
   useEffect(() => {
@@ -4781,15 +4784,16 @@ function LumiViewBody({ studentId, parentId, studentName }: { studentId: string;
                                     // don't keep showing an old override
   }, [studentId]);
   useEffect(() => {
+    if (!isAdmin) { setAdminCandidates([]); return; }
     fetch(`/api/tutor/admin-students?subject=${encodeURIComponent(subject)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => setAdminCandidates(((d?.students as LumiAdminCandidate[] | undefined) ?? [])))
       .catch(() => setAdminCandidates([]));
-  }, [subject]);
+  }, [subject, isAdmin]);
   const effectiveStudentId = override?.id ?? studentId;
   const effectiveStudentName = override?.name ?? studentName;
   const firstName = effectiveStudentName.split(/\s+/)[0] ?? "";
-  const showAdminSelector = adminCandidates.length > 0;
+  const showAdminSelector = isAdmin && adminCandidates.length > 0;
   return (
     <div>
       {/* Pad above the heading so the subject pills clear the fixed
@@ -4802,7 +4806,11 @@ function LumiViewBody({ studentId, parentId, studentName }: { studentId: string;
           {firstName ? `${firstName}'s ${subject}` : subject}
         </h2>
         <div className="flex gap-2 flex-wrap items-center">
-          {(["Science", "Math", "English", "Chinese"] as const).map(s => (
+          {/* Chinese is intentionally NOT in this list — no Chinese
+              workshops have been run yet, so a Chinese pick would
+              just fall through to "Not enough data yet" for every
+              student. Re-add when Chinese diagnoses ship. */}
+          {(["Science", "Math", "English"] as const).map(s => (
             <button
               key={s}
               type="button"
