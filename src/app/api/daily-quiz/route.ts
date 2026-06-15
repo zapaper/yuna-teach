@@ -734,22 +734,28 @@ export async function POST(request: NextRequest) {
   }
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
 
-  // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
-  // Topic-tagged subparts often arrive without their parent row, which may carry the
-  // lead stem / diagram. Without this the group pool loses those hints.
+  // Pull in every DB sibling for each (examPaperId, baseNum) in the
+  // topic-matched set. Topic-tagged subparts often arrive without
+  // their parent row, which may carry the lead stem / diagram.
+  // Without this the group pool loses those hints.
+  //
+  // Previously this built a Postgres `OR` with up to N clauses (one
+  // per distinct (paperId, baseNum) pair). At 100+ papers × 10
+  // baseNums that's a 1000-clause OR — Postgres rejects sane plans
+  // for those and falls back to a sequential scan. Now: collapse to
+  // a single `examPaperId IN (...)` query and filter the resulting
+  // rows in-memory by baseNum. ONE query, ONE plan.
   const baseNumOf = (n: string) => n.replace(/[a-zA-Z]+$/, "");
   const siblingKeys = new Set<string>();
   for (const q of topicMatched) siblingKeys.add(`${q.examPaperId}::${baseNumOf(q.questionNum)}`);
-  const siblingWheres = [...siblingKeys].map(k => {
-    const [examPaperId, base] = k.split("::");
-    return { examPaperId, questionNum: { startsWith: base } };
-  });
-  const siblings = siblingWheres.length > 0
+  const distinctPaperIds = [...new Set([...topicMatched].map(q => q.examPaperId))];
+  const siblingsRaw = distinctPaperIds.length > 0
     ? await prisma.examQuestion.findMany({
-        where: { OR: siblingWheres, answer: { not: null } as { not: null } },
+        where: { examPaperId: { in: distinctPaperIds }, answer: { not: null } as { not: null } },
         select: questionSelectLight,
       })
     : [];
+  const siblings = siblingsRaw.filter(q => siblingKeys.has(`${q.examPaperId}::${baseNumOf(q.questionNum)}`));
   const qById = new Map<string, typeof topicMatched[number]>();
   for (const q of topicMatched) qById.set(q.id, q);
   for (const q of siblings) if (!qById.has(q.id)) qById.set(q.id, q);
