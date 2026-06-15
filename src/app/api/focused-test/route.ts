@@ -19,7 +19,24 @@ function baseNum(questionNum: string) {
   return questionNum.replace(/[a-zA-Z]+$/, "");
 }
 
+// Phase-level timing — matches the pattern in /api/daily-quiz so
+// Railway logs can pinpoint focused-practice slow phases the same way.
+function mkPhaseTimer(reqId: string) {
+  const start = Date.now();
+  let last = start;
+  return {
+    mark(label: string) {
+      const now = Date.now();
+      console.log(`[focused-test timing] ${reqId} ${label}: ${now - last}ms (total ${now - start}ms)`);
+      last = now;
+    },
+    total() { return Date.now() - start; },
+  };
+}
+
 export async function POST(request: NextRequest) {
+  const reqId = Math.random().toString(36).slice(2, 8);
+  const T = mkPhaseTimer(reqId);
   const { parentId, studentId, subject, topic, scheduledFor, type, revisionLevel } = await request.json() as {
     parentId?: string;
     studentId?: string;
@@ -192,7 +209,11 @@ export async function POST(request: NextRequest) {
     transcribedOptions: true,
     transcribedOptionImages: true,
     transcribedOptionTable: true,
-    transcribedSubparts: true,
+    // transcribedSubparts INTENTIONALLY OMITTED — same fix as
+    // /api/daily-quiz. The `_passage` subpart on cloze rows carries
+    // 1500-2000 char passage text on every row, dominating bulk-fetch
+    // wire size on large topic pools. The few selected questions get
+    // it back in the targeted hydrate before paper.create.
     diagramBounds: true,
     sourceQuestionId: true,
     examPaper: {
@@ -204,6 +225,7 @@ export async function POST(request: NextRequest) {
     where: questionWhere(true, difficultyFilter.primary, allowedExamTypes),
     select: questionSelectLight,
   });
+  T.mark(`pool-fetch (topicMatched=${topicMatched.length})`);
   // If the time-of-year filter zeroed out the pool (e.g. April with WA1
   // only and the topic only appears in EOY papers), drop the examType
   // filter so the student gets at least some practice. Surface a warning.
@@ -333,7 +355,9 @@ export async function POST(request: NextRequest) {
     const heavyRows = allPicked.length > 0
       ? await prisma.examQuestion.findMany({
           where: { id: { in: allPicked.map(q => q.id) } },
-          select: { id: true, imageData: true, answerImageData: true, diagramImageData: true },
+          // transcribedSubparts pulled here too — bulk select no
+          // longer carries it.
+          select: { id: true, imageData: true, answerImageData: true, diagramImageData: true, transcribedSubparts: true },
         })
       : [];
     const heavyByIdCh = new Map(heavyRows.map(r => [r.id, r]));
@@ -342,6 +366,7 @@ export async function POST(request: NextRequest) {
       imageData: heavyByIdCh.get(q.id)?.imageData ?? "",
       answerImageData: heavyByIdCh.get(q.id)?.answerImageData ?? null,
       diagramImageData: heavyByIdCh.get(q.id)?.diagramImageData ?? null,
+      transcribedSubparts: heavyByIdCh.get(q.id)?.transcribedSubparts,
     }));
 
     const labelLevel = effectiveLevel ?? student?.level ?? null;
@@ -387,6 +412,7 @@ export async function POST(request: NextRequest) {
     if (picked.length < TARGET_PASSAGES) {
       warnings.push(`Only ${picked.length} passage${picked.length === 1 ? "" : "s"} of "${topic}" available — practice runs ${picked.length} passage instead of the usual ${TARGET_PASSAGES}.`);
     }
+    T.mark(`chinese paper.create (qs=${hydratedQs.length}, total=${T.total()}ms)`);
     return NextResponse.json({ id: paper.id, questionCount: hydratedQs.length, warnings });
   }
 
@@ -400,16 +426,19 @@ export async function POST(request: NextRequest) {
   // tagged Q12c with a different topic from its siblings drags an unrelated
   // question into the practice (parent reported a 'light energy' Q showed up
   // in a 'life cycles' practice this way).
+  // Pull every answer-non-null question from the papers that already
+  // contributed a topic match, then filter to (paperId, baseNum) in
+  // memory. ONE IN-clause query instead of an OR with N (paperId,
+  // questionNum-prefix) clauses — same fix as the daily-quiz siblings
+  // query: Postgres handles IN over a paper-id list fine, but lost its
+  // plan when the OR ballooned to 100+ branches.
   const siblingKeys = new Set<string>();
   for (const q of topicMatched) siblingKeys.add(`${q.examPaperId}::${baseNum(q.questionNum)}`);
-  const siblingWheres = [...siblingKeys].map(k => {
-    const [examPaperId, base] = k.split("::");
-    return { examPaperId, questionNum: { startsWith: base } };
-  });
-  const siblings = siblingWheres.length > 0
+  const distinctPaperIds = [...new Set(topicMatched.map(q => q.examPaperId))];
+  const siblingsRaw = distinctPaperIds.length > 0
     ? await prisma.examQuestion.findMany({
         where: {
-          OR: siblingWheres,
+          examPaperId: { in: distinctPaperIds },
           answer: { not: null } as { not: null },
           // On-topic OR untagged — keeps the parent/diagram row (which is
           // often untagged) but rejects an off-topic subpart.
@@ -418,13 +447,21 @@ export async function POST(request: NextRequest) {
         select: questionSelectLight,
       })
     : [];
+  const siblings = siblingsRaw.filter(q => siblingKeys.has(`${q.examPaperId}::${baseNum(q.questionNum)}`));
+  T.mark(`siblings-query (papers=${distinctPaperIds.length} → rows=${siblingsRaw.length} → kept=${siblings.length})`);
 
   const byId = new Map<string, typeof topicMatched[number]>();
   for (const q of topicMatched) byId.set(q.id, q);
   for (const q of siblings) if (!byId.has(q.id)) byId.set(q.id, q);
   const allQuestions = [...byId.values()];
 
-  type Q = typeof allQuestions[number];
+  // transcribedSubparts is no longer in the bulk select (it was the
+  // biggest wire-size offender — _passage subparts at 1500+ chars per
+  // cloze row). Keep it as optional on the type so the existing code
+  // that reads it still compiles; it gets re-attached in the heavy
+  // hydrate just before paper.create.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type Q = typeof allQuestions[number] & { transcribedSubparts?: any };
   // Hydrated row: Q + the three base64 columns we dropped from the
   // light select. Populated AFTER the final selection is picked so the
   // bulk pool query stays cheap.
@@ -711,14 +748,21 @@ export async function POST(request: NextRequest) {
   const heavyRows = heavyIds.size > 0
     ? await prisma.examQuestion.findMany({
         where: { id: { in: [...heavyIds] } },
-        select: { id: true, imageData: true, answerImageData: true, diagramImageData: true },
+        // Adds transcribedSubparts (now omitted from the bulk select)
+        // so mergeOeqGroup + the create's question-clone see it.
+        select: { id: true, imageData: true, answerImageData: true, diagramImageData: true, transcribedSubparts: true },
       })
     : [];
+  T.mark(`heavy-hydrate (ids=${heavyIds.size})`);
   const heavyById = new Map(heavyRows.map(r => [r.id, r]));
   const hydrate = (q: Q): HeavyQ => {
     const heavy = heavyById.get(q.id);
     return {
       ...q,
+      // Attach transcribedSubparts from the heavy fetch (omitted from
+      // the bulk light select). HeavyQ's parent type already keeps it
+      // as `any` via Prisma's inferred shape so no extra type wiring.
+      transcribedSubparts: heavy?.transcribedSubparts,
       // imageData is non-nullable in the schema; default "" guards
       // against a row going missing between the light and heavy
       // queries (very unlikely but cheap).
@@ -815,5 +859,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  T.mark(`paper.create (qs=${allSelected.length}, total=${T.total()}ms)`);
   return NextResponse.json({ id: paper.id, questionCount: allSelected.length, warnings });
 }
