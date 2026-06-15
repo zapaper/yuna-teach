@@ -1515,6 +1515,11 @@ export async function POST(request: NextRequest) {
         level: levelFilter || null,
         userId,
         assignedToId: targetStudentId,
+        // Prisma schema defaults visible to false. Daily quizzes
+        // MUST be visible so the assignee can open them — without
+        // this the kid sees "quiz not found" on
+        // /quiz/[id]?userId=... despite the paper existing.
+        visible: true,
         ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: isFocusedEnglish ? "focused" : "quiz",
         instantFeedback: true,
@@ -1837,6 +1842,9 @@ export async function POST(request: NextRequest) {
       level: levelFilter || null,
       userId,
       assignedToId: targetStudentId,
+      // See English-create note — visible defaults false in the
+      // schema, must be true here so the kid can open the quiz.
+      visible: true,
       ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
       paperType: "quiz",
       instantFeedback: true,
