@@ -538,10 +538,10 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
         )}
         {concept && (
           <li>
-            Lastly, there are concepts worth refreshing with {childFirst}. I notice
-            {" "}<strong>&ldquo;{concept.name}&rdquo;</strong> is one to revisit
+            I notice <strong>&ldquo;{concept.name}&rdquo;</strong> is a common conceptual mistake
             — he&apos;s lost {pctOfSubject(concept.marksLost, topline.totalAvailable)} on questions involving it.
-            I&apos;ve put a short module {link("concepts-section", "here")} we can walk through together, plus a quick quiz.
+            I have prepared a short explanation module {link("concepts-section", "here")}.
+            We can walk through together, plus take a guided quiz.
           </li>
         )}
       </ul>
