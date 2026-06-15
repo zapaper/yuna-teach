@@ -370,10 +370,13 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   }, [view]);
   return (
     <>
-      {/* Lumi greeting — always visible above the swipe stage */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6 mb-6 flex items-start gap-6">
+      {/* Lumi greeting — always visible above the swipe stage. On
+          mobile we stack the avatar on its own row (centred) above a
+          full-width summary; on md+ we revert to the side-by-side
+          layout. */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-8 py-6 mb-6 flex flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
         <LumiAvatar />
-        <div className="flex-1">
+        <div className="flex-1 w-full">
           <p className="text-[#001e40] text-base leading-relaxed">
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
