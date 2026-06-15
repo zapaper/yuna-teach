@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateContentWithRetry, cleanVocabClozePassageOcr, cleanGrammarClozePassageOcr } from "@/lib/gemini";
 import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
+import { extractCiyuP4Content, buildCiyuPassage } from "@/lib/chinese-ciyu";
 import fs from "fs";
 import path from "path";
 
@@ -49,7 +50,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     sectionNameNorm.includes("completedialogue") ||
     sectionNameNorm.includes("dialoguecloze")
   );
+  // P4 词语搭配 — word-collocation matching. Word table (4-8 numbered
+  // phrases) at top, then short prompt rows like "Q11 摇摆 ( )" /
+  // "Q12 ( ) 规则" where the empty parens is the answer slot. Generic
+  // English prompt can't parse this — needs its own OCR + extract path.
+  const isCiyuMatching = isChinese && sectionName.includes("词语搭配");
   const CANONICAL_DIALOGUE_LABEL = "完成对话";
+  const CANONICAL_CIYU_LABEL = "词语搭配";
   const MODELS = isLangAppMcq
     ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
     : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
@@ -94,6 +101,80 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const secLabel = sectionName;
   const isMcqSection = secLabel.toLowerCase().includes("mcq");
+
+  // ─── P4 词语搭配 short-circuit ──────────────────────────────────────
+  // 词语搭配 has a word-bank table + 4 short prompt rows with empty
+  // parens for answers. The generic OCR + extract prompt below can't
+  // parse this layout — it returns blank/garbage stems. Route through
+  // the shared chinese-ciyu helper instead. Identical code path to
+  // the normal-extract-chinese duihua augment.
+  if (isCiyuMatching) {
+    const sectionQs = paper.questions.filter(q => {
+      const t = (q.syllabusTopic ?? "").replace(/\s+/g, "");
+      return t === CANONICAL_CIYU_LABEL || t.includes("词语搭配");
+    });
+    if (sectionQs.length === 0) {
+      return NextResponse.json({ error: "No 词语搭配 questions on this paper" }, { status: 400 });
+    }
+    const expectedNums = sectionQs.map(q => parseInt(q.questionNum, 10)).filter(n => Number.isFinite(n));
+    const firstPageIdx = pageIndices[0];
+    const filePath = path.join(pagesDir, `page_${firstPageIdx}.jpg`);
+    const pageBytes = fs.readFileSync(filePath);
+    console.log(`[Re-extract] 词语搭配: extracting via chinese-ciyu helper, expecting Qs ${expectedNums.join(",")} on page ${firstPageIdx}`);
+    const extracted = await extractCiyuP4Content(pageBytes, firstPageIdx, expectedNums);
+    if (!extracted) {
+      return NextResponse.json({ error: "词语搭配 extraction failed" }, { status: 500 });
+    }
+    console.log(`[Re-extract] 词语搭配: got ${extracted.wordBank.length} phrases, ${extracted.questions.length} questions`);
+    const passage = buildCiyuPassage(extracted);
+    // Update each Q's transcribedStem with the printed Q-num inside
+    // the parens, so the marker / printable views aren't stuck on
+    // "摇摆 ( )". Match by questionNum.
+    const byNum = new Map(extracted.questions.map(q => [q.qNum, q]));
+    let qUpdated = 0;
+    for (const q of sectionQs) {
+      const n = parseInt(q.questionNum, 10);
+      const e = byNum.get(n);
+      if (!e) continue;
+      const stem = [e.stemBefore, `(${n}) ____`, e.stemAfter].filter(Boolean).join(" ");
+      await prisma.examQuestion.update({
+        where: { id: q.id },
+        data: { transcribedStem: stem, syllabusTopic: CANONICAL_CIYU_LABEL },
+      });
+      qUpdated++;
+    }
+    // Store the synthetic passage + rebuild chineseSections so the
+    // quiz renderer picks up the new word-bank + blanks layout.
+    const meta = (paper.metadata ?? {}) as Record<string, unknown>;
+    const allOcr = (meta.sectionOcrTexts ?? {}) as Record<string, Record<string, unknown>>;
+    const secKey = Object.keys(allOcr).find(k =>
+      k.replace(/\s+/g, "") === CANONICAL_CIYU_LABEL.replace(/\s+/g, "")
+    ) ?? CANONICAL_CIYU_LABEL;
+    allOcr[secKey] = {
+      ...(allOcr[secKey] ?? {}),
+      ocrText: passage,
+      passageDisplayText: passage,
+      passageOcrText: passage,
+      pageIndices,
+    };
+    const qsForBuild = await prisma.examQuestion.findMany({
+      where: { examPaperId: id },
+      orderBy: { orderIndex: "asc" },
+      select: { pageIndex: true, syllabusTopic: true },
+    });
+    const built = buildChineseSections(qsForBuild, allOcr as Record<string, OcrEntry>);
+    console.log(`[Re-extract] 词语搭配: rebuilt chineseSections (${built.length}): ${built.map(s => s.label).join(", ")}`);
+    await prisma.examPaper.update({
+      where: { id },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: { metadata: { ...meta, sectionOcrTexts: allOcr, chineseSections: built } as any },
+    });
+    return NextResponse.json({
+      ocrText: passage,
+      questionsUpdated: qUpdated,
+      questionsExtracted: extracted.questions.length,
+    });
+  }
 
   // Step 1: OCR the pages
   const ocrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
