@@ -2054,7 +2054,17 @@ function ExamReviewContent({ id }: { id: string }) {
               }
 
               const rawLabel = currentSection?.label ?? "";
-              const isGrammarCloze = currentSectionLabel.includes("grammar cloze") || rawLabel.includes("完成对话") || rawLabel.includes("对话填空");
+              // P4 papers reshape both 词语搭配 (4-题 wordbank) and
+              // 短文填空 (also wordbank — not the P5/P6 inline-4-option
+              // format) so the kid types a digit 1-8 selecting a
+              // phrase from a section-top bank. Render-wise that's
+              // 完成对话 shape: whole passage with inline marks. Gate
+              // on title regex so P5/P6 短文填空 keeps its existing
+              // vocab-cloze layout untouched.
+              const isP4Paper = /\b(primary\s*4|p\s*4|level\s*4|小四|四年级)\b/i.test(paperTitle);
+              const isChineseP4SharedBank = isP4Paper &&
+                (rawLabel.includes("词语搭配") || rawLabel.includes("短文填空"));
+              const isGrammarCloze = currentSectionLabel.includes("grammar cloze") || rawLabel.includes("完成对话") || rawLabel.includes("对话填空") || isChineseP4SharedBank;
               const isEditing = currentSectionLabel.includes("editing");
               const isSynthesis = currentSectionLabel.includes("synthesis");
               // Chinese 阅读理解 sections (including the merged
@@ -2065,7 +2075,11 @@ function ExamReviewContent({ id }: { id: string }) {
               const isChineseComp = rawLabel.includes("阅读理解") && !rawLabel.includes("短文填空");
               const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open") || isChineseComp;
               const isCompCloze = currentSectionLabel.includes("comprehension") && currentSectionLabel.includes("cloze") && !isCompOeq;
-              const isVocabCloze = (currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze")) || rawLabel.includes("短文填空");
+              // P4 短文填空 is wordbank (grammar-cloze), NOT the P5/P6
+              // 4-option vocab-cloze inline picker — drop it from the
+              // vocab-cloze flag when isP4Paper so isGrammarCloze wins
+              // and the passage renders with inline marks.
+              const isVocabCloze = (currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze")) || (rawLabel.includes("短文填空") && !isChineseP4SharedBank);
               const isVisualText = currentSectionLabel.includes("visual") && currentSectionLabel.includes("text");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
@@ -2618,10 +2632,28 @@ function ExamReviewContent({ id }: { id: string }) {
                               // student + ✗ + GREEN correct. English keeps
                               // the original colour scheme below.
                               const isChineseDialogueCloze = rawLabel.includes("完成对话") || rawLabel.includes("对话填空");
+                              // P4 词语搭配 / 短文填空 use the simplest
+                              // signal: ✓ + correct answer (green) for
+                              // right; ✗ + correct answer (red) for wrong
+                              // — no display of the student's wrong pick
+                              // since the parent only cares about pass/fail
+                              // at a glance.
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
-                                  {isChineseDialogueCloze ? (
+                                  {isChineseP4SharedBank ? (
+                                    isCorrect ? (
+                                      <>
+                                        <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
+                                        <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                        <span className="font-bold text-[#ba1a1a] px-1 text-sm">{correctWord}</span>
+                                      </>
+                                    )
+                                  ) : isChineseDialogueCloze ? (
                                     isBlank ? (
                                       <>
                                         <span className="font-bold text-[#ba1a1a] px-1 text-sm">[Blank]</span>
