@@ -1086,6 +1086,80 @@
       ],
       "capturedAt": "2026-06-06T02:00:42.557Z",
       "note": "Reference paper #10 — Chinese, confirmed marked correctly"
+    },
+    {
+      "id": "cmqf9pec7000om5ky20nf5eeo",
+      "title": "P6 Compre OEQ",
+      "subject": "English Language",
+      "level": "Primary 6",
+      "paperType": "quiz",
+      "totalMarks": "20",
+      "score": 12,
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 1,
+          "marksAwarded": 1,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 1,
+          "marksAwarded": 0.5,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 1,
+          "marksAwarded": 0.5,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 1.5,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 3,
+          "marksAwarded": 2,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 4,
+          "marksAwarded": 1.5,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 2,
+          "marksAwarded": 1,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Comprehension Open Ended"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 2,
+          "marksAwarded": 0,
+          "syllabusTopic": "Comprehension Open Ended"
+        }
+      ],
+      "capturedAt": "2026-06-15T15:10:32.958Z",
+      "note": "Reference paper #11 — PSLE Comp OEQ with Q7 multi-label-header table (paper's Q77); locks in coverage of the table-marker fix"
     }
   ],
   "errors": []

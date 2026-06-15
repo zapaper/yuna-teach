@@ -40,6 +40,10 @@
     {
       "id": "cmq0tgcuc00011e0qqv3pfcjc",
       "note": "Reference paper #10 — Chinese, confirmed marked correctly"
+    },
+    {
+      "id": "cmqf9pec7000om5ky20nf5eeo",
+      "note": "Reference paper #11 — PSLE Comp OEQ; locks in Q7 multi-label-header table marker coverage"
     }
   ]
 }
