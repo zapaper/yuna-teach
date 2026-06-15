@@ -1294,8 +1294,17 @@ When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. 
 
 PROCESS:
 1. The term being defined is in the QUESTION — the student does not need to repeat it.
-2. Read the expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
-3. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+2. **BEFORE listing discriminating components, STRIP any clause from the answer key that just restates what the question asked.** If the question is "State how a shadow is formed" and the key starts "A shadow is formed when…", the phrase "A shadow is formed" is the question's framing, NOT a discriminating component. Drop it. The same goes for "Explain how X happens" + key "X happens when…", "Define X" + key "X is a/an…", "Describe how Y moves" + key "Y moves by…", etc. The student already knows the topic — the key information is the mechanism / cause / property that follows. Only THAT survives to step 3.
+3. Read the (now-trimmed) expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
+4. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+
+CONCRETE EXAMPLE OF THE STRIP IN STEP 2 (this MUST work to ACCEPT the student):
+  - Question: "State how a shadow is formed."
+  - Key: "A shadow is formed when light is partially or completely blocked by an object."
+  - STEP 2 STRIP: "A shadow is formed" is restated from the question stem → DROP IT. Remaining: "when light is partially or completely blocked by an object."
+  - STEP 3 components: ["light is blocked / partially blocked / completely blocked", "by an object / by an opaque object"].
+  - Student: "Light that travels in a straight line is partially or completely blocked by the opaque or translucent object."
+  - Student covers BOTH components → AWARD FULL CREDIT (1/1). Do NOT deduct because they didn't write "a shadow is formed" — the stem already established it.
 
 SCORING TABLE (apply strictly):
 - 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
@@ -6237,8 +6246,17 @@ When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. 
 
 PROCESS:
 1. The term being defined is in the QUESTION — the student does not need to repeat it.
-2. Read the expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
-3. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+2. **BEFORE listing discriminating components, STRIP any clause from the answer key that just restates what the question asked.** If the question is "State how a shadow is formed" and the key starts "A shadow is formed when…", the phrase "A shadow is formed" is the question's framing, NOT a discriminating component. Drop it. The same goes for "Explain how X happens" + key "X happens when…", "Define X" + key "X is a/an…", "Describe how Y moves" + key "Y moves by…", etc. The student already knows the topic — the key information is the mechanism / cause / property that follows. Only THAT survives to step 3.
+3. Read the (now-trimmed) expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
+4. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+
+CONCRETE EXAMPLE OF THE STRIP IN STEP 2 (this MUST work to ACCEPT the student):
+  - Question: "State how a shadow is formed."
+  - Key: "A shadow is formed when light is partially or completely blocked by an object."
+  - STEP 2 STRIP: "A shadow is formed" is restated from the question stem → DROP IT. Remaining: "when light is partially or completely blocked by an object."
+  - STEP 3 components: ["light is blocked / partially blocked / completely blocked", "by an object / by an opaque object"].
+  - Student: "Light that travels in a straight line is partially or completely blocked by the opaque or translucent object."
+  - Student covers BOTH components → AWARD FULL CREDIT (1/1). Do NOT deduct because they didn't write "a shadow is formed" — the stem already established it.
 
 SCORING TABLE (apply strictly):
 - 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
