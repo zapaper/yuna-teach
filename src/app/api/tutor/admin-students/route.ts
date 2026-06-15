@@ -92,10 +92,20 @@ export async function GET(request: NextRequest) {
         questions: { select: { marksAwarded: true, marksAvailable: true, studentAnswer: true, markingNotes: true, transcribedOptions: true } },
       },
     });
+    // Track BOTH analysable-wrong count and distinct-paper count per
+    // kid. The tutor route's data gate (loadTutorData at tutor.ts:932)
+    // requires ≥3 papers; without mirroring that here, English kids
+    // with 1-2 papers but 30+ MCQ items per paper showed up in the
+    // admin dropdown but the page then returned "Not enough data yet"
+    // on selection. Math/Science were unaffected because their papers
+    // carry fewer items and the ≥15 wrongs threshold naturally requires
+    // ≥3 papers anyway.
     const analysableByKid = new Map<string, number>();
+    const papersByKid = new Map<string, number>();
     for (const p of papers) {
       if ((p.metadata as { revisionMode?: unknown } | null)?.revisionMode) continue;
       if (!p.assignedToId) continue;
+      papersByKid.set(p.assignedToId, (papersByKid.get(p.assignedToId) ?? 0) + 1);
       let count = analysableByKid.get(p.assignedToId) ?? 0;
       for (const q of p.questions) {
         const av = q.marksAvailable ?? 0, aw = q.marksAwarded ?? 0;
@@ -108,8 +118,10 @@ export async function GET(request: NextRequest) {
       }
       analysableByKid.set(p.assignedToId, count);
     }
+    const MIN_PAPERS = 3;
     for (const [kidId, count] of analysableByKid) {
       if (count < MIN_ANALYSABLE) continue;
+      if ((papersByKid.get(kidId) ?? 0) < MIN_PAPERS) continue;
       if (hits.has(kidId)) continue;       // already covered via cache source
       const u = allUsers.find(x => x.id === kidId);
       if (!u || !u.name) continue;
