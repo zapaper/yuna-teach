@@ -1463,11 +1463,13 @@ export async function POST(request: NextRequest) {
   shuffle(mcqFresh); shuffle(oeqFresh);
   shuffle(mcqUsed);  shuffle(oeqUsed);
 
-  // First-time onboarding quiz: cap MCQ at 15 to ease the parent /
-  // child into the workflow without a 20-question wall. Other quiz
-  // creation paths (regular daily, focused, revision) keep 20/10.
-  const baseMcqTarget = quizType === "mcq" ? 20 : 10;
-  const mcqTarget = firstQuiz ? Math.min(15, baseMcqTarget) : baseMcqTarget;
+  // Daily MCQ quiz lands at 15 questions — long enough to give the
+  // marker meaningful signal, short enough that the kid actually
+  // finishes in a sitting. Mixed mcq+oeq quizzes still pull 10 MCQ
+  // + 5 OEQ (15 total) so neither path balloons. Onboarding kept
+  // the 15 cap from before; the regular path now matches it.
+  const baseMcqTarget = quizType === "mcq" ? 15 : 10;
+  const mcqTarget = baseMcqTarget;
   const oeqTarget = 5;
 
   // Top up from level-1 if current level doesn't have enough fresh questions
@@ -1660,7 +1662,7 @@ export async function POST(request: NextRequest) {
     if (mcqPool.length < 1) {
       return NextResponse.json({ error: "Not enough MCQ questions available" }, { status: 404 });
     }
-    selectedMcq = mcqPool.slice(0, 20);
+    selectedMcq = mcqPool.slice(0, 15);
     selectedOeq = [];
   } else {
     if (mcqPool.length < 1 && oeqPool.length < 1) {
