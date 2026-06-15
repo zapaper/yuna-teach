@@ -442,10 +442,19 @@ function shapeTutorData(args: {
     if (!m) return null;
     const idx = parseInt(m[1], 10);
     const cachedQid = questionIdByIdx[String(idx)];
+    // When the workshop stamped questionIdByIdx (every cache written
+    // after the stable-id rollout), resolve STRICTLY via questionId.
+    // The earlier idx-based fallback caused 1-to-N mismatches: if the
+    // student finished a new paper between workshop time and now, the
+    // current wrongs array shifts and `wrongByIdx[idx]` points at a
+    // DIFFERENT question than the one Gemini analysed — so the
+    // example's "whatWentWrong" describes one question while the
+    // resolved stem / answer is from another. Better to return null
+    // and show the bare workshop sentence than mismatched detail.
     if (cachedQid) {
-      const w = wrongByQuestionId.get(cachedQid);
-      if (w) return w;
+      return wrongByQuestionId.get(cachedQid) ?? null;
     }
+    // Legacy caches without questionIdByIdx fall back to idx ordering.
     return wrongByIdx.get(idx) ?? null;
   };
   const enrichExample = (ex: GeminiExample): MistakeExample => {
