@@ -446,6 +446,60 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ id: testQuiz.id, questionCount: allQs.length });
   }
 
+  // Server-side idempotency check — if the same parent triggered the
+  // same (subject, student, sections, scheduledFor) within the last
+  // 90s, return the existing paper instead of creating a duplicate.
+  // English quiz generation is slow (multiple seconds of cascading
+  // findMany + backfill loops); if the parent switches tabs or
+  // re-clicks before the first request resolves, we'd otherwise
+  // create two papers.
+  {
+    const subj: string = subject ?? "";
+    const dedupWindow = new Date(Date.now() - 90_000);
+    const sectionFingerprint = subj === "english"
+      ? (englishSections ?? []).slice().sort().join(",")
+      : subj === "chinese"
+        ? (chineseSections ?? []).slice().sort().join(",")
+        : "";
+    const subjectFilter: Record<string, unknown> =
+      subj === "english" ? { subject: "English Language" }
+      : subj === "chinese" ? { subject: "Chinese" }
+      : subj === "math" ? { subject: { contains: "math", mode: "insensitive" } }
+      : subj === "science" ? { subject: { contains: "science", mode: "insensitive" } }
+      : {};
+    const recent = await prisma.examPaper.findFirst({
+      where: {
+        userId,
+        assignedToId: targetStudentId,
+        paperType: focused ? "focused" : "quiz",
+        createdAt: { gte: dedupWindow },
+        ...(scheduledFor ? { scheduledFor: new Date(scheduledFor) } : {}),
+        ...subjectFilter,
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, metadata: true, questions: { select: { id: true } } },
+    });
+    if (recent) {
+      // Compare section list on the matching paper's metadata. For
+      // Math/Science we don't fingerprint sections, so any same-
+      // (student, subject, scheduledFor) hit in the window is a dup.
+      let isDuplicate: boolean;
+      if (subj === "english" || subj === "chinese") {
+        const meta = recent.metadata as { englishSections?: Array<{ label: string }>; chineseSections?: Array<{ label: string }> } | null;
+        const recentSections = subj === "english"
+          ? (meta?.englishSections ?? []).map(s => s.label).sort().join(",")
+          : (meta?.chineseSections ?? []).map(s => s.label).sort().join(",");
+        isDuplicate = recentSections === sectionFingerprint || (sectionFingerprint === "" && recentSections === "");
+      } else {
+        isDuplicate = true;
+      }
+      if (isDuplicate) {
+        console.log(`[daily-quiz] dedup hit — returning existing paper ${recent.id} (within 90s window) for student=${targetStudentId} subject=${subj}`);
+        return NextResponse.json({ id: recent.id, questionCount: recent.questions.length, dedup: true });
+      }
+    }
+  }
+
   // Get the student's level
   const student = await prisma.user.findUnique({
     where: { id: targetStudentId },
