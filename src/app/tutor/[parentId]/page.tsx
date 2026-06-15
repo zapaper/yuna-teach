@@ -161,7 +161,13 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // 5 days — short enough that a stale diagnosis self-corrects soon
     // after major new activity, long enough that day-to-day Lumi
     // visits don't re-trigger Gemini.
-    const cacheKey = `tutor-${studentId}-${subject}`;
+    //
+    // The `v2` segment is a cache-bust token. Bump it whenever the
+    // bundled diagnoses or the API response shape changes in a way
+    // that old localStorage payloads should NOT be served — the new
+    // key won't hit any pre-bump cache, and the prune step removes
+    // every old `tutor-*` entry.
+    const cacheKey = `tutor-v2-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;
