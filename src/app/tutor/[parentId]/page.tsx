@@ -1037,6 +1037,102 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { stude
   );
 }
 
+// Render question text that may include markdown-style pipe tables —
+// Comprehension OEQ stems frequently have a "Character's feelings |
+// Evidence from text" table that's unreadable when shown as raw
+// pipe-bar text. Parses contiguous `|`-prefixed line blocks into HTML
+// tables; non-table paragraphs render as plain text.
+function renderQuestionText(text: string): React.ReactNode {
+  const blocks: Array<React.ReactNode> = [];
+  const lines = text.split(/\r?\n/);
+  let i = 0;
+  let key = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim().startsWith("|") && line.includes("|")) {
+      // Collect contiguous table lines.
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      const parsed = tableLines.map(l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+      // Detect the markdown separator row (e.g. `|---|---|`). Drop it.
+      const sepIdx = parsed.findIndex(row => row.every(c => /^:?-{2,}:?$/.test(c)));
+      const hasHeader = sepIdx === 1;
+      const headerCells = hasHeader ? parsed[0] : null;
+      const bodyRows = hasHeader ? parsed.slice(sepIdx + 1) : parsed.filter((_, idx) => idx !== sepIdx);
+      blocks.push(
+        <table key={`tbl-${key++}`} className="border-collapse my-2 text-sm">
+          {headerCells && (
+            <thead>
+              <tr>{headerCells.map((c, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold">{c}</th>)}</tr>
+            </thead>
+          )}
+          <tbody>
+            {bodyRows.map((row, r) => (
+              <tr key={r}>
+                {row.map((c, j) => <td key={j} className="border border-slate-300 px-3 py-1.5 align-top">{c}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    } else {
+      // Collect contiguous non-table lines into one paragraph.
+      const para: string[] = [];
+      while (i < lines.length && !lines[i].trim().startsWith("|")) {
+        para.push(lines[i]);
+        i++;
+      }
+      const txt = para.join("\n").trim();
+      if (txt) blocks.push(<p key={`p-${key++}`} className="whitespace-pre-line">{txt}</p>);
+    }
+  }
+  return <div className="space-y-2">{blocks}</div>;
+}
+
+// Reformat the cell-mapped student answer the OEQ marker stores —
+// `{"r1c1":"…","r2c1":"…"}` — into labelled lines `(a) … (b) …` that
+// line up with the question's labelled table rows. Falls back to the
+// raw text when parsing fails so we never hide an answer outright.
+function formatStudentAnswer(raw: string): React.ReactNode {
+  const txt = raw.trim();
+  if (!(txt.startsWith("{") && txt.endsWith("}"))) return <span className="whitespace-pre-line">{raw}</span>;
+  try {
+    const parsed = JSON.parse(txt) as Record<string, string>;
+    const entries = Object.entries(parsed)
+      .map(([k, v]) => {
+        const m = k.match(/^r(\d+)c(\d+)$/i);
+        return m ? { row: parseInt(m[1], 10), col: parseInt(m[2], 10), value: String(v ?? "") } : null;
+      })
+      .filter((e): e is { row: number; col: number; value: string } => e !== null)
+      .sort((a, b) => a.row - b.row || a.col - b.col);
+    if (entries.length === 0) return <span className="whitespace-pre-line">{raw}</span>;
+    // Group by row → (a) row 1, (b) row 2, etc.
+    const byRow = new Map<number, string[]>();
+    for (const e of entries) {
+      if (!byRow.has(e.row)) byRow.set(e.row, []);
+      byRow.get(e.row)!.push(e.value);
+    }
+    const rows = [...byRow.entries()].sort((a, b) => a[0] - b[0]);
+    return (
+      <div className="space-y-1">
+        {rows.map(([r, vals]) => {
+          const label = String.fromCharCode(96 + r);          // 1 → "a", 2 → "b"
+          return (
+            <div key={r}>
+              <span className="font-semibold">({label})</span> {vals.join(" / ")}
+            </div>
+          );
+        })}
+      </div>
+    );
+  } catch {
+    return <span className="whitespace-pre-line">{raw}</span>;
+  }
+}
+
 function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExample; index: number; accent: "violet" | "orange"; childFirst: string }) {
   const [open, setOpen] = useState(false);
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
@@ -1065,7 +1161,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
         <div className={`border-t border-slate-200 p-4 ${accentBg} rounded-b-xl space-y-3`}>
           <div>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Question</p>
-            <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-line">{ex.questionText}</p>
+            <div className="text-sm text-[#001e40] leading-relaxed">{renderQuestionText(ex.questionText ?? "")}</div>
           </div>
           {imgSrc && (
             <div>
@@ -1118,7 +1214,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
           {!ex.isMcq && ex.studentAnswer && (
             <div>
               <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-1">{childFirst} wrote</p>
-              <p className="text-sm text-rose-900 leading-relaxed whitespace-pre-line">{ex.studentAnswer}</p>
+              <div className="text-sm text-rose-900 leading-relaxed">{formatStudentAnswer(ex.studentAnswer)}</div>
             </div>
           )}
           {ex.markingNotes && (
