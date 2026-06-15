@@ -354,19 +354,34 @@ function reconstructWrongs(papers: Array<{
       }
       cleanedNotes = cleanedNotes.replace(/^detected\s*:\s*[^.\n]*\.?\s*/i, "").trim();
       // Stitch the transcribedStem with the subparts so multi-part
-      // questions show the full prompt (a)/(b)/(c). Drop subparts
-      // whose label starts with "_" — those are marker-only context
-      // fields (_passage, _passageText) that carry the whole reading
-      // passage. Including them blows up the displayed question with
-      // the entire 800-char passage + every numbered question from
-      // the OEQ section, when all the parent needs to see is the
-      // specific (a)/(b) prompt this kid lost marks on.
-      let questionText = (q.transcribedStem ?? "").trim();
+      // questions show the full prompt (a)/(b)/(c). Generally drop
+      // subparts whose label starts with "_" — those are marker-only
+      // context fields (_passage, _passageText) that carry the whole
+      // reading passage, and including them blows up Comp-OEQ examples
+      // with the entire passage + every numbered question.
+      //
+      // EXCEPTION: Cloze sections (Grammar Cloze, Comprehension Cloze,
+      // Vocab Cloze MCQ) have an EMPTY transcribedStem because the
+      // passage itself IS the question — the kid fills in inline (N)
+      // blanks. For these we keep the _passage subpart so the parent
+      // can actually read the context. The empty-stem heuristic is
+      // safe: only Cloze + Editing sections have empty stems, and
+      // both want the passage shown.
+      const stemRaw = (q.transcribedStem ?? "").trim();
+      const stemIsEmpty = stemRaw.length === 0;
+      let questionText = stemRaw;
       const sps = q.transcribedSubparts as unknown;
       if (Array.isArray(sps)) {
         const lines = (sps as Array<{ label?: string; text?: string }>)
-          .filter(sp => !sp.label || !sp.label.startsWith("_"))
-          .map(sp => `${sp.label ? `(${sp.label}) ` : ""}${sp.text ?? ""}`.trim())
+          .filter(sp => {
+            if (!sp.label) return true;
+            // Stem-less question → keep the _passage so the parent can
+            // see the cloze context. Otherwise drop underscore-prefixed
+            // marker context.
+            if (stemIsEmpty && (sp.label === "_passage" || sp.label === "_passageText")) return true;
+            return !sp.label.startsWith("_");
+          })
+          .map(sp => `${sp.label && !sp.label.startsWith("_") ? `(${sp.label}) ` : ""}${sp.text ?? ""}`.trim())
           .filter(Boolean);
         if (lines.length > 0) questionText = [questionText, lines.join("\n")].filter(Boolean).join("\n\n");
       }
