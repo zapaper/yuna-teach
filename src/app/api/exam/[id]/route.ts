@@ -386,6 +386,35 @@ export async function PATCH(
   if ("metadata" in body && typeof body.metadata === "object" && body.metadata !== null && !("skipPages" in body) && !("passagePages" in body)) {
     // Direct metadata update (e.g. sectionOcrTexts)
     data.metadata = body.metadata;
+    // When sectionOcrTexts is part of the update on a Chinese paper,
+    // rebuild metadata.chineseSections so the derived `passage` field
+    // (read by the daily-quiz / focused-test clone and the kid-facing
+    // ChineseQuizSection) stays in sync with the edited OCR text.
+    // Without this, an admin who edits the 短文填空 OCR via the edit
+    // page sees the new text on the master paper but every new quiz
+    // generated afterward still carries the stale snapshot.
+    const incomingMeta = body.metadata as Record<string, unknown>;
+    if ("sectionOcrTexts" in incomingMeta) {
+      const existing = await prisma.examPaper.findUnique({
+        where: { id },
+        select: { subject: true },
+      });
+      const subjRaw = existing?.subject ?? "";
+      const subjLower = subjRaw.toLowerCase();
+      const isChinese = subjLower.includes("chinese") || subjRaw.includes("华文") || subjRaw.includes("中文") || subjRaw.includes("华语");
+      if (isChinese) {
+        const { buildChineseSections } = await import("@/lib/extraction");
+        const qsForBuild = await prisma.examQuestion.findMany({
+          where: { examPaperId: id },
+          orderBy: { orderIndex: "asc" },
+          select: { pageIndex: true, syllabusTopic: true },
+        });
+        const allOcr = (incomingMeta.sectionOcrTexts ?? {}) as Record<string, { ocrText?: string; passageOcrText?: string; pageIndices?: number[]; passagePageIndices?: number[] }>;
+        const rebuilt = buildChineseSections(qsForBuild, allOcr);
+        data.metadata = { ...incomingMeta, chineseSections: rebuilt };
+        console.log(`[exam:PATCH] sectionOcrTexts updated on Chinese paper ${id} — rebuilt chineseSections (${rebuilt.length}): ${rebuilt.map(s => s.label).join(", ")}`);
+      }
+    }
   }
   // Parent's red-pen review annotations. Body shape: { reviewAnnotations:
   // { key: dataUrl | null } } — null clears that key. Merges into the

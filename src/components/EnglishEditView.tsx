@@ -525,14 +525,32 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                           {onSaveOcr && (
                             <button
                               onClick={async () => {
-                                // Save passageOcrText to sectionOcrTexts metadata
+                                // Save the edited text to sectionOcrTexts metadata.
+                                // CRITICAL: buildChineseSections reads different
+                                // fields per section type:
+                                //   · 阅读理解         → entry.passageOcrText
+                                //   · 短文填空 / 完成对话 / 词语搭配 / 对话填空
+                                //                      → entry.ocrText
+                                // Writing only to passageOcrText for the latter
+                                // group leaves the edit invisible to every
+                                // downstream caller. Detect and write to the
+                                // matching field (and mirror to both for
+                                // 阅读理解, in case future code reads ocrText).
                                 const metadata = paper.metadata ?? {};
                                 const allOcr = (metadata as Record<string, unknown>).sectionOcrTexts as Record<string, Record<string, unknown>> ?? {};
                                 const secOcr = allOcr[sec.name] ?? Object.entries(allOcr).find(([k]) =>
                                   k.toLowerCase().includes(sec.name.toLowerCase().split(" ")[0]))?.[1] ?? {};
                                 const secKey = allOcr[sec.name] ? sec.name : Object.keys(allOcr).find(k =>
                                   k.toLowerCase().includes(sec.name.toLowerCase().split(" ")[0])) ?? sec.name;
-                                allOcr[secKey] = { ...secOcr, passageOcrText: passageDrafts[sec.name] };
+                                const draft = passageDrafts[sec.name];
+                                const isWordBankSec =
+                                  sec.name.includes("短文填空") ||
+                                  sec.name.includes("完成对话") ||
+                                  sec.name.includes("对话填空") ||
+                                  sec.name.includes("词语搭配");
+                                allOcr[secKey] = isWordBankSec
+                                  ? { ...secOcr, ocrText: draft, passageOcrText: draft }
+                                  : { ...secOcr, passageOcrText: draft };
                                 await fetch(`/api/exam/${paper.id}`, {
                                   method: "PATCH",
                                   headers: { "Content-Type": "application/json" },
