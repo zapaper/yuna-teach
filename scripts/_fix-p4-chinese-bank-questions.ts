@@ -34,21 +34,37 @@ function normalizeAnswer(raw: string | null | undefined): string | null {
   return `(${m[1]})`;
 }
 
+// 词语搭配 stems come out of clean-extract as "摇摆 ( )" — the parens
+// is meant to be the writable blank, but the grammar-cloze quiz
+// renderer expects six-underscore blanks like "摇摆 ______". Swap the
+// parens-with-spaces marker to underscores so the renderer picks up
+// the blank correctly. 短文填空 stems already use ______, so this
+// is a no-op for them.
+function normalizeStem(raw: string | null | undefined): string | null {
+  if (!raw) return raw ?? null;
+  return raw.replace(/\(\s+\)/g, "______");
+}
+
 (async () => {
   const qs = await prisma.examQuestion.findMany({
     where: { examPaperId: PAPER_ID, syllabusTopic: { in: TOPICS } },
-    select: { id: true, questionNum: true, syllabusTopic: true, transcribedOptions: true, answer: true },
+    select: { id: true, questionNum: true, syllabusTopic: true, transcribedOptions: true, answer: true, transcribedStem: true },
     orderBy: { orderIndex: "asc" },
   });
   console.log(`${apply ? "APPLY" : "DRY-RUN"} — touching ${qs.length} questions`);
   for (const q of qs) {
     const newAnswer = normalizeAnswer(q.answer);
+    const newStem = normalizeStem(q.transcribedStem);
+    const stemChanged = newStem !== q.transcribedStem;
     const hadOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
-    console.log(`  Q${q.questionNum} (${q.syllabusTopic}): options ${hadOptions ? "→ cleared" : "(already empty)"}; answer ${JSON.stringify(q.answer)} → ${JSON.stringify(newAnswer)}`);
+    console.log(`  Q${q.questionNum} (${q.syllabusTopic}):`);
+    console.log(`    options ${hadOptions ? "→ cleared" : "(already empty)"}`);
+    console.log(`    answer ${JSON.stringify(q.answer)} → ${JSON.stringify(newAnswer)}`);
+    if (stemChanged) console.log(`    stem   ${JSON.stringify(q.transcribedStem)} → ${JSON.stringify(newStem)}`);
     if (apply) {
       await prisma.examQuestion.update({
         where: { id: q.id },
-        data: { transcribedOptions: [], answer: newAnswer },
+        data: { transcribedOptions: [], answer: newAnswer, transcribedStem: newStem },
       });
     }
   }
