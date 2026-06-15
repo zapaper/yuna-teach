@@ -842,12 +842,28 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
   return false;
 }
 
+// Demo-video override: viewing Student666's Lumi pulls David lim's
+// papers + cache so the demo has rich content under an anonymous
+// account. The display name STAYS as Student666 — only the
+// underlying data source swaps. Keep this list tightly scoped; this
+// is for marketing demos only.
+const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string }> = {
+  // Student666 → David lim
+  "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim" },
+};
+
 export async function loadTutorData(studentId: string, subject: string): Promise<TutorData> {
-  const student = await prisma.user.findUnique({
+  const displayStudent = await prisma.user.findUnique({
     where: { id: studentId },
     select: { name: true },
   });
-  if (!student) return { kind: "ineligible", reason: "Student not found", paperCount: 0 };
+  if (!displayStudent) return { kind: "ineligible", reason: "Student not found", paperCount: 0 };
+
+  // Apply demo redirect: data fetched from sourceStudent, but the
+  // display name stays as the requested student.
+  const redirect = DEMO_DATA_REDIRECT[studentId] ?? null;
+  const dataStudentId = redirect?.sourceStudentId ?? studentId;
+  const cacheSafe = redirect?.sourceSafeName ?? safeName(displayStudent.name);
 
   // CRITICAL: keep diagramImageData OUT of this bulk select. It's a
   // base64 JPEG per question; Mark has 36 papers × ~12 questions of
@@ -855,7 +871,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   // Tutor load. Diagrams are fetched in a targeted second query after
   // we know which 3-4 example questions per card we'll actually show.
   const papers = await prisma.examPaper.findMany({
-    where: { assignedToId: studentId, markingStatus: { in: ["complete", "released"] } },
+    where: { assignedToId: dataStudentId, markingStatus: { in: ["complete", "released"] } },
     select: {
       title: true, metadata: true, subject: true,
       questions: {
@@ -884,9 +900,10 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   });
   const subjectPapers = papers.filter(p => subjectMatches(p.subject, subject));
 
-  // Find the cached Gemini diagnosis for this kid + subject.
-  const safe = safeName(student.name);
-  const cacheKey = `${safe}:${subject.toLowerCase()}`;
+  // Find the cached Gemini diagnosis for this kid + subject. cacheSafe
+  // honours the demo redirect so e.g. Student666 loads David lim's
+  // bundled diagnosis.
+  const cacheKey = `${cacheSafe}:${subject.toLowerCase()}`;
   const cachedReport = TUTOR_CACHE[cacheKey];
   if (!cachedReport) {
     // No diagnosis yet — empty common mistakes / conceptual gaps,
@@ -895,14 +912,14 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     if (topline.paperCount < 3) {
       return { kind: "ineligible", reason: "Need at least 3 papers to surface common mistakes.", paperCount: topline.paperCount };
     }
-    const childFirst = student.name.split(/\s+/)[0] ?? student.name;
+    const childFirst = displayStudent.name.split(/\s+/)[0] ?? displayStudent.name;
     const topics = [...topline.topicTotals.entries()]
       .filter(([, v]) => v.attempts >= 3 && v.available > 0)
       .map(([t, v]) => ({ topic: t, attempts: v.attempts, pct: Math.round((v.awarded / v.available) * 100) }));
     return {
       kind: "ready",
       childFirst,
-      childFullName: student.name,
+      childFullName: displayStudent.name,
       subject,
       topline: {
         avgPct: topline.avgPct,
@@ -923,7 +940,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       previousAssessment: null,
     };
   }
-  const shaped = shapeTutorData({ studentName: student.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
+  const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
   if (shaped.kind !== "ready") return shaped;
 
   // Targeted diagram fetch — collect the questionIds we'll actually
