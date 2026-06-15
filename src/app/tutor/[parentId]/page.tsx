@@ -1233,12 +1233,17 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
   const diagnosisHtml = boldifyHtml(softenTone(ex.whatWentWrong, childFirst));
-  // hasFullData controls whether the expander button shows. Treat
-  // empty / whitespace-only questionText as "no data" so Comprehension
-  // Cloze examples (whose stem lives in a `_passage` subpart we
-  // intentionally strip) don't render a button that opens to a blank
-  // panel.
-  const hasFullData = !!(ex.questionText && ex.questionText.trim().length > 0);
+  // hasFullData controls whether the expander button shows. Cloze
+  // questions have an empty transcribedStem (the passage lives in a
+  // `_passage` subpart we intentionally strip) — but they STILL have
+  // useful MCQ options and / or a student-typed answer worth surfacing.
+  // So we open the expander when ANY detail field is non-empty, and
+  // render each section conditionally below.
+  const hasQuestionText = !!(ex.questionText && ex.questionText.trim().length > 0);
+  const hasOptions = ex.isMcq && ex.options.length > 0;
+  const hasAnswerText = !!(ex.studentAnswer && ex.studentAnswer.trim().length > 0);
+  const hasMarkingNotes = !!(ex.markingNotes && ex.markingNotes.trim().length > 0);
+  const hasFullData = hasQuestionText || hasOptions || hasAnswerText || hasMarkingNotes;
   const imgSrc = ex.diagramImageData
     ? (ex.diagramImageData.startsWith("data:") ? ex.diagramImageData : `data:image/jpeg;base64,${ex.diagramImageData}`)
     : null;
@@ -1261,10 +1266,12 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
       </div>
       {open && hasFullData && (
         <div className={`border-t border-slate-200 p-4 ${accentBg} rounded-b-xl space-y-3`}>
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Question</p>
-            <div className="text-sm text-[#001e40] leading-relaxed">{renderQuestionText(ex.questionText ?? "")}</div>
-          </div>
+          {hasQuestionText && (
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Question</p>
+              <div className="text-sm text-[#001e40] leading-relaxed">{renderQuestionText(ex.questionText ?? "")}</div>
+            </div>
+          )}
           {imgSrc && (
             <div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
