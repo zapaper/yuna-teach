@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
+import MathText from "@/components/MathText";
 
 type ProgressData = {
   student: { id: string; name: string } | null;
@@ -1133,13 +1134,13 @@ function renderQuestionText(text: string): React.ReactNode {
         <table key={`tbl-${key++}`} className="border-collapse my-2 text-sm">
           {headerCells && (
             <thead>
-              <tr>{headerCells.map((c, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold">{renderMarkdownInline(c)}</th>)}</tr>
+              <tr>{headerCells.map((c, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold"><MathText text={c} /></th>)}</tr>
             </thead>
           )}
           <tbody>
             {bodyRows.map((row, r) => (
               <tr key={r}>
-                {row.map((c, j) => <td key={j} className="border border-slate-300 px-3 py-1.5 align-top">{renderMarkdownInline(c)}</td>)}
+                {row.map((c, j) => <td key={j} className="border border-slate-300 px-3 py-1.5 align-top"><MathText text={c} /></td>)}
               </tr>
             ))}
           </tbody>
@@ -1153,7 +1154,7 @@ function renderQuestionText(text: string): React.ReactNode {
         i++;
       }
       const txt = para.join("\n").trim();
-      if (txt) blocks.push(<p key={`p-${key++}`} className="whitespace-pre-line">{renderMarkdownInline(txt)}</p>);
+      if (txt) blocks.push(<p key={`p-${key++}`}><MathText text={txt} /></p>);
     }
   }
   return <div className="space-y-2">{blocks}</div>;
@@ -1335,7 +1336,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
           {!ex.isMcq && ex.correct && (
             <div>
               <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Correct answer</p>
-              <div className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">{ex.correct}</div>
+              <div className="text-sm text-emerald-900 leading-relaxed"><MathText text={ex.correct} /></div>
             </div>
           )}
           {ex.markingNotes && (
