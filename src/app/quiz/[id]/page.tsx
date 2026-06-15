@@ -270,12 +270,31 @@ function QuizContent({ id }: { id: string }) {
   function applyCssHighlights() {
     const cssAny = CSS as unknown as { highlights?: Map<string, unknown>; Highlight?: unknown };
     const HighlightCtor = (typeof window !== "undefined" ? (window as unknown as { Highlight?: new (...r: Range[]) => unknown }).Highlight : undefined);
-    if (!cssAny.highlights || !HighlightCtor) return;
+    if (!cssAny.highlights || !HighlightCtor) {
+      // Diagnostic — log ONCE if the Custom Highlight API is missing
+      // so DevTools shows why drag-time highlight doesn't persist.
+      const w = window as unknown as { __quizHighlightWarned?: boolean };
+      if (!w.__quizHighlightWarned) {
+        w.__quizHighlightWarned = true;
+        console.warn(`[quiz-highlight] CSS Custom Highlight API unavailable (highlights=${typeof cssAny.highlights}, Highlight=${typeof HighlightCtor}). Highlight will only show during drag.`);
+      }
+      return;
+    }
     const live = highlightRangesRef.current.filter(r => !r.collapsed);
     highlightRangesRef.current = live;
     try {
       cssAny.highlights.set("quiz-yellow", new HighlightCtor(...live));
-    } catch { /* ignore — highlight set best-effort */ }
+    } catch (err) {
+      console.warn("[quiz-highlight] CSS.highlights.set failed:", err);
+    }
+    // Diagnostic — confirm the rule + the highlights set look right.
+    // Logs once on first apply.
+    const w = window as unknown as { __quizHighlightLogged?: boolean };
+    if (!w.__quizHighlightLogged) {
+      w.__quizHighlightLogged = true;
+      const ruleEl = document.getElementById("quiz-highlight-style");
+      console.log(`[quiz-highlight] ranges=${live.length}, registered=${cssAny.highlights.has("quiz-yellow")}, ruleInjected=${!!ruleEl}, ruleText=${ruleEl?.textContent?.slice(0, 80)}`);
+    }
   }
 
   // Walk up to the closest [data-question-id] ancestor. Returns null
