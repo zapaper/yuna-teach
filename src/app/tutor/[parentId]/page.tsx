@@ -124,6 +124,11 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
 }) {
   const [data, setData] = useState<TutorData | null>(null);
   const [loading, setLoading] = useState(false);
+  // Current paper count from the cheap /count endpoint. When it's
+  // larger than data.topline.paperCount we surface a caveat banner so
+  // the parent knows the cached diagnosis is from before the latest
+  // quizzes were completed.
+  const [currentPaperCount, setCurrentPaperCount] = useState<number | null>(null);
 
   useEffect(() => {
     // Don't wipe `data` immediately — when switching students, that
@@ -139,10 +144,40 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // either has changed — and AbortController kills the in-flight
     // request entirely.
     setLoading(true);
-    const cacheKey = `tutor-${studentId}-${subject}-${new Date().toDateString()}`;
-    const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
-    if (cached) {
-      try { setData(JSON.parse(cached) as TutorData); setLoading(false); return; } catch { /* ignore */ }
+    setCurrentPaperCount(null);
+    // Persistent cache keyed by (student, subject). Cache is good for
+    // 5 days — short enough that a stale diagnosis self-corrects soon
+    // after major new activity, long enough that day-to-day Lumi
+    // visits don't re-trigger Gemini.
+    const cacheKey = `tutor-${studentId}-${subject}`;
+    const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+    const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
+    let cachedData: TutorData | null = null;
+    if (cachedRaw) {
+      try {
+        const parsed = JSON.parse(cachedRaw) as TutorData;
+        if (parsed.kind === "ready") {
+          const ageMs = Date.now() - new Date(parsed.generatedAt).getTime();
+          if (ageMs < FIVE_DAYS_MS) cachedData = parsed;
+        } else if (parsed.kind === "ineligible") {
+          // Don't cache the ineligible branch — kid may have just
+          // completed their 3rd paper and we don't want to lock them
+          // out for 5 days.
+        }
+      } catch { /* ignore */ }
+    }
+    if (cachedData) {
+      setData(cachedData);
+      setLoading(false);
+      // Still hit the cheap count endpoint to compute the delta caveat.
+      const ctrl = new AbortController();
+      fetch(`/api/tutor/${studentId}/count?subject=${encodeURIComponent(subject)}`, { signal: ctrl.signal })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d && typeof d.paperCount === "number") setCurrentPaperCount(d.paperCount);
+        })
+        .catch(() => { /* silent */ });
+      return () => ctrl.abort();
     }
     const queuedFor = { studentId, subject };
     const ctrl = new AbortController();
@@ -153,6 +188,9 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         if (queuedFor.studentId !== studentId || queuedFor.subject !== subject) return;
         if (d) {
           setData(d as TutorData);
+          if ((d as TutorData).kind === "ready") {
+            setCurrentPaperCount(((d as TutorData & { kind: "ready" }).topline.paperCount));
+          }
           try {
             const slim = stripImagesForCache(d as TutorData);
             localStorage.setItem(cacheKey, JSON.stringify(slim));
@@ -171,6 +209,11 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
       });
     return () => ctrl.abort();
   }, [studentId, subject]);
+
+  const paperDelta = (() => {
+    if (!data || data.kind !== "ready" || currentPaperCount === null) return 0;
+    return Math.max(0, currentPaperCount - data.topline.paperCount);
+  })();
 
   const firstName = currentChildName?.split(/\s+/)[0] ?? "";
   // Show spinner ONLY when there's no prior payload to display — i.e.
@@ -202,11 +245,16 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
       )}
       {data && data.kind === "ready" && (
         <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
+          {paperDelta > 0 && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Since this diagnosis, {firstName || "your child"} has done {paperDelta} more {subject.toLowerCase()} quiz{paperDelta === 1 ? "" : "zes"}. I&apos;ll update this when more data comes in.
+            </div>
+          )}
           <ReadyView data={data} parentId={parentId} studentId={studentId} />
         </div>
       )}
       <p className="text-[11px] text-slate-400 mt-12 text-center">
-        {data && data.kind === "ready" && `Refreshed once a day. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
+        {data && data.kind === "ready" && `Refreshed every 5 days. Last updated ${new Date(data.generatedAt).toLocaleString()}.`}
       </p>
     </>
   );
