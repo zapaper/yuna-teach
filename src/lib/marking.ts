@@ -4620,13 +4620,48 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
         acceptableAnswers = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
         isCorrect = studentAnsRaw !== "" && acceptableAnswers.some(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
         // Capitalization check: if the matching answer-key alternative starts with a
-        // capital letter (blank is at start of sentence), require student to capitalize first letter.
+        // capital letter, the key author MAY have intended a capital — but published
+        // editing AND comp-cloze keys frequently write "Receive" / "Smiled" with a
+        // capital regardless of position in the sentence, then mark perfectly-
+        // capitalised mid-sentence student answers wrong. Look at the passage
+        // character immediately before the blank: only enforce the capital when
+        // the preceding non-whitespace char is a sentence terminator (.!?), a
+        // closing quote, or nothing (start of passage / paragraph).
+        const qTopicLcCap = (q.syllabusTopic ?? "").toLowerCase();
+        const isContextSensitiveCap =
+          qTopicLcCap.includes("editing") ||
+          (qTopicLcCap.includes("comprehension") && qTopicLcCap.includes("cloze"));
         if (isCorrect) {
           const matchingAlt = acceptableAnswers.find(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
           if (matchingAlt && /^[A-Z]/.test(matchingAlt)) {
             const studentFirst = studentAnsRaw.match(/[A-Za-z]/)?.[0] ?? "";
-            if (studentFirst && studentFirst !== studentFirst.toUpperCase()) {
-              isCorrect = false;
+            const studentLowercase = !!studentFirst && studentFirst !== studentFirst.toUpperCase();
+            if (studentLowercase) {
+              let requireCapital = true;
+              if (isContextSensitiveCap) {
+                // Pull the section passage and inspect what sits in front of
+                // this question's **(N)** marker.
+                let passageCtx = "";
+                if (meta?.englishSections) {
+                  const qIdx = parseInt(q.questionNum) - 1;
+                  const sec = meta.englishSections.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
+                  if (sec?.passage) passageCtx = sec.passage;
+                }
+                if (passageCtx) {
+                  const mk = new RegExp(`\\*\\*\\(${q.questionNum}\\)`).exec(passageCtx);
+                  if (mk) {
+                    const lead = passageCtx.slice(0, mk.index).replace(/[\s\n*_]+$/u, "");
+                    if (lead.length === 0) {
+                      requireCapital = true; // start of passage
+                    } else {
+                      const lastChar = lead[lead.length - 1];
+                      requireCapital = /[.!?]/.test(lastChar) || lastChar === '"' || lastChar === "”" || lastChar === "’";
+                    }
+                  }
+                }
+              }
+              if (requireCapital) isCorrect = false;
+              else console.log(`[quiz-marking] ${qTopicLcCap} Q${q.questionNum}: relaxed capitalisation — key="${matchingAlt}" student="${studentAnsRaw}" (blank is mid-sentence)`);
             }
           }
         }
@@ -4676,7 +4711,7 @@ Concrete example of what to REJECT:
 Other rules:
 - Accept any synonym that preserves BOTH the sentence meaning AND the cross-sentence flow (e.g. "survives" vs "lives on" in the example above is fine).
 - Check grammatical fit: tense, number, word class.
-- Check CAPITALIZATION: if the blank is at the start of a sentence (after a full stop, or first word of a paragraph), the student's word must begin with a capital letter. Otherwise reject.
+- Check CAPITALIZATION ONLY when the blank is at the start of a sentence — i.e. the printed text immediately before the blank ends with a full stop, exclamation, question mark, closing quote, or the blank is the first word of a paragraph. In every other case, ACCEPT a lowercase first letter even if the answer key prints it as a capital — published keys often write words like "Receive" / "Smiled" with a capital regardless of position, and the student's lowercase form is correct mid-sentence.
 - Spelling matters — misspelled words are NOT accepted.
 
 Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing grammar/meaning/flow/capitalization>"}` }] }],
