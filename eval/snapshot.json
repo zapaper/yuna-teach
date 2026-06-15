@@ -618,7 +618,7 @@
       "level": "P6",
       "paperType": "focused",
       "totalMarks": "25",
-      "score": 19,
+      "score": 23,
       "questionCount": 10,
       "questions": [
         {
@@ -660,7 +660,7 @@
         {
           "questionNum": "7",
           "marksAvailable": 4,
-          "marksAwarded": 3,
+          "marksAwarded": 4,
           "syllabusTopic": "Geometry"
         },
         {

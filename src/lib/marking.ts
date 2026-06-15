@@ -4432,11 +4432,20 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     }
     // Chinese typed sections — separate branch. 完成对话 uses a
     // single-label answer like English grammar cloze. The MCQ
-    // sections (短文填空 / 阅读理解 MCQ / Visual Text MCQ) are NOT
+    // sections (P5/P6 短文填空 / 阅读理解 MCQ / Visual Text MCQ) are NOT
     // "typed" here — they go through the standard MCQ marking path.
+    //
+    // P4 SHARED-BANK sections (词语搭配 + 短文填空) are also typed —
+    // the student types a digit 1-8 selecting a phrase from a bank,
+    // identical answer shape to 完成对话. Gated on P4 because P5/P6
+    // 短文填空 uses the inline 4-option MCQ layout instead.
+    const isP4Paper = /\b(primary\s*4|p\s*4|level\s*4|小四|四年级)\b/i.test(`${paper.level ?? ""} ${paper.title ?? ""}`);
     if (meta?.chineseSections) {
       for (const sec of meta.chineseSections) {
-        if (sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
+        const lbl = sec.label;
+        const isDuihua = lbl.includes("完成对话") || lbl.includes("对话填空");
+        const isP4SharedBank = isP4Paper && (lbl.includes("词语搭配") || lbl.includes("短文填空"));
+        if (isDuihua || isP4SharedBank) {
           for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
             typedSectionQIds.add(paper.questions[i].id);
           }
@@ -4562,7 +4571,13 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
       // Treat 完成对话 the same as English grammar cloze — both use a
       // word-bank cloze with a single-label answer.
       const isChineseDialogueCloze = (q.syllabusTopic ?? "").includes("完成对话") || (q.syllabusTopic ?? "").includes("对话填空");
-      const isGrammarClozeQ = (qTopicLower.includes("grammar") && qTopicLower.includes("cloze")) || isChineseDialogueCloze;
+      // P4 词语搭配 + 短文填空 also use a digit (1-8) selected from a
+      // numbered phrase bank — same answer shape as 完成对话. Reuse
+      // the dialogue-cloze digit branch when this paper is P4.
+      const isChineseP4SharedBank = isP4Paper && (
+        (q.syllabusTopic ?? "").includes("词语搭配") || (q.syllabusTopic ?? "").includes("短文填空")
+      );
+      const isGrammarClozeQ = (qTopicLower.includes("grammar") && qTopicLower.includes("cloze")) || isChineseDialogueCloze || isChineseP4SharedBank;
       const studentAnsRaw = stripQuotes((q.studentAnswer ?? "").trim());
       const rawCorrect = stripQuotes(q.answer ?? "");
       let isCorrect = false;
@@ -4578,11 +4593,12 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
         // Try letters first (English path) ONLY when this isn't a
         // Chinese dialogue cloze, so a Chinese answer "2" / "5" goes
         // straight to the digit branch instead of being misread.
-        const letterMatches = !isChineseDialogueCloze ? (rawCorrect.match(/\b[A-Za-z]\b/g) ?? []) : [];
+        const isChineseDigitBank = isChineseDialogueCloze || isChineseP4SharedBank;
+        const letterMatches = !isChineseDigitBank ? (rawCorrect.match(/\b[A-Za-z]\b/g) ?? []) : [];
         const isLetterKey = letterMatches.length > 0 && letterMatches.every(l => l.length === 1)
           && rawCorrect.replace(/[A-Za-z\s/,|.()or]+/gi, "").trim() === "";
         const digitMatches = rawCorrect.match(/\b[1-9]\b/g) ?? [];
-        const isDigitKey = isChineseDialogueCloze && digitMatches.length > 0
+        const isDigitKey = isChineseDigitBank && digitMatches.length > 0
           && rawCorrect.replace(/[\d\s/,|.()或]+/g, "").trim() === "";
         if (isLetterKey) {
           const letters = new Set(letterMatches.map(l => l.toUpperCase()));
