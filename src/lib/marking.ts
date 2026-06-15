@@ -5372,11 +5372,16 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           });
 
           try {
+            // Synthesis only: temperature 0 because it's all-or-nothing
+            // (matches the key or doesn't) and even 0.1 was enough sampling
+            // noise to flip marginal cases between full marks and 0. Other
+            // typed paths (comp OEQ, typed cloze) keep 0.1 so the feedback
+            // wording can vary naturally.
             const response = await withTimeout(
               ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: [{ role: "user", parts }],
-                config: { responseMimeType: "application/json", temperature: 0.1 },
+                config: { responseMimeType: "application/json", temperature: isSynthesisQ ? 0 : 0.1 },
               }),
               GEMINI_TIMEOUT_MS,
               `quiz-typed-Q${q.questionNum}`
