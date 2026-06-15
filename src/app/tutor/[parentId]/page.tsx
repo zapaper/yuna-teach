@@ -305,7 +305,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
         <LumiAvatar />
         <div className="flex-1">
           <p className="text-[#001e40] text-base leading-relaxed">
-            Hi! I&apos;m <strong>Lumi</strong> your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
+            Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
           <LumiSummary data={data} />
           {/* Staleness banner removed — caches refresh daily, so the
@@ -398,9 +398,10 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
   const avg = topline.avgPct;
   const status = avg >= 75 ? "good" : avg >= 60 ? "steady" : "tough";
 
-  // Empty cache → simple fallback (the action briefing needs at
-  // least one of weak topic / mistake / concept to be meaningful).
-  if (!weak && !m1 && !concept) {
+  // Empty cache AND avg looks fine → fall back to the gentle note.
+  // If avg < 80 with no diagnoses we still want to encourage daily
+  // practice, so flow through to the full render below.
+  if (!weak && !m1 && !concept && avg >= 80) {
     return (
       <p className="text-[#001e40] text-sm leading-relaxed mt-3">
         Not enough patterns yet — keep assigning practice and check back once {childFirst} has more papers marked.
@@ -420,6 +421,13 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
         {childFirst} is making <strong>{status}</strong> progress in {subject}. A few things to take note:
       </p>
       <ul className="space-y-2 list-disc pl-5">
+        {avg < 80 && (
+          <li>
+            Daily quizzes are a good way to get more practices in a short and fun way for {childFirst}.
+            Would you like me to set a 10 min MCQ quiz for {childFirst} the next few days? {link("daily-practices-section", "here")}.
+            {(subject === "English" || subject === "Chinese") && <> I&apos;ll rotate the sections for the quiz.</>}
+          </li>
+        )}
         {weak && (
           <li>
             {childFirst}&apos;s weakest topic is <strong>{weak.topic}</strong> ({weak.pct}%).
@@ -491,6 +499,76 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       })
       .catch(() => { /* best-effort — no link shown */ });
   }, [studentId, data.subject, data.topicsForPractice]);
+
+  // Daily Practices: schedule N MCQ daily quizzes for the next N days.
+  // For English/Chinese, rotate through 2 sections per day, with
+  // Comprehension OEQ taking a full day to itself (every 3rd slot).
+  const [schedulingDays, setSchedulingDays] = useState<number | null>(null);
+  const ENGLISH_ROTATION = ["grammar-mcq", "vocab-mcq", "vocab-cloze", "visual-text", "grammar-cloze", "editing", "comprehension-cloze", "synthesis"];
+  const ENGLISH_OEQ = "comprehension-oeq";
+  // The label strings here MUST match the master paper's
+  // metadata.chineseSections label field so the API can find them.
+  const CHINESE_ROTATION = ["语文应用 MCQ", "短文填空", "阅读理解 MCQ", "完成对话", "阅读理解 A"];
+  const CHINESE_OEQ = "阅读理解 B OEQ";
+  function planSections(subj: string, dayIdx: number): string[] | null {
+    const isEng = subj.toLowerCase().includes("english");
+    const isChn = subj.toLowerCase().includes("chinese");
+    if (!isEng && !isChn) return null;
+    // OEQ day every 3rd day (days 3, 6, 9, …) so it gets a fair slice.
+    if ((dayIdx + 1) % 3 === 0) return [isEng ? ENGLISH_OEQ : CHINESE_OEQ];
+    const pool = isEng ? ENGLISH_ROTATION : CHINESE_ROTATION;
+    // Number of non-OEQ days that have come before dayIdx — each took
+    // 2 sections, so the next pair starts at 2 * (non-OEQ days so far).
+    const nonOeqDayCount = dayIdx - Math.floor((dayIdx + 1) / 3);
+    const a = pool[(2 * nonOeqDayCount) % pool.length];
+    const b = pool[(2 * nonOeqDayCount + 1) % pool.length];
+    return [a, b];
+  }
+  async function scheduleDailyPractices(numDays: number) {
+    if (schedulingDays) return;
+    setSchedulingDays(numDays);
+    try {
+      const subjLc = data.subject.toLowerCase();
+      let okDays = 0;
+      for (let i = 0; i < numDays; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i + 1);
+        d.setHours(8, 0, 0, 0); // 8am the scheduled day
+        const scheduledFor = d.toISOString();
+        const sections = planSections(data.subject, i);
+        const body: Record<string, unknown> = {
+          quizType: "mcq",
+          subject: subjLc.includes("math") ? "math" : subjLc.includes("science") ? "science" : subjLc.includes("english") ? "english" : subjLc.includes("chinese") ? "chinese" : data.subject,
+          scheduledFor,
+        };
+        if (subjLc.includes("chinese")) {
+          // Chinese gating: actor (admin) is userId, child is studentId.
+          body.userId = parentId;
+          body.studentId = studentId;
+          if (sections) body.chineseSections = sections;
+        } else {
+          body.userId = studentId;
+          if (subjLc.includes("english") && sections) body.englishSections = sections;
+        }
+        const res = await fetch("/api/daily-quiz", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) okDays++;
+        else {
+          const j = await res.json().catch(() => ({}));
+          alert(`Failed on day ${i + 1}: ${j.error ?? `HTTP ${res.status}`}`);
+          break;
+        }
+      }
+      if (okDays > 0) {
+        setToast(`${okDays} daily quiz${okDays === 1 ? "" : "zes"} scheduled for ${data.childFirst}.`);
+        setTimeout(() => setToast(null), 3000);
+      }
+    } finally {
+      setSchedulingDays(null);
+    }
+  }
 
   async function assignTopic(topic: string) {
     if (creatingTopic) return;
@@ -628,6 +706,28 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           </div>
         </section>
       )}
+
+      {/* Daily Practices — bottom of the page, the "(here)" link in
+          the Lumi summary scrolls down to this section. */}
+      <section id="daily-practices-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
+        <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Daily Practices</h2>
+        <p className="text-sm text-slate-500 mb-5">Daily bite-sized practices are a good way to level up in a short and fun way.{(data.subject === "English" || data.subject === "Chinese") && " I'll rotate the sections each day so " + data.childFirst + " covers the whole subject."}</p>
+        <div className="flex gap-3 flex-wrap">
+          {[3, 5, 7].map(n => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => scheduleDailyPractices(n)}
+              disabled={schedulingDays !== null}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60"
+            >
+              {schedulingDays === n
+                ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Scheduling…</>
+                : <><span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_month</span>{n} day{n === 1 ? "" : "s"} of daily quizzes</>}
+            </button>
+          ))}
+        </div>
+      </section>
     </>
   );
 }
