@@ -1,0 +1,219 @@
+{
+  "patterns": [
+    {
+      "name": "Overlooking the Final Target",
+      "what": "Hooper occasionally finishes the hard math but misses the exact final detail the question asked for, like the specific units or the exact word required.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Hooper correctly calculated the percentage but just missed adding the word 'increase' to the final answer."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper successfully found the amount of paint used, but the question specifically asked for the amount of paint left."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper calculated savings as a fraction of the total amount, rather than as a fraction of the expenditure."
+        }
+      ],
+      "strategic_advice": "When you see trigger words like 'fraction of', 'left with', or 'percentage increase', **underline the specific target**. Before writing your final answer, **re-read the last sentence** of the question to ensure you are answering exactly what is asked.",
+      "trigger_keywords": [
+        "fraction of",
+        "left with",
+        "in terms of",
+        "greatest to smallest",
+        "percentage increase"
+      ]
+    },
+    {
+      "name": "Slipping on Signs and Operations",
+      "what": "Hooper sometimes mixes up whether to add or subtract, especially when working through multi-step calculations or dealing with taxes and discounts.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper accidentally added 7c instead of subtracting it when simplifying the expression."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Hooper made a small error in the addition step after correctly completing the first subtraction."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper subtracted the 8% GST from the discounted price instead of adding it."
+        }
+      ],
+      "strategic_advice": "When you see words like 'simplify', 'GST', or 'discount', pay close attention to whether the value should **increase or decrease**. Write down your steps clearly and **double-check your signs** before doing the final calculation.",
+      "trigger_keywords": [
+        "simplify",
+        "discount",
+        "GST",
+        "value of",
+        "find"
+      ]
+    },
+    {
+      "name": "Missing Hidden Constraints",
+      "what": "Hooper tends to overlook special conditions or relationships hidden in the text, which changes the whole calculation.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper calculated the cost as if all slices were discounted, missing the rule that the discount only applies starting from the third slice."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper counted the shaded parts but overlooked the 4:1 area ratio between the square and the rectangle."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper missed the phrase 'of the remaining' when calculating the fraction of the cake given to Nathan."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'remaining', 'starting from', or 'ratio of', **highlight these special conditions**. They are clues that you need an **extra step**, like subtracting from the total first or scaling the areas before comparing them.",
+      "trigger_keywords": [
+        "remaining",
+        "starting from",
+        "ratio of",
+        "shared equally"
+      ]
+    },
+    {
+      "name": "Decoding Visuals and Patterns",
+      "what": "Hooper occasionally misses key details when analyzing visual sequences or complex diagrams, such as the remainder in a pattern or the straight edges in a shape.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper picked the first bead instead of the second, likely getting a bit tangled up with the remainder after dividing."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Hooper mirrored the image across the wrong line of symmetry and miscounted the distances of the letters."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Hooper calculated the curved parts of the perimeter but forgot to add the straight line segments shown in the diagram."
+        }
+      ],
+      "strategic_advice": "When you see 'pattern', 'symmetrical', or 'perimeter of the figure', take a moment to **mark up the diagram**. For repeating sequences, group the items and **use the remainder** to find the exact position. For symmetry and perimeter, **trace the lines** with your pencil to ensure you don't miss any parts.",
+      "trigger_keywords": [
+        "pattern",
+        "symmetrical",
+        "figure",
+        "perimeter",
+        "th bead"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpkxzysp003z4u6f2onb9p9m",
+    "2": "cmpkxzysp00414u6fcv9929lf",
+    "3": "cmpkxzysp00444u6fayct7ek0",
+    "4": "cmpkxzysq00484u6fayyv6l92",
+    "5": "cmpkxzysq00494u6fqp3o5mlr",
+    "6": "cmpkxzysq004b4u6feivuj8wr",
+    "7": "cmpky1b3p004e4u6fue0owxi0",
+    "8": "cmpky1b3p004i4u6fqe0jyqvv",
+    "9": "cmpky1b3p004k4u6f3czrzou5",
+    "10": "cmpky1b3p004l4u6f9fisixc3",
+    "11": "cmpky1b3p004o4u6fzfbutzae",
+    "12": "cmpky1b3p004q4u6fa1oz76y6",
+    "13": "cmpky1b3q004t4u6f5pwtsdy4",
+    "14": "cmpky1b3q004w4u6fw9y3mips",
+    "15": "cmpky1gwx00514u6fkfz9kcze",
+    "16": "cmpky1gwx00524u6f8zmvw2eu",
+    "17": "cmpky1gwy005a4u6ftv2rx3j4",
+    "18": "cmpky1gwy005c4u6fwvkqsmcj"
+  },
+  "generatedAt": "2026-06-14T15:54:28.721Z",
+  "wrongCounts": {
+    "total": 18,
+    "oeq": 5,
+    "mcq": 13
+  }
+}

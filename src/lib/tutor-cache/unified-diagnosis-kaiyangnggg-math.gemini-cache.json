@@ -1,0 +1,487 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping One Step Short",
+      "what": "Kaiyangnggg sometimes does the hard work to find an intermediate answer, but occasionally stops just one step before answering the specific question asked.",
+      "specific_examples": [
+        {
+          "questionRef": "[49]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg successfully calculated the amount of paint used, but the question specifically asked for the amount left."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg correctly found the total number of stickers to be shared, but missed the final step of dividing by 2 to find the amount given."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg found the fraction of red pens that were left, rather than the fraction that were sold."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **how much was left** or **fraction of the pens sold**, underline them before you start calculating. After finding your final number, do a quick check: 'Did I answer the underlined question?' This will help you catch those final steps!",
+      "trigger_keywords": [
+        "left with",
+        "remaining",
+        "fraction of",
+        "in the end"
+      ]
+    },
+    {
+      "name": "Overlooking Specific Constraints",
+      "what": "Kaiyangnggg occasionally misses small but important qualifying words in the question that change how the problem should be solved.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg beautifully understood how to find consecutive numbers, but missed the word 'even', writing 11 instead of 10."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg created a great 4-digit even number, but accidentally used digits that the question explicitly asked not to use."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg calculated the area for full circles, overlooking the detail that the figure was made of 'semi-circles'."
+        }
+      ],
+      "strategic_advice": "When you see descriptive words like **even**, **without using**, or **semi-circle**, circle them immediately. These are special rules for the math puzzle! Before writing your final answer, glance back at your circled words to make sure your answer follows all the rules.",
+      "trigger_keywords": [
+        "even",
+        "without using",
+        "not",
+        "semi-circle",
+        "identical"
+      ]
+    },
+    {
+      "name": "Overlooking Unit Conversions",
+      "what": "Kaiyangnggg tends to understand the core math concepts well, but sometimes loses marks by forgetting to include units or convert them properly.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg correctly set up the algebra for the stamps, but forgot to convert the cents into dollars for the final expression."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg calculated the angle perfectly as 43, but missed out on writing the degree symbol (°)."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg accurately read the graph to find 56, but forgot to include the 'million dollars' label."
+        }
+      ],
+      "strategic_advice": "Whenever a question involves money, measurements, or graphs, always check if the units in the question match the units in the answer blank. If you see **in terms of $** or **give your answer in**, make it a habit to write the unit down right next to your final number!",
+      "trigger_keywords": [
+        "give your answer in",
+        "in terms of",
+        "how much",
+        "value of"
+      ]
+    },
+    {
+      "name": "Intermediate Calculation Slips",
+      "what": "Kaiyangnggg often grasps the correct method to solve multi-step problems, but occasionally makes small arithmetic slips along the way that affect the final result.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg knew exactly how to find the original deposit, but a small division slip (112 ÷ 2 = 106 instead of 56) changed the final answer."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg correctly set up the steps to find the discount, but a quick mental math slip (28 ÷ 3 = 8 instead of 9) threw off the total."
+        },
+        {
+          "questionRef": "[32]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg understood how to group the algebra terms, but a small addition slip with the numbers (+13 - 8) led to the wrong sign."
+        }
+      ],
+      "strategic_advice": "When working through multi-step problems, take a brief pause after your first calculation to double-check it. For example, if you divide, quickly **multiply backward in your head** to see if you get the original number. Catching a small slip early makes the rest of the problem a breeze!",
+      "trigger_keywords": [
+        "altogether",
+        "simplify",
+        "how much did she pay",
+        "total"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 3
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": -1
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": 3
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": -1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 2
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": 0
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqbozznp000vsl9a3daputuy",
+    "2": "cmqbozznp000xsl9agd5wf7d7",
+    "3": "cmqbozznp0013sl9a2wobca8f",
+    "4": "cmqaa8zua004c8zk4088ffs2s",
+    "5": "cmqaa8zub004m8zk427s9qp2s",
+    "6": "cmqaa8zub004n8zk44u44hjs9",
+    "7": "cmqaa8zub004o8zk4zczqfff4",
+    "8": "cmq1yua3c002l4os1d5ts4v5q",
+    "9": "cmq1ybqfv001j4os1d5rvkryj",
+    "10": "cmq1ybqfv001l4os1htb0snen",
+    "11": "cmq1yd3ij002h4os1g7qsi3te",
+    "12": "cmpwm9ztv001t3u30vk66nmqf",
+    "13": "cmpwm9ztw001v3u30tbat6chj",
+    "14": "cmpwm9ztw001w3u30a2eoijag",
+    "15": "cmpwm9ztw00203u30hl49vud5",
+    "16": "cmpwm9ztw00213u3065zpcxxg",
+    "17": "cmpwm9ztw00223u30docmkwge",
+    "18": "cmpwm9ztw00233u308sbwyrmu",
+    "19": "cmpwm9ztw00243u30bkoxzo1p",
+    "20": "cmpwm9ztw00253u30iefuh0ei",
+    "21": "cmpwm9ztw00263u308mwnaxt1",
+    "22": "cmpwm9ztw00273u30b8aa44c9",
+    "23": "cmpwm9uru001e3u30glcvf669",
+    "24": "cmpwm9uru001h3u307mbcjp36",
+    "25": "cmpwm9uru001i3u30kf283mum",
+    "26": "cmpwm9uru001j3u30khj08kbm",
+    "27": "cmpwm9urv001k3u30ud3ful8z",
+    "28": "cmpwm9urv001l3u30xfjoc19g",
+    "29": "cmoxy7duc0012oeuroezsk3lg",
+    "30": "cmoxy7duc0013oeurtqc6hs0f",
+    "31": "cmoxy7duc0014oeurlstk2g9c",
+    "32": "cmoxy72ld0003oeurgvdr28pv",
+    "33": "cmoxy72ld0005oeurq291md32",
+    "34": "cmoxy72ld0006oeurmm2gunn7",
+    "35": "cmoxy72ld0007oeurrrqx6po5",
+    "36": "cmoxy72ld0008oeur9vt53q22",
+    "37": "cmoxy72ld0009oeurpatolx3k",
+    "38": "cmoxy72ld000aoeurz9d16hbt",
+    "39": "cmoxy72le000boeurwibihw4v",
+    "40": "cmp0xrrch0046lmbzc7rp913o",
+    "41": "cmowusgdk0033exaiuv039dnw",
+    "42": "cmowusoeh0037exaiyg48x4lz",
+    "43": "cmowusoeh0038exail22vq86a",
+    "44": "cmowusoeh003cexaiprua9c7e",
+    "45": "cmowj9qt8003n5uay5hc7fnyc",
+    "46": "cmowj9qt9003r5uaycjxpb9de",
+    "47": "cmosd0cwr002w14n1rfj55ocf",
+    "48": "cmosd0cwr002x14n173b2yk74",
+    "49": "cmosd0cwr002y14n1uoo7m145",
+    "50": "cmomhf0vd000yizdk2f1xlbau",
+    "51": "cmomhf0ve0014izdkjxe9oo68",
+    "52": "cmomhf0ve0018izdkl9rmvodt",
+    "53": "cmomhf0ve001eizdk5lmx67mh",
+    "54": "cmomhf5qi001kizdkn7k1tyxj",
+    "55": "cmomhf5qj001mizdkhx2bjmw0",
+    "56": "cmomhf5qj001nizdkehe4qwgi",
+    "57": "cmomhf5qk0023izdknlwb24z7",
+    "58": "cmol7pr1e002z13njenyapwk7",
+    "59": "cmoleut3b00m5qlmbo65qd5c0",
+    "60": "cmolfatw800naqlmb9npp19n0",
+    "61": "cmolfatw800nbqlmbm4ixgtou",
+    "62": "cmolfatw800neqlmbftmw569u",
+    "63": "cmolfatw800nfqlmbgd3q6wyk",
+    "64": "cmolfatw800nnqlmb4hd5zdum",
+    "65": "cmol7max9000213nj3sy6ic41",
+    "66": "cmol7max9000513njgv98utt7",
+    "67": "cmol7max9000a13njjcy204mu",
+    "68": "cmol7max9000c13nj8zhdwtne",
+    "69": "cmol7max9000e13njs9bd26s7",
+    "70": "cmol7max9000i13nj6wym4mb7",
+    "71": "cmol7maxa000k13njmslatwze",
+    "72": "cmok0rznd00b4d4vnu5lv3kze"
+  },
+  "generatedAt": "2026-06-14T15:50:45.757Z",
+  "wrongCounts": {
+    "total": 72,
+    "oeq": 31,
+    "mcq": 41
+  }
+}

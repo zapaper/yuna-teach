@@ -11,6 +11,10 @@ import kaiyangScience from "./tutor-cache/unified-diagnosis-kaiyangnggg-science.
 import markScience from "./tutor-cache/unified-diagnosis-mark-lim-science.gemini-cache.json";
 import ruthieScience from "./tutor-cache/unified-diagnosis-ruthie-science.gemini-cache.json";
 import markMath from "./tutor-cache/unified-diagnosis-mark-lim-math.gemini-cache.json";
+import davidMath from "./tutor-cache/unified-diagnosis-david-lim-math.gemini-cache.json";
+import kaiyangMath from "./tutor-cache/unified-diagnosis-kaiyangnggg-math.gemini-cache.json";
+import benjaminMath from "./tutor-cache/unified-diagnosis-benjamin-ong-math.gemini-cache.json";
+import hooperMath from "./tutor-cache/unified-diagnosis-hooper-math.gemini-cache.json";
 
 export type CachedReport = {
   patterns: Array<{ name: string; what: string; specific_examples: Array<{ questionRef: string; type?: "oeq" | "mcq"; whatWentWrong: string }>; strategic_advice: string; trigger_keywords: string[] }>;
@@ -27,4 +31,8 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "mark-lim:science":     markScience as CachedReport,
   "ruthie:science":       ruthieScience as CachedReport,
   "mark-lim:math":        markMath as CachedReport,
+  "david-lim:math":       davidMath as CachedReport,
+  "kaiyangnggg:math":     kaiyangMath as CachedReport,
+  "benjamin-ong:math":    benjaminMath as CachedReport,
+  "hooper:math":          hooperMath as CachedReport,
 };

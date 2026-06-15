@@ -1,0 +1,345 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping One Step Short",
+      "what": "Benjamin sometimes does the hard work to find an intermediate answer, but occasionally stops before completing the final step requested by the question.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He successfully calculated the amount of paint used, but the question actually asked for the amount left over."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin correctly found the original savings of $1020, but forgot to add the spending to find the total allowance."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He correctly found the curved length of the semicircle, but missed adding the straight edge to find the total perimeter."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **left with**, **total allowance**, or **perimeter**, underline them before you start. Once you have an answer, re-read the underlined words to make sure your number answers the **specific final question** asked.",
+      "trigger_keywords": [
+        "left with",
+        "total",
+        "perimeter",
+        "new ratio"
+      ]
+    },
+    {
+      "name": "Overlooking Units and Formats",
+      "what": "Benjamin tends to get the mathematical concepts right, but occasionally forgets to include units or convert them to the required format.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He set up the algebra perfectly but forgot to convert the cents into dollars by dividing by 100."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin correctly calculated the GST as 16, but missed out the dollar sign in his final answer."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly calculated the fraction as 35/12, but left it as an improper fraction instead of a mixed number."
+        }
+      ],
+      "strategic_advice": "When you see questions asking for **how much**, **what percentage**, or **simplest form**, circle the unit in the question. Before moving to the next question, double-check that your final answer has the correct symbol like **$** or **%**, and is in the **correct format**.",
+      "trigger_keywords": [
+        "how much",
+        "what percentage",
+        "simplest form",
+        "in terms of"
+      ]
+    },
+    {
+      "name": "Small Arithmetic Slips",
+      "what": "Benjamin often uses the correct method and logic, but sometimes loses marks due to minor calculation errors in the final steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "He knew to divide the diameter by 2 to find the radius, but accidentally calculated 70 ÷ 2 as 45 instead of 35."
+        },
+        {
+          "questionRef": "[32]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin correctly identified the areas to subtract, but made a small slip in the final subtraction step."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly identified the increase in spending and set up the right fraction, but made a small error in the final percentage calculation."
+        }
+      ],
+      "strategic_advice": "When you see **find the area**, **percentage increase**, or any question requiring multi-digit calculations, take a deep breath and write your workings clearly. Use your calculator carefully if allowed, or double-check your mental math by working **backwards**.",
+      "trigger_keywords": [
+        "find the area",
+        "percentage increase",
+        "total area"
+      ]
+    },
+    {
+      "name": "Leaving Blank When Unsure",
+      "what": "When faced with complex or multi-step word problems, Benjamin occasionally leaves the answer space completely blank instead of writing down what he knows.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "This percentage question was left blank, even though Benjamin could have earned partial marks by writing down the initial fractions."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He left this geometry question blank, missing the chance to write down basic angle properties he likely knows."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "This area question was left blank, but writing down the formula for the area of a triangle could have been a great first step."
+        }
+      ],
+      "strategic_advice": "When you see a complex question that asks you to **find the length**, **how much**, or **find the angle**, don't worry about getting the final answer immediately. Write down the **first step** or any formulas you know, as this can often earn you **partial marks** and help trigger the next step!",
+      "trigger_keywords": [
+        "find the length",
+        "how much",
+        "find the angle",
+        "total"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmoz2grcn00426ynzftfh9qly",
+    "2": "cmoz2grco00436ynzxjr4rkej",
+    "3": "cmoz2grco00456ynz2yf0d0pl",
+    "4": "cmoz28w7u000g6ynzxi08simh",
+    "5": "cmoz28w7u000h6ynzpl7ljceb",
+    "6": "cmoz28w7u000i6ynzw6aecjcx",
+    "7": "cmoxyuaiw0021oeurjvmwboz7",
+    "8": "cmoxytsct001hoeurkvnbife4",
+    "9": "cmoxytsct001joeurwfh84duo",
+    "10": "cmoxytsct001koeurgn41205b",
+    "11": "cmovgjdrd000h106l7trzotma",
+    "12": "cmovgjdrd000j106lsx1p5q9t",
+    "13": "cmovf330u000vqodfm0b2jfll",
+    "14": "cmovf330u0013qodfks2qx5s1",
+    "15": "cmovf330v0017qodfah4wtysp",
+    "16": "cmov7yoo4001gwmuxsgbx00se",
+    "17": "cmou00pe8001o954ymk3ne4x7",
+    "18": "cmou00pe8001p954yuunoblje",
+    "19": "cmou00fvb0016954yb2dh6hpb",
+    "20": "cmotzhdy1000i954ylhzgxfli",
+    "21": "cmotwd3xi001bd15sq8w6egvn",
+    "22": "cmotwd3xi001dd15solculkxk",
+    "23": "cmotwd3xj001id15sr6ws774s",
+    "24": "cmopcd30e00096ydkez1wtxmu",
+    "25": "cmopcd30e000b6ydk5a3cdehq",
+    "26": "cmopccpwl009ovj1mqpaj7f8n",
+    "27": "cmopccpwm009wvj1mw5aon8jt",
+    "28": "cmopccpwm009zvj1mmg17rip0",
+    "29": "cmoshb3mj001h13l0snl646ri",
+    "30": "cmoshbgrc001p13l0m3m5lstg",
+    "31": "cmoshbgrc001q13l0af82ji5i",
+    "32": "cmoshbgrc001r13l03gy52stn",
+    "33": "cmoshbgrc001s13l0nfuozrk4",
+    "34": "cmoshbgrd001u13l0ad5kn6t3",
+    "35": "cmor5fcuo001t2rnjzhz7uv69",
+    "36": "cmor5fcuo001w2rnjgl00q3y7",
+    "37": "cmor5fpf100232rnj9hh0d3dj",
+    "38": "cmor5fpf100242rnjk8shf160",
+    "39": "cmor5fpf100252rnjnca8zqct",
+    "40": "cmor5fpf100272rnj7v6g7eq0",
+    "41": "cmor5fpf100282rnju0z8x0h0",
+    "42": "cmopcaqx3008jvj1mxgreaysf",
+    "43": "cmopcaqx4008ovj1men7hidgb",
+    "44": "cmopcaqx4008vvj1m9zym6f5x"
+  },
+  "generatedAt": "2026-06-14T15:52:08.599Z",
+  "wrongCounts": {
+    "total": 44,
+    "oeq": 28,
+    "mcq": 16
+  }
+}
