@@ -27,7 +27,25 @@ function isMcq(answer: string | null): boolean {
   return n === "1" || n === "2" || n === "3" || n === "4";
 }
 
+// Phase-level timing for the daily-quiz route. Logs `[daily-quiz timing]`
+// lines that give us per-phase ms so we can spot the slow ones in
+// Railway logs. Lightweight — single timestamp diff per phase.
+function mkPhaseTimer(reqId: string) {
+  const start = Date.now();
+  let last = start;
+  return {
+    mark(label: string) {
+      const now = Date.now();
+      console.log(`[daily-quiz timing] ${reqId} ${label}: ${now - last}ms (total ${now - start}ms)`);
+      last = now;
+    },
+    total() { return Date.now() - start; },
+  };
+}
+
 export async function POST(request: NextRequest) {
+  const reqId = Math.random().toString(36).slice(2, 8);
+  const T = mkPhaseTimer(reqId);
   const { userId, studentId, quizType, subject, englishSections, chineseSections, sourcePaperId, scheduledFor, focused, revisionLevel, firstQuiz } = await request.json() as {
     userId: string;
     studentId?: string;
@@ -499,6 +517,7 @@ export async function POST(request: NextRequest) {
       }
     }
   }
+  T.mark("dedup-check");
 
   // Get the student's level
   const student = await prisma.user.findUnique({
@@ -679,6 +698,7 @@ export async function POST(request: NextRequest) {
     }),
   ]);
   let topicMatched = initialTopicMatched;
+  T.mark(`pool-fetch (topicMatched=${initialTopicMatched.length})`);
   // Difficulty fallback ladder for non-standard modes:
   //   1. strict primary (e.g. Lv 1-3)  — already done above
   //   2. primary + unrated              — accept null difficulty
@@ -756,6 +776,7 @@ export async function POST(request: NextRequest) {
       })
     : [];
   const siblings = siblingsRaw.filter(q => siblingKeys.has(`${q.examPaperId}::${baseNumOf(q.questionNum)}`));
+  T.mark(`siblings-query (papers=${distinctPaperIds.length} → rows=${siblingsRaw.length} → kept=${siblings.length})`);
   const qById = new Map<string, typeof topicMatched[number]>();
   for (const q of topicMatched) qById.set(q.id, q);
   for (const q of siblings) if (!qById.has(q.id)) qById.set(q.id, q);
@@ -844,6 +865,7 @@ export async function POST(request: NextRequest) {
 
   // ── ENGLISH QUIZ PATH ────────────────────────────────────────────────────
   if (subject === "english") {
+    T.mark(`pre-english-path (allQuestions=${allQuestions.length})`);
     const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
     const freshQs = allQuestions.filter(q => !usedSourceIds.has(q.id));
     const usedQs = allQuestions.filter(q => usedSourceIds.has(q.id));
@@ -1103,6 +1125,7 @@ export async function POST(request: NextRequest) {
     if (allSelected.length === 0) {
       return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
     }
+    T.mark(`english section-build (selected=${allSelected.length})`);
 
     // Pre-fetch all source paper metadata in one batch
     const sourcePaperIds = [...new Set(selectedExtra.map(q => q.examPaperId))];
@@ -1110,6 +1133,7 @@ export async function POST(request: NextRequest) {
       ? await prisma.examPaper.findMany({ where: { id: { in: sourcePaperIds } }, select: { id: true, metadata: true } })
       : [];
     const sourcePaperMap = new Map(sourcePapers.map(p => [p.id, p.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null]));
+    T.mark(`english sourcePapers-meta (n=${sourcePaperIds.length})`);
 
     // Build section metadata for quiz display
     const sections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; sourceExamId?: string }> = [];
@@ -1380,10 +1404,12 @@ export async function POST(request: NextRequest) {
     // Rebuild allSelected after any in-loop trimming so we don't try to create quiz
     // questions for IDs that were dropped to match the passage marker count.
     allSelected = [...selectedGrammar, ...selectedVocab, ...selectedExtra];
+    T.mark(`english passage-loop done (sections=${extraSectionGroups.length})`);
 
     // Hydrate selected questions with blob data
     const blobMap = await hydrateBlobs(allSelected.map(q => q.id));
     const allSelectedFull = allSelected.map(q => ({ ...q, ...blobMap.get(q.id) })) as FullQ[];
+    T.mark(`english hydrateBlobs (ids=${allSelected.length})`);
 
     // Use the SAME marksAvailable fallback that question creation uses below, so
     // paper.totalMarks matches the sum of per-question marksAvailable. Otherwise a
@@ -1487,6 +1513,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    T.mark(`english paper.create (qs=${allSelected.length}, total=${T.total()}ms)`);
     return NextResponse.json({ id: paper.id, questionCount: allSelected.length });
   }
 
@@ -1494,6 +1521,7 @@ export async function POST(request: NextRequest) {
   // Build pools from ALL questions first so multi-part OEQ groups (e.g. 6ab + 6c)
   // stay together. Then split into fresh/used at the pool level.
   const { mcqPool: allMcqPool, oeqPool: allOeqPool } = buildPools(allQuestions);
+  T.mark(`buildPools math/science (allQuestions=${allQuestions.length} → mcq=${allMcqPool.length} oeq=${allOeqPool.length})`);
   // MCQ: single question per pool entry
   const mcqFresh = allMcqPool.filter(q => !usedSourceIds.has(q.id));
   const mcqUsed  = allMcqPool.filter(q =>  usedSourceIds.has(q.id));
@@ -1718,7 +1746,9 @@ export async function POST(request: NextRequest) {
   // IMPORTANT: hydrateBlobs only fetches the FIRST question's blobs by id, but for merged OEQ
   // groups mergeOeqGroup may have already chosen diagramImageData from a non-first member as
   // a fallback. Don't let the hydrate clobber that — keep the merged value when it's set.
+  T.mark(`pre-hydrate (mcq=${selectedMcq.length} oeq=${selectedOeq.length})`);
   const blobMap2 = await hydrateBlobs(allSelected.map(q => q.id));
+  T.mark(`hydrateBlobs (ids=${allSelected.length})`);
   const allSelectedFull2 = allSelected.map(q => {
     const hydrated = blobMap2.get(q.id);
     const merged = { ...q, ...hydrated } as FullQ;
@@ -1780,5 +1810,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  T.mark(`paper.create math/science (qs=${allSelected.length})`);
   return NextResponse.json({ id: paper.id, questionCount: allSelected.length });
 }
