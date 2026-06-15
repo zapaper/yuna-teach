@@ -668,8 +668,11 @@ export async function POST(request: NextRequest) {
     // null if it IS a master). Needed for the dedup pass in
     // buildPools so master + synthetic variants don't both surface.
     sourceQuestionId: true,
-    // diagramImageData needed for mergeOeqGroup (Math/Science only)
-    ...(subject !== "english" ? { diagramImageData: true } : {}),
+    // diagramImageData INTENTIONALLY OMITTED — pulling the base64
+    // image blob for every row in a 700+ row pool was the bulk of
+    // the 60-70s Math/Science assign time (38 MB+ over the wire).
+    // mergeOeqGroup needs it for non-first OEQ members, so we hydrate
+    // it separately for the selected ~15 questions just before merge.
     diagramBounds: true,
     examPaper: {
       select: { id: true, year: true, examType: true, school: true, pageCount: true },
@@ -782,7 +785,12 @@ export async function POST(request: NextRequest) {
   for (const q of siblings) if (!qById.has(q.id)) qById.set(q.id, q);
   const allQuestions = [...qById.values()];
 
-  type Q = typeof allQuestions[number];
+  // Q is the light-pool row. diagramImageData is no longer in the
+  // bulk select (the base64 blob blew up wire size for 700-row Math
+  // pools — we hydrate it lazily for the selected OEQ group members
+  // just before mergeOeqGroup, see oeq-diagram-hydrate below). Keep
+  // it as an optional field on the type so mergeOeqGroup compiles.
+  type Q = typeof allQuestions[number] & { diagramImageData?: string | null };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptions: any; transcribedOptionImages: any; diagramImageData: string | null };
 
@@ -1737,7 +1745,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not enough questions available" }, { status: 404 });
     }
     selectedMcq = mcqPool.slice(0, 10);
-    selectedOeq = oeqPool.slice(0, 5).map(mergeOeqGroup);
+    // Targeted diagramImageData hydrate for the selected OEQ groups.
+    // questionSelectLight no longer carries diagramImageData (38MB+
+    // base64 over the wire for 700-row pools); mergeOeqGroup needs it
+    // for non-first sibling questions, so we re-fetch just those.
+    // ≤ 5 groups × ~3 members = 15 ids max.
+    const oeqGroups = oeqPool.slice(0, 5);
+    const oeqMemberIds = [...new Set(oeqGroups.flatMap(g => g.map(q => q.id)))];
+    if (oeqMemberIds.length > 0) {
+      const diagrams = await prisma.examQuestion.findMany({
+        where: { id: { in: oeqMemberIds } },
+        select: { id: true, diagramImageData: true },
+      });
+      const dById = new Map(diagrams.map(d => [d.id, d.diagramImageData]));
+      for (const group of oeqGroups) {
+        for (const q of group) {
+          if (!q.diagramImageData) (q as unknown as { diagramImageData: string | null }).diagramImageData = dById.get(q.id) ?? null;
+        }
+      }
+      T.mark(`oeq-diagram-hydrate (members=${oeqMemberIds.length})`);
+    }
+    selectedOeq = oeqGroups.map(mergeOeqGroup);
   }
 
   const allSelected = [...selectedMcq, ...selectedOeq];
