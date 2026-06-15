@@ -107,6 +107,10 @@ export type MistakeExample = {
   // with the full question, the student's answer, and the marker
   // notes the kid missed.
   paperTitle: string | null;
+  // Actual question number (e.g. "16", "33a") so the parent can find
+  // the question on the printed paper. The workshop's questionRef is
+  // a workshop idx like "[8]" which is meaningless outside the cache.
+  questionNum: string | null;
   questionText: string | null;
   studentAnswer: string | null;
   markingNotes: string | null;
@@ -304,6 +308,7 @@ type WrongRecord = {
   topic: string;
   isMcq: boolean;
   paperTitle: string;
+  questionNum: string;
   questionText: string;
   studentAnswer: string;
   correctAnswer: string;
@@ -316,6 +321,7 @@ function reconstructWrongs(papers: Array<{
   subject: string | null;
   questions: Array<{
     id: string;
+    questionNum: string;
     sourceQuestionId: string | null;
     studentAnswer: string | null; answer: string | null;
     marksAwarded: number | null; marksAvailable: number | null;
@@ -393,6 +399,7 @@ function reconstructWrongs(papers: Array<{
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
         paperTitle: p.title,
+        questionNum: q.questionNum,
         questionText,
         studentAnswer: cleanedAnswer,
         correctAnswer: (q.answer ?? "").trim(),
@@ -455,7 +462,7 @@ function shapeTutorData(args: {
     if (!w || !typeMatch) {
       return {
         questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
-        paperTitle: null, questionText: null, studentAnswer: null,
+        paperTitle: null, questionNum: null, questionText: null, studentAnswer: null,
         markingNotes: null, diagramImageData: null, isMcq: false,
         options: [], picked: null, correct: null,
       };
@@ -464,6 +471,7 @@ function shapeTutorData(args: {
       questionRef: ex.questionRef,
       whatWentWrong: ex.whatWentWrong,
       paperTitle: w.paperTitle.replace(/^\s*\[[A-Z_-]+\]\s*/g, "").replace(/\s*\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z)?\)\s*$/g, "").trim(),
+      questionNum: w.questionNum,
       questionText: w.questionText,
       studentAnswer: w.studentAnswer,
       markingNotes: w.markingNotes,
@@ -582,6 +590,7 @@ function shapeTutorData(args: {
           questionRef: `[${w.idx}]`,
           whatWentWrong: w.markingNotes || `${childFirst} lost ${w.marksLost} mark${w.marksLost === 1 ? "" : "s"} on this one.`,
           paperTitle: w.paperTitle.replace(/^\s*\[[A-Z_-]+\]\s*/g, "").replace(/\s*\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z)?\)\s*$/g, "").trim(),
+          questionNum: w.questionNum,
           questionText: w.questionText,
           studentAnswer: w.studentAnswer,
           markingNotes: w.markingNotes,
@@ -715,6 +724,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       questions: {
         select: {
           id: true,
+          questionNum: true,
           sourceQuestionId: true,
           studentAnswer: true, answer: true,
           marksAwarded: true, marksAvailable: true,

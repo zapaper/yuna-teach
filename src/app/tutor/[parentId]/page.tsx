@@ -53,6 +53,7 @@ type MistakeExample = {
   questionRef: string;
   whatWentWrong: string;
   paperTitle: string | null;
+  questionNum: string | null;
   questionText: string | null;
   studentAnswer: string | null;
   markingNotes: string | null;
@@ -1062,11 +1063,46 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { stude
   );
 }
 
+// Render markdown emphasis markers — **bold**, __underline__,
+// **__both__** — to React nodes. Used by renderQuestionText so the
+// English extraction's emphasis (e.g. tested word in Grammar MCQ,
+// **(16) __observed__**) reads as bold + underline instead of literal
+// asterisks and underscores. Plain text segments pass through.
+function renderMarkdownInline(text: string): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  // Order matters: BOTH (**__x__**) first, then bare bold, then bare
+  // underline. Greedy capture inside; non-greedy across so adjacent
+  // markers don't collapse.
+  const re = /\*\*__([^_*][^*]*?)__\*\*|\*\*([^*]+?)\*\*|__([^_]+?)__/g;
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const both = m[1];
+    const bold = m[2];
+    const under = m[3];
+    if (both !== undefined) {
+      out.push(<strong key={`b-${key++}`} className="underline decoration-2">{both}</strong>);
+    } else if (bold !== undefined) {
+      out.push(<strong key={`b-${key++}`}>{bold}</strong>);
+    } else if (under !== undefined) {
+      out.push(<u key={`u-${key++}`} className="decoration-2 underline-offset-2">{under}</u>);
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
 // Render question text that may include markdown-style pipe tables —
 // Comprehension OEQ stems frequently have a "Character's feelings |
 // Evidence from text" table that's unreadable when shown as raw
 // pipe-bar text. Parses contiguous `|`-prefixed line blocks into HTML
-// tables; non-table paragraphs render as plain text.
+// tables; non-table paragraphs render as plain text. Inline markdown
+// emphasis (**bold**, __underline__) is parsed via renderMarkdownInline
+// so Grammar MCQ stems show their tested word bolded + underlined
+// instead of literal asterisks.
 function renderQuestionText(text: string): React.ReactNode {
   const blocks: Array<React.ReactNode> = [];
   const lines = text.split(/\r?\n/);
@@ -1091,13 +1127,13 @@ function renderQuestionText(text: string): React.ReactNode {
         <table key={`tbl-${key++}`} className="border-collapse my-2 text-sm">
           {headerCells && (
             <thead>
-              <tr>{headerCells.map((c, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold">{c}</th>)}</tr>
+              <tr>{headerCells.map((c, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold">{renderMarkdownInline(c)}</th>)}</tr>
             </thead>
           )}
           <tbody>
             {bodyRows.map((row, r) => (
               <tr key={r}>
-                {row.map((c, j) => <td key={j} className="border border-slate-300 px-3 py-1.5 align-top">{c}</td>)}
+                {row.map((c, j) => <td key={j} className="border border-slate-300 px-3 py-1.5 align-top">{renderMarkdownInline(c)}</td>)}
               </tr>
             ))}
           </tbody>
@@ -1111,7 +1147,7 @@ function renderQuestionText(text: string): React.ReactNode {
         i++;
       }
       const txt = para.join("\n").trim();
-      if (txt) blocks.push(<p key={`p-${key++}`} className="whitespace-pre-line">{txt}</p>);
+      if (txt) blocks.push(<p key={`p-${key++}`} className="whitespace-pre-line">{renderMarkdownInline(txt)}</p>);
     }
   }
   return <div className="space-y-2">{blocks}</div>;
@@ -1197,7 +1233,12 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
   const diagnosisHtml = boldifyHtml(softenTone(ex.whatWentWrong, childFirst));
-  const hasFullData = ex.questionText !== null;
+  // hasFullData controls whether the expander button shows. Treat
+  // empty / whitespace-only questionText as "no data" so Comprehension
+  // Cloze examples (whose stem lives in a `_passage` subpart we
+  // intentionally strip) don't render a button that opens to a blank
+  // panel.
+  const hasFullData = !!(ex.questionText && ex.questionText.trim().length > 0);
   const imgSrc = ex.diagramImageData
     ? (ex.diagramImageData.startsWith("data:") ? ex.diagramImageData : `data:image/jpeg;base64,${ex.diagramImageData}`)
     : null;
@@ -1206,7 +1247,9 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
       <div className="p-4">
         <div className="flex items-baseline justify-between gap-3 mb-2">
           <p className={`text-xs font-bold ${accentClass}`}>
-            Example {index + 1}{ex.paperTitle ? ` · ${ex.paperTitle}` : ""}
+            Example {index + 1}
+            {ex.questionNum ? ` · Q${ex.questionNum}` : ""}
+            {ex.paperTitle ? ` · ${ex.paperTitle}` : ""}
           </p>
           {hasFullData && (
             <button onClick={() => setOpen(o => !o)} className="text-xs font-semibold text-[#003366] hover:opacity-75 whitespace-nowrap">
