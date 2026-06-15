@@ -65,8 +65,22 @@ const SECTION_LABELS: Record<SectionType, RegExp[]> = {
   "comp-oeq": [/阅读理解\s*(?:[AB]\s*)?OEQ/i, /阅读理解\s*OEQ/i],
 };
 
-function sectionMatches(label: string, type: SectionType): boolean {
-  return SECTION_LABELS[type].some(re => re.test(label));
+// P4 papers have a 词语搭配 section that looks like a phrase-bank
+// matching exercise: a table of numbered phrases at the top, then
+// numbered prompt-phrases each followed by a blank where the student
+// writes the matching number. The crop shape is identical to 完成对话
+// (single-row horizontal strip per Q), so we route P4 词语搭配 through
+// the duihua extractor. Gated to P4 because P5/P6 don't carry this
+// exact format and we don't want a stray 词语搭配 label on a higher
+// level paper to pick up the wrong crop shape.
+function isP4(level: string | null | undefined): boolean {
+  return (level ?? "").toLowerCase().includes("primary 4");
+}
+
+function sectionMatches(label: string, type: SectionType, level: string | null | undefined): boolean {
+  if (SECTION_LABELS[type].some(re => re.test(label))) return true;
+  if (type === "duihua" && isP4(level) && /词语搭配/.test(label)) return true;
+  return false;
 }
 
 let _ai: GoogleGenAI | null = null;
@@ -552,7 +566,7 @@ export async function POST(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, title: true, subject: true, pageCount: true, metadata: true,
+      id: true, title: true, subject: true, level: true, pageCount: true, metadata: true,
       questions: {
         select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
@@ -566,6 +580,7 @@ export async function POST(
   if (!isChinese) {
     return NextResponse.json({ error: "This route is Chinese-only. Use the English / math / science pipelines for other subjects." }, { status: 400 });
   }
+  const paperLevel = paper.level;
 
   type PapersEntry = { label: string; questionsStartPage?: number; expectedQuestions?: number };
   const meta = (paper.metadata ?? {}) as {
@@ -573,7 +588,7 @@ export async function POST(
     normalExtractChinese?: NormalExtractState;
     papers?: PapersEntry[];
   };
-  let sections: SecMeta[] = (meta.chineseSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+  let sections: SecMeta[] = (meta.chineseSections ?? []).filter(s => sectionMatches(s.label, sectionType, paperLevel));
   console.log(`[normal-extract] sectionType=${sectionType}, chineseSections matched: ${sections.length}`);
 
   // Fallback 1: per-syllabusTopic groupings. Clean Extract tags every
@@ -603,7 +618,7 @@ export async function POST(
       }
     }
     sections = groups
-      .filter(g => sectionMatches(g.topic, sectionType))
+      .filter(g => sectionMatches(g.topic, sectionType, paperLevel))
       .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
     console.log(`[normal-extract] topic fallback → ${sections.length} sections: ${sections.map(s => `"${s.label}"[${s.startIndex}..${s.endIndex}]`).join(", ")}`);
   }
@@ -670,20 +685,33 @@ export async function POST(
         yBottomDeltaMultiLine: 6,
       });
       break;
-    case "duihua":
+    case "duihua": {
       // 完成对话 — extract ONLY the row containing the Q-number.
       // Each numbered blank sits in a single speaker line; no need
       // to extend to the next row (unlike 短文填空 where the answer
       // can wrap). Wide horizontal strip, single-line height.
+      //
+      // P4 词语搭配 reuses this extractor: questions are numbered
+      // phrase-prompts each followed by a blank where the student
+      // writes the number of the matching phrase from the table at
+      // the top of the section. Crop shape is identical to 完成对话
+      // (single row per Q). Hint is tweaked when the matched sections
+      // are 词语搭配 so Gemini doesn't get confused looking for
+      // dialogue speakers.
+      const isWordMatching = sections.some(s => /词语搭配/.test(s.label));
+      const hint = isWordMatching
+        ? "词语搭配 — word-collocation matching. A table of numbered phrases sits at the top of the section; each numbered question is a phrase prompt followed by a blank where the student writes the matching number. Crop just the row containing the Q-number (the prompt + its blank), not the phrase table."
+        : "完成对话 — dialogue completion. Each numbered blank sits inside one speaker line; crop just that row.";
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
         allQuestions: paper.questions,
-        sectionHint: "完成对话 — dialogue completion. Each numbered blank sits inside one speaker line; crop just that row.",
+        sectionHint: hint,
         xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 3,
         pageCount: paper.pageCount ?? undefined,
       });
       break;
+    }
   }
 
   // Map sectionType -> the corresponding metadata flag.
@@ -737,7 +765,7 @@ export async function GET(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, subject: true, metadata: true,
+      id: true, subject: true, level: true, metadata: true,
       questions: {
         select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, yStartPct: true, yEndPct: true, xStartPct: true, xEndPct: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
@@ -751,13 +779,14 @@ export async function GET(
   if (!isChineseG) {
     return NextResponse.json({ error: "This route is Chinese-only." }, { status: 400 });
   }
+  const paperLevelG = paper.level;
 
   type PapersEntry = { label: string; questionsStartPage?: number; expectedQuestions?: number };
   const meta = (paper.metadata ?? {}) as {
     chineseSections?: SecMeta[];
     papers?: PapersEntry[];
   };
-  let sections: SecMeta[] = (meta.chineseSections ?? []).filter(s => sectionMatches(s.label, sectionType));
+  let sections: SecMeta[] = (meta.chineseSections ?? []).filter(s => sectionMatches(s.label, sectionType, paperLevelG));
 
   // Fallback: derive sections from question.syllabusTopic groupings.
   if (sections.length === 0) {
@@ -774,7 +803,7 @@ export async function GET(
       }
     }
     sections = groups
-      .filter(g => sectionMatches(g.topic, sectionType))
+      .filter(g => sectionMatches(g.topic, sectionType, paperLevelG))
       .map(g => ({ label: g.topic, startIndex: g.startIndex, endIndex: g.endIndex }));
   }
 
