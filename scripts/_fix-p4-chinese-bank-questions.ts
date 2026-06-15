@@ -45,7 +45,80 @@ function normalizeStem(raw: string | null | undefined): string | null {
   return raw.replace(/\(\s+\)/g, "______");
 }
 
+// 词语搭配 passages come out of clean-extract as flat OCR text:
+//   "(1) 家长 (2) 插队 (3) 身体\n(4) 穷人 ..."
+// The quiz renderer shows it as a wall of text. Re-format the
+// numbered-phrase list block into a markdown table so the bank
+// renders as a visible grid above the questions. Leaves the
+// header line + question list unchanged.
+function normalizePassageBank(raw: string | null | undefined): string | null {
+  if (!raw) return raw ?? null;
+  // Find every "(N) WORD" token; group them all together. We only
+  // rewrite when there are at least 4 phrases, and the rewrite
+  // collapses the entire bank block (one or more consecutive lines
+  // of (N) phrases) into a single markdown table line.
+  const tokenRe = /\((\d+)\)\s*([^\s()]+(?:\s+[^\s()]+)*?)(?=\s*\(\d+\)|\s*$|\n)/g;
+  // Find the contiguous bank block: scan for ≥ 2 lines that look like
+  // ONLY (N) phrases with no Q markers.
+  const lines = raw.split(/\r?\n/);
+  const bankStart = lines.findIndex(l => /^\s*\(\d+\)/.test(l) && !/Q\d+/.test(l));
+  if (bankStart < 0) return raw;
+  let bankEnd = bankStart;
+  while (bankEnd + 1 < lines.length && /^\s*\(\d+\)/.test(lines[bankEnd + 1]) && !/Q\d+/.test(lines[bankEnd + 1])) {
+    bankEnd++;
+  }
+  const bankBlock = lines.slice(bankStart, bankEnd + 1).join("\n");
+  const tokens: Array<{ n: string; w: string }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = tokenRe.exec(bankBlock)) !== null) {
+    tokens.push({ n: m[1], w: m[2].trim() });
+  }
+  if (tokens.length < 4) return raw;
+  // Build a markdown table — 3 columns per row (so 6 phrases = 2
+  // rows × 3 cols, 8 phrases = 2 rows × 4 cols, etc).
+  const COLS = tokens.length % 4 === 0 ? 4 : 3;
+  const rows: string[] = [];
+  rows.push(`| ${Array(COLS).fill(" ").join(" | ")} |`);
+  rows.push(`|${Array(COLS).fill("---").join("|")}|`);
+  for (let i = 0; i < tokens.length; i += COLS) {
+    const cells = tokens.slice(i, i + COLS).map(t => `(${t.n}) ${t.w}`);
+    while (cells.length < COLS) cells.push("");
+    rows.push(`| ${cells.join(" | ")} |`);
+  }
+  const tableMd = rows.join("\n");
+  const before = lines.slice(0, bankStart).join("\n");
+  const after = lines.slice(bankEnd + 1).join("\n");
+  return [before.trimEnd(), tableMd, after.trimStart()].filter(Boolean).join("\n\n");
+}
+
 (async () => {
+  // Rewrite the 词语搭配 section's passage bank-block to a markdown
+  // table so the renderer displays the phrase list as a grid.
+  const paper = await prisma.examPaper.findUnique({
+    where: { id: PAPER_ID },
+    select: { metadata: true },
+  });
+  const meta = paper?.metadata as { chineseSections?: Array<{ label: string; passage?: string; startIndex: number; endIndex: number }> } | null;
+  if (meta?.chineseSections) {
+    let touched = false;
+    const updated = meta.chineseSections.map(s => {
+      if (s.label !== "词语搭配") return s;
+      const newPassage = normalizePassageBank(s.passage);
+      if (newPassage && newPassage !== s.passage) {
+        console.log(`  词语搭配 passage: rewrote bank block to markdown table`);
+        touched = true;
+        return { ...s, passage: newPassage };
+      }
+      return s;
+    });
+    if (touched && apply) {
+      await prisma.examPaper.update({
+        where: { id: PAPER_ID },
+        data: { metadata: { ...meta, chineseSections: updated } as never },
+      });
+    }
+  }
+
   const qs = await prisma.examQuestion.findMany({
     where: { examPaperId: PAPER_ID, syllabusTopic: { in: TOPICS } },
     select: { id: true, questionNum: true, syllabusTopic: true, transcribedOptions: true, answer: true, transcribedStem: true },
