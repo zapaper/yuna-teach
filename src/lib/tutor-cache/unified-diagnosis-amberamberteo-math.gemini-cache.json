@@ -1,0 +1,228 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Units or Final Polish",
+      "what": "Amberamberteo sometimes does the hard math perfectly but misses the final polish, like adding units or rounding correctly.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo calculated the correct numbers, 360 and 72, but occasionally forgets to add the dollar sign ($) at the end."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "He/she successfully found the fraction 3/40, but missed out on writing 'kg' to complete the answer."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "He/she correctly divided to get 5.245, but just had a tiny slip on the final polish, rounding to 5.20 instead of 5.25."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **how much**, **how many kilograms**, or **round your answer**, circle those instruction words before you start calculating. Once you find your final number, look back at your circled words to make sure you **write the correct unit** or apply the final rounding rule.",
+      "trigger_keywords": [
+        "how much",
+        "how many",
+        "round your answer",
+        "kilograms"
+      ]
+    },
+    {
+      "name": "Hesitating on Longer Word Problems",
+      "what": "When faced with multi-step word problems, Amberamberteo tends to leave them blank rather than writing down the first step.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "This question had multiple fractions, and Amberamberteo left it blank instead of trying to find the first fraction."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Faced with a longer 'guess and check' scenario, he/she left the page blank rather than testing out a first guess."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo skipped this question, but he/she could have easily picked up marks by just writing down the fraction of unsold books as a starting point."
+        }
+      ],
+      "strategic_advice": "When you see a long story problem, don't worry about the final answer right away. Just **find one piece of information** you can calculate, like a remainder or a total, and write that down. Every step you show **earns you partial marks**, even if you don't finish the whole puzzle!",
+      "trigger_keywords": [
+        "remainder",
+        "at first",
+        "every",
+        "total number"
+      ]
+    },
+    {
+      "name": "Overlooking Hidden Details in Text",
+      "what": "Amberamberteo occasionally reads past 'hidden' numbers or specific phrasing in word problems, which changes the calculation.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "The question said 'Ahmad and his 3 cousins', but Amberamberteo divided by 3 instead of 4, missing that Ahmad is also a person!"
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He/she missed the 'hundred' in 'five hundred and eight thousand', choosing 58,032 instead of 508,032."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Amberamberteo calculated based on the total books, but the question specifically asked for a fraction of the fiction books."
+        }
+      ],
+      "strategic_advice": "When you see words describing people or specific groups, **underline the subjects** so you don't miss anyone. If a question asks for a fraction of a specific group (like **of the remainder** or **of the fiction books**), draw an arrow from the fraction to that group so you know exactly what to multiply.",
+      "trigger_keywords": [
+        "and his",
+        "of the remainder",
+        "of the",
+        "in numerals"
+      ]
+    },
+    {
+      "name": "Small Slips in Basic Operations",
+      "what": "Amberamberteo sometimes makes minor arithmetic or rule-based slips, like crossing out too many zeros or mixing up the order of operations.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Amberamberteo chose 80 instead of 800, which happens when we cross out one too many zeros during division."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He/she missed the correct order of operations, doing the math out of sequence instead of solving the brackets and division first."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "When converting 5/8 to a decimal, Amberamberteo accidentally divided 8 by 5 instead of 5 by 8."
+        }
+      ],
+      "strategic_advice": "When you see equations with multiple signs, always write **BODMAS** at the top of your page and check off each letter as you go. For division with large numbers, **cross out the zeros one by one** on both sides to keep your place value perfectly balanced.",
+      "trigger_keywords": [
+        "value of",
+        "÷",
+        "express",
+        "evaluate"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq22kq6c00b14os1ofad0mzd",
+    "2": "cmq22kgsf00as4os19wh1qpf9",
+    "3": "cmq0avvvg000p2qesqds2ub5v",
+    "4": "cmq0avvvh000r2qes2lie9b7r",
+    "5": "cmpqdtx7q0044coxsz914qdho",
+    "6": "cmpqdtx7q0045coxsnsumv0yj",
+    "7": "cmotuimp10012d15sh4gyk3e0",
+    "8": "cmotuimp10015d15sn48llcts",
+    "9": "cmotuimp10016d15syuclj0l4",
+    "10": "cmomejk5z0028ehxqqso02yfu",
+    "11": "cmomejk60002hehxqva7z6a9q",
+    "12": "cmomejk60002iehxq43cc0hdi",
+    "13": "cmojzrjgk004md4vnao0rek7k",
+    "14": "cmojzrjgk004pd4vncln2p2n8",
+    "15": "cmojzrjgk004qd4vns7v6ze37",
+    "16": "cmojzrjgk004rd4vnb6wk9z5s",
+    "17": "cmojzrjgk004sd4vnvn9q8sp7",
+    "18": "cmojzrjgk004td4vnvqxdfyf9",
+    "19": "cmojzrjgl004ud4vn5yizuaqi"
+  },
+  "generatedAt": "2026-06-15T04:50:11.814Z",
+  "wrongCounts": {
+    "total": 19,
+    "oeq": 11,
+    "mcq": 8
+  },
+  "toplineSnapshot": {
+    "avgPct": 75,
+    "totalAwarded": 114.5,
+    "totalAvailable": 152,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

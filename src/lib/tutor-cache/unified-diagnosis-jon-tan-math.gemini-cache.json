@@ -1,0 +1,236 @@
+{
+  "patterns": [
+    {
+      "name": "Rushing Through Question Text",
+      "what": "Jon sometimes reads questions a little too quickly, which leads him to overlook important condition words that change the steps needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He calculated the fraction of the total books, overlooking the specific phrase 'of the fiction books'."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He converted the second fraction into a mixed number but overlooked the first part of the equation, leaving the multiplication incomplete."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He found the ratio of David's marbles to Charles's, missing the word 'total' in the prompt."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'ratio of', 'of the remaining', or 'total', **circle or underline the target words**. Before doing your final calculation, **re-read the last sentence** to ensure you are answering exactly what is asked.",
+      "trigger_keywords": [
+        "of the",
+        "total",
+        "ratio of",
+        "remaining",
+        "value of"
+      ]
+    },
+    {
+      "name": "Leaving Unsure Questions Blank",
+      "what": "When faced with a challenging section, especially with fractions, Jon tends to leave questions completely blank rather than writing down the steps he does know.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "This was the exact same question as an earlier quiz, but Jon left it blank instead of attempting the first step."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He left this fraction word problem blank, even though drawing a simple model could have earned him partial marks."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Faced with a longer multi-part question, Jon skipped it entirely rather than breaking it down sentence by sentence."
+        }
+      ],
+      "strategic_advice": "When you see a complex word problem, **draw a model or write down the first step**, even if you don't know the final answer. Every step counts, so **never leave a blank space**—show your working to grab partial marks!",
+      "trigger_keywords": [
+        "altogether",
+        "how many",
+        "express your answer",
+        "left in the end"
+      ]
+    },
+    {
+      "name": "Slips in Place Value and Rules",
+      "what": "Jon occasionally loses track of place values or the order of operations when calculating, leading to avoidable slips.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He miscounted the place value columns, selecting 800 instead of 80,000 for the digit 8."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "He subtracted before multiplying, forgetting to follow the standard order of operations."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "When multiplying by numbers with zeros, he missed a zero in the middle of his final answer."
+        }
+      ],
+      "strategic_advice": "When you see equations with mixed operations, **write BODMAS at the top of your page** as a checklist. For large numbers, **draw place value lines** to keep your digits perfectly aligned.",
+      "trigger_keywords": [
+        "value of",
+        "find the value",
+        "+",
+        "-",
+        "x",
+        "÷"
+      ]
+    },
+    {
+      "name": "Misinterpreting Visuals and Contexts",
+      "what": "Jon occasionally misses a detail when extracting information from diagrams or connecting math to real-world measurements.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He selected a slanted side as the height of the triangle, missing the perpendicular altitude line in the diagram."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He multiplied the two visible numbers, forgetting to account for the 3D 'square base' which requires multiplying the width twice."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 2500 ml for a small drink packet, which is much larger than a real-life standard drink."
+        }
+      ],
+      "strategic_advice": "When you see geometry diagrams, **look for the right-angle square** to find the true height. For volume, **compare the object to something familiar**, like a 1-liter water bottle, to check if your answer makes sense.",
+      "trigger_keywords": [
+        "height",
+        "volume",
+        "base",
+        "diagram shows"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq0xk8xn0007dp9tc5kkawnm",
+    "2": "cmq0xk8xo0008dp9t9xvmvuey",
+    "3": "cmq0xk8xo000adp9taymln8wj",
+    "4": "cmq0xk8xo000cdp9tkqvochkz",
+    "5": "cmq0xk8xo000edp9tpg33jn6g",
+    "6": "cmq0xk8xo000fdp9tuam0zmn5",
+    "7": "cmq0xk8xo000gdp9t4icvjlvw",
+    "8": "cmq0xk8xo000idp9t9ognamjb",
+    "9": "cmq0xk8xp000kdp9to7094shu",
+    "10": "cmq0xk8xp000ldp9tadgy6y4c",
+    "11": "cmpwpzpb0001ofjch2ysnr6q2",
+    "12": "cmpwpzpb0001pfjch3b1l4fif",
+    "13": "cmpwpzpb1001qfjchk13kdafk",
+    "14": "cmpwpzpb1001rfjchke6bjnpf",
+    "15": "cmpwpzpb1001sfjchlidlmr9z",
+    "16": "cmpwpzpb1001tfjchmx04b975",
+    "17": "cmpwpzpb1001ufjchwsopcisp",
+    "18": "cmpwpzpb1001vfjch58v635pl",
+    "19": "cmpwpzpb1001wfjch43e4sjf9",
+    "20": "cmpwpzpb1001xfjchdacv9xln"
+  },
+  "generatedAt": "2026-06-15T04:48:48.107Z",
+  "wrongCounts": {
+    "total": 20,
+    "oeq": 5,
+    "mcq": 15
+  },
+  "toplineSnapshot": {
+    "avgPct": 36,
+    "totalAwarded": 20,
+    "totalAvailable": 56,
+    "paperCount": 2
+  },
+  "previousAssessment": null
+}

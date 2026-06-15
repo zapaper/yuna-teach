@@ -730,7 +730,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       {data.commonMistakes.length > 0 && (
         <section id="mistakes-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6 scroll-mt-20">
           <h2 className="font-headline text-xl font-extrabold text-[#006c49] mb-2">Common Mistakes</h2>
-          <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Fix these and the marks come back fastest.</p>
+          <p className="text-sm text-slate-500 mb-5">Answering techniques where {data.childFirst} keeps losing marks. Let&apos;s go through these and get some practices to fix these mistakes.</p>
           <div className="space-y-3">
             {data.commonMistakes.map((m, i) => (
               <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex justify-between items-center bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
@@ -1117,15 +1117,40 @@ function renderQuestionText(text: string): React.ReactNode {
   return <div className="space-y-2">{blocks}</div>;
 }
 
-// Reformat the cell-mapped student answer the OEQ marker stores —
-// `{"r1c1":"…","r2c1":"…"}` — into labelled lines `(a) … (b) …` that
-// line up with the question's labelled table rows. Falls back to the
-// raw text when parsing fails so we never hide an answer outright.
+// Reformat the structured student-answer JSON the OEQ marker stores
+// into readable text. Two shapes are common:
+//   - `{"r1c1":"…","r2c1":"…"}`  — labelled-table answers, mapped to
+//     `(a) … (b) …` matching the question's labelled rows.
+//   - `{"line0":"…","line1":"…"}` — multi-line writing-pad answers,
+//     joined back into the original line breaks the kid wrote.
+// Falls back to raw text on anything else so we never hide an answer.
 function formatStudentAnswer(raw: string): React.ReactNode {
   const txt = raw.trim();
   if (!(txt.startsWith("{") && txt.endsWith("}"))) return <span className="whitespace-pre-line">{raw}</span>;
+  let parsed: Record<string, string>;
   try {
-    const parsed = JSON.parse(txt) as Record<string, string>;
+    parsed = JSON.parse(txt) as Record<string, string>;
+  } catch {
+    return <span className="whitespace-pre-line">{raw}</span>;
+  }
+
+  // line0 / line1 / line2 — multi-line OEQ writing pad. Sort by index
+  // and join with line breaks so the parent reads it as the kid wrote
+  // it (one thought per row).
+  const lineEntries = Object.entries(parsed)
+    .map(([k, v]) => {
+      const m = k.match(/^line(\d+)$/i);
+      return m ? { idx: parseInt(m[1], 10), value: String(v ?? "") } : null;
+    })
+    .filter((e): e is { idx: number; value: string } => e !== null)
+    .sort((a, b) => a.idx - b.idx);
+  if (lineEntries.length > 0) {
+    const joined = lineEntries.map(e => e.value.trim()).filter(Boolean).join("\n");
+    if (joined.length === 0) return <span className="italic text-rose-500/80">left blank</span>;
+    return <span className="whitespace-pre-line">{joined}</span>;
+  }
+
+  try {
     const entries = Object.entries(parsed)
       .map(([k, v]) => {
         const m = k.match(/^r(\d+)c(\d+)$/i);
@@ -1145,9 +1170,18 @@ function formatStudentAnswer(raw: string): React.ReactNode {
       <div className="space-y-1">
         {rows.map(([r, vals]) => {
           const label = String.fromCharCode(96 + r);          // 1 → "a", 2 → "b"
+          // An empty cell means the kid wrote the OTHER row but left
+          // this one blank. Surface that explicitly so the parent
+          // doesn't read "(a)" with nothing after it and wonder if
+          // the page broke.
+          const joined = vals.map(v => v.trim()).filter(Boolean).join(" / ");
+          const isEmpty = joined.length === 0;
           return (
             <div key={r}>
-              <span className="font-semibold">({label})</span> {vals.join(" / ")}
+              <span className="font-semibold">({label})</span>{" "}
+              {isEmpty
+                ? <span className="italic text-rose-500/80">left blank</span>
+                : joined}
             </div>
           );
         })}

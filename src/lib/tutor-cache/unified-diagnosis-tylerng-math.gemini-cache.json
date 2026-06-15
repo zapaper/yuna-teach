@@ -1,0 +1,205 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Unfamiliar Questions",
+      "what": "Tylerng occasionally leaves questions completely blank when they involve multiple steps or unfamiliar contexts, rather than writing down his initial thoughts.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng left this multi-step loan problem blank, missing the opportunity to earn marks for finding the first year's interest."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "He skipped this word problem entirely, but he could have earned partial credit just by writing down the remaining fractions."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He left this multiple-choice question unanswered, even though he could have started by calculating the amount of white paint."
+        }
+      ],
+      "strategic_advice": "When you see multi-step word problems, don't worry about the final answer right away. **Write down the first step** you know how to do, like finding a fraction or a percentage of a given number. Even if you don't finish, **showing your working** can earn you valuable partial marks!",
+      "trigger_keywords": [
+        "Find the total amount",
+        "What was the amount",
+        "How much"
+      ]
+    },
+    {
+      "name": "Applying Triangle Properties",
+      "what": "Tylerng sometimes finds it tricky to identify the correct base and height pairings in triangles, especially when they are rotated or part of a composite figure.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He left this question blank, likely finding it challenging to compare the areas of differently oriented triangles on a grid."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng misidentified the base of the triangle, writing JF instead of the correct base FD that pairs with the given height."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "He found it tricky to identify the correct height and base of the triangle within the composite figure, marking a false statement as true."
+        }
+      ],
+      "strategic_advice": "When you see questions asking about triangle areas or bases, remember that the **base and height must meet at a right angle**. Try **turning your paper** to see the triangle from a different perspective, which makes the right angles much easier to spot!",
+      "trigger_keywords": [
+        "base of Triangle",
+        "height",
+        "area of Triangle"
+      ]
+    },
+    {
+      "name": "Missing Key Math Words",
+      "what": "Tylerng tends to read past important modifier words in word problems, which can completely change the steps needed to solve them.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng likely missed the word 'remainder', calculating the percentage based on the total stamps instead of what was left."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "He miscalculated the final number of cubes needed, likely overlooking the word 'more' and how it changes the final subtraction step."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He misread '6 cm shorter than' as just '6 cm', which led to an incorrect length for the triangle's side."
+        }
+      ],
+      "strategic_advice": "When you see word problems with comparison words, always **circle or highlight** words like 'remainder', 'more', or 'shorter than'. Before calculating, **read the highlighted words again** to ensure you are answering exactly what the question asks.",
+      "trigger_keywords": [
+        "remainder",
+        "more",
+        "shorter than",
+        "left"
+      ]
+    },
+    {
+      "name": "Precision in Final Answers",
+      "what": "Tylerng occasionally misses small but crucial details when writing down his final answers, such as decimal placement or simplifying fractions.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng added an extra trailing zero to his answer, which accidentally changed the rounding precision from hundredths to thousandths."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly identified the digits from the number line but accidentally forgot to write the decimal point in his final answer."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He made a small slip at the very end when converting his correct improper fraction into a mixed number."
+        }
+      ],
+      "strategic_advice": "When you see instructions about formatting, like 'nearest hundredth' or 'simplest form', take a deep breath before writing your final answer. **Double-check your decimal points** and ensure your answer matches the **exact format requested** in the question.",
+      "trigger_keywords": [
+        "nearest hundredth",
+        "simplest form",
+        "value represented by"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmol93adh0002qlmbkog7jqsd",
+    "2": "cmol93adh0003qlmb463voo62",
+    "3": "cmol93adh0004qlmb7i68dn42",
+    "4": "cmol93adh0005qlmbdcm7mcri",
+    "5": "cmol93adh0006qlmbs3vop1dn",
+    "6": "cmol93vg2000bqlmbm048sqd8",
+    "7": "cmol93vg2000cqlmb1mkjlenv",
+    "8": "cmol93vg2000dqlmbd5xw4y0o",
+    "9": "cmol93vg2000eqlmbkjue9mql",
+    "10": "cmol93vg2000fqlmbxec8d6yz",
+    "11": "cmol93vg2000hqlmb2xvbmpv7",
+    "12": "cmol93vg2000iqlmbengfthb5",
+    "13": "cmol93vg2000jqlmb831fea9i",
+    "14": "cmol93vg3000lqlmbswwwf1h7",
+    "15": "cmol4i2yu000udm330hrqgzk6"
+  },
+  "generatedAt": "2026-06-15T04:51:29.219Z",
+  "wrongCounts": {
+    "total": 15,
+    "oeq": 9,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 43,
+    "totalAwarded": 21,
+    "totalAvailable": 49,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

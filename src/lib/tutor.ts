@@ -348,11 +348,18 @@ function reconstructWrongs(papers: Array<{
       }
       cleanedNotes = cleanedNotes.replace(/^detected\s*:\s*[^.\n]*\.?\s*/i, "").trim();
       // Stitch the transcribedStem with the subparts so multi-part
-      // questions show the full prompt (a)/(b)/(c).
+      // questions show the full prompt (a)/(b)/(c). Drop subparts
+      // whose label starts with "_" — those are marker-only context
+      // fields (_passage, _passageText) that carry the whole reading
+      // passage. Including them blows up the displayed question with
+      // the entire 800-char passage + every numbered question from
+      // the OEQ section, when all the parent needs to see is the
+      // specific (a)/(b) prompt this kid lost marks on.
       let questionText = (q.transcribedStem ?? "").trim();
       const sps = q.transcribedSubparts as unknown;
       if (Array.isArray(sps)) {
         const lines = (sps as Array<{ label?: string; text?: string }>)
+          .filter(sp => !sp.label || !sp.label.startsWith("_"))
           .map(sp => `${sp.label ? `(${sp.label}) ` : ""}${sp.text ?? ""}`.trim())
           .filter(Boolean);
         if (lines.length > 0) questionText = [questionText, lines.join("\n")].filter(Boolean).join("\n\n");
@@ -360,8 +367,16 @@ function reconstructWrongs(papers: Array<{
       // Strip the canonical typed-OEQ noise from the student's answer:
       // "Working: …" / "Final answer: …" labels and "(no working shown)"
       // — same cleanup the diagnosis HTML uses.
+      //
+      // The Working-stripping regex deliberately stops ONLY at an
+      // explicit "Final answer:" / "Answer:" delimiter. The earlier
+      // version had `|$` in the lookahead which let the strip extend
+      // to end-of-string when no Final-answer label existed — that
+      // wiped legitimate answer text on kids (e.g. Ruthie) who write
+      // "(a) Working: It is waterproof. (b) Working: …" with no
+      // Final-answer label, leaving just "(a)" on screen.
       const cleanedAnswer = (q.studentAnswer ?? "")
-        .replace(/\bworking\s*:\s*[\s\S]*?(?=\bfinal\s*ans|\bans(?:wer)?\s*:|$)/gi, "")
+        .replace(/\bworking\s*:\s*[\s\S]*?(?=\bfinal\s*ans|\bans(?:wer)?\s*:)/gi, "")
         .replace(/\bfinal\s*ans(?:wer)?\s*:\s*/gi, "")
         .replace(/^ans(?:wer)?\s*:\s*/gi, "")
         .replace(/\(\s*no\s+working\s+(shown|done|written)?\s*\)/gi, "")

@@ -1,0 +1,259 @@
+{
+  "patterns": [
+    {
+      "name": "Occasional Arithmetic Slips",
+      "what": "JeremiahSy often sets up the math perfectly and understands the logic, but occasionally makes a small calculation slip along the way.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy correctly found the total units but made a small division slip when calculating 196 divided by 4."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He beautifully identified that 7 units equal 210, but occasionally miscalculates the division step, writing 70 instead of 30."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy understands division well, but occasionally miscounts the zeroes when dividing large numbers like 560,000 by 700."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **find the total** or **how much**, it is a great idea to do a quick reverse-check of your calculations. **Work backwards** for a few seconds—if you divide to get an answer, multiply it back to see if you get the original number!",
+      "trigger_keywords": [
+        "find the total",
+        "how much",
+        "calculate the value",
+        "altogether"
+      ]
+    },
+    {
+      "name": "Navigating the Remainder Trap",
+      "what": "JeremiahSy sometimes calculates the next fraction or percentage using the original total, occasionally missing the cue to use the leftover amount.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He tends to use the total pies instead of finding the fraction of the remaining pies for the neighbour."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He occasionally calculates the percentage sold from the starting stamps rather than the remainder after the first batch was given away."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He sometimes subtracts fractions directly from the total instead of finding the fraction of the remaining flour."
+        }
+      ],
+      "strategic_advice": "Whenever you spot the word **remaining** or **remainder**, treat it as a giant stop sign! **Draw a branching model** or write down the new leftover amount before moving to the next step, so you are always taking a fraction of the correct pile.",
+      "trigger_keywords": [
+        "of the remaining",
+        "of the remainder",
+        "the rest",
+        "leftover"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "JeremiahSy does a fantastic job finding the value of one unit or a sub-total, but occasionally stops just before answering the specific final question.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly figured out the value of the remaining units, but occasionally uses that to find a different total than the one asked for at first."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully found the total money collected for the tickets, but stopped just short of dividing by the price to find the actual number of tickets."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "He brilliantly found the value of one unit, but occasionally multiplies by the wrong number of units for the final item requested."
+        }
+      ],
+      "strategic_advice": "When you see questions asking **how many more**, **find the total amount**, or **how many tickets**, circle those exact words. After finding your final number, **re-read the circled words** to make sure your answer matches exactly what the question is looking for!",
+      "trigger_keywords": [
+        "how many more",
+        "find the total amount",
+        "how many tickets",
+        "number of"
+      ]
+    },
+    {
+      "name": "Overlooking Final Format Details",
+      "what": "JeremiahSy occasionally forgets to include the required units of measurement or leaves fractions in a different format than requested.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "He got the perfect numerical answer for the average height, but occasionally forgets to write the unit 'm' at the end."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly read the graph to find the amount of rice, but missed adding 'kg' to his final answer."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct amount of flour, but occasionally leaves it as an improper fraction instead of the requested mixed number."
+        }
+      ],
+      "strategic_advice": "When a question says **give your answer in**, **express your answer as**, or mentions specific units like kg or m, underline that instruction immediately. Before moving to the next question, **do a quick format check** to ensure your final answer wears the right 'outfit'!",
+      "trigger_keywords": [
+        "give your answer in",
+        "express your answer as",
+        "in its simplest form",
+        "in kg",
+        "in metres"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq0i70h500ah2qesd16fezcd",
+    "2": "cmq0i70h600ak2qes4mgtiznp",
+    "3": "cmopa3w3s003j1amhjrcoy72j",
+    "4": "cmop997yv00301amhnd5fhl73",
+    "5": "cmocl0ysl0012fwkllbcq3jqk",
+    "6": "cmocl0tst000sfwklxh0goclq",
+    "7": "cmocl0tst000tfwkl8lzo16zn",
+    "8": "cmoates0h000pw4dzq1p7x3cj",
+    "9": "cmo9vlvez001s113kuks241jt",
+    "10": "cmo9vlvez001y113ks225yeel",
+    "11": "cmo9vlvez001z113kzude62bu",
+    "12": "cmo9lpnmf000oqw3cx00nqv7k",
+    "13": "cmo9lpnmf000rqw3cmsiayj5f",
+    "14": "cmo9lpnmf000wqw3cakccd9e1",
+    "15": "cmo82bcwk003h12oh4p0q7dst",
+    "16": "cmo82bcwk003i12oh38f91rfm",
+    "17": "cmnwx3h9c00086tptczx53dxm",
+    "18": "cmnrb4qvk00028i9zhj3adcux",
+    "19": "cmnrb4qvk00098i9znuq6xe47",
+    "20": "cmnpseah30015hi1v04hq9lyt",
+    "21": "cmnpseah30016hi1vd76kis3e",
+    "22": "cmnpseah30017hi1vr24uogsp",
+    "23": "cmnpseah30018hi1v8kbkr96h",
+    "24": "cmnpseah30019hi1vx7kvqvi8",
+    "25": "cmnpseah3001chi1vwx6n3pdu"
+  },
+  "generatedAt": "2026-06-15T04:47:16.397Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 13,
+    "mcq": 12
+  },
+  "toplineSnapshot": {
+    "avgPct": 86,
+    "totalAwarded": 279.5,
+    "totalAvailable": 324,
+    "paperCount": 15
+  },
+  "previousAssessment": null
+}
