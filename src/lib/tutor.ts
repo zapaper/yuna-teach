@@ -20,6 +20,49 @@
 
 import { prisma } from "@/lib/db";
 import { TUTOR_CACHE } from "@/lib/tutor-cache";
+import MATH_TRAPS_JSON from "@/lib/math-traps.json";
+
+// Math-trap lookup. Tagged offline by scripts/_tag-math-traps.ts —
+// one tag per (master or orphan) question id, value is one of the 6
+// trap categories or null. Lookup is sourceQuestionId-first so all
+// clones of a master inherit the master's tag.
+const MATH_TRAPS = MATH_TRAPS_JSON as Record<string, string | null>;
+
+// Display names + short descriptions + advice for the 6 traps.
+// The advice references the corresponding master class slugs so the
+// parent can jump straight to a teaching slide.
+const TRAP_META: Record<string, { name: string; what: string; advice: string }> = {
+  "internal-transfer": {
+    name: "Internal Transfer (Constant Total)",
+    what: "When one person gives some of their amount to another, the TOTAL between the two stays the same.",
+    advice: "Mark the question with **TOTAL constant** the moment you see 'X gave to Y'. The trap is treating the total as if it changed. Master class: **Hidden Constant Total — Pattern A**.",
+  },
+  "equal-removal": {
+    name: "Equal Removal (Constant Difference)",
+    what: "When the SAME amount is added to or removed from both quantities, the DIFFERENCE stays the same.",
+    advice: "Look for 'each spent / each gained' — the gap doesn't move. Master class: **Hidden Constant Total — Pattern B**.",
+  },
+  "one-unchanged": {
+    name: "One Quantity Unchanged",
+    what: "Only ONE of the two quantities changed; the other was untouched.",
+    advice: "Underline the part that didn't move and treat it as your anchor. Master class: **Hidden Constant Total — Pattern C**.",
+  },
+  "equalise-ratios": {
+    name: "Equalise Ratios",
+    what: "Two situations share an EQUAL TOTAL but different ratios — combining ratios directly is wrong.",
+    advice: "Scale each ratio to the common total first, THEN compare or combine. Master class: **Hidden Constant Total — Pattern D**.",
+  },
+  "nested-fractions": {
+    name: "Nested Fractions (Remainder of Remainder)",
+    what: "A fraction is taken, then another fraction of the REMAINDER. The trap is applying the second fraction to the original whole.",
+    advice: "After the first fraction is spent, redraw the bar with what's LEFT as the new whole before taking the second fraction. Master class: **Nested Fractions**.",
+  },
+  "percentage-traps": {
+    name: "Percentage Reference Shift",
+    what: "The 'reference whole' for the percentage changes mid-problem — a 20% rise after a 20% drop doesn't return to the start.",
+    advice: "Always re-state what each percentage is OF before computing. Master class: **Percentage Traps**.",
+  },
+};
 
 // ---- Gemini cache shape ----
 type GeminiExample = {
@@ -215,6 +258,11 @@ const mcqMarkerShape = /Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i;
 type WrongRecord = {
   idx: number;
   questionId: string;
+  // sourceQuestionId is the master question this clone descended from.
+  // We need it so the math-trap tags (keyed by master) can resolve
+  // across all of a master's clones; falling back to questionId for
+  // orphan questions that have no source.
+  sourceQuestionId: string | null;
   marksLost: number;
   topic: string;
   isMcq: boolean;
@@ -231,6 +279,7 @@ function reconstructWrongs(papers: Array<{
   subject: string | null;
   questions: Array<{
     id: string;
+    sourceQuestionId: string | null;
     studentAnswer: string | null; answer: string | null;
     marksAwarded: number | null; marksAvailable: number | null;
     markingNotes: string | null; transcribedOptions: unknown;
@@ -287,6 +336,7 @@ function reconstructWrongs(papers: Array<{
       wrongs.push({
         idx,
         questionId: q.id,
+        sourceQuestionId: q.sourceQuestionId,
         marksLost: av - aw,
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
@@ -441,6 +491,64 @@ function shapeTutorData(args: {
       marksLost: p.marksLost,
     }));
 
+  // Math-trap callouts. Deterministic, classification-grounded:
+  // for each math wrong record we already have an offline-tagged trap
+  // (one of the 6 master-class categories). Tally marks lost per trap;
+  // anything that crosses 1% of the subject's total available marks
+  // gets surfaced as its own Common Mistake card. These run
+  // independently of the >=15-wrongs Gemini gate — the math-traps
+  // lookup is precise enough that even 5 hits on a single trap is
+  // worth calling out.
+  const isMath = subject.toLowerCase().includes("math");
+  const trapCards: MistakeCard[] = [];
+  if (isMath && topline.totalAvailable > 0) {
+    type TrapAgg = { trap: string; marksLost: number; examples: WrongRecord[] };
+    const aggByTrap: Record<string, TrapAgg> = {};
+    for (const w of wrongs) {
+      const tag = (w.sourceQuestionId && MATH_TRAPS[w.sourceQuestionId])
+        || MATH_TRAPS[w.questionId]
+        || null;
+      if (!tag || !TRAP_META[tag]) continue;
+      const a = aggByTrap[tag] ?? { trap: tag, marksLost: 0, examples: [] };
+      a.marksLost += w.marksLost;
+      if (a.examples.length < 3) a.examples.push(w);
+      aggByTrap[tag] = a;
+    }
+    const minMarks = topline.totalAvailable * 0.01;
+    const qualified = Object.values(aggByTrap)
+      .filter(a => a.marksLost >= minMarks)
+      .sort((a, b) => b.marksLost - a.marksLost);
+    for (const q of qualified) {
+      const meta = TRAP_META[q.trap];
+      trapCards.push({
+        bucket: "missing_context",
+        name: meta.name,
+        what: meta.what,
+        advice: meta.advice,
+        triggerKeywords: [],
+        examples: q.examples.map(w => ({
+          questionRef: `[${w.idx}]`,
+          whatWentWrong: w.markingNotes || `${childFirst} lost ${w.marksLost} mark${w.marksLost === 1 ? "" : "s"} on this one.`,
+          paperTitle: w.paperTitle.replace(/^\s*\[[A-Z_-]+\]\s*/g, "").replace(/\s*\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z)?\)\s*$/g, "").trim(),
+          questionText: w.questionText,
+          studentAnswer: w.studentAnswer,
+          markingNotes: w.markingNotes,
+          diagramImageData: null,
+          questionId: w.questionId,
+          isMcq: w.isMcq,
+          options: w.options,
+          picked: w.isMcq ? w.studentAnswer : null,
+          correct: w.isMcq ? w.correctAnswer : null,
+        })),
+        marksLost: Math.round(q.marksLost * 10) / 10,
+      });
+    }
+  }
+  // Trap callouts go BEFORE Gemini-detected ones — they're specific
+  // and prescriptive (the parent gets a named technique with a master-
+  // class pointer), so they read as the most actionable items.
+  const allCommonMistakes = [...trapCards, ...commonMistakes];
+
   // Nudge — if incomplete_answer pattern surfaced strongly
   const incompletePattern = patternStats.find(p => p.bucket === "incomplete_answer" && p.marksLost > 0);
   const nudge = incompletePattern
@@ -482,7 +590,7 @@ function shapeTutorData(args: {
       weakTopics,
       nudge,
     },
-    commonMistakes,
+    commonMistakes: allCommonMistakes,
     conceptualGaps,
     topicsForPractice: weakTopics,
     generatedAt: new Date().toISOString(),
@@ -519,6 +627,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       questions: {
         select: {
           id: true,
+          sourceQuestionId: true,
           studentAnswer: true, answer: true,
           marksAwarded: true, marksAvailable: true,
           markingNotes: true, syllabusTopic: true,
