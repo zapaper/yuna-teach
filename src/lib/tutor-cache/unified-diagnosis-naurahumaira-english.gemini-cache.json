@@ -1,0 +1,281 @@
+{
+  "patterns": [
+    {
+      "name": "Shifting Tenses in Time",
+      "what": "NauraHumaira occasionally forgets to step her tenses backward when reporting someone else's speech or sequencing older past events.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "NauraHumaira used the present perfect 'have been' instead of shifting back to the past perfect 'had visited'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "She kept the simple past 'did' instead of backshifting to 'had done' for reported speech."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "NauraHumaira picked the present tense 'brush' instead of using 'had brushed' to show it happened before going to bed."
+        }
+      ],
+      "strategic_advice": "When you see trigger words like **asked** or **told**, remember to use the 'backshift' rule to push the tense one step into the past (e.g., 'did' becomes **had done**). For sentences with **After**, check if you need the past perfect (**had brushed**) to show which action happened first!",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "wanted to know",
+        "After"
+      ]
+    },
+    {
+      "name": "Transforming Actions into Nouns",
+      "what": "When a sentence starts with a possessive word or a specific phrase, NauraHumaira sometimes writes a full clause instead of changing the action or feeling into a noun.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "NauraHumaira wrote 'The decision's angered' instead of using the noun form 'unfairness'."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "She followed 'owing to' with a full clause ('the train was delayed') rather than a noun phrase like 'the train's delay'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "NauraHumaira wrote a full sentence after 'Much to' instead of using the noun phrase 'her embarrassment'."
+        }
+      ],
+      "strategic_advice": "When you see starters like **Much to** or **owing to**, or a word with an apostrophe like **decision's**, you usually need a noun phrase next. Try asking yourself, 'What is the noun form of this feeling or action?' For example, change 'embarrassed' to **embarrassment** or 'delayed' to **delay**.",
+      "trigger_keywords": [
+        "Much to",
+        "owing to",
+        "'s",
+        "With the"
+      ]
+    },
+    {
+      "name": "Keeping the Original Meaning",
+      "what": "NauraHumaira tends to accidentally reverse the order of events or miss important negative words, which changes the story the original sentence was telling.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "NauraHumaira accidentally reversed the timeline, making it sound like the boy ran out to play before tying his shoelaces."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She placed 'which has a red cover' next to the table, accidentally implying the table was red instead of the book."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "NauraHumaira missed the negative consequence, changing the meaning to suggest you can get to the island without a boat."
+        }
+      ],
+      "strategic_advice": "When combining sentences with **Having** or **Unless**, always double-check the timeline and the logic. **Having** means the action attached to it happened *first*. For **Unless**, read your final sentence to ensure you haven't accidentally turned a **cannot** into a **can**! When using **which**, make sure it sits directly next to the item it describes.",
+      "trigger_keywords": [
+        "Having",
+        "Unless",
+        "which"
+      ]
+    },
+    {
+      "name": "Choosing the Precise Word",
+      "what": "NauraHumaira sometimes picks vocabulary words that sound related to the topic but aren't the exact fit or standard phrase for that specific context.",
+      "specific_examples": [
+        {
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "NauraHumaira chose 'experiment' instead of 'demonstration', which is the precise word for showing how a first aid skill is done."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'dynamic' rather than 'tenacious', which specifically means never giving up."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "mcq",
+          "whatWentWrong": "NauraHumaira selected 'seizing' instead of 'mustering', which is the standard word used when gathering courage."
+        }
+      ],
+      "strategic_advice": "When faced with similar-looking options, look for context clues in the sentence that point to a specific word. For example, paramedics showing a skill is a **demonstration**, not an experiment. Also, try to memorize common word pairings (collocations) like **mustering courage** or **engrossed in**.",
+      "trigger_keywords": [
+        "fill in the blank",
+        "closest in meaning",
+        "vocabulary"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq4mpvu1004b3z8jkjsklryc",
+    "2": "cmq4mpvu1004c3z8j0yc9kz7p",
+    "3": "cmq4mpvu1004d3z8j9rd5vpe2",
+    "4": "cmq4mpvu1004f3z8jk2cq14wc",
+    "5": "cmq4mpvu1004h3z8jjzddcac8",
+    "6": "cmq4mpvu1004j3z8jbl47td9j",
+    "7": "cmq4mpvu1004k3z8jrd8jfx90",
+    "8": "cmptz5rs5000o14gmtucucnas",
+    "9": "cmptz5rs5000q14gmgkf8867y",
+    "10": "cmptz5rs5000r14gmjat7rqeg",
+    "11": "cmptz5rs5000s14gmxg97qik2",
+    "12": "cmptz5rs5000u14gmhnetrcgh",
+    "13": "cmptz5rs5000v14gmah8yrlvm",
+    "14": "cmptz5rs5000w14gmhun363tr",
+    "15": "cmptz5rs5000x14gmxunnk40r",
+    "16": "cmpuqhqpp001712ltm07s36cc",
+    "17": "cmpuqhqpp001812ltdxfnryav",
+    "18": "cmpuqhqpp001912ltpzc1xz2f",
+    "19": "cmpuqhqpp001a12ltsmk72lya",
+    "20": "cmpuqhqpp001b12lth1vm0bpy",
+    "21": "cmpvt8fk000141k55a0bwc17i",
+    "22": "cmpvt8fk000151k55bxscq2pb",
+    "23": "cmpvt8fk000161k556j85em48",
+    "24": "cmpvt8fk100181k55ru1yrs3a",
+    "25": "cmpvt8fk1001a1k559l2moa6o",
+    "26": "cmpvt8fk1001b1k55b69kuvif",
+    "27": "cmpvt8fk1001c1k55263oo0wj",
+    "28": "cmpvt8fk1001d1k55kkddga0x",
+    "29": "cmpvt8fk1001e1k55wdqw5pak",
+    "30": "cmpvt8fk1001f1k555wrftqgp"
+  },
+  "generatedAt": "2026-06-15T05:12:14.029Z",
+  "wrongCounts": {
+    "total": 30,
+    "oeq": 20,
+    "mcq": 10
+  },
+  "toplineSnapshot": {
+    "avgPct": 28,
+    "totalAwarded": 25,
+    "totalAvailable": 90,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}

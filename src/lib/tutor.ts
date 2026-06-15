@@ -331,19 +331,19 @@ function sliceClozePassageToContext(
   passage: string,
   blankPosition: number,
   scope: "sentence" | "paragraph",
-): string {
-  if (!passage) return "";
+): { text: string; blankLabel: string | null } {
+  if (!passage) return { text: "", blankLabel: null };
   const re = /\(\d+\)/g;
   const matches: Array<{ index: number; length: number; label: string }> = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(passage)) !== null) {
     matches.push({ index: m.index, length: m[0].length, label: m[0] });
   }
-  if (matches.length === 0) return passage;
+  if (matches.length === 0) return { text: passage, blankLabel: null };
   // If the question's blank position is out of range (e.g. the
   // passage's blank count doesn't match the section's question count),
   // fall back to the whole passage so we never hide content.
-  if (blankPosition < 0 || blankPosition >= matches.length) return passage;
+  if (blankPosition < 0 || blankPosition >= matches.length) return { text: passage, blankLabel: null };
   const blank = matches[blankPosition];
 
   if (scope === "paragraph") {
@@ -357,8 +357,8 @@ function sliceClozePassageToContext(
     const endRel = after.search(/\n\s*\n/);
     const end = endRel < 0 ? passage.length : blank.index + endRel;
     const sliced = passage.slice(start, end).trim();
-    if (sliced.length < blank.length + 2) return passage;
-    return sliced;
+    if (sliced.length < blank.length + 2) return { text: passage, blankLabel: blank.label };
+    return { text: sliced, blankLabel: blank.label };
   }
 
   // sentence scope (default for Grammar / Vocab Cloze)
@@ -370,8 +370,8 @@ function sliceClozePassageToContext(
   while (end < passage.length && !SENTENCE_END.test(passage[end])) end++;
   if (end < passage.length) end++;
   const sliced = passage.slice(start, end).trim();
-  if (sliced.length < blank.length + 2) return passage;
-  return sliced;
+  if (sliced.length < blank.length + 2) return { text: passage, blankLabel: blank.label };
+  return { text: sliced, blankLabel: blank.label };
 }
 
 function reconstructWrongs(papers: Array<{
@@ -474,10 +474,22 @@ function reconstructWrongs(papers: Array<{
           const scope: "sentence" | "paragraph" = topicLc.includes("comprehension") && topicLc.includes("cloze")
             ? "paragraph"
             : "sentence";
-          const sliced = blankPositionInSection >= 0
-            ? sliceClozePassageToContext(passageText, blankPositionInSection, scope)
-            : passageText;
-          if (sliced) lines.push(sliced);
+          let slicedText = passageText;
+          let blankLabel: string | null = null;
+          if (blankPositionInSection >= 0) {
+            const result = sliceClozePassageToContext(passageText, blankPositionInSection, scope);
+            slicedText = result.text;
+            blankLabel = result.blankLabel;
+          }
+          // For paragraph-scope (Comprehension Cloze) the paragraph
+          // can carry multiple blanks — call out WHICH one this
+          // question is so the parent doesn't have to guess.
+          if (slicedText) {
+            const header = scope === "paragraph" && blankLabel
+              ? `**${q.questionNum}**'s blank is **${blankLabel}** below.`
+              : "";
+            lines.push(header ? `${header}\n\n${slicedText}` : slicedText);
+          }
         }
         if (lines.length > 0) questionText = [questionText, lines.join("\n")].filter(Boolean).join("\n\n");
       }

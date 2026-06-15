@@ -1,0 +1,284 @@
+{
+  "patterns": [
+    {
+      "name": "Adapting Word Forms and Structures",
+      "what": "Andrea sometimes finds it tricky to adjust word forms, such as changing a verb to a noun, or applying specific grammatical rules when rewriting sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea kept the verb 'relieve' instead of changing it to the noun 'relief' after the phrase 'Much to'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea used a full clause 'I was nervous' instead of adapting it to the required '-ing' form 'being nervous' after 'Due to'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea changed 'fear' to the past tense verb 'feared', but the sentence needed the adjective 'fearsome' to describe the animals."
+        }
+      ],
+      "strategic_advice": "When you see trigger words like **Much to** or **Due to**, remember that you often need to change the action or feeling word into a noun (like 'relieve' to 'relief') or add an '-ing' word. Always read your new sentence aloud to check if it sounds grammatically complete. If you are editing a word, check if the sentence needs an adjective to describe a noun rather than a verb.",
+      "trigger_keywords": [
+        "Much to",
+        "Due to",
+        "would rather",
+        "Unless",
+        "correct the grammatical error"
+      ]
+    },
+    {
+      "name": "Vague Explanations in Comprehension",
+      "what": "When answering open-ended questions, Andrea tends to give a general summary but occasionally stops one step short of providing the specific details or final consequences from the text.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea mentioned that Miss Lim thought it was important, but missed the specific reason from the text about Ah Huat not having time at home."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea gave a general lesson about not repeating past mistakes, rather than stating the specific detail that the author experienced the same pain."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea noted that Ah Huat got the words wrong, but missed the crucial detail that Miss Lim felt embarrassed because she scolded him before understanding his situation."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **Explain clearly why** or **Support your answer**, always include a specific detail directly from the text. Try using a **because** or **so that** clause to make sure you are stating the final consequence or exact reason. Avoid general statements and look for the exact action that caused the event.",
+      "trigger_keywords": [
+        "Explain clearly why",
+        "How did",
+        "Support your answer",
+        "Reason"
+      ]
+    },
+    {
+      "name": "Spelling and Vocabulary Precision",
+      "what": "Andrea occasionally spells tricky words exactly as they sound, and sometimes chooses vocabulary words that are close in meaning but not the exact fit for the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea spelled 'inspiration' phonetically as 'insperation', missing the correct vowels."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea chose 'steadily', which looks and sounds similar to the correct word 'stealthily', but changes the meaning of how the wolves moved."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Andrea picked 'exhibit', which is related to showing things, but 'demonstration' is the precise word used for showing how an invention works."
+        }
+      ],
+      "strategic_advice": "When you need to correct a spelling error, try breaking the word down into its **syllables** or root words rather than just sounding it out. If you are choosing a vocabulary word, read the **whole sentence** to ensure the word's exact meaning fits the situation perfectly. Watch out for words that look similar but have different meanings!",
+      "trigger_keywords": [
+        "correct the spelling",
+        "closest in meaning",
+        "fill in the blanks",
+        "choose the correct word"
+      ]
+    },
+    {
+      "name": "Tracking Context in Cloze Passages",
+      "what": "In cloze passages, Andrea sometimes focuses only on the blank itself and misses the surrounding words that hint at the correct pronoun, connector, or action.",
+      "specific_examples": [
+        {
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea chose 'rely', but the context of communities coming together for meals points to a word like 'gather' or 'meet'."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea wrote 'less', missing that the blank is the subject of the sentence referring back to the plural 'hawker centres', which requires 'they' or 'these'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea used 'the', missing that the sentence is comparing plural 'genes', so the correct pronoun is 'those'."
+        }
+      ],
+      "strategic_advice": "When you see a **blank in a passage**, always read the sentence before and the sentence after it. Look for **clue words** like 'for' or 'are' that tell you whether you need an action word, a plural pronoun, or a connector. Ask yourself what the sentence is referring back to in order to find the right match.",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "suitable word",
+        "passage",
+        "blank"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqbyju05002c4ehortb2o897",
+    "2": "cmqbyju0500294ehopaf1nckw",
+    "3": "cmqbyju01000j4ehoujwc6dmm",
+    "4": "cmqbyju01000m4eho85pkzie4",
+    "5": "cmqbyju0400204eho6v8w8dkd",
+    "6": "cmqbyju0400214eho69rt6oix",
+    "7": "cmqbyju0400224ehotunoyxf3",
+    "8": "cmqbyju0400234eho8tntgkqo",
+    "9": "cmqbyju0400244ehoshiv8dcl",
+    "10": "cmqbyju0500274ehofo482rys",
+    "11": "cmqbyju05002e4ehovdwc7h47",
+    "12": "cmqbyju01000i4ehomtpcw7ew",
+    "13": "cmqbyju01000k4ehoi0tmxs2o",
+    "14": "cmqbyju01000s4ehot5pp3avz",
+    "15": "cmqbyju01000t4ehoq9bldzf2",
+    "16": "cmqbyju01000v4ehopbdaxcdd",
+    "17": "cmqbyju01000w4ehon6hlcel1",
+    "18": "cmqbyju02000x4ehovmlq5git",
+    "19": "cmqbyju0200124ehotyb079f0",
+    "20": "cmqbyju0200164ehovuve7udb",
+    "21": "cmqbyju0200184ehoc9dblzel",
+    "22": "cmqbyju0200194ehoit3d7l04",
+    "23": "cmqbyju02001b4eho6rwt77m9",
+    "24": "cmqbyju03001d4ehonf1x3nil",
+    "25": "cmqbyju03001e4ehok46mw5tu",
+    "26": "cmqbyju03001f4ehooa1cgi5g",
+    "27": "cmqbyju03001i4ehoz698155u",
+    "28": "cmqbyju03001j4ehoiw66iba1",
+    "29": "cmqbyju03001l4ehowfclzuf9",
+    "30": "cmqbyju03001m4eho0fsvydsa"
+  },
+  "generatedAt": "2026-06-15T05:12:24.940Z",
+  "wrongCounts": {
+    "total": 30,
+    "oeq": 21,
+    "mcq": 9
+  },
+  "toplineSnapshot": {
+    "avgPct": 39,
+    "totalAwarded": 36.5,
+    "totalAvailable": 93,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

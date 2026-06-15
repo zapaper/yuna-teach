@@ -34,8 +34,10 @@ import jeremiahMath from "./tutor-cache/unified-diagnosis-jeremiahsy-math.gemini
 import jonTanMath from "./tutor-cache/unified-diagnosis-jon-tan-math.gemini-cache.json";
 import tylerngMath from "./tutor-cache/unified-diagnosis-tylerng-math.gemini-cache.json";
 // P5 English caches
+import andreaEnglish from "./tutor-cache/unified-diagnosis-andrea-english.gemini-cache.json";
 import angyunshanarielEnglish from "./tutor-cache/unified-diagnosis-angyunshanariel-english.gemini-cache.json";
 import audreyEnglish from "./tutor-cache/unified-diagnosis-audrey-english.gemini-cache.json";
+import naurahumairaEnglish from "./tutor-cache/unified-diagnosis-naurahumaira-english.gemini-cache.json";
 import jeremiahEnglish from "./tutor-cache/unified-diagnosis-jeremiahsy-english.gemini-cache.json";
 import jonTanEnglish from "./tutor-cache/unified-diagnosis-jon-tan-english.gemini-cache.json";
 import joylynnEnglish from "./tutor-cache/unified-diagnosis-joylynn-english.gemini-cache.json";
@@ -106,9 +108,11 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "jon-tan:math":                             jonTanMath as CachedReport,
   "tylerng:math":                             tylerngMath as CachedReport,
   // P5 English
+  "andrea:english":          andreaEnglish as CachedReport,
   "angyunshanariel:english": angyunshanarielEnglish as CachedReport,
   "audrey:english":          audreyEnglish as CachedReport,
   "jeremiahsy:english":      jeremiahEnglish as CachedReport,
+  "naurahumaira:english":    naurahumairaEnglish as CachedReport,
   "jon-tan:english":         jonTanEnglish as CachedReport,
   "joylynn:english":         joylynnEnglish as CachedReport,
   "kayden:english":          kaydenEnglish as CachedReport,
