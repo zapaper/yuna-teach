@@ -823,6 +823,34 @@ export function parsePartAnswers(answer: string | null | undefined): Map<string,
       hits.push({ full: m[0], index: m.index!, label: m[2].toLowerCase() });
     }
   }
+  // Forward-walk relaxed scan: hand-typed MCQ answer keys often omit
+  // the " | " between simple labels — e.g. "(a) C (b) A". The anchored
+  // scans above only catch (a) and bundle the tail "C (b) A" as (a)'s
+  // content, leaving (b) with no answer key (Q15 cmqf3g47u). Within
+  // each found chunk's slice, look for the *next alphabetically
+  // consecutive* simple letter preceded by whitespace. Restricting to
+  // the next letter means prose like "(a) Apply rule (z) ..." can't
+  // false-match — we only fan out when labels run in real sequence.
+  for (let i = 0; i < hits.length; i++) {
+    const h = hits[i];
+    if (h.label.length !== 1) continue; // simple letters only
+    const start = h.index + h.full.length;
+    const end = i + 1 < hits.length ? hits[i + 1].index : answer.length;
+    const slice = answer.slice(start, end);
+    const nextLetter = String.fromCharCode(h.label.charCodeAt(0) + 1);
+    if (nextLetter > "z") continue;
+    const relaxedRe = new RegExp(`\\s\\(${nextLetter}\\)\\s*`, "i");
+    const m = slice.match(relaxedRe);
+    if (m && m.index !== undefined) {
+      hits.splice(i + 1, 0, {
+        full: m[0],
+        index: start + m.index,
+        label: nextLetter,
+      });
+      // Don't increment — the newly-inserted hit becomes the source
+      // for the next iteration so we keep chaining (c), (d), …
+    }
+  }
   if (hits.length === 0) return result;
   for (let i = 0; i < hits.length; i++) {
     const h = hits[i];

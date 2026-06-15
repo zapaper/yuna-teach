@@ -39,10 +39,14 @@ export async function GET() {
   const WINDOW_DAYS = 14;
   const since7d = new Date(now - WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
+  // Effective owner = assignedTo (the kid taking the quiz) when set,
+  // else the paper's userId (self-attempted). Filter on the effective
+  // owner — otherwise admin-assigned-to-real-kid papers get hidden
+  // because the row's userId is admin even though the student is real.
   const userScope = excludedIds.length > 0 ? {
-    AND: [
-      { userId: { notIn: excludedIds } },
-      { OR: [{ assignedToId: null }, { assignedToId: { notIn: excludedIds } }] },
+    OR: [
+      { assignedToId: { notIn: excludedIds } },
+      { AND: [{ assignedToId: null }, { userId: { notIn: excludedIds } }] },
     ],
   } : {};
 

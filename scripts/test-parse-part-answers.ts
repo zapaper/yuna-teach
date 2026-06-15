@@ -25,3 +25,15 @@ show("compound + simple", "(a)(i) Apple (a)(ii) Banana | (b) Carrot");
 
 // Edge: nothing labelled
 show("plain prose", "The capital is London. Apply rule (a) to the next step.");
+
+// Q15 cmqf3g47u — MCQ master answer typed without the " | " pipe.
+// Used to bundle the whole tail "C (b) A" into (a). Should now split.
+show("simple space-separated", "(a) C (b) A");
+
+// 3-label chain "(a) X (b) Y (c) Z" — make sure the forward-walk
+// keeps chaining past (b).
+show("simple space-separated 3-way", "(a) Apple (b) Banana (c) Carrot");
+
+// Prose safety: a single (a) followed by an out-of-sequence (z) — the
+// relaxed scan must NOT match (z) because z is not the next letter.
+show("prose with out-of-sequence label", "(a) Apply rule (z) to the next step.");
