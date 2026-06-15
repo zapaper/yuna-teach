@@ -4766,9 +4766,30 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
 // the parent dashboard's main column so the existing left sidebar
 // stays visible — clicking between Home / Progress / Set Papers /
 // students is one in-page state change, no full-page navigation.
+type LumiAdminCandidate = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
 function LumiViewBody({ studentId, parentId, studentName }: { studentId: string; parentId: string; studentName: string }) {
   const [subject, setSubject] = useState<string>("Science");
-  const firstName = studentName.split(/\s+/)[0] ?? "";
+  // Admin override: when the caller is an admin, /api/tutor/admin-students
+  // returns every kid who qualifies for the current subject — including
+  // ones not linked to this parent account. The override below lets the
+  // admin pick any of those without leaving the dashboard. For
+  // non-admin parents, the endpoint 401s and the selector stays hidden.
+  const [adminCandidates, setAdminCandidates] = useState<LumiAdminCandidate[]>([]);
+  const [override, setOverride] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    setOverride(null);              // reset on linked-student change so we
+                                    // don't keep showing an old override
+  }, [studentId]);
+  useEffect(() => {
+    fetch(`/api/tutor/admin-students?subject=${encodeURIComponent(subject)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setAdminCandidates(((d?.students as LumiAdminCandidate[] | undefined) ?? [])))
+      .catch(() => setAdminCandidates([]));
+  }, [subject]);
+  const effectiveStudentId = override?.id ?? studentId;
+  const effectiveStudentName = override?.name ?? studentName;
+  const firstName = effectiveStudentName.split(/\s+/)[0] ?? "";
+  const showAdminSelector = adminCandidates.length > 0;
   return (
     <div>
       {/* Pad above the heading so the subject pills clear the fixed
@@ -4780,7 +4801,7 @@ function LumiViewBody({ studentId, parentId, studentName }: { studentId: string;
         <h2 className="text-2xl font-headline font-extrabold text-[#001e40] mb-4">
           {firstName ? `${firstName}'s ${subject}` : subject}
         </h2>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           {(["Science", "Math", "English", "Chinese"] as const).map(s => (
             <button
               key={s}
@@ -4795,9 +4816,39 @@ function LumiViewBody({ studentId, parentId, studentName }: { studentId: string;
               {s}
             </button>
           ))}
+          {showAdminSelector && (
+            <>
+              <span className="mx-2 text-slate-300">·</span>
+              <select
+                value={effectiveStudentId}
+                onChange={e => {
+                  const pick = adminCandidates.find(c => c.id === e.target.value);
+                  if (!pick) { setOverride(null); return; }
+                  // Picking the originally-linked kid clears override.
+                  if (pick.id === studentId) { setOverride(null); return; }
+                  setOverride({ id: pick.id, name: pick.name });
+                }}
+                className="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white"
+                title="Admin override — pick any student who qualifies for Lumi in this subject"
+              >
+                {!adminCandidates.some(c => c.id === studentId) && (
+                  <option value={studentId}>{studentName} (linked)</option>
+                )}
+                {adminCandidates.map(c => {
+                  const noDx = c.hasDiagnosis === false;
+                  const level = c.level ? `P${c.level} ` : "";
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {level}{c.name}{noDx ? " — no diagnosis yet" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </>
+          )}
         </div>
       </div>
-      <TutorBodyForStudent studentId={studentId} parentId={parentId} subject={subject} currentChildName={studentName} />
+      <TutorBodyForStudent studentId={effectiveStudentId} parentId={parentId} subject={subject} currentChildName={effectiveStudentName} />
     </div>
   );
 }
