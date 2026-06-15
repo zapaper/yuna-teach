@@ -437,6 +437,129 @@ async function extractSequential(args: {
 // yBottomDelta swaps to yBottomDeltaMultiLine so the wider crop
 // captures the wrap row too. Single-line Qs stay at the (tight)
 // default yBottomDelta and keep their indented xStart.
+// ─── P4 词语搭配 augmentation ────────────────────────────────────────────────
+// 词语搭配 ("word-collocation matching") prints a numbered phrase bank
+// at the top of the section (1-8) and 4-6 prompt rows like
+// "11. 摇摆 (11) ____" / "12. (12) ____ 规则" beneath it. Default Chinese
+// OCR drops both pieces:
+//   - per-Q stems come back as "摇摆 ( )" / "( ) 规则" (the printed Q-num
+//     inside the parens vanishes, no blank marker)
+//   - the section-top word table never lands in metadata
+// → kid sees a blank stem with nothing to pick from.
+//
+// Fix path: re-OCR the section page with a 词语搭配-specific prompt,
+// build a synthetic markdown passage that the existing grammar-cloze
+// renderer (PassageWithInputs) already knows how to lay out:
+//   · digit row + phrase row (2-row word bank table — same shape the
+//     PSLE 2024/2025 完成对话 word bank uses; linkedLabels pre-pass
+//     auto-strikes used phrases for free)
+//   · each Q on its own line with a **(qNum)____** marker that becomes
+//     a labelled input.
+//
+// Limited to P4 only — P5/P6 don't use this layout and accidentally
+// rewriting their 完成对话 sections would be destructive.
+
+type CiyuExtract = {
+  wordBank: Array<{ num: number; phrase: string }>;
+  questions: Array<{ qNum: number; stemBefore: string; stemAfter: string }>;
+};
+
+async function extractCiyuP4Content(
+  pageBytes: Buffer,
+  pageIndex: number,
+  expectedQNums: number[],
+): Promise<CiyuExtract | null> {
+  const prompt = `You are reading page ${pageIndex + 1} of a Singapore Primary 4 Chinese (华文) paper. The section on this page is 词语搭配 — a word-collocation matching exercise.
+
+LAYOUT:
+- Top of the section: a TABLE of 8 numbered Chinese phrases labelled (1) through (8). Example: (1) 家长 (2) 插队 (3) 身体 (4) 穷人 (5) 挥动 (6) 遵守 (7) 摇摆 (8) 球拍.
+- Below the table: 4-6 short prompt rows. Each row has a printed question number in parentheses, an empty bracket where the student writes the matching phrase number, and a prompt phrase. The empty bracket can appear AFTER the prompt phrase ("摇摆 (11) ___") OR BEFORE it ("(12) ___ 规则"). The "(11)" / "(12)" inside the parentheses is the QUESTION NUMBER, NOT the answer.
+
+EXTRACT:
+1. The 8 phrases in the word bank, in order, with their bank-number 1-8.
+2. For each prompt row whose question number is in this list: ${expectedQNums.join(", ")}. Report:
+   - "qNum": the question number (e.g. 11)
+   - "stemBefore": the Chinese text BEFORE the (qNum)____ blank, trimmed (often empty)
+   - "stemAfter": the Chinese text AFTER the (qNum)____ blank, trimmed (often empty)
+
+Output STRICTLY this JSON shape — no markdown, no commentary:
+{
+  "wordBank": [{ "num": 1, "phrase": "家长" }, { "num": 2, "phrase": "插队" }],
+  "questions": [
+    { "qNum": 11, "stemBefore": "摇摆", "stemAfter": "" },
+    { "qNum": 12, "stemBefore": "", "stemAfter": "规则" }
+  ]
+}`;
+
+  const resp = await getAI().models.generateContent({
+    model: "gemini-3.1-pro-preview",
+    contents: [{
+      role: "user",
+      parts: [
+        { inlineData: { mimeType: "image/jpeg", data: pageBytes.toString("base64") } },
+        { text: prompt },
+      ],
+    }],
+    config: { responseMimeType: "application/json", temperature: 0 },
+  });
+
+  try {
+    const parsed = JSON.parse(resp.text ?? "{}") as {
+      wordBank?: Array<{ num?: unknown; phrase?: unknown }>;
+      questions?: Array<{ qNum?: unknown; stemBefore?: unknown; stemAfter?: unknown }>;
+    };
+    const wordBank: CiyuExtract["wordBank"] = [];
+    for (const w of parsed.wordBank ?? []) {
+      const num = Number(w.num);
+      const phrase = String(w.phrase ?? "").trim();
+      if (Number.isFinite(num) && phrase) wordBank.push({ num, phrase });
+    }
+    const questions: CiyuExtract["questions"] = [];
+    for (const q of parsed.questions ?? []) {
+      const qNum = Number(q.qNum);
+      if (!Number.isFinite(qNum)) continue;
+      questions.push({
+        qNum,
+        stemBefore: String(q.stemBefore ?? "").trim(),
+        stemAfter: String(q.stemAfter ?? "").trim(),
+      });
+    }
+    return { wordBank, questions };
+  } catch (err) {
+    console.error(`[normal-extract] 词语搭配 parse failed for page ${pageIndex}:`, err);
+    return null;
+  }
+}
+
+// Build the synthetic passage that PassageWithInputs renders:
+//   row 1: "| 1 | 2 | 3 | … | 8 |"  (digit labels)
+//   sep:   "|---|---|---|---|---|---|---|---|"
+//   row 2: "| 家长 | 插队 | … |"      (phrase row, auto-linked to digits)
+//   blank line
+//   "11. 摇摆 **(11)____**"
+//   "12. **(12)____** 规则"
+//   ...
+function buildCiyuPassage(extract: CiyuExtract): string {
+  const lines: string[] = [];
+  if (extract.wordBank.length > 0) {
+    const sorted = [...extract.wordBank].sort((a, b) => a.num - b.num);
+    const nums = sorted.map(w => String(w.num));
+    const phrases = sorted.map(w => w.phrase);
+    lines.push(`| ${nums.join(" | ")} |`);
+    lines.push(`|${sorted.map(() => "---").join("|")}|`);
+    lines.push(`| ${phrases.join(" | ")} |`);
+    lines.push("");
+  }
+  for (const q of extract.questions) {
+    const blank = `**(${q.qNum})________**`;
+    const before = q.stemBefore.trim();
+    const after = q.stemAfter.trim();
+    const body = [before, blank, after].filter(Boolean).join(" ");
+    lines.push(`${q.qNum}. ${body}`);
+  }
+  return lines.join("\n");
+}
+
 async function extractAnchoredCrop(args: {
   paperId: string;
   sections: SecMeta[];
@@ -710,6 +833,56 @@ export async function POST(
         xLeftDelta: 12, xRightDelta: 90, yTopDelta: 1.5, yBottomDelta: 3,
         pageCount: paper.pageCount ?? undefined,
       });
+      // P4 词语搭配 augmentation: build the synthetic word-bank + blank-
+      // marker passage and write transcribedStems with the printed Q-num
+      // inside the parens. Per-Q crops above only cover the row image;
+      // this pass is what makes the section actually playable.
+      if (isP4(paperLevel)) {
+        const ciyuSections = sections.filter(s => /词语搭配/.test(s.label));
+        for (const sec of ciyuSections) {
+          const secQs = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
+          const firstWithPage = secQs.find(q => q.pageIndex != null);
+          const pageIdx = firstWithPage?.pageIndex ?? 0;
+          const pagePath = path.join(PAGES_DIR, paper.id, `page_${pageIdx}.jpg`);
+          let pageBytes: Buffer;
+          try {
+            pageBytes = await fs.readFile(pagePath);
+          } catch {
+            result.warnings.push(`词语搭配 augmentation: page_${pageIdx}.jpg not found on disk`);
+            continue;
+          }
+          const expectedNums = secQs.map(q => parseInt(q.questionNum, 10)).filter(n => Number.isFinite(n));
+          const extract = await extractCiyuP4Content(pageBytes, pageIdx, expectedNums);
+          if (!extract) {
+            result.warnings.push(`词语搭配 augmentation: Gemini extract failed on page ${pageIdx}`);
+            continue;
+          }
+          const passage = buildCiyuPassage(extract);
+          // Update meta.chineseSections in place — the final
+          // examPaper.update at the bottom of POST persists it.
+          const srcSections = meta.chineseSections ?? [];
+          for (let i = 0; i < srcSections.length; i++) {
+            if (srcSections[i].label === sec.label) {
+              srcSections[i] = { ...srcSections[i], passage };
+            }
+          }
+          meta.chineseSections = srcSections;
+          // Update per-Q transcribedStem so the marker / printable
+          // route can show "摇摆 (11) ____" instead of "摇摆 ( )".
+          const byNum = new Map(extract.questions.map(q => [q.qNum, q]));
+          for (const q of secQs) {
+            const n = parseInt(q.questionNum, 10);
+            const e = byNum.get(n);
+            if (!e) continue;
+            const stem = [e.stemBefore, `(${n}) ____`, e.stemAfter].filter(Boolean).join(" ");
+            await prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { transcribedStem: stem },
+            });
+          }
+          console.log(`[normal-extract] 词语搭配 augment: section "${sec.label}" → ${extract.wordBank.length} phrases, ${extract.questions.length} Qs`);
+        }
+      }
       break;
     }
   }
