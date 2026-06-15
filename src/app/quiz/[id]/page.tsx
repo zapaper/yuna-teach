@@ -36,6 +36,7 @@ interface QuizPaper {
   id: string;
   title: string;
   subject: string | null;
+  level: number | null;
   metadata: {
     quizType: "mcq" | "mcq-oeq";
     sourceLabels?: Record<string, string | null>;
@@ -2043,8 +2044,18 @@ function QuizContent({ id }: { id: string }) {
                   if (secQuestions.length === 0) return null;
                   const label = sec.label;
                   const labelLc = label.toLowerCase();
-                  const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空");
-                  const isShortClozeMcq = label.includes("短文填空");
+                  // P4 Chinese papers add 词语搭配 (phrase-collocation
+                  // matching) and reshape 短文填空 to share a single
+                  // 1-8 numbered phrase bank instead of per-question
+                  // 4-option MCQ. Both end up looking exactly like
+                  // 完成对话 (bank above + typed-digit blanks), so we
+                  // route them through the grammar-cloze renderer when
+                  // the paper is P4. P5/P6 短文填空 keeps the inline
+                  // 4-option layout unchanged.
+                  const isP4 = paper.level === 4;
+                  const isP4SharedBank = isP4 && (label.includes("词语搭配") || label.includes("短文填空"));
+                  const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空") || isP4SharedBank;
+                  const isShortClozeMcq = label.includes("短文填空") && !isP4SharedBank;
                   // "阅读理解 MCQ", "阅读理解 OEQ", "阅读理解A",
                   // "阅读理解B" (merged 五-A / 五-B). Any 阅读理解
                   // label that ISN'T 短文填空 carries a passage and

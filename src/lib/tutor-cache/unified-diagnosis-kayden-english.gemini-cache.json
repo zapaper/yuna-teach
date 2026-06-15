@@ -1,0 +1,281 @@
+{
+  "patterns": [
+    {
+      "name": "Adjusting Tenses for Time Shifts",
+      "what": "Kayden sometimes forgets to shift verbs into the correct timeframe, especially when changing direct quotes into reported speech or stating general facts.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden kept the verb in the simple past instead of shifting it back to the past perfect ('had gone') for reported speech."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden missed shifting 'were' to 'had been' when transforming the direct quote into reported speech."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "mcq",
+          "whatWentWrong": "Kayden chose the past tense, overlooking that general rules and facts should be written in the simple present tense."
+        }
+      ],
+      "strategic_advice": "When you see reporting words like **asked** or **said that**, always remember to take one step back in time (e.g., past becomes past perfect). For general facts or rules, keep your verbs in the **simple present tense**.",
+      "trigger_keywords": [
+        "asked",
+        "said that",
+        "told",
+        "yesterday",
+        "previous day"
+      ]
+    },
+    {
+      "name": "Double-Checking Tricky Spellings",
+      "what": "Kayden occasionally misses a letter or swaps vowels when spelling longer words, which leads to lost marks even when the right word is chosen.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden correctly identified the word 'opportunity' but missed the first 'r' when writing it down."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden knew the word was 'business' but slightly mixed up the order of the vowels."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden found the right ideas in the passage but had a few minor spelling slips with words like 'excitement' and 'exercises'."
+        }
+      ],
+      "strategic_advice": "When you write down a long word, try breaking it into smaller syllables (like op-por-tu-ni-ty) to catch missing letters. Always double-check words with tricky vowel combinations before moving to the next question.",
+      "trigger_keywords": [
+        "spelling",
+        "editing",
+        "correct the word",
+        "comprehension"
+      ]
+    },
+    {
+      "name": "Pinpointing Exact Details in Comprehension",
+      "what": "Kayden tends to grasp the overall story well, but occasionally stops one step short of stating the exact action or specific detail required by the question.",
+      "specific_examples": [
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden wrote down a different event from the passage instead of the exact cause that made the spectators cheer."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden identified the general topics but missed including the specific action verbs, like 'climbing down' instead of just 'climbing the tree'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "mcq",
+          "whatWentWrong": "Kayden picked an option that sounded good generally, rather than scanning the poster to verify the exact time of the event."
+        }
+      ],
+      "strategic_advice": "When you see **refer to**, always check if the word replaces a specific action (like 'participating' or 'climbing down') rather than just a noun. For **cause and effect** questions, trace the events backwards step-by-step to find the direct trigger.",
+      "trigger_keywords": [
+        "refer to",
+        "cause",
+        "effect",
+        "why did",
+        "true about"
+      ]
+    },
+    {
+      "name": "Hunting for Context Clues",
+      "what": "Kayden sometimes chooses a vocabulary word that sounds plausible on its own, rather than hunting for the specific clue words hidden in the surrounding sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Kayden chose 'speculated' (guessed), missing the clue 'flashflood' which makes a delay highly expected or 'anticipated'."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Kayden picked 'sluggish' (slow), overlooking the contrast word 'agile' which points to 'rigid' (stiff) as the opposite."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden wrote 'forest', missing the clue 'cast by the giant trees' which points to 'shadows'."
+        }
+      ],
+      "strategic_advice": "When you see a blank, look for **contrast words** like 'while' or 'but', and **cause words** like 'due to'. Highlight these clues first, as they will point you to the exact meaning needed before you look at the options.",
+      "trigger_keywords": [
+        "due to",
+        "while",
+        "but",
+        "closest in meaning",
+        "fill in each blank"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 2
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq9brzq4013cbxuf20sd6gus",
+    "2": "cmq9brzq5013ebxufrdktlpqu",
+    "3": "cmq9brzq5013fbxufj4bahhpj",
+    "4": "cmq9brzq5013jbxufmpzj5n6s",
+    "5": "cmq9brzq5013nbxufyfvh6r5i",
+    "6": "cmq9brzq5013qbxuf8z1n0qk7",
+    "7": "cmq9brzq5013tbxufuru1lff1",
+    "8": "cmpxyxkc500061225v5gemv7z",
+    "9": "cmpxyxkc5000a12256644za1j",
+    "10": "cmpxyxkc5000e1225e9dqgf8r",
+    "11": "cmpxyxkc5000h1225tqyf0f94",
+    "12": "cmpxyxkc6000p1225d76arvmo",
+    "13": "cmpxyxkc6000q1225tb44yfvy",
+    "14": "cmpxyxkc6000y1225gkae0o72",
+    "15": "cmpxyxkc6001112259afu7ril",
+    "16": "cmpxyxkc600131225bdbbkjsg",
+    "17": "cmpxyxkc600141225jtxy4gjo",
+    "18": "cmpxyxkc600151225s303bjeh",
+    "19": "cmpxyxkc600191225cwcz9szf",
+    "20": "cmpxyxkc7001a12259rjk46pl",
+    "21": "cmpxyxkc7001b1225ta58ejgs",
+    "22": "cmpxyxkc7001d12258m4y2c9x",
+    "23": "cmpxyxkc7001e1225mv8x48ng",
+    "24": "cmpul5kn5000zgrmmh4wjhhcc",
+    "25": "cmpul5kn50011grmm2csapnbx",
+    "26": "cmpul5kn60013grmm88xd9c0u",
+    "27": "cmpul5kn6001dgrmm7njm3jv8",
+    "28": "cmpul5kn6001fgrmmup3c94un",
+    "29": "cmpul5kn6001qgrmmafs0p1ze"
+  },
+  "generatedAt": "2026-06-15T04:55:56.938Z",
+  "wrongCounts": {
+    "total": 29,
+    "oeq": 15,
+    "mcq": 14
+  },
+  "toplineSnapshot": {
+    "avgPct": 71,
+    "totalAwarded": 93,
+    "totalAvailable": 131,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

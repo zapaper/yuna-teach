@@ -1,0 +1,265 @@
+{
+  "patterns": [
+    {
+      "name": "Spotting Hidden Context Clues",
+      "what": "angyunshanariel sometimes overlooks the surrounding hints in the sentence, which occasionally leads to picking a word that means the opposite of what is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'meager' for a feast, but the clues 'leftovers and wastage' point to a 'lavish' or huge meal."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'negligible' (very little) spending, but the company faced 'financial difficulties,' which means the spending must have been 'extravagant'."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel selected 'proposed' for a delay, but since it was caused by a flashflood, the delay is 'expected' rather than suggested by someone."
+        }
+      ],
+      "strategic_advice": "When you see a blank in a long sentence, always look for the **cause and effect** clues before looking at the options. Highlight words that show the result, like 'leftovers' or 'financial difficulties'. Ask yourself, **'Does my choice match the final outcome of the sentence?'**",
+      "trigger_keywords": [
+        "due to",
+        "because",
+        "resulted in",
+        "leftovers",
+        "difficulties"
+      ]
+    },
+    {
+      "name": "Navigating Phrasal Verbs",
+      "what": "angyunshanariel occasionally finds phrasal verbs challenging, as changing just one small preposition can completely alter the meaning of the action.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'taken off' instead of 'taken in', which is the correct phrase for being tricked by a magician."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'set off' (to start a journey) rather than 'set in', which describes a feeling like fatigue beginning and staying."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "In a repeat of the magician question, angyunshanariel left it blank, showing that this specific phrasal verb ('taken in') is still a bit tricky for him/her."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by different prepositions (like 'in', 'off', 'down'), try to **visualise the idiom** rather than taking it literally. Keep a small **phrasal verb journal** to group these by their main verb (e.g., all 'take' phrases) so you can review their unique meanings together.",
+      "trigger_keywords": [
+        "taken",
+        "set",
+        "put",
+        "look",
+        "give"
+      ]
+    },
+    {
+      "name": "Mastering Tricky Grammar Rules",
+      "what": "angyunshanariel tends to get tripped up by specific grammar rules, such as uncountable nouns, special subject-verb agreements, or relative pronouns.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel selected 'many' for improvement, but since improvement is uncountable in this context, 'much' is the right fit."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'have', but with 'Either... or', the verb must match the closest subject ('child'), so it should be the singular 'has'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'which' instead of 'whose' to show that the broken windows belonged to the old house."
+        }
+      ],
+      "strategic_advice": "When you see grammar questions testing quantity or agreement, always **circle the subject** first. If you see 'Either... or' or 'Neither... nor', draw an arrow to the **closest subject** to decide if the verb is singular or plural. For words like 'improvement' or 'furniture', ask yourself if you can count them with numbers before choosing your quantifier.",
+      "trigger_keywords": [
+        "Either",
+        "Neither",
+        "improvement",
+        "which",
+        "whose",
+        "many",
+        "much"
+      ]
+    },
+    {
+      "name": "Distinguishing Similar Words",
+      "what": "angyunshanariel sometimes mixes up words that look similar, sound similar, or have closely related meanings but are used in different situations.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'elevate' (to lift up) instead of 'alleviate' (to reduce pain), which sound very similar but have different meanings."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'setback' (a delay in progress) rather than 'drawback' (a disadvantage), which is the better word for describing a negative aspect of public transport."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel selected 'waived' (to give up a right) instead of 'stripped', which is the specific word used when a medal is taken away as a penalty."
+        }
+      ],
+      "strategic_advice": "When options look or sound alike, take a moment to **define each word** in your head before plugging them into the sentence. Look out for **specific collocations**—words that naturally go together, like 'alleviate pain' or 'stripped of a medal'.",
+      "trigger_keywords": [
+        "alleviate",
+        "elevate",
+        "drawback",
+        "setback",
+        "stripped",
+        "waived"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmppaajbx003sty7nan9hnr9o",
+    "2": "cmppaajbx003tty7nwq4oxz0d",
+    "3": "cmppa90ml003jty7ncflw6wx9",
+    "4": "cmppa90ml003lty7nkvrsrx6y",
+    "5": "cmppa7xoy003cty7nv3qaberb",
+    "6": "cmppa6sqh0036ty7nljw1dumo",
+    "7": "cmppa5oc20031ty7n82me8oj2",
+    "8": "cmppa4atq002rty7n69lof8zg",
+    "9": "cmppa4atr002vty7nx05yrlzl",
+    "10": "cmppa2ufi002oty7nns5f077z",
+    "11": "cmppa0eu1002hty7n6npvb8j9",
+    "12": "cmpp9wama001vty7nq7c9r23d",
+    "13": "cmpp9wama001yty7naxiza6y4",
+    "14": "cmpp9wamb0020ty7n4c2hm7af",
+    "15": "cmpp9wamb0021ty7njea7bvd6",
+    "16": "cmpp9rfzf0013ty7nm6i32o56",
+    "17": "cmpp9rfzf0018ty7np9zuh1st",
+    "18": "cmpp9rfzf001bty7ntamaesfs",
+    "19": "cmpnvcxm1003uu9v1hleedz97",
+    "20": "cmpnvcxm1003wu9v1yguz7myn",
+    "21": "cmpnvb7cu003lu9v1sjtt0bb1",
+    "22": "cmpnvb7cu003pu9v1v9wk49j8",
+    "23": "cmpnv0sie001hu9v1dykap3ue",
+    "24": "cmpnv0sie001mu9v1sg5isrw5",
+    "25": "cmpnv0sie001pu9v1g4ewles8"
+  },
+  "generatedAt": "2026-06-15T04:56:57.554Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 0,
+    "mcq": 25
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 69,
+    "totalAvailable": 102,
+    "paperCount": 14
+  },
+  "previousAssessment": null
+}

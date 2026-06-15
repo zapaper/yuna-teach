@@ -1,0 +1,243 @@
+{
+  "patterns": [
+    {
+      "name": "Missing surrounding context clues",
+      "what": "UmarM sometimes chooses a vocabulary word without fully checking the surrounding words that give away the exact meaning needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "UmarM chose 'poet' instead of 'journalist', missing the helpful clues about writing a 'news article' and 'interviewing'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'victorious' instead of 'tenacious', occasionally overlooking the phrase 'never giving up'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'extensively' instead of 'momentarily', missing that the word 'hesitated' implies a very brief pause."
+        }
+      ],
+      "strategic_advice": "When you see a 'fill in the blank' or 'most suitable word' question, always **underline the key clues** in the sentence first. Ask yourself, 'What specific situation is being described?' before looking at the options.",
+      "trigger_keywords": [
+        "most suitable word",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Confusing tricky phrasal verbs",
+      "what": "UmarM occasionally mixes up the prepositions in phrasal verbs, which can completely change the meaning of the action.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "UmarM chose 'put down' instead of 'put off', which is the correct phrase for postponing an event like a party."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'creep up' instead of 'creep in' to describe how a feeling of unease slowly appears."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'on' instead of 'up' for the common phrase 'up and running'."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by words like 'up', 'off', or 'out', remember that they act as a team. Try to **visualise the action** or substitute the phrase with a single word to see if it makes sense in the context.",
+      "trigger_keywords": [
+        "most suitable word",
+        "phrasal verb",
+        "preposition"
+      ]
+    },
+    {
+      "name": "Keeping the original word form",
+      "what": "In editing passages, UmarM tends to keep the root word instead of changing it to the correct part of speech, like a noun or an adverb.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "UmarM kept the verb 'encourage' instead of changing it to the noun 'encouragement' to fit the sentence perfectly."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'long' instead of changing 'high' to the adverb 'highly' to describe how anticipated the device was."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "He used the verb 'included' instead of the noun 'inclusion' after the word 'an'."
+        }
+      ],
+      "strategic_advice": "When you need to 'correct the grammar mistake', look at the words right before and after it. If it comes after words like 'an' or 'much', you likely need a **noun**. If it describes an action or an adjective, try adding an **'-ly'** to make it an adverb.",
+      "trigger_keywords": [
+        "correct the grammar mistake",
+        "editing",
+        "word form"
+      ]
+    },
+    {
+      "name": "Relying on phonetic spelling",
+      "what": "UmarM sometimes spells complex words exactly as they sound, which leads to repeating the same spelling mistakes.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "UmarM spelled 'experience' as 'experiance', relying on how the word sounds rather than its exact spelling."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'enthusiasts' as 'enthoziast', missing the plural 's' and spelling the tricky vowel sounds phonetically."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He repeated the spelling 'experiance' for 'experience', showing this is a tricky word he can easily master with a little practice."
+        }
+      ],
+      "strategic_advice": "When you need to 'correct the spelling mistake', try to **break the word down into syllables** and memorise the tricky vowel sounds. For words you often misspell, like 'experience', try writing them down a few times to **build muscle memory**.",
+      "trigger_keywords": [
+        "correct the spelling mistake",
+        "editing",
+        "spelling"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuhvfhw0006818s61537ufb",
+    "2": "cmpuhvfhw0008818s5eje9nhs",
+    "3": "cmpuhvfhw0009818s35c4pq1f",
+    "4": "cmpuhvfhw000a818ss46uw9s8",
+    "5": "cmpuhvfhx000d818s5j3uhieb",
+    "6": "cmpuhvfhx000e818sg9lyu1ip",
+    "7": "cmpuhvfhx000f818sxxr0nrzz",
+    "8": "cmpuhvmrl000l818sbd8sr43v",
+    "9": "cmpuhvmrl000o818sdzt5j3rr",
+    "10": "cmpuhvmrl000q818ssd8us0ec",
+    "11": "cmpuhvmrl000r818selogzykk",
+    "12": "cmpuhw35l000v818skrfxx3eu",
+    "13": "cmpuhw35l000x818s8ftoy8c5",
+    "14": "cmpuhw35l000y818sni7shzpz",
+    "15": "cmpuhw35l0010818svrbirlo8",
+    "16": "cmpuhw35l0012818sb5sm9z4l",
+    "17": "cmpuhw35l0014818swigcyj4l",
+    "18": "cmpuhw35l0016818sjjxlw16q",
+    "19": "cmpuhw35l0017818s0fgxf7lj",
+    "20": "cmpuhw35l0018818sx0jeo8mj",
+    "21": "cmpuhw35l001a818scctjpna2",
+    "22": "cmpuhw35m001c818su2utsmmw",
+    "23": "cmpuhw35m001d818snk0jvztj"
+  },
+  "generatedAt": "2026-06-15T04:58:38.099Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 12,
+    "mcq": 11
+  },
+  "toplineSnapshot": {
+    "avgPct": 45,
+    "totalAwarded": 21,
+    "totalAvailable": 47,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

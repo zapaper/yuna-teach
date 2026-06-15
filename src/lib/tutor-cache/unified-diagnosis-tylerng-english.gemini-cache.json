@@ -1,0 +1,491 @@
+{
+  "patterns": [
+    {
+      "name": "Getting Tricked by Extra Nouns",
+      "what": "Tylerng occasionally matches the verb to the noun closest to it, forgetting to check the actual main subject when extra phrases are added.",
+      "specific_examples": [
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng was distracted by the plural noun 'brothers' and missed that the main subject 'Emily' is singular."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng looked at 'cousin' instead of the main subject 'I', which requires the verb 'am'."
+        },
+        {
+          "questionRef": "[52]",
+          "type": "mcq",
+          "whatWentWrong": "He matched the verb to the plural 'cousins' instead of the singular main subject 'Jane'."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'together with' or 'as well as', use your pencil to **bracket and cross out** that extra information. This will help you spot the true **main subject** so you can choose the correct singular or plural verb.",
+      "trigger_keywords": [
+        "together with",
+        "as well as",
+        "along with",
+        "Either",
+        "Neither"
+      ]
+    },
+    {
+      "name": "Missing Hidden Negative Words",
+      "what": "Tylerng tends to read quickly and occasionally misses 'hidden' negative words that completely change the meaning of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng missed that 'seldom' is a negative word, which means the question tag must be positive."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'not' in the question and chose a statement that was true instead of false."
+        },
+        {
+          "questionRef": "[50]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng missed the phrase 'not supported' and chose an option that didn't answer the specific question asked."
+        }
+      ],
+      "strategic_advice": "When you see words like 'seldom', 'rarely', or 'not', **circle them immediately**. Remember that a negative statement like 'seldom goes' needs a **positive question tag** like 'does he', and a 'not true' question means you are looking for the false statement.",
+      "trigger_keywords": [
+        "seldom",
+        "rarely",
+        "not true",
+        "not supported",
+        "cannot"
+      ]
+    },
+    {
+      "name": "Misaligned Answer Entries",
+      "what": "Tylerng sometimes figures out the correct word but accidentally types or writes it in the wrong box, shifting his answers out of sync with the question numbers.",
+      "specific_examples": [
+        {
+          "questionRef": "[56]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng correctly identified the answer for an earlier blank but accidentally typed it into the wrong question slot, causing a chain of shifted answers."
+        },
+        {
+          "questionRef": "[61]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly fixed 'express' to 'expressing' for blank 36, but entered it into the slot for blank 40."
+        },
+        {
+          "questionRef": "[62]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng correctly fixed 'physicle' to 'physical' for blank 37, but entered it into the slot for blank 41."
+        }
+      ],
+      "strategic_advice": "When transferring your answers, always double-check the **question number** against the **blank number** in the passage. Point to the number on your paper, then point to the same number on the screen or answer sheet before writing.",
+      "trigger_keywords": [
+        "passage",
+        "blank",
+        "Write its letter",
+        "Editing"
+      ]
+    },
+    {
+      "name": "Overlooking Surrounding Context Clues",
+      "what": "Tylerng sometimes picks a vocabulary word that sounds okay on its own, but might not fit the specific clues hidden in the surrounding sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng chose 'burden', but 'drawback' is the better vocabulary word to describe a disadvantage of public transport."
+        },
+        {
+          "questionRef": "[53]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng chose 'anything', but the clue 'wanted others to have a chance' means she didn't say 'everything'."
+        },
+        {
+          "questionRef": "[67]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the contrast word 'Unlike' and the clue 'temporary', which point to 'permanent' as the correct answer."
+        }
+      ],
+      "strategic_advice": "Before choosing a word, look for **contrast words** like 'Unlike' or **descriptive clues** in the sentence. Try plugging your chosen word into the blank and read the **whole sentence aloud** in your head to ensure it makes logical sense.",
+      "trigger_keywords": [
+        "Unlike",
+        "because",
+        "Despite",
+        "However",
+        "fill in each blank"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": 3
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": 3
+    },
+    {
+      "idx": 42,
+      "patternIndex": 3
+    },
+    {
+      "idx": 43,
+      "patternIndex": 3
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": 3
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": 1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": 1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": 3
+    },
+    {
+      "idx": 54,
+      "patternIndex": 3
+    },
+    {
+      "idx": 55,
+      "patternIndex": 3
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": 2
+    },
+    {
+      "idx": 58,
+      "patternIndex": 2
+    },
+    {
+      "idx": 59,
+      "patternIndex": 2
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": 2
+    },
+    {
+      "idx": 62,
+      "patternIndex": 2
+    },
+    {
+      "idx": 63,
+      "patternIndex": 2
+    },
+    {
+      "idx": 64,
+      "patternIndex": 2
+    },
+    {
+      "idx": 65,
+      "patternIndex": 2
+    },
+    {
+      "idx": 66,
+      "patternIndex": 2
+    },
+    {
+      "idx": 67,
+      "patternIndex": 3
+    },
+    {
+      "idx": 68,
+      "patternIndex": 3
+    },
+    {
+      "idx": 69,
+      "patternIndex": 3
+    },
+    {
+      "idx": 70,
+      "patternIndex": 3
+    },
+    {
+      "idx": 71,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmolaq23h00ddqlmb216yxb8g",
+    "2": "cmolaq23h00dgqlmb7109yeei",
+    "3": "cmolapg9m00buqlmb81nth701",
+    "4": "cmolapg9m00bvqlmb8prnsamq",
+    "5": "cmolapg9m00bwqlmbfc74cffe",
+    "6": "cmolapg9n00bxqlmbwkrjazc7",
+    "7": "cmolapg9n00byqlmbuauxd38u",
+    "8": "cmolapg9n00bzqlmb1fpx7zqc",
+    "9": "cmolapg9n00c0qlmbfevhlwjc",
+    "10": "cmolapg9n00c1qlmb0kzkzo81",
+    "11": "cmolapg9n00c2qlmbhd9zfswn",
+    "12": "cmolapg9n00c3qlmbh7n4wops",
+    "13": "cmolapg9n00c4qlmbdz9y027m",
+    "14": "cmolapg9n00c5qlmbt9288395",
+    "15": "cmolapg9n00c6qlmbbed4gaaz",
+    "16": "cmolapg9n00c7qlmbnxqhqo1a",
+    "17": "cmolapg9n00c8qlmb2p9ecmcc",
+    "18": "cmolao0g600b4qlmb7ko25l9w",
+    "19": "cmolamypr00avqlmbhhwco4i2",
+    "20": "cmolal0e700a7qlmbv2aeaqaj",
+    "21": "cmolal0e700a8qlmbn1imfmod",
+    "22": "cmolal0e700a9qlmb98v13ijn",
+    "23": "cmolal0e700aaqlmbl2a9gk64",
+    "24": "cmolal0e700abqlmb0b0jmxl8",
+    "25": "cmolal0e700acqlmb4mymh24n",
+    "26": "cmolal0e700adqlmbrinhnmnm",
+    "27": "cmolal0e700aeqlmbcv9cudmm",
+    "28": "cmolal0e700afqlmblszhlnfi",
+    "29": "cmolal0e700agqlmb5tvbbw4e",
+    "30": "cmolal0e700ahqlmb9014l943",
+    "31": "cmolaj76q00a0qlmb3muzyf57",
+    "32": "cmolaj76q00a2qlmbki2bfa47",
+    "33": "cmoladneq0091qlmbbkygjdtq",
+    "34": "cmoladneq0092qlmbgb75lb1z",
+    "35": "cmoladneq0095qlmb7o1x65bo",
+    "36": "cmoladneq0096qlmbf7tgrcet",
+    "37": "cmolafq04009sqlmbqohb08or",
+    "38": "cmolafq04009vqlmbh1ekmleb",
+    "39": "cmoladok4009bqlmbzv0bjzv7",
+    "40": "cmoladok4009dqlmb1hvve4j9",
+    "41": "cmoladok4009eqlmbtvawgysm",
+    "42": "cmoladok4009hqlmb9e24qpwm",
+    "43": "cmoladok4009iqlmbi44m85pz",
+    "44": "cmolaaq4a008tqlmbgeu25z0y",
+    "45": "cmolaaq4a008vqlmbcai3s4r4",
+    "46": "cmola589h0085qlmbarqxz1u4",
+    "47": "cmola73rl008hqlmb2pkipp2q",
+    "48": "cmola73rl008iqlmbdrfxz8dd",
+    "49": "cmola75ae008oqlmbqda2mtsu",
+    "50": "cmola75ae008pqlmb7amb87hd",
+    "51": "cmola5cds008bqlmbklkpg2r3",
+    "52": "cmola5cds008dqlmbfk7hmu49",
+    "53": "cmol9raji0075qlmbgw2ti7ua",
+    "54": "cmol9raji0077qlmbuogukzxe",
+    "55": "cmol9rajj007dqlmb80qxqlip",
+    "56": "cmol9rajj007fqlmb0ehm3rjh",
+    "57": "cmol9rajj007gqlmbzqbqa3z3",
+    "58": "cmol9rajj007iqlmbpngc3s2e",
+    "59": "cmol9rajj007jqlmbovnrxvfm",
+    "60": "cmol9rajj007kqlmbjsqszrw1",
+    "61": "cmol9rajj007lqlmb70veoab9",
+    "62": "cmol9rajj007mqlmbihghj548",
+    "63": "cmol9rajj007nqlmbf86nbpcm",
+    "64": "cmol9rajj007oqlmbgygq7y94",
+    "65": "cmol9rajj007pqlmbum124e66",
+    "66": "cmol9rajj007qqlmbrejwr0v7",
+    "67": "cmol9rajj007rqlmb14l1fovr",
+    "68": "cmol9rajj007tqlmbamaa16ee",
+    "69": "cmol9rajj007uqlmbvbrf1dlj",
+    "70": "cmol9rajj007zqlmbntcoxpc7",
+    "71": "cmol9rajj0080qlmbki6cmdf1"
+  },
+  "generatedAt": "2026-06-15T04:47:01.651Z",
+  "wrongCounts": {
+    "total": 71,
+    "oeq": 16,
+    "mcq": 55
+  },
+  "toplineSnapshot": {
+    "avgPct": 47,
+    "totalAwarded": 62,
+    "totalAvailable": 133,
+    "paperCount": 15
+  },
+  "previousAssessment": null
+}

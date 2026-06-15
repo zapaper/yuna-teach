@@ -33,6 +33,18 @@ import jayronMath from "./tutor-cache/unified-diagnosis-jayron-loh-yi-heng-stude
 import jeremiahMath from "./tutor-cache/unified-diagnosis-jeremiahsy-math.gemini-cache.json";
 import jonTanMath from "./tutor-cache/unified-diagnosis-jon-tan-math.gemini-cache.json";
 import tylerngMath from "./tutor-cache/unified-diagnosis-tylerng-math.gemini-cache.json";
+// P5 English caches
+import angyunshanarielEnglish from "./tutor-cache/unified-diagnosis-angyunshanariel-english.gemini-cache.json";
+import audreyEnglish from "./tutor-cache/unified-diagnosis-audrey-english.gemini-cache.json";
+import jeremiahEnglish from "./tutor-cache/unified-diagnosis-jeremiahsy-english.gemini-cache.json";
+import jonTanEnglish from "./tutor-cache/unified-diagnosis-jon-tan-english.gemini-cache.json";
+import joylynnEnglish from "./tutor-cache/unified-diagnosis-joylynn-english.gemini-cache.json";
+import kaydenEnglish from "./tutor-cache/unified-diagnosis-kayden-english.gemini-cache.json";
+import meryllEnglish from "./tutor-cache/unified-diagnosis-meryll-english.gemini-cache.json";
+import natashatsaiEnglish from "./tutor-cache/unified-diagnosis-natashatsai-english.gemini-cache.json";
+import rizqiEnglish from "./tutor-cache/unified-diagnosis-rizqi-english.gemini-cache.json";
+import tylerngEnglish from "./tutor-cache/unified-diagnosis-tylerng-english.gemini-cache.json";
+import umarmEnglish from "./tutor-cache/unified-diagnosis-umarm-english.gemini-cache.json";
 import lohxy2014English from "./tutor-cache/unified-diagnosis-lohxy2014-english.gemini-cache.json";
 import saarah1English from "./tutor-cache/unified-diagnosis-saarah1-english.gemini-cache.json";
 import shadowDemonEnglish from "./tutor-cache/unified-diagnosis-shadow-demon-english.gemini-cache.json";
@@ -93,4 +105,16 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "jeremiahsy:math":                          jeremiahMath as CachedReport,
   "jon-tan:math":                             jonTanMath as CachedReport,
   "tylerng:math":                             tylerngMath as CachedReport,
+  // P5 English
+  "angyunshanariel:english": angyunshanarielEnglish as CachedReport,
+  "audrey:english":          audreyEnglish as CachedReport,
+  "jeremiahsy:english":      jeremiahEnglish as CachedReport,
+  "jon-tan:english":         jonTanEnglish as CachedReport,
+  "joylynn:english":         joylynnEnglish as CachedReport,
+  "kayden:english":          kaydenEnglish as CachedReport,
+  "meryll:english":          meryllEnglish as CachedReport,
+  "natashatsai:english":     natashatsaiEnglish as CachedReport,
+  "rizqi:english":           rizqiEnglish as CachedReport,
+  "tylerng:english":         tylerngEnglish as CachedReport,
+  "umarm:english":           umarmEnglish as CachedReport,
 };

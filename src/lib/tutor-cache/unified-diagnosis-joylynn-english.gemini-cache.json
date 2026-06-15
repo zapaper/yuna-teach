@@ -1,0 +1,207 @@
+{
+  "patterns": [
+    {
+      "name": "Navigating Phrasal Verbs",
+      "what": "Joylynn sometimes mixes up the prepositions that follow certain verbs, which can change the intended meaning of the phrase.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn picked 'looked into' instead of 'looked to', which changes the meaning from relying on someone to investigating something."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "She left the answer blank instead of choosing 'blew up', which is the natural phrasal verb to describe bombs exploding."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn chose 'set for' instead of 'set off' to match the meaning of 'get started'."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by a blank for a preposition, try to **visualise the action** in your head. Substitute the whole phrase with a single action word to see if it makes sense. If you are unsure, **read the sentence silently** with each option to hear which one sounds like natural, everyday English.",
+      "trigger_keywords": [
+        "looked",
+        "blew",
+        "get started"
+      ]
+    },
+    {
+      "name": "Selecting the Right Verb Form",
+      "what": "Joylynn occasionally misses time markers or specific grammatical rules that dictate whether to use a present, past, or participle form of a verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Joylynn used the past tense 'made' instead of 'makes', just missing the 'daily' clue that signals a present, ongoing action."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'had went' instead of 'had gone', slightly mixing up the simple past tense with the past participle form."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn chose the past tense 'struck' instead of 'strike', which is a common slip when working with sensory verbs like 'saw'."
+        }
+      ],
+      "strategic_advice": "When you are asked to fill in or transform a verb, always **hunt for time clues** like 'daily', 'yesterday', or 'regularly'. If you are using a helping verb like 'had' or 'have', remember to **pair it with the past participle** (like 'gone' or 'eaten', not 'went' or 'ate'). For sensory verbs, remember the rule: **see/hear/feel + object + base verb**.",
+      "trigger_keywords": [
+        "daily",
+        "yesterday",
+        "saw",
+        "Due to"
+      ]
+    },
+    {
+      "name": "Using Context for Vocabulary",
+      "what": "Joylynn tends to select words that might look familiar or related, but occasionally misses the specific context clues that point to the exact word needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn picked 'indignant' instead of 'tenacious', missing the context clue 'never giving up' that points to the right word."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'explore' instead of 'exploit', which is a very understandable mix-up since the two words look so similar."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn selected 'constructive' instead of 'rewarding', which is close in meaning but doesn't quite capture the nuance of 'worthwhile'."
+        }
+      ],
+      "strategic_advice": "When you encounter a challenging vocabulary question, **underline the clue words** in the sentence (like 'never giving up' or 'cutting down too many trees'). If two words look similar, **pause and define them** in your own words before choosing. Always **plug your chosen word back into the sentence** to ensure it matches the overall tone.",
+      "trigger_keywords": [
+        "spirit",
+        "delay",
+        "forest",
+        "instinct",
+        "worthwhile"
+      ]
+    },
+    {
+      "name": "Adapting Sentence Structures",
+      "what": "Joylynn sometimes finds it tricky to rearrange a sentence correctly when introduced to a new connector or a specific transformation phrase.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Joylynn wrote 'Much to his students passed...', forgetting that 'Much to' needs to be followed by an emotion noun like 'relief'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'regularly trims by', missing the 'are trimmed' structure needed when shifting a sentence into the passive voice."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn picked 'however' instead of 'nevertheless', which is a tricky distinction when placing a connector at the end of a clause."
+        }
+      ],
+      "strategic_advice": "When a question starts with a special phrase like 'Much to' or shifts the object to the front, **identify the main action and who is doing it**. For 'Much to', remember it is always followed by an **emotion noun** (like 'relief' or 'disappointment'). For passive voice, always check that you have included the **'to be' verb + past participle** (like 'are trimmed').",
+      "trigger_keywords": [
+        "Much to",
+        "The trees",
+        "already but"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpw9w06400028k89guxu4dgy",
+    "2": "cmpw9w06400058k898yg494yu",
+    "3": "cmpw9w06400068k89oyq18f0b",
+    "4": "cmpw9w06400088k89vpfbf4k6",
+    "5": "cmpw9w06400098k89btfxhdld",
+    "6": "cmpw9w064000a8k89zntqv6qi",
+    "7": "cmpw9w064000b8k89e6185ibc",
+    "8": "cmpw9w064000c8k89zz43jh7a",
+    "9": "cmpw9w064000d8k89jbagwex3",
+    "10": "cmpw9w064000g8k89azjfjr18",
+    "11": "cmpw9w065000r8k8998ywow38",
+    "12": "cmpw9w065000s8k89p415fmly",
+    "13": "cmpw9w065000t8k89c1lf5dqv",
+    "14": "cmpw9w065000u8k89ge5kbbsm",
+    "15": "cmpw9w065000v8k8916tcym34"
+  },
+  "generatedAt": "2026-06-15T05:03:19.152Z",
+  "wrongCounts": {
+    "total": 15,
+    "oeq": 5,
+    "mcq": 10
+  },
+  "toplineSnapshot": {
+    "avgPct": 14,
+    "totalAwarded": 5,
+    "totalAvailable": 35,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

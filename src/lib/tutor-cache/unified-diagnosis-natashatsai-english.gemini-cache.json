@@ -1,0 +1,352 @@
+{
+  "patterns": [
+    {
+      "name": "Incomplete or Cut-off Answers",
+      "what": "natashatsai occasionally leaves her answers unfinished or misses out on subsequent parts of a question, which prevents her from getting the full marks she deserves.",
+      "specific_examples": [
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai left the answer for part (c) incomplete, cutting off at 'the pa' instead of writing 'the paramedics and firefighters'."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai provided a great start to her answer but left the sentence unfinished mid-word, missing out on the final marks."
+        },
+        {
+          "questionRef": "[44]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai was on the right track with her explanation, but the sentence was cut off abruptly at the end."
+        }
+      ],
+      "strategic_advice": "When you see question triggers like 'state two' or 'explain', always double-check that you have provided all the required parts. **Read your final sentence aloud in your head** to ensure it doesn't cut off abruptly. It helps to **tick off each requirement** in the question stem once you have fully answered it.",
+      "trigger_keywords": [
+        "state two",
+        "explain",
+        "identify",
+        "why",
+        "refer to lines"
+      ]
+    },
+    {
+      "name": "Typographical and Spelling Slips",
+      "what": "natashatsai sometimes writes partial words or makes quick spelling slips, which suggests she might be thinking faster than she is writing.",
+      "specific_examples": [
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai wrote 'car' instead of 'care', which looks like a quick slip of the pen rather than a misunderstanding of the phrase."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai accidentally typed 'df\\' instead of a valid word, suggesting she might have been rushing through the section."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai wrote 'onl' instead of 'only', missing the final letter of the word."
+        }
+      ],
+      "strategic_advice": "When you see 'fill in each blank', remember that your brain might be moving faster than your hand! **Read your completed sentence back to yourself** to catch any missing letters or half-written words. **Check your spelling carefully** before moving on to the next question.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "correct the spelling",
+        "suitable word"
+      ]
+    },
+    {
+      "name": "Imprecise Vocabulary Choices",
+      "what": "natashatsai tends to choose words that are generally related to the topic, but they occasionally don't perfectly fit the specific context or idiom of the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai chose 'sleeping', which is a bit too specific; 'living' better captures the broader idea of people residing in the open."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai used 'breakdown', but the common phrase used to describe a dramatic visual impression is a 'scene' from a war film."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "natashatsai picked 'setback', but 'drawback' is the more precise vocabulary word to describe a disadvantage of taking public transport."
+        }
+      ],
+      "strategic_advice": "When you see 'choose the most suitable word', look closely at the context clues in the surrounding sentences. **Test your chosen word** to see if it fits the exact tone and meaning, rather than just the general topic. **Look out for specific idioms** or collocations that the passage might be using.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "choose the most suitable word",
+        "closest in meaning"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement Distractors",
+      "what": "natashatsai occasionally gets distracted by extra phrases that separate the main subject from the verb, leading to a mismatch in agreement.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "natashatsai matched the verb to the plural idea of 'rice', but the true singular subject of the sentence is 'The price'."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "natashatsai got distracted by the phrase 'as well as my cousin' and missed that the verb needs to agree with the main subject 'I'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "natashatsai matched the verb to 'brothers', but the actual subject is 'Emily', which is singular."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'as well as' or 'together with', remember that they are there to distract you from the main subject. **Use your pencil to cross out** the extra phrase between the commas. Then, **match the verb directly** to the very first subject in the sentence.",
+      "trigger_keywords": [
+        "as well as",
+        "together with",
+        "along with",
+        "of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 0
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": 0
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq99fp9l00x4bxufxyb1iwah",
+    "2": "cmq99fp9l00x5bxuf5857zjni",
+    "3": "cmq99fp9m00xdbxufctvr2b4w",
+    "4": "cmq99fp9m00xsbxufklpqw57m",
+    "5": "cmq99fp9n00xwbxuf9762mc6o",
+    "6": "cmq99fp9n00y6bxufoeefr4ho",
+    "7": "cmq99fp9n00y9bxufwkuczh8v",
+    "8": "cmq99fp9n00yabxufqozj9xos",
+    "9": "cmq99fp9n00ycbxufj9gmu90y",
+    "10": "cmq99fp9n00ydbxufebiez2nz",
+    "11": "cmq99fp9n00ygbxufdor6snif",
+    "12": "cmq99fp9n00yhbxufinnjevwj",
+    "13": "cmq99fp9o00ypbxufak83u8aq",
+    "14": "cmq99fp9o00yqbxufcuzvyoyz",
+    "15": "cmq99fp9o00ysbxufbk616hxv",
+    "16": "cmq99fp9o00yvbxufk511ipgt",
+    "17": "cmq3eeayj000331spzxtwd21w",
+    "18": "cmq3eeayj000631sp1bgackgd",
+    "19": "cmq3eeayj000731sp5r8f4v0n",
+    "20": "cmq3eeayj000a31sp43hy8vbg",
+    "21": "cmq3eeayj000b31spdkbv5vq5",
+    "22": "cmq3eeayj000c31sp8pgrfqp0",
+    "23": "cmq3eeayk000g31spn1tx384d",
+    "24": "cmq3eeayk000j31spgne26yvb",
+    "25": "cmq3eeayk000r31spcjnqz3op",
+    "26": "cmq3eeayl001231spidgc70kl",
+    "27": "cmq3eeayl001531sps0fykx9g",
+    "28": "cmq3eeayl001631spgsqrci12",
+    "29": "cmq3eeayl001931sp7p5pfhq9",
+    "30": "cmq3eeayl001a31spiq0povf7",
+    "31": "cmq3eeayl001b31splrrmuk54",
+    "32": "cmq3eeayl001e31spb1wbk52g",
+    "33": "cmq3eeayl001g31sp7u2nia3i",
+    "34": "cmq3eeayl001h31spmupzsqx2",
+    "35": "cmq3eeayl001i31sp57zuznh3",
+    "36": "cmq3eeayl001j31sp0bmmu1an",
+    "37": "cmq3eeaym001q31spcfbkpro8",
+    "38": "cmq3eeaym001r31sp9vevef87",
+    "39": "cmq3eeaym001s31spaqxc4lon",
+    "40": "cmq3eeaym001u31spwircipfw",
+    "41": "cmq3eeaym001v31spmuc4qqpi",
+    "42": "cmq3eeaym001w31sp4t7orlpl",
+    "43": "cmq3eeaym001x31sp9l34my3i",
+    "44": "cmq3eeaym001z31spxia4qb6w"
+  },
+  "generatedAt": "2026-06-15T04:51:13.138Z",
+  "wrongCounts": {
+    "total": 44,
+    "oeq": 33,
+    "mcq": 11
+  },
+  "toplineSnapshot": {
+    "avgPct": 70,
+    "totalAwarded": 119,
+    "totalAvailable": 170,
+    "paperCount": 2
+  },
+  "previousAssessment": null
+}

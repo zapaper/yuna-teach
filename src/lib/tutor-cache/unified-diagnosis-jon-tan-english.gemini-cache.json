@@ -1,0 +1,208 @@
+{
+  "patterns": [
+    {
+      "name": "Rushing Through Sequential Answers",
+      "what": "Jon occasionally fills in sequential letters for passage-based questions, which suggests he might be rushing rather than reading for meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Instead of identifying the helping verb 'has', he selected 'around', likely as part of an alphabetical guessing pattern."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the common phrase 'in progress', selecting 'as' instead."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He overlooked the comparison 'more than', choosing 'below' instead."
+        }
+      ],
+      "strategic_advice": "When you see a passage with multiple blanks, **read the whole text once** before answering. Try to **guess the word** before looking at the options to avoid falling into a guessing pattern.",
+      "trigger_keywords": [
+        "passage",
+        "blanks",
+        "A to Q"
+      ]
+    },
+    {
+      "name": "Mastering Preposition Pairs",
+      "what": "Jon sometimes misses the specific prepositions that naturally follow certain action words or phrases.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "He missed that the word 'focused' is naturally followed by the preposition 'on'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'had' instead of 'by' to show how the visitors' journey would be enriched."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He selected 'in' rather than 'around' for planning an experience around an event."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after an action word, ask yourself which **preposition naturally pairs** with it. Try reading the phrase aloud in your head to see if it **sounds right**.",
+      "trigger_keywords": [
+        "focused",
+        "enriched",
+        "plan"
+      ]
+    },
+    {
+      "name": "Distinguishing Word Nuances",
+      "what": "Jon sometimes picks words that are close in meaning but not the exact fit for the specific context or common phrasing.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'advice' instead of 'recommendation', missing the common pairing 'chef's recommendation'."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'overprotective' rather than 'overwhelmed' to describe the feeling of having too much homework."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'assigning' instead of 'designating', which is the more precise word for formally labelling an event."
+        }
+      ],
+      "strategic_advice": "When options look very similar, look for **context clues** in the sentence. Ask yourself if the word is part of a **common pair** or if another word captures the exact feeling better.",
+      "trigger_keywords": [
+        "choose the most suitable word",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Using Context for Descriptions",
+      "what": "Jon tends to overlook subtle clues in the sentence that hint at the exact descriptive word or noun needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'seriously' instead of 'menacingly', missing the clue that the bully was about to kick the boy."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'primary' instead of 'inaugural', missing the clue that the race happened for the first time in 2008."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'demonstrators' rather than 'spectators' for people cheering at a race."
+        }
+      ],
+      "strategic_advice": "When you see a sentence describing an action or event, look for **action words** that set the mood. Use these clues to choose a word that **matches the feeling** of the sentence.",
+      "trigger_keywords": [
+        "glared",
+        "cheered",
+        "happened"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpwpzi2j0012fjchbtijheg8",
+    "2": "cmpwpzi2j0015fjchgqjwprke",
+    "3": "cmpwpzi2j0016fjch5qgqibe1",
+    "4": "cmpwpzi2j0018fjch11kelh99",
+    "5": "cmpwpzi2j001afjch0wtfcjpq",
+    "6": "cmpwpzi2k001bfjch0jpip83l",
+    "7": "cmpwpzi2k001cfjchhj4hur2a",
+    "8": "cmpwpzi2k001dfjchj3awwjj6",
+    "9": "cmpwpzi2k001efjch8cstt5nz",
+    "10": "cmpwpzi2k001ffjchd1ldmoov",
+    "11": "cmpwpzi2k001gfjchfmgwswzm",
+    "12": "cmpwpzi2k001hfjchr3ze51v3",
+    "13": "cmpwpzi2k001ifjchjrualua6",
+    "14": "cmpwpzi2k001jfjchv7xb6s65",
+    "15": "cmpwpzi2k001kfjchqvdm5w9g",
+    "16": "cmpwpzi2k001lfjchtn9xrjfm"
+  },
+  "generatedAt": "2026-06-15T05:02:11.760Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 10,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 20,
+    "totalAwarded": 4,
+    "totalAvailable": 20,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

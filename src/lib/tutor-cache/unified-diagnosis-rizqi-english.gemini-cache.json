@@ -1,0 +1,241 @@
+{
+  "patterns": [
+    {
+      "name": "Navigating Phrasal Verbs",
+      "what": "Rizqi sometimes finds it a little tricky to choose the correct preposition to pair with a verb, which can change the meaning of the phrase entirely.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose 'kick off' (which means to start an event) instead of 'kick in' for medication taking effect."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi selected 'set up' rather than 'set in' to describe the feeling of fatigue starting."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi picked 'looked after' (which means to care for) instead of 'looked to' for seeking support from a brother."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by a blank for a preposition, try to **visualise the action** or substitute the phrase with a single word. For example, 'kick in' means 'start', while 'kick off' means 'begin an event'. It helps to **keep a mini-journal** of new phrasal verbs you encounter so you can review them before tests!",
+      "trigger_keywords": [
+        "started to",
+        "began to",
+        "looked",
+        "taken"
+      ]
+    },
+    {
+      "name": "Spelling Tricky Words",
+      "what": "When editing passages, Rizqi occasionally spells words exactly as they sound or misses double letters in longer words.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi missed the double 's' at the end of 'possess', which is a very common trap!"
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi spelled 'gazed' phonetically as 'gaise', missing the 'z' and the past tense 'd'."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi wrote 'swap' instead of 'swoop', mixing up the vowel sounds."
+        }
+      ],
+      "strategic_advice": "When you spot a spelling error in editing, try to **break the word into syllables** and look out for common traps like double consonants. If a word sounds like it has a 'z' or 's' sound, **pause and test both spellings** on rough paper to see which one looks correct to your eye.",
+      "trigger_keywords": [
+        "spelling or grammatical error",
+        "correct word in each of the boxes"
+      ]
+    },
+    {
+      "name": "Applying Special Verb Rules",
+      "what": "Rizqi tends to default to the past tense, occasionally missing special grammar rules like causative verbs or matching the tense of the surrounding story.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose the past tense 'felt' after the causative verb 'made', instead of the base form 'feel'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi picked the present tense 'are' even though the rest of the sentence was in the past tense ('kept')."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi selected 'struck' instead of the base form 'strike' after the perception verb 'saw'."
+        }
+      ],
+      "strategic_advice": "When you see action words like 'made', 'let', 'saw', or 'heard', remember they are **special bossy verbs** that usually force the next verb into its base form. Always **check the surrounding verbs** in the sentence to make sure your tenses match the timeline of the story!",
+      "trigger_keywords": [
+        "made",
+        "saw",
+        "kept",
+        "actions"
+      ]
+    },
+    {
+      "name": "Catching Context Clues",
+      "what": "Rizqi sometimes overlooks small hints in the sentence that help decide the exact word meaning, word form, or quantity needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose 'humble' instead of 'lavish', missing the clue about 'lots of leftovers' which suggests a huge feast."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi used the verb form 'precised' instead of the noun 'precision' to match the noun phrase 'high definition'."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi picked 'a few' for time, but since time is uncountable, it needs the word 'much'."
+        }
+      ],
+      "strategic_advice": "When you are unsure of a word, act like a detective and **highlight the clue words** in the sentence before making your choice. For example, words like 'leftovers' point to a huge feast, and uncountable nouns like 'time' always need specific quantifiers like 'much' instead of 'a few'.",
+      "trigger_keywords": [
+        "lots of leftovers",
+        "detailed",
+        "time yesterday",
+        "due to the"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmptzguuk001o14gmiwl0q097",
+    "2": "cmptzguuk001p14gmhqw8x7el",
+    "3": "cmptzguuk001r14gm2iitbu2k",
+    "4": "cmptzguuk001t14gm7umr9g9x",
+    "5": "cmptzguuk001u14gmsdb41e0s",
+    "6": "cmptzguuk001v14gm162fw0sd",
+    "7": "cmptzguuk001w14gm6yau22aw",
+    "8": "cmptzguuk001x14gmrhnuwyb5",
+    "9": "cmptzh9ya002114gmxts4wwzp",
+    "10": "cmptzh9ya002414gm5cts0ykz",
+    "11": "cmptzh9ya002714gmzet0zfnb",
+    "12": "cmptzh9ya002814gmztvr4qb5",
+    "13": "cmptzh9ya002b14gmgucni0xm",
+    "14": "cmptzh9ya002d14gm9q38yvym",
+    "15": "cmptzh9ya002e14gm9ow8awpg",
+    "16": "cmptzh9ya002f14gmmwmbhdv8",
+    "17": "cmptzgi1v001d14gm7s75il2l",
+    "18": "cmptzgi1v001e14gmmbyojtll",
+    "19": "cmptzgi1v001f14gm6sgo2wpx",
+    "20": "cmptzgi1v001g14gmov96p33e",
+    "21": "cmptzgi1v001h14gmxffs6oqr",
+    "22": "cmptzgi1v001i14gm0grnay7i"
+  },
+  "generatedAt": "2026-06-15T04:59:25.603Z",
+  "wrongCounts": {
+    "total": 22,
+    "oeq": 8,
+    "mcq": 14
+  },
+  "toplineSnapshot": {
+    "avgPct": 46,
+    "totalAwarded": 21,
+    "totalAvailable": 46,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}
