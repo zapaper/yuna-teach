@@ -794,7 +794,10 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                     {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
                   </div>
                 </div>
-                <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}>{softenTone(m.what, childFirst)}</div>
+                <div
+                  style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}
+                  dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.what, childFirst)) }}
+                />
                 <div style={{ backgroundColor: "#ecfdf5", border: "1px solid #d1fae5", borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#065f46", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Advice</div>
                   <div
@@ -819,7 +822,10 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                     {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
                   </div>
                 </div>
-                <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}>{softenTone(c.what, childFirst)}</div>
+                <div
+                  style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}
+                  dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.what, childFirst)) }}
+                />
                 <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#9a3412", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Explanation</div>
                   <div
@@ -1025,7 +1031,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl">{softenTone(m.what, data.childFirst)}</p>
+                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.what, data.childFirst)) }} />
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 md:ml-4 whitespace-nowrap">
                   Tell me more →
@@ -1047,7 +1053,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl">{softenTone(c.what, data.childFirst)}</p>
+                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.what, data.childFirst)) }} />
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 md:ml-4 whitespace-nowrap">
                   Explain →
@@ -1159,7 +1165,7 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
+      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(card.what, childFirst)) }} />
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
@@ -1201,7 +1207,7 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6">{softenTone(card.what, childFirst)}</p>
+      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(card.what, childFirst)) }} />
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
