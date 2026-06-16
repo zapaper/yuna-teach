@@ -48,6 +48,7 @@ import rizqiEnglish from "./tutor-cache/unified-diagnosis-rizqi-english.gemini-c
 import tylerngEnglish from "./tutor-cache/unified-diagnosis-tylerng-english.gemini-cache.json";
 import umarmEnglish from "./tutor-cache/unified-diagnosis-umarm-english.gemini-cache.json";
 import lohxy2014English from "./tutor-cache/unified-diagnosis-lohxy2014-english.gemini-cache.json";
+import lohxy2014Math from "./tutor-cache/unified-diagnosis-lohxy2014-math.gemini-cache.json";
 import saarah1English from "./tutor-cache/unified-diagnosis-saarah1-english.gemini-cache.json";
 import shadowDemonEnglish from "./tutor-cache/unified-diagnosis-shadow-demon-english.gemini-cache.json";
 import shayaneEnglish from "./tutor-cache/unified-diagnosis-shayane-english.gemini-cache.json";
@@ -95,6 +96,7 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "jeron16:english":      jeron16English as CachedReport,
   "kaiyangnggg:english":  kaiyangEnglish as CachedReport,
   "lohxy2014:english":    lohxy2014English as CachedReport,
+  "lohxy2014:math":       lohxy2014Math as CachedReport,
   "mahdi12:english":      mahdi12English as CachedReport,
   "mark-lim:english":     markEnglish as CachedReport,
   "saarah1:english":      saarah1English as CachedReport,

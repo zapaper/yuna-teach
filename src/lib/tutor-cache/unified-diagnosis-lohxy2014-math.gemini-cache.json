@@ -1,0 +1,244 @@
+{
+  "patterns": [
+    {
+      "name": "Visualizing Hidden 3D Elements",
+      "what": "LohXY2014 occasionally misses hidden faces or cubes when imagining 3D shapes and their flat nets.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He/she counted the visible faces but forgot to include the identical hidden faces on the back and bottom."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He/she counted the cubes that could be seen but missed the hidden supporting cube in the corner."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He/she picked a net that would have overlapping faces when folded, rather than one that forms a complete closed box."
+        }
+      ],
+      "strategic_advice": "When you see questions about 'solids' or 'nets', always assume there are hidden parts. **Mark the visible parts with a pencil** and explicitly ask yourself, 'What is holding this up?' or 'What is on the exact opposite side?' For nets, **mentally fold the base first**, then fold up the sides one by one to check for overlaps.",
+      "trigger_keywords": [
+        "solid",
+        "net of a cuboid",
+        "surface area",
+        "volume",
+        "cubes"
+      ]
+    },
+    {
+      "name": "Matching Answers to the Prompt",
+      "what": "LohXY2014 often does the hard math perfectly but occasionally stops one step short or uses the wrong reference value for the final answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "He/she correctly calculated the amount of paint used, but the question actually asked for the amount of paint left."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "He/she correctly found the savings, but compared it to the total money instead of the expenditure as requested."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He/she correctly found the decrease in marbles, but calculated the percentage based on the remaining marbles rather than the original amount."
+        }
+      ],
+      "strategic_advice": "When you see phrases like 'fraction of', 'percentage of', or 'ratio of', pay close attention to the words that come immediately after. **Highlight the target words** in the final question sentence. Before choosing your answer, **re-read the highlighted prompt** to ensure your final calculation matches exactly what is being asked.",
+      "trigger_keywords": [
+        "fraction of",
+        "percentage of",
+        "ratio of",
+        "left",
+        "remainder",
+        "expenditure"
+      ]
+    },
+    {
+      "name": "Place Value and Decimals",
+      "what": "LohXY2014 tends to overlook place value alignments or unit conversions when working with decimals, money, and scales.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He/she appended the digits together instead of simplifying 30/1000 to 3/100 and aligning the decimal places."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He/she correctly divided 15 by 30 but missed the decimal placement, resulting in 5 cents instead of 50 cents."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He/she misread the intervals on the weighing scale, missing the halfway mark that indicates 3.75 kg."
+        }
+      ],
+      "strategic_advice": "When you see decimals, fractions with denominators of 100 or 1000, or money conversions, always **write out the full decimal values vertically** to align the decimal points. For scales and graphs, **calculate the value of one small marking** before reading the final measurement.",
+      "trigger_keywords": [
+        "$",
+        "¢",
+        "kg",
+        "100",
+        "1000",
+        "cost of each",
+        "mass"
+      ]
+    },
+    {
+      "name": "Simplifying Equations and Expressions",
+      "what": "LohXY2014 occasionally mixes up the rules for grouping terms, balancing equations, or following the order of operations.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He/she added the algebraic terms instead of subtracting them, missing the minus sign in front of the 7c."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He/she performed the operations out of order, likely adding before completing the multiplication and division."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "He/she took the numerators directly to form the ratio, instead of finding a common multiple to balance the equation."
+        }
+      ],
+      "strategic_advice": "When you see long equations or algebraic expressions, take it one step at a time. **Circle the operation signs** (+, -, x, ÷) along with the number or letter immediately after them. Always follow the order of operations: **brackets first, then multiplication/division, then addition/subtraction**.",
+      "trigger_keywords": [
+        "simplify",
+        "find the value of",
+        "equal to",
+        "in terms of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqgn1syq006p1171ln00rsqx",
+    "2": "cmqgn1syt006s11710htpwzm6",
+    "3": "cmqf70ysz0039qs2gz5fgg4ol",
+    "4": "cmqf70ysz003bqs2g52ev1se6",
+    "5": "cmqf70yt0003gqs2g83w207z0",
+    "6": "cmqf70yt0003iqs2g86prljur",
+    "7": "cmqf70yt0003jqs2gutj8gjj7",
+    "8": "cmqacb6q60003l19rs45rcnxa",
+    "9": "cmqacb6q7000al19riwgbqos5",
+    "10": "cmqacb6q7000cl19rbedhh966",
+    "11": "cmqacb6qa000il19rgwtaidgv",
+    "12": "cmqacb6qa000kl19r50lkbh8u",
+    "13": "cmq691km50008oedelbnyy9pk",
+    "14": "cmq691km5000eoedesmx3uhvc",
+    "15": "cmpuqfgdm000612lty8mktala",
+    "16": "cmpuqfgdm000712lt5a5flg5o",
+    "17": "cmpuqfgdm000812lt4g691qzs",
+    "18": "cmpuqfgdn000b12ltmtvabr0e",
+    "19": "cmpuqfgdn000f12ltuvtjworf",
+    "20": "cmpuqfgdn000h12ltq3yutj96",
+    "21": "cmpuqfgdn000i12lti80bc76g"
+  },
+  "generatedAt": "2026-06-16T15:12:22.540Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 0,
+    "mcq": 21
+  },
+  "toplineSnapshot": {
+    "avgPct": 75,
+    "totalAwarded": 124,
+    "totalAvailable": 166,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}
