@@ -659,14 +659,6 @@ function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
-// Static Lumi (single frame extracted from owl1.mp4 — 200px wide JPEG,
-// ~5 KB base64) inlined so the offscreen html2canvas snapshot doesn't
-// have to wait on a network fetch through the /avatars → R2 redirect
-// (the directory is .gitignore'd; assets live on R2). Inlining also
-// dodges the iOS Safari "image-not-decoded-yet" race that left the
-// face missing from earlier exports.
-const LUMI_STATIC_DATA_URI = "data:image/jpeg;base64,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";
-
 // A4-portrait Lumi report for offscreen html2canvas capture. Inline
 // styles only — Tailwind classes are dropped during the html2canvas
 // paint pass. Contains everything the parent needs to save / forward
@@ -698,14 +690,35 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
       <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
         {/* Header: Lumi photo top-left + name/subject right + brand. */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, paddingBottom: 20, borderBottom: "3px solid #001e40" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={LUMI_STATIC_DATA_URI}
-            alt="Lumi"
-            width={96}
-            height={96}
-            style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", border: "2px solid #c4b5fd", flexShrink: 0 }}
-          />
+          {/* Inline SVG owl — base64-encoded JPEG datauris weren't
+              rendering inside the offscreen html2canvas snapshot on
+              iOS Safari (image came out blank with just the border).
+              SVG is rasterised by html2canvas's own walker rather than
+              the platform image decoder, so it's reliable. */}
+          <div style={{ width: 96, height: 96, borderRadius: 999, border: "2px solid #c4b5fd", flexShrink: 0, backgroundColor: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <svg width="80" height="80" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              {/* Body */}
+              <ellipse cx="32" cy="38" rx="20" ry="22" fill="#7c3aed" />
+              {/* Belly */}
+              <ellipse cx="32" cy="44" rx="11" ry="13" fill="#ede9fe" />
+              {/* Ear tufts */}
+              <path d="M14 20 L18 8 L24 20 Z" fill="#5b21b6" />
+              <path d="M50 20 L46 8 L40 20 Z" fill="#5b21b6" />
+              {/* Eye whites */}
+              <circle cx="24" cy="28" r="9" fill="#ffffff" />
+              <circle cx="40" cy="28" r="9" fill="#ffffff" />
+              {/* Pupils */}
+              <circle cx="24" cy="28" r="4" fill="#1e1b4b" />
+              <circle cx="40" cy="28" r="4" fill="#1e1b4b" />
+              <circle cx="25" cy="27" r="1.4" fill="#ffffff" />
+              <circle cx="41" cy="27" r="1.4" fill="#ffffff" />
+              {/* Beak */}
+              <path d="M32 32 L29 38 L35 38 Z" fill="#fbbf24" />
+              {/* Wing accents */}
+              <path d="M14 36 Q12 50 22 56 Q18 48 17 38 Z" fill="#5b21b6" />
+              <path d="M50 36 Q52 50 42 56 Q46 48 47 38 Z" fill="#5b21b6" />
+            </svg>
+          </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi</div>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#001e40", marginTop: 4, lineHeight: 1.2 }}>{childFullName}&rsquo;s {subject} Progress</div>
@@ -736,53 +749,49 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
           )}
         </div>
 
-        {/* Column chart with average line. Pure-flex layout (no
-            absolute positioning) so html2canvas on iOS Safari doesn't
-            hang while computing the snapshot — the previous chart had
-            three overlapping absolute layers and never finished
-            rasterising on mobile. Average line is drawn as a thin
-            full-width strip sitting at the avgPct% mark of the plot
-            area's column; ::before-style dashes done via repeating
-            background since html2canvas drops border-style: dashed
-            on absolutely-positioned elements. */}
+        {/* Column chart with average line drawn as a single overlay
+            strip spanning the full plot area. Plot height = 220 px,
+            label band on top + topic labels below, leaving the
+            average line free to land at the exact avg% mark across
+            every column at once. */}
         {chartTopics.length > 0 && (() => {
-          const chartH = 220;
+          const plotH = 220;
           const colMax = 100;
-          const avgFromBottom = (topline.avgPct / colMax) * chartH;
+          // y from top where the avg line sits (CSS top:)
+          const avgTopPx = plotH - (topline.avgPct / colMax) * plotH;
           return (
             <div style={{ marginBottom: 28 }}>
               <div style={sectionTitleStyle}>Topic Accuracy · child&rsquo;s average {topline.avgPct}%</div>
-              <div style={{ display: "flex", gap: 16, alignItems: "stretch" }}>
-                {chartTopics.map((t, i) => {
-                  const h = (t.pct / colMax) * chartH;
-                  const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
-                  return (
-                    <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      {/* Plot column — fixed height, the bar grows from the bottom. */}
-                      <div style={{ width: "100%", height: chartH, display: "flex", flexDirection: "column", justifyContent: "flex-end", position: "relative", borderBottom: "2px solid #001e40" }}>
-                        {/* Average pill anchored to the FIRST column only so
-                            html2canvas doesn't redraw it N times. */}
-                        {i === 0 && (
-                          <div style={{ position: "absolute", left: 0, right: 0, bottom: avgFromBottom, height: 0, borderTop: "2px dashed #003366" }}>
-                            <div style={{ position: "absolute", left: 0, top: -22, fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#eff4ff", padding: "2px 6px", borderRadius: 4 }}>
-                              Avg {topline.avgPct}%
-                            </div>
-                          </div>
-                        )}
-                        {/* Average overlay marker for subsequent columns —
-                            just the line, no pill. */}
-                        {i > 0 && (
-                          <div style={{ position: "absolute", left: 0, right: 0, bottom: avgFromBottom, height: 0, borderTop: "2px dashed #003366" }} />
-                        )}
-                        <div style={{ fontSize: 12, fontWeight: 800, color: barColor, textAlign: "center", marginBottom: 2 }}>{t.pct}%</div>
-                        <div style={{ width: "75%", maxWidth: 80, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0", alignSelf: "center" }} />
+              {/* Plot area — relative container so the avg line can
+                  span all columns. Columns are a flex row inside. */}
+              <div style={{ position: "relative", height: plotH, borderBottom: "2px solid #0b1c30" }}>
+                {/* Average horizontal line + label pill */}
+                <div style={{ position: "absolute", left: 0, right: 0, top: avgTopPx, borderTop: "2px dashed #003366", zIndex: 2 }} />
+                <div style={{ position: "absolute", left: 0, top: Math.max(0, avgTopPx - 22), fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#eff4ff", padding: "2px 6px", borderRadius: 4, zIndex: 3 }}>
+                  Avg {topline.avgPct}%
+                </div>
+                {/* Columns row */}
+                <div style={{ display: "flex", height: plotH, gap: 16 }}>
+                  {chartTopics.map(t => {
+                    const h = Math.max(2, (t.pct / colMax) * plotH);
+                    const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                    return (
+                      <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 4, lineHeight: 1 }}>{t.pct}%</div>
+                        <div style={{ width: "70%", maxWidth: 72, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", paddingTop: 8, lineHeight: 1.3, minHeight: 32 }}>
-                        {t.topic}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Topic labels — separate row below the plot so they
+                  don't compete with the bar / pct positioning. */}
+              <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                {chartTopics.map(t => (
+                  <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
+                    {t.topic}
+                  </div>
+                ))}
               </div>
             </div>
           );
