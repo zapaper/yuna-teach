@@ -72,6 +72,16 @@ export async function GET() {
       assignedTo: { select: { id: true, name: true } },
       user: { select: { id: true, name: true } },
       _count: { select: { questions: true } },
+      // Pull marksAvailable + studentAnswer so we can subtract any
+      // skipped questions from BOTH numerator (always 0 anyway) and
+      // denominator. Without this, a kid who skips 4 marks out of 20
+      // and scores the rest perfectly shows as 16/20 = 80% on the
+      // marking dashboard — misleading, because they chose not to
+      // attempt those 4 marks. Excluding gives 16/16 = 100% which
+      // matches what the parent sees on the review page.
+      questions: {
+        select: { marksAvailable: true, marksAwarded: true, studentAnswer: true },
+      },
     },
     orderBy: { completedAt: "desc" },
   });
@@ -203,9 +213,21 @@ export async function GET() {
     const owner = p.assignedTo ?? p.user;
     const student = p.assignedTo ?? null;
     const parent = (student && parentOfStudent.get(student.id)) ?? p.user ?? null;
-    const totalMarksNum = p.totalMarks ? Number(p.totalMarks) : NaN;
-    const scorePct = (Number.isFinite(totalMarksNum) && totalMarksNum > 0 && p.score != null)
-      ? Math.round((p.score / totalMarksNum) * 100)
+    // Skipped-aware totals. Sum each non-skipped question's marks; this
+    // mirrors what the parent sees on the review page (skipped Qs are
+    // shown as "Skipped" with no contribution to the % score).
+    const skippedMarks = p.questions.reduce(
+      (acc, q) => acc + (q.studentAnswer === "__SKIPPED__" ? (q.marksAvailable ?? 0) : 0),
+      0,
+    );
+    const totalMarksFromQs = p.questions.reduce((acc, q) => acc + (q.marksAvailable ?? 0), 0);
+    const totalMarksRaw = p.totalMarks ? Number(p.totalMarks) : NaN;
+    // Prefer the per-question sum when available; fall back to the
+    // paper.totalMarks string for legacy rows where questions[] is
+    // empty. Subtract skipped marks from the effective denominator.
+    const effectiveTotal = (totalMarksFromQs > 0 ? totalMarksFromQs : (Number.isFinite(totalMarksRaw) ? totalMarksRaw : 0)) - skippedMarks;
+    const scorePct = (effectiveTotal > 0 && p.score != null)
+      ? Math.round((p.score / effectiveTotal) * 100)
       : null;
     const baseAnomaly: Anomaly = {
       id: p.id,
@@ -222,7 +244,7 @@ export async function GET() {
       parentName: parent?.name ?? null,
       parentId: parent?.id ?? null,
       score: p.score,
-      totalMarks: p.totalMarks,
+      totalMarks: effectiveTotal > 0 ? String(effectiveTotal) : p.totalMarks,
       scorePct,
       questionCount: p._count.questions,
       reason: "failed",
@@ -242,9 +264,10 @@ export async function GET() {
         recentMarked.push({ ...baseAnomaly, reason: "recent-marked", markedCount: marked });
       }
       // Score-based anomalies — only look at completed/released papers
-      // (in-flight scores are unreliable). Skip when totalMarks is
-      // unparseable (legacy rows) or score is still null.
-      if (Number.isFinite(totalMarksNum) && totalMarksNum > 0 && p.score != null) {
+      // (in-flight scores are unreliable). Skip when effectiveTotal is
+      // 0 (legacy rows with no questions[] AND no totalMarks) or score
+      // is still null.
+      if (effectiveTotal > 0 && p.score != null) {
         if (p.score === 0) {
           zeroScore.push({ ...baseAnomaly, reason: "zero-score" });
         } else if (scorePct !== null && scorePct < LOW_SCORE_THRESHOLD_PCT) {
