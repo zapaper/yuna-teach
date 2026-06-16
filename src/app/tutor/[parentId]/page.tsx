@@ -909,9 +909,11 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
         </div>
       )}
 
-      <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#003366] to-[#5b21b6] text-white font-bold text-base shadow-md hover:opacity-95">
-        Generate Personal Quiz with Guidance →
-      </button>
+      {/* Personal Quiz with Guidance CTA parked — needs more workshop
+          on what the personalised quiz should actually look like
+          (mistake-targeted item pool? Lumi inline coaching between
+          questions? worked-example warmup?). Bring this button back
+          once the generator + UX flow ship. */}
     </section>
   );
 }
