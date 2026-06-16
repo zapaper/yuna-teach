@@ -1032,6 +1032,14 @@ function buildMarkingNotes(result: QuestionMarkResult): string {
     // Strip the 'Working:' label so we don't render 'Detected: Working: …'
     // — the label is scaffolding, not part of the answer.
     let cleaned = result.studentAnswer.replace(/^\s*working\s*:?\s*/i, "").trim();
+    // Also strip the "(no working shown)" placeholder the AI emits when
+    // the student wrote ONLY a final answer with no intermediate
+    // steps. The parent reading "Detected: (no working shown) Final
+    // answer: 21" gains nothing from the placeholder — they can see
+    // the working area was empty from the canvas itself. Applies to
+    // every subject; particularly noisy on science where most answers
+    // are conceptual text with no expected "working" at all.
+    cleaned = cleaned.replace(/\(\s*no\s+working\s+shown\s*\)\s*\n?/gi, "").trim();
     cleaned = stripDetectScaffolding(cleaned);
     parts.push(`Detected: ${cleaned || result.studentAnswer}`);
   }
