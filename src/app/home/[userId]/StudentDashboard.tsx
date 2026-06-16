@@ -381,7 +381,7 @@ export default function StudentDashboard({
   }, [showQuizSetup, assignMode, quizSubject, userId]);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
-  const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
+  const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean }>>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   // First-visit reminder: students often share an account with their
   // parent and don't realise theirs is separate. Show a one-time
@@ -568,7 +568,7 @@ export default function StudentDashboard({
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
       .then(r => r.ok ? r.json() : [])
-      .then((data: Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>) => {
+      .then((data: Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean }>) => {
         if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
       })
       .catch(() => {});
@@ -1194,9 +1194,25 @@ export default function StudentDashboard({
               <h3 className="font-headline font-extrabold text-[#001e40]">Message from Teacher</h3>
             </div>
             {adminNotifs.map(n => (
-              <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3">
-                <p className="text-xs text-[#43474f] font-medium mb-1">{n.paperTitle} · Q{n.questionNum}</p>
+              <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-2">
+                <p className="text-xs text-[#43474f] font-medium">{n.paperTitle} · Q{n.questionNum}</p>
+                {n.transcribedStem && (
+                  <p className="text-xs text-[#43474f] italic line-clamp-3 border-l-2 border-[#c3c6d1] pl-2">{n.transcribedStem}</p>
+                )}
+                {n.flagText && (
+                  <div className="text-xs bg-amber-50 border-l-2 border-amber-300 pl-2 py-1 rounded-r">
+                    <span className="font-semibold text-amber-700">You flagged: </span>
+                    <span className="text-[#001e40]">{n.flagText}</span>
+                  </div>
+                )}
                 <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
+                {n.crystalAwarded && (
+                  <div className="inline-flex items-center gap-1.5 bg-white text-[#001e40] rounded-full pl-2 pr-3 py-1 font-extrabold text-sm">
+                    <span>+1</span>
+                    <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-5 h-5 object-contain" />
+                    <span className="text-xs font-semibold">crystal</span>
+                  </div>
+                )}
               </div>
             ))}
             <button

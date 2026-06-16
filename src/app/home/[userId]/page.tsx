@@ -574,29 +574,28 @@ export default function HomePage({
 
   const adminNotifPopup = showAdminNotifs && adminNotifs.length > 0 ? (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">💬</span>
-          <h3 className="font-semibold text-lg text-slate-800">Reply from Admin</h3>
+      <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#003366] flex items-center justify-center">
+            <span className="material-symbols-outlined text-white text-lg">chat</span>
+          </div>
+          <h3 className="font-headline font-extrabold text-[#001e40]">Message from Teacher</h3>
         </div>
         {adminNotifs.map((n) => (
-          <div key={n.questionId} className="bg-slate-50 rounded-xl px-4 py-3 space-y-2">
-            <p className="text-xs text-slate-400 font-medium">{n.paperTitle} · Q{n.questionNum}</p>
+          <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-2">
+            <p className="text-xs text-[#43474f] font-medium">{n.paperTitle} · Q{n.questionNum}</p>
             {n.transcribedStem && (
-              <p className="text-xs text-slate-600 italic line-clamp-3 border-l-2 border-slate-200 pl-2">{n.transcribedStem}</p>
+              <p className="text-xs text-[#43474f] italic line-clamp-3 border-l-2 border-[#c3c6d1] pl-2">{n.transcribedStem}</p>
             )}
             {n.flagText && (
               <div className="text-xs bg-amber-50 border-l-2 border-amber-300 pl-2 py-1 rounded-r">
                 <span className="font-semibold text-amber-700">You flagged: </span>
-                <span className="text-slate-700">{n.flagText}</span>
+                <span className="text-[#001e40]">{n.flagText}</span>
               </div>
             )}
-            <div className="flex items-start gap-2">
-              <span className="text-base leading-5">💬</span>
-              <p className="text-sm text-slate-700 whitespace-pre-wrap flex-1">{n.adminReply}</p>
-            </div>
+            <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
             {n.crystalAwarded && (
-              <div className="inline-flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-full pl-2 pr-3 py-1 font-extrabold text-sm">
+              <div className="inline-flex items-center gap-1.5 bg-white text-[#001e40] rounded-full pl-2 pr-3 py-1 font-extrabold text-sm">
                 <span>+1</span>
                 <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-5 h-5 object-contain" />
                 <span className="text-xs font-semibold">crystal</span>
@@ -613,7 +612,7 @@ export default function HomePage({
               body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }),
             }).catch(() => {});
           }}
-          className="w-full py-2.5 rounded-xl bg-[#003366] text-white font-semibold hover:bg-[#001e40] transition-colors"
+          className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold"
         >
           Got it
         </button>
@@ -643,7 +642,10 @@ export default function HomePage({
   }
 
   if (!isAdmin && user) {
-    return <>
+    // No adminNotifPopup here — StudentDashboard owns its own
+    // styled "Message from Teacher" popup. Rendering both produced
+    // two identical popups for kids.
+    return (
       <StudentDashboard
         userId={userId}
         user={user}
@@ -651,8 +653,7 @@ export default function HomePage({
         examPapers={examPapers}
         setExamPapers={setExamPapers}
       />
-      {adminNotifPopup}
-    </>;
+    );
   }
 
   // User fetch returned nothing — stale URL, deleted account, transient
