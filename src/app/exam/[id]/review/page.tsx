@@ -2109,10 +2109,18 @@ function ExamReviewContent({ id }: { id: string }) {
               if (currentSection?.passage && (isGrammarCloze || isEditing || isCompCloze)) {
                 const passageQNumsInOrder: number[] = [];
                 const seen = new Set<number>();
-                const passageRegex = /\*\*\((\d+)\)/g;
+                // Two shapes the OCR emits — must match PassageWithInputs
+                // in EnglishQuizSection.tsx, otherwise the quiz player and
+                // the review page render the SAME passage differently:
+                //   1. "**(N) word**"  — number inside the bold (legacy / Cloze)
+                //   2. "(N) **word**"  — number outside the bold (newer Editing)
+                // Without alternative (2) Henry Park 2025 P6 English's
+                // editing section parsed to zero markers and the review
+                // showed the passage as plain prose with no answer boxes.
+                const passageRegex = /\*\*\((\d+)\)([^*]*)\*\*|\((\d+)\)\s+\*\*([^*]+)\*\*/g;
                 let pm: RegExpExecArray | null;
                 while ((pm = passageRegex.exec(currentSection.passage)) !== null) {
-                  const n = parseInt(pm[1]);
+                  const n = parseInt(pm[1] ?? pm[3]);
                   if (!seen.has(n)) { passageQNumsInOrder.push(n); seen.add(n); }
                 }
                 const sortedSecQs = [...sectionQuestions].sort((a, b) =>
@@ -2451,20 +2459,21 @@ function ExamReviewContent({ id }: { id: string }) {
                               </div>
                             );
                           }
-                          // Render inline: editing shows error words, cloze shows blanks
+                          // Render inline: editing shows error words, cloze shows blanks.
+                          // Two marker shapes — see comment on passageRegex above.
                           const parts: React.ReactNode[] = [];
-                          const mkRegex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+                          const mkRegex = /\*\*\((\d+)\)([^*]*)\*\*|\((\d+)\)\s+\*\*([^*]+)\*\*/g;
                           let lastEnd = 0;
                           let mk;
                           while ((mk = mkRegex.exec(line)) !== null) {
                             if (mk.index > lastEnd) parts.push(<span key={`t${lastEnd}`}>{line.slice(lastEnd, mk.index)}</span>);
-                            const markerNum = parseInt(mk[1]);
+                            const markerNum = parseInt(mk[1] ?? mk[3]);
                             // Use position-based map first; fall back to raw
                             // number lookup for sections that don't have a
                             // pre-built map (e.g. a future section type).
                             const mappedQ = markerToQuestion.get(markerNum);
-                            const num = mappedQ ? mappedQ.questionNum : mk[1];
-                            const word = mk[2].trim();
+                            const num = mappedQ ? mappedQ.questionNum : String(markerNum);
+                            const word = (mk[2] ?? mk[4] ?? "").trim();
                             if (isEditing && word) {
                               // Editing: show misspelled word + student's correction
                               // in brackets. Green if matches answer key, red if
