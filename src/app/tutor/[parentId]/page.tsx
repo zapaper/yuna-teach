@@ -456,12 +456,15 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
       </div>
 
       {/* Floating share button — bottom-right, parent-only convenience
-          for saving or forwarding the diagnosis as a single image. */}
+          for saving or forwarding the diagnosis as a single image.
+          bottom-20 on mobile clears iOS Safari's bottom toolbar; on
+          desktop the same offset just leaves more breathing room. */}
       <button
         type="button"
         onClick={handleShare}
         disabled={sharing}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#003366] text-white text-sm font-bold shadow-lg hover:bg-[#001e40] disabled:opacity-60 transition-colors"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-[#003366] text-white text-sm font-bold shadow-lg hover:bg-[#001e40] disabled:opacity-60 transition-colors"
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
         title="Save or forward this Lumi report as an image"
       >
         <span className="material-symbols-outlined text-base">share</span>
