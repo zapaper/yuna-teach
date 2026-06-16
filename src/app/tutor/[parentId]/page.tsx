@@ -378,24 +378,48 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
     setSharing(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
+      // scale=1.5 instead of 2 — keeps the canvas under ~3 MB on iOS
+      // Safari, which silently throws on very large canvas → toBlob.
       const canvas = await html2canvas(shareRef.current, {
-        scale: 2, backgroundColor: "#ffffff", useCORS: true,
+        scale: 1.5, backgroundColor: "#ffffff", useCORS: true,
+        logging: false,
         width: shareRef.current.scrollWidth,
         height: shareRef.current.scrollHeight,
       });
-      const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), "image/png"));
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(b => resolve(b), "image/png"));
+      if (!blob) {
+        throw new Error("canvas.toBlob returned null — the snapshot couldn't be encoded.");
+      }
       const safeName = (data.childFullName ?? "lumi").toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const file = new File([blob], `${safeName}-${data.subject.toLowerCase()}-lumi.png`, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: `${data.childFullName} · Lumi · ${data.subject}`, files: [file] });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = file.name; a.click();
-        URL.revokeObjectURL(url);
+      // Always TRY navigator.share first when present — the canShare()
+      // probe is flaky on some iOS Safari builds (returns false for
+      // perfectly shareable files), and falling through to the
+      // <a download> path on iOS just navigates to the blob URL since
+      // Mobile Safari ignores the download attribute. Catch the
+      // user-cancel AbortError separately so we don't treat it as a
+      // real failure.
+      let shareError: unknown = null;
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({ title: `${data.childFullName} · Lumi · ${data.subject}`, files: [file] });
+          return;
+        } catch (e) {
+          if ((e as Error)?.name === "AbortError") return; // user dismissed
+          shareError = e;
+        }
       }
+      // Desktop / non-share-API fallback — direct download.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      if (shareError) console.warn("navigator.share failed; fell back to download:", shareError);
     } catch (e) {
-      if ((e as Error).name !== "AbortError") console.error("Lumi share failed:", e);
+      console.error("Lumi share failed:", e);
+      const msg = (e as Error)?.message ?? String(e);
+      alert(`Couldn't generate the Lumi image: ${msg}`);
     } finally {
       setSharing(false);
     }
@@ -636,10 +660,18 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
     const sectionTitleStyle = { fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 12 };
     return (
       <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
-        {/* Header: Lumi avatar top-left, name + subject right */}
+        {/* Header: text-only Lumi mark top-left + name/subject right.
+            Avoided an <img> on purpose — html2canvas chokes on WebP and
+            on images that haven't finished loading in the offscreen DOM,
+            which left the iOS Safari "Share Lumi" tap silently hanging. */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, paddingBottom: 24, borderBottom: "3px solid #001e40" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/avatars/owl1.webp" alt="Lumi" width={92} height={92} style={{ width: 92, height: 92, borderRadius: 999, border: "2px solid #c4b5fd", objectFit: "cover", flexShrink: 0 }} />
+          <div style={{
+            width: 92, height: 92, borderRadius: 999, flexShrink: 0,
+            background: "linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#ffffff", fontSize: 48, fontWeight: 800, fontFamily: "'Inter', system-ui, sans-serif",
+            border: "2px solid #c4b5fd",
+          }}>L</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi · Owl Tutor</div>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#001e40", marginTop: 4, lineHeight: 1.2 }}>{childFullName}&rsquo;s {subject} Progress</div>
