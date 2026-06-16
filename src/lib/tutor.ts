@@ -850,7 +850,7 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
 // the workshop wrote into the cache text ("Adriel sometimes…");
 // post-shape we replace every occurrence with the display student's
 // first name so the demo doesn't leak the original kid.
-const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string }> = {
+export const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string }> = {
   // Student666 → David lim
   "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
   // student67 → David lim (demo-video duplicate of student666 so a

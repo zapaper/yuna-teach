@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-guard";
 import { TUTOR_CACHE } from "@/lib/tutor-cache";
+import { DEMO_DATA_REDIRECT } from "@/lib/tutor";
 
 // Returns students an admin can pick from the Tutor view's selector,
 // even when they're not linked to the admin's own parent account.
@@ -128,6 +129,25 @@ export async function GET(request: NextRequest) {
       if (EXCLUDED_NAMES.has(u.name.toLowerCase())) continue;
       hits.set(kidId, { id: u.id, name: u.name, level: u.level, hasDiagnosis: false });
     }
+  }
+
+  // Source #3 — demo-clone students. Anyone listed in DEMO_DATA_REDIRECT
+  // borrows the source kid's diagnosis at view time (handled in
+  // loadTutorData), so for the dropdown they effectively have a
+  // diagnosis in whichever subject the source kid does. Honour the
+  // ?subject= filter by checking that the source's cache key exists
+  // for the requested subject; with no filter we surface the clone
+  // regardless.
+  for (const [cloneId, redirect] of Object.entries(DEMO_DATA_REDIRECT)) {
+    if (hits.has(cloneId)) continue;
+    if (subjectKey) {
+      const sourceCacheKey = `${redirect.sourceSafeName}:${subjectKey}`;
+      if (!(sourceCacheKey in TUTOR_CACHE)) continue;
+    }
+    const u = allUsers.find(x => x.id === cloneId);
+    if (!u || !u.name) continue;
+    if (EXCLUDED_NAMES.has(u.name.toLowerCase())) continue;
+    hits.set(cloneId, { id: u.id, name: u.name, level: u.level, hasDiagnosis: true });
   }
 
   const students = [...hits.values()].sort((a, b) => a.name.localeCompare(b.name));
