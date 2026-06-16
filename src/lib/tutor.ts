@@ -890,20 +890,24 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   // these, which used to pull megabytes over the wire on every fresh
   // Tutor load. Diagrams are fetched in a targeted second query after
   // we know which 3-4 example questions per card we'll actually show.
-  const papers = await prisma.examPaper.findMany({
+  //
+  // Two-pass column hydrate (mirrors daily-quiz's lean-pool pattern —
+  // see project_neon_egress_costs memory): the FIRST pull is light —
+  // just the scoring columns the topline + eligibility check need.
+  // The heavy text columns (transcribedStem / transcribedOptions /
+  // transcribedSubparts / markingNotes / answer / sourceQuestionId)
+  // only flow over the wire when a cached Gemini diagnosis exists and
+  // we actually need to feed reconstructWrongs. Uncached kids (now
+  // surfaced in the admin dropdown by the ≥15-wrongs path) and
+  // ineligible kids (< 3 papers) skip the heavy pull entirely.
+  const papersLight = await prisma.examPaper.findMany({
     where: { assignedToId: dataStudentId, markingStatus: { in: ["complete", "released"] } },
     select: {
-      title: true, metadata: true, subject: true,
+      id: true, title: true, subject: true, metadata: true,
       questions: {
         select: {
-          id: true,
-          questionNum: true,
-          sourceQuestionId: true,
-          studentAnswer: true, answer: true,
-          marksAwarded: true, marksAvailable: true,
-          markingNotes: true, syllabusTopic: true,
-          transcribedOptions: true, transcribedStem: true,
-          transcribedSubparts: true,
+          id: true, marksAwarded: true, marksAvailable: true,
+          studentAnswer: true, syllabusTopic: true,
         },
         // Deterministic question order — without this Prisma can
         // shuffle nested includes by physical row position, which
@@ -918,7 +922,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     // per pattern.
     orderBy: { completedAt: "desc" },
   });
-  const subjectPapers = papers.filter(p => subjectMatches(p.subject, subject));
+  const subjectPapersLight = papersLight.filter(p => subjectMatches(p.subject, subject));
 
   // Find the cached Gemini diagnosis for this kid + subject. cacheSafe
   // honours the demo redirect so e.g. Student666 loads David lim's
@@ -927,8 +931,10 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   const cachedReport = TUTOR_CACHE[cacheKey];
   if (!cachedReport) {
     // No diagnosis yet — empty common mistakes / conceptual gaps,
-    // but still show the topline + topics for practice.
-    const topline = computeTopline(subjectPapers);
+    // but still show the topline + topics for practice. NO heavy
+    // pull needed: topline only reads marksAwarded/Available/topic
+    // which the light query already has.
+    const topline = computeTopline(subjectPapersLight);
     if (topline.paperCount < 3) {
       return { kind: "ineligible", reason: "Need at least 3 papers to surface common mistakes.", paperCount: topline.paperCount };
     }
@@ -960,6 +966,32 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       previousAssessment: null,
     };
   }
+  // Heavy second pull: only the subject papers we already filtered, and
+  // only when there's a cached diagnosis to feed. Preserves the same
+  // orderBy contract (completedAt desc + questions by orderIndex asc)
+  // so reconstructWrongs's idx values line up with the workshop's.
+  const subjectPaperIds = subjectPapersLight.map(p => p.id);
+  const subjectPapers = subjectPaperIds.length > 0 ? await prisma.examPaper.findMany({
+    where: { id: { in: subjectPaperIds } },
+    select: {
+      title: true, metadata: true, subject: true,
+      questions: {
+        select: {
+          id: true,
+          questionNum: true,
+          sourceQuestionId: true,
+          studentAnswer: true, answer: true,
+          marksAwarded: true, marksAvailable: true,
+          markingNotes: true, syllabusTopic: true,
+          transcribedOptions: true, transcribedStem: true,
+          transcribedSubparts: true,
+        },
+        orderBy: { orderIndex: "asc" },
+      },
+    },
+    orderBy: { completedAt: "desc" },
+  }) : [];
+
   const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
   if (shaped.kind !== "ready") return shaped;
 
