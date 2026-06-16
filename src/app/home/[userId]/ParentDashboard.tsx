@@ -745,11 +745,25 @@ export default function ParentDashboard({
   // the Tutor view dispatches after a successful focused-practice /
   // daily-quiz assignment, so the new paper shows up on Home without
   // the parent having to leave and come back.
+  // Throttle the visibility / focus refresh so quick tab swaps don't
+  // stack /api/exam round-trips on top of the parent page wrapper's
+  // own onVisible refetch + the polling effect's restart. lumi-paper-
+  // assigned stays unthrottled — it's an explicit "new paper just
+  // landed" signal we always want to honour.
+  const lastVisibleRefreshRef = useRef<number | null>(null);
   useEffect(() => {
     function onActive() {
-      if (document.visibilityState === "visible") refreshPapers();
+      if (document.visibilityState !== "visible") return;
+      const last = lastVisibleRefreshRef.current;
+      const now = Date.now();
+      if (last && now - last < 30000) return;
+      lastVisibleRefreshRef.current = now;
+      refreshPapers();
     }
-    function onAssigned() { refreshPapers(); }
+    function onAssigned() {
+      lastVisibleRefreshRef.current = Date.now();
+      refreshPapers();
+    }
     window.addEventListener("focus", onActive);
     document.addEventListener("visibilitychange", onActive);
     window.addEventListener("lumi-paper-assigned", onAssigned);

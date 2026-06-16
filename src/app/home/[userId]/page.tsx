@@ -42,6 +42,10 @@ export default function HomePage({
   const cacheKey = `home-cache:${userId}:${new Date().toISOString().slice(0, 10)}`;
 
   const fetchData = useRef<() => Promise<void>>(undefined);
+  // Timestamp of the last visibility-triggered fetchData(). Used to
+  // throttle quick tab swaps so we don't fire /api/users + /api/exam
+  // every time the user flips back from another tab.
+  const lastVisibleFetchRef = useRef<number | null>(null);
   fetchData.current = async () => {
     try {
       // Fetch only the current user — the old /api/users (no param) pulled
@@ -135,11 +139,22 @@ export default function HomePage({
 
     fetchData.current?.();
 
-    // Refetch when tab becomes visible (e.g. after upload/create redirects back)
+    // Refetch when tab becomes visible (e.g. after upload/create redirects back).
+    // Throttled to 30 s so quick tab swaps don't re-trigger the heavy
+    // /api/users + /api/exam round-trip — paired with the same throttle
+    // on ParentDashboard's onActive handler so a single tab-return
+    // doesn't fire three parallel /api/exam calls (this one + the
+    // dashboard's refreshPapers + the polling restart).
     function onVisible() {
-      if (document.visibilityState === "visible") fetchData.current?.();
+      if (document.visibilityState !== "visible") return;
+      const last = lastVisibleFetchRef.current;
+      const now = Date.now();
+      if (last && now - last < 30000) return;
+      lastVisibleFetchRef.current = now;
+      fetchData.current?.();
     }
-    // Refetch when student is linked from the register page (opened in new tab)
+    // Refetch when student is linked from the register page (opened in new tab).
+    // Not throttled — this is an explicit signal that data needs refreshing.
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "student-linked") fetchData.current?.();
     }
