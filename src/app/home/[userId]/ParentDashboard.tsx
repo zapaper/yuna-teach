@@ -2556,17 +2556,15 @@ export default function ParentDashboard({
   // rendered INLINE in the same page (same left sidebar stays in
   // place, just the main column swaps). Non-admins keep the single
   // Progress entry that selects the inline 'progress' view.
-  const progressNavClick = () => {
-    if (isAdminUser) setActiveView("lumi");
-    else setActiveView("progress");
-  };
+  // Lumi/Progress now ships to ALL parents, not just admins. The
+  // existing chart-and-papers view becomes "Home" for everyone and
+  // the Lumi view sits behind a dedicated "Progress" entry. Only
+  // admins get the additional cross-student dropdown inside Lumi
+  // (gated separately in LumiViewBody).
+  const progressNavClick = () => setActiveView("lumi");
   const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
-    ...(isAdminUser ? [{ icon: "home", label: "Home", onClick: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-    // Non-admins: the existing chart-and-papers view IS their home, so
-    // relabel to 'Home' (with the home icon) while we workshop the
-    // Lumi/Tutor experience. The same nav slot will become 'Progress'
-    // (Lumi) for parents once it ships to them.
-    { icon: isAdminUser ? "insights" : "home", label: isAdminUser ? "Progress" : "Home", onClick: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
+    { icon: "home", label: "Home", onClick: () => setActiveView("progress"), active: activeView === "progress" },
+    { icon: "insights", label: "Progress", onClick: progressNavClick, active: activeView === "lumi" },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
@@ -3045,15 +3043,15 @@ export default function ParentDashboard({
               Admin-only. Renders inline so the left sidebar (Home,
               Progress, Set Papers, etc.) stays in place — clicking
               between students or back to Home doesn't full-page-navigate. */}
-        {activeView === "lumi" && isAdminUser && selectedStudentId && (
+        {activeView === "lumi" && selectedStudentId && (
           <div className="px-5 lg:px-8 max-w-5xl">
             <LumiViewBody studentId={selectedStudentId} parentId={userId} studentName={selectedStudent?.name ?? ""} isAdmin={isAdminUser} />
           </div>
         )}
-        {activeView === "lumi" && (!isAdminUser || !selectedStudentId) && (
+        {activeView === "lumi" && !selectedStudentId && (
           <div className="px-5 lg:px-8 max-w-4xl">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-              <p className="text-sm text-slate-500">{!isAdminUser ? "Admin-only view." : "Select a student first."}</p>
+              <p className="text-sm text-slate-500">Select a student first.</p>
             </div>
           </div>
         )}
@@ -4241,10 +4239,11 @@ export default function ParentDashboard({
       {/* ════════════════════════════════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
-          // Admin: Home (chart) + Progress (Lumi) inline.
-          // Non-admin: single Home item (the chart view relabelled).
-          ...(isAdminUser ? [{ icon: "home", label: "Home", action: () => setActiveView("progress"), active: activeView === "progress" }] : []),
-          { icon: isAdminUser ? "insights" : "home", label: isAdminUser ? "Progress" : "Home", action: progressNavClick, active: (isAdminUser && activeView === "lumi") || (!isAdminUser && activeView === "progress") },
+          // All parents: Home (chart + papers) + Progress (Lumi).
+          // The cross-student dropdown inside Lumi is admin-only and
+          // gated separately inside LumiViewBody.
+          { icon: "home", label: "Home", action: () => setActiveView("progress"), active: activeView === "progress" },
+          { icon: "insights", label: "Progress", action: progressNavClick, active: activeView === "lumi" },
           { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
           { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
