@@ -55,8 +55,9 @@ function FlaggedContent() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [replyDraft, setReplyDraft] = useState<Record<string, string>>({});
+  const [awardCrystal, setAwardCrystal] = useState<Record<string, boolean>>({});
   const [replying, setReplying] = useState<string | null>(null);
-  const [replySent, setReplySent] = useState<Record<string, boolean>>({});
+  const [replySent, setReplySent] = useState<Record<string, { crystalAwarded: boolean }>>({});
 
   useEffect(() => {
     fetch("/api/flagged")
@@ -86,14 +87,15 @@ function FlaggedContent() {
     e.stopPropagation();
     const message = replyDraft[item.questionId]?.trim();
     if (!message) return;
+    const willAward = !!awardCrystal[item.questionId];
     setReplying(item.questionId);
     try {
       await fetch(`/api/exam/questions/${item.questionId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, awardCrystal: willAward }),
       });
-      setReplySent(prev => ({ ...prev, [item.questionId]: true }));
+      setReplySent(prev => ({ ...prev, [item.questionId]: { crystalAwarded: willAward } }));
       setReplyDraft(prev => ({ ...prev, [item.questionId]: "" }));
     } finally {
       setReplying(null);
@@ -355,23 +357,53 @@ function FlaggedContent() {
                 {userId && (
                   <div className="pt-2 border-t border-slate-50" onClick={(e) => e.stopPropagation()}>
                     {replySent[item.questionId] ? (
-                      <p className="text-[11px] text-green-600 font-medium">Reply sent ✓</p>
+                      <p className="text-[11px] text-green-600 font-medium">
+                        Reply sent ✓
+                        {replySent[item.questionId].crystalAwarded && (
+                          <span className="inline-flex items-center gap-1 ml-2 text-[10px] font-bold text-[#001e40] bg-[#e5eeff] px-1.5 py-0.5 rounded-full">
+                            +1
+                            {/* Match the existing crystal sticker used by the
+                                habitats page so the chip looks like the same
+                                currency the kid already sees. */}
+                            <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-3 h-3 object-contain" />
+                          </span>
+                        )}
+                      </p>
                     ) : (
-                      <div className="flex gap-2 items-start">
-                        <textarea
-                          value={replyDraft[item.questionId] ?? ""}
-                          onChange={(e) => setReplyDraft(prev => ({ ...prev, [item.questionId]: e.target.value }))}
-                          placeholder="Reply to student (e.g. Answer key was wrong — amended. Thank you!)"
-                          rows={2}
-                          className="flex-1 text-xs rounded-lg border border-slate-200 px-2.5 py-1.5 resize-none focus:outline-none focus:border-primary-400 placeholder:text-slate-300"
-                        />
-                        <button
-                          onClick={(e) => handleReply(item, e)}
-                          disabled={!replyDraft[item.questionId]?.trim() || replying === item.questionId}
-                          className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-40 transition-colors"
-                        >
-                          {replying === item.questionId ? "…" : "Send"}
-                        </button>
+                      <div className="space-y-1.5">
+                        <div className="flex gap-2 items-start">
+                          <textarea
+                            value={replyDraft[item.questionId] ?? ""}
+                            onChange={(e) => setReplyDraft(prev => ({ ...prev, [item.questionId]: e.target.value }))}
+                            placeholder="Reply to student (e.g. Answer key was wrong — amended. Thank you!)"
+                            rows={2}
+                            className="flex-1 text-xs rounded-lg border border-slate-200 px-2.5 py-1.5 resize-none focus:outline-none focus:border-primary-400 placeholder:text-slate-300"
+                          />
+                          <button
+                            onClick={(e) => handleReply(item, e)}
+                            disabled={!replyDraft[item.questionId]?.trim() || replying === item.questionId}
+                            className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-40 transition-colors"
+                          >
+                            {replying === item.questionId ? "…" : "Send"}
+                          </button>
+                        </div>
+                        {/* Only show the crystal toggle when we know who to
+                            credit (anon flags have no flaggedByUserId). */}
+                        {item.flaggedBy && (
+                          <label className="inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={!!awardCrystal[item.questionId]}
+                              onChange={(e) => setAwardCrystal(prev => ({ ...prev, [item.questionId]: e.target.checked }))}
+                              className="accent-primary-500"
+                            />
+                            <span>Award</span>
+                            <span className="inline-flex items-center gap-1 font-bold text-[#001e40]">
+                              +1
+                              <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-3.5 h-3.5 object-contain" />
+                            </span>
+                          </label>
+                        )}
                       </div>
                     )}
                   </div>

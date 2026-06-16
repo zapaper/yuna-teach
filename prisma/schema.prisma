@@ -254,6 +254,10 @@ model ExamQuestion {
   adminReply      String?
   adminRepliedAt  DateTime?
   adminReplyRead  Boolean  @default(false)
+  // True after admin awards +1 crystal alongside their reply. Idempotency
+  // guard: the /reply POST refuses to re-credit once this flips, so a
+  // second Send press (or a re-edit) can't double-credit the kid.
+  crystalAwarded  Boolean  @default(false)
 
   // Clean question transcription (quiz mode)
   transcribedStem         String?

@@ -286,7 +286,7 @@ export default function HomePage({
   const [badgeToast, setBadgeToast] = useState(false);
 
   // Admin reply notifications
-  type AdminNotif = { questionId: string; questionNum: string; adminReply: string; adminRepliedAt: string; paperTitle: string; paperId: string; cloneId: string | null; paperType: string | null };
+  type AdminNotif = { questionId: string; questionNum: string; adminReply: string; adminRepliedAt: string; paperTitle: string; paperId: string; cloneId: string | null; paperType: string | null; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean };
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   useEffect(() => {
@@ -580,9 +580,28 @@ export default function HomePage({
           <h3 className="font-semibold text-lg text-slate-800">Reply from Admin</h3>
         </div>
         {adminNotifs.map((n) => (
-          <div key={n.questionId} className="bg-slate-50 rounded-xl px-4 py-3 space-y-1">
+          <div key={n.questionId} className="bg-slate-50 rounded-xl px-4 py-3 space-y-2">
             <p className="text-xs text-slate-400 font-medium">{n.paperTitle} · Q{n.questionNum}</p>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{n.adminReply}</p>
+            {n.transcribedStem && (
+              <p className="text-xs text-slate-600 italic line-clamp-3 border-l-2 border-slate-200 pl-2">{n.transcribedStem}</p>
+            )}
+            {n.flagText && (
+              <div className="text-xs bg-amber-50 border-l-2 border-amber-300 pl-2 py-1 rounded-r">
+                <span className="font-semibold text-amber-700">You flagged: </span>
+                <span className="text-slate-700">{n.flagText}</span>
+              </div>
+            )}
+            <div className="flex items-start gap-2">
+              <span className="text-base leading-5">💬</span>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap flex-1">{n.adminReply}</p>
+            </div>
+            {n.crystalAwarded && (
+              <div className="inline-flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-full pl-2 pr-3 py-1 font-extrabold text-sm">
+                <span>+1</span>
+                <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-5 h-5 object-contain" />
+                <span className="text-xs font-semibold">crystal</span>
+              </div>
+            )}
           </div>
         ))}
         <button
