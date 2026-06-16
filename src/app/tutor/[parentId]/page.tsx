@@ -49,6 +49,9 @@ type Topline = {
   paperCount: number;
   strongTopics: Array<{ topic: string; pct: number }>;
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
+  // Optional so cached payloads from before allTopics shipped still
+  // type-check. Falls back to the strong+weak merge for those.
+  allTopics?: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;
 };
 type MistakeExample = {
@@ -180,7 +183,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // that old localStorage payloads should NOT be served — the new
     // key won't hit any pre-bump cache, and the prune step removes
     // every old `tutor-*` entry.
-    const cacheKey = `tutor-v2-${studentId}-${subject}`;
+    const cacheKey = `tutor-v3-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;
@@ -387,6 +390,9 @@ function IneligibleView({
   // matches what'll get exported once the kid is eligible.
   const chartTopics = topline
     ? (() => {
+        if (topline.allTopics && topline.allTopics.length > 0) {
+          return topline.allTopics.map(t => ({ topic: t.topic, pct: t.pct }));
+        }
         const seen = new Map<string, number>();
         for (const t of topline.strongTopics) seen.set(t.topic, t.pct);
         for (const t of topline.weakTopics) seen.set(t.topic, t.pct);
@@ -806,11 +812,15 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
     const statusColor = topline.avgPct >= 75 ? "#006c49" : topline.avgPct >= 60 ? "#d58d00" : "#ba1a1a";
     const sectionTitleStyle = { fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 12 };
 
-    // Column-chart topic list — merge strong + weak (deduped, ordered
-    // by pct desc) so the image carries the kid's spread, not just
-    // the practice-recommended subset. Falls back to topicsForPractice
-    // when the topline doesn't carry enough.
+    // Column-chart topic list — prefer the full allTopics array so
+    // the share image carries every topic the kid has ≥3 attempts
+    // on, matching the on-screen progress chart. Falls back to the
+    // strong+weak+practice merge for cached payloads from before
+    // allTopics shipped.
     const chartTopics = (() => {
+      if (topline.allTopics && topline.allTopics.length > 0) {
+        return topline.allTopics.map(t => ({ topic: t.topic, pct: t.pct }));
+      }
       const seen = new Map<string, number>();
       for (const t of topline.strongTopics) seen.set(t.topic, t.pct);
       for (const t of topline.weakTopics) seen.set(t.topic, t.pct);

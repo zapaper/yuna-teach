@@ -97,6 +97,11 @@ export type Topline = {
   paperCount: number;
   strongTopics: Array<{ topic: string; pct: number }>;
   weakTopics: Array<{ topic: string; pct: number; attempts: number }>;
+  // Every topic with at least 3 attempts. The share-image chart
+  // uses this so the export shows the kid's full topic spread, not
+  // just the top-2-strong + top-3-weak subset baked into the two
+  // arrays above.
+  allTopics: Array<{ topic: string; pct: number; attempts: number }>;
   nudge: string | null;  // e.g. "Mark sometimes leaves the last sub-question blank…"
 };
 export type MistakeExample = {
@@ -572,6 +577,7 @@ function partialFromTopline(args: {
       paperCount: topline.paperCount,
       strongTopics: [...topics].sort((a, b) => b.pct - a.pct).slice(0, 2).map(t => ({ topic: t.topic, pct: t.pct })),
       weakTopics: [...topics].sort((a, b) => a.pct - b.pct).slice(0, 3),
+      allTopics: [...topics].sort((a, b) => b.pct - a.pct),
       nudge: null,
     },
   };
@@ -835,6 +841,9 @@ function shapeTutorData(args: {
       paperCount: topline.paperCount,
       strongTopics: strongTopics.map(t => ({ topic: t.topic, pct: t.pct })),
       weakTopics,
+      // Sort high → low so the share chart reads left-to-right
+      // strongest → weakest, matching the on-screen progress chart.
+      allTopics: [...topics].sort((a, b) => b.pct - a.pct),
       nudge,
     },
     commonMistakes: allCommonMistakes,
@@ -1011,6 +1020,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
         paperCount: topline.paperCount,
         strongTopics: [...topics].sort((a, b) => b.pct - a.pct).slice(0, 2).map(t => ({ topic: t.topic, pct: t.pct })),
         weakTopics: [...topics].sort((a, b) => a.pct - b.pct).slice(0, 3),
+        allTopics: [...topics].sort((a, b) => b.pct - a.pct),
         nudge: null,
       },
       commonMistakes: [],
