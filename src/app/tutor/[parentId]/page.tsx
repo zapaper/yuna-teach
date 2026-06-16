@@ -250,13 +250,13 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
       {showSwitchPill && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[120] bg-[#003366] text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
           <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          Loading {firstName ? `${firstName}'s` : ""} {subject.toLowerCase()}…
+          Loading Lumi…
         </div>
       )}
       {showSpinner && (
         <div className="flex flex-col items-center justify-center py-32 gap-6">
           <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#003366] animate-spin" />
-          <p className="text-sm font-medium text-slate-500">Loading {firstName ? `${firstName}'s` : ""} {subject.toLowerCase()} tutor view…</p>
+          <p className="text-sm font-medium text-slate-500">Loading Lumi…</p>
         </div>
       )}
       {data && data.kind === "ineligible" && (
