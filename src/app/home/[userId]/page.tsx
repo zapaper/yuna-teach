@@ -321,7 +321,31 @@ export default function HomePage({
   }, [userId]);
   useEffect(() => {
     if (!user || !isParent || !hasLinkedStudents) return;
-    fetchRecommendations(false);
+    // Defer the Gemini-backed recommendations call until AFTER the
+    // rest of the dashboard has painted. The greeting + action cards
+    // depend on a synchronous Gemini round-trip that can take 5-10s
+    // on the first call of the day; firing it on mount blocks the
+    // chat panel from settling and makes the cold-load feel slow.
+    // requestIdleCallback waits for the browser to be free; the
+    // 1.5 s timeout is a hard fallback so we don't starve forever on
+    // a busy main thread (Safari iOS doesn't ship rIC at all, hence
+    // the setTimeout path). User can still pull the recs eagerly via
+    // the Tips button — that calls fetchRecommendations(true).
+    type IdleHandle = number;
+    type IdleCb = () => void;
+    const rIC = (window as unknown as { requestIdleCallback?: (cb: IdleCb, opts?: { timeout: number }) => IdleHandle }).requestIdleCallback;
+    const cIC = (window as unknown as { cancelIdleCallback?: (h: IdleHandle) => void }).cancelIdleCallback;
+    let idleHandle: IdleHandle | null = null;
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    if (typeof rIC === "function") {
+      idleHandle = rIC(() => fetchRecommendations(false), { timeout: 1500 });
+    } else {
+      timeoutHandle = setTimeout(() => fetchRecommendations(false), 600);
+    }
+    return () => {
+      if (idleHandle !== null && typeof cIC === "function") cIC(idleHandle);
+      if (timeoutHandle !== null) clearTimeout(timeoutHandle);
+    };
   }, [user, isParent, hasLinkedStudents, fetchRecommendations]);
 
   // Show guide on first visit for parents (skip if opening quiz modal)
