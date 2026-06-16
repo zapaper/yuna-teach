@@ -376,35 +376,29 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   const handleShare = useCallback(async () => {
     if (!shareRef.current) return;
     setSharing(true);
+    // Hard outer timeout — fires no matter where the pipeline stalls
+    // (dynamic import, image preload, html2canvas paint, toBlob,
+    // navigator.share). Without this, an iOS Safari hang at ANY step
+    // leaves the button frozen at "Preparing…" with no exit. 25s is
+    // generous; a real render is ~2-4s on modern phones.
+    const outerTimeout = setTimeout(() => {
+      setSharing(false);
+      alert("Sharing took too long and was cancelled. Please try again — if it keeps happening, reload the page first.");
+    }, 25000);
     try {
       const html2canvas = (await import("html2canvas")).default;
-      // Make sure every <img> inside the offscreen DOM has actually
-      // decoded before html2canvas snapshots — otherwise the Lumi
-      // photo lands as a blank box on iOS Safari, where image decode
-      // for an absolutely-positioned hidden node can lag behind the
-      // synchronous toBlob path.
-      const imgs = Array.from(shareRef.current.querySelectorAll("img"));
-      await Promise.all(imgs.map(im => {
-        if (im.complete && im.naturalWidth > 0) return Promise.resolve();
-        return new Promise<void>(res => {
-          im.addEventListener("load", () => res(), { once: true });
-          im.addEventListener("error", () => res(), { once: true });
-        });
-      }));
-      // 20s safety timeout: if html2canvas hangs on iOS Safari (we've
-      // seen it stall indefinitely on complex absolute-positioned
-      // layouts), surface a real error to the user instead of the
-      // "Preparing…" spinner spinning forever.
-      const renderPromise = html2canvas(shareRef.current, {
+      // (Image preload removed — the only <img> is the inline base64
+      // Lumi data URI, which is rasterised synchronously when set as
+      // src. The explicit preload Promise was hanging on iOS Safari
+      // because complete/naturalWidth on data: URI imgs sometimes
+      // never flips to true.)
+      const canvas = await html2canvas(shareRef.current, {
         scale: 1.5, backgroundColor: "#ffffff", useCORS: true,
         logging: false,
+        imageTimeout: 5000,
         width: shareRef.current.scrollWidth,
         height: shareRef.current.scrollHeight,
       });
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Rendering timed out — try again or reload the page.")), 20000)
-      );
-      const canvas = await Promise.race([renderPromise, timeoutPromise]);
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(b => resolve(b), "image/png"));
       if (!blob) {
         throw new Error("canvas.toBlob returned null — the snapshot couldn't be encoded.");
@@ -440,6 +434,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
       const msg = (e as Error)?.message ?? String(e);
       alert(`Couldn't generate the Lumi image: ${msg}`);
     } finally {
+      clearTimeout(outerTimeout);
       setSharing(false);
     }
   }, [data]);
