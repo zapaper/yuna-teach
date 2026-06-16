@@ -2650,8 +2650,8 @@ function ExamReviewContent({ id }: { id: string }) {
                                       </>
                                     ) : (
                                       <>
-                                        <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
                                         <span className="font-bold text-[#ba1a1a] px-1 text-sm">{correctWord}</span>
+                                        <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
                                       </>
                                     )
                                   ) : isChineseDialogueCloze ? (
