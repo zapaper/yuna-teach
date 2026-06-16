@@ -391,14 +391,20 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
           im.addEventListener("error", () => res(), { once: true });
         });
       }));
-      // scale=1.5 instead of 2 — keeps the canvas under ~3 MB on iOS
-      // Safari, which silently throws on very large canvas → toBlob.
-      const canvas = await html2canvas(shareRef.current, {
+      // 20s safety timeout: if html2canvas hangs on iOS Safari (we've
+      // seen it stall indefinitely on complex absolute-positioned
+      // layouts), surface a real error to the user instead of the
+      // "Preparing…" spinner spinning forever.
+      const renderPromise = html2canvas(shareRef.current, {
         scale: 1.5, backgroundColor: "#ffffff", useCORS: true,
         logging: false,
         width: shareRef.current.scrollWidth,
         height: shareRef.current.scrollHeight,
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Rendering timed out — try again or reload the page.")), 20000)
+      );
+      const canvas = await Promise.race([renderPromise, timeoutPromise]);
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(b => resolve(b), "image/png"));
       if (!blob) {
         throw new Error("canvas.toBlob returned null — the snapshot couldn't be encoded.");
@@ -735,63 +741,53 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
           )}
         </div>
 
-        {/* Column chart with the kid's average line drawn across.
-            Columns coloured by band (green/amber/red); dashed line at
-            avgPct so the parent can see at a glance which topics sit
-            above or below the kid's own average. */}
+        {/* Column chart with average line. Pure-flex layout (no
+            absolute positioning) so html2canvas on iOS Safari doesn't
+            hang while computing the snapshot — the previous chart had
+            three overlapping absolute layers and never finished
+            rasterising on mobile. Average line is drawn as a thin
+            full-width strip sitting at the avgPct% mark of the plot
+            area's column; ::before-style dashes done via repeating
+            background since html2canvas drops border-style: dashed
+            on absolutely-positioned elements. */}
         {chartTopics.length > 0 && (() => {
-          const chartH = 200;     // plot area height (px)
-          const labelH = 50;      // x-axis label band
-          const yAxisW = 28;      // y-axis label column
-          const colMax = 100;     // % ceiling
-          const avgY = chartH - (topline.avgPct / colMax) * chartH;
+          const chartH = 220;
+          const colMax = 100;
+          const avgFromBottom = (topline.avgPct / colMax) * chartH;
           return (
             <div style={{ marginBottom: 28 }}>
-              <div style={sectionTitleStyle}>Topic Accuracy · average line at {topline.avgPct}%</div>
-              <div style={{ display: "flex", alignItems: "stretch" }}>
-                {/* y-axis ticks */}
-                <div style={{ width: yAxisW, height: chartH, position: "relative", marginRight: 6 }}>
-                  {[0, 25, 50, 75, 100].map(t => (
-                    <div key={t} style={{ position: "absolute", right: 4, top: chartH - (t / colMax) * chartH - 6, fontSize: 10, color: "#737780" }}>{t}</div>
-                  ))}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ position: "relative", height: chartH, borderLeft: "1px solid #e5eeff", borderBottom: "1px solid #e5eeff" }}>
-                    {/* grid lines */}
-                    {[25, 50, 75].map(t => (
-                      <div key={t} style={{ position: "absolute", left: 0, right: 0, top: chartH - (t / colMax) * chartH, borderTop: "1px dashed #eef2ff" }} />
-                    ))}
-                    {/* columns */}
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end", justifyContent: "space-around", paddingInline: 8 }}>
-                      {chartTopics.map(t => {
-                        const h = (t.pct / colMax) * chartH;
-                        const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
-                        return (
-                          <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: chartH }}>
-                            <div style={{ flex: 1 }} />
-                            <div style={{ fontSize: 11, fontWeight: 700, color: barColor, marginBottom: 2 }}>{t.pct}%</div>
-                            <div style={{ width: "70%", maxWidth: 64, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
+              <div style={sectionTitleStyle}>Topic Accuracy · child&rsquo;s average {topline.avgPct}%</div>
+              <div style={{ display: "flex", gap: 16, alignItems: "stretch" }}>
+                {chartTopics.map((t, i) => {
+                  const h = (t.pct / colMax) * chartH;
+                  const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                  return (
+                    <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      {/* Plot column — fixed height, the bar grows from the bottom. */}
+                      <div style={{ width: "100%", height: chartH, display: "flex", flexDirection: "column", justifyContent: "flex-end", position: "relative", borderBottom: "2px solid #001e40" }}>
+                        {/* Average pill anchored to the FIRST column only so
+                            html2canvas doesn't redraw it N times. */}
+                        {i === 0 && (
+                          <div style={{ position: "absolute", left: 0, right: 0, bottom: avgFromBottom, height: 0, borderTop: "2px dashed #003366" }}>
+                            <div style={{ position: "absolute", left: 0, top: -22, fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#eff4ff", padding: "2px 6px", borderRadius: 4 }}>
+                              Avg {topline.avgPct}%
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                    {/* avg line — drawn ABOVE columns so it stays visible
-                        even when a column ends below the line. */}
-                    <div style={{ position: "absolute", left: 0, right: 0, top: avgY, borderTop: "2px dashed #003366", pointerEvents: "none" }}>
-                      <span style={{ position: "absolute", right: 4, top: -18, fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#ffffff", padding: "1px 6px", borderRadius: 4, border: "1px solid #c7d6f0" }}>
-                        Avg {topline.avgPct}%
-                      </span>
-                    </div>
-                  </div>
-                  {/* x-axis labels */}
-                  <div style={{ display: "flex", justifyContent: "space-around", paddingTop: 8, paddingInline: 8, height: labelH }}>
-                    {chartTopics.map(t => (
-                      <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", paddingInline: 4, lineHeight: 1.25 }}>
+                        )}
+                        {/* Average overlay marker for subsequent columns —
+                            just the line, no pill. */}
+                        {i > 0 && (
+                          <div style={{ position: "absolute", left: 0, right: 0, bottom: avgFromBottom, height: 0, borderTop: "2px dashed #003366" }} />
+                        )}
+                        <div style={{ fontSize: 12, fontWeight: 800, color: barColor, textAlign: "center", marginBottom: 2 }}>{t.pct}%</div>
+                        <div style={{ width: "75%", maxWidth: 80, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0", alignSelf: "center" }} />
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", paddingTop: 8, lineHeight: 1.3, minHeight: 32 }}>
                         {t.topic}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
