@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState, use } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
@@ -368,6 +368,38 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
   const [view, setView] = useState<DetailView | null>(null);
   const isOverview = view === null;
   const stageRef = useRef<HTMLDivElement>(null);
+  // Share — html2canvas snapshots the hidden LumiShareable below into a
+  // PNG, then either fires navigator.share (mobile) or falls back to a
+  // direct download. Mirrors /progress/[studentId]'s share pattern.
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  const handleShare = useCallback(async () => {
+    if (!shareRef.current) return;
+    setSharing(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(shareRef.current, {
+        scale: 2, backgroundColor: "#ffffff", useCORS: true,
+        width: shareRef.current.scrollWidth,
+        height: shareRef.current.scrollHeight,
+      });
+      const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), "image/png"));
+      const safeName = (data.childFullName ?? "lumi").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const file = new File([blob], `${safeName}-${data.subject.toLowerCase()}-lumi.png`, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `${data.childFullName} · Lumi · ${data.subject}`, files: [file] });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = file.name; a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") console.error("Lumi share failed:", e);
+    } finally {
+      setSharing(false);
+    }
+  }, [data]);
   // When the swipe transitions in either direction, scroll the page
   // so the SWIPE STAGE sits right at the top of the viewport — that
   // way the detail panel's own heading ('Common Mistake · …', 'Conceptual
@@ -415,6 +447,26 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
           </div>
         </div>
       </div>
+
+      {/* Hidden shareable Lumi report — html2canvas captures this off-
+          screen DOM and returns a PNG. Inline styles only (Tailwind
+          gets dropped during the html2canvas paint pass). */}
+      <div style={{ position: "absolute", left: -9999, top: 0 }} aria-hidden>
+        <LumiShareable ref={shareRef} data={data} />
+      </div>
+
+      {/* Floating share button — bottom-right, parent-only convenience
+          for saving or forwarding the diagnosis as a single image. */}
+      <button
+        type="button"
+        onClick={handleShare}
+        disabled={sharing}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#003366] text-white text-sm font-bold shadow-lg hover:bg-[#001e40] disabled:opacity-60 transition-colors"
+        title="Save or forward this Lumi report as an image"
+      >
+        <span className="material-symbols-outlined text-base">share</span>
+        {sharing ? "Preparing…" : "Share Lumi"}
+      </button>
     </>
   );
 }
@@ -566,6 +618,138 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
 function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
+
+// A4-portrait Lumi report for offscreen html2canvas capture. Inline
+// styles only — Tailwind classes are dropped during the html2canvas
+// paint pass. Contains everything the parent needs to save / forward
+// the diagnosis as a single image: Lumi avatar top-left, child + subject
+// banner, summary, topics-for-practice bar chart, common mistakes and
+// conceptual gaps cards (each with Lumi's advice / explanation). NO
+// action buttons — purely a static snapshot.
+const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { kind: "ready" }> }>(
+  function LumiShareable({ data }, ref) {
+    const { childFullName, childFirst, subject, topline, commonMistakes, conceptualGaps, topicsForPractice } = data;
+    const status = topline.avgPct >= 75 ? "good" : topline.avgPct >= 60 ? "steady" : "tough";
+    const statusColor = topline.avgPct >= 75 ? "#006c49" : topline.avgPct >= 60 ? "#d58d00" : "#ba1a1a";
+    const sectionTitleStyle = { fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 12 };
+    return (
+      <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
+        {/* Header: Lumi avatar top-left, name + subject right */}
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, paddingBottom: 24, borderBottom: "3px solid #001e40" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/avatars/owl1.webp" alt="Lumi" width={92} height={92} style={{ width: 92, height: 92, borderRadius: 999, border: "2px solid #c4b5fd", objectFit: "cover", flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi · Owl Tutor</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#001e40", marginTop: 4, lineHeight: 1.2 }}>{childFullName}&rsquo;s {subject} Progress</div>
+            <div style={{ fontSize: 13, color: "#737780", marginTop: 6 }}>
+              Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })} · MarkForYou.com
+            </div>
+          </div>
+        </div>
+
+        {/* Summary */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={sectionTitleStyle}>Summary</div>
+          <div style={{ fontSize: 16, color: "#0b1c30", lineHeight: 1.65 }}>
+            {childFirst} is making <strong style={{ color: statusColor }}>{status}</strong> progress in {subject}.
+            {" "}Average <strong>{topline.avgPct}%</strong> across <strong>{topline.paperCount}</strong> paper{topline.paperCount === 1 ? "" : "s"} ({topline.totalAwarded}/{topline.totalAvailable} marks).
+          </div>
+          {topline.strongTopics.length > 0 && (
+            <div style={{ fontSize: 14, color: "#0b1c30", lineHeight: 1.6, marginTop: 8 }}>
+              <span style={{ fontWeight: 700, color: "#006c49" }}>Strong in: </span>
+              {topline.strongTopics.map(t => `${t.topic} (${t.pct}%)`).join(", ")}
+            </div>
+          )}
+          {topline.weakTopics.length > 0 && (
+            <div style={{ fontSize: 14, color: "#0b1c30", lineHeight: 1.6, marginTop: 4 }}>
+              <span style={{ fontWeight: 700, color: "#ba1a1a" }}>Watch areas: </span>
+              {topline.weakTopics.map(t => `${t.topic} (${t.pct}%)`).join(", ")}
+            </div>
+          )}
+        </div>
+
+        {/* Topics-for-practice bar chart */}
+        {topicsForPractice.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={sectionTitleStyle}>Topics for Practice</div>
+            {topicsForPractice.map(t => {
+              const pct = t.pct;
+              const barColor = pct >= 75 ? "#006c49" : pct >= 40 ? "#ffb952" : "#ba1a1a";
+              return (
+                <div key={t.topic} style={{ marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#0b1c30" }}>{t.topic}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{pct}%</span>
+                  </div>
+                  <div style={{ height: 10, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${pct}%`, backgroundColor: barColor, borderRadius: 999 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Common Mistakes */}
+        {commonMistakes.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={sectionTitleStyle}>Common Mistakes</div>
+            {commonMistakes.map((m, i) => (
+              <div key={i} style={{ border: "1px solid #ede9fe", borderRadius: 12, padding: 18, marginBottom: 14, backgroundColor: "#fbfaff" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#001e40" }}>{m.name}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7c3aed" }}>
+                    {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
+                  </div>
+                </div>
+                <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}>{softenTone(m.what, childFirst)}</div>
+                <div style={{ backgroundColor: "#ecfdf5", border: "1px solid #d1fae5", borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#065f46", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Advice</div>
+                  <div
+                    style={{ fontSize: 13, color: "#064e3b", lineHeight: 1.6 }}
+                    dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.advice, childFirst)) }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Conceptual Gaps */}
+        {conceptualGaps.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ ...sectionTitleStyle, color: "#ea580c" }}>Conceptual Gaps</div>
+            {conceptualGaps.map((c, i) => (
+              <div key={i} style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 18, marginBottom: 14, backgroundColor: "#fffbf5" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#001e40" }}>{c.name}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#ea580c" }}>
+                    {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
+                  </div>
+                </div>
+                <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}>{softenTone(c.what, childFirst)}</div>
+                <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#9a3412", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Explanation</div>
+                  <div
+                    style={{ fontSize: 13, color: "#7c2d12", lineHeight: 1.6 }}
+                    dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.advice, childFirst)) }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{ paddingTop: 24, borderTop: "2px solid #e5eeff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#001e40" }}>MarkForYou.com</div>
+          <div style={{ fontSize: 11, color: "#737780" }}>AI-powered marking · Lumi the Owl Tutor</div>
+        </div>
+      </div>
+    );
+  }
+);
+LumiShareable.displayName = "LumiShareable";
 
 function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void }) {
   const t = data.topline;
