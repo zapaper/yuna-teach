@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
+import { DEMO_DATA_REDIRECT } from "@/lib/tutor";
 
 // Normalise the messy paper.subject strings into the canonical
 // bucket labels used everywhere else in the app. Without this, any
@@ -38,6 +39,14 @@ export async function GET(request: NextRequest) {
     select: { id: true, name: true },
   });
 
+  // Demo redirect — student67 / student666 borrow david-lim's papers
+  // for the progress report so the demo recording has a kid with a
+  // full history of attempts. The displayed `student` stays as the
+  // requested id+name (so the page header reads "Student67's
+  // progress"); only the paper aggregate is swapped.
+  const redirect = DEMO_DATA_REDIRECT[studentId] ?? null;
+  const dataStudentId = redirect?.sourceStudentId ?? studentId;
+
   // Get all marked papers for this student (clones + focused tests).
   // Revision papers (metadata.revisionMode set) are filtered out
   // below — they're a curated set of the student's past mistakes,
@@ -45,7 +54,7 @@ export async function GET(request: NextRequest) {
   // make weak-topic averages drop artificially.
   const allPapers = await prisma.examPaper.findMany({
     where: {
-      assignedToId: studentId,
+      assignedToId: dataStudentId,
       markingStatus: { in: ["complete", "released"] },
     },
     orderBy: { completedAt: "asc" },
