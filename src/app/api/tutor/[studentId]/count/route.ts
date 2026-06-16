@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth-guard";
+import { requireAccessToStudent } from "@/lib/auth-guard";
 
 // Cheap counterpart to the main /api/tutor/[studentId] route — returns
 // just the current marked-paper count for the subject so the Lumi page
@@ -13,7 +13,7 @@ export async function GET(
   const { studentId } = await params;
   const subject = (request.nextUrl.searchParams.get("subject") ?? "Science").toLowerCase();
 
-  const auth = await requireAdmin();
+  const auth = await requireAccessToStudent(studentId);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const subjectFilter =
