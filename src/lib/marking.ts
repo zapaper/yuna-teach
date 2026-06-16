@@ -4075,20 +4075,61 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
     const ai = getAI();
 
+    // Build the OEQ-position map the quiz page actually uses when
+    // saving canvas blobs. saveOeqQs at quiz/[id]/page.tsx:984 filters
+    // by oeqCanvasHandles.current[q.id] — skipped questions get their
+    // handle nulled, so they're NOT in the upload list. The marker
+    // therefore has to count submissionIndex as the position among
+    // NON-skipped OEQs, not among all OEQs. Using the raw oeqQuestions
+    // index caused an off-by-N misalignment whenever a kid skipped a
+    // middle OEQ: every later non-skipped question read a previous
+    // question's canvas (paper cmq99idyq — Q7+Q9 skipped, Q10 then
+    // came back marked with Q8's text).
+    const nonSkippedOeqIndex = new Map<string, number>();
+    {
+      let nsi = 0;
+      for (const oq of oeqQuestions) {
+        if (oq.studentAnswer !== "__SKIPPED__") {
+          nonSkippedOeqIndex.set(oq.id, nsi++);
+        }
+      }
+    }
+
     // Mark all OEQs in parallel — Gemini calls are the bottleneck, so
     // running them concurrently roughly N×s the throughput. The shared
     // `updates` array and `totalAwarded` counter are mutated from
     // concurrent contexts, which is safe in JS (single-threaded array
     // push + numeric add). `continue` inside the loop body becomes
     // `return` from the async IIFE.
-    await Promise.all(oeqQuestions.map((q, i) => (async () => {
+    await Promise.all(oeqQuestions.map((q) => (async () => {
       const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
 
-      // Students open focused tests via /quiz/[id] (the quiz page). The quiz page
-      // uploads OEQ canvases at the OEQ-sequential index (page_0..page_{n-1} where
-      // n = number of OEQ questions), so we read at `i` to match.
-      const submissionIndex = i;
+      // Skipped OEQs — score 0, note as Skipped, never call AI.
+      // They have no submission file (handle was nulled at submit
+      // time), so feeding them through the read-page-N pipeline would
+      // either fail or — worse — read the next non-skipped Q's canvas.
+      if (q.studentAnswer === "__SKIPPED__") {
+        updates.push(
+          prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: 0, markingNotes: "Skipped" },
+          })
+        );
+        return;
+      }
+
+      // Submission file index = position among NON-skipped OEQs.
+      const submissionIndex = nonSkippedOeqIndex.get(q.id);
+      if (submissionIndex === undefined) {
+        updates.push(
+          prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: 0, markingNotes: "No answer submitted" },
+          })
+        );
+        return;
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [];
