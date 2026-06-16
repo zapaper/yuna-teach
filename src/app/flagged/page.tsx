@@ -72,11 +72,19 @@ function FlaggedContent() {
     setDeleting(item.questionId);
     try {
       const examId = item.cloneId ?? item.paperId;
-      await fetch(`/api/exam/${examId}/flag`, {
+      // Explicit "unflag" instead of the legacy toggle — if the kid
+      // unflagged between when this page loaded and the admin clicked
+      // trash, a toggle would silently re-flag the question.
+      const res = await fetch(`/api/exam/${examId}/flag`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: item.questionId }),
+        body: JSON.stringify({ questionId: item.questionId, action: "unflag" }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(`Failed to remove flag: ${body.error ?? `HTTP ${res.status}`}`);
+        return;
+      }
       setItems(prev => prev.filter(i => i.questionId !== item.questionId));
     } finally {
       setDeleting(null);
