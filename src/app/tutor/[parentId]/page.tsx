@@ -378,6 +378,19 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
     setSharing(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
+      // Make sure every <img> inside the offscreen DOM has actually
+      // decoded before html2canvas snapshots — otherwise the Lumi
+      // photo lands as a blank box on iOS Safari, where image decode
+      // for an absolutely-positioned hidden node can lag behind the
+      // synchronous toBlob path.
+      const imgs = Array.from(shareRef.current.querySelectorAll("img"));
+      await Promise.all(imgs.map(im => {
+        if (im.complete && im.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>(res => {
+          im.addEventListener("load", () => res(), { once: true });
+          im.addEventListener("error", () => res(), { once: true });
+        });
+      }));
       // scale=1.5 instead of 2 — keeps the canvas under ~3 MB on iOS
       // Safari, which silently throws on very large canvas → toBlob.
       const canvas = await html2canvas(shareRef.current, {
@@ -645,38 +658,58 @@ function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
+// Static Lumi (single frame extracted from owl1.mp4 — 200px wide JPEG,
+// ~5 KB base64) inlined so the offscreen html2canvas snapshot doesn't
+// have to wait on a network fetch through the /avatars → R2 redirect
+// (the directory is .gitignore'd; assets live on R2). Inlining also
+// dodges the iOS Safari "image-not-decoded-yet" race that left the
+// face missing from earlier exports.
+const LUMI_STATIC_DATA_URI = "data:image/jpeg;base64,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";
+
 // A4-portrait Lumi report for offscreen html2canvas capture. Inline
 // styles only — Tailwind classes are dropped during the html2canvas
 // paint pass. Contains everything the parent needs to save / forward
-// the diagnosis as a single image: Lumi avatar top-left, child + subject
-// banner, summary, topics-for-practice bar chart, common mistakes and
-// conceptual gaps cards (each with Lumi's advice / explanation). NO
-// action buttons — purely a static snapshot.
+// the diagnosis as a single image: Lumi photo top-left, child + subject
+// banner, summary, topic column chart with the kid's average line,
+// common mistakes and conceptual gaps cards (each with Lumi's advice
+// or explanation), markforyou.com brand strip. NO action buttons —
+// purely a static snapshot.
 const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { kind: "ready" }> }>(
   function LumiShareable({ data }, ref) {
-    const { childFullName, childFirst, subject, topline, commonMistakes, conceptualGaps, topicsForPractice } = data;
+    const { childFullName, childFirst, subject, topline, commonMistakes, conceptualGaps } = data;
     const status = topline.avgPct >= 75 ? "good" : topline.avgPct >= 60 ? "steady" : "tough";
     const statusColor = topline.avgPct >= 75 ? "#006c49" : topline.avgPct >= 60 ? "#d58d00" : "#ba1a1a";
     const sectionTitleStyle = { fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 12 };
+
+    // Column-chart topic list — merge strong + weak (deduped, ordered
+    // by pct desc) so the image carries the kid's spread, not just
+    // the practice-recommended subset. Falls back to topicsForPractice
+    // when the topline doesn't carry enough.
+    const chartTopics = (() => {
+      const seen = new Map<string, number>();
+      for (const t of topline.strongTopics) seen.set(t.topic, t.pct);
+      for (const t of topline.weakTopics) seen.set(t.topic, t.pct);
+      for (const t of data.topicsForPractice) if (!seen.has(t.topic)) seen.set(t.topic, t.pct);
+      return [...seen.entries()].map(([topic, pct]) => ({ topic, pct })).sort((a, b) => b.pct - a.pct);
+    })();
+
     return (
       <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
-        {/* Header: text-only Lumi mark top-left + name/subject right.
-            Avoided an <img> on purpose — html2canvas chokes on WebP and
-            on images that haven't finished loading in the offscreen DOM,
-            which left the iOS Safari "Share Lumi" tap silently hanging. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, paddingBottom: 24, borderBottom: "3px solid #001e40" }}>
-          <div style={{
-            width: 92, height: 92, borderRadius: 999, flexShrink: 0,
-            background: "linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#ffffff", fontSize: 48, fontWeight: 800, fontFamily: "'Inter', system-ui, sans-serif",
-            border: "2px solid #c4b5fd",
-          }}>L</div>
+        {/* Header: Lumi photo top-left + name/subject right + brand. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, paddingBottom: 20, borderBottom: "3px solid #001e40" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LUMI_STATIC_DATA_URI}
+            alt="Lumi"
+            width={96}
+            height={96}
+            style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", border: "2px solid #c4b5fd", flexShrink: 0 }}
+          />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi · Owl Tutor</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi</div>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#001e40", marginTop: 4, lineHeight: 1.2 }}>{childFullName}&rsquo;s {subject} Progress</div>
             <div style={{ fontSize: 13, color: "#737780", marginTop: 6 }}>
-              Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })} · MarkForYou.com
+              Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })} · <strong style={{ color: "#001e40" }}>www.markforyou.com</strong>
             </div>
           </div>
         </div>
@@ -702,27 +735,67 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
           )}
         </div>
 
-        {/* Topics-for-practice bar chart */}
-        {topicsForPractice.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <div style={sectionTitleStyle}>Topics for Practice</div>
-            {topicsForPractice.map(t => {
-              const pct = t.pct;
-              const barColor = pct >= 75 ? "#006c49" : pct >= 40 ? "#ffb952" : "#ba1a1a";
-              return (
-                <div key={t.topic} style={{ marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#0b1c30" }}>{t.topic}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{pct}%</span>
+        {/* Column chart with the kid's average line drawn across.
+            Columns coloured by band (green/amber/red); dashed line at
+            avgPct so the parent can see at a glance which topics sit
+            above or below the kid's own average. */}
+        {chartTopics.length > 0 && (() => {
+          const chartH = 200;     // plot area height (px)
+          const labelH = 50;      // x-axis label band
+          const yAxisW = 28;      // y-axis label column
+          const colMax = 100;     // % ceiling
+          const avgY = chartH - (topline.avgPct / colMax) * chartH;
+          return (
+            <div style={{ marginBottom: 28 }}>
+              <div style={sectionTitleStyle}>Topic Accuracy · average line at {topline.avgPct}%</div>
+              <div style={{ display: "flex", alignItems: "stretch" }}>
+                {/* y-axis ticks */}
+                <div style={{ width: yAxisW, height: chartH, position: "relative", marginRight: 6 }}>
+                  {[0, 25, 50, 75, 100].map(t => (
+                    <div key={t} style={{ position: "absolute", right: 4, top: chartH - (t / colMax) * chartH - 6, fontSize: 10, color: "#737780" }}>{t}</div>
+                  ))}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ position: "relative", height: chartH, borderLeft: "1px solid #e5eeff", borderBottom: "1px solid #e5eeff" }}>
+                    {/* grid lines */}
+                    {[25, 50, 75].map(t => (
+                      <div key={t} style={{ position: "absolute", left: 0, right: 0, top: chartH - (t / colMax) * chartH, borderTop: "1px dashed #eef2ff" }} />
+                    ))}
+                    {/* columns */}
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end", justifyContent: "space-around", paddingInline: 8 }}>
+                      {chartTopics.map(t => {
+                        const h = (t.pct / colMax) * chartH;
+                        const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                        return (
+                          <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: chartH }}>
+                            <div style={{ flex: 1 }} />
+                            <div style={{ fontSize: 11, fontWeight: 700, color: barColor, marginBottom: 2 }}>{t.pct}%</div>
+                            <div style={{ width: "70%", maxWidth: 64, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* avg line — drawn ABOVE columns so it stays visible
+                        even when a column ends below the line. */}
+                    <div style={{ position: "absolute", left: 0, right: 0, top: avgY, borderTop: "2px dashed #003366", pointerEvents: "none" }}>
+                      <span style={{ position: "absolute", right: 4, top: -18, fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#ffffff", padding: "1px 6px", borderRadius: 4, border: "1px solid #c7d6f0" }}>
+                        Avg {topline.avgPct}%
+                      </span>
+                    </div>
                   </div>
-                  <div style={{ height: 10, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${pct}%`, backgroundColor: barColor, borderRadius: 999 }} />
+                  {/* x-axis labels */}
+                  <div style={{ display: "flex", justifyContent: "space-around", paddingTop: 8, paddingInline: 8, height: labelH }}>
+                    {chartTopics.map(t => (
+                      <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", paddingInline: 4, lineHeight: 1.25 }}>
+                        {t.topic}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Common Mistakes */}
         {commonMistakes.length > 0 && (
