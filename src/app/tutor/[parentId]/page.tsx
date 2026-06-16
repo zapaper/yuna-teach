@@ -425,6 +425,20 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
           <LumiSummary data={data} />
+          {/* Share — inline directly under the summary so it's where
+              the parent expects after reading the topline briefing. */}
+          <div className="mt-5 flex justify-end">
+            <button
+              type="button"
+              onClick={handleShare}
+              disabled={sharing}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] disabled:opacity-60 transition-colors"
+              title="Save or forward this Lumi report as an image"
+            >
+              <span className="material-symbols-outlined text-base">share</span>
+              {sharing ? "Preparing…" : "Share Lumi"}
+            </button>
+          </div>
           {/* Staleness banner removed — caches refresh daily, so the
               minor drift between regens is acceptable and not worth
               alerting the parent over. The questionId-based resolution
@@ -455,21 +469,6 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
         <LumiShareable ref={shareRef} data={data} />
       </div>
 
-      {/* Floating share button — bottom-right, parent-only convenience
-          for saving or forwarding the diagnosis as a single image.
-          bottom-20 on mobile clears iOS Safari's bottom toolbar; on
-          desktop the same offset just leaves more breathing room. */}
-      <button
-        type="button"
-        onClick={handleShare}
-        disabled={sharing}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-[#003366] text-white text-sm font-bold shadow-lg hover:bg-[#001e40] disabled:opacity-60 transition-colors"
-        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
-        title="Save or forward this Lumi report as an image"
-      >
-        <span className="material-symbols-outlined text-base">share</span>
-        {sharing ? "Preparing…" : "Share Lumi"}
-      </button>
     </>
   );
 }
