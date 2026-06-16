@@ -853,6 +853,10 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
 const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string }> = {
   // Student666 → David lim
   "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
+  // student67 → David lim (demo-video duplicate of student666 so a
+  // second clean recording can be made without re-aiming the camera
+  // at the student666 account state).
+  "cmqg8upha0000l3ijfr3co6t8": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
 };
 
 // Walk every string field on the TutorData "ready" branch and apply

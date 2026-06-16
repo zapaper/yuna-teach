@@ -690,35 +690,20 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
       <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
         {/* Header: Lumi photo top-left + name/subject right + brand. */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, paddingBottom: 20, borderBottom: "3px solid #001e40" }}>
-          {/* Inline SVG owl — base64-encoded JPEG datauris weren't
-              rendering inside the offscreen html2canvas snapshot on
-              iOS Safari (image came out blank with just the border).
-              SVG is rasterised by html2canvas's own walker rather than
-              the platform image decoder, so it's reliable. */}
-          <div style={{ width: 96, height: 96, borderRadius: 999, border: "2px solid #c4b5fd", flexShrink: 0, backgroundColor: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            <svg width="80" height="80" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              {/* Body */}
-              <ellipse cx="32" cy="38" rx="20" ry="22" fill="#7c3aed" />
-              {/* Belly */}
-              <ellipse cx="32" cy="44" rx="11" ry="13" fill="#ede9fe" />
-              {/* Ear tufts */}
-              <path d="M14 20 L18 8 L24 20 Z" fill="#5b21b6" />
-              <path d="M50 20 L46 8 L40 20 Z" fill="#5b21b6" />
-              {/* Eye whites */}
-              <circle cx="24" cy="28" r="9" fill="#ffffff" />
-              <circle cx="40" cy="28" r="9" fill="#ffffff" />
-              {/* Pupils */}
-              <circle cx="24" cy="28" r="4" fill="#1e1b4b" />
-              <circle cx="40" cy="28" r="4" fill="#1e1b4b" />
-              <circle cx="25" cy="27" r="1.4" fill="#ffffff" />
-              <circle cx="41" cy="27" r="1.4" fill="#ffffff" />
-              {/* Beak */}
-              <path d="M32 32 L29 38 L35 38 Z" fill="#fbbf24" />
-              {/* Wing accents */}
-              <path d="M14 36 Q12 50 22 56 Q18 48 17 38 Z" fill="#5b21b6" />
-              <path d="M50 36 Q52 50 42 56 Q46 48 47 38 Z" fill="#5b21b6" />
-            </svg>
-          </div>
+          {/* Lumi photo from /public/avatars/lumi1.png (served via the
+              /avatars/* → R2 redirect in prod; the file lives only on
+              R2 since the directory is gitignored). crossOrigin
+              flagged so html2canvas can rasterise it through the
+              redirect. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/avatars/lumi1.png"
+            alt="Lumi"
+            width={96}
+            height={96}
+            crossOrigin="anonymous"
+            style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", border: "2px solid #c4b5fd", flexShrink: 0, backgroundColor: "#f5f3ff" }}
+          />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi</div>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#001e40", marginTop: 4, lineHeight: 1.2 }}>{childFullName}&rsquo;s {subject} Progress</div>
