@@ -90,11 +90,21 @@ function FlaggedContent() {
     const willAward = !!awardCrystal[item.questionId];
     setReplying(item.questionId);
     try {
-      await fetch(`/api/exam/questions/${item.questionId}/reply`, {
+      // Check res.ok before declaring success: previously this happily
+      // showed "Reply sent ✓" even when the API returned 403 (admin
+      // session expired) — the admin thought the kid would see the
+      // message, the kid never got it, and the only feedback was the
+      // bell-dot mystery on the kid's side.
+      const res = await fetch(`/api/exam/questions/${item.questionId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, awardCrystal: willAward }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(`Reply not sent: ${body.error ?? `HTTP ${res.status}`}.${res.status === 403 ? " You may need to log in again." : ""}`);
+        return;
+      }
       setReplySent(prev => ({ ...prev, [item.questionId]: { crystalAwarded: willAward } }));
       setReplyDraft(prev => ({ ...prev, [item.questionId]: "" }));
     } finally {

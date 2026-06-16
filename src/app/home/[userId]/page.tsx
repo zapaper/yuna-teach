@@ -290,14 +290,17 @@ export default function HomePage({
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   useEffect(() => {
-    if (!userId || isAdmin) return;
+    // Only fetch for parents — students get this from StudentDashboard
+    // which owns its own popup. Fetching here for students was harmless
+    // but spent a request that nothing consumed.
+    if (!userId || isAdmin || !isParent) return;
     fetch(`/api/notifications?userId=${userId}`)
       .then(r => r.ok ? r.json() : [])
       .then((data: AdminNotif[]) => {
         if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
       })
       .catch(() => {});
-  }, [userId, isAdmin]);
+  }, [userId, isAdmin, isParent]);
 
   // Fetch quiz badge for students
   useEffect(() => {
@@ -606,10 +609,12 @@ export default function HomePage({
         <button
           onClick={() => {
             setShowAdminNotifs(false);
+            const ids = adminNotifs.map(n => n.questionId);
+            setAdminNotifs([]);
             fetch("/api/notifications", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }),
+              body: JSON.stringify({ userId, questionIds: ids }),
             }).catch(() => {});
           }}
           className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold"

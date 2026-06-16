@@ -1217,8 +1217,15 @@ export default function StudentDashboard({
             ))}
             <button
               onClick={() => {
+                // Clear local state too — otherwise the bell dot stayed
+                // visible after dismissal (adminNotifs still populated),
+                // and the kid would see "dot but no popup" on the next
+                // nav, refresh to find it gone, and never realise they'd
+                // already dismissed the actual message popup.
                 setShowAdminNotifs(false);
-                fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }) }).catch(() => {});
+                const ids = adminNotifs.map(n => n.questionId);
+                setAdminNotifs([]);
+                fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds: ids }) }).catch(() => {});
               }}
               className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">Got it</button>
           </div>
