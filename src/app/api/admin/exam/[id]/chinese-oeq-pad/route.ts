@@ -49,17 +49,20 @@ const SHORT_FIRST_LINE_GAP = SHORT_ROW_HEIGHT / 2;
 type OeqQuestion = { id: string; questionNum: string; marksAvailable: number | null };
 type PadBound = { id: string; padPageOffset: number; yStartPct: number; yEndPct: number };
 
-// Which question number is the long-form OEQ on this paper. PSLE / P5 /
-// P6 standard layout: Q33. P4 papers have fewer comprehension items so
-// the long OEQ sits at Q21. Title regex covers Primary 4 / P4 / 小四 /
-// 四年级; falls back to the lowest OEQ number on the paper when the
-// title doesn't match either pattern (defensive — keeps existing
-// PSLE / P5 / P6 behaviour when level is missing).
-function longOeqNum(level: string | null, title: string | null, sorted: OeqQuestion[]): string {
+// Pad layout per paper level.
+//   PSLE / P5 / P6 — long-form OEQ at Q33 gets its own half-page strip
+//                    on page 1 of the pad; Q34+ get short boxes after.
+//   P4             — Q21 IS the long-form OEQ but the printed paper
+//                    already provides a full writing area for it, so
+//                    the pad doesn't need to add anything for Q21
+//                    (longNum=null + skip Q21 from the box pass).
+//                    Remaining 阅读理解 OEQ questions still get short
+//                    boxes on the pad as usual.
+function padLayout(level: string | null, title: string | null): { longNum: string | null; skipNums: Set<string> } {
   const haystack = `${level ?? ""} ${title ?? ""}`;
   const isP4 = /\b(primary\s*4|p\s*4|level\s*4|小四|四年级)\b/i.test(haystack);
-  if (isP4) return "21";
-  return "33";
+  if (isP4) return { longNum: null, skipNums: new Set(["21"]) };
+  return { longNum: "33", skipNums: new Set() };
 }
 
 // Same layout logic as the PDF generator. Used to write bounds back
@@ -71,9 +74,9 @@ function computePadBounds(oeqQuestions: OeqQuestion[], level: string | null, tit
     const bn = parseInt(b.questionNum, 10);
     return (Number.isFinite(an) ? an : 999) - (Number.isFinite(bn) ? bn : 999);
   });
-  const longNum = longOeqNum(level, title, sorted);
-  const longQ = sorted.find(q => q.questionNum === longNum);
-  const others = sorted.filter(q => q.questionNum !== longNum);
+  const { longNum, skipNums } = padLayout(level, title);
+  const longQ = longNum ? sorted.find(q => q.questionNum === longNum) : null;
+  const others = sorted.filter(q => q.questionNum !== longNum && !skipNums.has(q.questionNum));
   const out: PadBound[] = [];
 
   // ─── Page 0 of pad: long OEQ — entire writing area ──────────
@@ -125,24 +128,29 @@ async function generatePadPdf(oeqQuestions: OeqQuestion[], level: string | null,
     const bn = parseInt(b.questionNum, 10);
     return (Number.isFinite(an) ? an : 999) - (Number.isFinite(bn) ? bn : 999);
   });
-  const longNum = longOeqNum(level, title, sorted);
-  const longQ = sorted.find(q => q.questionNum === longNum);
-  const others = sorted.filter(q => q.questionNum !== longNum);
+  const { longNum, skipNums } = padLayout(level, title);
+  const longQ = longNum ? sorted.find(q => q.questionNum === longNum) : null;
+  const others = sorted.filter(q => q.questionNum !== longNum && !skipNums.has(q.questionNum));
 
-  // ─── Page 1: long OEQ (Q33 on PSLE / P5 / P6, Q21 on P4) ────
-  const p1 = doc.addPage([PAGE_W, PAGE_H]);
-  const longMarks = longQ?.marksAvailable ?? 10;
-  p1.drawText(`${longNum}.`, { x: MARGIN, y: PAGE_H - MARGIN - TOP_INSET, size: 14, font: helvBold });
-  p1.drawText(`[${longMarks} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN - TOP_INSET, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
-  const startY1 = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
-  for (let i = 0; i < 9; i++) {
-    const y = startY1 - i * LONG_OEQ_ROW_HEIGHT;
-    p1.drawLine({
-      start: { x: MARGIN, y },
-      end: { x: PAGE_W - MARGIN, y },
-      thickness: 0.6,
-      color: rgb(0.3, 0.3, 0.3),
-    });
+  // ─── Page 1: long OEQ (Q33 on PSLE / P5 / P6) ───────────────
+  // On P4, longNum is null because the printed paper already provides
+  // the writing area for Q21 — we skip this page entirely and start
+  // straight with the short-OEQ box pass.
+  if (longQ && longNum) {
+    const p1 = doc.addPage([PAGE_W, PAGE_H]);
+    const longMarks = longQ.marksAvailable ?? 10;
+    p1.drawText(`${longNum}.`, { x: MARGIN, y: PAGE_H - MARGIN - TOP_INSET, size: 14, font: helvBold });
+    p1.drawText(`[${longMarks} marks]`, { x: MARGIN + 40, y: PAGE_H - MARGIN - TOP_INSET, size: 11, font: helv, color: rgb(0.4, 0.4, 0.4) });
+    const startY1 = PAGE_H - MARGIN - TOP_INSET - HEADER_HEIGHT;
+    for (let i = 0; i < 9; i++) {
+      const y = startY1 - i * LONG_OEQ_ROW_HEIGHT;
+      p1.drawLine({
+        start: { x: MARGIN, y },
+        end: { x: PAGE_W - MARGIN, y },
+        thickness: 0.6,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+    }
   }
 
   // ─── Page 2 (and overflow if needed): remaining OEQ ─────────
