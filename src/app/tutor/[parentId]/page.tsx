@@ -659,6 +659,21 @@ function boldifyHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
+// Cached Gemini diagnosis text quotes key science / math terms in
+// single or double quotes (e.g. "missed the specific energy keywords:
+// 'gravitational potential energy' converting to 'kinetic energy'.").
+// The workshop prompt doesn't wrap them in **markdown** explicitly, so
+// they reach the renderer as plain quotes — and the parent loses the
+// at-a-glance emphasis. Convert any 2+-character quoted phrase to
+// **bold** before boldifyHtml. 2-char minimum + closing-quote
+// requirement skips contractions (don't, can't) and stray quotes.
+function emphasiseQuoted(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/"([^"]{2,}?)"/g, "**$1**")
+    .replace(/'([^']{2,}?)'/g, "**$1**");
+}
+
 // A4-portrait Lumi report for offscreen html2canvas capture. Inline
 // styles only — Tailwind classes are dropped during the html2canvas
 // paint pass. Contains everything the parent needs to save / forward
@@ -796,13 +811,13 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 </div>
                 <div
                   style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}
-                  dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.what, childFirst)) }}
+                  dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(m.what, childFirst))) }}
                 />
                 <div style={{ backgroundColor: "#ecfdf5", border: "1px solid #d1fae5", borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#065f46", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Advice</div>
                   <div
                     style={{ fontSize: 13, color: "#064e3b", lineHeight: 1.6 }}
-                    dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.advice, childFirst)) }}
+                    dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(m.advice, childFirst))) }}
                   />
                 </div>
               </div>
@@ -824,13 +839,13 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 </div>
                 <div
                   style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}
-                  dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.what, childFirst)) }}
+                  dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(c.what, childFirst))) }}
                 />
                 <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#9a3412", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Lumi&rsquo;s Explanation</div>
                   <div
                     style={{ fontSize: 13, color: "#7c2d12", lineHeight: 1.6 }}
-                    dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.advice, childFirst)) }}
+                    dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(c.advice, childFirst))) }}
                   />
                 </div>
               </div>
@@ -1031,7 +1046,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(m.what, data.childFirst)) }} />
+                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(m.what, data.childFirst))) }} />
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-violet-600 md:ml-4 whitespace-nowrap">
                   Tell me more →
@@ -1053,7 +1068,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                 <div>
                   <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
-                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(c.what, data.childFirst)) }} />
+                  <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(c.what, data.childFirst))) }} />
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#003366] group-hover:text-orange-600 md:ml-4 whitespace-nowrap">
                   Explain →
@@ -1159,13 +1174,13 @@ function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: 
 }
 
 function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(softenTone(card.advice, childFirst));
+  const adviceHtml = boldifyHtml(emphasiseQuoted(softenTone(card.advice, childFirst)));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(card.what, childFirst)) }} />
+      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(card.what, childFirst))) }} />
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
@@ -1201,13 +1216,13 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 }
 
 function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(softenTone(card.advice, childFirst));
+  const adviceHtml = boldifyHtml(emphasiseQuoted(softenTone(card.advice, childFirst)));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(softenTone(card.what, childFirst)) }} />
+      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(card.what, childFirst))) }} />
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
@@ -1537,7 +1552,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const [open, setOpen] = useState(false);
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
-  const diagnosisHtml = boldifyHtml(softenTone(ex.whatWentWrong, childFirst));
+  const diagnosisHtml = boldifyHtml(emphasiseQuoted(softenTone(ex.whatWentWrong, childFirst)));
   // hasFullData controls whether the expander button shows. Cloze
   // questions have an empty transcribedStem (the passage lives in a
   // `_passage` subpart we intentionally strip) — but they STILL have
@@ -1640,7 +1655,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
           {ex.markingNotes && (
             <div>
               <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">What {childFirst} missed</p>
-              <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: boldifyHtml(ex.markingNotes) }} />
+              <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(ex.markingNotes)) }} />
             </div>
           )}
         </div>
