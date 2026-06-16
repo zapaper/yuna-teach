@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
 import MathText from "@/components/MathText";
+import { LUMI_DATA_URI } from "@/lib/lumi-data-uri";
 
 type ProgressData = {
   student: { id: string; name: string } | null;
@@ -100,7 +101,15 @@ type PreviousAssessmentDelta = {
   paperCountDelta: number | null;
 };
 type TutorData =
-  | { kind: "ineligible"; reason: string; paperCount: number }
+  | {
+      kind: "ineligible";
+      reason: string;
+      paperCount: number;
+      childFirst?: string;
+      childFullName?: string;
+      subject?: string;
+      topline?: Topline;
+    }
   | {
       kind: "ready";
       childFirst: string;
@@ -260,10 +269,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         </div>
       )}
       {data && data.kind === "ineligible" && (
-        <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center transition-opacity ${loading ? "opacity-50" : ""}`}>
-          <p className="text-base font-semibold text-[#001e40] mb-2">Not enough data yet</p>
-          <p className="text-sm text-slate-600">{data.reason} ({data.paperCount} {subject} paper{data.paperCount === 1 ? "" : "s"} so far.)</p>
-        </div>
+        <IneligibleView data={data} subject={subject} loading={loading} />
       )}
       {data && data.kind === "ready" && (
         <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
@@ -356,6 +362,117 @@ function TutorContent({ parentId }: { parentId: string }) {
       <main className="lg:hidden max-w-5xl mx-auto px-6 py-12 text-center">
         <p className="text-sm text-slate-500">Tutor is best viewed on a larger screen — please open this on a desktop or tablet.</p>
       </main>
+    </div>
+  );
+}
+
+// Shown when the kid has fewer than 3 papers. The bare "Not enough
+// data yet" card was confusing parents — looked broken. Now we
+// render the Lumi greeting + a small topic chart (whenever any
+// papers exist) + a "need more data" banner so it's obvious things
+// are working, just early.
+function IneligibleView({
+  data,
+  subject,
+  loading,
+}: {
+  data: Extract<TutorData, { kind: "ineligible" }>;
+  subject: string;
+  loading: boolean;
+}) {
+  const topline = data.topline;
+  const childFirst = data.childFirst;
+  const remaining = Math.max(0, 3 - data.paperCount);
+  // Same merge rule as the share-image chart so the on-screen chart
+  // matches what'll get exported once the kid is eligible.
+  const chartTopics = topline
+    ? (() => {
+        const seen = new Map<string, number>();
+        for (const t of topline.strongTopics) seen.set(t.topic, t.pct);
+        for (const t of topline.weakTopics) seen.set(t.topic, t.pct);
+        return [...seen.entries()].map(([topic, pct]) => ({ topic, pct })).sort((a, b) => b.pct - a.pct);
+      })()
+    : [];
+  return (
+    <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
+      {/* Lumi greeting card — mirrors ReadyView's header so it doesn't
+          feel like a different page when the kid crosses the 3-paper
+          threshold. */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-8 py-6 mb-6 flex flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
+        <LumiAvatar />
+        <div className="flex-1 w-full">
+          <p className="text-[#001e40] text-base leading-relaxed">
+            Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>.
+            {topline && childFirst && <> Here&apos;s where {childFirst} stands in {subject} so far.</>}
+            {!topline && <> {data.reason}</>}
+          </p>
+          {topline && (
+            <p className="text-sm text-[#001e40] mt-3">
+              Average <strong>{topline.avgPct}%</strong> across <strong>{topline.paperCount}</strong> {subject.toLowerCase()} paper{topline.paperCount === 1 ? "" : "s"} ({topline.totalAwarded}/{topline.totalAvailable} marks).
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Topic chart — only when we have at least one tagged topic
+          worth showing. Mirrors LumiShareable's column-chart layout
+          but rendered with CSS so it's interactive on screen. */}
+      {chartTopics.length > 0 && topline && (
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+          <h3 className="text-sm font-bold text-[#001e40] mb-3">Topic Accuracy · average {topline.avgPct}%</h3>
+          {(() => {
+            const plotH = 200;
+            // Same 110% headroom as the share-image chart so the "100%"
+            // pct label has room above the column.
+            const colMax = 110;
+            const avgTopPx = plotH - (topline.avgPct / colMax) * plotH;
+            return (
+              <>
+                <div style={{ position: "relative", height: plotH, borderBottom: "2px solid #0b1c30" }}>
+                  <div style={{ position: "absolute", left: 0, right: 0, top: avgTopPx, borderTop: "2px dashed #003366", zIndex: 2 }} />
+                  <div style={{ position: "absolute", left: 0, top: Math.max(0, avgTopPx - 22), fontSize: 11, fontWeight: 800, color: "#003366", backgroundColor: "#eff4ff", padding: "2px 6px", borderRadius: 4, zIndex: 3 }}>
+                    Avg {topline.avgPct}%
+                  </div>
+                  <div style={{ display: "flex", height: plotH, gap: 12 }}>
+                    {chartTopics.map((t) => {
+                      const h = Math.max(2, (t.pct / colMax) * plotH);
+                      const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                      return (
+                        <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 4, lineHeight: 1 }}>{t.pct}%</div>
+                          <div style={{ width: "70%", maxWidth: 64, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                  {chartTopics.map((t) => (
+                    <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
+                      {t.topic}
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+        </section>
+      )}
+
+      {/* Need-more-data banner — replaces the common-mistakes /
+          conceptual-gaps cards that ReadyView would show. */}
+      <section className="bg-violet-50 border border-violet-200 rounded-2xl px-6 py-5">
+        <p className="text-sm font-bold text-violet-800 mb-1">Need more data</p>
+        <p className="text-sm text-violet-900 leading-relaxed">
+          {remaining > 0 ? (
+            <>
+              Finish <strong>{remaining}</strong> more {subject.toLowerCase()} paper{remaining === 1 ? "" : "s"} and I&apos;ll surface common mistakes and conceptual gaps to focus on.
+            </>
+          ) : (
+            <>I need a bit more data before I can surface common mistakes and conceptual gaps.</>
+          )}
+        </p>
+      </section>
     </div>
   );
 }
@@ -705,18 +822,18 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
       <div ref={ref} style={{ width: 900, padding: 48, fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: "#ffffff", color: "#1e293b" }}>
         {/* Header: Lumi photo top-left + name/subject right + brand. */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28, paddingBottom: 20, borderBottom: "3px solid #001e40" }}>
-          {/* Lumi photo from /public/avatars/lumi1.png (served via the
-              /avatars/* → R2 redirect in prod; the file lives only on
-              R2 since the directory is gitignored). crossOrigin
-              flagged so html2canvas can rasterise it through the
-              redirect. */}
+          {/* Lumi photo as an inline base64 data URI (see
+              src/lib/lumi-data-uri.ts). /avatars/* is 308-redirected
+              to R2 in prod and the bucket either lacks the file or
+              doesn't return CORS headers — html2canvas then rendered
+              a blank disc. Embedding bypasses redirect + CORS in one
+              go and is small enough (~84 KB base64) to ship in code. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/avatars/lumi1.png"
+            src={LUMI_DATA_URI}
             alt="Lumi"
             width={96}
             height={96}
-            crossOrigin="anonymous"
             style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", border: "2px solid #c4b5fd", flexShrink: 0, backgroundColor: "#f5f3ff" }}
           />
           <div style={{ flex: 1 }}>
@@ -756,7 +873,11 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
             every column at once. */}
         {chartTopics.length > 0 && (() => {
           const plotH = 220;
-          const colMax = 100;
+          // Scale columns against 110 instead of 100 so a 100% topic
+          // still leaves ~10% headroom for its "100%" label — without
+          // this the label collided with (or overflowed above) the
+          // plot's top edge.
+          const colMax = 110;
           // y from top where the avg line sits (CSS top:)
           const avgTopPx = plotH - (topline.avgPct / colMax) * plotH;
           return (

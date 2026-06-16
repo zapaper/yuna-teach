@@ -174,7 +174,19 @@ export type PreviousAssessmentDelta = {
 };
 
 export type TutorData =
-  | { kind: "ineligible"; reason: string; paperCount: number }
+  | {
+      kind: "ineligible";
+      reason: string;
+      paperCount: number;
+      // Populated when the kid has at least one non-revision paper.
+      // Lets the UI render the Lumi greeting + topic chart even when
+      // we don't yet have enough data for common-mistakes /
+      // conceptual-gap diagnosis. Omitted when paperCount is 0.
+      childFirst?: string;
+      childFullName?: string;
+      subject?: string;
+      topline?: Topline;
+    }
   | {
       kind: "ready";
       childFirst: string;
@@ -534,6 +546,37 @@ function reconstructWrongs(papers: Array<{
   return wrongs;
 }
 
+// Build a partial topline payload for the ineligible state so the UI
+// can still render the Lumi greeting + topic chart when there are
+// some papers but not enough for full diagnosis. Returns {} when
+// the kid has no papers — there's literally nothing to show.
+function partialFromTopline(args: {
+  studentName: string;
+  subject: string;
+  topline: ReturnType<typeof computeTopline>;
+}): { childFirst?: string; childFullName?: string; subject?: string; topline?: Topline } {
+  const { studentName, subject, topline } = args;
+  if (topline.paperCount === 0) return {};
+  const childFirst = studentName.split(/\s+/)[0] ?? studentName;
+  const topics = [...topline.topicTotals.entries()]
+    .filter(([, v]) => v.attempts >= 3 && v.available > 0)
+    .map(([t, v]) => ({ topic: t, attempts: v.attempts, pct: Math.round((v.awarded / v.available) * 100) }));
+  return {
+    childFirst,
+    childFullName: studentName,
+    subject,
+    topline: {
+      avgPct: topline.avgPct,
+      totalAwarded: topline.totalAwarded,
+      totalAvailable: topline.totalAvailable,
+      paperCount: topline.paperCount,
+      strongTopics: [...topics].sort((a, b) => b.pct - a.pct).slice(0, 2).map(t => ({ topic: t.topic, pct: t.pct })),
+      weakTopics: [...topics].sort((a, b) => a.pct - b.pct).slice(0, 3),
+      nudge: null,
+    },
+  };
+}
+
 // Build the structured TutorData from a (student, subject, cached report).
 function shapeTutorData(args: {
   studentName: string;
@@ -545,7 +588,12 @@ function shapeTutorData(args: {
   const childFirst = studentName.split(/\s+/)[0] ?? studentName;
   const topline = computeTopline(papers as Parameters<typeof computeTopline>[0]);
   if (topline.paperCount < 3) {
-    return { kind: "ineligible", reason: "Need at least 3 papers to surface common mistakes.", paperCount: topline.paperCount };
+    return {
+      kind: "ineligible",
+      reason: "Need at least 3 papers to surface common mistakes.",
+      paperCount: topline.paperCount,
+      ...partialFromTopline({ studentName, subject, topline }),
+    };
   }
 
   // Pattern → bucket + marks lost
@@ -940,7 +988,12 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     // which the light query already has.
     const topline = computeTopline(subjectPapersLight);
     if (topline.paperCount < 3) {
-      return { kind: "ineligible", reason: "Need at least 3 papers to surface common mistakes.", paperCount: topline.paperCount };
+      return {
+        kind: "ineligible",
+        reason: "Need at least 3 papers to surface common mistakes.",
+        paperCount: topline.paperCount,
+        ...partialFromTopline({ studentName: displayStudent.name, subject, topline }),
+      };
     }
     const childFirst = displayStudent.name.split(/\s+/)[0] ?? displayStudent.name;
     const topics = [...topline.topicTotals.entries()]
