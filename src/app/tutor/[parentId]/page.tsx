@@ -1230,7 +1230,12 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
                     type="button"
                     onClick={() => assignTopic(t.topic)}
                     disabled={creatingTopic === t.topic}
-                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap"
+                    // ml-auto keeps the button right-aligned even when
+                    // the row wraps (the "already has a focused
+                    // practice" tip on the left can be long enough to
+                    // push the button to a new line, where
+                    // justify-between would leave it on the LEFT).
+                    className="shrink-0 ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap"
                   >
                     {creatingTopic === t.topic
                       ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Assigning…</>
