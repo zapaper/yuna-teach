@@ -834,7 +834,9 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
             alt="Lumi"
             width={96}
             height={96}
-            style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", border: "2px solid #c4b5fd", flexShrink: 0, backgroundColor: "#f5f3ff" }}
+            // No border / background — lumi1.png already has a circle
+            // baked in, so a second outline rendered a double-ring.
+            style={{ width: 96, height: 96, objectFit: "cover", flexShrink: 0 }}
           />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1.5 }}>Lumi</div>
@@ -898,7 +900,7 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                     const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
                     return (
                       <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 4, lineHeight: 1 }}>{t.pct}%</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 12, lineHeight: 1 }}>{t.pct}%</div>
                         <div style={{ width: "70%", maxWidth: 72, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
                       </div>
                     );
