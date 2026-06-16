@@ -4934,6 +4934,27 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
       const subDir = path.join(SUBMISSIONS_DIR, paperId);
       const ai = getAI();
 
+      // Build the FULL-OEQ-position map (skipped OEQs included). The
+      // quiz page at quiz/[id]/page.tsx:984 uploads canvas blobs
+      // numbered by the FULL OEQ list — canvas handles register on
+      // render, before the kid clicks skip — so a skipped Q in the
+      // middle still occupies its slot in the upload sequence (as a
+      // blank canvas). The marker's oeqQuestions list excludes
+      // __SKIPPED__ rows, so the loop's `i` index is the FILTERED
+      // position, which doesn't line up. Using `i` caused Q8 to read
+      // Q7's blank canvas and Q10 to read Q8's canvas on a paper
+      // with Q7 + Q9 skipped (paper cmq99idyq).
+      const fullOeqPosByQId = new Map<string, number>();
+      {
+        let pos = 0;
+        for (const pq of paper.questions) {
+          if (!hasOpts(pq) && !typedSectionQIds.has(pq.id)) {
+            fullOeqPosByQId.set(pq.id, pos);
+            pos++;
+          }
+        }
+      }
+
       // Same parallel pattern as the focused-test OEQ loop above.
       // updates.push and totalAwarded mutations remain safe because JS
       // is single-threaded; `continue` becomes `return` from the IIFE.
@@ -4943,8 +4964,9 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         // Which on-disk scan file corresponds to this question?
         //
         // - In-app canvas papers: each question writes on its own
-        //   canvas, saved as page_${qIndex}.jpg. The fallback below
-        //   (`i`, the OEQ array index) preserves that legacy path.
+        //   canvas. The quiz page uploads at the FULL-OEQ-list index
+        //   (including skipped), so we look up this Q's full-list
+        //   position via fullOeqPosByQId.
         //
         // - Scanned-back printables: each scan page holds MANY
         //   questions. The page index lives in printableBounds.
@@ -4953,7 +4975,8 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         //   page is page_1.jpg — hence the +1 offset.
         const scanPageIdx = (() => {
           const bounds = q.printableBounds as PrintableBounds | null | undefined;
-          return bounds && Number.isFinite(bounds.pageIndex) ? bounds.pageIndex + 1 : i;
+          if (bounds && Number.isFinite(bounds.pageIndex)) return bounds.pageIndex + 1;
+          return fullOeqPosByQId.get(q.id) ?? i;
         })();
 
         // Build the expected-answer text. If subparts carry per-part answers
