@@ -1302,17 +1302,20 @@ function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: 
 }
 
 function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(emphasiseQuoted(softenTone(card.advice, childFirst)));
+  // MathText (instead of boldifyHtml) so $...$ LaTeX renders as math
+  // in Lumi's advice + the headline "what went wrong" copy. Bold and
+  // underline markers still work — MathText handles them natively.
+  const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(card.what, childFirst))) }} />
+      <p className="text-base text-slate-600 leading-relaxed mb-6"><MathText text={emphasiseQuoted(softenTone(card.what, childFirst))} /></p>
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
-        <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
+        <p className="text-sm text-emerald-900 leading-relaxed"><MathText text={adviceText} /></p>
         {card.triggerKeywords.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="text-xs font-bold text-emerald-700">Watch for:</span>
@@ -1344,17 +1347,17 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 }
 
 function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
-  const adviceHtml = boldifyHtml(emphasiseQuoted(softenTone(card.advice, childFirst)));
+  const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
-      <p className="text-base text-slate-600 leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(card.what, childFirst))) }} />
+      <p className="text-base text-slate-600 leading-relaxed mb-6"><MathText text={emphasiseQuoted(softenTone(card.what, childFirst))} /></p>
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
-        <p className="text-sm text-orange-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: adviceHtml }} />
+        <p className="text-sm text-orange-900 leading-relaxed"><MathText text={adviceText} /></p>
       </div>
 
       {card.examples.length > 0 && (
@@ -1680,7 +1683,11 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const [open, setOpen] = useState(false);
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
-  const diagnosisHtml = boldifyHtml(emphasiseQuoted(softenTone(ex.whatWentWrong, childFirst)));
+  // Use MathText (not boldifyHtml) so $...$ LaTeX in the workshop's
+  // diagnosis text renders as math instead of literal "$\frac{1}{12}$".
+  // MathText handles **bold** and __underline__ natively so we drop
+  // boldifyHtml from the chain.
+  const diagnosisText = emphasiseQuoted(softenTone(ex.whatWentWrong, childFirst));
   // hasFullData controls whether the expander button shows. Cloze
   // questions have an empty transcribedStem (the passage lives in a
   // `_passage` subpart we intentionally strip) — but they STILL have
@@ -1710,7 +1717,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
             </button>
           )}
         </div>
-        <p className="text-sm text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: diagnosisHtml }} />
+        <p className="text-sm text-slate-700 leading-relaxed"><MathText text={diagnosisText} /></p>
       </div>
       {open && hasFullData && (
         <div className={`border-t border-slate-200 p-4 ${accentBg} rounded-b-xl space-y-3`}>
@@ -1737,7 +1744,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
                   const bg = isCorrect ? "bg-emerald-100 text-emerald-900" : isPicked ? "bg-rose-100 text-rose-900" : "bg-white text-slate-700";
                   return (
                     <div key={k} className={`px-3 py-1.5 rounded text-sm ${bg}`}>
-                      <strong>({num})</strong> {o}
+                      <strong>({num})</strong> <MathText text={o} />
                       {isCorrect && <span className="text-xs font-bold ml-2">✓ correct</span>}
                       {isPicked && !isCorrect && <span className="text-xs font-bold ml-2">✗ {childFirst} picked</span>}
                     </div>
@@ -1783,7 +1790,7 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
           {ex.markingNotes && (
             <div>
               <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">What {childFirst} missed</p>
-              <p className="text-sm text-emerald-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(ex.markingNotes)) }} />
+              <p className="text-sm text-emerald-900 leading-relaxed"><MathText text={emphasiseQuoted(ex.markingNotes)} /></p>
             </div>
           )}
         </div>
