@@ -85,6 +85,7 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "mark-lim:math":        markMath as CachedReport,
   "david-lim:math":       davidMath as CachedReport,
   "emily-lim:math":       emilyMath as CachedReport,
+  "emily-lim:english":    emilyEnglish as CachedReport,
   "kaiyangnggg:math":     kaiyangMath as CachedReport,
   "benjamin-ong:math":    benjaminMath as CachedReport,
   "hooper:math":          hooperMath as CachedReport,
