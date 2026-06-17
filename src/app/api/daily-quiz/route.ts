@@ -99,6 +99,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `${which} papers can only be assigned as a quiz by an authorised account.` }, { status: 403 });
       }
     }
+    // Temporary block: P3 English masters have non-standard section
+    // formats (e.g. Nanhua 2025 P3 EOY Editing uses "circle the correct
+    // word from brackets" instead of inline-blank-with-error-word) that
+    // the quiz renderer doesn't support. Refuse to assign them until
+    // the extractions are normalised. Mirror the regular-path guard at
+    // line ~530 so neither route can serve a P3 English quiz.
+    if (isEnglish && paper.level === "Primary 3") {
+      return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
+    }
     const allQs = paper.questions.filter(q => q.answer);
     if (allQs.length === 0) return NextResponse.json({ error: "No questions with answers" }, { status: 404 });
 
