@@ -120,6 +120,12 @@ export type MistakeExample = {
   studentAnswer: string | null;
   markingNotes: string | null;
   diagramImageData: string | null;
+  // When the kid answered an OEQ by drawing / writing on a canvas, the
+  // composite JPEG is served by /api/exam/{paperId}/submission?page=N.
+  // Populated only when oeqPageMap on the paper has an entry for this
+  // question; null for MCQ and for OEQs that were typed (no canvas).
+  answerImagePaperId: string | null;
+  answerImagePageIndex: number | null;
   // Used by loadTutorData to know which questions actually need a
   // diagram fetched. Always null in the public response — we wipe it
   // before returning to the client so the wire payload stays lean.
@@ -337,6 +343,11 @@ type WrongRecord = {
   topic: string;
   isMcq: boolean;
   paperTitle: string;
+  paperId: string;
+  // Submission page index for OEQs the kid answered on a canvas.
+  // Looked up from paper.metadata.oeqPageMap[questionId]. Null when
+  // the question has no canvas (MCQ, or typed OEQ).
+  submissionPageIndex: number | null;
   questionNum: string;
   questionText: string;
   studentAnswer: string;
@@ -404,6 +415,7 @@ function sliceClozePassageToContext(
 }
 
 function reconstructWrongs(papers: Array<{
+  id: string;
   title: string;
   metadata: unknown;
   subject: string | null;
@@ -430,6 +442,7 @@ function reconstructWrongs(papers: Array<{
     // the sentence around that blank instead of dumping the full
     // multi-paragraph cloze passage into every example.
     const englishSections = ((p.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number }> } | null)?.englishSections) ?? [];
+    const oeqPageMap = ((p.metadata as { oeqPageMap?: Record<string, number> } | null)?.oeqPageMap) ?? {};
     for (let qPos = 0; qPos < p.questions.length; qPos++) {
       const q = p.questions[qPos];
       const av = q.marksAvailable ?? 0, aw = q.marksAwarded ?? 0;
@@ -557,6 +570,8 @@ function reconstructWrongs(papers: Array<{
         topic: (q.syllabusTopic ?? "").trim() || "—",
         isMcq,
         paperTitle: p.title,
+        paperId: p.id,
+        submissionPageIndex: q.id in oeqPageMap ? oeqPageMap[q.id] : null,
         questionNum: q.questionNum,
         questionText,
         studentAnswer: cleanedAnswer,
@@ -671,7 +686,9 @@ function shapeTutorData(args: {
       return {
         questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
         paperTitle: null, questionNum: null, questionText: null, studentAnswer: null,
-        markingNotes: null, diagramImageData: null, isMcq: false,
+        markingNotes: null, diagramImageData: null,
+        answerImagePaperId: null, answerImagePageIndex: null,
+        isMcq: false,
         options: [], picked: null, correct: null, topic: null,
       };
     }
@@ -684,6 +701,11 @@ function shapeTutorData(args: {
       studentAnswer: w.studentAnswer,
       markingNotes: w.markingNotes,
       diagramImageData: null,        // filled in by a targeted follow-up query below
+      // Only OEQ (non-MCQ) answers go to a canvas. submissionPageIndex
+      // is null for MCQ and for typed OEQ; gate the answer image URL
+      // on both isMcq and the presence of a page index.
+      answerImagePaperId: !w.isMcq && w.submissionPageIndex !== null ? w.paperId : null,
+      answerImagePageIndex: !w.isMcq ? w.submissionPageIndex : null,
       questionId: w.questionId,      // wiped before returning to the client
       isMcq: w.isMcq,
       options: w.options,
@@ -830,6 +852,8 @@ function shapeTutorData(args: {
           studentAnswer: w.studentAnswer,
           markingNotes: w.markingNotes,
           diagramImageData: null,
+          answerImagePaperId: !w.isMcq && w.submissionPageIndex !== null ? w.paperId : null,
+          answerImagePageIndex: !w.isMcq ? w.submissionPageIndex : null,
           questionId: w.questionId,
           isMcq: w.isMcq,
           options: w.options,
@@ -1109,7 +1133,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   const subjectPapers = subjectPaperIds.length > 0 ? await prisma.examPaper.findMany({
     where: { id: { in: subjectPaperIds } },
     select: {
-      title: true, metadata: true, subject: true,
+      id: true, title: true, metadata: true, subject: true,
       questions: {
         select: {
           id: true,
@@ -1165,13 +1189,18 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   ];
   for (const ex of allExamples) if (ex.questionId) exampleIds.add(ex.questionId);
   if (exampleIds.size > 0) {
+    // Pull `imageData` alongside `diagramImageData` because Math/Sci
+    // clones store the whole question crop (stem + diagram in one
+    // image) as `imageData` and leave `diagramImageData` null. Earlier
+    // versions only checked `diagramImageData`, so every Math/Sci
+    // example in Lumi rendered without its question picture.
     const diagrams = await prisma.examQuestion.findMany({
       where: { id: { in: [...exampleIds] } },
-      select: { id: true, diagramImageData: true },
+      select: { id: true, diagramImageData: true, imageData: true },
     });
-    const diagramById = new Map(diagrams.map(d => [d.id, d.diagramImageData]));
+    const imgById = new Map(diagrams.map(d => [d.id, d.diagramImageData || d.imageData]));
     for (const ex of allExamples) {
-      if (ex.questionId) ex.diagramImageData = diagramById.get(ex.questionId) ?? null;
+      if (ex.questionId) ex.diagramImageData = imgById.get(ex.questionId) ?? null;
     }
   }
   for (const ex of allExamples) ex.questionId = null;
@@ -1182,6 +1211,13 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   // diagnosis reads as Student666's. \b ensures we don't catch
   // longer words that contain "David" as a substring.
   if (redirect) {
+    // Source kid's paperId would 404 for the redirected parent (not
+    // their child's paper), so suppress the kid's-working image —
+    // diagrams are fine because they're inlined as base64 here.
+    for (const ex of allExamples) {
+      ex.answerImagePaperId = null;
+      ex.answerImagePageIndex = null;
+    }
     const displayFirst = displayStudent.name.split(/\s+/)[0] ?? displayStudent.name;
     const srcRe = new RegExp(`\\b${redirect.sourceFirstName}\\b`, "g");
     return replaceStringsInTutorData(shaped, s => s.replace(srcRe, displayFirst));

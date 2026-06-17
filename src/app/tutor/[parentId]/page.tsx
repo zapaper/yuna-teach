@@ -63,6 +63,8 @@ type MistakeExample = {
   studentAnswer: string | null;
   markingNotes: string | null;
   diagramImageData: string | null;
+  answerImagePaperId: string | null;
+  answerImagePageIndex: number | null;
   isMcq: boolean;
   options: string[];
   picked: string | null;
@@ -187,7 +189,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // that old localStorage payloads should NOT be served — the new
     // key won't hit any pre-bump cache, and the prune step removes
     // every old `tutor-*` entry.
-    const cacheKey = `tutor-v8-${studentId}-${subject}`;
+    const cacheKey = `tutor-v9-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;
@@ -1844,6 +1846,24 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
             <div>
               <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-1">{childFirst} wrote</p>
               <div className="text-sm text-rose-900 leading-relaxed">{formatStudentAnswer(ex.studentAnswer)}</div>
+            </div>
+          )}
+          {/* For OEQs where the kid drew / wrote on a canvas, also show
+              the actual composite JPEG saved at submission time. The
+              transcribed text above is what the marker read; this is
+              what the kid actually put down — useful when the parent
+              wants to see handwriting, working steps, or a circuit
+              drawing. Endpoint enforces the same parent-of-student auth
+              as the rest of the dashboard. */}
+          {!ex.isMcq && ex.answerImagePaperId && ex.answerImagePageIndex !== null && (
+            <div>
+              <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-1">{childFirst}&apos;s working</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/exam/${ex.answerImagePaperId}/submission?page=${ex.answerImagePageIndex}`}
+                alt={`${childFirst}'s drawn answer`}
+                className="max-w-full rounded-lg border border-slate-200 bg-white"
+              />
             </div>
           )}
           {!ex.isMcq && ex.correct && (
