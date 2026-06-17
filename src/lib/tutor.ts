@@ -715,10 +715,14 @@ function shapeTutorData(args: {
   // pretend to read fine-grained patterns that aren't there yet.
   const MIN_ANALYSABLE_WRONGS = 15;
   const enoughForPatterns = wrongs.length >= MIN_ANALYSABLE_WRONGS;
+  // Show ALL workshop patterns, not just top 2 in each bucket. The
+  // workshop prompt already asks for 3-4 patterns total and prefers 3
+  // strong over 4 weak, so the upstream cap is the right place to
+  // limit. Slicing again at the runtime cut "we have 3 common
+  // mistakes" down to 2 and the parent never saw the third.
   const commonMistakes: MistakeCard[] = !enoughForPatterns ? [] : patternStats
     .filter(p => !CONCEPT_BUCKETS.includes(p.bucket as ConceptCard["bucket"]) && p.bucket !== "incomplete_answer")
     .sort((a, b) => b.marksLost - a.marksLost)
-    .slice(0, 2)
     .map(p => ({
       bucket: p.bucket as MistakeCard["bucket"],
       name: p.name,
@@ -732,7 +736,6 @@ function shapeTutorData(args: {
   const conceptualGaps: ConceptCard[] = !enoughForPatterns ? [] : patternStats
     .filter(p => CONCEPT_BUCKETS.includes(p.bucket as ConceptCard["bucket"]))
     .sort((a, b) => b.marksLost - a.marksLost)
-    .slice(0, 2)
     .map(p => ({
       bucket: p.bucket as ConceptCard["bucket"],
       name: p.name,
