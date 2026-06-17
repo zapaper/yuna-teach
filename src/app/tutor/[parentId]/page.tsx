@@ -63,6 +63,7 @@ type MistakeExample = {
   studentAnswer: string | null;
   markingNotes: string | null;
   diagramImageData: string | null;
+  optionImages: string[] | null;
   answerImagePaperId: string | null;
   answerImagePageIndex: number | null;
   isMcq: boolean;
@@ -189,7 +190,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // that old localStorage payloads should NOT be served — the new
     // key won't hit any pre-bump cache, and the prune step removes
     // every old `tutor-*` entry.
-    const cacheKey = `tutor-v9-${studentId}-${subject}`;
+    const cacheKey = `tutor-v10-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;
@@ -1820,12 +1821,44 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
               </div>
             </div>
           )}
+          {/* Image-option MCQs (Sci circuits, Math figures). Render as a
+              2×2 grid with the same picked/correct highlight scheme so
+              parents can see which picture the kid chose vs. the right
+              one. Falls through to the chips fallback below only when
+              even option images are absent. */}
+          {ex.isMcq && ex.options.length === 0 && ex.optionImages && ex.optionImages.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Options</p>
+              <div className="grid grid-cols-2 gap-2">
+                {ex.optionImages.map((img, k) => {
+                  const num = String(k + 1);
+                  const isPicked = !!ex.picked && ex.picked.includes(num);
+                  const isCorrect = !!ex.correct && ex.correct.includes(num);
+                  const ring = isCorrect
+                    ? "ring-2 ring-emerald-400 bg-emerald-50"
+                    : isPicked ? "ring-2 ring-rose-400 bg-rose-50" : "ring-1 ring-slate-200 bg-white";
+                  const src = img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`;
+                  return (
+                    <div key={k} className={`p-2 rounded-lg ${ring}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-700">({num})</span>
+                        {isCorrect && <span className="text-[10px] font-bold text-emerald-700">✓ correct</span>}
+                        {isPicked && !isCorrect && <span className="text-[10px] font-bold text-rose-700">✗ {childFirst} picked</span>}
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={`Option ${num}`} className="w-full rounded" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {/* Fallback for MCQ examples where the workshop wrongs record
               didn't capture the full options list (older papers, or
               options that lived in a diagram image). Still surface what
               picks are known so the parent can see the wrong/right
               choice numbers — better than rendering nothing. */}
-          {ex.isMcq && ex.options.length === 0 && (ex.picked || ex.correct) && (
+          {ex.isMcq && ex.options.length === 0 && (!ex.optionImages || ex.optionImages.length === 0) && (ex.picked || ex.correct) && (
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Answer</p>
               <div className="flex gap-3 text-sm">

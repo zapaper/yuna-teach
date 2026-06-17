@@ -120,6 +120,11 @@ export type MistakeExample = {
   studentAnswer: string | null;
   markingNotes: string | null;
   diagramImageData: string | null;
+  // MCQ option images (base64). Populated for Science circuit / Math
+  // figure MCQs where the 4 choices are pictures rather than text. Null
+  // for text MCQs and OEQs. When present, the UI renders these instead
+  // of the plain text options below.
+  optionImages: string[] | null;
   // When the kid answered an OEQ by drawing / writing on a canvas, the
   // composite JPEG is served by /api/exam/{paperId}/submission?page=N.
   // Populated only when oeqPageMap on the paper has an entry for this
@@ -686,7 +691,7 @@ function shapeTutorData(args: {
       return {
         questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
         paperTitle: null, questionNum: null, questionText: null, studentAnswer: null,
-        markingNotes: null, diagramImageData: null,
+        markingNotes: null, diagramImageData: null, optionImages: null,
         answerImagePaperId: null, answerImagePageIndex: null,
         isMcq: false,
         options: [], picked: null, correct: null, topic: null,
@@ -701,6 +706,7 @@ function shapeTutorData(args: {
       studentAnswer: w.studentAnswer,
       markingNotes: w.markingNotes,
       diagramImageData: null,        // filled in by a targeted follow-up query below
+      optionImages: null,            // filled in by the same targeted follow-up
       // Only OEQ (non-MCQ) answers go to a canvas. submissionPageIndex
       // is null for MCQ and for typed OEQ; gate the answer image URL
       // on both isMcq and the presence of a page index.
@@ -852,6 +858,7 @@ function shapeTutorData(args: {
           studentAnswer: w.studentAnswer,
           markingNotes: w.markingNotes,
           diagramImageData: null,
+          optionImages: null,
           answerImagePaperId: !w.isMcq && w.submissionPageIndex !== null ? w.paperId : null,
           answerImagePageIndex: !w.isMcq ? w.submissionPageIndex : null,
           questionId: w.questionId,
@@ -1194,13 +1201,24 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     // image) as `imageData` and leave `diagramImageData` null. Earlier
     // versions only checked `diagramImageData`, so every Math/Sci
     // example in Lumi rendered without its question picture.
-    const diagrams = await prisma.examQuestion.findMany({
+    //
+    // Same trip also hydrates `transcribedOptionImages` for MCQ rows
+    // whose 4 choices are pictures (Sci circuit diagrams, Math figure
+    // choices) — without this the picked/correct chips render with no
+    // option content next to them, leaving the parent guessing.
+    const heavy = await prisma.examQuestion.findMany({
       where: { id: { in: [...exampleIds] } },
-      select: { id: true, diagramImageData: true, imageData: true },
+      select: { id: true, diagramImageData: true, imageData: true, transcribedOptionImages: true },
     });
-    const imgById = new Map(diagrams.map(d => [d.id, d.diagramImageData || d.imageData]));
+    const imgById = new Map(heavy.map(d => [d.id, d.diagramImageData || d.imageData]));
+    const optImgsById = new Map(heavy.map(d => [d.id, d.transcribedOptionImages]));
     for (const ex of allExamples) {
-      if (ex.questionId) ex.diagramImageData = imgById.get(ex.questionId) ?? null;
+      if (!ex.questionId) continue;
+      ex.diagramImageData = imgById.get(ex.questionId) ?? null;
+      const optImgs = optImgsById.get(ex.questionId);
+      if (Array.isArray(optImgs) && optImgs.length > 0 && optImgs.some(o => typeof o === "string" && o.length > 0)) {
+        ex.optionImages = optImgs as string[];
+      }
     }
   }
   for (const ex of allExamples) ex.questionId = null;
