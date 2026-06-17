@@ -61,7 +61,7 @@ export async function GET(
   // bounds — fall back to the source paper's PDF.
   let pdfPath = paper.pdfPath;
   let metaForDrop = paper.metadata;
-  let sourceMeta: { normalExtractEnglish?: Record<string, unknown> } | null = null;
+  let sourceMeta: { normalExtractEnglish?: Record<string, unknown>; normalExtractChinese?: Record<string, unknown> } | null = null;
   // The "owner" id whose /pages/<id>/page_N.jpg files we'll fall back
   // to if no PDF exists on disk. Defaults to this paper, but if it's
   // a clone (or its source master has the JPEGs), we'll prefer that.
@@ -73,7 +73,7 @@ export async function GET(
     });
     if (source?.pdfPath) {
       pdfPath = source.pdfPath;
-      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown> } | null;
+      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown>; normalExtractChinese?: Record<string, unknown> } | null;
       // Inherit answer/skip page metadata from source too — the clone
       // doesn't carry these per-paper settings.
       if (!(paper.metadata as { answerPages?: unknown } | null)?.answerPages) metaForDrop = source.metadata;
@@ -82,7 +82,7 @@ export async function GET(
       // No source PDF either, but the source's page JPEGs may still
       // be on disk — use those for the fallback below.
       pageImagesOwnerId = source.id;
-      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown> } | null;
+      sourceMeta = source.metadata as { normalExtractEnglish?: Record<string, unknown>; normalExtractChinese?: Record<string, unknown> } | null;
       if (!(paper.metadata as { answerPages?: unknown } | null)?.answerPages) metaForDrop = source.metadata;
     }
   }
@@ -101,6 +101,17 @@ export async function GET(
     if (!hasAnyExtract) {
       return NextResponse.json({
         error: "This English paper hasn't run Normal Extract yet. Open /normal-extract on the master and run at least one section before printing.",
+      }, { status: 400 });
+    }
+  }
+  if (isChineseSubject) {
+    const fromSource = sourceMeta?.normalExtractChinese;
+    const fromOwn = (paper.metadata as { normalExtractChinese?: Record<string, unknown> } | null)?.normalExtractChinese;
+    const extractState = (fromSource ?? fromOwn) as Record<string, unknown> | undefined;
+    const hasAnyExtract = !!extractState && Object.entries(extractState).some(([k, v]) => k !== "lastRunAt" && v === true);
+    if (!hasAnyExtract) {
+      return NextResponse.json({
+        error: "This Chinese paper hasn't run Normal Extract yet. Open /chinese-normal-extract on the master and run at least one section before printing.",
       }, { status: 400 });
     }
   }
