@@ -455,7 +455,15 @@ function IneligibleView({
                       // chart calibrated to THIS kid.
                       const barColor = t.pct < topline.avgPct ? "#ffb952" : "#006c49";
                       return (
-                        <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
+                        // minWidth: 0 — without this, a flex item's default
+                        // min-width: auto lets its content (the pct label,
+                        // or the longest word in the topic) push the cell
+                        // wider than its flex share. That desynchs the bar
+                        // row from the label row when there are many topics
+                        // (Science kids hit ~18), so labels drift right of
+                        // their columns. Pinning to 0 forces flex: 1 to
+                        // actually be 1.
+                        <div key={t.topic} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
                           <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 4, lineHeight: 1 }}>{t.pct}%</div>
                           <div style={{ width: "70%", maxWidth: 64, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
                         </div>
@@ -465,7 +473,7 @@ function IneligibleView({
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
                   {chartTopics.map((t) => (
-                    <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
+                    <div key={t.topic} style={{ flex: 1, minWidth: 0, overflowWrap: "break-word", wordBreak: "break-word", fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
                       {t.topic}
                     </div>
                   ))}
@@ -926,7 +934,12 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                     // a struggling kid's "above avg" still reads as strong.
                     const barColor = t.pct < topline.avgPct ? "#ffb952" : "#006c49";
                     return (
-                      <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
+                      // minWidth: 0 — see the on-screen chart above for the
+                      // explanation. Without this, long topic names in the
+                      // label row push their cells past their flex share,
+                      // so the labels drift right of the columns they're
+                      // supposed to belong to (Science kids hit ~18 topics).
+                      <div key={t.topic} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
                         <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 12, lineHeight: 1 }}>{t.pct}%</div>
                         <div style={{ width: "70%", maxWidth: 72, height: h, backgroundColor: barColor, borderRadius: "6px 6px 0 0" }} />
                       </div>
@@ -938,7 +951,7 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                   don't compete with the bar / pct positioning. */}
               <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
                 {chartTopics.map(t => (
-                  <div key={t.topic} style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
+                  <div key={t.topic} style={{ flex: 1, minWidth: 0, overflowWrap: "break-word", wordBreak: "break-word", fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
                     {t.topic}
                   </div>
                 ))}
