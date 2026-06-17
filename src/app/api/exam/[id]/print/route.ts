@@ -100,7 +100,7 @@ export async function GET(
     const hasAnyExtract = !!extractState && Object.entries(extractState).some(([k, v]) => k !== "lastRunAt" && v === true);
     if (!hasAnyExtract) {
       return NextResponse.json({
-        error: "This English paper hasn't run Normal Extract yet. Open /normal-extract on the master and run at least one section before printing.",
+        error: "This paper has not been registered in system for printing.",
       }, { status: 400 });
     }
   }
@@ -111,7 +111,7 @@ export async function GET(
     const hasAnyExtract = !!extractState && Object.entries(extractState).some(([k, v]) => k !== "lastRunAt" && v === true);
     if (!hasAnyExtract) {
       return NextResponse.json({
-        error: "This Chinese paper hasn't run Normal Extract yet. Open /chinese-normal-extract on the master and run at least one section before printing.",
+        error: "This paper has not been registered in system for printing.",
       }, { status: 400 });
     }
   }
