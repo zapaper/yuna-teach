@@ -432,13 +432,21 @@ function PassageWithInputs({
   emptyFieldIds?: Set<string>;
 }) {
   // Always use position-based mapping: passage blank i → questions[i]
-  // This handles both renumbered and original numbering, and ignores stray markers
+  // This handles both renumbered and original numbering, and ignores stray markers.
+  //
+  // CRITICAL: this pre-scan regex MUST match the same shapes as the main
+  // PassageLine renderer below — both the inside-bold form (**(N) word**)
+  // AND the outside-bold form ((N) **word**). The Editing OCR emits the
+  // outside-bold form; if we only match inside-bold here, passageQNums
+  // ends up empty for those papers, qNumToId stays empty, and every
+  // input renders without a qId — kid types but onChange short-circuits
+  // and nothing persists. That's the editing-completely-blank bug.
   const passageQNums: number[] = [];
   const seen = new Set<number>();
-  const passageRegex = /\*\*\((\d+)\)/g;
+  const passageRegex = /\*\*\((\d+)\)[^*]*\*\*|\((\d+)\)\s+\*\*[^*]+\*\*/g;
   let pm;
   while ((pm = passageRegex.exec(passage)) !== null) {
-    const n = parseInt(pm[1]);
+    const n = parseInt(pm[1] ?? pm[2]);
     if (!seen.has(n)) { passageQNums.push(n); seen.add(n); }
   }
   const sortedQs = [...questions].sort((a, b) =>
