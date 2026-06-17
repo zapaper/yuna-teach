@@ -958,38 +958,48 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
               {(() => {
                 const isScience = subject.toLowerCase() === "science";
                 if (isScience) {
-                  // Compute label band height from the longest topic so
-                  // long names ("Interaction of forces (Frictional…)")
-                  // don't get clipped. At fontSize 11 ≈ 7px per character
-                  // when rotated; cap at 500 since rare topics exceed
-                  // ~70 chars.
-                  const maxLen = Math.max(0, ...chartTopics.map(t => t.topic.length));
-                  const labelBandH = Math.min(500, maxLen * 7 + 20);
+                  // Pre-rotation text width budget: 160px at fontSize 9
+                  // gives ~32 chars per line, so a 60-65 char topic wraps
+                  // to 2 lines and an 80-char one wraps to 3. Whatever
+                  // the line count, the rotated VISUAL height is bounded
+                  // by this budget (the longest line) — so we set the
+                  // label band height to match and reserve a tiny extra
+                  // for padding.
+                  const PRE_ROTATE_WIDTH = 160;
+                  const labelBandH = PRE_ROTATE_WIDTH + 8;
                   return (
                     <div style={{ display: "flex", gap: 16, marginTop: 8, height: labelBandH }}>
                       {chartTopics.map(t => (
                         <div key={t.topic} style={{ flex: 1, minWidth: 0, position: "relative" }}>
-                          {/* Position-absolute + plain rotate(-90deg) so
-                              the rotated text doesn't sit in flex flow
-                              (which would push cells wider than their
-                              share). Centered in the cell, rotates around
-                              its own centre — reads bottom-to-top, head
-                              tilt LEFT (the user's "rotate left 90"). The
-                              writing-mode + rotate(180) compound this
-                              replaces didn't survive html2canvas. */}
+                          {/* Rotate around bottom-centre so the original
+                              RIGHT edge of the text (text-align: right)
+                              ends up at the TOP after rotate(-90deg) —
+                              i.e. anchored to the x-axis line, not
+                              floating in the middle of the band.
+                              Multi-line wrap allowed via whiteSpace
+                              normal + a fixed pre-rotation width budget. */}
                           <div style={{
                             position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%) rotate(-90deg)",
-                            transformOrigin: "center",
-                            whiteSpace: "nowrap",
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: "#0b1c30",
-                            lineHeight: 1,
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            display: "flex",
+                            justifyContent: "center",
                           }}>
-                            {t.topic}
+                            <div style={{
+                              width: PRE_ROTATE_WIDTH,
+                              transform: "rotate(-90deg)",
+                              transformOrigin: "50% 0%",
+                              whiteSpace: "normal",
+                              overflowWrap: "break-word",
+                              fontSize: 9,
+                              lineHeight: 1.15,
+                              fontWeight: 600,
+                              color: "#0b1c30",
+                              textAlign: "right",
+                            }}>
+                              {t.topic}
+                            </div>
                           </div>
                         </div>
                       ))}
