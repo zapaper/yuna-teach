@@ -690,7 +690,7 @@ function scrollToSection(id: string) {
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
 function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
-  const { childFirst, topline, commonMistakes, conceptualGaps, subject, previousAssessment } = data;
+  const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
   const weak = topline.weakTopics[0];
   const m1 = commonMistakes[0];
   const m2 = commonMistakes[1];
@@ -715,30 +715,12 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
     </a>
   );
 
-  // "Since last check" callout — only renders when the workshop
-  // archived a prior assessment in this kid's cache. The first time
-  // we run the workshop for a kid, previousAssessment is null and we
-  // skip the bullet entirely.
-  const sinceLast = previousAssessment ? (() => {
-    const date = new Date(previousAssessment.generatedAt).toLocaleDateString();
-    const avgDelta = previousAssessment.avgDelta;
-    const papersGained = previousAssessment.paperCountDelta ?? 0;
-    // Pattern-cleared signal was removed on 2026-06-17 — the workshop's
-    // pattern classification is non-deterministic, so a pattern "dropping
-    // out" of the top 4 between runs can be reclassification noise, not
-    // real improvement. Keep only the deterministic signals (avg delta
-    // and paper-count delta).
-    const hasMovement = (avgDelta !== null && Math.abs(avgDelta) >= 2) || papersGained > 0;
-    if (!hasMovement) return null;
-    return (
-      <li>
-        Since the last check on <strong>{date}</strong>:
-        {avgDelta !== null && avgDelta >= 2 && <> {childFirst}&apos;s average is <strong>up {Math.round(avgDelta)} percentage points</strong>.</>}
-        {avgDelta !== null && avgDelta <= -2 && <> the average has slipped <strong>{Math.abs(Math.round(avgDelta))} percentage points</strong> — worth a look.</>}
-        {papersGained > 0 && (avgDelta === null || Math.abs(avgDelta) < 2) && <> {childFirst} has completed {papersGained} more {subject.toLowerCase()} paper{papersGained === 1 ? "" : "s"} since.</>}
-      </li>
-    );
-  })() : null;
+  // The "Since the last check on X" banner was removed on 2026-06-17.
+  // Parents reported it felt stale and confusing — Lumi should read as
+  // a fresh assessment for today, not a delta against an opaque prior
+  // run. The cached previousAssessment snapshot is still produced by
+  // the workshop and left in the payload for the future weekly-review
+  // work; just not rendered today.
 
   return (
     <div className="text-[#001e40] text-sm leading-relaxed mt-3 space-y-2.5">
@@ -746,7 +728,6 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
         {childFirst} is making <strong>{status}</strong> progress in {subject}. A few things to take note:
       </p>
       <ul className="space-y-2 list-disc pl-5">
-        {sinceLast}
         {avg < 80 && (
           <li>
             Daily quizzes are a good way to get more practices in a short and fun way for {childFirst}.
