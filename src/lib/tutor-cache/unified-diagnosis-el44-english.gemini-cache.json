@@ -1,122 +1,128 @@
 {
   "patterns": [
     {
-      "name": "Word Pairing Slips",
-      "what": "Tends to pick a word that makes sense on its own but doesn't naturally pair with the prepositions or phrases right next to it.",
+      "name": "Tense Mix-Up",
+      "what": "Sometimes chooses the simple past tense even when time clues point to an action that is still ongoing or happened before another past event.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'lived' instead of 'have lived', missing the clue 'since 1960' which shows the action is still happening."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'damaged' instead of 'had damaged', missing the clue 'the previous day' which shows the car was damaged before the father yelled."
+        }
+      ],
+      "strategic_advice": "When you see time clues, treat them as stop signs:\n- **'since' or 'for'** → use 'has/have' + verb (Present Perfect) because the action is still going on.\n- **'the previous day' or 'before'** → use 'had' + verb (Past Perfect) to show which past action happened first.",
+      "trigger_keywords": [
+        "since",
+        "for",
+        "the previous day",
+        "before"
+      ]
+    },
+    {
+      "name": "Who vs Whom Mix-Up",
+      "what": "Occasionally swaps 'who' and 'whom' when connecting parts of a sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'who' instead of 'whom' when referring to Sunil, the person receiving the action from the committee."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'whom' instead of 'who' for the student performing the action of helping."
+        }
+      ],
+      "strategic_advice": "Try the **'he/him' trick**! Replace the missing word with 'he' or 'him' to see what fits:\n- If **'he'** makes sense (e.g., 'He always helps'), use **'who'**.\n- If **'him'** makes sense (e.g., 'The committee recognised him'), use **'whom'**.",
+      "trigger_keywords": [
+        "who",
+        "whom",
+        "whose",
+        "which"
+      ]
+    },
+    {
+      "name": "Word Choice Traps",
+      "what": "Tends to pick words that have a similar general meaning but do not quite fit the specific phrase or situation in the sentence.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "EL44 picked 'celebrate' instead of 'revel', missing that the preposition 'in' pairs perfectly with 'revel'."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose 'surge' instead of 'burst' twice across different attempts, missing the common phrase 'burst of activity'."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 selected 'get through' instead of 'get ahead' when talking about succeeding in life's journey."
-        }
-      ],
-      "strategic_advice": "When you see a blank followed by a preposition (like **'in'**, **'by'**, or **'of'**), treat it as a package deal.\n- **Test the pair**: Say the option and the preposition together in your head (e.g., 'celebrate in' vs 'revel in').\n- **Look for familiar phrases**: Sometimes a word like 'activity' strongly prefers a specific partner word like 'burst'.",
-      "trigger_keywords": [
-        "in",
-        "by",
-        "of",
-        "to"
-      ]
-    },
-    {
-      "name": "Missing Context Clues",
-      "what": "Sometimes chooses a vocabulary word without fully checking the surrounding clues, occasionally picking a word that means the opposite of what is needed.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 picked 'superficial' instead of 'indispensable' twice across different attempts, missing that a 'successful experiment' needs an essential step."
+          "whatWentWrong": "EL44 picked 'celebrate', but we say 'celebrate success', not 'celebrate in success' — the correct pairing is 'revel in'."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "EL44 chose 'obstructed' instead of 'stumped' when describing how students felt about a tricky clue."
+          "whatWentWrong": "EL44 chose 'obstructed', which usually means a physical object is blocking a path, rather than 'stumped', which is what a tricky clue does to a person."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "EL44 selected 'prevented' instead of 'disrupted', missing that an injury derails or disrupts training rather than completely preventing it."
+          "whatWentWrong": "EL44 selected 'prevented' instead of 'disrupted', missing that an injury interrupts ongoing training rather than stopping it from starting at all."
         }
       ],
-      "strategic_advice": "When you see a long sentence with a blank, look for the **story clues** before looking at the options.\n- **Identify the tone**: Is the situation positive or negative? (e.g., a 'successful experiment' needs an 'indispensable' step, not a 'superficial' one).\n- **Find the cause and effect**: If a clue is 'obscure', it will leave students 'stumped' (confused) rather than physically 'obstructed'.",
+      "strategic_advice": "When picking a vocabulary word, look closely at the words immediately before and after the blank:\n- **Check the prepositions:** Does the word sound right with the little words next to it (like 'in', 'by', or 'of')?\n- **Check the context:** Is the sentence talking about a physical object, a feeling, or an idea? Make sure the word matches the exact situation.",
       "trigger_keywords": [
-        "despite",
-        "because",
-        "when",
-        "for a successful"
+        "in",
+        "by",
+        "of"
       ]
     },
     {
-      "name": "Hidden Grammar Clues",
-      "what": "Occasionally misses small clue words in the sentence that change the required tense or verb form.",
+      "name": "Hidden Subject Mix-Up",
+      "what": "Occasionally matches the verb to the plural noun closest to the blank, rather than the actual singular subject of the sentence.",
       "specific_examples": [
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 picked 'damaged' instead of 'had damaged', missing the time clue 'the previous day'."
-        },
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose 'lived' instead of 'have lived', overlooking the word 'since' which shows the action is still happening."
-        },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "EL44 selected the plural 'were' instead of 'was', getting distracted by the extra phrase 'as well as' instead of focusing on the main subject."
+          "whatWentWrong": "EL44 picked 'were' to match 'motorcycles', missing that the true subject is the singular 'lineup' of cars."
         }
       ],
-      "strategic_advice": "When you see a grammar question, play detective and look for the hidden clues before looking at the options.\n- **Time words** like **'since'** or **'the previous day'** tell you exactly which tense to use.\n- **Extra phrases** like **'as well as'** or **'together with'** are traps—cross them out lightly with your pencil so you can match the verb to the real main subject.",
+      "strategic_advice": "When you see phrases like **'as well as'** or **'together with'**, treat them as extra information:\n- **Cross out the extra phrase** in your mind to find the real subject.\n- Match your verb to the main subject at the very beginning of the sentence (e.g., 'The lineup... was').",
       "trigger_keywords": [
-        "since",
-        "the previous day",
         "as well as",
-        "together with"
+        "together with",
+        "along with"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -128,35 +134,35 @@
     },
     {
       "idx": 11,
-      "patternIndex": 0
-    },
-    {
-      "idx": 12,
-      "patternIndex": 0
-    },
-    {
-      "idx": 13,
-      "patternIndex": 1
-    },
-    {
-      "idx": 14,
-      "patternIndex": 0
-    },
-    {
-      "idx": 15,
-      "patternIndex": 1
-    },
-    {
-      "idx": 16,
-      "patternIndex": 0
-    },
-    {
-      "idx": 17,
       "patternIndex": 2
     },
     {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -179,7 +185,7 @@
     "17": "cmpjrki4800oweplm9kukkrh4",
     "18": "cmpjrki4900ozeplms7uiexxo"
   },
-  "generatedAt": "2026-06-17T07:30:54.582Z",
+  "generatedAt": "2026-06-17T09:10:11.140Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 2,

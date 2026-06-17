@@ -1,122 +1,142 @@
 {
   "patterns": [
     {
-      "name": "Skipping Vocabulary Questions",
-      "what": "Tends to leave vocabulary and fill-in-the-blanks questions completely unanswered instead of taking a guess.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Sometimes gets tricked by sentences where the main subject is hidden among other words, mixing up singular and plural verbs.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "She skipped this vocabulary question about finding the right word for producing a crop."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "She left this cloze question blank instead of using context clues to guess the missing word."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "mcq",
-          "whatWentWrong": "She missed a chance to guess the meaning of 'phase out' from the options provided."
+          "whatWentWrong": "Clara picked the singular 'signs', but the action is done by the plural 'students', so it should be 'sign'."
         }
       ],
-      "strategic_advice": "When you aren't sure about a word, don't just leave it blank!\n- **Look for clues** in the rest of the sentence to guess the meaning.\n- **Eliminate options** you know are definitely wrong.\n- **Always guess** on a multiple-choice question—you have a 1 in 4 chance of getting it right!",
+      "strategic_advice": "When you see phrases like **'one of the'**, find the actual noun doing the action. Here, 'students' is plural, so the verb should be 'sign', not 'signs'.",
       "trigger_keywords": [
-        "choose the most suitable word",
-        "fill in the blank"
+        "one of the",
+        "who",
+        "is"
       ]
     },
     {
-      "name": "Skipping Reading Questions",
-      "what": "Tends to skip both visual text and story questions rather than hunting for clues in the passage.",
+      "name": "Skipping Multiple Choice",
+      "what": "Tends to leave multiple-choice questions blank instead of using clues to make a smart guess.",
       "specific_examples": [
         {
-          "questionRef": "[11]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "She skipped this visual text question, which could be easily answered by scanning the poster for the club's goals."
+          "whatWentWrong": "Clara left this vocabulary question blank instead of guessing from the context clues."
         },
         {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "She left this blank instead of hunting in the first paragraph for clues about the chicken escaping."
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Clara skipped this visual text question, which could be answered by looking closely at the poster."
         },
         {
-          "questionRef": "[30]",
-          "type": "oeq",
-          "whatWentWrong": "She did not write an answer, missing the chance to copy the steps Mike took directly from the passage."
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Clara left this blank, but she could have found the answer by checking the activity timings in the text."
         }
       ],
-      "strategic_advice": "Long texts can feel overwhelming, but the answers are always right there on the page.\n- When you see prompts like **'According to the poster'** or **'Explain clearly'**, treat it like a treasure hunt.\n- **Highlight keywords** in the question, then scan the text for those exact words.\n- Even if you aren't 100% sure, write down the part of the passage that seems to match!",
+      "strategic_advice": "Never leave a multiple-choice question blank! Even if you are unsure, use the **process of elimination**:\n- Cross out the options you know are definitely wrong.\n- Pick your best guess from the remaining choices. You might just get it right!",
       "trigger_keywords": [
-        "According to the poster",
-        "Explain clearly",
-        "Pick out a sentence"
+        "choose the correct",
+        "which of the following",
+        "according to"
       ]
     },
     {
       "name": "Skipping Sentence Rewriting",
-      "what": "Tends to avoid sentence combining questions completely instead of writing down a best attempt.",
+      "what": "Occasionally leaves sentence transformation questions blank when the new starting words look tricky.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "She left this blank instead of trying to combine the sentences using the prompt 'would rather'."
+          "whatWentWrong": "Clara left this blank instead of trying to use the 'would rather... than' structure."
         },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "She skipped this reported speech question instead of attempting to change the tense and pronouns."
+          "whatWentWrong": "Clara skipped this reported speech question, missing a chance to earn partial marks for shifting the tense."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "She did not attempt to rewrite the sentence starting with 'No matter', missing out on potential partial marks."
+          "whatWentWrong": "Clara left this blank, but she could have tried starting with 'No matter how hard'."
         }
       ],
-      "strategic_advice": "Sentence rewriting can be tricky, but leaving it blank guarantees zero marks.\n- When you see prompts like **'would rather'** or **'wanted to know'**, try whispering the new sentence to yourself to see if it sounds natural.\n- **Write down your best attempt**, because you might get the main grammar rule right even if there's a small spelling slip!",
+      "strategic_advice": "When you see a rewriting question, don't skip it! Try to spot the grammar rule being tested:\n- **'would rather'** → pair it with **'than'**\n- **'asked me'** → change to reported speech and shift the tense back\n- **'No matter'** → usually pairs with **'how'** or **'what'**\nWrite down your best attempt, as you can often get partial marks!",
       "trigger_keywords": [
         "would rather",
         "asked me",
-        "wanted to know"
+        "No matter",
+        "whom"
+      ]
+    },
+    {
+      "name": "Skipping Comprehension Answers",
+      "what": "Sometimes leaves open-ended comprehension questions blank instead of hunting for clues in the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this question, but she just needed to copy the exact sentence from the first paragraph."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank instead of searching lines 15 to 23 for phrases that show the characters' feelings."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this explanation question, missing the chance to describe the steps Mike took to free the chicken."
+        }
+      ],
+      "strategic_advice": "For comprehension questions, the answer is always hiding in the text! Treat it like a treasure hunt:\n- **'Pick out a sentence'** → copy exactly from capital letter to full stop.\n- **'Explain clearly'** → use your own words to describe the steps or reasons.\nAlways write down your best guess—partial marks are often given for finding the right section!",
+      "trigger_keywords": [
+        "Pick out",
+        "Explain clearly",
+        "What two actions",
+        "With reference to"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 10,
@@ -172,43 +192,43 @@
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 26,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 32,
-      "patternIndex": 1
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -245,7 +265,7 @@
     "31": "cmo3sgcru003c114hxmarenrw",
     "32": "cmo3sgcru003d114hoskhf3so"
   },
-  "generatedAt": "2026-06-17T07:29:21.380Z",
+  "generatedAt": "2026-06-17T09:09:45.883Z",
   "wrongCounts": {
     "total": 32,
     "oeq": 15,

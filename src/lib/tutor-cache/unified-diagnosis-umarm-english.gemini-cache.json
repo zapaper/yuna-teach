@@ -1,123 +1,141 @@
 {
   "patterns": [
     {
-      "name": "Phrasal Verb Mix-Ups",
-      "what": "Occasionally picks the wrong preposition to pair with a verb, which changes the meaning of the phrase.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'put down' instead of 'put off' when talking about delaying a party."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "He picked 'looked into' instead of 'looked to' for seeking support from a brother."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'break on' instead of 'break out' for suddenly sweating."
-        }
-      ],
-      "strategic_advice": "When you see a verb followed by a blank, remember that the little word after it completely changes the action.\n- **Try out each option** in your head and think about its specific meaning (e.g., 'put off' means delay, 'put down' means insult).\n- If you're unsure, look for **context clues** in the sentence that hint at the direction or result of the action.",
-      "trigger_keywords": [
-        "put",
-        "creep",
-        "look",
-        "break",
-        "get"
-      ]
-    },
-    {
-      "name": "Story Clue Slips",
-      "what": "Sometimes chooses a vocabulary word without fully using the surrounding hints in the sentence.",
+      "name": "Missing Context Clues",
+      "what": "Sometimes picks a vocabulary word without fully checking the surrounding clues in the sentence that point to the exact meaning needed.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'poet' instead of 'journalist' despite clues like 'interviewing people' and 'news article'."
+          "whatWentWrong": "He chose 'poet' instead of 'journalist', missing the clues about 'researching and interviewing' for a 'news article'."
         },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'victorious' instead of 'tenacious' even though the sentence mentioned 'never giving up'."
+          "whatWentWrong": "He picked 'victorious' instead of 'tenacious', overlooking the clue 'never giving up till the end'."
         },
         {
-          "questionRef": "[3]",
+          "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'legibly' instead of 'momentarily' for being 'at a loss for words'."
+          "whatWentWrong": "He selected 'extensively' instead of 'momentarily', which doesn't quite fit the action of someone who 'hesitated' before answering."
         }
       ],
-      "strategic_advice": "Treat vocabulary questions like a detective game by highlighting **clue words** before looking at the options.\n- When you see phrases like **'never giving up'** or **'interviewing people'**, match your answer directly to those hints.\n- **Read the completed sentence** back to yourself to ensure the word you chose makes logical sense with the rest of the story.",
+      "strategic_advice": "When you see a blank in a vocabulary question, treat it like a detective game:\n- **Highlight the clues** in the sentence before looking at the options.\n- Ask yourself, 'What specific action or feeling is the sentence describing?'\n- Plug your chosen word back into the sentence to see if it matches the clues perfectly.",
       "trigger_keywords": [
-        "spent three days",
+        "researching",
         "never giving up",
-        "at a loss for words",
         "hesitated"
       ]
     },
     {
-      "name": "Word Endings and Forms",
-      "what": "Tends to choose the right base word but uses the wrong ending for the sentence's grammar.",
+      "name": "Tricky Phrasal Verbs",
+      "what": "Occasionally mixes up the small prepositions in common phrases, which changes the meaning of the action.",
       "specific_examples": [
         {
-          "questionRef": "[11]",
+          "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'enjoys' instead of 'enjoy', getting tricked by the singular name 'Raj' instead of looking at the main subject 'All the boys'."
+          "whatWentWrong": "He chose 'put down' instead of 'put off' for postponing a birthday party."
         },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'looked into' instead of 'looked to' when Ravi was seeking support from his brother."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'on' instead of 'out' for the phrase 'break out in a cold sweat'."
+        }
+      ],
+      "strategic_advice": "Phrasal verbs can be tricky because changing one small word changes the whole meaning!\n- When you see verbs like **'put'**, **'look'**, or **'break'**, read the whole sentence to understand the context.\n- Try to memorize common pairings, like **'put off'** for delay, or **'look to'** for relying on someone.\n- Read the completed phrase aloud to see if it sounds right.",
+      "trigger_keywords": [
+        "put",
+        "look",
+        "break",
+        "creep"
+      ]
+    },
+    {
+      "name": "Wrong Word Form",
+      "what": "Tends to figure out the correct base word but occasionally writes it as a verb when a noun or an '-ing' word is needed.",
+      "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'encourage' instead of the noun form 'encouragement'."
+          "whatWentWrong": "He wrote the verb 'encourage' instead of the noun 'encouragement' after the possessive 'friends''."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "He used the past-tense verb 'included' instead of the noun 'inclusion' after the article 'an'."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "He used the base word 'test' instead of 'testing' when describing an ongoing process."
+          "whatWentWrong": "He wrote 'test' instead of 'testing', missing that an '-ing' word is needed after the preposition 'of'."
         }
       ],
-      "strategic_advice": "When editing a word, ask yourself: 'Does this need to be a **naming word (noun)**, an **action word (verb)**, or a **describing word (adjective)**?'\n- Check the **true subject** of the sentence—if it's plural (like 'All the boys'), the present-tense verb does not need an **'s'**.\n- Look for clue words like **'an'** or **'the'** which signal that a noun is coming up next.",
+      "strategic_advice": "When editing a word, always check its job in the sentence:\n- If it comes after words like **'an'** or **'friends''**, you usually need a noun (like 'inclusion' or 'encouragement').\n- If it comes after a preposition like **'of'** or **'for'**, you often need an **'-ing'** word (like 'testing').\n- Read the sentence with your new word to check if the grammar flows smoothly.",
       "trigger_keywords": [
         "an",
-        "the",
-        "process of",
-        "except"
+        "of",
+        "friends'"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement",
+      "what": "Occasionally confuses whether to use a singular or plural verb, especially when there are extra words between the subject and the verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the singular 'enjoys' instead of the plural 'enjoy', getting tricked by the phrase 'except Raj' instead of looking at the main subject 'All the boys'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the plural 'expect' instead of the singular 'expects' for the company 'Nintendo'."
+        }
+      ],
+      "strategic_advice": "When choosing a verb, always find the true subject of the sentence:\n- Cross out extra phrases like **'except Raj'** or **'as well as'** to see the main subject clearly.\n- Remember that company names (like **'Nintendo'**) are singular and need a singular verb (with an 's').\n- Match the verb to the main subject, not the noun closest to the blank.",
+      "trigger_keywords": [
+        "All the boys except",
+        "Nintendo"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 9,
@@ -125,19 +143,19 @@
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -145,7 +163,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 16,
@@ -153,7 +171,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -161,11 +179,11 @@
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 21,
@@ -205,7 +223,7 @@
     "22": "cmpuhw35m001c818su2utsmmw",
     "23": "cmpuhw35m001d818snk0jvztj"
   },
-  "generatedAt": "2026-06-17T07:46:47.298Z",
+  "generatedAt": "2026-06-17T08:14:45.802Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 12,

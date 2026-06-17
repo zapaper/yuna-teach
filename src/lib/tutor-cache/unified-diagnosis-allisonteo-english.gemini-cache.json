@@ -1,103 +1,122 @@
 {
   "patterns": [
     {
-      "name": "Leaving Out Details",
-      "what": "Sometimes captures part of the correct answer but stops one step short of providing all the necessary details to get full marks.",
+      "name": "Spelling Slips",
+      "what": "Occasionally loses half a mark due to minor spelling mistakes in words she likely knows, both in editing passages and comprehension answers.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[49]",
           "type": "oeq",
-          "whatWentWrong": "She correctly identified that the writer was reminded of the advice, but missed explaining how she actually applied it to her job."
+          "whatWentWrong": "Spelled 'disappointed' as 'disappinted' in the editing passage."
         },
         {
-          "questionRef": "[23]",
+          "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "She successfully noted that the writer felt she didn't guide Timmy well, but left out the second point about feeling burdened by expectations."
+          "whatWentWrong": "Wrote 'eariler' instead of 'earlier' in a comprehension answer."
         },
         {
-          "questionRef": "[38]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "She transformed the sentence well but accidentally left out the word 'dog', which changed the meaning of the sentence."
+          "whatWentWrong": "Accidentally wrote 'witn' instead of 'with' when copying from the text."
         }
       ],
-      "strategic_advice": "When you see prompts like **'explain clearly'** or **'in what ways'**, treat them as a sign to include at least two points.\n- Always double-check your final answer against the passage to ensure you haven't accidentally left out key words.\n- For synthesis questions, tick off the words from the original sentence as you write them down to make sure nothing is missed.",
+      "strategic_advice": "When checking your work, try reading your written answers backwards word by word. This forces your brain to look at the spelling of each word rather than just reading the sentence.",
       "trigger_keywords": [
-        "explain clearly",
-        "in what ways",
-        "refer to"
+        "editing",
+        "comprehension",
+        "spelling"
       ]
     },
     {
-      "name": "Grammar Rule Mix-Ups",
-      "what": "Occasionally gets tripped up by specific grammar rules, such as subject-verb agreement, tenses, or question tags.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Sometimes gets tricked by sentences where the subject is a special word like 'Neither' or an action word, mistakenly choosing a plural verb.",
       "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "She used the past participle 'begun' instead of the simple past tense 'began' for an action that happened in the past."
-        },
         {
           "questionRef": "[31]",
           "type": "mcq",
-          "whatWentWrong": "She chose a plural verb for 'Neither', but 'Neither' is a singular subject and needs a singular verb."
+          "whatWentWrong": "Chose the plural verb 'attend' for the singular subject 'Neither'."
         },
         {
-          "questionRef": "[42]",
+          "questionRef": "[41]",
           "type": "mcq",
-          "whatWentWrong": "She used a negative question tag, forgetting that words like 'rarely' already make the sentence negative, so the tag must be positive."
+          "whatWentWrong": "Picked the plural verb 'help' instead of 'helps' for the singular subject 'reading'."
         }
       ],
-      "strategic_advice": "When you see words like **'neither'** or activities ending in **'-ing'**, remember they act as singular subjects and need a singular verb.\n- For question tags, if the sentence has a negative word like **'rarely'** or **'never'**, always use a positive tag!\n- Read the sentence quietly to yourself to see if the tense sounds right with the time clues given.",
+      "strategic_advice": "When you see words like **'Neither'**, **'Each'**, or an action ending in **'-ing'** acting as the subject, treat them as singular. Try crossing out the extra descriptive words (like 'of the siblings') to find the true subject.",
       "trigger_keywords": [
         "neither",
-        "rarely",
-        "-ing words"
+        "each",
+        "reading",
+        "verb"
       ]
     },
     {
-      "name": "Choosing the Right Word",
-      "what": "Tends to pick words that might seem to fit the sentence but do not quite match the exact meaning or the preposition that follows.",
+      "name": "Stopping One Step Short",
+      "what": "Tends to capture the main idea in comprehension answers but occasionally misses the second required point or the specific format requested.",
       "specific_examples": [
         {
-          "questionRef": "[17]",
+          "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "She chose 'scarcely' instead of 'sparsely' to describe how the animal's skin is covered with hair."
+          "whatWentWrong": "Identified that the writer felt she didn't guide Timmy well, but missed the second point about feeling burdened by expectations."
         },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote full sentences instead of picking exactly two words as requested by the question."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Stated that the writer is reminded of the advice, but stopped short of explaining how she actually applied it to her job."
+        }
+      ],
+      "strategic_advice": "When a question is worth 2 marks or asks you to **'explain fully'**, always look for two distinct points in the passage. If the prompt says **'pick out two words'**, double-check that your final answer is exactly two words.",
+      "trigger_keywords": [
+        "explain fully",
+        "explain clearly",
+        "in what ways",
+        "pick out"
+      ]
+    },
+    {
+      "name": "Missing Clue Words",
+      "what": "Occasionally selects a vocabulary word that seems related but doesn't quite fit the surrounding words or the exact meaning of the sentence.",
+      "specific_examples": [
         {
           "questionRef": "[43]",
           "type": "mcq",
-          "whatWentWrong": "She chose 'frolic', but the correct phrase to show enjoying success is to 'revel in' it."
+          "whatWentWrong": "Chose 'frolic' instead of 'revel', missing the clue word 'in' that follows the blank."
         },
         {
           "questionRef": "[54]",
           "type": "mcq",
-          "whatWentWrong": "She selected 'aggravate' (which means to make worse) instead of 'alleviate' (which means to ease the problem)."
+          "whatWentWrong": "Picked 'aggravate' (which means to make worse) instead of 'alleviate' (to make better) when the sentence talked about easing a problem."
         }
       ],
-      "strategic_advice": "When choosing a vocabulary word, look closely at the words immediately after the blank.\n- If you see a preposition like **'in'**, look for a word that pairs naturally with it, like **'revel in'**.\n- Try substituting your chosen word back into the sentence to see if it makes logical sense with the overall tone.",
+      "strategic_advice": "Look closely at the words immediately before and after the blank, especially prepositions like **'in'** or **'to'**. Try plugging your chosen word into the sentence to see if it makes logical sense with the overall message.",
       "trigger_keywords": [
-        "in",
-        "to",
-        "with"
+        "blank",
+        "closest in meaning",
+        "vocabulary"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -105,67 +124,67 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 22,
@@ -173,35 +192,35 @@
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 24,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 25,
-      "patternIndex": 0
-    },
-    {
-      "idx": 26,
-      "patternIndex": 0
-    },
-    {
-      "idx": 27,
       "patternIndex": -1
     },
     {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 29,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 31,
@@ -209,7 +228,7 @@
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 33,
@@ -225,23 +244,23 @@
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 37,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 38,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 40,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 41,
@@ -249,55 +268,55 @@
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 43,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 46,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 48,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 49,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 50,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 51,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 52,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 53,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 54,
-      "patternIndex": 2
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -356,7 +375,7 @@
     "53": "cmpwiea46000rpwrh5zqriegh",
     "54": "cmpwiea460011pwrhnmrtyg8m"
   },
-  "generatedAt": "2026-06-17T07:26:24.662Z",
+  "generatedAt": "2026-06-17T09:06:54.334Z",
   "wrongCounts": {
     "total": 54,
     "oeq": 38,

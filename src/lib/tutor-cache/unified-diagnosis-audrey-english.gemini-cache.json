@@ -1,26 +1,26 @@
 {
   "patterns": [
     {
-      "name": "Phrasal Verb Mix-Ups",
-      "what": "Sometimes confuses phrasal verbs (verbs combined with words like 'in', 'off', or 'down') that look similar but have very different meanings.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes confuses phrasal verbs that look similar but have very different meanings.",
       "specific_examples": [
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Audrey confused 'put down' with 'put off', which means to postpone."
+          "whatWentWrong": "Audrey picked 'put down' instead of 'put off' for cancelling a birthday party."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "She chose 'taken up' instead of 'taken in', which means to be tricked or fooled by the magician."
+          "whatWentWrong": "She chose 'taken up' rather than 'taken in' to describe being tricked by a magician."
         },
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'brought off' instead of 'brought down' for trees falling in strong winds."
+          "whatWentWrong": "She selected 'brought off' instead of 'brought down' for trees falling in strong winds."
         }
       ],
-      "strategic_advice": "- When learning a new phrasal verb, try to **draw a quick picture** or link it to a physical action (e.g., a tree being \"brought down\" to the ground).\n- Keep a small **phrasal verb list** where you group them by the main verb (like all the \"put\" words: put off, put up, put down) with a short example sentence for each.\n- If you are unsure during a test, try replacing the phrasal verb with a single word (like \"tricked\" for \"taken in\") to see if the sentence still makes sense.",
+      "strategic_advice": "When you see a verb with a preposition (like **'put off'** or **'taken in'**), read the whole sentence to guess the meaning first. If you're unsure, try replacing the phrasal verb with a single word (e.g., **'cancel'** or **'tricked'**) to see which option matches best.",
       "trigger_keywords": [
         "put",
         "taken",
@@ -29,58 +29,80 @@
       ]
     },
     {
-      "name": "Skipping Clue Words",
-      "what": "Occasionally misses small hint words in the sentence that act as signposts for the correct grammar or vocabulary choice.",
+      "name": "Possibility Word Mix-Up",
+      "what": "Occasionally mixes up words that show absolute certainty with words that show a guess or possibility.",
       "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "She missed the clue 'wanted others to have a chance', which means the character didn't say 'everything', rather than not saying 'anything'."
-        },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Audrey missed the clue 'not sure', which means the answer must be a guess like 'could' rather than a certainty like 'must'."
+          "whatWentWrong": "Audrey chose 'must' (which shows certainty) even though the worker explicitly said 'I'm not sure'."
+        },
+        {
+          "questionRef": "[29]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'should' instead of 'could' when guessing what to do for the weekend, missing the 'not sure' clue again."
+        }
+      ],
+      "strategic_advice": "When the sentence has clues like **'not sure'**, it means we are guessing. Use **'could'** or **'might'** for guesses. Save **'must'** for when you are 100% certain, and **'should'** for giving advice.",
+      "trigger_keywords": [
+        "not sure",
+        "must",
+        "could",
+        "should"
+      ]
+    },
+    {
+      "name": "Skipping Sentence Clues",
+      "what": "Tends to pick a word that sounds okay on its own, but misses the extra clue in the sentence that points to the exact right answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey picked 'impolite' instead of 'impulsive', missing the clue that the act was done 'without checking the truth'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'anything' instead of 'everything', missing the context that Rina still wanted to speak but 'wanted others to have a chance' too."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "She missed the clue 'heavy downpour', which makes the cancellation 'inevitable' (unavoidable) rather than 'desired'."
+          "whatWentWrong": "She selected 'desired' instead of 'inevitable' for a concert cancellation, overlooking the clue about the 'sudden heavy downpour'."
         }
       ],
-      "strategic_advice": "- When you see phrases like **\"not sure\"** or **\"might\"**, treat them as stop signs: they signal that the answer involves possibility (like **could** or **may**).\n- Highlight the **\"because\"** or **\"given the\"** part of the sentence—this is the explanation that will point you to the exact word needed.\n- Always read the second half of the sentence before choosing your answer, as the real clue is often hiding at the end!",
+      "strategic_advice": "Before picking an answer, look for the **'because'**, **'given that'**, or **'without'** part of the sentence. These phrases are clues! For example, if someone acts **'without checking the truth'**, they are being **'impulsive'**, not just **'impolite'**.",
       "trigger_keywords": [
-        "not sure",
         "because",
         "given the",
-        "since"
+        "without",
+        "due to"
       ]
     },
     {
-      "name": "Exact Word Matches",
-      "what": "Tends to pick a vocabulary word that is related to the topic, but doesn't quite match the exact meaning of the original word in the passage.",
+      "name": "Synonym Mix-Up",
+      "what": "Sometimes chooses a word that is related to the situation but isn't an exact match for the original word's meaning.",
       "specific_examples": [
         {
-          "questionRef": "[18]",
+          "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "Audrey chose 'courage' instead of 'determination' as the exact match for 'resolve'."
+          "whatWentWrong": "Audrey picked 'curiously' instead of 'suspiciously' to replace 'skeptically'."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'cringed' (feeling awkward) instead of 'quivered' (shaking) to replace 'shuddered'."
         },
         {
           "questionRef": "[24]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'bottom' instead of 'groundwork' to replace the word 'foundation' in an economic context."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "mcq",
-          "whatWentWrong": "She selected 'common' instead of 'native' as the synonym for 'indigenous'."
+          "whatWentWrong": "She selected 'bottom' instead of 'groundwork' to replace 'foundation' in the context of building an economy."
         }
       ],
-      "strategic_advice": "- When doing Vocabulary Cloze, **plug your chosen word back into the sentence** and read it aloud in your head to see if the meaning stays exactly the same.\n- Look out for words that have a **literal vs. figurative meaning** (like \"foundation\" meaning the base of a building vs. \"groundwork\" for a plan).\n- If two words seem to fit, look for the one that is the **closest direct synonym** to the underlined word, rather than just a word that makes sense in the sentence.",
+      "strategic_advice": "For vocabulary cloze questions, try to think of your own simple replacement word before looking at the options. If the original word is **'shuddered'** (shaking from fear or cold), look for a word like **'quivered'** rather than **'cringed'** (which means feeling awkward).",
       "trigger_keywords": [
         "closest in meaning",
-        "underlined word",
-        "replace"
+        "replace the underlined word"
       ]
     }
   ],
@@ -91,7 +113,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -99,15 +121,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -115,23 +137,23 @@
     },
     {
       "idx": 8,
-      "patternIndex": 1
-    },
-    {
-      "idx": 9,
-      "patternIndex": 1
-    },
-    {
-      "idx": 10,
       "patternIndex": 2
     },
     {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -147,15 +169,15 @@
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 19,
@@ -171,31 +193,31 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 25,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 26,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 27,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 29,
@@ -203,11 +225,11 @@
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -243,7 +265,7 @@
     "30": "cmq3ic34r0007xhyl5mdp8vu5",
     "31": "cmq3ic34s000gxhylhbfxrknn"
   },
-  "generatedAt": "2026-06-17T07:27:53.246Z",
+  "generatedAt": "2026-06-17T09:08:04.238Z",
   "wrongCounts": {
     "total": 31,
     "oeq": 0,

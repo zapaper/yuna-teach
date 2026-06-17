@@ -1,114 +1,106 @@
 {
   "patterns": [
     {
-      "name": "One Step Short",
-      "what": "Sometimes calculates a correct middle step, like the amount used or the number of coins, but stops before answering the final question.",
+      "name": "Stopping One Step Short",
+      "what": "Sometimes calculates an intermediate value or a different part of the problem, but stops one step short of answering the final question.",
       "specific_examples": [
         {
-          "questionRef": "[49]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg correctly found the amount of paint used, but forgot to subtract it from the total to find the amount left."
+          "whatWentWrong": "He correctly found the amount of paint used, but forgot that the question asked for the amount left."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He successfully calculated the number of coins, but stopped there instead of finding how many more postcards there were."
+          "whatWentWrong": "He found the number of coins, but stopped before calculating how many more postcards there were."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg found the total difference in stickers perfectly, but missed the final step of dividing by 2."
+          "whatWentWrong": "He found the total difference in stickers, but missed the final step of dividing by 2 to find the amount given."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'left with'** or **'remaining'** → subtract the amount used from the total\n- **'how many more'** → find both values first, then subtract them\n- Always re-read the **last sentence** of the question before writing your final answer.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'left with'** → subtract the amount used from the total\n- **'how many more'** → remember to do the final subtraction between the two items\n- Always underline the **final question word** before you start calculating.",
       "trigger_keywords": [
         "left with",
         "how many more",
-        "in the end",
         "altogether"
       ]
     },
     {
-      "name": "Skipping Small Words",
-      "what": "Occasionally reads past crucial condition words like 'even' or 'without', or misses the specific reference group in a fraction or percentage.",
+      "name": "Leaving Questions Blank",
+      "what": "Occasionally skips questions entirely, especially when they involve algebra, multiple steps, or patterns.",
       "specific_examples": [
         {
-          "questionRef": "[6]",
+          "questionRef": "[30]",
           "type": "oeq",
-          "whatWentWrong": "He found consecutive numbers, but missed the word 'even' and used odd numbers instead."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg wrote a great 4-digit even number, but accidentally used digits that the question said 'without using'."
-        },
-        {
-          "questionRef": "[51]",
-          "type": "mcq",
-          "whatWentWrong": "He subtracted the percentages directly instead of calculating 60% 'of the remainder'."
-        }
-      ],
-      "strategic_advice": "Small words can completely change the math! Try this:\n- **Circle condition words** like 'even', 'odd', or 'without' so they stand out.\n- When you see **'of the remainder'**, calculate the leftover amount first before multiplying.\n- For **'fraction of [A] is [B]'**, make sure [A] is your base (denominator).",
-      "trigger_keywords": [
-        "even",
-        "without",
-        "of the remainder",
-        "fraction of"
-      ]
-    },
-    {
-      "name": "Forgotten Units",
-      "what": "Sometimes leaves out or mixes up the final unit of measurement, like degrees, millions, or squared centimeters, which leads to dropped marks.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg calculated the correct angle of 43, but forgot to write the degree symbol (°)."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "He found the number 56 on the graph, but left out the words 'million dollars'."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote the final area in 'cm' instead of the correct square units 'cm²'."
-        }
-      ],
-      "strategic_advice": "Units are just as important as the numbers!\n- When finding an angle, always add the **degree symbol (°)**.\n- For area, remember to use **square units (cm² or m²)**.\n- Check the graph or table axes to see if the numbers are in **thousands or millions**.",
-      "trigger_keywords": [
-        "find ∠",
-        "value of",
-        "area of",
-        "in terms of"
-      ]
-    },
-    {
-      "name": "Skipping Questions",
-      "what": "Tends to leave multi-step or algebra questions completely blank when unsure, missing out on partial marks for showing early steps.",
-      "specific_examples": [
-        {
-          "questionRef": "[34]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg left this algebra word problem blank instead of writing down an equation for the first step."
+          "whatWentWrong": "He left this question about average savings completely blank."
         },
         {
           "questionRef": "[36]",
           "type": "oeq",
-          "whatWentWrong": "He skipped this fraction problem, missing out on method marks he could have earned by finding the first remainder."
+          "whatWentWrong": "He skipped this multi-step word problem about pencils and erasers."
         },
         {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "He left this statistics question blank, missing a chance to earn marks for reading the graph."
+          "questionRef": "[63]",
+          "type": "mcq",
+          "whatWentWrong": "He left this number pattern sequence blank instead of taking a guess."
         }
       ],
-      "strategic_advice": "Even if a question looks tough, don't leave it blank!\n- Write down **what you know**: find 1 unit, or write an equation for the first sentence.\n- In algebra, try replacing the letter with a **simple number** (like 2 or 10) to see what steps you need to take.\n- Every correct step can earn you **method marks**, even if the final answer isn't quite right.",
+      "strategic_advice": "When you feel stuck on a question, try these steps instead of leaving it blank:\n- **Write down what you know** → even just writing the first step or drawing a model can earn you method marks.\n- For **MCQs**, always make your best guess by eliminating the answers you know are wrong.\n- For **patterns**, write the difference between each number to see if a rule appears.",
       "trigger_keywords": [
-        "in terms of",
         "average",
-        "percentage increase"
+        "in terms of",
+        "pattern"
+      ]
+    },
+    {
+      "name": "Missing Units or Conversions",
+      "what": "Tends to leave out the final units (like degrees or million dollars) or forgets to convert between units (like cents to dollars).",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He read the graph correctly to get 56, but lost marks for forgetting to write 'million dollars'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He set up the algebra correctly but forgot to convert the cents into dollars."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'cm' instead of 'cm²' for his final answer in this area question."
+        }
+      ],
+      "strategic_advice": "When you finish a calculation, do a quick check for units:\n- **Money** → check if the question mixes **cents and dollars**, and divide by 100 if needed.\n- **Area** → always use **square units** like cm² or m².\n- **Graphs** → look at the axis labels to see if the numbers represent **thousands or millions**.",
+      "trigger_keywords": [
+        "in terms of $",
+        "value of",
+        "area"
+      ]
+    },
+    {
+      "name": "Wrong Total Mix-Up",
+      "what": "Sometimes uses the leftover amount or the grand total as the base for a fraction or percentage, instead of the specific group asked for.",
+      "specific_examples": [
+        {
+          "questionRef": "[59]",
+          "type": "mcq",
+          "whatWentWrong": "He calculated the percentage decrease using the leftover marbles instead of the original total."
+        },
+        {
+          "questionRef": "[61]",
+          "type": "mcq",
+          "whatWentWrong": "He found the fraction of savings out of the total money, rather than comparing spending to savings as asked."
+        }
+      ],
+      "strategic_advice": "When a question asks for a fraction or percentage, be careful about which number goes on the bottom:\n- **'percentage decrease'** → always divide by the **original starting amount**, not the leftover.\n- **'fraction of [A] is [B]'** → the number for **[A]** is your total (the denominator), and **[B]** is the part (the numerator).",
+      "trigger_keywords": [
+        "percentage decrease",
+        "fraction of",
+        "remainder"
       ]
     }
   ],
@@ -135,7 +127,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -151,7 +143,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -163,7 +155,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -187,7 +179,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 20,
@@ -199,7 +191,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -219,7 +211,7 @@
     },
     {
       "idx": 27,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 28,
@@ -231,11 +223,11 @@
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 32,
@@ -243,31 +235,31 @@
     },
     {
       "idx": 33,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 35,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 36,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 37,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 38,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 39,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 40,
@@ -275,7 +267,7 @@
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 42,
@@ -287,7 +279,7 @@
     },
     {
       "idx": 44,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 45,
@@ -315,7 +307,7 @@
     },
     {
       "idx": 51,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 52,
@@ -347,15 +339,15 @@
     },
     {
       "idx": 59,
-      "patternIndex": 1
-    },
-    {
-      "idx": 60,
       "patternIndex": 3
     },
     {
-      "idx": 61,
+      "idx": 60,
       "patternIndex": 1
+    },
+    {
+      "idx": 61,
+      "patternIndex": 3
     },
     {
       "idx": 62,
@@ -363,7 +355,7 @@
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 64,
@@ -379,7 +371,7 @@
     },
     {
       "idx": 67,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 68,
@@ -387,7 +379,7 @@
     },
     {
       "idx": 69,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 70,
@@ -476,7 +468,7 @@
     "71": "cmol7maxa000k13njmslatwze",
     "72": "cmok0rznd00b4d4vnu5lv3kze"
   },
-  "generatedAt": "2026-06-17T07:37:36.687Z",
+  "generatedAt": "2026-06-17T09:17:41.152Z",
   "wrongCounts": {
     "total": 72,
     "oeq": 31,

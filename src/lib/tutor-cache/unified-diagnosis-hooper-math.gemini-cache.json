@@ -1,88 +1,81 @@
 {
   "patterns": [
     {
-      "name": "Final Step Slips",
-      "what": "Tends to miss a specific condition, unit, or final twist in the prompt, occasionally stopping one step short after doing the hard math perfectly.",
+      "name": "Stopping Too Early",
+      "what": "Sometimes stops one step short of the final answer, even after calculating the middle steps perfectly.",
       "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "hooper arranged the fractions from smallest to greatest instead of greatest to smallest."
-        },
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "hooper found the amount of paint used instead of the amount left over."
+          "whatWentWrong": "hooper calculated the exact amount of paint used, but stopped before subtracting to find the amount left over."
         },
         {
-          "questionRef": "[6]",
-          "type": "oeq",
-          "whatWentWrong": "hooper calculated the correct percentage but forgot to state that it was an 'increase'."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'left with'** or **'after adding'** → double-check if you need one more addition or subtraction.\n- **'greatest to smallest'** → draw a quick arrow down to remind yourself of the order.\n- **'in terms of $'** → check if you need to change cents to dollars before finishing.",
-      "trigger_keywords": [
-        "greatest to smallest",
-        "left with",
-        "increase/decrease",
-        "after adding",
-        "in terms of $"
-      ]
-    },
-    {
-      "name": "Wrong Total Used",
-      "what": "Sometimes uses the overall total to find a fraction or ratio instead of using the specific leftover or part requested by the question.",
-      "specific_examples": [
-        {
-          "questionRef": "[16]",
+          "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "hooper found the fraction of the total money instead of the fraction of the expenditure."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "hooper got tripped up when calculating a portion 'of the remaining' cake instead of the whole cake."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "hooper compared the shaded parts without making sure the square and rectangle areas matched their 4:1 ratio."
-        }
-      ],
-      "strategic_advice": "When a question asks for a fraction or ratio, always ask yourself 'out of what?':\n- **'of the remaining'** → use the leftover amount, not the starting amount.\n- **'of his expenditure'** → put the savings over the money spent, not the total money.\n- **'ratio of the area'** → make sure both shapes are cut into pieces of the same size before counting them.",
-      "trigger_keywords": [
-        "of the remaining",
-        "of his expenditure",
-        "ratio of the area",
-        "shared equally"
-      ]
-    },
-    {
-      "name": "Hidden Shape Clues",
-      "what": "Occasionally overlooks hidden clues in geometry puzzles, such as matching exact distances in symmetry or using overlapping lines to find a missing length.",
-      "specific_examples": [
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "hooper picked a symmetrical half where the letters were the wrong distance from the mirror line."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "hooper didn't spot how to deduce the diameter of the big semicircle from the overlapping straight lines."
+          "whatWentWrong": "hooper found the total cost in cents perfectly, but stopped before converting it into dollars for the final answer."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "hooper missed some angle rules in the parallelogram needed to find the final unknown angles."
+          "whatWentWrong": "hooper successfully found the inside angles of the triangle, but stopped before using them to find the final angle y."
         }
       ],
-      "strategic_advice": "When dealing with shapes and symmetry, use your pencil to mark up the drawing:\n- **'symmetrical half'** → count the exact number of squares from the dotted line for each letter.\n- **'figure is formed by'** → highlight overlapping lines to see which small parts add up to a bigger length.\n- **'straight line'** → look for angles that add up to 180 degrees.",
+      "strategic_advice": "When you think you are done, re-read the last sentence of the question.\n- If it asks for **'amount left'**, make sure you didn't just find the amount used.\n- Check the units! If the options have a **'$'** sign, make sure you converted your cents into dollars.",
       "trigger_keywords": [
-        "symmetrical half",
-        "figure is formed by",
-        "straight line",
-        "not drawn to scale"
+        "left",
+        "remainder",
+        "in terms of",
+        "find angle y"
+      ]
+    },
+    {
+      "name": "Fraction Base Mix-Up",
+      "what": "Occasionally mixes up whether a fraction should be based on the total amount, or just a specific part like the remainder.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "The question asked for savings as a fraction of expenditure, but hooper used the total money as the base instead."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for a fraction of the 'remaining' cake, hooper's answer suggests a mix-up with taking a fraction of the whole cake."
+        }
+      ],
+      "strategic_advice": "Always circle the words that come right after 'fraction of'. That tells you what your denominator (the bottom number) should be.\n- **'fraction of his expenditure'** → put expenditure on the bottom.\n- **'fraction of the remaining'** → use the leftover amount, not the original total.",
+      "trigger_keywords": [
+        "fraction of",
+        "of the remaining",
+        "of his expenditure"
+      ]
+    },
+    {
+      "name": "Missed Cue Words",
+      "what": "Tends to read past important condition words in the problem, which changes how the math should be done.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "hooper missed the cue that the discount only applies 'starting from the 3rd slice', treating all slices as full price."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "hooper missed the word 'greatest' and arranged the fractions in the exact opposite order, from smallest to greatest."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "hooper treated GST like a discount by subtracting it, missing that a tax is an extra cost that must be added."
+        }
+      ],
+      "strategic_advice": "Treat special condition words like stop signs. Highlight or underline them before you start calculating.\n- **'starting from'** → the rule doesn't apply to everything!\n- **'greatest to smallest'** → draw a quick arrow pointing down to remind yourself of the order.\n- **'GST'** or **'interest'** → always add these to the cost, never subtract.",
+      "trigger_keywords": [
+        "starting from",
+        "greatest to smallest",
+        "GST",
+        "discount"
       ]
     }
   ],
@@ -93,7 +86,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -113,11 +106,11 @@
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -129,7 +122,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -141,7 +134,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -153,11 +146,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -180,7 +173,7 @@
     "17": "cmpky1gwy005a4u6ftv2rx3j4",
     "18": "cmpky1gwy005c4u6fwvkqsmcj"
   },
-  "generatedAt": "2026-06-17T07:32:25.268Z",
+  "generatedAt": "2026-06-17T09:12:20.130Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 5,

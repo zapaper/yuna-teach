@@ -1,26 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Reported Speech Tenses",
-      "what": "Tends to keep the original past tense verbs instead of shifting them one step back into the past perfect tense when changing direct quotes into reported speech.",
+      "name": "Reported Speech Mix-Up",
+      "what": "Sometimes forgets to shift the tense backwards when changing direct speech into reported speech.",
       "specific_examples": [
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden forgot to shift 'took' to the past perfect tense 'had taken' and missed capitalising 'I'."
-        },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "He kept the simple past tense 'went' instead of shifting it back to 'had gone'."
+          "whatWentWrong": "Kayden kept the simple past tense 'went' instead of shifting it back to the past perfect 'had gone'."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "He used 'were surprised' instead of shifting the past tense to 'had been surprised'."
+          "whatWentWrong": "He used 'were surprised' instead of taking a step back in time to 'had been surprised'."
         }
       ],
-      "strategic_advice": "When you see reported speech questions, treat them as a signal to check your tenses:\n- If the original verb is in the past tense (like **'took'** or **'went'**), you must shift it into the past perfect tense (like **'had taken'** or **'had gone'**).\n- Always double-check your pronouns and make sure words like **'I'** are capitalised!",
+      "strategic_advice": "When you see speech marks being removed, treat it as a signal to take one step back in time.\n- Simple past tense words (like **'went'** or **'took'**) must change to past perfect (**'had gone'** or **'had taken'**).\n- Words like **'were'** change to **'had been'**.",
       "trigger_keywords": [
         "asked",
         "said that",
@@ -28,84 +23,80 @@
       ]
     },
     {
-      "name": "Singular and Plural Rules",
-      "what": "Occasionally overlooks clues in the sentence that tell us whether a noun is singular, plural, or uncountable, which leads to picking the wrong verb or quantifier.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Occasionally mixes up singular and plural verbs, especially when the main subject is separated from the blank.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Kayden missed that 'actions' is a plural subject, which needs the plural verb 'were'."
+          "whatWentWrong": "Kayden chose the singular verb 'was' even though the subject 'actions' is plural."
         },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He forgot the rule for 'either... or', where the verb must match the closest subject 'group members'."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "He used 'many' instead of 'much' for the uncountable noun 'improvement'."
+          "whatWentWrong": "He picked 'has taken' for the plural subject 'group members' instead of 'have taken'."
         }
       ],
-      "strategic_advice": "When you see a blank right after a subject, take a moment to check its form:\n- For tricky phrases like **'either... or'**, always match the verb to the subject closest to the blank.\n- For words like **'improvement'**, ask yourself if it is countable or uncountable before choosing a word like **'much'** or **'many'**.\n- Underline the main subject and check if it is singular or plural before picking your verb.",
+      "strategic_advice": "Always find the true subject of the sentence before picking your verb.\n- If the subject is plural (like **'actions'**), use a plural verb (like **'were'**).\n- When you see **'either... or'**, look at the noun closest to the blank to decide if you need a singular or plural verb!",
       "trigger_keywords": [
-        "either",
-        "or",
-        "actions",
-        "improvement"
+        "is / are",
+        "was / were",
+        "has / have",
+        "either... or"
       ]
     },
     {
-      "name": "Missing Exact Details",
-      "what": "Sometimes provides a general answer for comprehension questions or fills in only part of a table, missing the specific action needed for full marks.",
+      "name": "Spelling and Capitals",
+      "what": "Tends to lose marks on small spelling slips or by forgetting to use capital letters for the word 'I' and proper nouns.",
       "specific_examples": [
         {
-          "questionRef": "[21]",
+          "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Kayden put the reason for Siti's feelings in the wrong row of the table."
+          "whatWentWrong": "Kayden missed the 'r' in 'opportunity'."
         },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "He forgot to capitalise the word 'I' and the month 'December'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He had a few tricky spelling slips like 'exitement' instead of 'excitement'."
+        }
+      ],
+      "strategic_advice": "Treat editing and rewriting questions as a final proofreading check.\n- Always capitalise the word **'I'**, months like **'December'**, and people's names.\n- For tricky words, try breaking them down into syllables (like **op-por-tu-ni-ty** or **ex-cite-ment**) to check if any letters are missing.",
+      "trigger_keywords": [
+        "Editing",
+        "Rewrite",
+        "I"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Sometimes gives a general answer or leaves out a key part of the question when writing comprehension responses.",
+      "specific_examples": [
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "He gave general answers for reference words instead of specific actions like 'climbing down the tree'."
+          "whatWentWrong": "Kayden correctly identified that 'this' referred to climbing the tree, but missed the specific detail that it was climbing down."
         },
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "He correctly identified how Siti felt but forgot to provide the explanation for why she felt that way."
+          "whatWentWrong": "He successfully ticked the correct feeling box but forgot to write down the explanation."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct reason but accidentally wrote it in the wrong row of the table."
         }
       ],
-      "strategic_advice": "When answering comprehension questions, always look for the exact specific detail:\n- When a question asks what a word like **'this'** or **'it'** refers to, be as specific as possible—for example, mention 'climbing down the tree' instead of just 'climbing'.\n- When asked to **'explain clearly why'**, make sure you write down the full reason from the passage.\n- Always double-check that you have filled in every required box in a table before moving on.",
+      "strategic_advice": "When answering comprehension questions, double-check that you have captured the exact details.\n- For reference words like **'it'** or **'this'**, read the sentence before it and include the specific action (e.g., **'climbing down'** instead of just **'climbing'**).\n- If a question has two parts (like ticking a box **and** explaining), make sure both halves are completed before moving on.",
       "trigger_keywords": [
-        "refers to",
-        "explain clearly why",
+        "Explain clearly why",
+        "What the word(s) refers to",
         "fill in the blanks"
-      ]
-    },
-    {
-      "name": "Cloze Passage Clues",
-      "what": "Occasionally fills in cloze passage blanks with words that fit the general topic but miss the specific grammar or tense clues in the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden wrote 'finally' instead of the helping verb 'was' needed for the passive voice."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'forest' instead of 'shadows', missing the clue that trees 'cast' shadows."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "He used the past tense 'allowed' instead of the present tense 'allows' to match the rest of the passage."
-        }
-      ],
-      "strategic_advice": "When tackling a cloze passage, treat the words around the blank as your biggest clues:\n- Read the **whole sentence** to check if you need a past or present tense verb.\n- Look for action words nearby (like 'cast by') to help you find the exact noun needed.\n- Always read the completed sentence quietly to yourself to check if it sounds grammatically correct.",
-      "trigger_keywords": [
-        "Fill in each blank",
-        "passage"
       ]
     }
   ],
@@ -140,7 +131,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -148,27 +139,27 @@
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 16,
@@ -184,23 +175,23 @@
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 24,
@@ -258,7 +249,7 @@
     "28": "cmpul5kn6001fgrmmup3c94un",
     "29": "cmpul5kn6001qgrmmafs0p1ze"
   },
-  "generatedAt": "2026-06-17T07:39:21.863Z",
+  "generatedAt": "2026-06-17T09:16:45.994Z",
   "wrongCounts": {
     "total": 29,
     "oeq": 15,

@@ -1,114 +1,80 @@
 {
   "patterns": [
     {
-      "name": "Stopping One Step Short",
-      "what": "Benjamin sometimes does the hard work to find an intermediate answer, but occasionally stops before completing the final step requested by the question.",
+      "name": "One Step Short",
+      "what": "Stops one step short occasionally after doing the hard work to find an important middle number, missing the final question asked.",
       "specific_examples": [
         {
-          "questionRef": "[21]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "He successfully calculated the amount of paint used, but the question actually asked for the amount left over."
-        },
-        {
-          "questionRef": "[39]",
-          "type": "oeq",
-          "whatWentWrong": "Benjamin correctly found the original savings of $1020, but forgot to add the spending to find the total allowance."
+          "whatWentWrong": "Benjamin correctly calculated the amount of paint used, but the question asked for the amount of paint left."
         },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "He correctly found the curved length of the semicircle, but missed adding the straight edge to find the total perimeter."
+          "whatWentWrong": "Benjamin successfully found the curved length of the semicircle, but forgot to add the straight diameter to find the total perimeter."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin brilliantly found the original savings, but stopped before adding the spending back to find the total allowance."
         }
       ],
-      "strategic_advice": "When you see phrases like **left with**, **total allowance**, or **perimeter**, underline them before you start. Once you have an answer, re-read the underlined words to make sure your number answers the **specific final question** asked.",
+      "strategic_advice": "Before writing down your final answer, re-read the last sentence of the question.\n- Ask yourself: **'Did I answer what they are asking for?'**\n- For perimeter questions, trace the outside of the shape with your pencil to make sure you haven't missed any straight lines.",
       "trigger_keywords": [
         "left with",
-        "total",
         "perimeter",
+        "total allowance",
         "new ratio"
       ]
     },
     {
-      "name": "Overlooking Units and Formats",
-      "what": "Benjamin tends to get the mathematical concepts right, but occasionally forgets to include units or convert them to the required format.",
+      "name": "Unit Mix-Ups",
+      "what": "Leaves out final units like '$' or '%' occasionally, or misses a required conversion between units like cents and dollars.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He set up the algebra perfectly but forgot to convert the cents into dollars by dividing by 100."
+          "whatWentWrong": "Benjamin wrote the algebra expression using cents, but the options were all in dollars, which requires dividing by 100."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Benjamin correctly found the volume in cubic centimetres, but the water flow rate was in litres, so a conversion was needed."
         },
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "Benjamin correctly calculated the GST as 16, but missed out the dollar sign in his final answer."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly calculated the fraction as 35/12, but left it as an improper fraction instead of a mixed number."
+          "whatWentWrong": "Benjamin calculated the correct GST amount of 16, but forgot to include the dollar sign in the final answer."
         }
       ],
-      "strategic_advice": "When you see questions asking for **how much**, **what percentage**, or **simplest form**, circle the unit in the question. Before moving to the next question, double-check that your final answer has the correct symbol like **$** or **%**, and is in the **correct format**.",
+      "strategic_advice": "Always check the units given in the question and the units required for the answer.\n- If a question mentions **'cents'** but asks for **'dollars'**, remember to divide by 100.\n- If a question mentions **'cm³'** and **'litres'**, convert your volume to litres before dividing.\n- Always write down your final units like **'$'** or **'%'** so you don't lose easy marks!",
       "trigger_keywords": [
+        "in terms of",
+        "litres",
         "how much",
-        "what percentage",
-        "simplest form",
-        "in terms of"
+        "percentage"
       ]
     },
     {
-      "name": "Small Arithmetic Slips",
-      "what": "Benjamin often uses the correct method and logic, but sometimes loses marks due to minor calculation errors in the final steps.",
+      "name": "Fraction Total Mix-Up",
+      "what": "Mixes up which number to use as the bottom of a fraction sometimes, using the overall total or the leftover amount instead of the specific group asked for.",
       "specific_examples": [
         {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "He knew to divide the diameter by 2 to find the radius, but accidentally calculated 70 ÷ 2 as 45 instead of 35."
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for savings as a fraction of expenditure, Benjamin used the total money as the bottom number instead of the expenditure."
         },
         {
-          "questionRef": "[32]",
+          "questionRef": "[36]",
           "type": "oeq",
-          "whatWentWrong": "Benjamin correctly identified the areas to subtract, but made a small slip in the final subtraction step."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly identified the increase in spending and set up the right fraction, but made a small error in the final percentage calculation."
+          "whatWentWrong": "When asked for the fraction of red pens sold, Benjamin used the remaining red pens as the bottom number instead of the original total."
         }
       ],
-      "strategic_advice": "When you see **find the area**, **percentage increase**, or any question requiring multi-digit calculations, take a deep breath and write your workings clearly. Use your calculator carefully if allowed, or double-check your mental math by working **backwards**.",
+      "strategic_advice": "When you see **'fraction of'** or **'percentage of'**, circle the words that come immediately after it.\n- If it says **'fraction of his expenditure'**, the expenditure must be your bottom number.\n- If it says **'fraction of the red pens'**, the original number of red pens is your bottom number.",
       "trigger_keywords": [
-        "find the area",
-        "percentage increase",
-        "total area"
-      ]
-    },
-    {
-      "name": "Leaving Blank When Unsure",
-      "what": "When faced with complex or multi-step word problems, Benjamin occasionally leaves the answer space completely blank instead of writing down what he knows.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "This percentage question was left blank, even though Benjamin could have earned partial marks by writing down the initial fractions."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "He left this geometry question blank, missing the chance to write down basic angle properties he likely knows."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "This area question was left blank, but writing down the formula for the area of a triangle could have been a great first step."
-        }
-      ],
-      "strategic_advice": "When you see a complex question that asks you to **find the length**, **how much**, or **find the angle**, don't worry about getting the final answer immediately. Write down the **first step** or any formulas you know, as this can often earn you **partial marks** and help trigger the next step!",
-      "trigger_keywords": [
-        "find the length",
-        "how much",
-        "find the angle",
-        "total"
+        "fraction of",
+        "percentage of"
       ]
     }
   ],
@@ -119,7 +85,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -127,11 +93,11 @@
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 6,
@@ -143,11 +109,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -179,7 +145,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -199,7 +165,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 23,
@@ -215,7 +181,7 @@
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 27,
@@ -231,23 +197,23 @@
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 35,
@@ -255,7 +221,7 @@
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 37,
@@ -263,7 +229,7 @@
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 39,
@@ -336,10 +302,17 @@
     "43": "cmopcaqx4008ovj1men7hidgb",
     "44": "cmopcaqx4008vvj1m9zym6f5x"
   },
-  "generatedAt": "2026-06-14T15:52:08.599Z",
+  "generatedAt": "2026-06-17T09:08:49.635Z",
   "wrongCounts": {
     "total": 44,
     "oeq": 28,
     "mcq": 16
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 87,
+    "totalAwarded": 500.5,
+    "totalAvailable": 578,
+    "paperCount": 22
+  },
+  "previousAssessment": null
 }

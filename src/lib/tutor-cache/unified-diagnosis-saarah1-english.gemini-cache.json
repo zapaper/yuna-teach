@@ -2,117 +2,115 @@
   "patterns": [
     {
       "name": "Skipping Questions",
-      "what": "Tends to leave open-ended comprehension questions completely blank instead of attempting an answer.",
+      "what": "Tends to leave open-ended comprehension questions completely unanswered.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 left this question completely blank instead of trying to find the two-word phrase in the passage."
+          "whatWentWrong": "Saarah1 left the question blank instead of finding the two-word phrase in the text."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "She skipped this sequencing question, missing a chance to score by just ordering the events."
+          "whatWentWrong": "She skipped the sequencing question, which could have been solved by finding the events in the passage."
         },
         {
-          "questionRef": "[28]",
+          "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 left this explanation question blank rather than writing down how Sam's feelings changed."
+          "whatWentWrong": "Saarah1 left the True/False table blank, missing a chance to earn marks by checking the facts in the story."
         }
       ],
-      "strategic_advice": "When you see long comprehension questions, try these steps:\n- **Find the keywords** in the question and scan the passage for them.\n- **Write down something** related to the keywords, even if you are not completely sure.\n- **Never leave it blank** — a guess is always better than no answer and you might get partial marks!",
+      "strategic_advice": "When you reach the open-ended comprehension section, treat every question as a chance to score!\n- **'Which two-word phrase'** → scan the paragraph for exactly two words that fit.\n- **'True/False'** → always take a guess, then find the sentence in the text that proves it.\n- Never leave a blank—write down your best guess from the passage!",
       "trigger_keywords": [
+        "Which two-word phrase",
+        "Based on lines",
         "Explain clearly",
-        "From lines",
-        "Based on"
+        "True/False"
       ]
     },
     {
-      "name": "Tricky Word Choices",
-      "what": "Sometimes chooses words that sound okay but do not quite fit the exact meaning or common English phrases.",
+      "name": "Vocabulary Mix-Up",
+      "what": "Sometimes chooses words that are related to the topic but do not quite fit the specific context or common English phrases.",
       "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields' to describe a garden producing crops."
-        },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "She chose 'vague' instead of the common weather phrase 'poor visibility'."
+          "whatWentWrong": "Saarah1 chose 'vague' instead of the common weather phrase 'poor visibility'."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 wrote 'put attention' instead of the correct English phrase 'give attention' or 'pay attention'."
+          "whatWentWrong": "She wrote 'put attention' instead of the correct English phrase 'give attention' or 'pay attention'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields' to describe a garden producing crops."
         }
       ],
-      "strategic_advice": "When you see vocabulary questions, look for clues in the surrounding words:\n- **Read the whole sentence** to understand the exact situation, like 'poor visibility' for a thunderstorm.\n- **Check for common pairings** like 'give attention' instead of 'put attention'.\n- **Eliminate words** that you know mean something else, then pick the best fit from what is left.",
+      "strategic_advice": "When you see a blank for a vocabulary word, look for clues in the words right next to it.\n- **'visibility'** → pairs with 'poor', not 'vague'.\n- **'attention'** → pairs with 'pay' or 'give', not 'put'.\n- Read the whole sentence quietly to yourself to see if the pairing sounds like a natural English phrase.",
       "trigger_keywords": [
-        "most suitable word",
-        "fill in the blank",
-        "referred to as"
+        "visibility",
+        "attention",
+        "crop",
+        "concern"
       ]
     },
     {
-      "name": "Spelling and Copying Slips",
-      "what": "Occasionally misses a letter or leaves out a word when writing out answers or copying from the text.",
+      "name": "Spelling Slips",
+      "what": "Occasionally misses a letter or mixes up vowels when writing out tricky words.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 missed the double 'l' when spelling 'accidentally'."
+          "whatWentWrong": "Saarah1 missed the double 'l' in 'accidentally'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "She got a bit mixed up with the vowels when spelling 'restaurant'."
+          "whatWentWrong": "She mixed up the vowels in 'restaurant'."
         },
         {
-          "questionRef": "[17]",
+          "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 accidentally left out the word 'sudden' when copying the details into her new sentence."
+          "whatWentWrong": "Saarah1 missed the first 'r' in 'farmer' when copying the word."
         }
       ],
-      "strategic_advice": "When you are writing out your final answers, treat it like a spot-the-difference game:\n- **Check double letters** carefully, like the 'c' and 'l' in 'accidentally'.\n- **Point at each word** in the original sentence to make sure you haven't skipped any describing words like 'sudden'.\n- **Read your final sentence** slowly to catch any missing letters.",
+      "strategic_advice": "When you write your final answers, take a moment to be a spelling detective.\n- Break long words into parts: **ac-ci-den-tal-ly**.\n- Watch out for words with double letters.\n- If the word is in the question (like 'farmer'), double-check that you copied every single letter correctly.",
       "trigger_keywords": [
-        "correct the spelling",
-        "rewrite the sentence",
-        "On account of"
+        "accidentally",
+        "restaurant",
+        "farmer",
+        "Editing"
       ]
     },
     {
-      "name": "Grammar and Tense Slips",
-      "what": "Sometimes uses the wrong tense or pronoun when editing a passage or filling in the blanks.",
+      "name": "Time Word Confusion",
+      "what": "Sometimes uses the wrong word to describe when or how long an event happens.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Saarah1 picked a plural pronoun instead of matching the singular 'himself' to 'Mr. Tan'."
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 wrote 'than' instead of 'during' to describe something happening in the day."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'disappoint' instead of using the past tense 'disappointed' to match the story."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Saarah1 used the present tense 'is' instead of the past tense 'was' for a story that already happened."
+          "whatWentWrong": "She used 'in' instead of 'during' to show that the boys stayed strong throughout their whole ordeal."
         }
       ],
-      "strategic_advice": "When you see grammar questions, look for time clues and subject clues:\n- **Check the time** of the story. If it happened in the past, use past tense words like 'was' and 'disappointed'.\n- **Find the true subject**, like 'Mr. Tan', to match the correct pronoun 'himself'.\n- **Read the sentence aloud** in your head to see if the grammar sounds right.",
+      "strategic_advice": "When a sentence talks about a period of time, think about whether the action happens throughout that time.\n- Use **'during'** when something happens from the start to the end of an event (like 'during the day' or 'during their ordeal').",
       "trigger_keywords": [
-        "correct the grammatical error",
-        "who finished",
-        "I assumed"
+        "the day",
+        "their ordeal",
+        "spending"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -144,7 +142,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -152,7 +150,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -176,7 +174,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -253,7 +251,7 @@
     "27": "cmpuvi058003exnerdxxjlqdw",
     "28": "cmpuvi058003fxner7u4ruj0a"
   },
-  "generatedAt": "2026-06-17T07:45:09.973Z",
+  "generatedAt": "2026-06-17T09:20:44.465Z",
   "wrongCounts": {
     "total": 28,
     "oeq": 21,

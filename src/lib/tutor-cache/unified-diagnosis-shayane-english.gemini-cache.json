@@ -1,116 +1,114 @@
 {
   "patterns": [
     {
-      "name": "Selecting Precise Vocabulary in Context",
-      "what": "Shayane occasionally picks a vocabulary word that has a similar meaning but doesn't quite fit the specific situation, tone, or word partnerships in the sentence.",
+      "name": "Word Meaning Mix-Up",
+      "what": "Sometimes chooses a vocabulary word that is related to the topic but doesn't quite fit the exact meaning or feeling of the sentence.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Shayane chose 'reaps', but in this specific context, a garden 'yields' a crop, whereas a person 'reaps' it."
+          "whatWentWrong": "Shayane picked 'reaps' instead of 'yields', missing that a garden yields crops while a farmer reaps them."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "Shayane selected 'pandering to', which carries a slightly negative tone, instead of the more positive and fitting 'tailoring to'."
+          "whatWentWrong": "Shayane chose 'pandering to' instead of 'tailoring to', overlooking that 'pandering' usually has a negative feeling."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'retreated' for a hand movement, but 'yanked' perfectly captures the sudden, quick action needed when someone is startled."
+          "whatWentWrong": "Shayane selected 'retreated' instead of 'yanked', which better matches the clue 'quickly drew my hand back'."
         }
       ],
-      "strategic_advice": "When you see phrases like **choose the most suitable word** or **closest in meaning**, always look at the surrounding words for clues. Ask yourself, **'Who or what is doing the action?'** and **'Is the feeling of the sentence positive or negative?'** to help narrow down the best fit.",
+      "strategic_advice": "When you are stuck between two words, try these steps:\n- **Look for clues** in the surrounding words (like 'quickly' pointing to a fast action like 'yanked').\n- **Check who is doing the action** to see if the word makes sense for that subject.\n- **Think about the feeling** of the word—is it positive, negative, or neutral?",
       "trigger_keywords": [
-        "closest in meaning",
-        "most suitable word",
-        "fill in the blank"
+        "blank",
+        "vocabulary",
+        "closest in meaning"
       ]
     },
     {
-      "name": "Catching Key Question Conditions",
-      "what": "Shayane sometimes reads past important qualifier words in the question stem, which changes the specific detail she needs to look for in the text.",
+      "name": "Skipping Small Details",
+      "what": "Tends to pick an answer that looks good at first glance but occasionally misses a specific condition, hidden detail, or the main idea in the text.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "Shayane occasionally reads past small but crucial words like 'not', which led her to pick an option that actually describes the virtual experience."
+          "whatWentWrong": "Shayane missed the word 'not' in the question and picked an option that actually describes the virtual experience."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "She successfully found a way to save money, but overlooked the word 'biggest', missing the option that offers the maximum discount."
+          "whatWentWrong": "Shayane picked 'before 31 October' instead of 'at least three friends' when looking for the biggest savings."
         },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Shayane focused on a specific detail about a new game instead of zooming out to identify the 'main purpose' of the entire website."
+          "whatWentWrong": "Shayane chose a specific detail about a new game instead of the overall main purpose of the website."
         }
       ],
-      "strategic_advice": "When you see questions asking for the **main purpose**, **most**, or containing words like **not** or **except**, grab your highlighter! Always **highlight these condition words** before looking at the options, so your brain knows exactly what specific clue to hunt for.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'biggest'** or **'most'** → check all the options in the text and compare them before deciding.\n- **'not'** or **'false'** → circle these words in the question so you don't forget them!\n- **'main purpose'** → ask yourself: 'Does this answer cover the whole poster, or just one small part of it?'",
       "trigger_keywords": [
         "not",
-        "most",
         "biggest",
+        "most",
         "main purpose",
-        "true",
-        "except"
+        "true"
       ]
     },
     {
-      "name": "Pairing Words with Prepositions",
-      "what": "Shayane tends to choose a preposition that sounds okay on its own, but isn't the exact traditional match for the specific noun or verb next to it.",
+      "name": "Preposition Mix-Up",
+      "what": "Occasionally mixes up which small connecting words (like 'on', 'about', or 'since') belong with certain phrases or time periods.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Shayane chose 'of' after 'congratulated', but the natural pairing in English is to congratulate someone 'on' something."
+          "whatWentWrong": "Shayane picked 'of' instead of 'on' for the phrase 'congratulated the young singer'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "She used 'since' instead of 'about' to connect the word 'conclusion' to the specific topic being discussed."
+          "whatWentWrong": "Shayane chose 'since' instead of 'about' when talking about a 'convincing conclusion'."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Shayane wrote 'by ancient times', but when talking about an action continuing from the past until now, 'since' is the best fit."
+          "whatWentWrong": "Shayane picked 'by' instead of 'since' to show that something has been happening from 'ancient times' until now."
         }
       ],
-      "strategic_advice": "When you see a blank right after an action word or before a time phrase in a **grammar cloze**, treat it as a **matching game**. Read the **verb and the blank together** out loud in your head (like 'congratulate on' or 'conclusion about') to see which combination sounds like a natural pair.",
+      "strategic_advice": "To get more comfortable with connecting words:\n- Read the phrase aloud to see if it **sounds right**—we usually say 'congratulations **on** your win' or 'a conclusion **about** a topic'.\n- When talking about a starting point in time that continues to now, use **'since'** (e.g., 'since ancient times').\n- Keep a small notebook of **word pairs** that always go together (like 'congratulate + on').",
       "trigger_keywords": [
-        "fill in the blank",
-        "grammar cloze",
+        "blank",
+        "cloze",
         "preposition"
       ]
     },
     {
-      "name": "Spotting Structural Grammar Clues",
-      "what": "Shayane occasionally misses structural signposts in a sentence—like contrast words or specific pronouns—that tell her exactly which grammar rule to apply.",
+      "name": "Grammar Rule Mix-Up",
+      "what": "Sometimes gets tripped up by specific grammar rules, like subject-verb agreement or special sentence structures.",
       "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane missed the clue 'Although he was poor', which signals a contrast and shows he could only give the 'little' that he had."
-        },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "She chose a plural verb, overlooking that the word 'Neither' acts as a singular subject and needs a singular verb."
+          "whatWentWrong": "Shayane picked a plural verb for 'Neither of the siblings', but 'Neither' is always treated as singular."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed that the word 'Should' can be used at the start of a sentence to mean 'If'."
         },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "Shayane filled in 'only', missing that the sentence structure needed the pronoun 'what' to smoothly connect the two ideas."
+          "whatWentWrong": "Shayane picked 'only' instead of 'what' to complete the phrase 'is ___ separates humans from animals'."
         }
       ],
-      "strategic_advice": "When you see sentence starters like **Although**, **Neither**, or **If**, circle them immediately! These are **grammar signposts** that tell you whether to look for a singular/plural verb or a contrasting idea in the second half of the sentence.",
+      "strategic_advice": "When you see these tricky grammar setups, remember:\n- Words like **'Neither'**, **'Either'**, and **'Each'** are singular, so they need a singular verb (like 'attends').\n- If a sentence sounds like a condition but doesn't have 'If', try putting **'Should'** at the start to see if it makes sense.\n- Break long sentences into smaller parts to figure out what the missing word needs to do.",
       "trigger_keywords": [
-        "although",
-        "neither",
-        "either",
-        "if",
-        "unless"
+        "Neither",
+        "If",
+        "blank",
+        "grammar"
       ]
     }
   ],
@@ -149,7 +147,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 10,
@@ -223,10 +221,17 @@
     "20": "cmpurkl31000s13h3iuhgud73",
     "21": "cmpurkl31000x13h3qm5i29bu"
   },
-  "generatedAt": "2026-06-15T02:22:58.024Z",
+  "generatedAt": "2026-06-17T08:13:26.860Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 3,
     "mcq": 18
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 45,
+    "totalAvailable": 66,
+    "paperCount": 2
+  },
+  "previousAssessment": null
 }

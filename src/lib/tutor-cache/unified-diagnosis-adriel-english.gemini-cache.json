@@ -1,26 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Hidden Singular Subjects",
-      "what": "Sometimes gets tricked by plural words hiding next to a singular subject, causing him to choose a plural verb.",
+      "name": "Singular and Plural Mix-Up",
+      "what": "Sometimes gets tricked by singular subjects that look plural, especially when there are extra words like 'together with' or uncountable nouns.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Adriel saw 'cousins' and picked the plural 'are organising', missing that the main subject is the singular 'sister'."
+          "whatWentWrong": "Adriel chose the plural 'are organising' instead of 'is organising', missing that the main subject 'My sister' is singular despite the extra words."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "He treated 'luggage' as a plural word, but it is actually an uncountable noun that needs a singular verb."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "mcq",
-          "whatWentWrong": "He picked the plural 'those' for shoes, forgetting that the word 'pair' makes it a singular item."
+          "whatWentWrong": "He picked 'have been' for 'luggage', forgetting that 'luggage' is an uncountable noun and must be treated as singular."
         }
       ],
-      "strategic_advice": "When you see these tricky subjects, use these strategies:\n- **'as well as'** or **'together with'** → put brackets around that part and ignore it, matching your verb to the very first person mentioned.\n- **'luggage'**, **'furniture'**, or **'information'** → these are uncountable nouns, so always treat them as singular.",
+      "strategic_advice": "- When you see phrases like **'together with'** or **'as well as'**, cross them out lightly with your pencil to find the real subject.\n- Remember that uncountable nouns (like luggage, furniture, information) and collective words (like 'pair') always take a **singular verb**.",
       "trigger_keywords": [
         "together with",
         "as well as",
@@ -29,58 +24,59 @@
       ]
     },
     {
-      "name": "Fixed Word Partners",
-      "what": "Occasionally mixes up words that always go together, like specific prepositions, phrasal verbs, or paired conjunctions.",
+      "name": "Fixed Phrase Mix-Up",
+      "what": "Occasionally uses the wrong preposition or word in common English pairings, such as phrasal verbs or paired conjunctions.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
+          "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Adriel chose 'adaptable' instead of 'accustomed', missing the clue that it must pair with the preposition 'to'."
+          "whatWentWrong": "Adriel picked 'congratulated over' instead of the correct English pairing 'congratulated on'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "He paired 'No sooner' with 'when', but it is a time phrase that always needs to be paired with 'than'."
-        },
-        {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'less' instead of 'example' to complete the common phrase 'For example'."
+          "whatWentWrong": "He paired 'No sooner' with 'when' instead of the correct matching word 'than'."
         }
       ],
-      "strategic_advice": "When you learn a new word, always learn its partner! Treat these pairs as a single unit:\n- **'congratulate'** always pairs with **'on'**\n- **'accustomed'** always pairs with **'to'**\n- **'No sooner'** always pairs with **'than'**",
+      "strategic_advice": "- When you learn a new verb, try to learn the **preposition that goes with it** (e.g., 'accustomed to', 'congratulate on').\n- For paired conjunctions like **'No sooner'**, always look for its partner **'than'** in the sentence.",
       "trigger_keywords": [
         "congratulated",
         "accustomed",
-        "No sooner",
-        "fell"
+        "fell",
+        "No sooner"
       ]
     },
     {
-      "name": "Missing Sentence Clues",
-      "what": "Tends to pick a word that sounds okay on its own but doesn't quite fit the specific clues or contrast words hidden in the sentence.",
+      "name": "Missing the Context Clue",
+      "what": "Tends to pick a word that sounds okay on its own but misses the hints hidden in the surrounding sentences that change the meaning.",
       "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel chose 'restlessly' instead of 'laboriously', missing the clue 'limbs started aching' which shows hard physical work."
+        },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Adriel chose 'reaps' for the garden, but a garden 'yields' (produces) crops, while a farmer 'reaps' (harvests) them."
+          "whatWentWrong": "He picked 'reaps' instead of 'yields', missing the clue that the 'garden' is doing the growing, not a farmer."
         },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'used' instead of 'hard', missing the contrast clue 'Although it sounds simple' earlier in the sentence."
-        },
-        {
-          "questionRef": "[29]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'In conclusion' to introduce a new point, instead of using 'In fact' to add to the previous sentence."
+          "whatWentWrong": "He wrote 'used' instead of 'hard', missing the contrast clue 'Although it sounds simple' from the start of the sentence."
         }
       ],
-      "strategic_advice": "When you see contrast words like **'Although'** or **'However'**, treat them as stop signs—they tell you the next part of the sentence will be the opposite of what you expect. Always read the sentence before and the sentence after the blank to make sure your word fits the whole story, not just the blank.",
+      "strategic_advice": "- When you see a blank, read the **sentence before and the sentence after** to look for contrast words (like 'Although' or 'However') or cause-and-effect clues.\n- Ask yourself: 'Does this word make sense with the **specific person or thing** doing the action?'",
       "trigger_keywords": [
         "Although",
         "until",
-        "Every year"
+        "However",
+        "As such"
       ]
     }
   ],
@@ -103,11 +99,11 @@
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -143,11 +139,11 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 17,
@@ -155,7 +151,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 19,
@@ -175,7 +171,7 @@
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -233,7 +229,7 @@
     "28": "cmpuxahg7001on2qplpa8lbpk",
     "29": "cmpuxahg7001pn2qpnj0axpwn"
   },
-  "generatedAt": "2026-06-17T07:26:02.866Z",
+  "generatedAt": "2026-06-17T09:06:42.325Z",
   "wrongCounts": {
     "total": 29,
     "oeq": 6,

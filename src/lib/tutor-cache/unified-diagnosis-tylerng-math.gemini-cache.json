@@ -1,119 +1,82 @@
 {
   "patterns": [
     {
-      "name": "Skipping Unfamiliar Questions",
-      "what": "Tylerng occasionally leaves questions completely blank when they involve multiple steps or unfamiliar contexts, rather than writing down his initial thoughts.",
+      "name": "Triangle Rules Mix-Up",
+      "what": "Sometimes mixes up the rules for triangles, such as matching the wrong base to a height or forgetting the 'half' in the area formula.",
       "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "Tylerng left this multi-step loan problem blank, missing the opportunity to earn marks for finding the first year's interest."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "oeq",
-          "whatWentWrong": "He skipped this word problem entirely, but he could have earned partial credit just by writing down the remaining fractions."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "He left this multiple-choice question unanswered, even though he could have started by calculating the amount of white paint."
-        }
-      ],
-      "strategic_advice": "When you see multi-step word problems, don't worry about the final answer right away. **Write down the first step** you know how to do, like finding a fraction or a percentage of a given number. Even if you don't finish, **showing your working** can earn you valuable partial marks!",
-      "trigger_keywords": [
-        "Find the total amount",
-        "What was the amount",
-        "How much"
-      ]
-    },
-    {
-      "name": "Applying Triangle Properties",
-      "what": "Tylerng sometimes finds it tricky to identify the correct base and height pairings in triangles, especially when they are rotated or part of a composite figure.",
-      "specific_examples": [
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "He left this question blank, likely finding it challenging to compare the areas of differently oriented triangles on a grid."
-        },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng misidentified the base of the triangle, writing JF instead of the correct base FD that pairs with the given height."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "He found it tricky to identify the correct height and base of the triangle within the composite figure, marking a false statement as true."
-        }
-      ],
-      "strategic_advice": "When you see questions asking about triangle areas or bases, remember that the **base and height must meet at a right angle**. Try **turning your paper** to see the triangle from a different perspective, which makes the right angles much easier to spot!",
-      "trigger_keywords": [
-        "base of Triangle",
-        "height",
-        "area of Triangle"
-      ]
-    },
-    {
-      "name": "Missing Key Math Words",
-      "what": "Tylerng tends to read past important modifier words in word problems, which can completely change the steps needed to solve them.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng likely missed the word 'remainder', calculating the percentage based on the total stamps instead of what was left."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "He miscalculated the final number of cubes needed, likely overlooking the word 'more' and how it changes the final subtraction step."
+          "whatWentWrong": "Tylerng identified JF as the base for height EJ, instead of the correct base FD."
         },
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "He misread '6 cm shorter than' as just '6 cm', which led to an incorrect length for the triangle's side."
+          "whatWentWrong": "He used the rectangle formula (base × height) to find the area of the triangles, forgetting to multiply by a half."
         }
       ],
-      "strategic_advice": "When you see word problems with comparison words, always **circle or highlight** words like 'remainder', 'more', or 'shorter than'. Before calculating, **read the highlighted words again** to ensure you are answering exactly what the question asks.",
+      "strategic_advice": "When working with triangles, remember these two golden rules:\n- **Look for the right angle (L-shape)** to find the matching base and height.\n- Always write down **'½ × base × height'** before you start calculating the area so you don't forget the half!",
       "trigger_keywords": [
-        "remainder",
-        "more",
-        "shorter than",
-        "left"
+        "base",
+        "height",
+        "area of triangle",
+        "figure"
       ]
     },
     {
-      "name": "Precision in Final Answers",
-      "what": "Tylerng occasionally misses small but crucial details when writing down his final answers, such as decimal placement or simplifying fractions.",
+      "name": "Skipping Questions",
+      "what": "Tends to leave longer word problems completely blank instead of writing down the first few steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng left this multi-step bank loan question blank instead of calculating the first step, which was finding the interest."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "He skipped this question about Caili and Deepa's money, missing the chance to earn marks for drawing a model or finding the leftover fractions."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He left this volume question blank, even though he could have easily found the total volume of the container first."
+        }
+      ],
+      "strategic_advice": "Even if a question looks long or tricky, never leave it blank! Treat it like a puzzle:\n- **Highlight the numbers** and write down one simple math step you can do with them.\n- For example, if you see a total and a percentage, just **find that percentage** first. Every correct step earns you method marks!\n- **Never leave Multiple Choice Questions blank!** If you are running out of time, make your best guess.",
+      "trigger_keywords": [
+        "how much more",
+        "find the total",
+        "what was the amount"
+      ]
+    },
+    {
+      "name": "Decimal Slips",
+      "what": "Occasionally makes small slips when working with decimals, like leaving out the dot, adding an extra zero, or misreading the scale.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng added an extra trailing zero to his answer, which accidentally changed the rounding precision from hundredths to thousandths."
+          "whatWentWrong": "Tylerng correctly rounded the number but added an extra zero at the end, writing 5.790 instead of 5.79."
         },
         {
           "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "He correctly identified the digits from the number line but accidentally forgot to write the decimal point in his final answer."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "He made a small slip at the very end when converting his correct improper fraction into a mixed number."
+          "whatWentWrong": "He missed the decimal point (writing 158 instead of 1.58) and placed his 'X' in the wrong interval on the number line."
         }
       ],
-      "strategic_advice": "When you see instructions about formatting, like 'nearest hundredth' or 'simplest form', take a deep breath before writing your final answer. **Double-check your decimal points** and ensure your answer matches the **exact format requested** in the question.",
+      "strategic_advice": "When writing your final answer for decimals, do a quick double-check:\n- **Read the question again** to see how many decimal places it asked for (like 'nearest hundredth').\n- **Check your dots** to make sure the decimal point is clearly written and in the right spot.",
       "trigger_keywords": [
         "nearest hundredth",
-        "simplest form",
-        "value represented by"
+        "number line",
+        "value represented"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -121,15 +84,15 @@
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 6,
@@ -137,39 +100,39 @@
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 3
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -189,7 +152,7 @@
     "14": "cmol93vg3000lqlmbswwwf1h7",
     "15": "cmol4i2yu000udm330hrqgzk6"
   },
-  "generatedAt": "2026-06-15T04:51:29.219Z",
+  "generatedAt": "2026-06-17T09:25:11.776Z",
   "wrongCounts": {
     "total": 15,
     "oeq": 9,

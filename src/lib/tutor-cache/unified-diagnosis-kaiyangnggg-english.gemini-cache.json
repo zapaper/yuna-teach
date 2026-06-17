@@ -1,53 +1,54 @@
 {
   "patterns": [
     {
-      "name": "Missing Small Details",
-      "what": "Sometimes leaves out small but important words from the original sentence or passage, which changes the exact meaning of the answer.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Occasionally gets tricked by extra phrases like 'as well as' or 'together with', matching the verb to the plural noun closest to the blank instead of the actual singular subject.",
       "specific_examples": [
         {
-          "questionRef": "[34]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg left out the word 'sudden' when rewriting the sentence about the heavy downpour."
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg picked 'are' instead of 'is' because he matched the verb to 'friends' instead of the main subject 'Ahmad'."
         },
         {
-          "questionRef": "[41]",
-          "type": "oeq",
-          "whatWentWrong": "He missed out the word 'can', which changed the meaning of what the blender is able to do."
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'are organising' instead of 'is organising' because he looked at 'cousins' instead of 'My sister'."
         },
         {
-          "questionRef": "[85]",
+          "questionRef": "[43]",
           "type": "oeq",
-          "whatWentWrong": "He gave a general answer about being worried, instead of the specific detail about fearing not being chosen."
+          "whatWentWrong": "He wrote 'are' instead of 'is' because he missed that 'Each of them' is a singular subject."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'rewrite'** → use a pencil to **tick off every word** from the original sentence as you write it in your new sentence.\n- **'based on the passage'** → always check if your answer includes the **specific action or reason** mentioned in the text, rather than a general summary.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'together with'** or **'as well as'** → cross them out lightly with your pencil so they don't distract you.\n- Match your verb to the **main subject** at the very beginning of the sentence.\n- Remember that words like **'Each'**, **'Every'**, and **'Neither'** always take a singular verb.",
       "trigger_keywords": [
-        "rewrite",
-        "based on the passage",
-        "explain why"
+        "as well as",
+        "together with",
+        "Each of",
+        "Neither"
       ]
     },
     {
-      "name": "Reported Speech Slips",
-      "what": "Occasionally forgets to shift the tense backwards or change the pronouns when turning spoken quotes into reported speech.",
+      "name": "Reported Speech Shifts",
+      "what": "Sometimes forgets to shift the tense backwards or change the pronouns to match the speaker when changing direct speech into reported speech.",
       "specific_examples": [
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg kept the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
+          "whatWentWrong": "Kaiyangnggg kept the past tense 'saw' instead of shifting it backwards to the past perfect 'had seen'."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "He forgot to change the time word 'now' to 'then', and used the wrong pronoun 'he' instead of 'she'."
+          "whatWentWrong": "He forgot to change the time word 'now' to 'then' and used the wrong pronoun 'he' instead of 'she'."
         },
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "He used 'they' and 'their' instead of 'he' and 'his' when referring to a single student."
+          "whatWentWrong": "He used the plural pronouns 'they' and 'their' instead of the singular 'he' and 'his' to refer to the student."
         }
       ],
-      "strategic_advice": "When you see quotation marks, remember the **'3 Changes Rule'**:\n- Check the **Tense**: if the reporting verb is in the past tense (like **'asked'**), always shift the action one step back in time.\n- Check the **Pronouns**: make sure they match the person speaking.\n- Check the **Time/Place words**: change words like 'now' to 'then'.",
+      "strategic_advice": "When you see quotation marks being removed, remember the three shifts:\n- **Tense** → draw an arrow from the verb inside the quotes and write the **past tense** version above it.\n- **Pronouns** → double-check who is speaking and who they are talking to so you can choose the correct pronoun.\n- **Time/Place words** → remember to change words like 'now' to 'then' or 'today' to 'that day'.",
       "trigger_keywords": [
         "asked",
         "wanted to know",
@@ -55,64 +56,65 @@
       ]
     },
     {
-      "name": "Capitals and Spelling",
-      "what": "Tends to lose marks on small spelling slips or by forgetting to use capital letters for proper nouns and the start of sentences.",
+      "name": "Missing Key Details",
+      "what": "Tends to leave out important descriptive words or specific details from the original text when writing out final answers, which can change the meaning or make the answer too general.",
+      "specific_examples": [
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg left out the word 'sudden' when describing the heavy downpour, which slightly changed the meaning of the sentence."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "He omitted the word 'can' when combining the sentences, losing the meaning that the blender is capable of making juices quickly."
+        },
+        {
+          "questionRef": "[84]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote a general answer like 'she encouraged him' instead of giving the specific action from the text, which was asking everyone to dance in socks."
+        }
+      ],
+      "strategic_advice": "When writing out your final answers, try these steps:\n- For synthesis questions, use a pencil to **tick off every word** from the original sentences as you write them in your new sentence.\n- For comprehension questions, always ask yourself if your answer is **specific enough** for someone who hasn't read the passage to understand exactly what happened.\n- Do not drop 'small' words like **'can'**, **'sudden'**, or **'quickly'**—they often carry important meaning!",
+      "trigger_keywords": [
+        "explain",
+        "why",
+        "how",
+        "which"
+      ]
+    },
+    {
+      "name": "Capital Letter Slips",
+      "what": "Occasionally forgets to use capital letters for proper nouns and the start of sentences, or accidentally capitalises words in the middle of a sentence.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg forgot to capitalise the name 'Henry'."
+          "whatWentWrong": "Kaiyangnggg forgot to capitalise the proper noun 'Henry' in the middle of the sentence."
         },
         {
-          "questionRef": "[44]",
+          "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'for' with a small letter even though it was the first word of a new sentence."
+          "whatWentWrong": "He capitalised the word 'If' even though it was in the middle of the reported speech sentence."
         },
         {
           "questionRef": "[59]",
           "type": "oeq",
-          "whatWentWrong": "He spelled the word correctly but forgot that it needed a capital letter at the start of the sentence."
+          "whatWentWrong": "He wrote 'occasionally' with a small letter even though it was the first word of a new sentence in the editing passage."
         }
       ],
-      "strategic_advice": "After writing your answer, do a quick **'Capital Check'**:\n- Look at the **very first letter** of your sentence to make sure it is capitalised.\n- Check any **names of people or places**.\n- For Editing and Cloze, always check if the blank is right after a **full stop**.",
+      "strategic_advice": "When checking your work, pay special attention to these areas:\n- Always double-check the **first word** of your final answer to make sure it starts with a capital letter.\n- Scan your sentence for **names of people, places, or specific days** and ensure they are capitalised.\n- When combining sentences, remember that words moving to the middle of the new sentence usually need to be changed to **lowercase**.",
       "trigger_keywords": [
-        "rewrite",
-        "fill in the blank",
-        "correct the word"
-      ]
-    },
-    {
-      "name": "Prefer and Would Rather",
-      "what": "Occasionally mixes up the pairing words for expressing choices, using 'than' with 'prefer' instead of 'to'.",
-      "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg wrote 'prefers to eat sushi than pizza' instead of 'prefers eating sushi to pizza'."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "He used 'preference of... than' instead of 'preference for... over'."
-        },
-        {
-          "questionRef": "[78]",
-          "type": "oeq",
-          "whatWentWrong": "He added an extra 'rather' in the sentence, writing 'would rather go out rather than'."
-        }
-      ],
-      "strategic_advice": "Memorise these fixed pairs for expressing choices:\n- **'prefer'** pairs with **'to'** (e.g., prefer sushi to pizza).\n- **'would rather'** pairs with **'than'** (e.g., would rather go out than play).\n- **'preference'** pairs with **'for'** and **'over'** (e.g., a preference for X over Y).",
-      "trigger_keywords": [
-        "prefers",
-        "would rather",
-        "preference"
+        "Rewrite",
+        "Fill in each blank",
+        "Correct the word"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 2,
@@ -120,15 +122,15 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
-    },
-    {
-      "idx": 4,
       "patternIndex": -1
     },
     {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -136,7 +138,7 @@
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 8,
@@ -144,7 +146,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -164,11 +166,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -196,11 +198,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 24,
@@ -208,11 +210,11 @@
     },
     {
       "idx": 25,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 27,
@@ -228,7 +230,7 @@
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 31,
@@ -236,15 +238,15 @@
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 35,
@@ -252,11 +254,11 @@
     },
     {
       "idx": 36,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 37,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 38,
@@ -264,7 +266,7 @@
     },
     {
       "idx": 39,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 40,
@@ -272,7 +274,7 @@
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 42,
@@ -280,11 +282,11 @@
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 45,
@@ -328,11 +330,11 @@
     },
     {
       "idx": 55,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 56,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 57,
@@ -344,15 +346,15 @@
     },
     {
       "idx": 59,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 60,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 61,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 62,
@@ -360,15 +362,15 @@
     },
     {
       "idx": 63,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 66,
@@ -420,7 +422,7 @@
     },
     {
       "idx": 78,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 79,
@@ -428,31 +430,31 @@
     },
     {
       "idx": 80,
-      "patternIndex": 0
-    },
-    {
-      "idx": 81,
-      "patternIndex": 0
-    },
-    {
-      "idx": 82,
       "patternIndex": 2
     },
     {
+      "idx": 81,
+      "patternIndex": 2
+    },
+    {
+      "idx": 82,
+      "patternIndex": -1
+    },
+    {
       "idx": 83,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 84,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 85,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 86,
-      "patternIndex": 0
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -543,7 +545,7 @@
     "85": "cmok07at9006md4vnhst1ikn4",
     "86": "cmok07at9006od4vnksk4v1te"
   },
-  "generatedAt": "2026-06-17T07:37:23.794Z",
+  "generatedAt": "2026-06-17T09:15:33.747Z",
   "wrongCounts": {
     "total": 86,
     "oeq": 53,

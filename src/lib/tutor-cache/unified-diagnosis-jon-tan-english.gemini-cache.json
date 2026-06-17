@@ -1,26 +1,26 @@
 {
   "patterns": [
     {
-      "name": "Rushing Through Sequential Answers",
-      "what": "Jon occasionally fills in sequential letters for passage-based questions, which suggests he might be rushing rather than reading for meaning.",
+      "name": "Guessing in Order",
+      "what": "Tends to fill in answers using a simple alphabetical pattern like A, B, C, D instead of reading the passage.",
       "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "Instead of identifying the helping verb 'has', he selected 'around', likely as part of an alphabetical guessing pattern."
+          "whatWentWrong": "Jon wrote 'A' for the first blank, starting an A-to-J pattern instead of choosing the correct word 'has'."
         },
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "He missed the common phrase 'in progress', selecting 'as' instead."
+          "whatWentWrong": "Jon wrote 'B' for the second blank, continuing the pattern instead of finding the word 'in'."
         },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "He overlooked the comparison 'more than', choosing 'below' instead."
+          "whatWentWrong": "Jon wrote 'C' for the third blank, rather than selecting 'than' to complete the sentence."
         }
       ],
-      "strategic_advice": "When you see a passage with multiple blanks, **read the whole text once** before answering. Try to **guess the word** before looking at the options to avoid falling into a guessing pattern.",
+      "strategic_advice": "When you see a long passage, take a deep breath! Read the whole paragraph once without filling in any blanks to get the story. Then, go back and try each option. **Never just guess in alphabetical order**—you can definitely find the right clues if you read carefully!",
       "trigger_keywords": [
         "passage",
         "blanks",
@@ -28,94 +28,70 @@
       ]
     },
     {
-      "name": "Mastering Preposition Pairs",
-      "what": "Jon sometimes misses the specific prepositions that naturally follow certain action words or phrases.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "He missed that the word 'focused' is naturally followed by the preposition 'on'."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "He chose 'had' instead of 'by' to show how the visitors' journey would be enriched."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "He selected 'in' rather than 'around' for planning an experience around an event."
-        }
-      ],
-      "strategic_advice": "When you see a blank right after an action word, ask yourself which **preposition naturally pairs** with it. Try reading the phrase aloud in your head to see if it **sounds right**.",
-      "trigger_keywords": [
-        "focused",
-        "enriched",
-        "plan"
-      ]
-    },
-    {
-      "name": "Distinguishing Word Nuances",
-      "what": "Jon sometimes picks words that are close in meaning but not the exact fit for the specific context or common phrasing.",
+      "name": "Close Meaning Mix-Up",
+      "what": "Sometimes chooses a word that has a similar general meaning but doesn't quite fit the specific situation or common phrasing.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'advice' instead of 'recommendation', missing the common pairing 'chef's recommendation'."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "He selected 'overprotective' rather than 'overwhelmed' to describe the feeling of having too much homework."
+          "whatWentWrong": "Jon picked 'advice' instead of 'recommendation', which is the specific word we use for a chef's suggested dish."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'assigning' instead of 'designating', which is the more precise word for formally labelling an event."
-        }
-      ],
-      "strategic_advice": "When options look very similar, look for **context clues** in the sentence. Ask yourself if the word is part of a **common pair** or if another word captures the exact feeling better.",
-      "trigger_keywords": [
-        "choose the most suitable word",
-        "fill in the blank"
-      ]
-    },
-    {
-      "name": "Using Context for Descriptions",
-      "what": "Jon tends to overlook subtle clues in the sentence that hint at the exact descriptive word or noun needed.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'seriously' instead of 'menacingly', missing the clue that the bully was about to kick the boy."
+          "whatWentWrong": "Jon chose 'assigning' instead of 'designating' to describe how the animal rights groups labelled the event."
         },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'primary' instead of 'inaugural', missing the clue that the race happened for the first time in 2008."
+          "whatWentWrong": "Jon selected 'primary' instead of 'opening' to match the meaning of 'inaugural' for the first race."
+        }
+      ],
+      "strategic_advice": "When two words mean almost the same thing, think about their **common word partners**. For example, we say 'chef's recommendation', not 'chef's advice'. Try saying both options out loud in the sentence to hear which one sounds like natural English.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "fill in the blank",
+        "chef's",
+        "inaugural"
+      ]
+    },
+    {
+      "name": "Tricky Options Trap",
+      "what": "Occasionally gets caught by options that look similar, or picks a familiar word when a more precise one is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked 'overprotective' instead of 'overwhelmed', likely because both words start with 'over-'."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'demonstrators' rather than 'spectators' for people cheering at a race."
+          "whatWentWrong": "Jon chose 'demonstrators' instead of 'onlookers', possibly getting tricked by the earlier mention of animal rights groups."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked the common word 'seriously' instead of the more precise 'menacingly' to describe a bully's glare."
         }
       ],
-      "strategic_advice": "When you see a sentence describing an action or event, look for **action words** that set the mood. Use these clues to choose a word that **matches the feeling** of the sentence.",
+      "strategic_advice": "When you see these tricky options, treat them as stop signs:\n- **Words that look similar** → double-check the ending of the word, not just the start.\n- **Words from other parts of the story** → make sure the word fits the **exact sentence** you are reading, not just the general topic.",
       "trigger_keywords": [
-        "glared",
-        "cheered",
-        "happened"
+        "choose the correct word",
+        "spectators",
+        "felt",
+        "glared"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -123,15 +99,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 7,
@@ -155,11 +131,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 14,
@@ -171,7 +147,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -192,7 +168,7 @@
     "15": "cmpwpzi2k001kfjchqvdm5w9g",
     "16": "cmpwpzi2k001lfjchtn9xrjfm"
   },
-  "generatedAt": "2026-06-15T05:02:11.760Z",
+  "generatedAt": "2026-06-17T09:14:42.292Z",
   "wrongCounts": {
     "total": 16,
     "oeq": 10,

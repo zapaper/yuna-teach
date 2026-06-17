@@ -1,89 +1,87 @@
 {
   "patterns": [
     {
-      "name": "Hidden 3D Parts",
-      "what": "Sometimes misses hidden blocks or faces when looking at 3D drawings, or finds it tricky to imagine how flat nets fold up.",
+      "name": "Hidden Shape Details",
+      "what": "Occasionally misses hidden blocks, folded edges, or specific side lengths when looking at diagrams of 2D and 3D shapes.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 counted the visible painted faces but missed some of the hidden faces at the back and bottom."
+          "whatWentWrong": "LohXY2014 counted the visible faces of the painted blocks but missed some of the hidden faces at the back and bottom."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 miscounted the number of outer edges that make up the perimeter when the wire shape is folded."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 counted the cubes we can see but missed the hidden cube supporting the stack."
-        },
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 found it tricky to imagine folding the flat shapes to see which one makes a closed box without overlapping sides."
+          "whatWentWrong": "LohXY2014 counted the visible cubes but missed the hidden cube supporting the stack in the corner."
         }
       ],
-      "strategic_advice": "When working with 3D shapes and nets, try these tricks:\n- **Count layer by layer** or side by side to make sure you don't miss any hidden cubes.\n- For painted faces, remember to check the **bottom and back** sides that you can't see.\n- When folding nets, look out for **overlapping faces**—if two sides fold to the same spot, it won't make a closed box!",
+      "strategic_advice": "When working with 3D shapes, try these tricks:\n- **Count by layers** from top to bottom to make sure you don't miss hidden supporting blocks.\n- **Match opposite sides**: the front area is usually equal to the back area, and top equals bottom.\n- For folding nets, **draw a dot** on the edges that will touch each other so you don't count them twice.",
       "trigger_keywords": [
-        "net of a cuboid",
-        "painted",
-        "1-cm cubes",
-        "solid"
+        "surface area",
+        "volume of the solid",
+        "perimeter of the figure",
+        "net of a cuboid"
       ]
     },
     {
-      "name": "Final Question Mix-Ups",
-      "what": "Occasionally answers a slightly different question than what was asked at the very end, even after doing the hard math correctly.",
+      "name": "Wrong Total Used",
+      "what": "Sometimes calculates a fraction or percentage using the grand total or the final amount, instead of the specific group the question asked for.",
       "specific_examples": [
         {
-          "questionRef": "[18]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 calculated the amount of paint used, but the question asked for the amount of paint left."
+          "whatWentWrong": "LohXY2014 subtracted the 60% directly from the total instead of calculating 60% of the leftover stamps."
         },
         {
           "questionRef": "[20]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 found the savings as a fraction of the total money, instead of as a fraction of the expenditure."
+          "whatWentWrong": "LohXY2014 found savings out of the total money, rather than savings out of the money spent."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 calculated the percentage decrease using the leftover marbles instead of the original total."
+          "whatWentWrong": "LohXY2014 divided the decrease by the final number of marbles instead of the original starting number."
         }
       ],
-      "strategic_advice": "When you reach the last step of a problem, treat the final sentence as a stop sign:\n- Highlight words like **'left'**, **'remainder'**, or **'expenditure'** to make sure you are comparing the right numbers.\n- For percentage decrease, always divide by the **original amount**, not the leftover amount.\n- Double-check: **'Did I find what they asked for'**, or just a stepping stone?",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'of the remainder'** → calculate the leftover first, then multiply\n- **'fraction of [A] is [B]'** → put [B] on top and [A] on the bottom\n- **'percentage decrease'** → always divide the change by the **original** starting amount, never the final amount",
       "trigger_keywords": [
-        "left",
-        "remainder",
-        "of his expenditure",
+        "of the remainder",
+        "fraction of",
         "percentage decrease",
-        "fraction of"
+        "percentage of"
       ]
     },
     {
       "name": "Place Value Slips",
-      "what": "Tends to get tripped up by decimal places, reading scales, or forgetting to change cents into dollars.",
+      "what": "Occasionally gets tripped up by decimal places, reading scale markings, or converting between units like cents and dollars.",
       "specific_examples": [
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 got tricked by the thousandths place, forgetting that 30/1000 is the same as 3/100."
+          "whatWentWrong": "LohXY2014 combined the digits directly into 3.033 without converting the fractions to their proper decimal places."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 divided correctly to find the cost but mixed up 5 cents and 50 cents."
+          "whatWentWrong": "LohXY2014 correctly divided to find the cost, but mixed up 50 cents with 5 cents."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 wrote the correct algebra for the cost in cents, but forgot to divide by 100 to change it into dollars."
+          "whatWentWrong": "LohXY2014 found the total cost in cents, but forgot to divide by 100 to convert the final answer into dollars."
         }
       ],
-      "strategic_advice": "When dealing with money, decimals, or scales, take an extra second to check your units:\n- If a question mixes **dollars and cents**, change everything to the same unit before you start.\n- When adding fractions like 30/1000, simplify them first (to 3/100) so you know exactly which **decimal place** to use.\n- For weighing scales, count the small markings carefully to see what **each little line** stands for.",
+      "strategic_advice": "When dealing with money or decimals, take a moment to double-check your units:\n- **Write out the conversion**: remind yourself that $1 = 100 cents.\n- **Line up the decimal points** when adding fractions converted to decimals.\n- If an answer looks too big or too small (like a stamp costing 5 cents), **re-read the units** in the question.",
       "trigger_keywords": [
-        "$",
-        "cents",
+        "cost of each",
         "in terms of",
-        "mass",
-        "decimals"
+        "mass of",
+        "simplify"
       ]
     }
   ],
@@ -102,7 +100,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -134,7 +132,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 13,
@@ -158,7 +156,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 19,
@@ -196,7 +194,7 @@
     "20": "cmpuqfgdn000h12ltq3yutj96",
     "21": "cmpuqfgdn000i12lti80bc76g"
   },
-  "generatedAt": "2026-06-17T07:39:09.927Z",
+  "generatedAt": "2026-06-17T08:06:59.190Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 0,

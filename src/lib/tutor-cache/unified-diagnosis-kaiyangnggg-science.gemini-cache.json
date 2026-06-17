@@ -1,117 +1,99 @@
 {
   "patterns": [
     {
-      "name": "Missing Science Keywords",
-      "what": "Tends to describe what happens using everyday words but occasionally leaves out the specific scientific terms the markers need to see.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg understood the soup would take longer to boil, but missed the keyword that there is 'more mass' to heat up."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "He knew the chocolate expanded and burst, but forgot to state that it 'gained heat' and expanded 'more than' the bun."
-        },
-        {
-          "questionRef": "[37]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg correctly noted the layers of air, but missed the magic phrase that 'air is a poor conductor of heat'."
-        }
-      ],
-      "strategic_advice": "When you see **'explain why'** or **'give a reason'**, think about the invisible science happening.\n- Always include the energy transfer (e.g., **'gained heat'** or **'lost heat'**).\n- Mention specific properties (e.g., **'poor conductor of heat'** or **'more mass'**).",
-      "trigger_keywords": [
-        "Explain why",
-        "Give a reason",
-        "State what",
-        "Suggest a way"
-      ]
-    },
-    {
-      "name": "Heat and Temperature Traps",
-      "what": "Sometimes forgets that substances still gain heat even when their temperature isn't changing, or mixes up how fast different materials lose heat.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg missed that ice is still gaining heat while it melts, even though the temperature stays flat on the graph."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "He chose glass instead of metal when looking for the container that would cool down the fastest."
-        },
-        {
-          "questionRef": "[36]",
-          "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg got tricked by the evaporation question, forgetting that a wider surface area leads to more condensation."
-        }
-      ],
-      "strategic_advice": "When you see these heat questions, remember these rules:\n- **Flat lines on a heating graph** → The substance is still **gaining heat** to change state (like melting or boiling)!\n- **Metal containers** → They are **good conductors**, so they lose heat the fastest.\n- **Wider surface area** → More water can evaporate, which leads to more water droplets condensing.",
-      "trigger_keywords": [
-        "graph",
-        "temperature",
-        "boiling",
-        "melting",
-        "evaporated",
-        "condensed"
-      ]
-    },
-    {
-      "name": "Light and Shadow Traps",
-      "what": "Occasionally gets tricked by how light reflects into our eyes or how the distance from a torch changes the size of a shadow.",
+      "name": "Shadow Size Mix-Up",
+      "what": "Occasionally gets confused about how the distance between an object and a light source changes the size of its shadow.",
       "specific_examples": [
         {
           "questionRef": "[41]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg got mixed up when figuring out which shape casts the biggest shadow based on its distance from the torch."
+          "whatWentWrong": "He picked the wrong order of shapes, forgetting that the largest shadow comes from the object closest to the torch."
+        },
+        {
+          "questionRef": "[51]",
+          "type": "mcq",
+          "whatWentWrong": "He mixed up the positions of the shapes again when trying to match them to the final shadow on the screen."
+        }
+      ],
+      "strategic_advice": "When you see questions about overlapping shadows, remember this golden rule: **closer to the light source = bigger shadow**. Draw a quick sketch of the light rays spreading out from the torch to help you visualize which object makes the biggest shadow on the screen.",
+      "trigger_keywords": [
+        "shadow",
+        "torch",
+        "screen",
+        "cut out some shapes"
+      ]
+    },
+    {
+      "name": "Light Path Mix-Up",
+      "what": "Sometimes reverses the direction of light rays when showing how we see objects, or forgets that light must start from a light source.",
+      "specific_examples": [
+        {
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "He picked arrows showing light moving away from the painting instead of bouncing off it and into the eye."
         },
         {
           "questionRef": "[52]",
           "type": "mcq",
-          "whatWentWrong": "He chose the wrong arrows for how Peter sees the door, forgetting that light must bounce off the door into his eyes."
-        },
-        {
-          "questionRef": "[53]",
-          "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg struggled to match the materials to the shadows they formed on the screen."
+          "whatWentWrong": "He chose the wrong light path for seeing a door, missing that light must first travel from the lamp to the door."
         }
       ],
-      "strategic_advice": "When you see light and shadow diagrams, trace the paths carefully:\n- **Seeing objects** → Light must travel **from the lamp**, bounce **off the object**, and go straight **into the eye**.\n- **Shadow sizes** → The **closer** an object is to the torch, the **bigger** its shadow will be on the screen!",
+      "strategic_advice": "When asked how we see an object, always trace the light starting from the **light source** (like a lamp), bouncing off the **object**, and finally entering the **eye**. Remember, light never shoots out of our eyes!",
       "trigger_keywords": [
-        "shadow",
-        "screen",
-        "torch",
-        "light rays",
-        "see"
+        "direction of light rays",
+        "enable Peter to see",
+        "light source"
       ]
     },
     {
-      "name": "Leaving Questions Blank",
-      "what": "Sometimes leaves open-ended questions completely blank when feeling unsure of the exact answer.",
+      "name": "Heat Transfer Mix-Up",
+      "what": "Sometimes gets tangled up with heat concepts, such as thinking heat is only gained during a change of state, or mixing up which materials are good conductors.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg left the explanation for the corrugated cup sleeve and double-walled cup completely blank."
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He thought the ice was only gaining heat while melting, missing that it also gains heat when its temperature is rising."
         },
         {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "He skipped the question about the steps to conduct an experiment on wing-like structures."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg left the question about the structural adaptations of cacti blank."
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He picked glass instead of metal for the container that cools fastest, mixing up good and poor conductors of heat."
         }
       ],
-      "strategic_advice": "Even if you are not 100% sure, **never leave a blank**!\n- Write down the **key science concepts** related to the topic (like 'reduce water loss' for desert plants or 'poor conductor' for heat).\n- You might earn partial marks just for stating a relevant fact!",
+      "strategic_advice": "When you see questions about heating and cooling, remember:\n- **Rising temperature** always means the object is **gaining heat**.\n- **Metals** are good conductors, so they let heat escape the fastest, making things cool down quicker!",
       "trigger_keywords": [
-        "Explain how",
-        "Describe",
-        "State an advantage"
+        "gaining heat",
+        "lowest temperature",
+        "conductor",
+        "graph"
+      ]
+    },
+    {
+      "name": "Everyday Words Trap",
+      "what": "Often understands what is happening in an experiment but tends to use everyday descriptions instead of the specific science keywords needed to get full marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly noticed that the chocolate expanded, but missed out the crucial science step that it 'gained heat'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote that the cactus wouldn't 'give out water so often' instead of using the exact science phrase 'reduce water loss'."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "oeq",
+          "whatWentWrong": "He described boiling as 'when water reaches 100°C' instead of defining it as a 'change in state from liquid to gas'."
+        }
+      ],
+      "strategic_advice": "When you see prompts like **'explain why'** or **'give a reason'**, treat them as a signal to use your science vocabulary. Before writing, ask yourself: 'What is the exact science keyword for this?' Always include phrases like **'gained heat'**, **'reduce water loss'**, or **'change in state'**.",
+      "trigger_keywords": [
+        "explain why",
+        "give a reason",
+        "state what",
+        "explain how"
       ]
     }
   ],
@@ -122,11 +104,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 4,
@@ -138,27 +120,27 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -174,7 +156,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 16,
@@ -182,7 +164,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -190,15 +172,15 @@
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -210,11 +192,11 @@
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -234,59 +216,59 @@
     },
     {
       "idx": 30,
-      "patternIndex": 3
-    },
-    {
-      "idx": 31,
-      "patternIndex": 3
-    },
-    {
-      "idx": 32,
-      "patternIndex": 3
-    },
-    {
-      "idx": 33,
       "patternIndex": -1
     },
     {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 3
+    },
+    {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 35,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 38,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 39,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 40,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 42,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 43,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 44,
@@ -306,39 +288,39 @@
     },
     {
       "idx": 48,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 49,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 50,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 51,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 52,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 53,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 54,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 55,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 56,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 57,
@@ -358,11 +340,11 @@
     },
     {
       "idx": 61,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 62,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 63,
@@ -378,19 +360,19 @@
     },
     {
       "idx": 66,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 67,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 68,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 69,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 70,
@@ -398,7 +380,7 @@
     },
     {
       "idx": 71,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 72,
@@ -479,7 +461,7 @@
     "71": "cmol7mm2s001313njauqoh3xk",
     "72": "cmol7mm2s001713nj8vmcyi48"
   },
-  "generatedAt": "2026-06-17T07:37:34.475Z",
+  "generatedAt": "2026-06-17T09:17:36.201Z",
   "wrongCounts": {
     "total": 72,
     "oeq": 21,

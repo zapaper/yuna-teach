@@ -1,120 +1,116 @@
 {
   "patterns": [
     {
-      "name": "Spelling by Sound",
-      "what": "Sometimes spells tricky words exactly how they sound instead of using their proper spelling rules.",
+      "name": "Question Tag Mix-Up",
+      "what": "Sometimes misses hidden negative words like 'rarely' or 'seldom', or uses the wrong helping verb when forming question tags.",
       "specific_examples": [
         {
-          "questionRef": "[42]",
-          "type": "oeq",
-          "whatWentWrong": "LohXY2014 spelled 'restaurant' as 'restrawnt' by sounding it out."
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that 'rarely' is a negative word, which means the question tag needs to be positive."
         },
         {
-          "questionRef": "[71]",
-          "type": "oeq",
-          "whatWentWrong": "LohXY2014 wrote 'deckaide' instead of 'decade' based on how the vowels sound."
-        },
-        {
-          "questionRef": "[89]",
-          "type": "oeq",
-          "whatWentWrong": "LohXY2014 spelled 'squeal' as 'skweel' by following the phonetic sounds."
+          "questionRef": "[117]",
+          "type": "mcq",
+          "whatWentWrong": "He used 'didn't' instead of matching the helping verb 'have' from the contraction 'You've'."
         }
       ],
-      "strategic_advice": "When you encounter a tricky word, try to break it down into its **syllables** or look for **root words** you already know.\n- **Read more widely** to expose yourself to the correct spelling of complex words.\n- Keep a **personal spelling list** of words you often misspell and practice them.",
+      "strategic_advice": "When you see a comma followed by a blank at the end of a sentence, it is a question tag. Use these steps:\n- **Check for hidden negatives** like 'rarely', 'seldom', 'hardly', or 'never'. If you see one, the tag must be positive!\n- **Find the helping verb** in the main sentence (like 'is', 'has', 'have', 'does') and reuse it in your tag.",
       "trigger_keywords": [
-        "spelling",
-        "editing",
-        "correct word"
+        "___?",
+        ", ___ you?",
+        ", ___ she?"
       ]
     },
     {
-      "name": "Missing the Bigger Picture",
-      "what": "Tends to fill in blanks with words that make sense for that specific line, but occasionally contradict the sentences that come right before or after.",
+      "name": "Idiom and Phrase Mix-Up",
+      "what": "Occasionally pieces together phrases word-by-word instead of using the exact English idiom or fixed expression expected.",
       "specific_examples": [
         {
-          "questionRef": "[115]",
+          "questionRef": "[26]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 chose 'shortest' for the queue, missing the next sentence's clue that a long queue means good quality."
+          "whatWentWrong": "He wrote 'stand on straight' instead of the correct English idiom 'stand on end' to describe hair standing up."
         },
         {
-          "questionRef": "[66]",
+          "questionRef": "[112]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 wrote 'money' instead of 'earlier', missing the time contrast with 'remaining days' later in the sentence."
+          "whatWentWrong": "He wrote 'go down in the knees' instead of the common expression 'go weak in the knees'."
         },
         {
-          "questionRef": "[45]",
+          "questionRef": "[130]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 guessed 'reduced' for delays, missing the author's overall point that great things take a long time."
+          "whatWentWrong": "He used 'in great elaboration' instead of the fixed phrase 'in great detail'."
         }
       ],
-      "strategic_advice": "When you see a blank, treat the **whole paragraph** as a clue, not just the sentence it is in.\n- **Read past the blank** to the end of the paragraph before deciding on your answer.\n- Look out for **transition words** like 'However', 'Since', or 'Because' that tell you how the ideas connect.",
+      "strategic_advice": "When a blank is part of a common saying or phrase, trust your ear for what sounds like natural English.\n- **Read the whole sentence aloud** in your head. Often, the right word will 'click' because you have heard it before.\n- **Watch out for prepositions** that pair with specific verbs, like 'congratulate on' or 'need for'.",
       "trigger_keywords": [
-        "fill in each blank",
-        "comprehension cloze",
-        "passage"
+        "stand on ___",
+        "go ___ in the knees",
+        "in great ___",
+        "removing the need ___"
       ]
     },
     {
-      "name": "Verb Form Mix-Ups",
-      "what": "Occasionally uses the wrong verb tense or forgets to match the verb to a singular or plural subject.",
+      "name": "Grammar Clue Slips",
+      "what": "Occasionally misses nearby grammar clues like 'a/an', plural verbs, or helping verbs that require a specific word form, even when he has the right general meaning in mind.",
       "specific_examples": [
         {
-          "questionRef": "[98]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 picked the past tense 'took' instead of the base form 'take' after the sensory verb 'saw'."
-        },
-        {
-          "questionRef": "[118]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 chose the plural 'are organising' instead of 'is organising', forgetting that 'as well as' does not make the subject plural."
-        },
-        {
-          "questionRef": "[29]",
+          "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 wrote 'result' instead of 'results', missing that the singular subject 'This' needs a singular verb."
+          "whatWentWrong": "He chose 'essential', but missed that the blank comes after the article 'a', which requires a word starting with a consonant sound like 'big'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'wonder', missing that the phrase 'have you ever' requires the past participle 'wondered'."
+        },
+        {
+          "questionRef": "[113]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the singular 'stall', missing that the plural verb 'were' right after the blank requires the plural 'stalls'."
         }
       ],
-      "strategic_advice": "When you see a verb question, always play detective and look for the **subject** and the **time clues**.\n- **Highlight the subject** and ask yourself: is it singular or plural?\n- Watch out for **special rules**, like sensory verbs ('saw', 'heard') which need the base form, or uncountable nouns ('luggage') which are always singular.",
+      "strategic_advice": "Before writing your final answer in a cloze passage, look at the words immediately before and after the blank.\n- **Check the articles**: Does it say 'a' or 'an'?\n- **Check the verbs**: Is it a singular or plural action? Does it follow a helping verb like 'have' or 'has'?\n- **Check the time**: Are there clues that show the action happened in the past?",
       "trigger_keywords": [
-        "grammar",
-        "editing",
-        "tense",
-        "verb"
+        "a/an ___",
+        "have you ever ___",
+        "___ were",
+        "___ is"
       ]
     },
     {
-      "name": "Hidden Poster Details",
-      "what": "Sometimes overlooks small but important conditions or keywords in posters and advertisements.",
+      "name": "Visual Text Traps",
+      "what": "Sometimes reads posters and flyers quickly and misses small but important condition words like 'not', 'only', or rules for returning customers.",
       "specific_examples": [
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 missed that the 15% discount was specifically for the 'first order online'."
-        },
         {
           "questionRef": "[37]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 overlooked the word 'only' in the option, which made the statement false."
+          "whatWentWrong": "He missed the word 'only' in the first option, which made the statement false because the festival teaches many other things."
         },
         {
           "questionRef": "[85]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 missed that the biggest savings were for returning customers who book 'after 1 December'."
+          "whatWentWrong": "He missed the condition that Mindy was going 'again', which meant she qualified for the special returning customer discount."
+        },
+        {
+          "questionRef": "[104]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'not' in the question stem and picked a true statement instead of the false one."
         }
       ],
-      "strategic_advice": "When reading posters or flyers, treat every small condition as a **stop sign**.\n- Pay close attention to **absolute words** like 'only', 'all', or 'never'.\n- Look out for **special conditions** like 'first order', 'returning customers', or specific dates.",
+      "strategic_advice": "Visual texts are designed to test how carefully you read the fine print. Treat these words as stop signs:\n- **'not true'** or **'false'** → highlight these so you don't accidentally pick a true fact.\n- **'only'**, **'always'**, or **'never'** → these extreme words often make an option false.\n- **Special conditions** → look out for words like 'first-time', 'returning', or 'minimum spend'.",
       "trigger_keywords": [
-        "according to the poster",
-        "which statement is true",
-        "visual text",
-        "advertisement"
+        "not true",
+        "only",
+        "again",
+        "first order"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 2,
@@ -126,15 +122,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -142,11 +138,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -170,11 +166,11 @@
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 17,
@@ -186,7 +182,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 20,
@@ -198,7 +194,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 23,
@@ -214,11 +210,11 @@
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 28,
@@ -238,7 +234,7 @@
     },
     {
       "idx": 32,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 33,
@@ -274,11 +270,11 @@
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 42,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 43,
@@ -286,11 +282,11 @@
     },
     {
       "idx": 44,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 46,
@@ -306,7 +302,7 @@
     },
     {
       "idx": 49,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 50,
@@ -314,11 +310,11 @@
     },
     {
       "idx": 51,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 52,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 53,
@@ -354,19 +350,19 @@
     },
     {
       "idx": 61,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 62,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 63,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 65,
@@ -374,7 +370,7 @@
     },
     {
       "idx": 66,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 67,
@@ -394,7 +390,7 @@
     },
     {
       "idx": 71,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 72,
@@ -406,23 +402,23 @@
     },
     {
       "idx": 74,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 75,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 76,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 77,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 78,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 79,
@@ -466,7 +462,7 @@
     },
     {
       "idx": 89,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 90,
@@ -474,15 +470,15 @@
     },
     {
       "idx": 91,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 92,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 93,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 94,
@@ -498,7 +494,7 @@
     },
     {
       "idx": 97,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 98,
@@ -506,7 +502,7 @@
     },
     {
       "idx": 99,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 100,
@@ -542,11 +538,11 @@
     },
     {
       "idx": 108,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 109,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 110,
@@ -558,27 +554,27 @@
     },
     {
       "idx": 112,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 113,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 114,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 115,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 116,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 117,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 118,
@@ -606,11 +602,11 @@
     },
     {
       "idx": 124,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 125,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 126,
@@ -622,39 +618,39 @@
     },
     {
       "idx": 128,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 129,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 130,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 131,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 132,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 133,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 134,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 135,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 136,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 137,
@@ -825,7 +821,7 @@
     "141": "cmpvxnesl000nz9pkdgld6rom",
     "142": "cmpvxnesl000qz9pkh9ifsl57"
   },
-  "generatedAt": "2026-06-17T07:40:03.567Z",
+  "generatedAt": "2026-06-17T09:17:38.352Z",
   "wrongCounts": {
     "total": 142,
     "oeq": 90,

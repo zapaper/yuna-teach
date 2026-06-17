@@ -1,85 +1,115 @@
 {
   "patterns": [
     {
-      "name": "Reported Speech Shifts",
-      "what": "Sometimes forgets to step the tense backwards or change time words when turning spoken quotes into reported speech.",
+      "name": "Reported Speech Tenses",
+      "what": "Sometimes forgets to shift the tense one step back into the past when changing direct speech into reported speech.",
       "specific_examples": [
         {
-          "questionRef": "[24]",
+          "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "NauraHumaira forgot to change 'now' to 'then' and missed shifting the tense backwards to match the reported speech."
+          "whatWentWrong": "She kept the verb in the present tense ('visit') instead of shifting it back to the past perfect ('had visited')."
         },
         {
           "questionRef": "[26]",
           "type": "oeq",
-          "whatWentWrong": "She kept the present perfect tense instead of shifting it back to the past perfect when reporting the question."
+          "whatWentWrong": "She used the present perfect ('have been') instead of shifting it back to the past perfect ('had visited')."
         },
         {
           "questionRef": "[37]",
           "type": "oeq",
-          "whatWentWrong": "NauraHumaira missed shifting the simple past tense 'did' back to the past perfect 'had done' for the reported speech."
+          "whatWentWrong": "She used the simple past ('did') instead of shifting it back to the past perfect ('had done')."
         }
       ],
-      "strategic_advice": "When you see speech marks being removed, treat it as a signal to 'step back in time':\n- **Check the verbs**: Change present tense to past, and past tense to past perfect (e.g., **'did'** becomes **'had done'**).\n- **Check the time words**: Words like **'now'** must change to **'then'**, and **'yesterday'** to **'the previous day'**.\n- **Check the pronouns**: Make sure **'I'** or **'you'** changes to match who is actually speaking.",
+      "strategic_advice": "When you see speech marks **\" \"** changing into reported speech, treat it as a signal to step back in time:\n- **Present tense** changes to **past tense** (e.g., 'is' → 'was').\n- **Past tense** changes to **past perfect** (e.g., 'did' → 'had done').\n- Always double-check if time words like **'yesterday'** need to change to **'the previous day'**.",
       "trigger_keywords": [
         "asked",
+        "told",
         "wanted to know",
-        "told"
+        "said"
       ]
     },
     {
-      "name": "Changing Word Forms",
-      "what": "Occasionally forgets to change an action or describing word into a naming word (noun) when the new sentence starter requires it.",
+      "name": "Capital Letter Slips",
+      "what": "Tends to forget capital letters for proper names, the pronoun 'I', or the very beginning of her sentences.",
       "specific_examples": [
         {
-          "questionRef": "[22]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "NauraHumaira missed changing the describing word 'unfair' into the noun 'unfairness' after the prompt 'The decision's'."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "She used a full clause instead of changing 'delayed' into the noun 'delay' after the phrase 'owing to'."
+          "whatWentWrong": "She forgot to capitalise the pronoun 'I' and the proper name 'Mrs Lim'."
         },
         {
           "questionRef": "[35]",
           "type": "oeq",
-          "whatWentWrong": "NauraHumaira forgot to add the noun 'arrival' after 'With the early', which left the sentence incomplete."
+          "whatWentWrong": "She wrote 'mr phua' with lowercase letters instead of capitalising his name."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "She forgot to capitalise 'Jack' when referring to his safety."
         }
       ],
-      "strategic_advice": "When a sentence starts with phrases like **'Because of his'**, **'Much to'**, or **'owing to'**, it usually needs a noun right after it.\n- **Spot the feeling or action**: Find the main describing word in the original sentence (like **'unfair'** or **'delayed'**).\n- **Transform it**: Change that word into a noun (like **'unfairness'** or **'delay'**).\n- **Read it aloud**: Check if the new phrase makes sense on its own before finishing the rest of the sentence.",
+      "strategic_advice": "Before moving on to the next question, do a quick **'capital check'**:\n- Did you start the sentence with a **capital letter**?\n- Are all names of people and places **capitalised**?\n- Is the word **'I'** always a capital letter, even in the middle of a sentence?",
       "trigger_keywords": [
-        "The decision's",
-        "owing to",
-        "With the early",
-        "Much to"
+        "I",
+        "Mr",
+        "Mrs",
+        "Dr"
       ]
     },
     {
-      "name": "Tricky Vocabulary Choices",
-      "what": "Tends to pick words or phrasal verbs that seem related but do not perfectly match the specific clues hidden in the sentence.",
+      "name": "Singular and Plural Mix-Up",
+      "what": "Occasionally mixes up singular and plural verbs, especially when the subject is separated from the verb by other words.",
       "specific_examples": [
         {
-          "questionRef": "[32]",
+          "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "NauraHumaira picked 'adequate' instead of 'ingenious' to describe an invention that cleverly saves water and increases crops."
+          "whatWentWrong": "She saw the plural 'cousins' and chose 'were', forgetting that the main subject 'Jane' is singular."
         },
         {
-          "questionRef": "[44]",
-          "type": "mcq",
-          "whatWentWrong": "She chose 'took on' instead of 'fell out', missing the clue that the two friends had a disagreement."
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "She used the plural verb 'were' for 'project', which is a singular subject."
         },
         {
-          "questionRef": "[17]",
+          "questionRef": "[42]",
           "type": "mcq",
-          "whatWentWrong": "NauraHumaira selected 'seizing' instead of 'mustering', which is the correct word to pair with 'courage'."
+          "whatWentWrong": "She chose the singular 'remembers', but the rule for 'neither/nor' is to match the verb to the closest subject, which is the plural 'classmates'."
         }
       ],
-      "strategic_advice": "When faced with vocabulary questions, remember that the sentence always hides a secret clue:\n- **Hunt for the clue**: Look for the 'because' part of the sentence or the result (e.g., 'had a disagreement' means they **'fell out'**).\n- **Check the pairings**: Some words just love to go together, like **'mustering courage'** or **'top priority'**.\n- **Plug it in**: Read the whole sentence quietly to yourself with your chosen word to see if the exact meaning fits.",
+      "strategic_advice": "When choosing between singular and plural verbs, find the **true subject**:\n- For phrases like **'together with'** or **'as well as'**, ignore the extra people and match the verb to the **first person mentioned**.\n- For **'neither... nor'**, match the verb to the subject **closest to the blank**.",
       "trigger_keywords": [
-        "blanks in vocabulary sections",
-        "phrasal verbs",
-        "cloze passages"
+        "together with",
+        "neither",
+        "nor",
+        "as well as"
+      ]
+    },
+    {
+      "name": "Noun Form Mix-Up",
+      "what": "Often struggles to change an action word or describing word into a noun when the new sentence structure requires it.",
+      "specific_examples": [
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She used the verb 'angered' right after 'The decision's', instead of changing 'unfair' into the noun 'unfairness'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote a full clause ('the train was delayed') after 'owing to', instead of using the noun phrase 'the train's delay'."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'amy forgot' after 'Much to', instead of using the noun form 'her embarrassment'."
+        }
+      ],
+      "strategic_advice": "When you see starters like **'Much to'**, **'Because of'**, or **'owing to'**, you usually need a **noun**, not a full sentence:\n- Ask yourself: 'What is the thing or feeling we are talking about?'\n- Change describing words into their noun forms (e.g., **'unfair'** becomes **'unfairness'**, **'embarrassed'** becomes **'embarrassment'**).",
+      "trigger_keywords": [
+        "The decision's",
+        "owing to",
+        "Much to",
+        "Because of"
       ]
     }
   ],
@@ -90,7 +120,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -102,11 +132,11 @@
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -114,7 +144,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -130,51 +160,51 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 21,
-      "patternIndex": -1
-    },
-    {
-      "idx": 22,
       "patternIndex": 1
     },
     {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
       "idx": 23,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 24,
@@ -194,7 +224,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 29,
@@ -206,19 +236,19 @@
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 35,
@@ -234,11 +264,11 @@
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 39,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 40,
@@ -250,7 +280,7 @@
     },
     {
       "idx": 42,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 43,
@@ -258,11 +288,11 @@
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": 2
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -312,7 +342,7 @@
     "44": "cmptyj5ls000d14gmwnky2bvr",
     "45": "cmptyj5ls000g14gmaw3hrnsf"
   },
-  "generatedAt": "2026-06-17T07:43:15.974Z",
+  "generatedAt": "2026-06-17T09:22:14.074Z",
   "wrongCounts": {
     "total": 45,
     "oeq": 20,

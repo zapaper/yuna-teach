@@ -1,99 +1,123 @@
 {
   "patterns": [
     {
-      "name": "One Step Short",
-      "what": "Occasionally stops one step short of the final answer, even after doing the hard work to find a correct intermediate value.",
+      "name": "Forgotten Units and Formats",
+      "what": "Tends to forget the measurement unit or leave a fraction unsimplified, even after doing the hard work correctly.",
       "specific_examples": [
         {
-          "questionRef": "[14]",
+          "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "JeremiahSy correctly found the total money collected for Ticket C, but stopped before dividing by the price to find the number of tickets sold."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "He successfully calculated the percentage of stamps sold (45%), but the question asked for the percentage that was left."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "He correctly figured out the fraction of pies given to the neighbour, but stopped one step short of finding the fraction left over."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final goal:\n- **'fraction left'** or **'percentage left'** → make sure you didn't just find the amount given away or sold.\n- **'how many tickets'** → check if your number is a dollar amount or a ticket count.\n- Always re-read the last sentence of the question after you get an answer.",
-      "trigger_keywords": [
-        "had she left",
-        "percentage of his stamps was left",
-        "how many ticket C"
-      ]
-    },
-    {
-      "name": "Small Calculation Slips",
-      "what": "Occasionally makes a small addition, multiplication, or division slip along the way, even when the math is set up perfectly.",
-      "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy correctly knew to divide 210 by 7, but accidentally calculated it as 70 instead of 30."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "He did a brilliant job finding the cost of one desk and one chair, but made a tiny addition slip at the very end."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "mcq",
-          "whatWentWrong": "He knew to divide, but made a slip with the zeros when calculating 560 000 ÷ 700."
-        }
-      ],
-      "strategic_advice": "When doing your working, try these quick checks:\n- **Work backwards** for a second: if 210 ÷ 7 = 70, does 70 x 7 = 210? (Nope, it's 490!).\n- **Write your numbers clearly** in columns when adding or multiplying so the place values line up perfectly.\n- Take a deep breath before the **final calculation**—you've done the hard part, just bring it home safely!",
-      "trigger_keywords": [
-        "altogether",
-        "total amount",
-        "how many visitors"
-      ]
-    },
-    {
-      "name": "Final Answer Details",
-      "what": "Occasionally forgets to polish the final answer by simplifying fractions, converting to mixed numbers, or adding the correct units.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy found the correct numerical value for the flour, but left it as 10/16 instead of simplifying it to 5/8."
+          "whatWentWrong": "He found the correct amount of rice but forgot to write 'kg' at the end."
         },
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "He correctly calculated 7/4 kg, but forgot the question specifically asked for a mixed number."
+          "whatWentWrong": "He calculated the correct weight but left it as an improper fraction instead of a mixed number."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[1]",
           "type": "oeq",
-          "whatWentWrong": "He read the graph perfectly to find the number 10, but missed out the 'kg' unit in the final answer."
+          "whatWentWrong": "He found the correct fraction but forgot to simplify it to its smallest form."
         }
       ],
-      "strategic_advice": "When you write your final answer on the line, do a quick format check:\n- **Fractions** → Can I divide the top and bottom by 2, 3, or 5? Is the top number bigger than the bottom?\n- **Units** → Did the question mention kg, cm, $, or hours? Make sure it's written down!\n- Highlight words like **'simplest form'** or **'mixed number'** when you first read the question.",
+      "strategic_advice": "When you finish a question, do a quick **format check**:\n- **Units:** Does the answer need kg, $, or cm?\n- **Fractions:** Is it in its simplest form? Is it a mixed number?",
       "trigger_keywords": [
+        "Give your answer in",
         "simplest form",
-        "mixed number",
-        "give your answer in"
+        "mixed number"
+      ]
+    },
+    {
+      "name": "Of The Remaining Trap",
+      "what": "Sometimes calculates the next fraction or percentage using the original total instead of the leftover amount.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He likely used the original total instead of finding 1/6 of the remaining pies."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that Carl sold 60% of the remainder, not 60% of the total stamps."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He struggled to find 1/4 of the remaining flour after some was used for cookies."
+        }
+      ],
+      "strategic_advice": "When you see the word **'remaining'** or **'remainder'**, treat it as a stop sign!\n- First, calculate what is left over.\n- Then, draw a new branch or model for this leftover amount.\n- Apply the new fraction or percentage ONLY to this leftover part.",
+      "trigger_keywords": [
+        "of the remaining",
+        "of the remainder",
+        "rest of the"
+      ]
+    },
+    {
+      "name": "Order of Operations Mix-Up",
+      "what": "Occasionally confuses which math step to do first when a question has a mix of brackets, multiplication, and addition.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the correct sequence of solving the brackets first, then division and multiplication."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He likely did the subtraction or addition in the wrong order instead of following the BODMAS rules."
+        }
+      ],
+      "strategic_advice": "Always follow the **BODMAS** rule for mixed calculations:\n- **B**rackets first!\n- Then **D**ivision and **M**ultiplication (from left to right).\n- Finally, **A**ddition and **S**ubtraction (from left to right).",
+      "trigger_keywords": [
+        "value of",
+        "+",
+        "-",
+        "x",
+        "÷"
+      ]
+    },
+    {
+      "name": "Small Calculation Slips",
+      "what": "Sometimes makes a small addition, multiplication, or division slip along the way, even when the math steps are set up beautifully.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly combined the fractions but made a small division slip when calculating 196 divided by 4."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly figured out that 7 units equal 210, but made a quick slip dividing 210 by 7."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct cost for the desk and chair but made a tiny addition slip in the very last step."
+        }
+      ],
+      "strategic_advice": "Since your methods are usually spot on, focus on **double-checking your working**!\n- Try working backwards to check your division (e.g., if you think 210 ÷ 7 = 70, check if 70 x 7 = 210).\n- Write your numbers clearly in columns to avoid addition slips.",
+      "trigger_keywords": [
+        "Find the",
+        "How many",
+        "altogether"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 4,
@@ -105,11 +129,11 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 8,
@@ -117,19 +141,19 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -137,7 +161,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -145,11 +169,11 @@
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 18,
@@ -157,7 +181,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 20,
@@ -165,23 +189,23 @@
     },
     {
       "idx": 21,
-      "patternIndex": 0
-    },
-    {
-      "idx": 22,
       "patternIndex": 1
     },
     {
-      "idx": 23,
-      "patternIndex": 2
-    },
-    {
-      "idx": 24,
+      "idx": 22,
       "patternIndex": -1
     },
     {
-      "idx": 25,
+      "idx": 23,
       "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -211,7 +235,7 @@
     "24": "cmnpseah30019hi1vx7kvqvi8",
     "25": "cmnpseah3001chi1vwx6n3pdu"
   },
-  "generatedAt": "2026-06-17T07:34:08.101Z",
+  "generatedAt": "2026-06-17T09:13:36.471Z",
   "wrongCounts": {
     "total": 25,
     "oeq": 13,

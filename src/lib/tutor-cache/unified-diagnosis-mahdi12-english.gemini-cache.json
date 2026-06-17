@@ -1,43 +1,13 @@
 {
   "patterns": [
     {
-      "name": "Preposition Pairs",
-      "what": "Sometimes mixes up the specific prepositions that must go with certain verbs or adjectives.",
+      "name": "Word Partnerships",
+      "what": "Sometimes chooses a word that has the right general meaning but isn't the natural fit for the specific situation or noun.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'over' instead of 'on' for the phrase 'congratulated on'."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "mcq",
-          "whatWentWrong": "He picked 'with' instead of the correct pair 'confided in'."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "He selected 'fell apart' rather than 'fell out' to describe friends having a misunderstanding."
-        }
-      ],
-      "strategic_advice": "When you see a verb followed by a blank, read the whole sentence quietly to yourself to hear which preposition sounds right.\n- **'congratulated'** → always pairs with **'on'**\n- **'confided'** → always pairs with **'in'**\n- **'similar'** → always pairs with **'to'**\nKeep a small list of these word pairs and review them before your next practice!",
-      "trigger_keywords": [
-        "congratulated",
-        "similar",
-        "confided",
-        "fell",
-        "give",
-        "looks"
-      ]
-    },
-    {
-      "name": "Close Word Choices",
-      "what": "Tends to pick a vocabulary word that has a similar general meaning but doesn't quite fit the exact situation.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'prevented' (which means to stop completely) instead of 'impeded' (which means to slow down or make difficult)."
+          "whatWentWrong": "Mahdi12 chose 'achieves' instead of 'yields' for a garden producing a crop."
         },
         {
           "questionRef": "[14]",
@@ -47,91 +17,93 @@
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'bustle' rather than 'flurry' for a sudden burst of activity."
+          "whatWentWrong": "Mahdi12 selected 'bustle' instead of 'flurry' for a sudden burst of activity."
         }
       ],
-      "strategic_advice": "When two words seem to mean the same thing, look for **context clues** in the sentence to help you decide.\n- If something is slowed down but not completely stopped, use **'impeded'** instead of **'prevented'**.\n- For a sudden, short burst of panic or movement, use **'flurry'** instead of **'bustle'**.\n- Try plugging each option into the sentence and ask yourself: **'Does this fit the exact situation perfectly?'**",
+      "strategic_advice": "When you see a blank testing vocabulary, treat it as a matching game:\n- Look closely at the **noun right next to the blank** (like 'crop' or 'smell').\n- Ask yourself, **'Have I heard these two words used together before?'**\n- Read the whole sentence aloud with your choice to see if it sounds like natural, everyday English.",
       "trigger_keywords": [
-        "lack of confidence",
-        "smell from the rubbish bin",
-        "bountiful crop",
-        "flurry of activity",
-        "sweet fragrance"
+        "crop",
+        "smell",
+        "activity",
+        "concern",
+        "visibility"
       ]
     },
     {
-      "name": "Grammar Rule Traps",
-      "what": "Occasionally gets caught out by specific grammar rules like object pronouns, question tags, or singular and plural words.",
+      "name": "Small Word Mix-Ups",
+      "what": "Occasionally picks the wrong small word (like 'in', 'to', or 'out') to pair with an action word or adjective.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 picked 'from' instead of 'to' when saying something is 'similar'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'with' instead of 'in' for the phrase 'confided in'."
+        }
+      ],
+      "strategic_advice": "When you see action words or adjectives that need a small connecting word, remember these tips:\n- Some words are 'best friends' with specific small words. When you learn a new word, **learn its partner too** (e.g., 'similar to', not 'similar from').\n- For two-part action words (like 'fell out' or 'give off'), try replacing the blank with a **simple word** like 'argued' or 'produced' to see which option matches the meaning.",
+      "trigger_keywords": [
+        "similar",
+        "confided",
+        "congratulated",
+        "fell",
+        "give"
+      ]
+    },
+    {
+      "name": "Tricky Pronouns and Tags",
+      "what": "Tends to get caught out by question tags at the end of sentences, or when choosing between 'I' and 'me' for multiple people.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'I' instead of 'me' when receiving the action from the teacher."
+          "whatWentWrong": "Mahdi12 chose 'Sally and I' instead of 'Sally and me' when receiving an action from the teacher."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'didn't he' instead of matching the tag 'hasn't he' to 'Ahmad's cleaned' (Ahmad has cleaned)."
+          "whatWentWrong": "He picked 'didn't he' instead of 'hasn't he' for the question tag."
         },
         {
-          "questionRef": "[23]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He selected the plural 'those' instead of the singular 'that' for a single stack of books."
+          "whatWentWrong": "Mahdi12 selected 'did' instead of 'didn't' for a question tag following a positive sentence."
         }
       ],
-      "strategic_advice": "When you see these grammar clues, use these simple tricks to find the right answer:\n- **'Sally and ___'** → take away 'Sally and' and read the sentence again. 'My teacher asked me' sounds correct, so the answer is **'me'**.\n- **Question tags** → always match the helping verb! 'Ahmad's cleaned' means 'Ahmad **has** cleaned', so the tag must be **'hasn't he'**.\n- **'stack of books'** → look at the grouping word. Since it is one 'stack', use the singular **'that'** instead of 'those'.",
+      "strategic_advice": "When you see questions about 'someone and me' or short tags at the end of sentences, use these tricks:\n- For 'someone and me' questions, **hide the other person's name** and read it again. 'My teacher asked me' sounds right, but 'My teacher asked I' sounds wrong!\n- For question tags, remember that **opposites attract**: a positive sentence gets a negative tag, and a negative sentence gets a positive tag.\n- Always check the **helping verb** in the main sentence (like 'has' or 'did') and use the **same one** in the tag.",
       "trigger_keywords": [
-        "and ___",
-        "cleaned up",
-        "stack of books",
-        "wrote the story"
-      ]
-    },
-    {
-      "name": "Skipping Questions",
-      "what": "Leaves several questions completely blank towards the end of the practice instead of taking a best guess.",
-      "specific_examples": [
-        {
-          "questionRef": "[31]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 left the answer blank instead of choosing the base form 'take' after the verb 'saw'."
-        },
-        {
-          "questionRef": "[35]",
-          "type": "mcq",
-          "whatWentWrong": "He skipped this vocabulary question about pirates being sent back to their home country."
-        },
-        {
-          "questionRef": "[39]",
-          "type": "mcq",
-          "whatWentWrong": "He left this question blank rather than guessing how the students felt about an obscure clue."
-        }
-      ],
-      "strategic_advice": "You left several questions blank towards the end of the paper. When you see a tricky question, treat it as a chance to make a smart guess!\n- **Eliminate** the options you know are definitely wrong.\n- **Choose** your best guess from the remaining options.\n- A blank answer is a guaranteed zero, but a **smart guess** gives you a fighting chance to get the mark!",
-      "trigger_keywords": [
-        "missing up to now",
-        "hesitation at first",
-        "entered Singapore illegally",
-        "obscure clue"
+        "and I",
+        "and me",
+        "isn't he",
+        "didn't she",
+        "hasn't he"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
-    },
-    {
-      "idx": 2,
       "patternIndex": 1
     },
     {
-      "idx": 3,
+      "idx": 2,
       "patternIndex": 0
     },
     {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
@@ -139,19 +111,19 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -163,15 +135,15 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
-    },
-    {
-      "idx": 13,
       "patternIndex": 0
     },
     {
-      "idx": 14,
+      "idx": 13,
       "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
     },
     {
       "idx": 15,
@@ -179,7 +151,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 17,
@@ -187,23 +159,23 @@
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 0
-    },
-    {
-      "idx": 20,
-      "patternIndex": 0
-    },
-    {
-      "idx": 21,
       "patternIndex": 1
     },
     {
-      "idx": 22,
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
       "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -211,67 +183,67 @@
     },
     {
       "idx": 24,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 26,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 31,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 36,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 37,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 39,
-      "patternIndex": 3
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -315,7 +287,7 @@
     "38": "cmpuji76e000y14eovr4sqfll",
     "39": "cmpuji76e000z14eoydag3q51"
   },
-  "generatedAt": "2026-06-17T07:38:56.839Z",
+  "generatedAt": "2026-06-17T08:06:49.996Z",
   "wrongCounts": {
     "total": 39,
     "oeq": 0,

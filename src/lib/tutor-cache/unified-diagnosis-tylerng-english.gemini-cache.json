@@ -1,117 +1,107 @@
 {
   "patterns": [
     {
-      "name": "Extra Subject Words",
-      "what": "Sometimes gets tricked when matching subjects to their verbs, especially when there are extra phrases like 'together with' or 'as well as' in the middle.",
+      "name": "Hidden Subject Mix-Up",
+      "what": "Sometimes mixes up the rules for subject-verb agreement, getting confused by extra phrases like 'together with' or 'either/or'.",
       "specific_examples": [
         {
           "questionRef": "[32]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng picked 'are' instead of 'is' because the phrase 'together with her brothers' made the subject look plural."
+          "whatWentWrong": "Tylerng chose the plural verb 'are' because of 'her brothers', missing that the main subject is the singular 'Emily'."
         },
         {
-          "questionRef": "[40]",
+          "questionRef": "[46]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'is' instead of 'am' for the subject 'I', getting distracted by the extra words 'as well as my cousin'."
+          "whatWentWrong": "He matched the verb to 'my cousin' instead of the main subject 'I', choosing 'is' instead of 'am'."
         },
         {
-          "questionRef": "[56]",
-          "type": "oeq",
-          "whatWentWrong": "Tylerng wrote 'has' instead of 'have' for the plural subject 'otters'."
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'has' for 'Either Daisy or her cousins', forgetting that for 'either/or', the verb matches the noun closest to it."
         }
       ],
-      "strategic_advice": "When you see phrases like **'together with'**, **'as well as'**, or **'along with'**, cross them out lightly with your pencil. The true subject is the very first person or thing mentioned! For basic sentences, always double-check if the main noun is singular or plural before picking your verb.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- For phrases like **'together with'**, **'as well as'**, or **'along with'**, cross them out lightly with your pencil. Match the verb to the very **first noun**.\n- For **'either... or'** and **'neither... nor'**, it's the opposite! Draw an arrow from the verb to the noun **right next to it**, and match them.",
       "trigger_keywords": [
         "together with",
         "as well as",
-        "Either ... or",
-        "has / have",
-        "is / are"
+        "along with",
+        "either",
+        "neither"
       ]
     },
     {
-      "name": "Phrasal Verbs and Idioms",
-      "what": "Occasionally mixes up common idioms and phrasal verbs that look or sound similar.",
+      "name": "Negative Tag Mix-Up",
+      "what": "Occasionally forgets that words like 'seldom' or 'rarely' are already negative, mistakenly choosing a negative question tag instead of a positive one.",
       "specific_examples": [
         {
-          "questionRef": "[45]",
+          "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng chose 'the apple of my eye' instead of 'the cherry on top' to describe a wonderful final touch to a camp."
+          "whatWentWrong": "Tylerng chose 'doesn't he' for a sentence with 'seldom', not realising that 'seldom' already makes the sentence negative."
         },
         {
-          "questionRef": "[43]",
+          "questionRef": "[33]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'taken off' instead of 'taken in' when describing being tricked by a magician."
-        },
-        {
-          "questionRef": "[36]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng selected 'bitter pill to swallow' instead of 'pain in the neck' for an annoying younger brother."
+          "whatWentWrong": "He made the exact same slip in another practice, choosing a negative tag when the sentence required the positive tag 'does he'."
         }
       ],
-      "strategic_advice": "Idioms and phrasal verbs can be tricky because you cannot guess their meaning just by looking at the individual words. When you learn a new one like **'taken in'** or **'cherry on top'**, try drawing a quick silly picture of what it means, or write a sentence about someone you know using that phrase!",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- Treat words like **'seldom'**, **'rarely'**, **'hardly'**, and **'never'** as if they are the word 'not'.\n- If the sentence has one of these hidden negative words, the question tag at the end must be **positive**.",
       "trigger_keywords": [
-        "taken in",
-        "cherry on top",
-        "pain in the neck",
-        "told off"
+        "seldom",
+        "rarely",
+        "hardly",
+        "never",
+        "scarcely"
       ]
     },
     {
-      "name": "Contrast Word Traps",
-      "what": "Tends to overlook contrast words that signal a shift in meaning, leading to answers that don't quite fit the context.",
+      "name": "Skipping Surrounding Clues",
+      "what": "Tends to fill in cloze blanks by looking only at the exact spot, occasionally missing important grammar hints or contrast words nearby.",
       "specific_examples": [
         {
           "questionRef": "[61]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng wrote 'many' instead of 'permanent', missing the contrast word 'Unlike' which pairs with 'temporary nests'."
+          "whatWentWrong": "Tylerng wrote 'many' instead of 'permanent', missing the word 'Unlike' and the contrast with 'temporary living nests' later in the sentence."
         },
         {
-          "questionRef": "[31]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'so' instead of 'nevertheless', missing the contrast set up by the word 'but' earlier in the sentence."
+          "questionRef": "[63]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'variety' instead of 'queen', missing the big clue in the very next sentence which starts with 'The queen's primary role'."
         },
         {
-          "questionRef": "[41]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng picked 'Although' instead of 'Except for' when the sentence contrasted Jane's absence with everyone else attending."
+          "questionRef": "[64]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'line' after the word 'an', forgetting that 'an' must be followed by a word starting with a vowel sound."
         }
       ],
-      "strategic_advice": "When you spot contrast words like **'Unlike'**, **'but'**, or **'Although'**, treat them as a U-turn sign! They mean the second half of the sentence will be the opposite of the first half. **Highlight or circle** these words so you remember to look for an answer that shows a change in direction.",
+      "strategic_advice": "When you see a cloze blank, treat it as a stop sign:\n- Always read the sentence **before and after** the blank to look for context clues.\n- Watch out for contrast words like **'Unlike'** or **'However'**—they tell you the answer will be the opposite of another word in the sentence.\n- Check the word right before the blank! If it is **'an'**, your answer must start with a vowel sound.",
       "trigger_keywords": [
         "Unlike",
-        "but",
-        "Although",
-        "Despite",
-        "nevertheless"
+        "However",
+        "an",
+        "blank"
       ]
     },
     {
-      "name": "Hidden Negative Words",
-      "what": "Sometimes reads past negative words like 'seldom' or 'not', which completely flips the correct answer.",
+      "name": "Whose vs Whom Mix-Up",
+      "what": "Occasionally mixes up relative pronouns, getting stuck when needing to use 'whose' to show that something belongs to someone.",
       "specific_examples": [
         {
-          "questionRef": "[33]",
+          "questionRef": "[51]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng picked 'doesn't he' instead of 'does he', missing that 'seldom' is a hidden negative word that requires a positive question tag."
+          "whatWentWrong": "Tylerng chose 'whom' instead of 'whose', missing that the sentence is talking about the man's mother."
         },
         {
-          "questionRef": "[47]",
+          "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "He chose an option that was true, missing the bolded 'not' in the question."
-        },
-        {
-          "questionRef": "[50]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng missed the negative phrasing 'not supported' when comparing the two visual texts."
+          "whatWentWrong": "He left this blank, not realising that 'whose' is needed to show that the wallet belongs to the owner."
         }
       ],
-      "strategic_advice": "Negative words are small but mighty! When you see words like **'not'**, **'never'**, **'seldom'**, or **'false'**, circle them immediately. For question tags, remember that a negative word in the sentence means the tag at the end must be **positive**.",
+      "strategic_advice": "When you see a blank before a noun (like 'mother' or 'owner'), test the word **'whose'**.\n- Read it as **'his/her/its'** to see if it makes sense. For example, 'his mother is a lawyer' makes perfect sense, so **'whose'** is the right choice!",
       "trigger_keywords": [
-        "seldom",
-        "not true",
-        "not supported",
-        "never"
+        "who",
+        "whom",
+        "whose",
+        "which"
       ]
     }
   ],
@@ -122,7 +112,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 3,
@@ -138,7 +128,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -154,11 +144,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -190,7 +180,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 20,
@@ -198,15 +188,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 2
-    },
-    {
-      "idx": 22,
       "patternIndex": -1
     },
     {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -238,7 +228,7 @@
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 32,
@@ -246,7 +236,7 @@
     },
     {
       "idx": 33,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 34,
@@ -258,11 +248,11 @@
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 38,
@@ -278,7 +268,7 @@
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 42,
@@ -286,7 +276,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 44,
@@ -294,7 +284,7 @@
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 46,
@@ -302,7 +292,7 @@
     },
     {
       "idx": 47,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -314,11 +304,11 @@
     },
     {
       "idx": 50,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 51,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 52,
@@ -338,23 +328,23 @@
     },
     {
       "idx": 56,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 57,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 58,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 59,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 60,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 61,
@@ -362,19 +352,19 @@
     },
     {
       "idx": 62,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 63,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 64,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 65,
-      "patternIndex": -1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -444,7 +434,7 @@
     "64": "cmol9rajj007zqlmbntcoxpc7",
     "65": "cmol9rajj0080qlmbki6cmdf1"
   },
-  "generatedAt": "2026-06-17T07:47:04.511Z",
+  "generatedAt": "2026-06-17T09:23:59.399Z",
   "wrongCounts": {
     "total": 65,
     "oeq": 10,

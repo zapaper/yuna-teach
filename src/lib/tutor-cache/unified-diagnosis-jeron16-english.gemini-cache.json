@@ -1,84 +1,86 @@
 {
   "patterns": [
     {
-      "name": "Word Form Slips",
-      "what": "Sometimes understands the meaning needed but writes down the wrong form of the word, like using an adjective when the sentence needs a noun or a verb.",
+      "name": "Word Family Mix-Up",
+      "what": "Tends to understand the general meaning needed but occasionally writes down the wrong form of the word, like using an adjective instead of a noun or verb.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'enthuasitic' (a describing word) instead of 'enthusiasts' (a noun) for the people waiting in line."
+          "whatWentWrong": "Jeron16 knew the word related to 'enthusiasm' but wrote the adjective 'enthusiastic' instead of the noun 'enthusiasts' for the people in the queue."
         },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "He used 'alike' instead of an action word like 'resemble' to describe how the bumps look."
+          "whatWentWrong": "He correctly guessed the sentence was comparing bumps to chicken skin, but used the describing word 'alike' instead of the action word 'resemble'."
         },
         {
-          "questionRef": "[4]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'past' instead of the continuous word 'passing' to describe the minutes going by."
+          "whatWentWrong": "Jeron16 used the describing word 'closely' instead of the necessary linking verb 'is' to complete the sentence structure."
         }
       ],
-      "strategic_advice": "When you fill in a blank, check what job the word needs to do in the sentence.\n- **Ask yourself:** Does this blank need a 'doing' word (verb), a 'describing' word (adjective), or a 'thing' word (noun)?\n- **Read the whole sentence** with your word in it to see if it sounds grammatically correct.",
+      "strategic_advice": "When filling in a blank, always check the **job of the word** needed.\n- Ask yourself: 'Do I need an **action word** (verb), a **naming word** (noun), or a **describing word** (adjective)?'\n- Read the completed sentence aloud to see if the grammar sounds right.",
       "trigger_keywords": [
-        "each ___ minute",
-        "fellow ___",
-        "bumps that ___"
+        "fill in each blank",
+        "passage",
+        "editing"
       ]
     },
     {
-      "name": "Fixed Phrase Slips",
-      "what": "Occasionally mixes up the exact words needed for common English phrases, idioms, or words that always pair together.",
+      "name": "Tricky Word Partners",
+      "what": "Sometimes mixes up fixed phrases, idioms, or phrasal verbs where specific words must always be paired together.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'stand on straight' instead of the common phrase 'stand on end' for hair standing up."
+          "whatWentWrong": "Jeron16 wrote 'stand on straight' instead of the fixed idiom 'stand on end' when describing hair standing up."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'in spite to' instead of the correct matching phrase 'in addition to'."
+          "whatWentWrong": "He wrote 'in spite to' instead of the correct connector 'in addition to', mixing up two different phrases."
         },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Jeron16 picked 'get through' instead of 'get ahead' when talking about becoming successful in life."
+          "whatWentWrong": "Jeron16 chose 'get through' instead of 'get ahead', which is the specific phrasal verb for becoming successful in life."
         }
       ],
-      "strategic_advice": "Many English words travel in pairs or fixed groups. When you see a preposition like 'in', 'on', or 'to', treat it as a clue!\n- **Look out for prepositions** right before or after the blank, as they often lock in the exact word you need to use.\n- **Read widely** to get a natural feel for idioms and phrases that cannot be changed.",
+      "strategic_advice": "When you see a preposition (like **to**, **in**, **on**, **with**) next to a blank, treat it as a major clue.\n- Look at the words immediately before and after the blank to spot **fixed pairs** (like 'results **in**' or 'within **reach**').\n- If you are unsure, try substituting the whole phrase with a single word to see if the meaning still fits the sentence.",
       "trigger_keywords": [
-        "stand on ___",
         "in ___ to",
-        "so as to ___"
+        "stand on ___",
+        "so as to",
+        "results ___"
       ]
     },
     {
-      "name": "Hidden Sentence Clues",
-      "what": "Tends to choose an answer without spotting the subtle hints in the sentence that point to the correct time, condition, or exact meaning.",
+      "name": "Missing Sentence Clues",
+      "what": "Occasionally overlooks small clue words earlier or later in the sentence that signal the correct tense, pronoun, or exact vocabulary word to use.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Jeron16 picked the present tense 'has' because he missed the past time clue 'at first'."
+          "whatWentWrong": "Jeron16 missed the time clue 'at first', which signals that the action happened in the past, and picked the present tense 'has' instead of 'had'."
         },
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'experience' instead of 'wondered', missing the clue that the sentence is asking a question about why something happens."
+          "whatWentWrong": "He wrote 'experience' instead of 'wondered', missing the clue 'what exactly makes...' which shows the author is asking a question."
         },
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 chose 'preventing' instead of 'protecting', missing the subtle difference in meaning when talking about shielding from the wind."
+          "whatWentWrong": "Jeron16 chose 'preventing' instead of 'protecting', missing the subtle clue that insulation guards against the wind rather than stopping the wind from existing."
         }
       ],
-      "strategic_advice": "Sentences often hide clues that tell you exactly what word to use. Be a detective!\n- **Look for time words** like 'at first' or 'yesterday' to choose the right tense.\n- **Check the meaning** of the whole sentence to make sure your word makes logical sense in that specific situation.",
+      "strategic_advice": "Before answering, scan the whole sentence for **time markers** (like 'at first', 'yesterday', 'since') that tell you which tense to use.\n- Look for **question words** or **logical connectors** that hint at the meaning of the missing word.\n- Always read the sentence **one line before and one line after** the blank to get the full context.",
       "trigger_keywords": [
         "at first",
-        "have you ever ___",
-        "___ them from"
+        "what exactly",
+        "after",
+        "if"
       ]
     }
   ],
@@ -166,7 +168,7 @@
     "15": "cmpsi4op5001rji84u4ocvfd7",
     "16": "cmpsi4op5001vji84qaujvcsi"
   },
-  "generatedAt": "2026-06-17T07:35:10.201Z",
+  "generatedAt": "2026-06-17T09:13:23.872Z",
   "wrongCounts": {
     "total": 16,
     "oeq": 13,

@@ -1,117 +1,97 @@
 {
   "patterns": [
     {
-      "name": "Phrasal Verb Mix-Ups",
-      "what": "Sometimes chooses the wrong preposition to go with a verb, which changes the meaning of the action completely.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes mixes up the small prepositions attached to verbs, which changes the meaning of the action.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi picked 'kick off' instead of 'kick in' for medication starting to work."
+          "whatWentWrong": "Rizqi chose \"kick off\" instead of \"kick in\" for medication starting to work."
         },
         {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi wrote 'above' instead of 'over' when describing pulling a hood tightly on a head."
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He picked \"taken up\" instead of \"taken in\" when describing being tricked by a magician."
         },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi confused 'looked after' (taking care of) with 'looked to' (seeking support from)."
+          "whatWentWrong": "Rizqi chose \"look after\" (to care for) instead of \"look to\" (to seek support from)."
         }
       ],
-      "strategic_advice": "When you see a verb followed by a blank, read the whole sentence to figure out the exact meaning needed.\n- **'kick in'** means to start working, while **'kick off'** means to start an event.\n- **'taken in'** means to be fooled, while **'taken up'** means to start a hobby.\n- Try replacing the phrasal verb with a simple word (like 'fooled' or 'started') to see if it matches the story.",
+      "strategic_advice": "When you see a verb with a preposition (like **\"kick\"**, **\"set\"**, or **\"take\"**), read the whole sentence and try replacing the phrase with its meaning.\n- **\"Kick in\"** means to start working, while **\"kick off\"** means to start an event.\n- **\"Taken in\"** means to be fooled, while **\"taken up\"** means to start a hobby.",
       "trigger_keywords": [
         "kick",
         "set",
         "taken",
-        "looked",
-        "tightly"
+        "look"
       ]
     },
     {
-      "name": "Hidden Grammar Clues",
-      "what": "Occasionally misses small clues in the sentence that tell us exactly which form of a word to use, like time words or special action words.",
+      "name": "Missing Sentence Clues",
+      "what": "Tends to pick a vocabulary word that sounds right on its own, but occasionally misses the hidden clues in the sentence that point to a different answer.",
       "specific_examples": [
         {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi wrote 'live' instead of 'living' for the continuous action 'would otherwise be living'."
-        },
-        {
-          "questionRef": "[19]",
+          "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi used the past tense 'felt' instead of 'feel' after the special word 'made'."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi chose 'struck' instead of 'strike' after the sensing word 'saw'."
-        }
-      ],
-      "strategic_advice": "When you have to choose a verb form, look for the 'bossy' words in the sentence:\n- Words like **'made'**, **'let'**, and **'saw'** are bossy—they force the next action word to be in its simplest form (e.g., 'made her **feel**', 'saw it **strike**').\n- Always check the **time clues** in the same sentence. If you see a past tense word like 'kept', make sure your answer is also in the past tense (**'were'**).",
-      "trigger_keywords": [
-        "made",
-        "saw",
-        "kept",
-        "yesterday",
-        "last night"
-      ]
-    },
-    {
-      "name": "Tricky Spellings",
-      "what": "Tends to misspell challenging words or occasionally mixes up words that sound similar but have different forms.",
-      "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi missed the double 's' at the end of 'possess'."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi spelled 'gazed' as 'gaise' when describing looking into the owl's eyes."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi confused 'who's' (who is) with 'whose' (belonging to)."
-        }
-      ],
-      "strategic_advice": "For the editing section, sound out the word carefully and watch out for double letters.\n- When you see words with 's', double-check if they need a twin (like **'possess'**).\n- For words that sound the same, break them apart. **'Who's'** always means 'who is', so if you can't say 'who is' in the sentence, use **'whose'** instead.",
-      "trigger_keywords": [
-        "posess",
-        "gaised",
-        "who's",
-        "whose",
-        "precised"
-      ]
-    },
-    {
-      "name": "Word Choice Clues",
-      "what": "Sometimes picks a vocabulary word that makes sense on its own but doesn't quite fit the specific clues hidden in the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi chose 'proposed' instead of 'anticipated' for a delay caused by a flashflood."
+          "whatWentWrong": "Rizqi chose \"humble\" for the feast, missing the clue \"lots of leftovers and wastage\" which points to a \"lavish\" meal."
         },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi picked 'immature' instead of 'impulsive' for an act done without checking the truth first."
+          "whatWentWrong": "He picked \"immature\" instead of \"impulsive\" for the act of spreading rumours without checking the truth first."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi selected 'humble' instead of 'lavish' when the clue mentioned 'lots of leftovers'."
+          "whatWentWrong": "Rizqi chose \"proposed\" instead of \"anticipated\" for a delay caused by a flashflood."
         }
       ],
-      "strategic_advice": "Treat vocabulary questions like a detective game. The sentence always hides a clue!\n- If there are **'lots of leftovers'**, the feast must be huge (**'lavish'**), not small (**'humble'**).\n- If someone acts **'without checking the truth first'**, they are acting too quickly (**'impulsive'**).\n- Always underline the clue words in the sentence before picking your answer.",
+      "strategic_advice": "Treat vocabulary questions like a detective game. Look for **clue words** in the sentence before looking at the options.\n- If the sentence mentions **\"leftovers and wastage\"**, the feast must be **\"lavish\"** (plentiful), not humble.\n- If someone acts **\"without checking the truth first\"**, they are being **\"impulsive\"** (acting without thinking).",
       "trigger_keywords": [
+        "leftovers",
         "without checking",
-        "lots of leftovers",
-        "due to the flashflood"
+        "due to"
+      ]
+    },
+    {
+      "name": "Special Verb Rules",
+      "what": "Occasionally forgets that special action words like \"make\" or \"see\" require the next verb to be in its base form, even if the story happened in the past.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose the past tense \"felt\" after the word \"made\", but the correct form is the base word \"feel\"."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He picked \"struck\" after the word \"saw\", but sensory verbs require the base form \"strike\"."
+        }
+      ],
+      "strategic_advice": "When you see these special verbs, treat them as stop signs for verb tenses:\n- **\"Made\"**, **\"let\"**, or **\"helped\"** → the next verb must always be in its base form (e.g., \"made her **feel**\").\n- **\"Saw\"**, **\"heard\"**, or **\"watched\"** → use the base form for a completed action (e.g., \"saw it **strike**\").",
+      "trigger_keywords": [
+        "made",
+        "saw",
+        "let",
+        "heard"
+      ]
+    },
+    {
+      "name": "Whose vs Who's Confusion",
+      "what": "Occasionally mixes up \"whose\" (which shows ownership) with \"who's\" (which is short for \"who is\").",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"who's\" instead of \"whose\" when talking about who owned the lost phone."
+        }
+      ],
+      "strategic_advice": "When you are stuck between these two words, try expanding **\"who's\"** to **\"who is\"** in the sentence.\n- If **\"who is\"** doesn't make sense (e.g., \"had no idea **who is** it was\"), then the correct answer must be **\"whose\"** to show ownership.",
+      "trigger_keywords": [
+        "whose",
+        "who's"
       ]
     }
   ],
@@ -122,15 +102,15 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 5,
@@ -138,11 +118,11 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 8,
@@ -150,39 +130,39 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -190,19 +170,19 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
-    },
-    {
-      "idx": 20,
-      "patternIndex": 1
-    },
-    {
-      "idx": 21,
       "patternIndex": 2
     },
     {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -229,7 +209,7 @@
     "21": "cmptzgi1v001h14gmxffs6oqr",
     "22": "cmptzgi1v001i14gm0grnay7i"
   },
-  "generatedAt": "2026-06-17T07:43:03.518Z",
+  "generatedAt": "2026-06-17T09:20:56.972Z",
   "wrongCounts": {
     "total": 22,
     "oeq": 8,

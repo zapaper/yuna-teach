@@ -1,84 +1,101 @@
 {
   "patterns": [
     {
-      "name": "Verb Forms and Tenses",
-      "what": "Sometimes uses the wrong verb tense or form, especially when dealing with time clues or reported speech.",
+      "name": "Verb Tense Mix-Up",
+      "what": "Occasionally uses the past tense when the present is needed, or mixes up verb forms like writing 'had went' instead of 'had gone'.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "Joylynn used the past tense 'made' instead of the present tense 'makes' for an action that happens 'daily'."
+          "whatWentWrong": "Joylynn used the past tense 'made' instead of the present tense 'makes' for an action that happens daily."
         },
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'had went' instead of the correct past participle 'had gone' in reported speech."
+          "whatWentWrong": "She wrote 'had went' instead of the correct past participle 'had gone'."
         },
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "She chose the past tense 'struck' instead of the base form 'strike' after the sensory verb 'saw'."
+          "whatWentWrong": "Joylynn chose the past tense 'struck' instead of the base form 'strike' after the sensory verb 'saw'."
         }
       ],
-      "strategic_advice": "When you see time clues like **'daily'** or **'yesterday'**, use them to guide your verb tense.\n- For **reported speech**, remember that past tense verbs usually shift back to the past perfect (using 'had' + past participle, like **'had gone'**).\n- After sensory verbs like **'saw'** or **'heard'**, always use the base form of the verb (like **'strike'**) or the '-ing' form.",
+      "strategic_advice": "When you see time clues or special verbs, treat them as stop signs:\n- **'daily'** or **'regularly'** → use the present tense.\n- **'had'** or **'have'** → always follow with a past participle (like 'gone', not 'went').\n- **Sensory verbs** like **'saw'** or **'heard'** → follow with a base word (strike) or an '-ing' word (striking).",
       "trigger_keywords": [
         "daily",
         "yesterday",
         "saw",
-        "asked"
+        "had"
       ]
     },
     {
-      "name": "Choosing the Right Word",
-      "what": "Occasionally picks words or phrasal verbs that look similar or have related meanings but don't quite fit the context of the sentence.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes confuses two-part verbs that look similar but have very different meanings.",
       "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Joylynn chose 'indignant' instead of 'tenacious' to describe someone who never gives up."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "She confused 'explore' with 'exploit' when describing loggers cutting down too many trees."
-        },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'looked into' instead of 'looked to' for seeking support from an older brother."
+          "whatWentWrong": "Joylynn chose 'looked into' (which means to investigate) instead of 'looked to' (which means to rely on someone)."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'set for' instead of 'set off' to describe getting started on a journey."
         }
       ],
-      "strategic_advice": "When you see tricky vocabulary options, try plugging each word into the sentence to see if it makes logical sense.\n- **Phrasal verbs** (like 'set off' or 'look to') often have specific meanings, so it helps to read the whole sentence for context clues.\n- If two words look similar (like 'explore' and 'exploit'), pause to think about their exact definitions before choosing.",
+      "strategic_advice": "Phrasal verbs can be tricky because changing just one small word changes the whole meaning!\n- **Read the whole sentence** and guess the meaning before looking at the options.\n- **Try replacing the phrase** with a single word (like 'investigate' for 'look into') to see if it makes sense in the sentence.",
       "trigger_keywords": [
-        "___",
-        "most suitable word",
-        "phrasal verbs"
+        "looked",
+        "set",
+        "blew"
       ]
     },
     {
-      "name": "Rewriting Sentences",
-      "what": "Tends to get tangled up when rewriting sentences, either by mixing up the new structure or making small spelling and capitalization slips.",
+      "name": "Tricky Word Choices",
+      "what": "Tends to pick vocabulary words that might look familiar or similar, but don't quite fit the exact meaning of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn confused 'explore' (to discover) with 'exploit' (to take unfair advantage of)."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'indignant' (angry) instead of 'tenacious' (never giving up) to describe a tough opponent."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Joylynn chose 'proposed' instead of 'expected' for a delay caused by a flood."
+        }
+      ],
+      "strategic_advice": "When faced with tough vocabulary choices, use the clues hidden in the sentence:\n- **Look for context clues** like 'never giving up' or 'without considering the environmental impact' to guide your choice.\n- **Eliminate words** you know definitely don't fit, and read the sentence quietly to yourself with the remaining options to see which sounds most natural.",
+      "trigger_keywords": [
+        "spirit",
+        "due to",
+        "loggers",
+        "instinct"
+      ]
+    },
+    {
+      "name": "New Sentence Starters",
+      "what": "Sometimes finds it tricky to adjust the grammar when a synthesis question provides a new starting phrase.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "Joylynn kept the original sentence order after 'Much to' instead of changing it to a noun phrase, and included several typing slips."
+          "whatWentWrong": "Joylynn kept the original sentence structure instead of changing it to match the new starter 'Much to Mr Fandi's relief'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "She mixed up the passive voice structure, writing 'trims by' instead of 'are trimmed by'."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "She used the correct 'Due to' structure but misspelled 'nervousness' and forgot to capitalize the 'I' in 'I forgot'."
+          "whatWentWrong": "She missed adding 'are' to make 'are trimmed by', which is needed when starting the sentence with the object 'The trees'."
         }
       ],
-      "strategic_advice": "When you see prompts like **'Much to'** or **'Due to'**, remember they are usually followed by a noun (like 'relief' or 'nervousness'), not a full sentence.\n- For **passive voice**, always check that you have a 'be' verb (is/are/was/were) plus the past participle.\n- Before moving on, take a few seconds to **proofread your sentence** for spelling and capitalization.",
+      "strategic_advice": "When a question gives you a new starting phrase, the whole sentence structure usually needs to shift:\n- **'Much to...'** → always follow this with a feeling noun, like 'Much to his relief' or 'Much to her surprise'.\n- **Starting with the object** (like 'The trees') → remember to use the passive voice by adding 'is' or 'are' before the action word.",
       "trigger_keywords": [
         "Much to",
-        "Due to",
         "The trees"
       ]
     }
@@ -90,7 +107,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -98,7 +115,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 5,
@@ -106,15 +123,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -122,7 +139,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -130,7 +147,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 13,
@@ -138,11 +155,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -162,7 +179,7 @@
     "14": "cmpw9w065000u8k89ge5kbbsm",
     "15": "cmpw9w065000v8k8916tcym34"
   },
-  "generatedAt": "2026-06-17T07:37:07.424Z",
+  "generatedAt": "2026-06-17T09:14:49.925Z",
   "wrongCounts": {
     "total": 15,
     "oeq": 5,

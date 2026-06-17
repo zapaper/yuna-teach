@@ -1,85 +1,103 @@
 {
   "patterns": [
     {
-      "name": "Skipping Questions",
-      "what": "Sometimes leaves tricky questions completely blank instead of writing down a best guess.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "IJ left the explanation for the hydro-electric power station completely blank."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "IJ skipped choosing an option for the single-cellular organism question."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "IJ left the steps for the experiment completely blank."
-        }
-      ],
-      "strategic_advice": "When you see a tough question, **never leave it blank**!\n- For written answers, write down any **science keywords** you remember about the topic—you might score partial marks.\n- For multiple-choice, cross out the answers you know are wrong and **take a guess** from the rest.",
-      "trigger_keywords": [
-        "explain",
-        "list down",
-        "which of the following"
-      ]
-    },
-    {
       "name": "One Step Short",
-      "what": "Tends to start an explanation beautifully but occasionally stops one step short of stating the final scientific reason or consequence.",
+      "what": "Often writes down a good starting thought but occasionally stops before explaining the final scientific reason or consequence.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "IJ correctly noted the shorter distance but left the sentence incomplete before mentioning the risk of overcrowding."
+          "whatWentWrong": "IJ noted that the seeds would travel a shorter distance, but missed the final consequence that this causes overcrowding."
         },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "IJ knew the animals puff up to look bigger, but forgot to explain that multiple entrances help them escape."
+          "whatWentWrong": "IJ mentioned that having many entrances makes the burrow accessible, but missed the survival reason of escaping if one entrance is blocked by a predator."
         },
         {
-          "questionRef": "[20]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "IJ understood the bears would lack a resting platform, but missed the step about them being forced to swim longer distances."
+          "whatWentWrong": "IJ correctly stated that air has no definite volume, but forgot to mention the other half of the concept: water has a definite volume."
         }
       ],
-      "strategic_advice": "When you see prompts asking for an explanation, always push your answer to the very end.\n- Ask yourself **'and then what happens?'** to make sure you include the final consequence.\n- Use a **'so that...'** or **'causing...'** clause to connect your facts to the final result.",
+      "strategic_advice": "When you see prompts asking you to explain, treat them as a two-step journey:\n- **'Explain how'** or **'Explain why'** → state your observation, then add a **'so that...'** or **'which causes...'** clause to show the final result.\n- **'Advantage / Disadvantage'** → always link the feature back to survival, overcrowding, or energy.",
       "trigger_keywords": [
-        "explain how",
-        "explain why",
-        "describe how"
+        "Explain why",
+        "Explain how",
+        "Describe how",
+        "Advantage",
+        "Disadvantage"
       ]
     },
     {
-      "name": "Missing Key Words",
-      "what": "Occasionally reads past important instruction words or specific rules hidden in the question text.",
+      "name": "Skipping Questions",
+      "what": "Occasionally leaves questions completely blank, especially when they look long or ask for an explanation or experiment steps.",
       "specific_examples": [
         {
-          "questionRef": "[23]",
+          "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "IJ suggested adding oil, missing the strict rule to answer 'without adding or removing any materials'."
+          "whatWentWrong": "IJ left the explanation for the advantage of a high hydro-electric turbine completely blank."
         },
         {
-          "questionRef": "[42]",
-          "type": "mcq",
-          "whatWentWrong": "IJ picked a true fact because he missed the word 'not' in the prompt asking for the incorrect statement."
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the explanation about which spring produces the loudest sound blank."
         },
         {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "IJ counted individual plants and animals instead of grouping them, missing the key word 'populations'."
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the steps for conducting the seed dispersal experiment blank."
         }
       ],
-      "strategic_advice": "When you see special instruction words, treat them as stop signs.\n- **Circle or highlight** words like **'not'**, **'without'**, or **'only'** before you look at the options.\n- Double-check the exact wording (like **'populations'** vs individuals) to make sure you are answering exactly what is asked.",
+      "strategic_advice": "When you see a long question or one asking for steps, don't leave it blank! Try these tricks:\n- **'List down the steps'** → imagine you are telling a friend how to do the activity, and write down the first thing you would do.\n- **'Explain your answer'** → even if you aren't sure of the whole answer, write down the science keywords you know about the topic to grab partial marks.",
       "trigger_keywords": [
-        "not correct",
-        "without adding",
-        "populations",
-        "only"
+        "Explain your answer",
+        "List down the steps",
+        "Give one advantage"
+      ]
+    },
+    {
+      "name": "Chewing vs Digesting Mix-Up",
+      "what": "Sometimes confuses the physical chewing of food into smaller pieces (which happens in the mouth) with the chemical digestion of food into simpler substances (which happens in the stomach and small intestine).",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "IJ labelled the mouth, stomach, and small intestine as places where food is 'broken into smaller pieces', instead of just the mouth."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "IJ again selected the mouth, stomach, and small intestine for 'breaks food into smaller pieces', when only the mouth was expected."
+        }
+      ],
+      "strategic_advice": "When you see questions about the digestive system, remember the difference between physical and chemical changes:\n- **'Breaks food into smaller pieces'** → this is physical chewing, which only happens in the **mouth**.\n- **'Breaks down into simpler substances'** → this is chemical digestion, which happens in the **mouth, stomach, and small intestine**.",
+      "trigger_keywords": [
+        "breaks food into smaller pieces",
+        "digestion",
+        "digestive system"
+      ]
+    },
+    {
+      "name": "Series vs Parallel Mix-Up",
+      "what": "Sometimes mixes up how to draw series and parallel circuits, especially when trying to keep one part of the circuit working while another part is broken.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "IJ needed to draw a parallel arrangement for the bulb and sound box but missed the correct connections."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "IJ drew a series circuit instead of a parallel one, even though IJ correctly wrote that the bulbs should have separate pathways."
+        }
+      ],
+      "strategic_advice": "When you see questions asking you to draw a circuit, look for clues about how the components behave:\n- **'Remained lit'** or **'still play music'** → this is a huge clue that you must draw a **parallel circuit** with separate loops.\n- **'Draw wires'** → always double-check that your wires connect to both the **metal tip** and the **metal casing** of the bulb.",
+      "trigger_keywords": [
+        "draw wires to complete the circuit",
+        "remained lit",
+        "parallel"
       ]
     }
   ],
@@ -98,15 +116,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -122,7 +140,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 11,
@@ -130,11 +148,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -146,7 +164,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 17,
@@ -154,31 +172,31 @@
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 25,
@@ -206,7 +224,7 @@
     },
     {
       "idx": 31,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 32,
@@ -218,7 +236,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 35,
@@ -250,7 +268,7 @@
     },
     {
       "idx": 42,
-      "patternIndex": 2
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -297,7 +315,7 @@
     "41": "cmq3jr5pt00161329tdur5gky",
     "42": "cmq3jr5pt00171329t54i1vn3"
   },
-  "generatedAt": "2026-06-17T07:33:52.073Z",
+  "generatedAt": "2026-06-17T09:11:51.347Z",
   "wrongCounts": {
     "total": 42,
     "oeq": 18,

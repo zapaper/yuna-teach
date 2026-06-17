@@ -1,127 +1,122 @@
 {
   "patterns": [
     {
-      "name": "Stopping Too Early",
-      "what": "Shows a good understanding of the first part of a scientific answer, but occasionally stops before writing down the final consequence or the full reason.",
+      "name": "Forgotten Science Words",
+      "what": "Shows good understanding of the science but occasionally forgets to include the exact scientific terms or link the answer back to the experiment's aim.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Ruthie correctly noted that the plant gives out oxygen, but forgot to mention that the fish needs it for respiration."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "She correctly identified the best temperature and water conditions from the graph, but forgot to write down the explanation for her choice."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Ruthie mentioned that seed leaves provide food, but stopped short of explaining that it is stored food used before true leaves appear."
-        }
-      ],
-      "strategic_advice": "When you see **'explain why'** or **'how does it benefit'**, treat it as a two-step journey.\n- Use the **'so that...'** or **'because...'** trick to force yourself to write the final consequence.\n- Always link the action back to a life process (like respiration or photosynthesis) or a specific condition given in the question.",
-      "trigger_keywords": [
-        "explain how",
-        "explain why",
-        "benefit",
-        "give a reason"
-      ]
-    },
-    {
-      "name": "Missing Science Words",
-      "what": "Uses everyday descriptions occasionally instead of the specific scientific terms that examiners are looking for to award full marks.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "She defined a community as populations living together, but missed the key phrase 'in a habitat'."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Ruthie described the energy source as 'the wind from the turbine' instead of the scientific term 'moving air'."
+          "whatWentWrong": "Ruthie correctly noted that the plant gives out oxygen, but forgot to mention the fish needs it for 'respiration'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "She left the source of energy blank or too vague, missing the specific term 'elastic potential energy'."
-        }
-      ],
-      "strategic_advice": "When answering open-ended questions, imagine you are writing a science textbook.\n- Ask yourself: 'Is there a special Science word for this?'\n- Instead of 'the rubber band', use **'elastic potential energy'**. Instead of 'moving', use **'kinetic energy'**.\n- Keep a small list of 'must-use' vocabulary for each topic and practice using them in your answers.",
-      "trigger_keywords": [
-        "what is",
-        "state the source",
-        "give a reason",
-        "what is the function"
-      ]
-    },
-    {
-      "name": "Experiment Setup Rules",
-      "what": "Misses the strict rules for experiment questions occasionally, such as finding the exact aim, choosing a control, or stating a full relationship from a graph.",
-      "specific_examples": [
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "When stating the relationship from the graph, she missed the flat part where the distance remains the same after 20 turns."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "Ruthie chose a control setup that changed two variables instead of keeping everything the same except for the carbon dioxide."
+          "whatWentWrong": "She knew the rubber band made the car move, but missed using the specific term 'elastic potential energy'."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "She wrote the aim as 'to see how rough each surface is' instead of the more precise 'to find out how the different surface affects the distance travelled'."
+          "whatWentWrong": "She understood the experiment was about rough surfaces, but forgot to state how the surface affects the 'distance travelled'."
         }
       ],
-      "strategic_advice": "Experiment questions have strict rules you can memorize!\n- For a **control setup**, remember that only ONE thing can change. Everything else must be exactly the same.\n- For the **aim of an experiment**, always use the format: 'To find out how [the variable I changed] affects [the variable I measured].'\n- When reading a **graph**, trace it with your finger. If the line goes up and then goes flat, your answer must mention both parts!",
+      "strategic_advice": "When you see **'explain'** or **'state the aim'**, use your science vocabulary checklist:\n- **Name the process**: Is it respiration, photosynthesis, or evaporation?\n- **Name the energy/force**: Use full names like 'elastic potential energy' or 'frictional force'.\n- **Link to the result**: Always mention how the changed variable affects the final measurement (like distance or time).",
       "trigger_keywords": [
-        "control",
-        "aim of the experiment",
-        "relationship",
-        "more accurate",
-        "conclude"
+        "explain",
+        "state the aim",
+        "what is the source"
       ]
     },
     {
-      "name": "Energy Change Mix-Ups",
-      "what": "Loses track occasionally when following how energy changes from one form to another, or when identifying which forces are acting on an object at a specific moment.",
+      "name": "Energy Type Mix-Up",
+      "what": "Mixes up energy concepts occasionally, such as confusing the potential energy stored in a battery with electrical energy, or forgetting how kinetic energy changes.",
       "specific_examples": [
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "She thought the elastic spring force was still acting on the block even after it had moved away from the spring."
-        },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "Ruthie thought the ball had zero kinetic energy at point C, forgetting that it was still moving upwards."
+          "whatWentWrong": "Ruthie mixed up how kinetic energy changes as a ball rolls up and down a ramp."
         },
         {
-          "questionRef": "[20]",
-          "type": "oeq",
-          "whatWentWrong": "She used the word 'inertia' to describe why the balloon kept moving, instead of identifying that it still had 'kinetic energy'."
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "She thought a phone battery starts with electrical energy, rather than storing 'potential energy'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "She missed that a bouncing ball eventually stops because its energy is converted into sound and heat."
         }
       ],
-      "strategic_advice": "When tackling energy and forces questions, take it step-by-step like a slow-motion video.\n- Ask yourself: 'Is it moving right now?' If yes, it has **kinetic energy**.\n- Ask yourself: 'Is it touching the spring right now?' If no, there is **no elastic spring force**.\n- Remember that batteries always store **potential energy** first, before converting it to electrical energy.",
+      "strategic_advice": "When you see questions about **'energy conversion'**, remember these rules:\n- **Batteries and food** store **potential energy** (chemical), not electrical energy.\n- **Moving objects** have **kinetic energy**, which changes to potential energy as they go higher.\n- **Nothing is destroyed**: Energy always changes into something else, often **heat and sound** when things stop.",
       "trigger_keywords": [
         "energy conversion",
-        "forces acting",
-        "kinetic energy",
-        "potential energy"
+        "source of energy",
+        "kinetic energy"
+      ]
+    },
+    {
+      "name": "Fair Test Mix-Up",
+      "what": "Confuses the rules of a fair test sometimes, such as changing too many variables for a control set-up or mixing up repeating an experiment with keeping it fair.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "When asked how to make results more accurate, Ruthie suggested repeating the experiment instead of controlling a variable like the release height."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "She picked a control set-up that changed two things (removing the glass cover and the chemical) instead of just one."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She concluded that seeds need water, even though the experiment was specifically testing the effect of different temperatures."
+        }
+      ],
+      "strategic_advice": "When you see **'control'**, **'accurate'**, or **'conclude'**, treat them as stop signs:\n- **Control set-up** → Keep everything exactly the same, but change ONLY the one thing you are testing.\n- **Accurate/Fair test** → Look for variables that need to be kept the same (like starting height or amount of water).\n- **Conclusion** → Always answer based on the variable that was changed in the experiment, not just general science facts.",
+      "trigger_keywords": [
+        "control for his experiment",
+        "make his results more accurate",
+        "effect of"
+      ]
+    },
+    {
+      "name": "Data Reading Slips",
+      "what": "Misses small details when reading graphs or diagrams, such as overlooking a flat line on a graph or confusing the types of items with the total number.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Ruthie misread the options about populations versus individual organisms in the habitat diagram."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "She saw 5 bars on the graph and thought there were 5 organisms total, instead of 5 types of organisms."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "She mixed up the melting and boiling points when figuring out the state of a substance at different temperatures."
+        }
+      ],
+      "strategic_advice": "When you see **'Based on the graph'** or **'Which statement is correct'**, take a moment to double-check the labels:\n- **Read the axes** → Check if the numbers mean 'total organisms' or 'types of organisms'.\n- **Trace the lines** → Use your pencil to follow the data points, especially looking for where a line goes flat.\n- **Check every option** → Cross out the ones that are definitely wrong before picking your final answer.",
+      "trigger_keywords": [
+        "Based on the results",
+        "Based on the graph",
+        "Which of the following statements"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -133,15 +128,15 @@
     },
     {
       "idx": 5,
-      "patternIndex": -1
-    },
-    {
-      "idx": 6,
       "patternIndex": 3
     },
     {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 8,
@@ -153,15 +148,15 @@
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
@@ -173,11 +168,11 @@
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 17,
@@ -185,23 +180,23 @@
     },
     {
       "idx": 18,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 20,
-      "patternIndex": 3
-    },
-    {
-      "idx": 21,
       "patternIndex": 0
     },
     {
-      "idx": 22,
+      "idx": 21,
       "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
     },
     {
       "idx": 23,
@@ -209,7 +204,7 @@
     },
     {
       "idx": 24,
-      "patternIndex": 3
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -238,7 +233,7 @@
     "23": "cmou110da002r954y6ri0hi34",
     "24": "cmou110dc0036954yhxbdcwtn"
   },
-  "generatedAt": "2026-06-17T07:43:44.460Z",
+  "generatedAt": "2026-06-17T09:21:11.474Z",
   "wrongCounts": {
     "total": 24,
     "oeq": 9,

@@ -1,96 +1,87 @@
 {
   "patterns": [
     {
-      "name": "Small Hidden Clues",
-      "what": "Sometimes reads the text quickly and misses small but important words or specific instructions that completely change the final answer.",
+      "name": "Skipping Small Words",
+      "what": "Sometimes reads a question or option a bit too quickly and misses small but important words that change the answer.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Caleb missed the word 'only' in the options, which was the key to finding the false statement."
+          "whatWentWrong": "Caleb missed the word 'only' in the option, which was the clue that made the statement false."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "He transformed the sentence well but accidentally left out the word 'new'."
+          "whatWentWrong": "He left out the word 'new' when rewriting the sentence, which changed the meaning of the museum."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "Caleb overlooked the word 'again' in the question, which meant Mindy was a returning customer."
+          "whatWentWrong": "Caleb missed the word 'again' in the question, which was the clue to look for the 'returning customer' discount."
         }
       ],
-      "strategic_advice": "When you see absolute words like **'only'**, **'always'**, or **'again'**, treat them as trap warnings and circle them. For transformation questions, use your pencil to tick off every single word from the original sentence so nothing gets left behind.",
+      "strategic_advice": "- When you see words like **'only'**, **'not true'**, or **'again'**, treat them as stop signs and **underline** them.\n- Always double-check your final answer against the specific details mentioned in the text to make sure nothing was left out.",
       "trigger_keywords": [
-        "not true",
         "only",
+        "not true",
         "again",
-        "wanted to know"
+        "new"
       ]
     },
     {
-      "name": "Clues Around Blanks",
-      "what": "Occasionally picks a word that makes sense on its own but misses the hints hidden in the sentences right before or after the blank.",
+      "name": "Word Meaning Mix-Up",
+      "what": "Occasionally picks a vocabulary word that is related to the topic but doesn't perfectly match the exact meaning needed in the sentence.",
       "specific_examples": [
         {
-          "questionRef": "[10]",
+          "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'the' instead of an adjective like 'poor' to describe the problematic conditions mentioned later in the paragraph."
+          "whatWentWrong": "He used 'equip' instead of 'provide', but we usually 'provide' a place rather than 'equip' people with a place."
         },
         {
-          "questionRef": "[12]",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "Caleb picked 'supposedly' instead of 'moderately', missing the hint that the beach was 'somewhat' clean."
+          "whatWentWrong": "He chose 'dedication' instead of 'resolution' to match the meaning of making a firm 'commitment'."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "He chose 'introduce' instead of 'expose', missing the negative hint about facing cyberbullying."
+          "whatWentWrong": "Caleb chose 'introduce' instead of 'expose', which missed the negative feeling of facing cyberbullying."
         }
       ],
-      "strategic_advice": "When filling in blanks, treat the sentences before and after as your best clues:\n- **'problems such as'** → make sure your word describes something negative\n- **'these'** or **'such'** → use these words to link back to ideas just mentioned\nAlways read the whole paragraph again with your word filled in to check if it flows smoothly.",
+      "strategic_advice": "- When filling in blanks, **read the whole sentence silently** with your chosen word to check if it sounds natural.\n- Look at the words immediately before and after the blank to see which word fits the phrase perfectly.",
       "trigger_keywords": [
-        "fill in the blank",
-        "passage",
-        "problems such as"
+        "commitment",
+        "somewhat",
+        "equip",
+        "expose"
       ]
     },
     {
-      "name": "One Step Short",
-      "what": "Tends to find the right section of the passage but sometimes stops just before giving the exact, specific detail the marker needs.",
+      "name": "Between vs Among Mix-Up",
+      "what": "Confuses when to use 'between' and 'among' when talking about groups of people or things.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
+          "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "Caleb wrote 'the student' instead of pointing to the specific 'first boy in the line'."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "He chose 'grateful' instead of 'relieved', missing the exact emotion tied to escaping further punishment."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "Caleb correctly explained that the principal was strict, but missed the second point about his sense of humour."
+          "whatWentWrong": "Caleb used 'between' for students, but since there are more than two students, 'among' or 'amongst' is the correct word."
         }
       ],
-      "strategic_advice": "When you see these prompts, push yourself to add one more layer of detail:\n- **'what do the words refer to'** → name the exact person or thing instead of a general group\n- **'explain clearly'** (especially for 2 marks) → always look for two separate points to include in your answer",
+      "strategic_advice": "- Use **'between'** when you are talking about exactly **two** people or things.\n- Use **'among'** when you are talking about **three or more** people or things.",
       "trigger_keywords": [
-        "explain clearly",
-        "what do the words refer to",
-        "state how"
+        "students",
+        "between",
+        "among"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 3,
@@ -98,7 +89,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -106,7 +97,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -142,7 +133,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 16,
@@ -154,11 +145,11 @@
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 20,
@@ -170,11 +161,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -202,7 +193,7 @@
     "22": "cmq4y9enm001m9dsbov2f3136",
     "23": "cmq4y9enm001o9dsb0cxiceru"
   },
-  "generatedAt": "2026-06-17T07:29:23.039Z",
+  "generatedAt": "2026-06-17T09:10:29.873Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 17,

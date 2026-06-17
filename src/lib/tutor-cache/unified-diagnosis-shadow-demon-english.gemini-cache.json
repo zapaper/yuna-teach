@@ -1,134 +1,126 @@
 {
   "patterns": [
     {
-      "name": "Spelling Based on Sound",
-      "what": "Shadow sometimes relies on how a word sounds when spelling, which occasionally leads to slips with tricky vowel pairs or double letters.",
+      "name": "Spelling Slips",
+      "what": "Tends to spell tricky words exactly how they sound, which leads to small spelling mistakes.",
       "specific_examples": [
         {
           "questionRef": "[6]",
           "type": "oeq",
-          "whatWentWrong": "Shadow spelled 'squeal' as 'squeel', relying on the sound rather than remembering the 'ea' vowel team."
+          "whatWentWrong": "Shadow spelled 'squeal' as 'squeel', relying on how the word sounds."
         },
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "Shadow added an extra 'r' in 'apparently', likely guessing the double letters based on how the word is pronounced."
+          "whatWentWrong": "Shadow added an extra 'r' to 'apparently', which is a common slip with double letters."
         },
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "Shadow wrote 'vurtue' instead of 'virtue', spelling the 'ir' sound with a 'ur'."
+          "whatWentWrong": "Shadow wrote 'vurtue' instead of 'virtue', mixing up the vowel sounds."
         }
       ],
-      "strategic_advice": "When you see instructions to correct a **spelling or grammatical error**, **sound the word out** but also pause to check if it needs a specific vowel team or double consonant. It helps to **break the word into syllables** and visualize how you have seen it written in books before.",
+      "strategic_advice": "When checking your spelling, try these steps:\n- Look out for words with **double letters** (like the 'p' and 'r' in apparently).\n- Break longer words into **smaller parts** or syllables to help remember the correct vowels.\n- If a word sounds like it has an 'ee' sound, double-check if it should be spelled with **'ea'** instead.",
       "trigger_keywords": [
-        "spelling or grammatical error",
-        "write the correct word",
-        "editing"
+        "passage",
+        "spelling"
       ]
     },
     {
-      "name": "Overlooking Sentence Context Clues",
-      "what": "Shadow occasionally chooses a word that fits the general topic but misses the specific clue words in the sentence that point to the exact answer.",
+      "name": "Cloze Passage Clues",
+      "what": "Tends to fill in blanks with words that sound okay on their own but misses the clues hidden in the surrounding sentences.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow chose 'released', missing the clues 'entered illegally' and 'home country' which point to 'deported'."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow picked 'squinted', overlooking the clue 'intently' which suggests a closer, more careful look like 'scrutinised'."
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow used 'were' instead of 'become', missing the clue 'therefore' which shows a change in the guides' role."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Shadow used 'While', missing the clue word 'also' later in the sentence which requires an adding word like 'Besides'."
-        }
-      ],
-      "strategic_advice": "When you are asked to **choose the correct word** for a blank, always **highlight the surrounding clue words** before making your choice. Look out for transition words like 'also' or 'therefore' that **tell you exactly what kind of word** is needed to complete the thought.",
-      "trigger_keywords": [
-        "choose the correct word",
-        "closest in meaning",
-        "fill in the blank"
-      ]
-    },
-    {
-      "name": "Recalling Fixed English Phrases",
-      "what": "Shadow tends to use words that make logical sense on their own, occasionally missing the exact fixed phrases or idioms that are commonly used together in English.",
-      "specific_examples": [
+          "whatWentWrong": "Shadow chose 'While' instead of 'Besides', missing the word 'also' later in the sentence that shows an addition."
+        },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Shadow wrote 'no problem as challenging', missing the common English phrase 'no longer as challenging'."
-        },
-        {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow used 'first it takes', whereas the fixed expression for 'the only thing required' is 'all it takes'."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow chose 'clearer idea', but the more natural phrase in this specific context is getting a 'better idea'."
+          "whatWentWrong": "Shadow wrote 'no problem as challenging' instead of the common phrase 'no longer as challenging'."
         }
       ],
-      "strategic_advice": "When the question asks you to **fill in each blank with a suitable word**, try reading the whole phrase aloud to see if it sounds like a **common everyday expression**. If a word feels a bit clunky, ask yourself if there is a **more familiar phrase** that fits the sentence perfectly.",
+      "strategic_advice": "When you see a blank in a passage, treat it like a puzzle:\n- Read the sentence **before and after** the blank to look for clue words like 'therefore', 'also', or 'but'.\n- Check if the word you chose forms a **common phrase** (like 'all it takes' or 'no longer').\n- Read the whole sentence quietly to yourself to see if the **meaning flows well**.",
       "trigger_keywords": [
-        "fill in each blank",
-        "suitable word",
-        "comprehension cloze"
+        "passage",
+        "cloze"
       ]
     },
     {
-      "name": "Matching Details in Visual Texts",
-      "what": "Shadow sometimes skims the options in visual text questions, occasionally overlooking the fine print or specific conditions mentioned in the poster.",
+      "name": "Poster Reading Traps",
+      "what": "Tends to pick answers in visual text questions that look familiar but misses the poster's fine print.",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow selected the option about electronic devices, missing the poster's specific detail that participants will have a chance to make new friends."
-        },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Shadow guessed that registration is needed for all activities, missing the specific timing detail that they are held in the afternoon."
+          "whatWentWrong": "Shadow picked an option about registration being needed for all activities, missing the detail that they are held in the afternoon."
         },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Shadow picked the option about becoming a member, missing the specific benefit stated in the poster about paying less."
+          "whatWentWrong": "Shadow chose an option about being a member, missing the specific benefit of paying less."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow selected an option about learning survival skills with electronic devices instead of making new friends."
         }
       ],
-      "strategic_advice": "When a question asks **which of the following is true** about a poster, **underline the key conditions** in the question like 'must', 'all', or 'free'. Then, **scan the text carefully** to find the exact match, making sure no small details contradict your choice.",
+      "strategic_advice": "When you see prompts like **'According to the poster'** or **'true of'**, treat it like a spot-the-difference game:\n- **Underline key words** in the options.\n- Check them one by one against the poster to make sure every part is correct.\n- Watch out for **absolute words** like 'all' or 'must', as they often make an option false.",
       "trigger_keywords": [
-        "according to the poster",
-        "which of the following is true",
-        "visual text"
+        "According to the poster",
+        "true of",
+        "Which of the following"
+      ]
+    },
+    {
+      "name": "Word Meaning Mix-Up",
+      "what": "Occasionally mixes up words that have similar meanings or relate to similar situations.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow picked 'released' instead of 'deported' for pirates who entered illegally."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow chose 'squinted' instead of 'scrutinised' for someone peering intently at a garden."
+        }
+      ],
+      "strategic_advice": "When you are choosing between similar words, look for **context clues** in the sentence:\n- Words like 'entered illegally' or 'intently' give strong hints about which word fits best.\n- If you are unsure, try **plugging each option** into the sentence to see which one matches the exact situation.\n- Build your vocabulary by noting down new words and their **exact meanings**.",
+      "trigger_keywords": [
+        "Vocabulary",
+        "meaning"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 6,
@@ -144,15 +136,15 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
@@ -193,10 +185,17 @@
     "15": "cmpnxkhf6003it6qwwm37s2py",
     "16": "cmpnxkhf6003kt6qwh4ri3mvv"
   },
-  "generatedAt": "2026-06-15T02:37:41.916Z",
+  "generatedAt": "2026-06-17T09:23:36.868Z",
   "wrongCounts": {
     "total": 16,
     "oeq": 11,
     "mcq": 5
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 77,
+    "totalAwarded": 56,
+    "totalAvailable": 73,
+    "paperCount": 1
+  },
+  "previousAssessment": null
 }

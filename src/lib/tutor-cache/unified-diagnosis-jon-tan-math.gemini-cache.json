@@ -1,125 +1,85 @@
 {
   "patterns": [
     {
-      "name": "Rushing Through Question Text",
-      "what": "Jon sometimes reads questions a little too quickly, which leads him to overlook important condition words that change the steps needed.",
+      "name": "Skipping Questions",
+      "what": "Tends to leave questions completely blank, especially towards the end of a practice or when word problems look a bit long.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "He left this multi-part word problem blank instead of trying to find the first step."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He skipped this fraction word problem even though he could have drawn a model for the first clue."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He left this straightforward fraction multiplication question blank."
+        }
+      ],
+      "strategic_advice": "When you see a long question, don't feel you have to solve it all at once.\n- **Write down one thing** you know from the first sentence.\n- **Draw a simple model** or write a quick equation, even if you aren't sure it's the final step. Partial marks are awarded for working!",
+      "trigger_keywords": [
+        "No answer detected",
+        "blank"
+      ]
+    },
+    {
+      "name": "Wrong Total Used",
+      "what": "Sometimes calculates a fraction or ratio using the original total or the wrong group, instead of the specific group the question asked for.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He calculated the fraction of the total books, overlooking the specific phrase 'of the fiction books'."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "He converted the second fraction into a mixed number but overlooked the first part of the equation, leaving the multiplication incomplete."
+          "whatWentWrong": "He calculated the borrowed books using the total number of books, instead of just the fiction books."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He found the ratio of David's marbles to Charles's, missing the word 'total' in the prompt."
+          "whatWentWrong": "He found the ratio of Charles's marbles to David's, instead of David's to the total number of marbles."
         }
       ],
-      "strategic_advice": "When you see phrases like 'ratio of', 'of the remaining', or 'total', **circle or underline the target words**. Before doing your final calculation, **re-read the last sentence** to ensure you are answering exactly what is asked.",
+      "strategic_advice": "When you see fraction or ratio questions, pay close attention to the words right after 'of' or 'to'.\n- **'of the fiction books'** → use the fiction amount, not the total.\n- **'to the total number'** → make sure you add the parts together first before writing the ratio.",
       "trigger_keywords": [
         "of the",
-        "total",
-        "ratio of",
-        "remaining",
-        "value of"
+        "to the total",
+        "of the remaining"
       ]
     },
     {
-      "name": "Leaving Unsure Questions Blank",
-      "what": "When faced with a challenging section, especially with fractions, Jon tends to leave questions completely blank rather than writing down the steps he does know.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "This was the exact same question as an earlier quiz, but Jon left it blank instead of attempting the first step."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "He left this fraction word problem blank, even though drawing a simple model could have earned him partial marks."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "Faced with a longer multi-part question, Jon skipped it entirely rather than breaking it down sentence by sentence."
-        }
-      ],
-      "strategic_advice": "When you see a complex word problem, **draw a model or write down the first step**, even if you don't know the final answer. Every step counts, so **never leave a blank space**—show your working to grab partial marks!",
-      "trigger_keywords": [
-        "altogether",
-        "how many",
-        "express your answer",
-        "left in the end"
-      ]
-    },
-    {
-      "name": "Slips in Place Value and Rules",
-      "what": "Jon occasionally loses track of place values or the order of operations when calculating, leading to avoidable slips.",
+      "name": "Place Value Slips",
+      "what": "Occasionally mixes up the value of digits based on their position, both in large whole numbers and in decimals.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He miscounted the place value columns, selecting 800 instead of 80,000 for the digit 8."
+          "whatWentWrong": "He identified the value of the digit 8 as 800 instead of 80,000."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He subtracted before multiplying, forgetting to follow the standard order of operations."
+          "whatWentWrong": "He chose 0.9 instead of 0.09 when finding the missing decimal part."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "When multiplying by numbers with zeros, he missed a zero in the middle of his final answer."
+          "whatWentWrong": "He multiplied 502 by 800 but seemed to treat the 2 as a 20, leading to a larger answer."
         }
       ],
-      "strategic_advice": "When you see equations with mixed operations, **write BODMAS at the top of your page** as a checklist. For large numbers, **draw place value lines** to keep your digits perfectly aligned.",
+      "strategic_advice": "When asked for the value of a digit, try this quick check:\n- **Write the number out** and put zeros under all the other digits to see its true value.\n- **For decimals**, remember that the first spot after the dot is tenths, the second is hundredths, and the third is thousandths.",
       "trigger_keywords": [
-        "value of",
-        "find the value",
-        "+",
-        "-",
-        "x",
-        "÷"
-      ]
-    },
-    {
-      "name": "Misinterpreting Visuals and Contexts",
-      "what": "Jon occasionally misses a detail when extracting information from diagrams or connecting math to real-world measurements.",
-      "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "He selected a slanted side as the height of the triangle, missing the perpendicular altitude line in the diagram."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "He multiplied the two visible numbers, forgetting to account for the 3D 'square base' which requires multiplying the width twice."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 2500 ml for a small drink packet, which is much larger than a real-life standard drink."
-        }
-      ],
-      "strategic_advice": "When you see geometry diagrams, **look for the right-angle square** to find the true height. For volume, **compare the object to something familiar**, like a 1-liter water bottle, to check if your answer makes sense.",
-      "trigger_keywords": [
-        "height",
-        "volume",
-        "base",
-        "diagram shows"
+        "value of the digit",
+        "decimals",
+        "multiply"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
@@ -127,7 +87,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -135,23 +95,23 @@
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -159,43 +119,43 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -220,7 +180,7 @@
     "19": "cmpwpzpb1001wfjch43e4sjf9",
     "20": "cmpwpzpb1001xfjchdacv9xln"
   },
-  "generatedAt": "2026-06-15T04:48:48.107Z",
+  "generatedAt": "2026-06-17T09:15:00.463Z",
   "wrongCounts": {
     "total": 20,
     "oeq": 5,

@@ -1,87 +1,108 @@
 {
   "patterns": [
     {
-      "name": "Confusing Similar Words",
-      "what": "Sometimes picks a vocabulary word that is related to the topic but doesn't quite fit the exact meaning or sentence structure.",
+      "name": "Vocabulary Meaning Mix-Up",
+      "what": "Sometimes picks a word that sounds related to the topic but has a slightly different meaning or doesn't fit the action described.",
       "specific_examples": [
         {
           "questionRef": "[23]",
           "type": "mcq",
-          "whatWentWrong": "IJ picked 'reaps' instead of 'yields', missing that a garden produces crops rather than harvesting them."
+          "whatWentWrong": "IJ picked 'reaps' instead of 'yields' for a garden producing crops."
         },
         {
-          "questionRef": "[30]",
+          "questionRef": "[29]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'celebrate', but the phrase 'revel in' is the correct pairing for enjoying success."
+          "whatWentWrong": "IJ confused 'exported' (which is used for goods) with 'deported' (which is used for people)."
         },
         {
-          "questionRef": "[11]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'excessive', which has a negative meaning, instead of the positive word 'inexhaustible'."
+          "whatWentWrong": "IJ chose 'bustle' instead of 'flurry' to describe a sudden, panicked movement."
         }
       ],
-      "strategic_advice": "- When you see a blank, **read the words immediately before and after it** to check for clues.\n- **Test each option** in the sentence to see if it makes sense with the surrounding words.\n- If two words seem similar, think about **who or what is doing the action**.",
+      "strategic_advice": "When you see vocabulary questions, try plugging the word into the sentence and ask:\n- **Who or what is doing the action?** (e.g., a garden **yields**, a farmer **reaps**)\n- **Is the feeling positive or negative?**\n- **Is it about people or things?** (e.g., goods are **exported**, people are **deported**)",
       "trigger_keywords": [
-        "blank",
-        "closest in meaning",
-        "phrasal verbs"
+        "choose the most suitable word",
+        "fill in the blank"
       ]
     },
     {
-      "name": "Linking Words Mix-Up",
-      "what": "Occasionally chooses the wrong connector or pronoun to link ideas together in a passage.",
-      "specific_examples": [
-        {
-          "questionRef": "[42]",
-          "type": "oeq",
-          "whatWentWrong": "IJ used 'between', which is for two things, instead of 'among' for a larger group of students."
-        },
-        {
-          "questionRef": "[43]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'some', missing the chance to use 'others' to show a clear contrast between the two groups."
-        },
-        {
-          "questionRef": "[34]",
-          "type": "mcq",
-          "whatWentWrong": "He picked 'Owing to', which shows a cause, instead of 'Despite' to show they pushed through their exhaustion."
-        }
-      ],
-      "strategic_advice": "- When you see a connector blank, **read the sentence before and after** to decide if the ideas are agreeing, contrasting, or showing a result.\n- For pronouns, **draw an arrow back** to the exact noun it replaces to ensure it matches.\n- Remember that **'between' is for two things**, while **'among' is for three or more**.",
-      "trigger_keywords": [
-        "although",
-        "despite",
-        "therefore",
-        "some",
-        "between"
-      ]
-    },
-    {
-      "name": "Rushing the Final Answer",
-      "what": "Tends to miss small details like spelling, copying all the words, or including the second part of an explanation.",
+      "name": "Spelling Slips",
+      "what": "Occasionally misses a letter or swaps letters when writing out answers in the open-ended sections.",
       "specific_examples": [
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "IJ knew the right word to fix the error but accidentally misspelled 'Occasionally'."
+          "whatWentWrong": "IJ spelled 'Occasionally' as 'ocassionally', missing one 'c' and adding an extra 's'."
         },
+        {
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "IJ accidentally wrote 'write' instead of 'writer'."
+        },
+        {
+          "questionRef": "[46]",
+          "type": "oeq",
+          "whatWentWrong": "IJ missed the letter 'o', writing 't' instead of 'to'."
+        }
+      ],
+      "strategic_advice": "When you finish writing a sentence, do a quick **spelling check**:\n- **Read your answer backwards** word by word to catch missing letters.\n- **Double-check words with double letters** like 'occasionally' or 'successfully'.",
+      "trigger_keywords": [
+        "correct the spelling",
+        "comprehension open-ended"
+      ]
+    },
+    {
+      "name": "Missing Key Details",
+      "what": "Often understands the main idea but sometimes stops one step short, leaving out a small detail or the second half of the answer.",
+      "specific_examples": [
         {
           "questionRef": "[44]",
           "type": "oeq",
-          "whatWentWrong": "He combined the sentences well but accidentally left out the phrase 'on television' from the final answer."
+          "whatWentWrong": "IJ combined the sentences well but forgot to include the phrase 'on television' at the end."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly identified the first reason, but missed the second point about feeling burdened by expectations."
         },
         {
           "questionRef": "[48]",
           "type": "oeq",
-          "whatWentWrong": "He explained what happened but stopped one step short of showing exactly how the childhood experiences led to those traits."
+          "whatWentWrong": "IJ explained the writer's good qualities but missed the link showing how her childhood experiences caused them."
         }
       ],
-      "strategic_advice": "- When you finish writing an answer, **read it backwards or word-by-word** to catch spelling and copying slips.\n- For synthesis questions, **tick off each word** from the original sentence as you write it down.\n- When you see **'explain clearly'** or **'how'**, always include a **'so that...'** or **'which led to...'** clause to show the full connection.",
+      "strategic_advice": "When you see prompts like **'explain clearly'** or **'in what ways'**:\n- **Check the marks:** If it's a 2-mark question, look for **two distinct points**.\n- **Re-read the question** after writing your answer to make sure you didn't leave any part behind.",
       "trigger_keywords": [
         "explain clearly",
-        "rewrite",
-        "edit",
-        "how"
+        "in what ways",
+        "rewrite the sentence"
+      ]
+    },
+    {
+      "name": "Grammar Word Mix-Up",
+      "what": "Occasionally mixes up small grammar words like connectors, pronouns, or prepositions that change the exact meaning of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[42]",
+          "type": "oeq",
+          "whatWentWrong": "IJ used 'between' (which is for two things) instead of 'among' (which is for three or more students)."
+        },
+        {
+          "questionRef": "[43]",
+          "type": "oeq",
+          "whatWentWrong": "IJ used 'some' instead of 'others' to contrast with the first group of students."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "IJ confused 'Owing to' (which means because of) with 'Despite' (which shows a contrast)."
+        }
+      ],
+      "strategic_advice": "When filling in blanks with small grammar words:\n- **Look for pairs:** If the sentence starts with 'some', the contrasting group is usually **'others'**.\n- **Count the items:** Use **'between'** for two things, and **'among'** for three or more.\n- **Check the logic:** Does the sentence show a reason (**owing to**) or a contrast (**despite**)?",
+      "trigger_keywords": [
+        "fill in the blank",
+        "comprehension cloze"
       ]
     }
   ],
@@ -108,7 +129,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -220,7 +241,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 35,
@@ -244,19 +265,19 @@
     },
     {
       "idx": 40,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 44,
@@ -264,11 +285,11 @@
     },
     {
       "idx": 45,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 46,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 47,
@@ -329,7 +350,7 @@
     "47": "cmq3745ps002drnvdj14hlymy",
     "48": "cmq3745pt002irnvdvqlqqx1o"
   },
-  "generatedAt": "2026-06-17T07:32:29.027Z",
+  "generatedAt": "2026-06-17T09:12:07.797Z",
   "wrongCounts": {
     "total": 48,
     "oeq": 10,

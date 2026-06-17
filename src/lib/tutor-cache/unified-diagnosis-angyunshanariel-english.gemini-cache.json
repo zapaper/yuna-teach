@@ -1,89 +1,100 @@
 {
   "patterns": [
     {
-      "name": "Tricky Phrasal Verbs",
-      "what": "Occasionally mixes up the prepositions in phrasal verbs, which completely changes the meaning of the action.",
+      "name": "Phrasal Verbs Mix-Up",
+      "what": "Tends to confuse phrasal verbs that look very similar but have completely different meanings.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'taken off' instead of 'taken in' when describing being tricked by a magician."
+          "whatWentWrong": "angyunshanariel chose 'taken off' instead of 'taken in' for being tricked by a magician."
         },
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'set off' (which means to start a journey) instead of 'set in' to describe fatigue starting to happen."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "When trying the magician question again, angyunshanariel picked 'taken down' instead of the correct phrase 'taken in'."
+          "whatWentWrong": "angyunshanariel picked 'set off' instead of 'set in' when describing fatigue starting to happen."
         }
       ],
-      "strategic_advice": "Phrasal verbs can be tricky because changing one small word changes the whole meaning!\n- When you learn a new verb like 'take' or 'set', **write down its different partners** (in, off, up) and what they mean.\n- **Substitute the meaning** into the sentence. For example, 'I was *tricked* by the magician' matches 'taken in'.",
+      "strategic_advice": "When you see a verb followed by a small word like **'in'**, **'off'**, or **'up'**, treat it as a single new word.\n- Try replacing the phrase with a simple action word (like 'tricked' for 'taken in') to see if it fits the story.",
       "trigger_keywords": [
         "taken",
         "set",
-        "put",
-        "look"
+        "up",
+        "in",
+        "off"
       ]
     },
     {
-      "name": "Hidden Sentence Clues",
-      "what": "Sometimes picks a vocabulary word that sounds okay in the blank but misses the context hints given in the rest of the sentence.",
+      "name": "Missing Sentence Clues",
+      "what": "Sometimes picks a vocabulary word that contradicts the helpful hints given in the rest of the sentence.",
       "specific_examples": [
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'meager' (small) even though the sentence mentioned 'lots of leftovers', which points to a 'lavish' feast."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel selected 'negligible' (tiny) when the clues 'financial difficulties' and 'unnecessary' point to 'extravagant' spending."
+          "whatWentWrong": "angyunshanariel picked 'meager' (small) even though the sentence warned about 'lots of leftovers and wastage'."
         },
         {
           "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'proposed' for a delay, but the clue 'due to the flashflood' means the delay is 'anticipated' or expected."
+          "whatWentWrong": "angyunshanariel chose 'proposed' instead of 'anticipated' for a delay caused by a sudden flashflood."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'indignant' instead of 'tenacious' despite the clear clue that the opponent was 'never giving up'."
         }
       ],
-      "strategic_advice": "When you see a vocabulary blank, treat it like a detective game.\n- **Highlight the clues** in the sentence before looking at the options (e.g., 'lots of leftovers' means the food was a lot).\n- **Test your choice** by reading the whole sentence with the word inserted to see if the story makes logical sense.",
+      "strategic_advice": "When you see a blank, look for the **'because'** or **'due to'** part of the sentence.\n- Highlight the clue words (like 'leftovers' or 'never giving up') before choosing your answer.\n- Check if your chosen word matches the feeling of those clues!",
       "trigger_keywords": [
-        "due to",
         "because",
+        "due to",
         "after",
-        "although"
+        "since"
       ]
     },
     {
-      "name": "Tricky Grammar Rules",
-      "what": "Occasionally overlooks specific grammar rules, like matching the verb to the closest subject or choosing the right relative pronoun.",
+      "name": "Which vs Whose Confusion",
+      "what": "Occasionally mixes up 'which' and 'whose' when describing a part that belongs to an object.",
       "specific_examples": [
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel used 'have' instead of 'has' for 'Either the parents or their child', where the verb must match the closest subject."
-        },
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'which' instead of 'whose' to show that the broken windows belonged to the old house."
+          "whatWentWrong": "angyunshanariel picked 'which' instead of 'whose' when talking about the windows that belonged to the old house."
         },
         {
-          "questionRef": "[12]",
+          "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'many' instead of 'much' for the word 'improvement', which is an uncountable noun."
+          "whatWentWrong": "angyunshanariel made the same slip with the old house's broken windows."
         }
       ],
-      "strategic_advice": "When you see grammar questions, look for the specific rule being tested before choosing your answer.\n- For **'Either... or'**, always draw an arrow to the subject closest to the blank and match the verb to it.\n- For **relative pronouns**, check if the blank shows ownership (use 'whose') or just describes a thing (use 'which').\n- For **quantity words**, ask yourself if the noun can be counted (many) or not (much).",
+      "strategic_advice": "When you see a blank right after a noun (like 'house'), check the very next word.\n- If it's something that belongs to the noun (like 'windows'), use **'whose'**.\n- If it's an action or a description, use **'which'**.",
       "trigger_keywords": [
-        "Either",
-        "Neither",
-        "whose",
-        "which",
-        "much",
-        "many"
+        ", which",
+        ", whose",
+        ", who",
+        ", whom"
+      ]
+    },
+    {
+      "name": "Word Partnership Slips",
+      "what": "Sometimes chooses a word that makes logical sense but isn't the natural pairing usually used in English.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'waived' instead of the correct English phrase 'stripped of' for losing a medal."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'promoted' instead of 'raised' when talking about boosting the class's morale."
+        }
+      ],
+      "strategic_advice": "When two words seem to fit the meaning perfectly, read the sentence aloud with each option.\n- Often, your ears will catch the **natural pairing** (like 'raised morale' or 'stripped of').\n- Pay special attention to the little prepositions (like **'of'**) that come right after the blank!",
+      "trigger_keywords": [
+        "of",
+        "morale",
+        "medal"
       ]
     }
   ],
@@ -110,11 +121,11 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 8,
@@ -130,19 +141,19 @@
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -158,7 +169,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 19,
@@ -170,7 +181,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -178,11 +189,11 @@
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 25,
@@ -216,7 +227,7 @@
     "24": "cmpnv0sie001mu9v1sg5isrw5",
     "25": "cmpnv0sie001pu9v1g4ewles8"
   },
-  "generatedAt": "2026-06-17T07:27:51.033Z",
+  "generatedAt": "2026-06-17T09:08:13.310Z",
   "wrongCounts": {
     "total": 25,
     "oeq": 0,

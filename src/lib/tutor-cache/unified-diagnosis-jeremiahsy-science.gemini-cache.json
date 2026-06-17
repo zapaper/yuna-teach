@@ -1,124 +1,123 @@
 {
   "patterns": [
     {
-      "name": "True and False Traps",
-      "what": "Tends to pick multiple-choice options that group too many statements together, accidentally including false ones.",
+      "name": "Reproductive Parts Mix-Up",
+      "what": "Sometimes confuses the roles of different reproductive parts in plants and humans, such as where eggs are produced or where a baby develops.",
       "specific_examples": [
         {
-          "questionRef": "[15]",
+          "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "He picked an option that included all four statements, even though two of them were false."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "He included a statement saying a life cycle 'begins' with an egg, which is a common trap since cycles have no beginning."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy picked an option with false statements about how many ovaries a flower has."
-        }
-      ],
-      "strategic_advice": "When you see **\"Which of the following statements\"**, treat each statement as a separate True/False question.\n- Put a small **\"T\"** or **\"F\"** next to each letter before looking at the options (1), (2), (3), or (4).\n- If you are sure one statement is false, immediately **cross out any option** that includes it!",
-      "trigger_keywords": [
-        "Which of the following statements",
-        "is/are true",
-        "is/are correct",
-        "is/are wrong"
-      ]
-    },
-    {
-      "name": "Matching Plant and Human Parts",
-      "what": "Sometimes mixes up which parts of a flower do the exact same job as parts of the human body.",
-      "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "He mixed up which part of the flower matches the function of the human testis."
+          "whatWentWrong": "JeremiahSy thought the egg is produced in the womb, but it is actually produced in the ovary."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy had trouble matching the female reproductive parts of a plant to the human ones."
+          "whatWentWrong": "JeremiahSy had a little trouble matching the female reproductive parts of a flower to the similar parts in a human."
         },
         {
-          "questionRef": "[4]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "He chose an incorrect statement when comparing where pollination and fertilisation happen."
+          "whatWentWrong": "JeremiahSy selected an option stating that an unfertilised egg develops in the womb, mixing up where fertilisation and development happen."
         }
       ],
-      "strategic_advice": "When you see **\"similar function\"** or **\"same function\"**, write down the job of the human part first (like \"makes eggs\" or \"makes male cells\").\n- Then, look for the plant part that does that **exact same job**.\n- Remember: **Ovary** matches **Ovary** (makes eggs), and **Anther** matches **Testis** (makes male cells).",
+      "strategic_advice": "When you see questions about **'reproduction'** or **'fertilisation'**, remember these key pairs:\n- The **ovary** (in both plants and humans) is where the female egg is produced.\n- The **womb** (in humans only) is where the baby develops, not where the egg is made!\n- The **testis** (humans) and **anther** (plants) are the parts that produce the male reproductive cells.",
       "trigger_keywords": [
-        "same function",
-        "similar function",
         "reproductive parts",
-        "human and a flowering plant"
+        "fertilisation",
+        "ovary",
+        "womb",
+        "develops"
       ]
     },
     {
-      "name": "Skipping the Explanation",
-      "what": "Occasionally leaves the explanation part of a question blank or stops after stating a choice without writing the 'why'.",
-      "specific_examples": [
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly chose the best material for the container but forgot to write down the explanation."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy missed explaining why a translucent material is the best choice for a shadow puppet screen."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "He left the explanation blank when asked why a flower could still grow into a fruit after its male parts were removed."
-        }
-      ],
-      "strategic_advice": "When you see **\"Explain your answer\"**, always use the word **\"because\"** to connect your choice to a scientific reason.\n- If you are stuck, try to write down at least **one scientific fact** about the topic (like \"Material P is a better conductor of heat\").\n- Never leave an explanation completely blank—writing down **what you know** can often earn you partial marks!",
-      "trigger_keywords": [
-        "Explain your answer",
-        "Explain why"
-      ]
-    },
-    {
-      "name": "Energy Direction Mix-Ups",
-      "what": "Sometimes gets confused about which way heat or light is traveling between objects.",
+      "name": "Heat Transfer Mix-Up",
+      "what": "Occasionally mixes up whether an object is gaining heat or losing heat during processes like melting, cooling, or sweating.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He thought the air gained heat from sweat, instead of the sweat gaining heat from the body to cool it down."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy picked the wrong arrows for light traveling from a lamp, bouncing off a door, and entering the eyes."
+          "whatWentWrong": "JeremiahSy thought the air gains heat from the sweat, instead of realising that the sweat gains heat from the body to evaporate."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He misidentified the direction of heat transfer when an ice cube melts on a plate."
+          "whatWentWrong": "JeremiahSy missed that melting ice cubes gain heat from the plate, rather than losing heat to the surrounding air."
         }
       ],
-      "strategic_advice": "When you see these topics, remember the rules of direction:\n- For **\"gains heat\"** or **\"loses heat\"**, remember that heat always travels from the **hotter object** to the **colder object**.\n- For **\"direction of light\"**, always draw arrows starting from the **light source** (like a lamp), bouncing off the object, and ending at the **eyes**.",
+      "strategic_advice": "When you see words like **'melt'**, **'cool'**, or **'sweat'**, pause and ask yourself 'Where is the heat going?':\n- If something is getting colder or freezing, it is **losing heat** to its surroundings.\n- If something is melting or evaporating (like sweat drying on skin), it needs energy, so it is **gaining heat** from the warmer object it touches.",
       "trigger_keywords": [
-        "gains heat",
-        "loses heat",
-        "direction of light",
-        "arrows show"
+        "gained heat",
+        "lost heat",
+        "melted",
+        "cooled",
+        "sweat"
+      ]
+    },
+    {
+      "name": "Light Path and Shadows",
+      "what": "Tends to find it tricky to trace the exact path light takes to reach our eyes, or how different materials and distances affect shadows.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy chose the wrong arrows for how light travels, forgetting that light must bounce off the door and travel directly into the person's eyes."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy missed that a shadow puppet screen needs to be translucent to let some light through, rather than completely opaque."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy was unsure how to make a shadow shorter, which happens when the light source is moved further away from the object."
+        }
+      ],
+      "strategic_advice": "When you see questions about **'seeing objects'** or **'shadows'**, try sketching the setup:\n- To see an object, draw an arrow from the **light source to the object**, and another arrow **bouncing into the eye**.\n- For shadow puppets, remember the screen must be **translucent** to let a little light through, not completely opaque.\n- To make a shadow shorter, you need to move the **light source away** from the object.",
+      "trigger_keywords": [
+        "shadow",
+        "light rays",
+        "see the object",
+        "screen",
+        "torch"
+      ]
+    },
+    {
+      "name": "Incomplete Answers",
+      "what": "Sometimes leaves a written question blank or forgets to write down the final explanation after choosing the right material.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy left the question completely blank instead of trying to arrange the materials by how much light they reflect."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy correctly identified the best material for the container but forgot to explain that it is a better conductor of heat."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy skipped this question about plant reproduction, missing out on the chance to earn partial marks."
+        }
+      ],
+      "strategic_advice": "When you see prompts like **'explain your answer'** or **'explain why'**, treat them as a checklist:\n- First, state your choice clearly.\n- Then, use a **'because...'** sentence to link your choice to a science concept (like 'because it is a better conductor of heat').\n- Never leave a question blank—always write down your best guess to grab partial marks!",
+      "trigger_keywords": [
+        "explain your answer",
+        "explain why",
+        "arrange"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -126,19 +125,19 @@
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 8,
@@ -146,7 +145,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
@@ -154,7 +153,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 12,
@@ -166,7 +165,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 15,
@@ -174,19 +173,19 @@
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 20,
@@ -194,15 +193,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -230,7 +229,7 @@
     "22": "cmnk7iz3x007s14p628zh1vnf",
     "23": "cmnk7iz3x007t14p6i78r2ryz"
   },
-  "generatedAt": "2026-06-17T07:35:33.530Z",
+  "generatedAt": "2026-06-17T09:13:31.656Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 5,
