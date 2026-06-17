@@ -1,111 +1,118 @@
 {
   "patterns": [
     {
-      "name": "Pairing Prepositions and Phrasal Verbs",
-      "what": "Mahdi12 sometimes mixes up the specific prepositions that belong with certain verbs, which is very common when learning tricky phrasal verbs.",
+      "name": "Preposition Pairs",
+      "what": "Sometimes mixes up the specific prepositions that must go with certain verbs or adjectives.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'fell apart' instead of 'fell out', which is the specific phrasal verb used for friends having a disagreement."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He/she picked 'from' instead of 'to', missing the fixed preposition pair 'similar to'."
+          "whatWentWrong": "Mahdi12 chose 'over' instead of 'on' for the phrase 'congratulated on'."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected 'with' instead of 'in', as the verb 'confide' always pairs naturally with 'in' when sharing a secret."
+          "whatWentWrong": "He picked 'with' instead of the correct pair 'confided in'."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'fell apart' rather than 'fell out' to describe friends having a misunderstanding."
         }
       ],
-      "strategic_advice": "When you see a blank right after a verb, check if it's a **phrasal verb** or a word that needs a specific **preposition partner**. Try reading the sentence silently with each option to see which one 'clicks' naturally. It helps to keep a small notebook of these tricky pairs, like 'similar to' or 'confide in', to review before tests!",
+      "strategic_advice": "When you see a verb followed by a blank, read the whole sentence quietly to yourself to hear which preposition sounds right.\n- **'congratulated'** → always pairs with **'on'**\n- **'confided'** → always pairs with **'in'**\n- **'similar'** → always pairs with **'to'**\nKeep a small list of these word pairs and review them before your next practice!",
       "trigger_keywords": [
-        "blank after a verb",
-        "preposition choices",
-        "phrasal verbs"
+        "congratulated",
+        "similar",
+        "confided",
+        "fell",
+        "give",
+        "looks"
       ]
     },
     {
-      "name": "Spotting Natural Word Combinations",
-      "what": "Mahdi12 occasionally chooses a word that makes logical sense but isn't the exact 'partner' word typically used in everyday English phrases (collocations).",
+      "name": "Close Word Choices",
+      "what": "Tends to pick a vocabulary word that has a similar general meaning but doesn't quite fit the exact situation.",
       "specific_examples": [
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'prevented' instead of 'impeded', missing that a lack of confidence hinders (impedes) rather than completely stops (prevents) an action."
+          "whatWentWrong": "Mahdi12 chose 'prevented' (which means to stop completely) instead of 'impeded' (which means to slow down or make difficult)."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "He/she picked 'intensive' instead of 'overwhelming', which is the natural word partner used to describe a very strong smell."
+          "whatWentWrong": "He picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected 'bustle' instead of 'flurry', missing the common English expression 'a flurry of activity'."
+          "whatWentWrong": "He selected 'bustle' rather than 'flurry' for a sudden burst of activity."
         }
       ],
-      "strategic_advice": "When you see vocabulary options that have similar meanings, look for the **collocation**—the word that naturally pairs with the noun in the sentence. Ask yourself, 'Have I heard these two words together before, like *poor visibility* or *flurry of activity*?' If a word means the right thing but sounds a bit awkward in the phrase, it might not be the best fit.",
+      "strategic_advice": "When two words seem to mean the same thing, look for **context clues** in the sentence to help you decide.\n- If something is slowed down but not completely stopped, use **'impeded'** instead of **'prevented'**.\n- For a sudden, short burst of panic or movement, use **'flurry'** instead of **'bustle'**.\n- Try plugging each option into the sentence and ask yourself: **'Does this fit the exact situation perfectly?'**",
       "trigger_keywords": [
-        "fill in the blank",
-        "vocabulary choices",
-        "describing a noun"
+        "lack of confidence",
+        "smell from the rubbish bin",
+        "bountiful crop",
+        "flurry of activity",
+        "sweet fragrance"
       ]
     },
     {
-      "name": "Catching Hidden Context Clues",
-      "what": "When deciding between similar vocabulary words, Mahdi12 tends to overlook small clues in the sentence that point to the most precise choice.",
+      "name": "Grammar Rule Traps",
+      "what": "Occasionally gets caught out by specific grammar rules like object pronouns, question tags, or singular and plural words.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'speculated' instead of 'pondered', overlooking the clue 'tried to put the pieces together' which implies deep thought rather than guessing."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "He/she picked 'energetically' instead of 'nimbly', missing the context clues 'weaved' and 'dodging' which require agility, not just energy."
-        },
-        {
-          "questionRef": "[29]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected 'searched' instead of 'scrutinised', which is the exact synonym needed to match the intensity of 'peered intently'."
-        }
-      ],
-      "strategic_advice": "When you see a sentence with lots of descriptive details, treat it like a detective game and look for **context clues**. Words like 'dodging' or 'maze' are hints that point to a very specific answer, like 'nimbly' instead of just 'energetically'. Always underline the **action words** in the sentence before choosing your answer.",
-      "trigger_keywords": [
-        "closest in meaning",
-        "descriptive sentences",
-        "vocabulary cloze"
-      ]
-    },
-    {
-      "name": "Applying Specific Grammar Rules",
-      "what": "Mahdi12 sometimes gets caught out by specific grammar rules, like forming question tags, matching singular/plural nouns, or choosing the right pronoun after an action.",
-      "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'I' instead of 'me', forgetting to use the object pronoun when receiving the action from the teacher."
+          "whatWentWrong": "Mahdi12 chose 'I' instead of 'me' when receiving the action from the teacher."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He/she picked 'didn't he' instead of 'hasn't he', missing that 'Ahmad's cleaned' is short for 'Ahmad has cleaned', which dictates the tag."
+          "whatWentWrong": "He picked 'didn't he' instead of matching the tag 'hasn't he' to 'Ahmad's cleaned' (Ahmad has cleaned)."
         },
         {
           "questionRef": "[23]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected the plural 'those' instead of the singular 'that', focusing on the plural 'books' rather than the singular 'stack'."
+          "whatWentWrong": "He selected the plural 'those' instead of the singular 'that' for a single stack of books."
         }
       ],
-      "strategic_advice": "When you see a question tag at the end of a sentence (like '___ he?'), always check the **tense and positive/negative tone** of the main sentence first. For pronoun questions like 'Sally and ___', try the **hide-and-seek trick**: cover up 'Sally and' to see if 'I' or 'me' sounds correct on its own!",
+      "strategic_advice": "When you see these grammar clues, use these simple tricks to find the right answer:\n- **'Sally and ___'** → take away 'Sally and' and read the sentence again. 'My teacher asked me' sounds correct, so the answer is **'me'**.\n- **Question tags** → always match the helping verb! 'Ahmad's cleaned' means 'Ahmad **has** cleaned', so the tag must be **'hasn't he'**.\n- **'stack of books'** → look at the grouping word. Since it is one 'stack', use the singular **'that'** instead of 'those'.",
       "trigger_keywords": [
-        "question tags",
-        "comma followed by a blank",
-        "pronouns"
+        "and ___",
+        "cleaned up",
+        "stack of books",
+        "wrote the story"
+      ]
+    },
+    {
+      "name": "Skipping Questions",
+      "what": "Leaves several questions completely blank towards the end of the practice instead of taking a best guess.",
+      "specific_examples": [
+        {
+          "questionRef": "[31]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 left the answer blank instead of choosing the base form 'take' after the verb 'saw'."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "He skipped this vocabulary question about pirates being sent back to their home country."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "mcq",
+          "whatWentWrong": "He left this question blank rather than guessing how the students felt about an obscure clue."
+        }
+      ],
+      "strategic_advice": "You left several questions blank towards the end of the paper. When you see a tricky question, treat it as a chance to make a smart guess!\n- **Eliminate** the options you know are definitely wrong.\n- **Choose** your best guess from the remaining options.\n- A blank answer is a guaranteed zero, but a **smart guess** gives you a fighting chance to get the mark!",
+      "trigger_keywords": [
+        "missing up to now",
+        "hesitation at first",
+        "entered Singapore illegally",
+        "obscure clue"
       ]
     }
   ],
@@ -128,15 +135,15 @@
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 8,
@@ -148,11 +155,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -176,11 +183,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 19,
@@ -200,7 +207,7 @@
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 24,
@@ -220,15 +227,51 @@
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 29,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    },
+    {
+      "idx": 33,
+      "patternIndex": 3
+    },
+    {
+      "idx": 34,
+      "patternIndex": 3
+    },
+    {
+      "idx": 35,
+      "patternIndex": 3
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
+      "idx": 39,
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -261,12 +304,28 @@
     "27": "cmpujk6hx001b14eons9siajc",
     "28": "cmpujk6hx001c14eoi2fhz9lq",
     "29": "cmpujk6hx001e14eo4uxm3d7u",
-    "30": "cmpujk6hx001g14eo694grk9o"
+    "30": "cmpujk6hx001g14eo694grk9o",
+    "31": "cmpuji76e000r14eotviraoaj",
+    "32": "cmpuji76e000s14eojmtjsn1h",
+    "33": "cmpuji76e000t14eov5qxkrsg",
+    "34": "cmpuji76e000u14eo75nqhhd4",
+    "35": "cmpuji76e000v14eoas5vfkm0",
+    "36": "cmpuji76e000w14eo5raserv9",
+    "37": "cmpuji76e000x14eoksdt7liy",
+    "38": "cmpuji76e000y14eovr4sqfll",
+    "39": "cmpuji76e000z14eoydag3q51"
   },
-  "generatedAt": "2026-06-15T03:05:13.647Z",
+  "generatedAt": "2026-06-17T07:38:56.839Z",
   "wrongCounts": {
-    "total": 30,
+    "total": 39,
     "oeq": 0,
-    "mcq": 30
-  }
+    "mcq": 39
+  },
+  "toplineSnapshot": {
+    "avgPct": 40,
+    "totalAwarded": 26,
+    "totalAvailable": 65,
+    "paperCount": 6
+  },
+  "previousAssessment": null
 }

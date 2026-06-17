@@ -1,129 +1,97 @@
 {
   "patterns": [
     {
-      "name": "Navigating Phrasal Verbs and Idioms",
-      "what": "Audrey occasionally mixes up the specific prepositions in phrasal verbs or the exact phrasing of common idioms.",
+      "name": "Phrasal Verb Mix-Ups",
+      "what": "Sometimes confuses phrasal verbs (verbs combined with words like 'in', 'off', or 'down') that look similar but have very different meanings.",
       "specific_examples": [
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Audrey chose 'put down' instead of 'put off', missing the specific phrasal verb used for cancelling or postponing an event."
+          "whatWentWrong": "Audrey confused 'put down' with 'put off', which means to postpone."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "She selected 'taken up' rather than 'taken in', which is the precise phrase for being fooled by a trick."
+          "whatWentWrong": "She chose 'taken up' instead of 'taken in', which means to be tricked or fooled by the magician."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "Audrey picked 'black sheep' instead of 'pain in the neck', confusing an idiom for an outcast with one for an annoying person."
+          "whatWentWrong": "She picked 'brought off' instead of 'brought down' for trees falling in strong winds."
         }
       ],
-      "strategic_advice": "When you see a blank followed by a preposition like **in, off, or down**, try to recall the specific meaning of the whole phrase rather than just the main verb. For idioms, look for context clues like 'kept taking his stationery' to decide if the person is an outcast or just being annoying. It helps to **keep a small notebook** of new phrasal verbs and idioms you encounter!",
+      "strategic_advice": "- When learning a new phrasal verb, try to **draw a quick picture** or link it to a physical action (e.g., a tree being \"brought down\" to the ground).\n- Keep a small **phrasal verb list** where you group them by the main verb (like all the \"put\" words: put off, put up, put down) with a short example sentence for each.\n- If you are unsure during a test, try replacing the phrasal verb with a single word (like \"tricked\" for \"taken in\") to see if the sentence still makes sense.",
       "trigger_keywords": [
         "put",
         "taken",
         "brought",
-        "set",
-        "being a"
+        "set"
       ]
     },
     {
-      "name": "Spotting Contextual Grammar Clues",
-      "what": "Audrey sometimes misses the subtle hint words in a sentence that tell us exactly which tense, modal, or quantifier to use.",
+      "name": "Skipping Clue Words",
+      "what": "Occasionally misses small hint words in the sentence that act as signposts for the correct grammar or vocabulary choice.",
       "specific_examples": [
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Audrey chose 'anything' instead of 'everything', overlooking the clue that Rina wanted others to speak, meaning she didn't say all her points at once."
+          "whatWentWrong": "She missed the clue 'wanted others to have a chance', which means the character didn't say 'everything', rather than not saying 'anything'."
         },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'must' instead of 'could', missing the crucial phrase 'I'm not sure' which indicates a possibility rather than a certainty."
+          "whatWentWrong": "Audrey missed the clue 'not sure', which means the answer must be a guess like 'could' rather than a certainty like 'must'."
         },
         {
-          "questionRef": "[29]",
+          "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "Audrey selected 'should' rather than 'could', again missing the 'not sure' clue that points to a guess rather than advice."
+          "whatWentWrong": "She missed the clue 'heavy downpour', which makes the cancellation 'inevitable' (unavoidable) rather than 'desired'."
         }
       ],
-      "strategic_advice": "When you see phrases like **'not sure'** or **'clearly'**, treat them as signposts pointing to the right answer. Before choosing a modal verb like 'must' or 'could', **underline the clue words** that tell you how certain the speaker is. Always read the second half of the sentence to see if it changes the meaning of the first half!",
+      "strategic_advice": "- When you see phrases like **\"not sure\"** or **\"might\"**, treat them as stop signs: they signal that the answer involves possibility (like **could** or **may**).\n- Highlight the **\"because\"** or **\"given the\"** part of the sentence—this is the explanation that will point you to the exact word needed.\n- Always read the second half of the sentence before choosing your answer, as the real clue is often hiding at the end!",
       "trigger_keywords": [
         "not sure",
-        "clearly",
         "because",
-        "as she has"
+        "given the",
+        "since"
       ]
     },
     {
-      "name": "Finding the Exact Synonym",
-      "what": "When replacing an underlined word, Audrey tends to pick an option that feels related to the general topic rather than the exact synonym.",
+      "name": "Exact Word Matches",
+      "what": "Tends to pick a vocabulary word that is related to the topic, but doesn't quite match the exact meaning of the original word in the passage.",
       "specific_examples": [
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "Audrey chose 'curiously' instead of 'suspiciously', which captures the idea of looking closely but misses the doubt implied by 'skeptically'."
-        },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "She selected 'courage' rather than 'determination', confusing bravery with the firm decision meant by 'resolve'."
+          "whatWentWrong": "Audrey chose 'courage' instead of 'determination' as the exact match for 'resolve'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'bottom' instead of 'groundwork' to replace the word 'foundation' in an economic context."
         },
         {
           "questionRef": "[31]",
           "type": "mcq",
-          "whatWentWrong": "Audrey picked 'common' instead of 'native', missing the precise biological meaning of 'indigenous'."
+          "whatWentWrong": "She selected 'common' instead of 'native' as the synonym for 'indigenous'."
         }
       ],
-      "strategic_advice": "When you see an **underlined word** to replace, try covering the options and thinking of your own replacement first. Then, look for the option that matches your word's **exact meaning**, not just the general feeling of the sentence. If two words seem similar, ask yourself: 'Do these words mean exactly the same thing in a dictionary?'",
+      "strategic_advice": "- When doing Vocabulary Cloze, **plug your chosen word back into the sentence** and read it aloud in your head to see if the meaning stays exactly the same.\n- Look out for words that have a **literal vs. figurative meaning** (like \"foundation\" meaning the base of a building vs. \"groundwork\" for a plan).\n- If two words seem to fit, look for the one that is the **closest direct synonym** to the underlined word, rather than just a word that makes sense in the sentence.",
       "trigger_keywords": [
         "closest in meaning",
         "underlined word",
-        "skeptically",
-        "resolve",
-        "indigenous"
-      ]
-    },
-    {
-      "name": "Selecting Precise Vocabulary",
-      "what": "Audrey occasionally chooses words that make partial sense but aren't the most natural or precise fit for the specific scenario described.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Audrey chose 'display' instead of 'demonstration', missing that a new invention's capabilities are usually actively shown rather than just looked at."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "She picked 'estimation' rather than 'suspicion', which is the more natural word to use when sensing that something is wrong or 'amiss'."
-        },
-        {
-          "questionRef": "[30]",
-          "type": "mcq",
-          "whatWentWrong": "Audrey selected 'adjusted' instead of 'diverted', missing the specific term used when traffic is forced to take a different route."
-        }
-      ],
-      "strategic_advice": "When you see a blank describing a specific situation like **traffic, inventions, or delays**, look for the word that is most commonly paired with that topic. Try reading the sentence silently with each option to see which one **sounds the most natural**. Building a habit of reading widely will help these natural word pairings, or collocations, feel more familiar!",
-      "trigger_keywords": [
-        "traffic",
-        "live",
-        "delay",
-        "act of",
-        "cancellation"
+        "replace"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -139,7 +107,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 7,
@@ -147,11 +115,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 10,
@@ -167,11 +135,11 @@
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 15,
@@ -195,7 +163,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 21,
@@ -203,7 +171,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -235,7 +203,7 @@
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 31,
@@ -275,7 +243,7 @@
     "30": "cmq3ic34r0007xhyl5mdp8vu5",
     "31": "cmq3ic34s000gxhylhbfxrknn"
   },
-  "generatedAt": "2026-06-15T04:54:18.357Z",
+  "generatedAt": "2026-06-17T07:27:53.246Z",
   "wrongCounts": {
     "total": 31,
     "oeq": 0,

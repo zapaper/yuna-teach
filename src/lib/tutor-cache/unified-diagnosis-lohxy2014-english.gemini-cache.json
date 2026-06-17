@@ -1,120 +1,124 @@
 {
   "patterns": [
     {
-      "name": "Spelling words exactly as they sound",
-      "what": "LohXY2014 occasionally spells tricky words exactly as they sound, which sometimes leads to missing double letters or silent vowels.",
+      "name": "Spelling by Sound",
+      "what": "Sometimes spells tricky words exactly how they sound instead of using their proper spelling rules.",
       "specific_examples": [
         {
-          "questionRef": "[30]",
+          "questionRef": "[42]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 spelled the word exactly as it sounds, missing the silent 'r' in 'surprisingly'."
+          "whatWentWrong": "LohXY2014 spelled 'restaurant' as 'restrawnt' by sounding it out."
         },
         {
-          "questionRef": "[80]",
+          "questionRef": "[71]",
           "type": "oeq",
-          "whatWentWrong": "He/she missed the double 'm' in 'commotion', spelling it phonetically."
+          "whatWentWrong": "LohXY2014 wrote 'deckaide' instead of 'decade' based on how the vowels sound."
         },
         {
-          "questionRef": "[114]",
+          "questionRef": "[89]",
           "type": "oeq",
-          "whatWentWrong": "He/she added an extra 'is' sound, writing 'envisious' instead of 'envious'."
+          "whatWentWrong": "LohXY2014 spelled 'squeal' as 'skweel' by following the phonetic sounds."
         }
       ],
-      "strategic_advice": "When you see the instruction to write the **correct word in each of the boxes**, always double-check your spelling. Try to break the word into its root and suffixes, and look out for **double letters** and **silent vowels** that might be hidden when we speak.",
+      "strategic_advice": "When you encounter a tricky word, try to break it down into its **syllables** or look for **root words** you already know.\n- **Read more widely** to expose yourself to the correct spelling of complex words.\n- Keep a **personal spelling list** of words you often misspell and practice them.",
       "trigger_keywords": [
-        "correct word in each of the boxes",
-        "spelling or grammatical error"
+        "spelling",
+        "editing",
+        "correct word"
       ]
     },
     {
-      "name": "Overlooking fixed word partnerships",
-      "what": "LohXY2014 tends to choose words that make sense on their own but do not form the correct fixed phrase, idiom, or phrasal verb.",
+      "name": "Missing the Bigger Picture",
+      "what": "Tends to fill in blanks with words that make sense for that specific line, but occasionally contradict the sentences that come right before or after.",
       "specific_examples": [
         {
-          "questionRef": "[15]",
+          "questionRef": "[115]",
           "type": "oeq",
-          "whatWentWrong": "LohXY2014 chose 'straight', missing the fixed idiom 'stand on end'."
+          "whatWentWrong": "LohXY2014 chose 'shortest' for the queue, missing the next sentence's clue that a long queue means good quality."
         },
         {
-          "questionRef": "[101]",
+          "questionRef": "[66]",
           "type": "oeq",
-          "whatWentWrong": "He/she chose 'down', missing the common phrase 'weak in the knees'."
+          "whatWentWrong": "LohXY2014 wrote 'money' instead of 'earlier', missing the time contrast with 'remaining days' later in the sentence."
         },
         {
-          "questionRef": "[125]",
-          "type": "mcq",
-          "whatWentWrong": "He/she picked 'of', but the word 'congratulated' always pairs with the preposition 'on'."
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "LohXY2014 guessed 'reduced' for delays, missing the author's overall point that great things take a long time."
         }
       ],
-      "strategic_advice": "When you are asked to **Fill in each blank**, pay close attention to the prepositions right next to the blank. Ask yourself if the words form a **fixed idiom** or **phrasal verb** that always goes together, rather than just picking a word that makes sense on its own.",
+      "strategic_advice": "When you see a blank, treat the **whole paragraph** as a clue, not just the sentence it is in.\n- **Read past the blank** to the end of the paragraph before deciding on your answer.\n- Look out for **transition words** like 'However', 'Since', or 'Because' that tell you how the ideas connect.",
       "trigger_keywords": [
-        "Fill in each blank",
-        "choose the most suitable word"
+        "fill in each blank",
+        "comprehension cloze",
+        "passage"
       ]
     },
     {
-      "name": "Stopping at the immediate sentence",
-      "what": "LohXY2014 sometimes fills in a blank or answers a question based only on the immediate sentence, occasionally missing clues hidden in the sentences before or after.",
+      "name": "Verb Form Mix-Ups",
+      "what": "Occasionally uses the wrong verb tense or forgets to match the verb to a singular or plural subject.",
       "specific_examples": [
         {
-          "questionRef": "[104]",
-          "type": "oeq",
-          "whatWentWrong": "LohXY2014 wrote 'shortest', missing the clue in the very next sentence that a long queue means good food."
-        },
-        {
-          "questionRef": "[55]",
-          "type": "oeq",
-          "whatWentWrong": "He/she wrote 'money', missing the time context 'in the week' that required the word 'earlier'."
-        },
-        {
-          "questionRef": "[26]",
+          "questionRef": "[98]",
           "type": "mcq",
-          "whatWentWrong": "He/she missed the broader context of the poster, overlooking that the word 'only' made the statement false."
+          "whatWentWrong": "LohXY2014 picked the past tense 'took' instead of the base form 'take' after the sensory verb 'saw'."
+        },
+        {
+          "questionRef": "[118]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 chose the plural 'are organising' instead of 'is organising', forgetting that 'as well as' does not make the subject plural."
+        },
+        {
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "LohXY2014 wrote 'result' instead of 'results', missing that the singular subject 'This' needs a singular verb."
         }
       ],
-      "strategic_advice": "When a question asks **Which statement is true** or requires you to **Fill in each blank**, avoid rushing to answer based on just one sentence. Always read the **sentence before** and the **sentence after** to catch **connecting ideas** or hidden conditions that change the meaning.",
+      "strategic_advice": "When you see a verb question, always play detective and look for the **subject** and the **time clues**.\n- **Highlight the subject** and ask yourself: is it singular or plural?\n- Watch out for **special rules**, like sensory verbs ('saw', 'heard') which need the base form, or uncountable nouns ('luggage') which are always singular.",
       "trigger_keywords": [
-        "Based on Text",
-        "Which statement is true",
-        "Fill in each blank"
+        "grammar",
+        "editing",
+        "tense",
+        "verb"
       ]
     },
     {
-      "name": "Overlooking hidden grammar rules",
-      "what": "LohXY2014 occasionally misses structural grammar clues like question tags, uncountable nouns, or parallel structures that dictate the exact form of the verb.",
+      "name": "Hidden Poster Details",
+      "what": "Sometimes overlooks small but important conditions or keywords in posters and advertisements.",
       "specific_examples": [
         {
-          "questionRef": "[41]",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 missed that the word 'seldom' makes the sentence negative, which requires a positive question tag."
+          "whatWentWrong": "LohXY2014 missed that the 15% discount was specifically for the 'first order online'."
         },
         {
-          "questionRef": "[56]",
+          "questionRef": "[37]",
           "type": "mcq",
-          "whatWentWrong": "He/she missed that 'luggage' is an uncountable noun and must be treated as singular."
+          "whatWentWrong": "LohXY2014 overlooked the word 'only' in the option, which made the statement false."
         },
         {
-          "questionRef": "[87]",
+          "questionRef": "[85]",
           "type": "mcq",
-          "whatWentWrong": "He/she missed that the sensory verb 'saw' requires the next action to be in its base form."
+          "whatWentWrong": "LohXY2014 missed that the biggest savings were for returning customers who book 'after 1 December'."
         }
       ],
-      "strategic_advice": "When tackling a **Grammar MCQ** or an **Editing** passage, actively scan for **trigger words** like 'seldom', uncountable nouns, or sensory verbs like 'saw'. These specific words carry **special grammar rules** that dictate whether your answer should be singular, plural, or in a specific tense.",
+      "strategic_advice": "When reading posters or flyers, treat every small condition as a **stop sign**.\n- Pay close attention to **absolute words** like 'only', 'all', or 'never'.\n- Look out for **special conditions** like 'first order', 'returning customers', or specific dates.",
       "trigger_keywords": [
-        "Choose the correct answer",
-        "Grammar MCQ",
-        "Editing"
+        "according to the poster",
+        "which statement is true",
+        "visual text",
+        "advertisement"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -130,31 +134,31 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
-    },
-    {
-      "idx": 7,
-      "patternIndex": 2
-    },
-    {
-      "idx": 8,
-      "patternIndex": 3
-    },
-    {
-      "idx": 9,
-      "patternIndex": 3
-    },
-    {
-      "idx": 10,
       "patternIndex": 1
     },
     {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -162,43 +166,43 @@
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -206,11 +210,11 @@
     },
     {
       "idx": 25,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 26,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 27,
@@ -222,59 +226,59 @@
     },
     {
       "idx": 29,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 30,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 32,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 37,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 41,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 42,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 43,
@@ -282,167 +286,167 @@
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 45,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 46,
-      "patternIndex": 2
-    },
-    {
-      "idx": 47,
-      "patternIndex": 2
-    },
-    {
-      "idx": 48,
-      "patternIndex": 2
-    },
-    {
-      "idx": 49,
-      "patternIndex": 3
-    },
-    {
-      "idx": 50,
-      "patternIndex": 0
-    },
-    {
-      "idx": 51,
-      "patternIndex": 2
-    },
-    {
-      "idx": 52,
-      "patternIndex": 0
-    },
-    {
-      "idx": 53,
-      "patternIndex": 1
-    },
-    {
-      "idx": 54,
-      "patternIndex": 1
-    },
-    {
-      "idx": 55,
-      "patternIndex": 2
-    },
-    {
-      "idx": 56,
-      "patternIndex": 3
-    },
-    {
-      "idx": 57,
-      "patternIndex": 2
-    },
-    {
-      "idx": 58,
-      "patternIndex": 1
-    },
-    {
-      "idx": 59,
-      "patternIndex": 2
-    },
-    {
-      "idx": 60,
-      "patternIndex": 3
-    },
-    {
-      "idx": 61,
-      "patternIndex": 1
-    },
-    {
-      "idx": 62,
-      "patternIndex": 3
-    },
-    {
-      "idx": 63,
-      "patternIndex": 3
-    },
-    {
-      "idx": 64,
-      "patternIndex": 3
-    },
-    {
-      "idx": 65,
-      "patternIndex": 0
-    },
-    {
-      "idx": 66,
-      "patternIndex": 0
-    },
-    {
-      "idx": 67,
-      "patternIndex": 1
-    },
-    {
-      "idx": 68,
-      "patternIndex": 1
-    },
-    {
-      "idx": 69,
-      "patternIndex": 1
-    },
-    {
-      "idx": 70,
-      "patternIndex": 2
-    },
-    {
-      "idx": 71,
-      "patternIndex": 2
-    },
-    {
-      "idx": 72,
-      "patternIndex": 2
-    },
-    {
-      "idx": 73,
-      "patternIndex": 2
-    },
-    {
-      "idx": 74,
-      "patternIndex": 2
-    },
-    {
-      "idx": 75,
-      "patternIndex": 2
-    },
-    {
-      "idx": 76,
       "patternIndex": -1
     },
     {
-      "idx": 77,
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
       "patternIndex": 3
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": 0
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": 0
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": 1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 2
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": 0
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": 1
+    },
+    {
+      "idx": 76,
+      "patternIndex": 0
+    },
+    {
+      "idx": 77,
+      "patternIndex": 0
     },
     {
       "idx": 78,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 79,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 80,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 81,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 82,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 83,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 84,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 85,
@@ -454,15 +458,15 @@
     },
     {
       "idx": 87,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 88,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 89,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 90,
@@ -470,23 +474,23 @@
     },
     {
       "idx": 91,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 92,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 93,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 94,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 95,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 96,
@@ -494,39 +498,39 @@
     },
     {
       "idx": 97,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 98,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 99,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 100,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 101,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 102,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 103,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 104,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 105,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 106,
@@ -534,15 +538,15 @@
     },
     {
       "idx": 107,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 108,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 109,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 110,
@@ -550,7 +554,7 @@
     },
     {
       "idx": 111,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 112,
@@ -558,59 +562,59 @@
     },
     {
       "idx": 113,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 114,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 115,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 116,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 117,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 118,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 119,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 120,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 121,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 122,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 123,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 124,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 125,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 126,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 127,
@@ -618,11 +622,11 @@
     },
     {
       "idx": 128,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 129,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 130,
@@ -631,145 +635,207 @@
     {
       "idx": 131,
       "patternIndex": -1
+    },
+    {
+      "idx": 132,
+      "patternIndex": 1
+    },
+    {
+      "idx": 133,
+      "patternIndex": -1
+    },
+    {
+      "idx": 134,
+      "patternIndex": 1
+    },
+    {
+      "idx": 135,
+      "patternIndex": 1
+    },
+    {
+      "idx": 136,
+      "patternIndex": -1
+    },
+    {
+      "idx": 137,
+      "patternIndex": -1
+    },
+    {
+      "idx": 138,
+      "patternIndex": -1
+    },
+    {
+      "idx": 139,
+      "patternIndex": -1
+    },
+    {
+      "idx": 140,
+      "patternIndex": -1
+    },
+    {
+      "idx": 141,
+      "patternIndex": -1
+    },
+    {
+      "idx": 142,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmq979lbj00t9bxufyf16wcuh",
-    "2": "cmq979lbk00tobxufvcpj8j4m",
-    "3": "cmq979lbl00ttbxufotas7ofk",
-    "4": "cmq979lbl00u0bxuf9q1wpsxe",
-    "5": "cmq979lbl00u1bxuf0v7ykq17",
-    "6": "cmq979lbl00u4bxuftc7yomep",
-    "7": "cmq979lbl00u5bxuf4906ovav",
-    "8": "cmq979lbl00u6bxufwq97vuj6",
-    "9": "cmq979lbl00u7bxuf1yoqmdmc",
-    "10": "cmq979lbl00u8bxuffk8so708",
-    "11": "cmq979lbl00u9bxuffljegqji",
-    "12": "cmq979lbm00ubbxuf6xjvu1yf",
-    "13": "cmq979lbm00ucbxufghuvvs3d",
-    "14": "cmq979lbm00uhbxufi2krbhnu",
-    "15": "cmq979lbm00uibxuf43xcoy6f",
-    "16": "cmq979lbm00ukbxufp1thow00",
-    "17": "cmq979lbm00ulbxuf3siw5htg",
-    "18": "cmq979lbm00uobxuflyffgu8d",
-    "19": "cmq979xem00usbxufpyz85qxc",
-    "20": "cmq979xem00uubxufrp0463k7",
-    "21": "cmq979xem00uwbxuf0kz42fh9",
-    "22": "cmq979xen00v0bxufeq1tdf7b",
-    "23": "cmq979xen00v2bxuf5rmvb9d2",
-    "24": "cmq979xen00v4bxuf1ahjzv8x",
-    "25": "cmq979xen00v9bxuf4gi74tqi",
-    "26": "cmq979xeo00vdbxufjbvg48i9",
-    "27": "cmq979xeo00vgbxuf0egzfqnk",
-    "28": "cmq979xeo00vmbxufttar4jf3",
-    "29": "cmq979xeo00vnbxufadg98iql",
-    "30": "cmq979xep00vubxufn9ty9z9c",
-    "31": "cmq979xep00vvbxufktj2sasf",
-    "32": "cmq979xep00vwbxufgx9znuiv",
-    "33": "cmq979xep00vxbxuf27uv4qsg",
-    "34": "cmq979xep00w0bxufyqcyzugj",
-    "35": "cmq979xep00w2bxufvjt7b8pu",
-    "36": "cmq979xep00w4bxufep9wcr3x",
-    "37": "cmq979xep00w5bxufdknek76f",
-    "38": "cmq979xep00w8bxufnymk2to5",
-    "39": "cmq979xep00w9bxufyyiq52gq",
-    "40": "cmq979xeq00wabxufsk059fv1",
-    "41": "cmq7tn524003dwe3ufaoayj05",
-    "42": "cmq7tn524003ewe3u7utuayby",
-    "43": "cmq7tn525003lwe3u0tzd5lcy",
-    "44": "cmq7tn525003mwe3ugng00ytc",
-    "45": "cmq7tn525003owe3ue4207hms",
-    "46": "cmq7tn525003pwe3u7dblesvw",
-    "47": "cmq7tn525003qwe3uyzhxiyqm",
-    "48": "cmq7tn525003vwe3uzsbpiqbu",
-    "49": "cmq7tn5260049we3ugl9w8rwd",
-    "50": "cmq7tn526004bwe3ujkcfc36z",
-    "51": "cmq7tn527004lwe3u8394kbxw",
-    "52": "cmq7tn527004mwe3ugcocj0q5",
-    "53": "cmq7tn527004pwe3uf0qwmzpb",
-    "54": "cmq7tn527004rwe3uf1nyfi2i",
-    "55": "cmq7tn527004wwe3uzqvlw83u",
-    "56": "cmq692ogq000poedealmm7ap4",
-    "57": "cmq692ogq000xoedeih408oli",
-    "58": "cmq692ogr0011oedeari0fw1w",
-    "59": "cmq692ogr0012oedevw5y2qzy",
-    "60": "cmq692ogs001loedeks16qpvm",
-    "61": "cmq692ogs001moedet78xeuoq",
-    "62": "cmq692ogs001qoede6lzdfzhw",
-    "63": "cmq692ogs001voedevgqnr30g",
-    "64": "cmq692ogs001yoede0ua2qpd5",
-    "65": "cmq692ogs0023oedeq3b59n63",
-    "66": "cmq692ogt0027oedenluzjg1j",
-    "67": "cmq692ogt0028oede77h52oqs",
-    "68": "cmq4vq02m000fg2owr4mh5uwx",
-    "69": "cmq4vq02m000hg2ow45brch56",
-    "70": "cmq4vq02n000kg2ow1c46t6k2",
-    "71": "cmq4vq02n000lg2owktb8uuvx",
-    "72": "cmq4vq02n000ng2owkshrn6ej",
-    "73": "cmq4vq02n000wg2ow05xjgquk",
-    "74": "cmq4vq02n000xg2owisdx889w",
-    "75": "cmq4vq02o000yg2ow1x3ya1ox",
-    "76": "cmq4vq02o0017g2owsyg8sa9s",
-    "77": "cmq4vq02o001cg2owyi80amsu",
-    "78": "cmq4vq02p001eg2owfouci2k6",
-    "79": "cmq4vq02p001gg2owtzkbbtkh",
-    "80": "cmq4vq02p001lg2ow04vbw3rc",
-    "81": "cmq4vq02p001mg2owstjp74cu",
-    "82": "cmq4vq02p001pg2owvzdwn0y5",
-    "83": "cmq4vq02p001qg2ow4ok43e7l",
-    "84": "cmq4vq02p001tg2owuvyrtwv8",
-    "85": "cmq4vq02q001xg2owisrwf92l",
-    "86": "cmq4vq02q0020g2ow6157waos",
-    "87": "cmq3eiamn002631spxe8yzh2w",
-    "88": "cmq3eiamn002731spvll90yl4",
-    "89": "cmq3eiamn002831spf5qszdvy",
-    "90": "cmq3eiamn002c31spvu8yyb47",
-    "91": "cmq3eiamn002g31sp57k1ij5g",
-    "92": "cmq3eiamo002h31sp0h0lgy46",
-    "93": "cmq3eiamo002k31spkvzymwdf",
-    "94": "cmq3eiamo002m31spqx2ev0hg",
-    "95": "cmq3eiamo002o31sp0yrxn4tc",
-    "96": "cmq3eiamo002t31sp222klv4y",
-    "97": "cmq3eiamo002z31spt49gkwpa",
-    "98": "cmq3eiamo003231spx54p60cb",
-    "99": "cmq3eiamp003431spcipaty04",
-    "100": "cmq3eiamp003731spxyc2e5ob",
-    "101": "cmq3eiamp003c31spsaleat0i",
-    "102": "cmq3eiamp003h31spnvg6ufce",
-    "103": "cmq3eiamp003j31splyrc7ddm",
-    "104": "cmq3eiamp003o31spcnsojgjz",
-    "105": "cmq3eiamp003p31sp8s2jyrns",
-    "106": "cmpw7rl48000olslk7km9nmc3",
-    "107": "cmpw7rl48000qlslkqarzk1o0",
-    "108": "cmpw7rl48000vlslkvfake9ru",
-    "109": "cmpw7rl480010lslk02xzkpi1",
-    "110": "cmpw7rl480011lslk7vgimjb6",
-    "111": "cmpw7rl480012lslk7r28d0k4",
-    "112": "cmpw7rl490017lslk0s0uza4g",
-    "113": "cmpw7rl49001dlslkrmhse4e8",
-    "114": "cmpw7rl49001flslkyhrmvahj",
-    "115": "cmpw7rl49001glslkhxclerph",
-    "116": "cmpw7rl4a001rlslkm1cfpxy5",
-    "117": "cmpw7rl4a001tlslk8cs92j78",
-    "118": "cmpw7rl4a001ulslk8k0r8jhj",
-    "119": "cmpw7rl4a001vlslkh5oh8c91",
-    "120": "cmpw7rl4a001ylslk78lfjcif",
-    "121": "cmpw7rl4a001zlslkwhmbiaqx",
-    "122": "cmpw7rl4a0020lslkpv99g4ga",
-    "123": "cmpw7rl4a0022lslkvic7yff4",
-    "124": "cmpw7rl4a0023lslkj7out760",
-    "125": "cmpvxnesk0003z9pkt00tkedv",
-    "126": "cmpvxnesk0007z9pkp6cmtgdy",
-    "127": "cmpvxnesk0009z9pkuklu25s3",
-    "128": "cmpvxnesl000bz9pkcs80x9fe",
-    "129": "cmpvxnesl000gz9pkidi3x5iq",
-    "130": "cmpvxnesl000nz9pkdgld6rom",
-    "131": "cmpvxnesl000qz9pkh9ifsl57"
+    "1": "cmqf70a0k001iqs2gaq4u7yx7",
+    "2": "cmqf70a0k001uqs2gtpoh7y3p",
+    "3": "cmqf70a0l0026qs2gka1c0w2d",
+    "4": "cmqf70a0l002eqs2gqxshohn8",
+    "5": "cmqf70a0l002hqs2gjlvpwssc",
+    "6": "cmqf70a0l002mqs2g3bk8qsab",
+    "7": "cmqf70a0m002wqs2gfitdys5t",
+    "8": "cmqf70a0m002xqs2gte2rd9m5",
+    "9": "cmqf70a0m002yqs2g1stjz6uu",
+    "10": "cmqf70a0m0031qs2gz2sk18e9",
+    "11": "cmqf70a0m0033qs2gj80xura6",
+    "12": "cmq979lbj00t9bxufyf16wcuh",
+    "13": "cmq979lbk00tobxufvcpj8j4m",
+    "14": "cmq979lbl00ttbxufotas7ofk",
+    "15": "cmq979lbl00u0bxuf9q1wpsxe",
+    "16": "cmq979lbl00u1bxuf0v7ykq17",
+    "17": "cmq979lbl00u4bxuftc7yomep",
+    "18": "cmq979lbl00u5bxuf4906ovav",
+    "19": "cmq979lbl00u6bxufwq97vuj6",
+    "20": "cmq979lbl00u7bxuf1yoqmdmc",
+    "21": "cmq979lbl00u8bxuffk8so708",
+    "22": "cmq979lbl00u9bxuffljegqji",
+    "23": "cmq979lbm00ubbxuf6xjvu1yf",
+    "24": "cmq979lbm00ucbxufghuvvs3d",
+    "25": "cmq979lbm00uhbxufi2krbhnu",
+    "26": "cmq979lbm00uibxuf43xcoy6f",
+    "27": "cmq979lbm00ukbxufp1thow00",
+    "28": "cmq979lbm00ulbxuf3siw5htg",
+    "29": "cmq979lbm00uobxuflyffgu8d",
+    "30": "cmq979xem00usbxufpyz85qxc",
+    "31": "cmq979xem00uubxufrp0463k7",
+    "32": "cmq979xem00uwbxuf0kz42fh9",
+    "33": "cmq979xen00v0bxufeq1tdf7b",
+    "34": "cmq979xen00v2bxuf5rmvb9d2",
+    "35": "cmq979xen00v4bxuf1ahjzv8x",
+    "36": "cmq979xen00v9bxuf4gi74tqi",
+    "37": "cmq979xeo00vdbxufjbvg48i9",
+    "38": "cmq979xeo00vgbxuf0egzfqnk",
+    "39": "cmq979xeo00vmbxufttar4jf3",
+    "40": "cmq979xeo00vnbxufadg98iql",
+    "41": "cmq979xep00vubxufn9ty9z9c",
+    "42": "cmq979xep00vvbxufktj2sasf",
+    "43": "cmq979xep00vwbxufgx9znuiv",
+    "44": "cmq979xep00vxbxuf27uv4qsg",
+    "45": "cmq979xep00w0bxufyqcyzugj",
+    "46": "cmq979xep00w2bxufvjt7b8pu",
+    "47": "cmq979xep00w4bxufep9wcr3x",
+    "48": "cmq979xep00w5bxufdknek76f",
+    "49": "cmq979xep00w8bxufnymk2to5",
+    "50": "cmq979xep00w9bxufyyiq52gq",
+    "51": "cmq979xeq00wabxufsk059fv1",
+    "52": "cmq7tn524003dwe3ufaoayj05",
+    "53": "cmq7tn524003ewe3u7utuayby",
+    "54": "cmq7tn525003lwe3u0tzd5lcy",
+    "55": "cmq7tn525003mwe3ugng00ytc",
+    "56": "cmq7tn525003owe3ue4207hms",
+    "57": "cmq7tn525003pwe3u7dblesvw",
+    "58": "cmq7tn525003qwe3uyzhxiyqm",
+    "59": "cmq7tn525003vwe3uzsbpiqbu",
+    "60": "cmq7tn5260049we3ugl9w8rwd",
+    "61": "cmq7tn526004bwe3ujkcfc36z",
+    "62": "cmq7tn527004lwe3u8394kbxw",
+    "63": "cmq7tn527004mwe3ugcocj0q5",
+    "64": "cmq7tn527004pwe3uf0qwmzpb",
+    "65": "cmq7tn527004rwe3uf1nyfi2i",
+    "66": "cmq7tn527004wwe3uzqvlw83u",
+    "67": "cmq692ogq000poedealmm7ap4",
+    "68": "cmq692ogq000xoedeih408oli",
+    "69": "cmq692ogr0011oedeari0fw1w",
+    "70": "cmq692ogr0012oedevw5y2qzy",
+    "71": "cmq692ogs001loedeks16qpvm",
+    "72": "cmq692ogs001moedet78xeuoq",
+    "73": "cmq692ogs001qoede6lzdfzhw",
+    "74": "cmq692ogs001voedevgqnr30g",
+    "75": "cmq692ogs001yoede0ua2qpd5",
+    "76": "cmq692ogs0023oedeq3b59n63",
+    "77": "cmq692ogt0027oedenluzjg1j",
+    "78": "cmq692ogt0028oede77h52oqs",
+    "79": "cmq4vq02m000fg2owr4mh5uwx",
+    "80": "cmq4vq02m000hg2ow45brch56",
+    "81": "cmq4vq02n000kg2ow1c46t6k2",
+    "82": "cmq4vq02n000lg2owktb8uuvx",
+    "83": "cmq4vq02n000ng2owkshrn6ej",
+    "84": "cmq4vq02n000wg2ow05xjgquk",
+    "85": "cmq4vq02n000xg2owisdx889w",
+    "86": "cmq4vq02o000yg2ow1x3ya1ox",
+    "87": "cmq4vq02o0017g2owsyg8sa9s",
+    "88": "cmq4vq02o001cg2owyi80amsu",
+    "89": "cmq4vq02p001eg2owfouci2k6",
+    "90": "cmq4vq02p001gg2owtzkbbtkh",
+    "91": "cmq4vq02p001lg2ow04vbw3rc",
+    "92": "cmq4vq02p001mg2owstjp74cu",
+    "93": "cmq4vq02p001pg2owvzdwn0y5",
+    "94": "cmq4vq02p001qg2ow4ok43e7l",
+    "95": "cmq4vq02p001tg2owuvyrtwv8",
+    "96": "cmq4vq02q001xg2owisrwf92l",
+    "97": "cmq4vq02q0020g2ow6157waos",
+    "98": "cmq3eiamn002631spxe8yzh2w",
+    "99": "cmq3eiamn002731spvll90yl4",
+    "100": "cmq3eiamn002831spf5qszdvy",
+    "101": "cmq3eiamn002c31spvu8yyb47",
+    "102": "cmq3eiamn002g31sp57k1ij5g",
+    "103": "cmq3eiamo002h31sp0h0lgy46",
+    "104": "cmq3eiamo002k31spkvzymwdf",
+    "105": "cmq3eiamo002m31spqx2ev0hg",
+    "106": "cmq3eiamo002o31sp0yrxn4tc",
+    "107": "cmq3eiamo002t31sp222klv4y",
+    "108": "cmq3eiamo002z31spt49gkwpa",
+    "109": "cmq3eiamo003231spx54p60cb",
+    "110": "cmq3eiamp003431spcipaty04",
+    "111": "cmq3eiamp003731spxyc2e5ob",
+    "112": "cmq3eiamp003c31spsaleat0i",
+    "113": "cmq3eiamp003h31spnvg6ufce",
+    "114": "cmq3eiamp003j31splyrc7ddm",
+    "115": "cmq3eiamp003o31spcnsojgjz",
+    "116": "cmq3eiamp003p31sp8s2jyrns",
+    "117": "cmpw7rl48000olslk7km9nmc3",
+    "118": "cmpw7rl48000qlslkqarzk1o0",
+    "119": "cmpw7rl48000vlslkvfake9ru",
+    "120": "cmpw7rl480010lslk02xzkpi1",
+    "121": "cmpw7rl480011lslk7vgimjb6",
+    "122": "cmpw7rl480012lslk7r28d0k4",
+    "123": "cmpw7rl490017lslk0s0uza4g",
+    "124": "cmpw7rl49001dlslkrmhse4e8",
+    "125": "cmpw7rl49001flslkyhrmvahj",
+    "126": "cmpw7rl49001glslkhxclerph",
+    "127": "cmpw7rl4a001rlslkm1cfpxy5",
+    "128": "cmpw7rl4a001tlslk8cs92j78",
+    "129": "cmpw7rl4a001ulslk8k0r8jhj",
+    "130": "cmpw7rl4a001vlslkh5oh8c91",
+    "131": "cmpw7rl4a001ylslk78lfjcif",
+    "132": "cmpw7rl4a001zlslkwhmbiaqx",
+    "133": "cmpw7rl4a0020lslkpv99g4ga",
+    "134": "cmpw7rl4a0022lslkvic7yff4",
+    "135": "cmpw7rl4a0023lslkj7out760",
+    "136": "cmpvxnesk0003z9pkt00tkedv",
+    "137": "cmpvxnesk0007z9pkp6cmtgdy",
+    "138": "cmpvxnesk0009z9pkuklu25s3",
+    "139": "cmpvxnesl000bz9pkcs80x9fe",
+    "140": "cmpvxnesl000gz9pkidi3x5iq",
+    "141": "cmpvxnesl000nz9pkdgld6rom",
+    "142": "cmpvxnesl000qz9pkh9ifsl57"
   },
-  "generatedAt": "2026-06-15T02:10:04.293Z",
+  "generatedAt": "2026-06-17T07:40:03.567Z",
   "wrongCounts": {
-    "total": 131,
-    "oeq": 81,
-    "mcq": 50
-  }
+    "total": 142,
+    "oeq": 90,
+    "mcq": 52
+  },
+  "toplineSnapshot": {
+    "avgPct": 71,
+    "totalAwarded": 355,
+    "totalAvailable": 502,
+    "paperCount": 9
+  },
+  "previousAssessment": null
 }

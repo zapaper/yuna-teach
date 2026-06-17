@@ -1,156 +1,122 @@
 {
   "patterns": [
     {
-      "name": "Spotting Hidden Grammar Clues",
-      "what": "EL44 occasionally misses small but important grammar clues in the sentence, like time markers or hidden singular subjects.",
+      "name": "Word Pairing Slips",
+      "what": "Tends to pick a word that makes sense on its own but doesn't naturally pair with the prepositions or phrases right next to it.",
       "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose the simple past 'lived', missing that the time marker 'since' requires the present perfect 'have lived'."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 matched the verb to the plural 'motorcycles', overlooking that the true main subject 'The lineup' is singular."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 picked 'damaged', but the clue 'the previous day' shows this happened before another past action, needing the past perfect 'had damaged'."
-        }
-      ],
-      "strategic_advice": "When you see time words like 'since' or 'previous', or joining phrases like 'as well as', pause and underline them. **Check the timeline** for tense questions to see which action happened first. For agreement questions, always **trace back to the true main subject** before choosing your verb.",
-      "trigger_keywords": [
-        "since",
-        "previous day",
-        "as well as",
-        "along with",
-        "already"
-      ]
-    },
-    {
-      "name": "Selecting Right Connecting Words",
-      "what": "EL44 sometimes finds it tricky to pick the exact relative pronoun or conjunction needed to logically connect two parts of a sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 picked 'who' instead of 'whom' for a person receiving the action from the committee."
-        },
-        {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "EL44 wrote 'Since' instead of 'if', which changes the logical meaning of the boy's clever argument to the king."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose 'whom' instead of 'who' for the subject that is actively performing the action of helping classmates."
-        }
-      ],
-      "strategic_advice": "When you see a blank linking two ideas, test if the person is doing the action (use **who**) or receiving it (use **whom**). For logical connectors, **read the whole sentence with your chosen word** to ensure the cause and effect makes perfect sense.",
-      "trigger_keywords": [
-        "who",
-        "whom",
-        "if",
-        "since",
-        "unless",
-        "which"
-      ]
-    },
-    {
-      "name": "Noticing Prepositions After Blanks",
-      "what": "EL44 occasionally focuses so much on the meaning of the blank that he/she misses the little prepositions right after it, which dictate which word fits.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose 'prevented', but this would need the preposition 'from' to work, making 'disrupted' the correct fit."
-        },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "EL44 picked 'celebrate', missing that the preposition 'in' right after the blank perfectly pairs with 'revel'."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 selected 'get through', but 'get ahead' is the correct phrasal verb for succeeding in life's journey."
-        }
-      ],
-      "strategic_advice": "When you see a blank followed by a small preposition like 'in', 'from', or 'to', treat them as a pair. **Read the word and the preposition together** to see if they form a natural-sounding phrase. **Check for missing prepositions** that your chosen word might need.",
-      "trigger_keywords": [
-        "in",
-        "from",
-        "to",
-        "through",
-        "ahead",
-        "by"
-      ]
-    },
-    {
-      "name": "Using Context Clues for Vocabulary",
-      "what": "EL44 tends to pick vocabulary words that might look familiar but don't quite fit the specific context or logical clues provided in the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 chose 'superficial' on multiple attempts, missing that a 'successful experiment' requires an 'indispensable' (essential) step."
+          "whatWentWrong": "EL44 picked 'celebrate' instead of 'revel', missing that the preposition 'in' pairs perfectly with 'revel'."
         },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "EL44 repeatedly picked 'surge' instead of 'burst', missing the specific English pairing for a sudden, short eruption of activity."
+          "whatWentWrong": "EL44 chose 'surge' instead of 'burst' twice across different attempts, missing the common phrase 'burst of activity'."
         },
         {
-          "questionRef": "[14]",
+          "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "EL44 selected 'precarious' (dangerous), overlooking that moving students to safety during a drill is a matter of 'crucial' concern."
+          "whatWentWrong": "EL44 selected 'get through' instead of 'get ahead' when talking about succeeding in life's journey."
         }
       ],
-      "strategic_advice": "When you see a vocabulary question with a descriptive scenario, look for the **hidden context clues** before looking at the options. **Eliminate words that contradict the tone** of the sentence, even if they seem related to the general topic.",
+      "strategic_advice": "When you see a blank followed by a preposition (like **'in'**, **'by'**, or **'of'**), treat it as a package deal.\n- **Test the pair**: Say the option and the preposition together in your head (e.g., 'celebrate in' vs 'revel in').\n- **Look for familiar phrases**: Sometimes a word like 'activity' strongly prefers a specific partner word like 'burst'.",
       "trigger_keywords": [
-        "successful",
-        "obscure clue",
-        "emergency drill",
-        "accurate measurement",
-        "euphoria"
+        "in",
+        "by",
+        "of",
+        "to"
+      ]
+    },
+    {
+      "name": "Missing Context Clues",
+      "what": "Sometimes chooses a vocabulary word without fully checking the surrounding clues, occasionally picking a word that means the opposite of what is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'superficial' instead of 'indispensable' twice across different attempts, missing that a 'successful experiment' needs an essential step."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'obstructed' instead of 'stumped' when describing how students felt about a tricky clue."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 selected 'prevented' instead of 'disrupted', missing that an injury derails or disrupts training rather than completely preventing it."
+        }
+      ],
+      "strategic_advice": "When you see a long sentence with a blank, look for the **story clues** before looking at the options.\n- **Identify the tone**: Is the situation positive or negative? (e.g., a 'successful experiment' needs an 'indispensable' step, not a 'superficial' one).\n- **Find the cause and effect**: If a clue is 'obscure', it will leave students 'stumped' (confused) rather than physically 'obstructed'.",
+      "trigger_keywords": [
+        "despite",
+        "because",
+        "when",
+        "for a successful"
+      ]
+    },
+    {
+      "name": "Hidden Grammar Clues",
+      "what": "Occasionally misses small clue words in the sentence that change the required tense or verb form.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'damaged' instead of 'had damaged', missing the time clue 'the previous day'."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'lived' instead of 'have lived', overlooking the word 'since' which shows the action is still happening."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 selected the plural 'were' instead of 'was', getting distracted by the extra phrase 'as well as' instead of focusing on the main subject."
+        }
+      ],
+      "strategic_advice": "When you see a grammar question, play detective and look for the hidden clues before looking at the options.\n- **Time words** like **'since'** or **'the previous day'** tell you exactly which tense to use.\n- **Extra phrases** like **'as well as'** or **'together with'** are traps—cross them out lightly with your pencil so you can match the verb to the real main subject.",
+      "trigger_keywords": [
+        "since",
+        "the previous day",
+        "as well as",
+        "together with"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
-    },
-    {
-      "idx": 2,
-      "patternIndex": 1
-    },
-    {
-      "idx": 3,
-      "patternIndex": 0
-    },
-    {
-      "idx": 4,
       "patternIndex": 2
     },
     {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 9,
@@ -158,39 +124,39 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 2
-    },
-    {
-      "idx": 12,
-      "patternIndex": 3
-    },
-    {
-      "idx": 13,
-      "patternIndex": 3
-    },
-    {
-      "idx": 14,
-      "patternIndex": 3
-    },
-    {
-      "idx": 15,
-      "patternIndex": 3
-    },
-    {
-      "idx": 16,
-      "patternIndex": 2
-    },
-    {
-      "idx": 17,
       "patternIndex": 0
     },
     {
-      "idx": 18,
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
       "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -213,10 +179,17 @@
     "17": "cmpjrki4800oweplm9kukkrh4",
     "18": "cmpjrki4900ozeplms7uiexxo"
   },
-  "generatedAt": "2026-06-15T02:24:15.916Z",
+  "generatedAt": "2026-06-17T07:30:54.582Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 2,
     "mcq": 16
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 79,
+    "totalAwarded": 89,
+    "totalAvailable": 113,
+    "paperCount": 8
+  },
+  "previousAssessment": null
 }

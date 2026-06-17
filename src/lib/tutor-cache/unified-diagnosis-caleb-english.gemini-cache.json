@@ -1,145 +1,116 @@
 {
   "patterns": [
     {
-      "name": "Overlooking Small Qualifier Words",
-      "what": "Caleb occasionally reads past small but crucial words like 'only', 'new', or 'again' that completely change the requirements of the question.",
+      "name": "Small Hidden Clues",
+      "what": "Sometimes reads the text quickly and misses small but important words or specific instructions that completely change the final answer.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Caleb missed the word 'only' in the first option, which was the key to identifying it as the false statement."
+          "whatWentWrong": "Caleb missed the word 'only' in the options, which was the key to finding the false statement."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "He accidentally left out the word 'new' when rewriting the sentence, which slightly changed its meaning."
+          "whatWentWrong": "He transformed the sentence well but accidentally left out the word 'new'."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He overlooked the word 'again' in the question, which was a clue that Mindy qualified for the returning customer discount."
+          "whatWentWrong": "Caleb overlooked the word 'again' in the question, which meant Mindy was a returning customer."
         }
       ],
-      "strategic_advice": "When you see trigger words like **not true**, **only**, or **again**, circle them immediately. These small words often change the entire meaning of the question. Before writing your final answer, do a quick check to ensure you haven't accidentally dropped any descriptive words from the original sentence.",
+      "strategic_advice": "When you see absolute words like **'only'**, **'always'**, or **'again'**, treat them as trap warnings and circle them. For transformation questions, use your pencil to tick off every single word from the original sentence so nothing gets left behind.",
       "trigger_keywords": [
         "not true",
         "only",
         "again",
-        "new",
-        "except"
+        "wanted to know"
       ]
     },
     {
-      "name": "Spelling by Sound Rather Than Rule",
-      "what": "Caleb tends to spell complex words exactly as they sound, which sometimes leads to adding extra letters or swapping vowels.",
+      "name": "Clues Around Blanks",
+      "what": "Occasionally picks a word that makes sense on its own but misses the hints hidden in the sentences right before or after the blank.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Caleb spelled the word exactly as it sounds by adding an extra 'r', writing 'perservering' instead of 'persevering'."
+          "whatWentWrong": "He wrote 'the' instead of an adjective like 'poor' to describe the problematic conditions mentioned later in the paragraph."
         },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "He accidentally swapped the vowels, writing 'buisness' instead of 'business'."
-        },
-        {
-          "questionRef": "[20]",
-          "type": "oeq",
-          "whatWentWrong": "He kept the 'i' from the root word 'reclaim', writing 'reclaimation' instead of 'reclamation'."
-        }
-      ],
-      "strategic_advice": "When you see an **editing** or **comprehension** question requiring a long word, try to break it down into its root parts. For example, remember that 'reclamation' comes from 'reclaim' but drops the 'i', and 'persevering' has no 'r' after the 'v'. Sounding it out is a great first step, but always double-check the spelling rules!",
-      "trigger_keywords": [
-        "spelling",
-        "editing",
-        "correct the word"
-      ]
-    },
-    {
-      "name": "Overlooking Contextual Clues in Cloze",
-      "what": "Caleb sometimes chooses a word that makes sense grammatically on its own, but doesn't quite fit the specific tone or reference of the surrounding sentences.",
-      "specific_examples": [
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Caleb chose 'supposedly' instead of 'moderately', missing the contextual clue that the beach was fairly clean but still had a severe littering issue."
+          "whatWentWrong": "Caleb picked 'supposedly' instead of 'moderately', missing the hint that the beach was 'somewhat' clean."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "He chose 'introduce' instead of 'expose', missing the negative, vulnerable tone associated with cyberbullying."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'school' instead of a referencing word like 'such' or 'these' to point back to the specific issues just mentioned."
+          "whatWentWrong": "He chose 'introduce' instead of 'expose', missing the negative hint about facing cyberbullying."
         }
       ],
-      "strategic_advice": "When you see a **fill-in-the-blank** or **cloze** passage, always read the sentence before and the sentence after. Look for negative situations (like bullying or problems) that require a negative word like **expose** or **poor**, rather than neutral words. Ask yourself if the word you chose matches the exact feeling of the paragraph.",
+      "strategic_advice": "When filling in blanks, treat the sentences before and after as your best clues:\n- **'problems such as'** → make sure your word describes something negative\n- **'these'** or **'such'** → use these words to link back to ideas just mentioned\nAlways read the whole paragraph again with your word filled in to check if it flows smoothly.",
       "trigger_keywords": [
         "fill in the blank",
-        "most suitable word",
-        "cloze"
+        "passage",
+        "problems such as"
       ]
     },
     {
-      "name": "Providing Overly General Explanations",
-      "what": "Caleb occasionally provides a good general idea in his comprehension answers, but tends to stop one step short of giving the exact, specific detail the question requires.",
+      "name": "One Step Short",
+      "what": "Tends to find the right section of the passage but sometimes stops just before giving the exact, specific detail the marker needs.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "oeq",
-          "whatWentWrong": "Caleb wrote 'the student' generally, instead of specifying that it referred to 'the first boy in the line'."
+          "whatWentWrong": "Caleb wrote 'the student' instead of pointing to the specific 'first boy in the line'."
         },
         {
           "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "He focused on the broad idea of avoiding a ruined life, rather than the specific, immediate relief of avoiding another stroke."
+          "whatWentWrong": "He chose 'grateful' instead of 'relieved', missing the exact emotion tied to escaping further punishment."
         },
         {
           "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "He correctly identified the principal as strict, but missed the second part of the explanation about his light-hearted sense of humour."
+          "whatWentWrong": "Caleb correctly explained that the principal was strict, but missed the second point about his sense of humour."
         }
       ],
-      "strategic_advice": "When you see phrases like **explain clearly** or **what do the words refer to**, always ask yourself if you can be more specific. Instead of just giving a general category like 'the student', look back at the text to identify exactly **which** student the author means. Always try to include the final consequence or specific detail to get full marks.",
+      "strategic_advice": "When you see these prompts, push yourself to add one more layer of detail:\n- **'what do the words refer to'** → name the exact person or thing instead of a general group\n- **'explain clearly'** (especially for 2 marks) → always look for two separate points to include in your answer",
       "trigger_keywords": [
         "explain clearly",
-        "refer to",
-        "state how",
-        "evidence"
+        "what do the words refer to",
+        "state how"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 1
-    },
-    {
-      "idx": 4,
-      "patternIndex": 3
-    },
-    {
-      "idx": 5,
-      "patternIndex": 1
-    },
-    {
-      "idx": 6,
       "patternIndex": -1
     },
     {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 8,
@@ -147,23 +118,23 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -171,7 +142,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 16,
@@ -183,7 +154,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 19,
@@ -191,19 +162,19 @@
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 23,
-      "patternIndex": -1
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -231,10 +202,17 @@
     "22": "cmq4y9enm001m9dsbov2f3136",
     "23": "cmq4y9enm001o9dsb0cxiceru"
   },
-  "generatedAt": "2026-06-15T02:20:54.913Z",
+  "generatedAt": "2026-06-17T07:29:23.039Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 17,
     "mcq": 6
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 88,
+    "totalAwarded": 176.5,
+    "totalAvailable": 200,
+    "paperCount": 4
+  },
+  "previousAssessment": null
 }

@@ -1,113 +1,117 @@
 {
   "patterns": [
     {
-      "name": "Navigating Phrasal Verbs",
-      "what": "Rizqi sometimes finds it a little tricky to choose the correct preposition to pair with a verb, which can change the meaning of the phrase entirely.",
+      "name": "Phrasal Verb Mix-Ups",
+      "what": "Sometimes chooses the wrong preposition to go with a verb, which changes the meaning of the action completely.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose 'kick off' (which means to start an event) instead of 'kick in' for medication taking effect."
+          "whatWentWrong": "Rizqi picked 'kick off' instead of 'kick in' for medication starting to work."
         },
         {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi selected 'set up' rather than 'set in' to describe the feeling of fatigue starting."
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi wrote 'above' instead of 'over' when describing pulling a hood tightly on a head."
         },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi picked 'looked after' (which means to care for) instead of 'looked to' for seeking support from a brother."
+          "whatWentWrong": "Rizqi confused 'looked after' (taking care of) with 'looked to' (seeking support from)."
         }
       ],
-      "strategic_advice": "When you see a verb followed by a blank for a preposition, try to **visualise the action** or substitute the phrase with a single word. For example, 'kick in' means 'start', while 'kick off' means 'begin an event'. It helps to **keep a mini-journal** of new phrasal verbs you encounter so you can review them before tests!",
+      "strategic_advice": "When you see a verb followed by a blank, read the whole sentence to figure out the exact meaning needed.\n- **'kick in'** means to start working, while **'kick off'** means to start an event.\n- **'taken in'** means to be fooled, while **'taken up'** means to start a hobby.\n- Try replacing the phrasal verb with a simple word (like 'fooled' or 'started') to see if it matches the story.",
       "trigger_keywords": [
-        "started to",
-        "began to",
+        "kick",
+        "set",
+        "taken",
         "looked",
-        "taken"
+        "tightly"
       ]
     },
     {
-      "name": "Spelling Tricky Words",
-      "what": "When editing passages, Rizqi occasionally spells words exactly as they sound or misses double letters in longer words.",
+      "name": "Hidden Grammar Clues",
+      "what": "Occasionally misses small clues in the sentence that tell us exactly which form of a word to use, like time words or special action words.",
       "specific_examples": [
         {
-          "questionRef": "[11]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Rizqi missed the double 's' at the end of 'possess', which is a very common trap!"
+          "whatWentWrong": "Rizqi wrote 'live' instead of 'living' for the continuous action 'would otherwise be living'."
         },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi spelled 'gazed' phonetically as 'gaise', missing the 'z' and the past tense 'd'."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi wrote 'swap' instead of 'swoop', mixing up the vowel sounds."
-        }
-      ],
-      "strategic_advice": "When you spot a spelling error in editing, try to **break the word into syllables** and look out for common traps like double consonants. If a word sounds like it has a 'z' or 's' sound, **pause and test both spellings** on rough paper to see which one looks correct to your eye.",
-      "trigger_keywords": [
-        "spelling or grammatical error",
-        "correct word in each of the boxes"
-      ]
-    },
-    {
-      "name": "Applying Special Verb Rules",
-      "what": "Rizqi tends to default to the past tense, occasionally missing special grammar rules like causative verbs or matching the tense of the surrounding story.",
-      "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose the past tense 'felt' after the causative verb 'made', instead of the base form 'feel'."
-        },
-        {
-          "questionRef": "[20]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi picked the present tense 'are' even though the rest of the sentence was in the past tense ('kept')."
+          "whatWentWrong": "Rizqi used the past tense 'felt' instead of 'feel' after the special word 'made'."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi selected 'struck' instead of the base form 'strike' after the perception verb 'saw'."
+          "whatWentWrong": "Rizqi chose 'struck' instead of 'strike' after the sensing word 'saw'."
         }
       ],
-      "strategic_advice": "When you see action words like 'made', 'let', 'saw', or 'heard', remember they are **special bossy verbs** that usually force the next verb into its base form. Always **check the surrounding verbs** in the sentence to make sure your tenses match the timeline of the story!",
+      "strategic_advice": "When you have to choose a verb form, look for the 'bossy' words in the sentence:\n- Words like **'made'**, **'let'**, and **'saw'** are bossy—they force the next action word to be in its simplest form (e.g., 'made her **feel**', 'saw it **strike**').\n- Always check the **time clues** in the same sentence. If you see a past tense word like 'kept', make sure your answer is also in the past tense (**'were'**).",
       "trigger_keywords": [
         "made",
         "saw",
         "kept",
-        "actions"
+        "yesterday",
+        "last night"
       ]
     },
     {
-      "name": "Catching Context Clues",
-      "what": "Rizqi sometimes overlooks small hints in the sentence that help decide the exact word meaning, word form, or quantity needed.",
+      "name": "Tricky Spellings",
+      "what": "Tends to misspell challenging words or occasionally mixes up words that sound similar but have different forms.",
       "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi missed the double 's' at the end of 'possess'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Rizqi spelled 'gazed' as 'gaise' when describing looking into the owl's eyes."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi confused 'who's' (who is) with 'whose' (belonging to)."
+        }
+      ],
+      "strategic_advice": "For the editing section, sound out the word carefully and watch out for double letters.\n- When you see words with 's', double-check if they need a twin (like **'possess'**).\n- For words that sound the same, break them apart. **'Who's'** always means 'who is', so if you can't say 'who is' in the sentence, use **'whose'** instead.",
+      "trigger_keywords": [
+        "posess",
+        "gaised",
+        "who's",
+        "whose",
+        "precised"
+      ]
+    },
+    {
+      "name": "Word Choice Clues",
+      "what": "Sometimes picks a vocabulary word that makes sense on its own but doesn't quite fit the specific clues hidden in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose 'proposed' instead of 'anticipated' for a delay caused by a flashflood."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi picked 'immature' instead of 'impulsive' for an act done without checking the truth first."
+        },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose 'humble' instead of 'lavish', missing the clue about 'lots of leftovers' which suggests a huge feast."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "Rizqi used the verb form 'precised' instead of the noun 'precision' to match the noun phrase 'high definition'."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi picked 'a few' for time, but since time is uncountable, it needs the word 'much'."
+          "whatWentWrong": "Rizqi selected 'humble' instead of 'lavish' when the clue mentioned 'lots of leftovers'."
         }
       ],
-      "strategic_advice": "When you are unsure of a word, act like a detective and **highlight the clue words** in the sentence before making your choice. For example, words like 'leftovers' point to a huge feast, and uncountable nouns like 'time' always need specific quantifiers like 'much' instead of 'a few'.",
+      "strategic_advice": "Treat vocabulary questions like a detective game. The sentence always hides a clue!\n- If there are **'lots of leftovers'**, the feast must be huge (**'lavish'**), not small (**'humble'**).\n- If someone acts **'without checking the truth first'**, they are acting too quickly (**'impulsive'**).\n- Always underline the clue words in the sentence before picking your answer.",
       "trigger_keywords": [
+        "without checking",
         "lots of leftovers",
-        "detailed",
-        "time yesterday",
-        "due to the"
+        "due to the flashflood"
       ]
     }
   ],
@@ -146,23 +150,23 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 14,
@@ -170,15 +174,15 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 18,
@@ -186,19 +190,19 @@
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -225,7 +229,7 @@
     "21": "cmptzgi1v001h14gmxffs6oqr",
     "22": "cmptzgi1v001i14gm0grnay7i"
   },
-  "generatedAt": "2026-06-15T04:59:25.603Z",
+  "generatedAt": "2026-06-17T07:43:03.518Z",
   "wrongCounts": {
     "total": 22,
     "oeq": 8,

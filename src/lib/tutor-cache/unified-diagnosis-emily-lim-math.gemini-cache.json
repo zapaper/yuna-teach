@@ -29,7 +29,7 @@
       ]
     },
     {
-      "name": "Copy Number Wrongly",
+      "name": "Copying Numbers Wrong",
       "what": "Occasionally copies a number incorrectly from the question into the working steps, which changes the final answer despite using the perfect math method.",
       "specific_examples": [
         {

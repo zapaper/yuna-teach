@@ -1,121 +1,117 @@
 {
   "patterns": [
     {
-      "name": "Incomplete or Cut-off Answers",
-      "what": "natashatsai occasionally leaves her answers unfinished or misses out on subsequent parts of a question, which prevents her from getting the full marks she deserves.",
+      "name": "Unfinished Answers",
+      "what": "Occasionally submits answers that are cut off mid-sentence, leaves words unfinished, or stops before providing all the required points.",
       "specific_examples": [
         {
-          "questionRef": "[40]",
+          "questionRef": "[39]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai left the answer for part (c) incomplete, cutting off at 'the pa' instead of writing 'the paramedics and firefighters'."
+          "whatWentWrong": "natashatsai stopped typing mid-sentence when explaining why it was dangerous for Perry."
         },
         {
           "questionRef": "[42]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai provided a great start to her answer but left the sentence unfinished mid-word, missing out on the final marks."
-        },
-        {
-          "questionRef": "[44]",
-          "type": "oeq",
-          "whatWentWrong": "natashatsai was on the right track with her explanation, but the sentence was cut off abruptly at the end."
-        }
-      ],
-      "strategic_advice": "When you see question triggers like 'state two' or 'explain', always double-check that you have provided all the required parts. **Read your final sentence aloud in your head** to ensure it doesn't cut off abruptly. It helps to **tick off each requirement** in the question stem once you have fully answered it.",
-      "trigger_keywords": [
-        "state two",
-        "explain",
-        "identify",
-        "why",
-        "refer to lines"
-      ]
-    },
-    {
-      "name": "Typographical and Spelling Slips",
-      "what": "natashatsai sometimes writes partial words or makes quick spelling slips, which suggests she might be thinking faster than she is writing.",
-      "specific_examples": [
-        {
-          "questionRef": "[30]",
-          "type": "oeq",
-          "whatWentWrong": "natashatsai wrote 'car' instead of 'care', which looks like a quick slip of the pen rather than a misunderstanding of the phrase."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "natashatsai accidentally typed 'df\\' instead of a valid word, suggesting she might have been rushing through the section."
+          "whatWentWrong": "She left the sentence incomplete when stating how the bystanders helped."
         },
         {
           "questionRef": "[34]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai wrote 'onl' instead of 'only', missing the final letter of the word."
+          "whatWentWrong": "She submitted a cut-off word ('onl' instead of 'only') in the cloze passage."
         }
       ],
-      "strategic_advice": "When you see 'fill in each blank', remember that your brain might be moving faster than your hand! **Read your completed sentence back to yourself** to catch any missing letters or half-written words. **Check your spelling carefully** before moving on to the next question.",
+      "strategic_advice": "Before moving to the next question, take a quick second to check your work:\n- **Read your final sentence** to make sure it doesn't cut off abruptly.\n- **Check the question** to see if it asks for 'two reasons' or 'three details' and ensure you have them all.",
       "trigger_keywords": [
-        "fill in each blank",
-        "correct the spelling",
-        "suitable word"
+        "two reasons",
+        "three details",
+        "why",
+        "explain"
       ]
     },
     {
-      "name": "Imprecise Vocabulary Choices",
-      "what": "natashatsai tends to choose words that are generally related to the topic, but they occasionally don't perfectly fit the specific context or idiom of the passage.",
+      "name": "Context Clue Traps",
+      "what": "Sometimes picks a word that makes sense locally but misses the hints given in the surrounding sentences.",
       "specific_examples": [
         {
           "questionRef": "[6]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai chose 'sleeping', which is a bit too specific; 'living' better captures the broader idea of people residing in the open."
+          "whatWentWrong": "natashatsai wrote 'sleeping' instead of 'living', missing the broader clue 'living in the open' in the next sentence."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[28]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai used 'breakdown', but the common phrase used to describe a dramatic visual impression is a 'scene' from a war film."
+          "whatWentWrong": "She missed the contrast with 'temporary' and didn't guess 'permanent' for the type of nests."
         },
         {
-          "questionRef": "[19]",
-          "type": "mcq",
-          "whatWentWrong": "natashatsai picked 'setback', but 'drawback' is the more precise vocabulary word to describe a disadvantage of taking public transport."
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "She guessed 'to' instead of 'queen', missing the clue about the queen's role in the next sentence."
         }
       ],
-      "strategic_advice": "When you see 'choose the most suitable word', look closely at the context clues in the surrounding sentences. **Test your chosen word** to see if it fits the exact tone and meaning, rather than just the general topic. **Look out for specific idioms** or collocations that the passage might be using.",
+      "strategic_advice": "When filling in a blank, treat it like a detective game. Read the sentence before and the sentence after. Look for **clue words** that tell you exactly what kind of word is needed, like whether it should be a permanent home or a temporary one.",
       "trigger_keywords": [
         "fill in each blank",
-        "choose the most suitable word",
-        "closest in meaning"
+        "most suitable word"
       ]
     },
     {
-      "name": "Subject-Verb Agreement Distractors",
-      "what": "natashatsai occasionally gets distracted by extra phrases that separate the main subject from the verb, leading to a mismatch in agreement.",
+      "name": "Hidden Subject Traps",
+      "what": "Sometimes gets tricked by extra phrases like 'as well as' or 'together with' that separate the main subject from the verb.",
       "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "natashatsai matched the verb to the plural idea of 'rice', but the true singular subject of the sentence is 'The price'."
-        },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "natashatsai got distracted by the phrase 'as well as my cousin' and missed that the verb needs to agree with the main subject 'I'."
+          "whatWentWrong": "natashatsai matched the verb to 'my cousin' instead of the main subject 'I'."
         },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "natashatsai matched the verb to 'brothers', but the actual subject is 'Emily', which is singular."
+          "whatWentWrong": "She matched the verb to the plural 'brothers' instead of the singular subject 'Emily'."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "She used a plural verb for 'price of rice', which is a singular, uncountable subject."
         }
       ],
-      "strategic_advice": "When you see phrases like 'as well as' or 'together with', remember that they are there to distract you from the main subject. **Use your pencil to cross out** the extra phrase between the commas. Then, **match the verb directly** to the very first subject in the sentence.",
+      "strategic_advice": "When you see phrases like **'together with'** or **'as well as'**, cross them out in your mind. The verb must match the very first subject in the sentence.",
       "trigger_keywords": [
         "as well as",
         "together with",
-        "along with",
-        "of"
+        "along with"
+      ]
+    },
+    {
+      "name": "Tricky Prepositions",
+      "what": "Occasionally uses the wrong preposition when linking words together in a sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "natashatsai wrote 'blend in on' instead of the correct phrase 'blend in with'."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "She used 'due over' instead of the common pairing 'due to'."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'acts from kindness' instead of 'acts of kindness'."
+        }
+      ],
+      "strategic_advice": "When you learn a new verb or adjective, try to remember the preposition that goes with it as a pair.\n- **'due'** usually pairs with **'to'**\n- **'blend in'** usually pairs with **'with'**",
+      "trigger_keywords": [
+        "most suitable word",
+        "fill in each blank"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 2,
@@ -123,11 +119,11 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 5,
@@ -135,31 +131,31 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 13,
@@ -179,15 +175,15 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -195,15 +191,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -211,15 +207,15 @@
     },
     {
       "idx": 25,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 28,
@@ -231,31 +227,31 @@
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 32,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 37,
@@ -336,7 +332,7 @@
     "43": "cmq3eeaym001x31sp9l34my3i",
     "44": "cmq3eeaym001z31spxia4qb6w"
   },
-  "generatedAt": "2026-06-15T04:51:13.138Z",
+  "generatedAt": "2026-06-17T07:43:12.227Z",
   "wrongCounts": {
     "total": 44,
     "oeq": 33,

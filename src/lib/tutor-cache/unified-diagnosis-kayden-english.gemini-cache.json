@@ -1,169 +1,162 @@
 {
   "patterns": [
     {
-      "name": "Adjusting Tenses for Time Shifts",
-      "what": "Kayden sometimes forgets to shift verbs into the correct timeframe, especially when changing direct quotes into reported speech or stating general facts.",
+      "name": "Reported Speech Tenses",
+      "what": "Tends to keep the original past tense verbs instead of shifting them one step back into the past perfect tense when changing direct quotes into reported speech.",
       "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden forgot to shift 'took' to the past perfect tense 'had taken' and missed capitalising 'I'."
+        },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Kayden kept the verb in the simple past instead of shifting it back to the past perfect ('had gone') for reported speech."
+          "whatWentWrong": "He kept the simple past tense 'went' instead of shifting it back to 'had gone'."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Kayden missed shifting 'were' to 'had been' when transforming the direct quote into reported speech."
-        },
-        {
-          "questionRef": "[25]",
-          "type": "mcq",
-          "whatWentWrong": "Kayden chose the past tense, overlooking that general rules and facts should be written in the simple present tense."
+          "whatWentWrong": "He used 'were surprised' instead of shifting the past tense to 'had been surprised'."
         }
       ],
-      "strategic_advice": "When you see reporting words like **asked** or **said that**, always remember to take one step back in time (e.g., past becomes past perfect). For general facts or rules, keep your verbs in the **simple present tense**.",
+      "strategic_advice": "When you see reported speech questions, treat them as a signal to check your tenses:\n- If the original verb is in the past tense (like **'took'** or **'went'**), you must shift it into the past perfect tense (like **'had taken'** or **'had gone'**).\n- Always double-check your pronouns and make sure words like **'I'** are capitalised!",
       "trigger_keywords": [
         "asked",
         "said that",
-        "told",
-        "yesterday",
-        "previous day"
+        "told"
       ]
     },
     {
-      "name": "Double-Checking Tricky Spellings",
-      "what": "Kayden occasionally misses a letter or swaps vowels when spelling longer words, which leads to lost marks even when the right word is chosen.",
+      "name": "Singular and Plural Rules",
+      "what": "Occasionally overlooks clues in the sentence that tell us whether a noun is singular, plural, or uncountable, which leads to picking the wrong verb or quantifier.",
       "specific_examples": [
         {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden correctly identified the word 'opportunity' but missed the first 'r' when writing it down."
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Kayden missed that 'actions' is a plural subject, which needs the plural verb 'were'."
         },
         {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden knew the word was 'business' but slightly mixed up the order of the vowels."
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He forgot the rule for 'either... or', where the verb must match the closest subject 'group members'."
         },
         {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden found the right ideas in the passage but had a few minor spelling slips with words like 'excitement' and 'exercises'."
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He used 'many' instead of 'much' for the uncountable noun 'improvement'."
         }
       ],
-      "strategic_advice": "When you write down a long word, try breaking it into smaller syllables (like op-por-tu-ni-ty) to catch missing letters. Always double-check words with tricky vowel combinations before moving to the next question.",
+      "strategic_advice": "When you see a blank right after a subject, take a moment to check its form:\n- For tricky phrases like **'either... or'**, always match the verb to the subject closest to the blank.\n- For words like **'improvement'**, ask yourself if it is countable or uncountable before choosing a word like **'much'** or **'many'**.\n- Underline the main subject and check if it is singular or plural before picking your verb.",
       "trigger_keywords": [
-        "spelling",
-        "editing",
-        "correct the word",
-        "comprehension"
+        "either",
+        "or",
+        "actions",
+        "improvement"
       ]
     },
     {
-      "name": "Pinpointing Exact Details in Comprehension",
-      "what": "Kayden tends to grasp the overall story well, but occasionally stops one step short of stating the exact action or specific detail required by the question.",
+      "name": "Missing Exact Details",
+      "what": "Sometimes provides a general answer for comprehension questions or fills in only part of a table, missing the specific action needed for full marks.",
       "specific_examples": [
         {
-          "questionRef": "[20]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Kayden wrote down a different event from the passage instead of the exact cause that made the spectators cheer."
+          "whatWentWrong": "Kayden put the reason for Siti's feelings in the wrong row of the table."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "Kayden identified the general topics but missed including the specific action verbs, like 'climbing down' instead of just 'climbing the tree'."
+          "whatWentWrong": "He gave general answers for reference words instead of specific actions like 'climbing down the tree'."
         },
         {
-          "questionRef": "[28]",
-          "type": "mcq",
-          "whatWentWrong": "Kayden picked an option that sounded good generally, rather than scanning the poster to verify the exact time of the event."
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly identified how Siti felt but forgot to provide the explanation for why she felt that way."
         }
       ],
-      "strategic_advice": "When you see **refer to**, always check if the word replaces a specific action (like 'participating' or 'climbing down') rather than just a noun. For **cause and effect** questions, trace the events backwards step-by-step to find the direct trigger.",
+      "strategic_advice": "When answering comprehension questions, always look for the exact specific detail:\n- When a question asks what a word like **'this'** or **'it'** refers to, be as specific as possible—for example, mention 'climbing down the tree' instead of just 'climbing'.\n- When asked to **'explain clearly why'**, make sure you write down the full reason from the passage.\n- Always double-check that you have filled in every required box in a table before moving on.",
       "trigger_keywords": [
-        "refer to",
-        "cause",
-        "effect",
-        "why did",
-        "true about"
+        "refers to",
+        "explain clearly why",
+        "fill in the blanks"
       ]
     },
     {
-      "name": "Hunting for Context Clues",
-      "what": "Kayden sometimes chooses a vocabulary word that sounds plausible on its own, rather than hunting for the specific clue words hidden in the surrounding sentence.",
+      "name": "Cloze Passage Clues",
+      "what": "Occasionally fills in cloze passage blanks with words that fit the general topic but miss the specific grammar or tense clues in the sentence.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Kayden chose 'speculated' (guessed), missing the clue 'flashflood' which makes a delay highly expected or 'anticipated'."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Kayden picked 'sluggish' (slow), overlooking the contrast word 'agile' which points to 'rigid' (stiff) as the opposite."
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Kayden wrote 'finally' instead of the helping verb 'was' needed for the passive voice."
         },
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Kayden wrote 'forest', missing the clue 'cast by the giant trees' which points to 'shadows'."
+          "whatWentWrong": "He wrote 'forest' instead of 'shadows', missing the clue that trees 'cast' shadows."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He used the past tense 'allowed' instead of the present tense 'allows' to match the rest of the passage."
         }
       ],
-      "strategic_advice": "When you see a blank, look for **contrast words** like 'while' or 'but', and **cause words** like 'due to'. Highlight these clues first, as they will point you to the exact meaning needed before you look at the options.",
+      "strategic_advice": "When tackling a cloze passage, treat the words around the blank as your biggest clues:\n- Read the **whole sentence** to check if you need a past or present tense verb.\n- Look for action words nearby (like 'cast by') to help you find the exact noun needed.\n- Always read the completed sentence quietly to yourself to check if it sounds grammatically correct.",
       "trigger_keywords": [
-        "due to",
-        "while",
-        "but",
-        "closest in meaning",
-        "fill in each blank"
+        "Fill in each blank",
+        "passage"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 13,
@@ -171,11 +164,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -191,7 +184,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -211,23 +204,23 @@
     },
     {
       "idx": 24,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 26,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 27,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 29,
@@ -265,7 +258,7 @@
     "28": "cmpul5kn6001fgrmmup3c94un",
     "29": "cmpul5kn6001qgrmmafs0p1ze"
   },
-  "generatedAt": "2026-06-15T04:55:56.938Z",
+  "generatedAt": "2026-06-17T07:39:21.863Z",
   "wrongCounts": {
     "total": 29,
     "oeq": 15,

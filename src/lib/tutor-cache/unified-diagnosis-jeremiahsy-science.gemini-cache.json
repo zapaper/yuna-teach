@@ -1,113 +1,113 @@
 {
   "patterns": [
     {
-      "name": "Skipping the 'Explain' Step",
-      "what": "JeremiahSy occasionally answers the first part of a question but tends to leave the 'explain why' section blank or incomplete.",
-      "specific_examples": [
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy correctly chose the material but missed out on writing the explanation for why it was the better conductor."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "He left this multi-part question blank, missing the chance to explain which material reflects light best."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "He skipped this question, missing out on explaining how the flower could still grow into a fruit."
-        }
-      ],
-      "strategic_advice": "When you see 'explain why' or 'give a reason', always use the **Choice + Evidence + Science Rule** method. Double-check that every question mark on the page has a matching sentence in your answer!",
-      "trigger_keywords": [
-        "explain your answer",
-        "explain why",
-        "give a reason"
-      ]
-    },
-    {
-      "name": "Mixing Up Plant & Human Parts",
-      "what": "When comparing flowers and humans, JeremiahSy sometimes mixes up which specific parts perform the same reproductive jobs.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He chose an option that mismatched the functions of the plant and human reproductive parts."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy had a little trouble matching the male part of the flower to the male part of the human."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "He matched the wrong labels when trying to find the female parts that have a similar function."
-        }
-      ],
-      "strategic_advice": "When you see diagrams of both a flower and a human, draw a quick line connecting the **male parts (anther to testis)** and the **female parts (ovary to ovary)** before looking at the options.",
-      "trigger_keywords": [
-        "same function",
-        "similar function",
-        "reproductive parts"
-      ]
-    },
-    {
-      "name": "Juggling Multiple Statements",
-      "what": "In questions with several statements to evaluate, JeremiahSy sometimes includes a tricky false statement in his final choice.",
+      "name": "True and False Traps",
+      "what": "Tends to pick multiple-choice options that group too many statements together, accidentally including false ones.",
       "specific_examples": [
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "He selected all four statements as true, missing that the unfertilised egg does not develop in the womb."
+          "whatWentWrong": "He picked an option that included all four statements, even though two of them were false."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "He included a statement saying a life cycle 'begins' with an egg, which is a common trap since cycles have no beginning."
         },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy picked statements P and Q, overlooking that statement S was the correct description of how the fruit developed."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "He missed identifying one of the incorrect statements about heat transfer."
+          "whatWentWrong": "JeremiahSy picked an option with false statements about how many ovaries a flower has."
         }
       ],
-      "strategic_advice": "When you see statements labeled A, B, C, D, treat each one as a separate True/False question. Put a **big tick or cross** next to each letter before looking at the 1, 2, 3, 4 options below.",
+      "strategic_advice": "When you see **\"Which of the following statements\"**, treat each statement as a separate True/False question.\n- Put a small **\"T\"** or **\"F\"** next to each letter before looking at the options (1), (2), (3), or (4).\n- If you are sure one statement is false, immediately **cross out any option** that includes it!",
       "trigger_keywords": [
         "Which of the following statements",
-        "statement(s) is/are true",
-        "P, Q, R, S",
-        "A, B, C"
+        "is/are true",
+        "is/are correct",
+        "is/are wrong"
       ]
     },
     {
-      "name": "Tracing Invisible Paths",
-      "what": "JeremiahSy sometimes finds it tricky to identify the exact direction that invisible things travel, like which way heat flows or how light bounces.",
+      "name": "Matching Plant and Human Parts",
+      "what": "Sometimes mixes up which parts of a flower do the exact same job as parts of the human body.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He mixed up which part of the flower matches the function of the human testis."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy had trouble matching the female reproductive parts of a plant to the human ones."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He chose an incorrect statement when comparing where pollination and fertilisation happen."
+        }
+      ],
+      "strategic_advice": "When you see **\"similar function\"** or **\"same function\"**, write down the job of the human part first (like \"makes eggs\" or \"makes male cells\").\n- Then, look for the plant part that does that **exact same job**.\n- Remember: **Ovary** matches **Ovary** (makes eggs), and **Anther** matches **Testis** (makes male cells).",
+      "trigger_keywords": [
+        "same function",
+        "similar function",
+        "reproductive parts",
+        "human and a flowering plant"
+      ]
+    },
+    {
+      "name": "Skipping the Explanation",
+      "what": "Occasionally leaves the explanation part of a question blank or stops after stating a choice without writing the 'why'.",
+      "specific_examples": [
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly chose the best material for the container but forgot to write down the explanation."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy missed explaining why a translucent material is the best choice for a shadow puppet screen."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He left the explanation blank when asked why a flower could still grow into a fruit after its male parts were removed."
+        }
+      ],
+      "strategic_advice": "When you see **\"Explain your answer\"**, always use the word **\"because\"** to connect your choice to a scientific reason.\n- If you are stuck, try to write down at least **one scientific fact** about the topic (like \"Material P is a better conductor of heat\").\n- Never leave an explanation completely blank—writing down **what you know** can often earn you partial marks!",
+      "trigger_keywords": [
+        "Explain your answer",
+        "Explain why"
+      ]
+    },
+    {
+      "name": "Energy Direction Mix-Ups",
+      "what": "Sometimes gets confused about which way heat or light is traveling between objects.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He chose an option about the air gaining heat, rather than tracing how the sweat gains heat directly from the body."
+          "whatWentWrong": "He thought the air gained heat from sweat, instead of the sweat gaining heat from the body to cool it down."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy picked arrows that didn't quite show the light bouncing from the door directly into Peter's eyes."
+          "whatWentWrong": "JeremiahSy picked the wrong arrows for light traveling from a lamp, bouncing off a door, and entering the eyes."
         },
         {
-          "questionRef": "[19]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He misjudged how moving the objects would change the path of light to make the shadow shorter."
+          "whatWentWrong": "He misidentified the direction of heat transfer when an ice cube melts on a plate."
         }
       ],
-      "strategic_advice": "When a question is about heat or light, always draw **arrows on the diagram** to show the path. Remember that heat always flows from **hotter to colder**, and light must bounce from the **object into the eye**.",
+      "strategic_advice": "When you see these topics, remember the rules of direction:\n- For **\"gains heat\"** or **\"loses heat\"**, remember that heat always travels from the **hotter object** to the **colder object**.\n- For **\"direction of light\"**, always draw arrows starting from the **light source** (like a lamp), bouncing off the object, and ending at the **eyes**.",
       "trigger_keywords": [
-        "direction of light rays",
         "gains heat",
         "loses heat",
-        "shadow"
+        "direction of light",
+        "arrows show"
       ]
     }
   ],
@@ -142,15 +142,15 @@
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 11,
@@ -158,11 +158,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 14,
@@ -170,7 +170,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -178,19 +178,19 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
-    },
-    {
-      "idx": 18,
-      "patternIndex": 2
-    },
-    {
-      "idx": 19,
       "patternIndex": 3
     },
     {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 21,
@@ -198,11 +198,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -230,10 +230,17 @@
     "22": "cmnk7iz3x007s14p628zh1vnf",
     "23": "cmnk7iz3x007t14p6i78r2ryz"
   },
-  "generatedAt": "2026-06-14T14:20:54.794Z",
+  "generatedAt": "2026-06-17T07:35:33.530Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 5,
     "mcq": 18
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 66,
+    "totalAwarded": 120,
+    "totalAvailable": 183,
+    "paperCount": 9
+  },
+  "previousAssessment": null
 }

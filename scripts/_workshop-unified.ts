@@ -26,6 +26,11 @@ if (!studentNameArg || !subjectArg) {
   process.exit(1);
 }
 const forceRefresh = rest.includes("--refresh");
+// --fresh treats the run as a brand-new diagnosis: no previousAssessment
+// snapshot is carried forward into the new cache. Use when the prompt
+// has changed enough that comparing to the prior run is meaningless
+// (e.g. the v3 kid-readability prompt rollout in 2026-06).
+const freshRun = rest.includes("--fresh");
 // --max N — cap wrong records before prompting Gemini. Used for kids
 // with hundreds of wrongs (Mark lim, 372) where the full prompt is too
 // big for the Node process or for Gemini to emit clean JSON. We keep
@@ -549,15 +554,15 @@ ${records}`;
 
   let report: Report;
   let proCost = 0;
-  if (!forceRefresh && existsSync(cachePath)) {
+  if (!forceRefresh && !freshRun && existsSync(cachePath)) {
     console.log(`Using cached Pro analysis (${cachePath}). Pass --refresh to force.`);
     report = JSON.parse(readFileSync(cachePath, "utf8"));
   } else {
     // Snapshot the prior assessment BEFORE we overwrite it. The new
     // cache carries forward enough of the old to compute a delta at
-    // render time.
+    // render time. Skipped for --fresh runs (treat as brand-new).
     let previousAssessment: PreviousAssessment | null = null;
-    if (existsSync(cachePath)) {
+    if (!freshRun && existsSync(cachePath)) {
       try {
         const prior = JSON.parse(readFileSync(cachePath, "utf8")) as Report;
         if (prior.generatedAt) {
@@ -572,6 +577,9 @@ ${records}`;
       } catch (e) {
         console.warn(`Could not parse prior cache to snapshot previousAssessment: ${e instanceof Error ? e.message : e}`);
       }
+    }
+    if (freshRun && existsSync(cachePath)) {
+      console.log(`--fresh: not snapshotting previousAssessment; treating as a brand-new diagnosis.`);
     }
     console.log(`Calling Gemini 3.1 Pro…\n`);
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 170_000 } });

@@ -1,113 +1,85 @@
 {
   "patterns": [
     {
-      "name": "Stopping One Step Short",
-      "what": "IJ sometimes identifies the correct scientific concept but occasionally stops just before stating the final consequence or linking it back to the question.",
+      "name": "Skipping Questions",
+      "what": "Sometimes leaves tricky questions completely blank instead of writing down a best guess.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
+          "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "IJ correctly noted that air is a poor conductor of heat, but missed the final step of explaining that this means less heat is transferred to Lauren's fingers."
+          "whatWentWrong": "IJ left the explanation for the hydro-electric power station completely blank."
         },
         {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "IJ correctly identified that the seeds wouldn't travel far, but stopped short of stating the final consequence, which is overcrowding."
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "IJ skipped choosing an option for the single-cellular organism question."
         },
         {
-          "questionRef": "[21]",
+          "questionRef": "[31]",
           "type": "oeq",
-          "whatWentWrong": "IJ beautifully explained that air has no definite volume, but forgot to complete the comparison by stating that water does have a definite volume."
+          "whatWentWrong": "IJ left the steps for the experiment completely blank."
         }
       ],
-      "strategic_advice": "When you see **explain how** or **explain why**, try to use the 'Cause-and-Effect' method. Always ask yourself, 'And so what happens next?' until you reach the final result. Use linking phrases like **which results in...** or **so that...** to ensure you have completed the chain.",
+      "strategic_advice": "When you see a tough question, **never leave it blank**!\n- For written answers, write down any **science keywords** you remember about the topic—you might score partial marks.\n- For multiple-choice, cross out the answers you know are wrong and **take a guess** from the rest.",
       "trigger_keywords": [
-        "explain how",
-        "explain why",
-        "give a reason"
+        "explain",
+        "list down",
+        "which of the following"
       ]
     },
     {
-      "name": "Missing Question Constraints",
-      "what": "IJ tends to understand the science well, but occasionally overlooks specific conditions, negative words, or unique clues hidden in the question stem.",
+      "name": "One Step Short",
+      "what": "Tends to start an explanation beautifully but occasionally stops one step short of stating the final scientific reason or consequence.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly noted the shorter distance but left the sentence incomplete before mentioning the risk of overcrowding."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "IJ knew the animals puff up to look bigger, but forgot to explain that multiple entrances help them escape."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "IJ understood the bears would lack a resting platform, but missed the step about them being forced to swim longer distances."
+        }
+      ],
+      "strategic_advice": "When you see prompts asking for an explanation, always push your answer to the very end.\n- Ask yourself **'and then what happens?'** to make sure you include the final consequence.\n- Use a **'so that...'** or **'causing...'** clause to connect your facts to the final result.",
+      "trigger_keywords": [
+        "explain how",
+        "explain why",
+        "describe how"
+      ]
+    },
+    {
+      "name": "Missing Key Words",
+      "what": "Occasionally reads past important instruction words or specific rules hidden in the question text.",
       "specific_examples": [
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "IJ suggested adding a lubricant, which is a great scientific idea, but missed the specific instruction that said 'Without adding or removing any materials'."
+          "whatWentWrong": "IJ suggested adding oil, missing the strict rule to answer 'without adding or removing any materials'."
         },
         {
           "questionRef": "[42]",
           "type": "mcq",
-          "whatWentWrong": "IJ missed the word 'not' in the question stem, looking for a true statement instead of the false one."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "IJ missed the specific clue in the story about the eagle laying 'only one or two eggs', which was the key to explaining why the population would drop so quickly."
-        }
-      ],
-      "strategic_advice": "Before answering, take a moment to become a 'clue hunter.' When you see phrases like **based on the information**, **without adding**, or **not correct**, underline or highlight them immediately. Always double-check your final answer against these highlighted constraints to make sure you haven't accidentally broken a rule.",
-      "trigger_keywords": [
-        "without adding",
-        "not correct",
-        "based on the information",
-        "false"
-      ]
-    },
-    {
-      "name": "Misreading Graphs and Tables",
-      "what": "When presented with data in graphs or tables, IJ sometimes extracts the wrong data point or misaligns the rows and columns.",
-      "specific_examples": [
-        {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "IJ read the graph slightly off, identifying the time as 7 minutes instead of the correct 1 minute where the temperature change started."
-        },
-        {
-          "questionRef": "[25]",
-          "type": "oeq",
-          "whatWentWrong": "IJ chose Material Q from the table, accidentally overlooking Material S, which actually reflected the most units of light."
-        },
-        {
-          "questionRef": "[41]",
-          "type": "mcq",
-          "whatWentWrong": "IJ misread the line graph's trends, picking an organism that didn't match the highest population at the required light depth."
-        }
-      ],
-      "strategic_advice": "When you see a graph or table, especially with **record your observation** or **based on the results**, use your pencil as a guide. Draw physical lines on the paper to connect the X and Y axes, or use your ruler to track across table rows. This physical habit prevents your eyes from accidentally jumping to the wrong line.",
-      "trigger_keywords": [
-        "based on the results",
-        "record your observation",
-        "graph shows",
-        "table shows"
-      ]
-    },
-    {
-      "name": "Over-Selecting and Extra Labeling",
-      "what": "IJ occasionally provides more answers or labels than necessary, which can sometimes introduce errors or dilute a perfectly good answer.",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "oeq",
-          "whatWentWrong": "IJ was asked to label specific parts of the digestive system but labeled four boxes instead of just the two required."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "IJ correctly identified part J, but then added parts L and M, which made the final answer incorrect."
+          "whatWentWrong": "IJ picked a true fact because he missed the word 'not' in the prompt asking for the incorrect statement."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "IJ selected the option containing all four statements instead of narrowing it down to just the two definitely correct ones."
+          "whatWentWrong": "IJ counted individual plants and animals instead of grouping them, missing the key word 'populations'."
         }
       ],
-      "strategic_advice": "Remember that in Science, more isn't always better! When a question asks you to **state the part(s)** or **which of the following**, be very strict about only including what you are 100% sure about. If you are asked to label a diagram, count exactly how many letters you are given and only fill in that exact number of boxes.",
+      "strategic_advice": "When you see special instruction words, treat them as stop signs.\n- **Circle or highlight** words like **'not'**, **'without'**, or **'only'** before you look at the options.\n- Double-check the exact wording (like **'populations'** vs individuals) to make sure you are answering exactly what is asked.",
       "trigger_keywords": [
-        "state the part(s)",
-        "which of the following",
-        "write the letter"
+        "not correct",
+        "without adding",
+        "populations",
+        "only"
       ]
     }
   ],
@@ -118,31 +90,31 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
-    },
-    {
-      "idx": 3,
-      "patternIndex": 3
-    },
-    {
-      "idx": 4,
       "patternIndex": -1
     },
     {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -150,7 +122,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -158,11 +130,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 14,
@@ -174,11 +146,11 @@
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 18,
@@ -186,35 +158,35 @@
     },
     {
       "idx": 19,
-      "patternIndex": 0
-    },
-    {
-      "idx": 20,
-      "patternIndex": 0
-    },
-    {
-      "idx": 21,
-      "patternIndex": 0
-    },
-    {
-      "idx": 22,
-      "patternIndex": 0
-    },
-    {
-      "idx": 23,
       "patternIndex": 1
     },
     {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 25,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 26,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 27,
@@ -230,11 +202,11 @@
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 32,
@@ -242,11 +214,11 @@
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 35,
@@ -266,7 +238,7 @@
     },
     {
       "idx": 39,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 40,
@@ -274,16 +246,16 @@
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqdjbthv000x149y8u6ldu8i",
-    "2": "cmqdjbthw000z149yv073n1vv",
+    "1": "cmqg1asts0002fp5qhe7mcq3j",
+    "2": "cmqeqp4k600264ny12ip0yasp",
     "3": "cmqdjbthw0010149yy0uff1th",
     "4": "cmqdjbthw0011149yeszswa4u",
     "5": "cmqdjbthw0012149yvb6vjgk4",
@@ -325,10 +297,17 @@
     "41": "cmq3jr5pt00161329tdur5gky",
     "42": "cmq3jr5pt00171329t54i1vn3"
   },
-  "generatedAt": "2026-06-14T14:24:02.198Z",
+  "generatedAt": "2026-06-17T07:33:52.073Z",
   "wrongCounts": {
     "total": 42,
-    "oeq": 19,
-    "mcq": 23
-  }
+    "oeq": 18,
+    "mcq": 24
+  },
+  "toplineSnapshot": {
+    "avgPct": 79,
+    "totalAwarded": 298.5,
+    "totalAvailable": 376,
+    "paperCount": 12
+  },
+  "previousAssessment": null
 }

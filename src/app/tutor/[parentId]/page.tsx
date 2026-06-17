@@ -183,7 +183,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // that old localStorage payloads should NOT be served — the new
     // key won't hit any pre-bump cache, and the prune step removes
     // every old `tutor-*` entry.
-    const cacheKey = `tutor-v6-${studentId}-${subject}`;
+    const cacheKey = `tutor-v7-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;

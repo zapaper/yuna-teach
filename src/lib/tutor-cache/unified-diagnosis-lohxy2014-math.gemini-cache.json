@@ -1,121 +1,89 @@
 {
   "patterns": [
     {
-      "name": "Visualizing Hidden 3D Elements",
-      "what": "LohXY2014 occasionally misses hidden faces or cubes when imagining 3D shapes and their flat nets.",
+      "name": "Hidden 3D Parts",
+      "what": "Sometimes misses hidden blocks or faces when looking at 3D drawings, or finds it tricky to imagine how flat nets fold up.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He/she counted the visible faces but forgot to include the identical hidden faces on the back and bottom."
+          "whatWentWrong": "LohXY2014 counted the visible painted faces but missed some of the hidden faces at the back and bottom."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He/she counted the cubes that could be seen but missed the hidden supporting cube in the corner."
+          "whatWentWrong": "LohXY2014 counted the cubes we can see but missed the hidden cube supporting the stack."
         },
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He/she picked a net that would have overlapping faces when folded, rather than one that forms a complete closed box."
+          "whatWentWrong": "LohXY2014 found it tricky to imagine folding the flat shapes to see which one makes a closed box without overlapping sides."
         }
       ],
-      "strategic_advice": "When you see questions about 'solids' or 'nets', always assume there are hidden parts. **Mark the visible parts with a pencil** and explicitly ask yourself, 'What is holding this up?' or 'What is on the exact opposite side?' For nets, **mentally fold the base first**, then fold up the sides one by one to check for overlaps.",
+      "strategic_advice": "When working with 3D shapes and nets, try these tricks:\n- **Count layer by layer** or side by side to make sure you don't miss any hidden cubes.\n- For painted faces, remember to check the **bottom and back** sides that you can't see.\n- When folding nets, look out for **overlapping faces**—if two sides fold to the same spot, it won't make a closed box!",
       "trigger_keywords": [
-        "solid",
         "net of a cuboid",
-        "surface area",
-        "volume",
-        "cubes"
+        "painted",
+        "1-cm cubes",
+        "solid"
       ]
     },
     {
-      "name": "Matching Answers to the Prompt",
-      "what": "LohXY2014 often does the hard math perfectly but occasionally stops one step short or uses the wrong reference value for the final answer.",
+      "name": "Final Question Mix-Ups",
+      "what": "Occasionally answers a slightly different question than what was asked at the very end, even after doing the hard math correctly.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "He/she correctly calculated the amount of paint used, but the question actually asked for the amount of paint left."
+          "whatWentWrong": "LohXY2014 calculated the amount of paint used, but the question asked for the amount of paint left."
         },
         {
           "questionRef": "[20]",
           "type": "mcq",
-          "whatWentWrong": "He/she correctly found the savings, but compared it to the total money instead of the expenditure as requested."
+          "whatWentWrong": "LohXY2014 found the savings as a fraction of the total money, instead of as a fraction of the expenditure."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "He/she correctly found the decrease in marbles, but calculated the percentage based on the remaining marbles rather than the original amount."
+          "whatWentWrong": "LohXY2014 calculated the percentage decrease using the leftover marbles instead of the original total."
         }
       ],
-      "strategic_advice": "When you see phrases like 'fraction of', 'percentage of', or 'ratio of', pay close attention to the words that come immediately after. **Highlight the target words** in the final question sentence. Before choosing your answer, **re-read the highlighted prompt** to ensure your final calculation matches exactly what is being asked.",
+      "strategic_advice": "When you reach the last step of a problem, treat the final sentence as a stop sign:\n- Highlight words like **'left'**, **'remainder'**, or **'expenditure'** to make sure you are comparing the right numbers.\n- For percentage decrease, always divide by the **original amount**, not the leftover amount.\n- Double-check: **'Did I find what they asked for'**, or just a stepping stone?",
       "trigger_keywords": [
-        "fraction of",
-        "percentage of",
-        "ratio of",
         "left",
         "remainder",
-        "expenditure"
+        "of his expenditure",
+        "percentage decrease",
+        "fraction of"
       ]
     },
     {
-      "name": "Place Value and Decimals",
-      "what": "LohXY2014 tends to overlook place value alignments or unit conversions when working with decimals, money, and scales.",
+      "name": "Place Value Slips",
+      "what": "Tends to get tripped up by decimal places, reading scales, or forgetting to change cents into dollars.",
       "specific_examples": [
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He/she appended the digits together instead of simplifying 30/1000 to 3/100 and aligning the decimal places."
+          "whatWentWrong": "LohXY2014 got tricked by the thousandths place, forgetting that 30/1000 is the same as 3/100."
         },
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "He/she correctly divided 15 by 30 but missed the decimal placement, resulting in 5 cents instead of 50 cents."
+          "whatWentWrong": "LohXY2014 divided correctly to find the cost but mixed up 5 cents and 50 cents."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "He/she misread the intervals on the weighing scale, missing the halfway mark that indicates 3.75 kg."
+          "whatWentWrong": "LohXY2014 wrote the correct algebra for the cost in cents, but forgot to divide by 100 to change it into dollars."
         }
       ],
-      "strategic_advice": "When you see decimals, fractions with denominators of 100 or 1000, or money conversions, always **write out the full decimal values vertically** to align the decimal points. For scales and graphs, **calculate the value of one small marking** before reading the final measurement.",
+      "strategic_advice": "When dealing with money, decimals, or scales, take an extra second to check your units:\n- If a question mixes **dollars and cents**, change everything to the same unit before you start.\n- When adding fractions like 30/1000, simplify them first (to 3/100) so you know exactly which **decimal place** to use.\n- For weighing scales, count the small markings carefully to see what **each little line** stands for.",
       "trigger_keywords": [
         "$",
-        "¢",
-        "kg",
-        "100",
-        "1000",
-        "cost of each",
-        "mass"
-      ]
-    },
-    {
-      "name": "Simplifying Equations and Expressions",
-      "what": "LohXY2014 occasionally mixes up the rules for grouping terms, balancing equations, or following the order of operations.",
-      "specific_examples": [
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "He/she added the algebraic terms instead of subtracting them, missing the minus sign in front of the 7c."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "mcq",
-          "whatWentWrong": "He/she performed the operations out of order, likely adding before completing the multiplication and division."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "mcq",
-          "whatWentWrong": "He/she took the numerators directly to form the ratio, instead of finding a common multiple to balance the equation."
-        }
-      ],
-      "strategic_advice": "When you see long equations or algebraic expressions, take it one step at a time. **Circle the operation signs** (+, -, x, ÷) along with the number or letter immediately after them. Always follow the order of operations: **brackets first, then multiplication/division, then addition/subtraction**.",
-      "trigger_keywords": [
-        "simplify",
-        "find the value of",
-        "equal to",
-        "in terms of"
+        "cents",
+        "in terms of",
+        "mass",
+        "decimals"
       ]
     }
   ],
@@ -130,7 +98,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 4,
@@ -138,7 +106,7 @@
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -154,11 +122,11 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -182,7 +150,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 17,
@@ -194,7 +162,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -228,7 +196,7 @@
     "20": "cmpuqfgdn000h12ltq3yutj96",
     "21": "cmpuqfgdn000i12lti80bc76g"
   },
-  "generatedAt": "2026-06-16T15:12:22.540Z",
+  "generatedAt": "2026-06-17T07:39:09.927Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 0,

@@ -910,13 +910,30 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
 // the workshop wrote into the cache text ("Adriel sometimes…");
 // post-shape we replace every occurrence with the display student's
 // first name so the demo doesn't leak the original kid.
-export const DEMO_DATA_REDIRECT: Record<string, { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string }> = {
+type DemoRedirectSource = { sourceStudentId: string; sourceSafeName: string; sourceFirstName: string };
+type DemoRedirect = DemoRedirectSource & {
+  // Optional per-subject overrides. When the requested subject matches
+  // (lowercased), the override's source is used instead of the
+  // default. Useful for demo accounts that should pull from different
+  // kids per subject — e.g. student67 wants David Lim's data for most
+  // subjects but Ruthie's for Science because Ruthie's Science Lumi
+  // reads better for the recording.
+  bySubject?: Record<string, DemoRedirectSource>;
+};
+
+export const DEMO_DATA_REDIRECT: Record<string, DemoRedirect> = {
   // Student666 → David lim
   "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
-  // student67 → David lim (demo-video duplicate of student666 so a
-  // second clean recording can be made without re-aiming the camera
-  // at the student666 account state).
-  "cmqg8upha0000l3ijfr3co6t8": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
+  // student67 → David lim by default; Science → Ruthie because her
+  // v3 Science Lumi reads cleanly for demo recording.
+  "cmqg8upha0000l3ijfr3co6t8": {
+    sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh",
+    sourceSafeName: "david-lim",
+    sourceFirstName: "David",
+    bySubject: {
+      science: { sourceStudentId: "cmos5pfmw000114n1eem2gcw7", sourceSafeName: "ruthie", sourceFirstName: "Ruthie" },
+    },
+  },
 };
 
 // Walk every string field on the TutorData "ready" branch and apply
@@ -944,8 +961,14 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   if (!displayStudent) return { kind: "ineligible", reason: "Student not found", paperCount: 0 };
 
   // Apply demo redirect: data fetched from sourceStudent, but the
-  // display name stays as the requested student.
-  const redirect = DEMO_DATA_REDIRECT[studentId] ?? null;
+  // display name stays as the requested student. Per-subject overrides
+  // take precedence — e.g. student67's Science routes to Ruthie even
+  // though the default points at David Lim.
+  const baseRedirect = DEMO_DATA_REDIRECT[studentId] ?? null;
+  const subjectOverride = baseRedirect?.bySubject?.[subject.toLowerCase()] ?? null;
+  const redirect = subjectOverride
+    ? { sourceStudentId: subjectOverride.sourceStudentId, sourceSafeName: subjectOverride.sourceSafeName, sourceFirstName: subjectOverride.sourceFirstName }
+    : baseRedirect;
   const dataStudentId = redirect?.sourceStudentId ?? studentId;
   const cacheSafe = redirect?.sourceSafeName ?? safeName(displayStudent.name);
 

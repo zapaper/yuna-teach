@@ -1,145 +1,123 @@
 {
   "patterns": [
     {
-      "name": "Missing surrounding context clues",
-      "what": "UmarM sometimes chooses a vocabulary word without fully checking the surrounding words that give away the exact meaning needed.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "UmarM chose 'poet' instead of 'journalist', missing the helpful clues about writing a 'news article' and 'interviewing'."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "He picked 'victorious' instead of 'tenacious', occasionally overlooking the phrase 'never giving up'."
-        },
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "He selected 'extensively' instead of 'momentarily', missing that the word 'hesitated' implies a very brief pause."
-        }
-      ],
-      "strategic_advice": "When you see a 'fill in the blank' or 'most suitable word' question, always **underline the key clues** in the sentence first. Ask yourself, 'What specific situation is being described?' before looking at the options.",
-      "trigger_keywords": [
-        "most suitable word",
-        "fill in the blank"
-      ]
-    },
-    {
-      "name": "Confusing tricky phrasal verbs",
-      "what": "UmarM occasionally mixes up the prepositions in phrasal verbs, which can completely change the meaning of the action.",
+      "name": "Phrasal Verb Mix-Ups",
+      "what": "Occasionally picks the wrong preposition to pair with a verb, which changes the meaning of the phrase.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "UmarM chose 'put down' instead of 'put off', which is the correct phrase for postponing an event like a party."
+          "whatWentWrong": "He chose 'put down' instead of 'put off' when talking about delaying a party."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'creep up' instead of 'creep in' to describe how a feeling of unease slowly appears."
+          "whatWentWrong": "He picked 'looked into' instead of 'looked to' for seeking support from a brother."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'on' instead of 'up' for the common phrase 'up and running'."
+          "whatWentWrong": "He wrote 'break on' instead of 'break out' for suddenly sweating."
         }
       ],
-      "strategic_advice": "When you see a verb followed by words like 'up', 'off', or 'out', remember that they act as a team. Try to **visualise the action** or substitute the phrase with a single word to see if it makes sense in the context.",
+      "strategic_advice": "When you see a verb followed by a blank, remember that the little word after it completely changes the action.\n- **Try out each option** in your head and think about its specific meaning (e.g., 'put off' means delay, 'put down' means insult).\n- If you're unsure, look for **context clues** in the sentence that hint at the direction or result of the action.",
       "trigger_keywords": [
-        "most suitable word",
-        "phrasal verb",
-        "preposition"
+        "put",
+        "creep",
+        "look",
+        "break",
+        "get"
       ]
     },
     {
-      "name": "Keeping the original word form",
-      "what": "In editing passages, UmarM tends to keep the root word instead of changing it to the correct part of speech, like a noun or an adverb.",
+      "name": "Story Clue Slips",
+      "what": "Sometimes chooses a vocabulary word without fully using the surrounding hints in the sentence.",
       "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'poet' instead of 'journalist' despite clues like 'interviewing people' and 'news article'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'victorious' instead of 'tenacious' even though the sentence mentioned 'never giving up'."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He selected 'legibly' instead of 'momentarily' for being 'at a loss for words'."
+        }
+      ],
+      "strategic_advice": "Treat vocabulary questions like a detective game by highlighting **clue words** before looking at the options.\n- When you see phrases like **'never giving up'** or **'interviewing people'**, match your answer directly to those hints.\n- **Read the completed sentence** back to yourself to ensure the word you chose makes logical sense with the rest of the story.",
+      "trigger_keywords": [
+        "spent three days",
+        "never giving up",
+        "at a loss for words",
+        "hesitated"
+      ]
+    },
+    {
+      "name": "Word Endings and Forms",
+      "what": "Tends to choose the right base word but uses the wrong ending for the sentence's grammar.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'enjoys' instead of 'enjoy', getting tricked by the singular name 'Raj' instead of looking at the main subject 'All the boys'."
+        },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "UmarM kept the verb 'encourage' instead of changing it to the noun 'encouragement' to fit the sentence perfectly."
+          "whatWentWrong": "He wrote 'encourage' instead of the noun form 'encouragement'."
         },
         {
-          "questionRef": "[17]",
+          "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'long' instead of changing 'high' to the adverb 'highly' to describe how anticipated the device was."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "He used the verb 'included' instead of the noun 'inclusion' after the word 'an'."
+          "whatWentWrong": "He used the base word 'test' instead of 'testing' when describing an ongoing process."
         }
       ],
-      "strategic_advice": "When you need to 'correct the grammar mistake', look at the words right before and after it. If it comes after words like 'an' or 'much', you likely need a **noun**. If it describes an action or an adjective, try adding an **'-ly'** to make it an adverb.",
+      "strategic_advice": "When editing a word, ask yourself: 'Does this need to be a **naming word (noun)**, an **action word (verb)**, or a **describing word (adjective)**?'\n- Check the **true subject** of the sentence—if it's plural (like 'All the boys'), the present-tense verb does not need an **'s'**.\n- Look for clue words like **'an'** or **'the'** which signal that a noun is coming up next.",
       "trigger_keywords": [
-        "correct the grammar mistake",
-        "editing",
-        "word form"
-      ]
-    },
-    {
-      "name": "Relying on phonetic spelling",
-      "what": "UmarM sometimes spells complex words exactly as they sound, which leads to repeating the same spelling mistakes.",
-      "specific_examples": [
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "UmarM spelled 'experience' as 'experiance', relying on how the word sounds rather than its exact spelling."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "He spelled 'enthusiasts' as 'enthoziast', missing the plural 's' and spelling the tricky vowel sounds phonetically."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "He repeated the spelling 'experiance' for 'experience', showing this is a tricky word he can easily master with a little practice."
-        }
-      ],
-      "strategic_advice": "When you need to 'correct the spelling mistake', try to **break the word down into syllables** and memorise the tricky vowel sounds. For words you often misspell, like 'experience', try writing them down a few times to **build muscle memory**.",
-      "trigger_keywords": [
-        "correct the spelling mistake",
-        "editing",
-        "spelling"
+        "an",
+        "the",
+        "process of",
+        "except"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 9,
@@ -147,23 +125,23 @@
     },
     {
       "idx": 10,
-      "patternIndex": 0
-    },
-    {
-      "idx": 11,
       "patternIndex": -1
     },
     {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -187,11 +165,11 @@
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -199,7 +177,7 @@
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -227,7 +205,7 @@
     "22": "cmpuhw35m001c818su2utsmmw",
     "23": "cmpuhw35m001d818snk0jvztj"
   },
-  "generatedAt": "2026-06-15T04:58:38.099Z",
+  "generatedAt": "2026-06-17T07:46:47.298Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 12,

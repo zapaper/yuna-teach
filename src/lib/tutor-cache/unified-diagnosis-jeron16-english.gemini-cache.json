@@ -1,122 +1,99 @@
 {
   "patterns": [
     {
-      "name": "Choosing the Right Word Form",
-      "what": "Jeron16 sometimes understands the meaning needed but occasionally writes down the wrong form of the word, like using an adjective when a noun or verb is required.",
+      "name": "Word Form Slips",
+      "what": "Sometimes understands the meaning needed but writes down the wrong form of the word, like using an adjective when the sentence needs a noun or a verb.",
       "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "Jeron16 used 'past', but the sentence needed the continuous adjective form 'passing' to describe the minutes."
-        },
         {
           "questionRef": "[5]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'enthuasitic', which is an adjective, but the sentence required the plural noun 'enthusiasts' to refer to the people."
+          "whatWentWrong": "Jeron16 wrote 'enthuasitic' (a describing word) instead of 'enthusiasts' (a noun) for the people waiting in line."
         },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 chose 'alike', which is an adjective, instead of a verb like 'resemble' to show the action of looking similar."
+          "whatWentWrong": "He used 'alike' instead of an action word like 'resemble' to describe how the bumps look."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 wrote 'past' instead of the continuous word 'passing' to describe the minutes going by."
         }
       ],
-      "strategic_advice": "When you see instructions to **Fill in each blank** in a passage, always look at the words immediately before and after the blank to decide its job. Ask yourself, 'Does this spot need an action, a thing, or a describing word?' **Read the whole sentence aloud** with your chosen word to check if it sounds grammatically complete.",
+      "strategic_advice": "When you fill in a blank, check what job the word needs to do in the sentence.\n- **Ask yourself:** Does this blank need a 'doing' word (verb), a 'describing' word (adjective), or a 'thing' word (noun)?\n- **Read the whole sentence** with your word in it to see if it sounds grammatically correct.",
       "trigger_keywords": [
-        "Fill in each blank",
-        "passage"
+        "each ___ minute",
+        "fellow ___",
+        "bumps that ___"
       ]
     },
     {
-      "name": "Mastering Fixed Phrases",
-      "what": "Jeron16 occasionally uses words that make logical sense but don't quite fit the exact fixed phrases or idioms commonly used in English.",
+      "name": "Fixed Phrase Slips",
+      "what": "Occasionally mixes up the exact words needed for common English phrases, idioms, or words that always pair together.",
       "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'to reach', but the correct English idiom is 'within reach'."
-        },
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 suggested 'stand on straight', but the correct fixed expression for hair standing up is 'stand on end'."
+          "whatWentWrong": "Jeron16 wrote 'stand on straight' instead of the common phrase 'stand on end' for hair standing up."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 used 'spite', but the phrase 'in addition to' was needed to add information, rather than 'in spite of' which shows contrast."
-        }
-      ],
-      "strategic_advice": "When you are asked to provide a **suitable word** and notice prepositions near the blank, they are often part of a fixed phrase. Try to **memorise common word partnerships** and idioms as complete chunks. If you are unsure, **test different prepositions** in your head to see which one sounds like a familiar phrase you have read.",
-      "trigger_keywords": [
-        "suitable word",
-        "passage"
-      ]
-    },
-    {
-      "name": "Pairing Words Correctly",
-      "what": "Jeron16 tends to pick vocabulary that relates to the topic, but occasionally misses the specific word that naturally pairs with the surrounding words.",
-      "specific_examples": [
+          "whatWentWrong": "He wrote 'in spite to' instead of the correct matching phrase 'in addition to'."
+        },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Jeron16 picked 'get through', which means to survive, but 'get ahead' is the correct phrase for succeeding in life."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Jeron16 wrote 'exist a purpose', but the natural English pairing is to 'have a purpose'."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "Jeron16 chose 'preventing', but 'protecting' is the precise word we use when keeping someone safe from the wind and cold."
+          "whatWentWrong": "Jeron16 picked 'get through' instead of 'get ahead' when talking about becoming successful in life."
         }
       ],
-      "strategic_advice": "When the question asks for a **suitable word**, pay close attention to the specific nouns or verbs nearby. Ask yourself, 'Which word naturally goes with this idea?' **Look for context clues** in the surrounding sentences to ensure the word you choose matches the exact meaning of the passage.",
+      "strategic_advice": "Many English words travel in pairs or fixed groups. When you see a preposition like 'in', 'on', or 'to', treat it as a clue!\n- **Look out for prepositions** right before or after the blank, as they often lock in the exact word you need to use.\n- **Read widely** to get a natural feel for idioms and phrases that cannot be changed.",
       "trigger_keywords": [
-        "suitable word",
-        "so as to"
+        "stand on ___",
+        "in ___ to",
+        "so as to ___"
       ]
     },
     {
-      "name": "Spotting Hidden Grammar Clues",
-      "what": "Jeron16 sometimes overlooks small clues in the sentence, like time markers or structural words, that point to the correct tense or grammar rule.",
+      "name": "Hidden Sentence Clues",
+      "what": "Tends to choose an answer without spotting the subtle hints in the sentence that point to the correct time, condition, or exact meaning.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Jeron16 missed the time clue 'at first', which signals that the past tense 'had' is needed."
+          "whatWentWrong": "Jeron16 picked the present tense 'has' because he missed the past time clue 'at first'."
         },
         {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Jeron16 picked 'Will', missing that 'Should' can be used formally at the start of a sentence to mean 'If'."
-        },
-        {
-          "questionRef": "[8]",
+          "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Jeron16 used 'which', but 'what' is needed here to create a noun clause meaning 'the thing that'."
+          "whatWentWrong": "He wrote 'experience' instead of 'wondered', missing the clue that the sentence is asking a question about why something happens."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 chose 'preventing' instead of 'protecting', missing the subtle difference in meaning when talking about shielding from the wind."
         }
       ],
-      "strategic_advice": "When you see a blank **___** in a grammar question, always play detective and look for hidden clues before choosing your answer. **Highlight time words** like 'at first' to help you find the correct tense. For tricky sentence structures, **look out for conditional words** that change how the sentence is built.",
+      "strategic_advice": "Sentences often hide clues that tell you exactly what word to use. Be a detective!\n- **Look for time words** like 'at first' or 'yesterday' to choose the right tense.\n- **Check the meaning** of the whole sentence to make sure your word makes logical sense in that specific situation.",
       "trigger_keywords": [
-        "___",
-        "choose the correct"
+        "at first",
+        "have you ever ___",
+        "___ them from"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 4,
@@ -136,7 +113,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -148,7 +125,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
@@ -189,10 +166,17 @@
     "15": "cmpsi4op5001rji84u4ocvfd7",
     "16": "cmpsi4op5001vji84qaujvcsi"
   },
-  "generatedAt": "2026-06-15T02:38:51.792Z",
+  "generatedAt": "2026-06-17T07:35:10.201Z",
   "wrongCounts": {
     "total": 16,
     "oeq": 13,
     "mcq": 3
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 57,
+    "totalAwarded": 21,
+    "totalAvailable": 37,
+    "paperCount": 1
+  },
+  "previousAssessment": null
 }

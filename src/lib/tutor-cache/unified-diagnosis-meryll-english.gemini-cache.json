@@ -1,116 +1,121 @@
 {
   "patterns": [
     {
-      "name": "Losing Track of the Subject",
-      "what": "Meryll occasionally loses track of the main subject in longer sentences, leading to mismatches between nouns and their pronouns or verbs.",
+      "name": "Leaving Blanks",
+      "what": "Occasionally skips questions or leaves an entire section blank instead of taking a best guess.",
       "specific_examples": [
         {
-          "questionRef": "[8]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Meryll chose a singular verb for a plural subject, but she just needed to remember that 'either/or' follows the noun closest to the verb."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "Meryll used the singular 'its' instead of the plural 'their' when referring back to the 'majestic tigers'."
-        },
-        {
-          "questionRef": "[20]",
-          "type": "oeq",
-          "whatWentWrong": "Meryll selected the plural 'their' instead of the singular 'its' when referring to 'the park'."
-        }
-      ],
-      "strategic_advice": "When you see pronoun options like **'its' or 'their'**, or conjunctions like **'either/or'**, always trace them back to the **main noun** they belong to. Ask yourself, 'Is this noun **singular or plural**?' and make sure your answer matches perfectly!",
-      "trigger_keywords": [
-        "its",
-        "their",
-        "either",
-        "or"
-      ]
-    },
-    {
-      "name": "Overlooking Context Clues",
-      "what": "Meryll sometimes chooses words that sound familiar but don't quite fit the specific context or tone of the surrounding sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll chose 'told on' instead of 'told off', which changes the meaning from scolding to tattling."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll selected 'Supposedly' instead of 'Mistakenly' as a replacement for 'Erroneously'."
-        },
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll picked 'set in' rather than 'set off', which is the correct phrasal verb for getting started."
-        }
-      ],
-      "strategic_advice": "When you encounter **vocabulary blanks** or questions asking for the word **'closest in meaning'**, try replacing the blank with your choice and **read the whole sentence aloud**. Look out for **context clues** in the surrounding words to see if the exact meaning makes sense.",
-      "trigger_keywords": [
-        "closest in meaning",
-        "phrasal verbs",
-        "vocabulary",
-        "blanks"
-      ]
-    },
-    {
-      "name": "Misinterpreting Sentence Relationships",
-      "what": "Meryll tends to select connecting words that don't fully match the logical relationship—like contrast, location, or ownership—between two parts of a sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll chose 'who's' (who is) instead of the possessive 'whose' to link the phone to its owner."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "Meryll picked 'unlike' instead of 'where' to describe the location of the elevated walkway."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "Meryll selected 'although' instead of 'unlike' to show the contrast between the typical zoo and the new park."
-        }
-      ],
-      "strategic_advice": "When you see connecting words like **'where', 'unlike', or 'although'**, ask yourself how the two ideas are connected. Are they showing a **location**, a **contrast**, or **ownership**? Choose the word that builds the right logical bridge between them.",
-      "trigger_keywords": [
-        "where",
-        "unlike",
-        "although",
-        "whose",
-        "and"
-      ]
-    },
-    {
-      "name": "Missing the Bigger Picture",
-      "what": "Meryll occasionally skips or misses the underlying message in visual texts, which often requires piecing together slogans, images, and fine print.",
-      "specific_examples": [
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll missed how the slogan was designed to lead people to think the product is a smart choice."
+          "whatWentWrong": "Meryll left this question about the BreezyCon poster completely blank."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Meryll overlooked the main selling point of the air-conditioner highlighted in the poster."
+          "whatWentWrong": "Skipped this question asking for the main selling point of the air-conditioner."
         },
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "Meryll didn't connect the contrasting information between Text 1 and Text 2 regarding the product's true impact."
+          "whatWentWrong": "Missed out on answering this question about comparing the two texts."
         }
       ],
-      "strategic_advice": "When a question starts with **'According to the poster'** or asks for the **'main selling point'**, pay close attention to the **headings, slogans, and fine print**. Always ask yourself, 'What is the **main message** the creator wants me to believe?' before looking at the options.",
+      "strategic_advice": "When you see a tricky section, treat it as a challenge rather than a stop sign:\n- **Never leave a blank** in a multiple-choice section, as a guess still gives you a chance to get it right.\n- If you are running out of time or feel stuck, **eliminate the obvious wrong answers** first.\n- Pick your best guess from what is left so you always have an answer down.",
       "trigger_keywords": [
-        "According to the poster",
-        "The writer uses",
-        "main selling point",
-        "impression"
+        "According to",
+        "Based on",
+        "true of",
+        "main selling point"
+      ]
+    },
+    {
+      "name": "Missing Clue Words",
+      "what": "Tends to pick a vocabulary word that makes sense on its own, but misses the specific hint word provided in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Meryll picked 'Supposedly' instead of matching the clue word 'Erroneously' to 'Mistakenly'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Chose 'traditional' but missed the strong clue word 'indigenous', which means 'native'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Selected 'productive' instead of 'rewarding', missing the hint word 'worthwhile'."
+        }
+      ],
+      "strategic_advice": "When you see a blank in a vocabulary section, treat it like a matching game:\n- First, **underline the tricky or descriptive words** in the sentence (like 'erroneously' or 'indigenous').\n- Next, look at your options and ask, **'Which word means exactly the same thing as my underlined clue?'**\n- Read the sentence with your chosen word to make sure the meaning stays exactly the same.",
+      "trigger_keywords": [
+        "Erroneously",
+        "typically",
+        "indigenous",
+        "instinct",
+        "worthwhile"
+      ]
+    },
+    {
+      "name": "Matching the Subject",
+      "what": "Sometimes loses track of who or what the sentence is about, which leads to mixing up singular and plural words.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Picked the singular 'has cleaned' even though the closest subject, 'sisters', is plural."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Meryll used the singular pronoun 'its' when referring to the plural 'tigers'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "Used the plural pronoun 'their' when referring back to the singular 'park'."
+        }
+      ],
+      "strategic_advice": "When you see a pronoun or a verb, always do a quick check to see who owns it:\n- **Draw an arrow** from the blank back to the main person, animal, or thing in the sentence.\n- Ask yourself, **'Is this one or many?'**\n- Use this to decide between singular words (like 'its' or 'has') and plural words (like 'their' or 'have').",
+      "trigger_keywords": [
+        "its",
+        "their",
+        "has",
+        "have",
+        "is",
+        "are",
+        "Either",
+        "or"
+      ]
+    },
+    {
+      "name": "Linking Words",
+      "what": "Occasionally chooses a joining word that doesn't quite match the logical flow of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Picked 'unlike' instead of 'where' to describe what people do on the walkway."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Meryll chose 'although' instead of 'unlike' when comparing the new park to a typical zoo."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Used 'over' instead of 'and' to connect the two actions of going up and down the cliffs."
+        }
+      ],
+      "strategic_advice": "When you need to fill in a joining word, look at how the two parts of the sentence connect:\n- If you are comparing two different things, use contrast words like **'unlike'** or **'although'**.\n- If you are adding two similar actions together, use joining words like **'and'**.\n- Always **read the completed sentence aloud** in your head to see if the flow makes sense.",
+      "trigger_keywords": [
+        "although",
+        "unlike",
+        "and",
+        "where",
+        "or"
       ]
     }
   ],
@@ -121,11 +126,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -141,11 +146,11 @@
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -153,7 +158,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 11,
@@ -161,43 +166,43 @@
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -223,7 +228,7 @@
     "20": "cmpuus5y600a9qm74rdty1w4v",
     "21": "cmpuus5y600aaqm745ek5bt0l"
   },
-  "generatedAt": "2026-06-15T05:00:35.845Z",
+  "generatedAt": "2026-06-17T07:41:36.350Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 5,

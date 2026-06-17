@@ -1,128 +1,125 @@
 {
   "patterns": [
     {
-      "name": "Spelling and Capitalisation Slips",
-      "what": "EG sometimes loses marks on otherwise great answers due to minor spelling mistakes or forgetting to capitalise words like 'I' and proper names.",
+      "name": "Small Writing Slips",
+      "what": "Sometimes loses marks on written answers due to small spelling mistakes, forgetting to capitalise 'I' or names, or accidentally adding extra words.",
       "specific_examples": [
         {
-          "questionRef": "[6]",
+          "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "EG correctly transformed the sentence but accidentally used a lowercase 'i' instead of a capital 'I'."
+          "whatWentWrong": "EG forgot to capitalise the letter 'I' in the middle of the sentence."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "EG successfully combined the sentences but added an extra 'd' to the word 'sadness'."
+          "whatWentWrong": "EG added an extra 'd' when spelling 'sadness'."
         },
         {
-          "questionRef": "[18]",
+          "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "EG got the sentence structure perfectly right but forgot to capitalise Henry's name."
+          "whatWentWrong": "EG accidentally mixed up the letters when spelling 'doubt'."
         }
       ],
-      "strategic_advice": "When you finish writing a sentence, do a quick **capitalisation check** specifically for names and the pronoun 'I'. For longer words, try to **break them down into syllables** in your head to double-check the spelling before moving on to the next question.",
+      "strategic_advice": "When you finish writing a sentence, do a quick **'capital and spelling check'**:\n- Check that all names and the word **'I'** are capitalised.\n- Read your sentence **one word at a time** to catch any spelling slips or extra words.",
       "trigger_keywords": [
-        "Rewrite the sentence",
-        "Fill in each blank",
-        "Synthesis"
+        "Rewrite",
+        "In",
+        "However"
       ]
     },
     {
-      "name": "Matching Words to Context Clues",
-      "what": "In cloze passages, EG tends to pick words that make sense on their own, but occasionally misses the specific grammatical clues or idioms hidden in the surrounding words.",
+      "name": "Cloze Passage Clues",
+      "what": "Occasionally picks a word for the blank that makes sense on its own but doesn't quite fit the grammar or exact meaning of the whole sentence.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "EG chose 'through', which makes sense for the general meaning, but the phrase 'of a partnership' requires the word 'because'."
+          "whatWentWrong": "EG chose 'through' instead of 'because', which doesn't match the grammar of the phrase 'of a partnership'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "EG suggested 'number', but the phrase 'increasing the risk of' is the correct idiom to describe a growing danger like food poisoning."
+          "whatWentWrong": "EG used 'number' instead of 'risk', which doesn't quite fit the phrase 'increasing the risk of food poisoning'."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "EG used 'satisfy', but 'provide' is the exact word needed to match the phrase 'everyone with a place'."
+          "whatWentWrong": "EG wrote 'early' instead of 'earlier', missing the clue that the sentence is comparing two things."
         }
       ],
-      "strategic_advice": "When you fill in a blank, always **read the three words before and after** it to check for hidden rules. If you see prepositions like 'of' or 'with', ask yourself which specific word **pairs perfectly with that preposition**.",
+      "strategic_advice": "When you see **'Fill in each blank'**, treat the words immediately before and after the blank as your biggest clues:\n- Look out for prepositions like **'of'** or **'to'** right after the blank.\n- Read the **whole sentence** with your word to check if it sounds natural and fits the exact meaning.",
       "trigger_keywords": [
         "Fill in each blank",
-        "suitable word",
         "passage"
       ]
     },
     {
-      "name": "Tracking Details in Transformations",
-      "what": "When rewriting sentences, EG occasionally leaves out a small detail from the original quote, forgets to shift a tense, or accidentally adds an extra word.",
+      "name": "Tricky Grammar Words",
+      "what": "Sometimes gets tripped up by tricky grammar rules in multiple-choice questions, especially when choosing between 'who' and 'whom'.",
       "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "oeq",
-          "whatWentWrong": "EG captured the main action beautifully but missed translating the 'Don't worry' part of Tommy's quote."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "EG remembered to change the sentence structure but forgot to shift the tense from 'has' to 'had' for reported speech."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "EG arranged the ideas well but accidentally left out the linking verb 'is' in the middle of the sentence."
-        }
-      ],
-      "strategic_advice": "When you see 'wanted to know' or 'asked', remember to **take one step back in time** by changing present tenses to past tenses. After writing your new sentence, **tick off each piece of information** from the original sentence to ensure nothing was left behind.",
-      "trigger_keywords": [
-        "wanted to know",
-        "asked me",
-        "told me",
-        "what I"
-      ]
-    },
-    {
-      "name": "Linking Ideas with Advanced Grammar",
-      "what": "EG occasionally finds it tricky to choose the exact linking word, such as deciding between 'who' and 'whom', or picking the correct participle form to connect two past events.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "EG chose the simple past tense 'gave', but a perfect participle like 'having given' is needed to show the action was completely finished before the next one began."
-        },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "EG picked 'whom', but 'who' is the correct choice here because it acts as the subject doing the action of helping the elderly."
+          "whatWentWrong": "EG chose 'whom' instead of 'who' when referring to the man performing the action."
         },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "EG selected 'who', but 'whom' is needed right after a preposition like 'to'."
+          "whatWentWrong": "EG chose 'who' instead of 'whom' after the preposition 'to'."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "EG picked the simple past tense 'gave' instead of the perfect participle 'having given' to show an action that was completely finished."
         }
       ],
-      "strategic_advice": "When deciding between 'who' and 'whom', check if the word is doing the action (use **who**) or receiving it (use **whom**). If the blank comes right after a preposition like 'to' or 'with', **always choose whom**.",
+      "strategic_advice": "When you see **'who'** and **'whom'** in the options, try the **'he/him' trick**:\n- If you can replace the word with 'he', use **who**.\n- If you can replace it with 'him' (especially after words like 'to' or 'with'), use **whom**.",
       "trigger_keywords": [
         "who",
         "whom",
-        "having",
         "grammar"
+      ]
+    },
+    {
+      "name": "Rewriting Sentences",
+      "what": "Tends to miss a grammar rule or leave out a key phrase when rewriting sentences, such as shifting tenses in reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "EG kept the present tense 'has completed' instead of shifting it back to the past tense 'had completed'."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "EG left out the reported version of 'Don't worry', which meant the full meaning wasn't carried over."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "EG missed out the verb 'is' after 'Reading novels', which made the sentence incomplete."
+        }
+      ],
+      "strategic_advice": "When you see prompts like **'wanted to know'** or **'asked'**, remember to **step back in time**:\n- Change present tense verbs to **past tense** (e.g., 'has' becomes 'had').\n- Double-check that **every part** of the original quote is included in your new sentence.",
+      "trigger_keywords": [
+        "wanted to know",
+        "told me",
+        "asked"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 4,
@@ -130,7 +127,7 @@
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 6,
@@ -166,7 +163,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -174,7 +171,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 17,
@@ -190,7 +187,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 21,
@@ -225,10 +222,17 @@
     "21": "cmqbz4qkb004g4eho2o5n4v38",
     "22": "cmqbz4qkb004i4eholsdsawbd"
   },
-  "generatedAt": "2026-06-15T02:21:49.691Z",
+  "generatedAt": "2026-06-17T07:30:55.115Z",
   "wrongCounts": {
     "total": 22,
     "oeq": 19,
     "mcq": 3
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 69,
+    "totalAwarded": 78,
+    "totalAvailable": 113,
+    "paperCount": 7
+  },
+  "previousAssessment": null
 }

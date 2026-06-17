@@ -1,113 +1,111 @@
 {
   "patterns": [
     {
-      "name": "Skipping Open-Ended Comprehension",
-      "what": "Saarah1 tends to leave the longer open-ended comprehension questions completely blank, missing out on marks she could easily pick up by trying.",
+      "name": "Skipping Questions",
+      "what": "Tends to leave open-ended comprehension questions completely blank instead of attempting an answer.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 left this question blank, missing a chance to find the two-word phrase 'cheerful personality' right in the first paragraph."
+          "whatWentWrong": "Saarah1 left this question completely blank instead of trying to find the two-word phrase in the passage."
         },
         {
-          "questionRef": "[19]",
+          "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "By leaving this blank, Saarah1 missed out on marks she could have earned by explaining Sam's feelings of envy towards his friends."
+          "whatWentWrong": "She skipped this sequencing question, missing a chance to score by just ordering the events."
         },
         {
-          "questionRef": "[21]",
+          "questionRef": "[28]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 skipped this question, but she could have found the answer by scanning the text for the keywords 'Mrs Raju' and 'approvingly'."
+          "whatWentWrong": "Saarah1 left this explanation question blank rather than writing down how Sam's feelings changed."
         }
       ],
-      "strategic_advice": "When you see an open-ended question, always write down your best guess based on the passage. Look for **keywords in the question** and scan the text for those same words to find the answer. Even a partial answer can earn you marks!",
+      "strategic_advice": "When you see long comprehension questions, try these steps:\n- **Find the keywords** in the question and scan the passage for them.\n- **Write down something** related to the keywords, even if you are not completely sure.\n- **Never leave it blank** — a guess is always better than no answer and you might get partial marks!",
       "trigger_keywords": [
-        "Explain clearly why",
-        "What did",
+        "Explain clearly",
         "From lines",
-        "Pick out"
+        "Based on"
       ]
     },
     {
-      "name": "Tricky Vocabulary and Word Pairs",
-      "what": "Saarah1 occasionally picks vocabulary words that make sense generally but aren't the exact match for the specific phrase or context.",
+      "name": "Tricky Word Choices",
+      "what": "Sometimes chooses words that sound okay but do not quite fit the exact meaning or common English phrases.",
       "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields' to describe a garden producing crops."
+        },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Saarah1 chose 'vague' instead of 'poor', missing the common English word pair 'poor visibility' used for bad weather."
+          "whatWentWrong": "She chose 'vague' instead of the common weather phrase 'poor visibility'."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 wrote 'put attention' instead of the standard English phrase 'give attention' or 'pay attention'."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields', which is the specific word used when a garden produces a crop."
+          "whatWentWrong": "Saarah1 wrote 'put attention' instead of the correct English phrase 'give attention' or 'pay attention'."
         }
       ],
-      "strategic_advice": "When you see a vocabulary question, read the **words immediately before and after** the blank. Ask yourself if you have heard those words used together before, like 'poor visibility' or 'give attention', as English often uses specific word pairs called collocations.",
+      "strategic_advice": "When you see vocabulary questions, look for clues in the surrounding words:\n- **Read the whole sentence** to understand the exact situation, like 'poor visibility' for a thunderstorm.\n- **Check for common pairings** like 'give attention' instead of 'put attention'.\n- **Eliminate words** that you know mean something else, then pick the best fit from what is left.",
       "trigger_keywords": [
-        "closest in meaning",
-        "best describes",
-        "fill in the blank"
+        "most suitable word",
+        "fill in the blank",
+        "referred to as"
       ]
     },
     {
-      "name": "Small Slips in Spelling and Tenses",
-      "what": "Saarah1 sometimes loses marks due to minor spelling mistakes or forgetting to match the past or present tense of the passage.",
+      "name": "Spelling and Copying Slips",
+      "what": "Occasionally misses a letter or leaves out a word when writing out answers or copying from the text.",
       "specific_examples": [
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Saarah1 wrote 'disappoint' instead of 'disappointed', missing the past tense clue in the passage."
-        },
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 spelled 'accidentally' with only one 'l', which is a very common and easily fixable slip."
+          "whatWentWrong": "Saarah1 missed the double 'l' when spelling 'accidentally'."
         },
         {
-          "questionRef": "[16]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 accidentally wrote 'famer' instead of 'farmer', losing marks for a minor spelling slip in an otherwise great sentence."
-        }
-      ],
-      "strategic_advice": "When you see an editing or synthesis question, always check the **time clues** in the sentence to decide if it should be past or present tense. After writing your answer, take a moment to **double-check your spelling**, especially for words with double letters!",
-      "trigger_keywords": [
-        "correct the spelling",
-        "rewrite the sentence",
-        "editing"
-      ]
-    },
-    {
-      "name": "Overlooking Small Sentence Clues",
-      "what": "Saarah1 occasionally misses small but important words, like adjectives or the true subject of a sentence, which changes the meaning of her answer.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Saarah1 chose 'themselves' instead of 'himself', overlooking that the true subject of the sentence was the singular 'Mr. Tan'."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Saarah1 used 'in' instead of 'during', missing the clue that the sentence was talking about the entire time period of the ordeal."
+          "whatWentWrong": "She got a bit mixed up with the vowels when spelling 'restaurant'."
         },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 forgot to include the word 'sudden' in her new sentence, which slightly changed the original meaning."
+          "whatWentWrong": "Saarah1 accidentally left out the word 'sudden' when copying the details into her new sentence."
         }
       ],
-      "strategic_advice": "When you see a grammar or transformation question, underline the **main subject** and any **descriptive words** (like 'sudden') in the original sentence. Make sure every underlined detail makes it into your final answer so the meaning stays exactly the same.",
+      "strategic_advice": "When you are writing out your final answers, treat it like a spot-the-difference game:\n- **Check double letters** carefully, like the 'c' and 'l' in 'accidentally'.\n- **Point at each word** in the original sentence to make sure you haven't skipped any describing words like 'sudden'.\n- **Read your final sentence** slowly to catch any missing letters.",
       "trigger_keywords": [
-        "rewrite",
-        "grammar",
-        "choose the correct word",
-        "synthesis"
+        "correct the spelling",
+        "rewrite the sentence",
+        "On account of"
+      ]
+    },
+    {
+      "name": "Grammar and Tense Slips",
+      "what": "Sometimes uses the wrong tense or pronoun when editing a passage or filling in the blanks.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 picked a plural pronoun instead of matching the singular 'himself' to 'Mr. Tan'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'disappoint' instead of using the past tense 'disappointed' to match the story."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 used the present tense 'is' instead of the past tense 'was' for a story that already happened."
+        }
+      ],
+      "strategic_advice": "When you see grammar questions, look for time clues and subject clues:\n- **Check the time** of the story. If it happened in the past, use past tense words like 'was' and 'disappointed'.\n- **Find the true subject**, like 'Mr. Tan', to match the correct pronoun 'himself'.\n- **Read the sentence aloud** in your head to see if the grammar sounds right.",
+      "trigger_keywords": [
+        "correct the grammatical error",
+        "who finished",
+        "I assumed"
       ]
     }
   ],
@@ -146,7 +144,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
@@ -154,7 +152,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 12,
@@ -178,7 +176,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 18,
@@ -255,10 +253,17 @@
     "27": "cmpuvi058003exnerdxxjlqdw",
     "28": "cmpuvi058003fxner7u4ruj0a"
   },
-  "generatedAt": "2026-06-15T02:19:38.028Z",
+  "generatedAt": "2026-06-17T07:45:09.973Z",
   "wrongCounts": {
     "total": 28,
     "oeq": 21,
     "mcq": 7
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 54,
+    "totalAwarded": 48,
+    "totalAvailable": 89,
+    "paperCount": 1
+  },
+  "previousAssessment": null
 }

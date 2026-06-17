@@ -1,120 +1,90 @@
 {
   "patterns": [
     {
-      "name": "Hesitating on Unfamiliar Vocabulary",
-      "what": "Clara occasionally skips vocabulary questions when she encounters unfamiliar words, missing the chance to use surrounding context clues to make an educated guess.",
+      "name": "Skipping Vocabulary Questions",
+      "what": "Tends to leave vocabulary and fill-in-the-blanks questions completely unanswered instead of taking a guess.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Clara left this blank, but the clue 'bountiful crop' points to 'yields' as the action for a garden."
+          "whatWentWrong": "She skipped this vocabulary question about finding the right word for producing a crop."
         },
         {
-          "questionRef": "[5]",
+          "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "Clara skipped this, but the phrase 'with food waste' is a strong hint for the word 'contaminated'."
+          "whatWentWrong": "She left this cloze question blank instead of using context clues to guess the missing word."
         },
         {
           "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "Clara hesitated here, but the timeline 'by 2025' suggests a gradual process, pointing to 'eliminate gradually'."
+          "whatWentWrong": "She missed a chance to guess the meaning of 'phase out' from the options provided."
         }
       ],
-      "strategic_advice": "When you see a blank in a vocabulary question, always look for **context clues** in the surrounding words. Even if you don't know every option, try to **eliminate the obvious wrong answers** and make your best guess. Never leave a multiple-choice question blank!",
+      "strategic_advice": "When you aren't sure about a word, don't just leave it blank!\n- **Look for clues** in the rest of the sentence to guess the meaning.\n- **Eliminate options** you know are definitely wrong.\n- **Always guess** on a multiple-choice question—you have a 1 in 4 chance of getting it right!",
       "trigger_keywords": [
-        "closest in meaning",
-        "fill in the blank",
-        "most suitable word"
+        "choose the most suitable word",
+        "fill in the blank"
       ]
     },
     {
-      "name": "Overlooking Keywords in Visual Texts",
-      "what": "Clara tends to leave visual text questions unanswered, which might happen when she feels unsure about scanning posters or flyers for specific details.",
+      "name": "Skipping Reading Questions",
+      "what": "Tends to skip both visual text and story questions rather than hunting for clues in the passage.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "Clara left this blank, but looking for the 'main aim' usually involves checking the largest text or introductory paragraph."
+          "whatWentWrong": "She skipped this visual text question, which could be easily answered by scanning the poster for the club's goals."
         },
         {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "Clara skipped this, but scanning for the specific event 'Step Out and Be Active' would quickly reveal the correct statement."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "Clara hesitated, but matching Pamela's available time to the schedule in the text would lead straight to the answer."
-        }
-      ],
-      "strategic_advice": "When you see questions asking 'According to the poster' or 'Which of the following is true', always **underline the keywords** in the question first. Then, **scan the visual text** specifically for those words or numbers, like times and dates, to find the exact match.",
-      "trigger_keywords": [
-        "according to the poster",
-        "which of the following is true",
-        "main aim"
-      ]
-    },
-    {
-      "name": "Hesitating on Complex Grammar Rules",
-      "what": "Clara sometimes gets tripped up by complex grammar rules, like subject-verb agreement, or hesitates to attempt sentence transformations.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Clara picked 'signs' instead of 'sign', likely looking at 'one' instead of the immediate plural noun 'students' before 'who'."
-        },
-        {
-          "questionRef": "[18]",
+          "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "Clara left this blank, missing the chance to apply the 'would rather... than' structure to combine the sentences."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "Clara hesitated to attempt this reported speech transformation, which requires changing the tense and pronouns."
-        }
-      ],
-      "strategic_advice": "When you see transformation trigger words like 'would rather' or 'wanted to know', remember to **check your tenses and pronouns**. For grammar MCQs, always identify the **true subject** of the verb before making your choice. Attempting every question helps you secure partial marks!",
-      "trigger_keywords": [
-        "would rather",
-        "wanted to know",
-        "whom",
-        "no matter"
-      ]
-    },
-    {
-      "name": "Holding Back on Written Evidence",
-      "what": "Clara sometimes leaves open-ended comprehension questions blank, missing out on marks that could be earned by simply extracting evidence or explaining character actions.",
-      "specific_examples": [
-        {
-          "questionRef": "[24]",
-          "type": "oeq",
-          "whatWentWrong": "Clara left this blank, but scanning for Robert's name in the passage would help identify his specific actions."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "Clara hesitated on this True/False question, missing the chance to earn partial marks by finding the reasons directly in the text."
+          "whatWentWrong": "She left this blank instead of hunting in the first paragraph for clues about the chicken escaping."
         },
         {
           "questionRef": "[30]",
           "type": "oeq",
-          "whatWentWrong": "Clara skipped this explanation question, but she could have earned marks by describing Mike's step-by-step actions to free the chicken."
+          "whatWentWrong": "She did not write an answer, missing the chance to copy the steps Mike took directly from the passage."
         }
       ],
-      "strategic_advice": "When you see 'explain clearly' or 'pick out a sentence', always go back to the passage and **bracket the relevant lines**. Don't worry about perfect phrasing; just **write down the evidence** you find to ensure you get partial marks.",
+      "strategic_advice": "Long texts can feel overwhelming, but the answers are always right there on the page.\n- When you see prompts like **'According to the poster'** or **'Explain clearly'**, treat it like a treasure hunt.\n- **Highlight keywords** in the question, then scan the text for those exact words.\n- Even if you aren't 100% sure, write down the part of the passage that seems to match!",
       "trigger_keywords": [
-        "explain clearly",
-        "pick out a sentence",
-        "state whether each statement",
-        "explain with evidence"
+        "According to the poster",
+        "Explain clearly",
+        "Pick out a sentence"
+      ]
+    },
+    {
+      "name": "Skipping Sentence Rewriting",
+      "what": "Tends to avoid sentence combining questions completely instead of writing down a best attempt.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "She left this blank instead of trying to combine the sentences using the prompt 'would rather'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "She skipped this reported speech question instead of attempting to change the tense and pronouns."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She did not attempt to rewrite the sentence starting with 'No matter', missing out on potential partial marks."
+        }
+      ],
+      "strategic_advice": "Sentence rewriting can be tricky, but leaving it blank guarantees zero marks.\n- When you see prompts like **'would rather'** or **'wanted to know'**, try whispering the new sentence to yourself to see if it sounds natural.\n- **Write down your best attempt**, because you might get the main grammar rule right even if there's a small spelling slip!",
+      "trigger_keywords": [
+        "would rather",
+        "asked me",
+        "wanted to know"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -202,43 +172,43 @@
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 24,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 25,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 26,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 27,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 28,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 29,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 30,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 32,
-      "patternIndex": 3
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -275,10 +245,17 @@
     "31": "cmo3sgcru003c114hxmarenrw",
     "32": "cmo3sgcru003d114hoskhf3so"
   },
-  "generatedAt": "2026-06-15T02:17:50.834Z",
+  "generatedAt": "2026-06-17T07:29:21.380Z",
   "wrongCounts": {
     "total": 32,
     "oeq": 15,
     "mcq": 17
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 7,
+    "totalAwarded": 6,
+    "totalAvailable": 88,
+    "paperCount": 1
+  },
+  "previousAssessment": null
 }

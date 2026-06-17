@@ -1,119 +1,124 @@
 {
   "patterns": [
     {
-      "name": "Skipping the Invisible Steps",
-      "what": "Kaiyangnggg often understands the final outcome of an experiment, but he occasionally skips mentioning the invisible scientific processes (like 'gaining heat' or 'trapping air') that make it happen.",
+      "name": "Missing Science Keywords",
+      "what": "Tends to describe what happens using everyday words but occasionally leaves out the specific scientific terms the markers need to see.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg correctly noted the chocolate expanded and burst, but missed the invisible step that it first 'gained heat' and expanded 'more than' the bun."
-        },
-        {
-          "questionRef": "[37]",
-          "type": "oeq",
-          "whatWentWrong": "He knew the cup sleeve prevents scalding, but forgot to mention the hidden mechanism: that the corrugation 'traps air', which is a 'poor conductor of heat'."
+          "whatWentWrong": "Kaiyangnggg understood the soup would take longer to boil, but missed the keyword that there is 'more mass' to heat up."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "He correctly stated that more heat energy is needed for two packets of fishballs, but skipped mentioning the reason: there is 'more mass' to heat up."
-        }
-      ],
-      "strategic_advice": "When you see **'explain why'** or **'explain how'**, imagine you are telling a story in slow motion. Always include the **'invisible middle step'** (like gaining/losing heat, or air being a poor conductor) before stating the final consequence. Writing down a quick chain of events on the side can help!",
-      "trigger_keywords": [
-        "explain why",
-        "explain how",
-        "give a reason"
-      ]
-    },
-    {
-      "name": "Tracing Paths and Arrows",
-      "what": "When dealing with diagrams that show movement, Kaiyangnggg sometimes gets the direction of the arrows mixed up, especially for light rays bouncing into our eyes or forces pushing against movement.",
-      "specific_examples": [
-        {
-          "questionRef": "[40]",
-          "type": "mcq",
-          "whatWentWrong": "When tracing how Peter sees the painting, Kaiyangnggg picked arrows pointing away from the eye instead of light bouncing off the painting and into the eye."
+          "whatWentWrong": "He knew the chocolate expanded and burst, but forgot to state that it 'gained heat' and expanded 'more than' the bun."
         },
         {
-          "questionRef": "[44]",
-          "type": "mcq",
-          "whatWentWrong": "He found it a bit tricky to identify the correct arrows for frictional and gravitational forces, picking an arrow pointing in the same direction as the pull instead of opposite to it."
-        },
-        {
-          "questionRef": "[13]",
+          "questionRef": "[37]",
           "type": "oeq",
-          "whatWentWrong": "When drawing arrows to show how food is transported in a plant, he drew the arrow from the leaves to the fruits instead of from the stem."
+          "whatWentWrong": "Kaiyangnggg correctly noted the layers of air, but missed the magic phrase that 'air is a poor conductor of heat'."
         }
       ],
-      "strategic_advice": "When a question asks about **'direction'** or shows **'arrows'**, trace the path with your finger first. For light, remember it always travels **from the source, bounces off the object, and into the eye**. For friction, the arrow must always point **opposite to the movement**.",
+      "strategic_advice": "When you see **'explain why'** or **'give a reason'**, think about the invisible science happening.\n- Always include the energy transfer (e.g., **'gained heat'** or **'lost heat'**).\n- Mention specific properties (e.g., **'poor conductor of heat'** or **'more mass'**).",
       "trigger_keywords": [
-        "direction of light rays",
-        "which arrows",
-        "draw arrows"
+        "Explain why",
+        "Give a reason",
+        "State what",
+        "Suggest a way"
       ]
     },
     {
-      "name": "Decoding Graphs and Shadows",
-      "what": "Kaiyangnggg occasionally finds it a bit tricky to translate 2D graphs into real-world changes, or to match the size of a shadow to how close an object is to a light source.",
+      "name": "Heat and Temperature Traps",
+      "what": "Sometimes forgets that substances still gain heat even when their temperature isn't changing, or mixes up how fast different materials lose heat.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "When looking at a heating curve graph, Kaiyangnggg missed that the flat line (melting) also represents the ice gaining heat."
+          "whatWentWrong": "Kaiyangnggg missed that ice is still gaining heat while it melts, even though the temperature stays flat on the graph."
         },
-        {
-          "questionRef": "[41]",
-          "type": "mcq",
-          "whatWentWrong": "He found it tricky to match the size of the shadows to the shapes, forgetting that the object closest to the torch casts the largest shadow."
-        },
-        {
-          "questionRef": "[27]",
-          "type": "mcq",
-          "whatWentWrong": "When reading a graph about organism populations at different water depths, he occasionally finds it tricky to identify which organism thrives best with more light."
-        }
-      ],
-      "strategic_advice": "When you see a **'graph'** or a **'shadow'** diagram, label the parts before looking at the options. For shadows, write **'closer = bigger'** next to the torch. For temperature graphs, label the flat lines as **'changing state (still gaining/losing heat)'**.",
-      "trigger_keywords": [
-        "graph shows",
-        "shadow",
-        "changes in its temperature"
-      ]
-    },
-    {
-      "name": "Mixing Up Scientific Vocabulary",
-      "what": "Kaiyangnggg sometimes swaps his scientific vocabulary, such as confusing which materials are good conductors of heat, or mixing up different types of energy and forces.",
-      "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg chose a glass container instead of a metal one when asked which would cool hot water the fastest, mixing up which material is the better heat conductor."
+          "whatWentWrong": "He chose glass instead of metal when looking for the container that would cool down the fastest."
         },
         {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly identified some energy changes but mixed up his vocabulary, writing 'potential energy' instead of 'kinetic energy' for the moving air."
-        },
-        {
-          "questionRef": "[65]",
+          "questionRef": "[36]",
           "type": "mcq",
-          "whatWentWrong": "When asked about the energy conversion of a switched-on phone, he confused the starting energy, picking 'electrical energy' instead of 'potential energy' stored in the battery."
+          "whatWentWrong": "Kaiyangnggg got tricked by the evaporation question, forgetting that a wider surface area leads to more condensation."
         }
       ],
-      "strategic_advice": "When a question asks about **'lowest temperature'** or **'energy conversion'**, pause and define the materials or energy first. Write **'metal = fast heat loss'** or **'movement = kinetic energy'** right on the paper to anchor your thoughts before choosing.",
+      "strategic_advice": "When you see these heat questions, remember these rules:\n- **Flat lines on a heating graph** → The substance is still **gaining heat** to change state (like melting or boiling)!\n- **Metal containers** → They are **good conductors**, so they lose heat the fastest.\n- **Wider surface area** → More water can evaporate, which leads to more water droplets condensing.",
       "trigger_keywords": [
-        "lowest temperature",
-        "energy conversion",
-        "poorer conductor",
-        "source of potential energy"
+        "graph",
+        "temperature",
+        "boiling",
+        "melting",
+        "evaporated",
+        "condensed"
+      ]
+    },
+    {
+      "name": "Light and Shadow Traps",
+      "what": "Occasionally gets tricked by how light reflects into our eyes or how the distance from a torch changes the size of a shadow.",
+      "specific_examples": [
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg got mixed up when figuring out which shape casts the biggest shadow based on its distance from the torch."
+        },
+        {
+          "questionRef": "[52]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the wrong arrows for how Peter sees the door, forgetting that light must bounce off the door into his eyes."
+        },
+        {
+          "questionRef": "[53]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg struggled to match the materials to the shadows they formed on the screen."
+        }
+      ],
+      "strategic_advice": "When you see light and shadow diagrams, trace the paths carefully:\n- **Seeing objects** → Light must travel **from the lamp**, bounce **off the object**, and go straight **into the eye**.\n- **Shadow sizes** → The **closer** an object is to the torch, the **bigger** its shadow will be on the screen!",
+      "trigger_keywords": [
+        "shadow",
+        "screen",
+        "torch",
+        "light rays",
+        "see"
+      ]
+    },
+    {
+      "name": "Leaving Questions Blank",
+      "what": "Sometimes leaves open-ended questions completely blank when feeling unsure of the exact answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg left the explanation for the corrugated cup sleeve and double-walled cup completely blank."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He skipped the question about the steps to conduct an experiment on wing-like structures."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg left the question about the structural adaptations of cacti blank."
+        }
+      ],
+      "strategic_advice": "Even if you are not 100% sure, **never leave a blank**!\n- Write down the **key science concepts** related to the topic (like 'reduce water loss' for desert plants or 'poor conductor' for heat).\n- You might earn partial marks just for stating a relevant fact!",
+      "trigger_keywords": [
+        "Explain how",
+        "Describe",
+        "State an advantage"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 2,
@@ -125,43 +130,43 @@
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -173,15 +178,15 @@
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 19,
@@ -193,35 +198,35 @@
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 25,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 26,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 27,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 29,
@@ -229,15 +234,15 @@
     },
     {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 32,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 33,
@@ -245,15 +250,15 @@
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 37,
@@ -269,7 +274,7 @@
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 41,
@@ -281,23 +286,23 @@
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 44,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 46,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -317,11 +322,11 @@
     },
     {
       "idx": 52,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 53,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 54,
@@ -333,35 +338,35 @@
     },
     {
       "idx": 56,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 57,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 58,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 59,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 61,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 62,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
@@ -369,23 +374,23 @@
     },
     {
       "idx": 65,
-      "patternIndex": 3
-    },
-    {
-      "idx": 66,
-      "patternIndex": 1
-    },
-    {
-      "idx": 67,
-      "patternIndex": 3
-    },
-    {
-      "idx": 68,
       "patternIndex": -1
     },
     {
-      "idx": 69,
+      "idx": 66,
       "patternIndex": 2
+    },
+    {
+      "idx": 67,
+      "patternIndex": 1
+    },
+    {
+      "idx": 68,
+      "patternIndex": 1
+    },
+    {
+      "idx": 69,
+      "patternIndex": 1
     },
     {
       "idx": 70,
@@ -393,11 +398,11 @@
     },
     {
       "idx": 71,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 72,
-      "patternIndex": 3
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -474,10 +479,17 @@
     "71": "cmol7mm2s001313njauqoh3xk",
     "72": "cmol7mm2s001713nj8vmcyi48"
   },
-  "generatedAt": "2026-06-14T14:22:47.754Z",
+  "generatedAt": "2026-06-17T07:37:34.475Z",
   "wrongCounts": {
     "total": 72,
     "oeq": 21,
     "mcq": 51
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 63,
+    "totalAwarded": 293,
+    "totalAvailable": 465,
+    "paperCount": 27
+  },
+  "previousAssessment": null
 }

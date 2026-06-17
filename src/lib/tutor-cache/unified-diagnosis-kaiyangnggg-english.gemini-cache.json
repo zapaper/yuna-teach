@@ -1,116 +1,111 @@
 {
   "patterns": [
     {
-      "name": "Missing Key Details and Context",
-      "what": "Kaiyangnggg sometimes leaves out important descriptive words in sentence transformations, or provides answers that are a bit too general when specific details from the text are needed.",
+      "name": "Missing Small Details",
+      "what": "Sometimes leaves out small but important words from the original sentence or passage, which changes the exact meaning of the answer.",
       "specific_examples": [
         {
           "questionRef": "[34]",
           "type": "oeq",
-          "whatWentWrong": "He successfully combined the sentences but accidentally left out the word 'sudden', which slightly changed the original meaning."
+          "whatWentWrong": "Kaiyangnggg left out the word 'sudden' when rewriting the sentence about the heavy downpour."
         },
         {
-          "questionRef": "[80]",
+          "questionRef": "[41]",
           "type": "oeq",
-          "whatWentWrong": "He transformed the first part perfectly but forgot to include the phrase 'to cheer me up' at the end."
+          "whatWentWrong": "He missed out the word 'can', which changed the meaning of what the blender is able to do."
         },
         {
-          "questionRef": "[84]",
+          "questionRef": "[85]",
           "type": "oeq",
-          "whatWentWrong": "He gave a general answer ('encouraged him') instead of stating the specific action the teacher took ('asked everyone to dance in socks')."
+          "whatWentWrong": "He gave a general answer about being worried, instead of the specific detail about fearing not being chosen."
         }
       ],
-      "strategic_advice": "When you see **rewrite** or **combine**, always do a quick 'word-matching check' between your new sentence and the original ones to ensure no descriptive words were left behind. For comprehension questions that ask you to **explain** or **refer to**, avoid general summaries; instead, point directly to the **specific actions or details** mentioned in the text.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'rewrite'** → use a pencil to **tick off every word** from the original sentence as you write it in your new sentence.\n- **'based on the passage'** → always check if your answer includes the **specific action or reason** mentioned in the text, rather than a general summary.",
       "trigger_keywords": [
         "rewrite",
-        "explain",
-        "why",
-        "how",
-        "refer to"
+        "based on the passage",
+        "explain why"
       ]
     },
     {
-      "name": "Reported Speech Conversions",
-      "what": "When changing direct speech to reported speech, Kaiyangnggg occasionally misses one of the necessary shifts, such as taking a step back in tense, updating pronouns, or converting time words.",
+      "name": "Reported Speech Slips",
+      "what": "Occasionally forgets to shift the tense backwards or change the pronouns when turning spoken quotes into reported speech.",
       "specific_examples": [
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "He remembered to change the time word to 'the previous night', but forgot to shift the past tense 'saw' back to the past perfect 'had seen'."
+          "whatWentWrong": "Kaiyangnggg kept the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "He correctly changed the tense but missed converting the time word 'now' to 'then', and used the wrong pronoun."
+          "whatWentWrong": "He forgot to change the time word 'now' to 'then', and used the wrong pronoun 'he' instead of 'she'."
         },
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "He used the plural pronouns 'they/their' instead of the singular 'he/his' to refer to the student."
+          "whatWentWrong": "He used 'they' and 'their' instead of 'he' and 'his' when referring to a single student."
         }
       ],
-      "strategic_advice": "When you see trigger words like **asked** or **wanted to know**, remember the 'Three-Step Check' for reported speech. Always check that you have shifted the **tense** one step back, updated the **pronouns** to match the speaker, and changed any **time or place words** (like 'now' to 'then' or 'here' to 'there').",
+      "strategic_advice": "When you see quotation marks, remember the **'3 Changes Rule'**:\n- Check the **Tense**: if the reporting verb is in the past tense (like **'asked'**), always shift the action one step back in time.\n- Check the **Pronouns**: make sure they match the person speaking.\n- Check the **Time/Place words**: change words like 'now' to 'then'.",
       "trigger_keywords": [
         "asked",
         "wanted to know",
-        "said",
-        "told"
+        "said"
       ]
     },
     {
-      "name": "Capitalisation and Spelling Slips",
-      "what": "Kaiyangnggg tends to lose marks on minor mechanical errors, such as forgetting to capitalise proper nouns or the first word of a sentence, or occasional spelling mistakes in editing.",
+      "name": "Capitals and Spelling",
+      "what": "Tends to lose marks on small spelling slips or by forgetting to use capital letters for proper nouns and the start of sentences.",
       "specific_examples": [
         {
-          "questionRef": "[23]",
+          "questionRef": "[1]",
           "type": "oeq",
-          "whatWentWrong": "He capitalised the word 'If' in the middle of the sentence, which is a common but easily fixable slip."
+          "whatWentWrong": "Kaiyangnggg forgot to capitalise the name 'Henry'."
         },
         {
-          "questionRef": "[56]",
+          "questionRef": "[44]",
           "type": "oeq",
-          "whatWentWrong": "He forgot to capitalise the 'L' in 'Linda', which is a proper noun."
+          "whatWentWrong": "He wrote 'for' with a small letter even though it was the first word of a new sentence."
         },
         {
-          "questionRef": "[61]",
+          "questionRef": "[59]",
           "type": "oeq",
-          "whatWentWrong": "He spelled 'commotion' correctly but forgot to capitalise it, even though it was the first word of the sentence."
+          "whatWentWrong": "He spelled the word correctly but forgot that it needed a capital letter at the start of the sentence."
         }
       ],
-      "strategic_advice": "When you finish writing an answer, take three seconds to do a **capitalisation sweep**. Check that the **first word** of your sentence and any **names or proper nouns** are capitalised, and ensure no random words in the middle are capitalised. For editing questions, sound out the word carefully to catch hidden **spelling traps**.",
+      "strategic_advice": "After writing your answer, do a quick **'Capital Check'**:\n- Look at the **very first letter** of your sentence to make sure it is capitalised.\n- Check any **names of people or places**.\n- For Editing and Cloze, always check if the blank is right after a **full stop**.",
       "trigger_keywords": [
         "rewrite",
-        "correct word",
-        "boxes",
-        "punctuation"
+        "fill in the blank",
+        "correct the word"
       ]
     },
     {
-      "name": "Fixed Word Pairs and Idioms",
-      "what": "Kaiyangnggg occasionally finds it tricky to recall the exact prepositions that pair with certain words or the precise wording of common idioms and phrasal verbs.",
+      "name": "Prefer and Would Rather",
+      "what": "Occasionally mixes up the pairing words for expressing choices, using 'than' with 'prefer' instead of 'to'.",
       "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg wrote 'prefers to eat sushi than pizza' instead of 'prefers eating sushi to pizza'."
+        },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "He used 'preference of... than' instead of the correct fixed pair 'preference for... over'."
+          "whatWentWrong": "He used 'preference of... than' instead of 'preference for... over'."
         },
         {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "He missed the preposition 'in' right after the blank, which perfectly pairs with the word 'revel' to mean enjoying a success."
-        },
-        {
-          "questionRef": "[73]",
+          "questionRef": "[78]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'go down in the knees' instead of the correct idiom 'go weak in the knees'."
+          "whatWentWrong": "He added an extra 'rather' in the sentence, writing 'would rather go out rather than'."
         }
       ],
-      "strategic_advice": "When you see words like **prefer** or **preference**, remember they have strict partners: 'prefer X **to** Y' and 'preference **for** X **over** Y'. For vocabulary blanks, always look at the **preposition immediately after the blank** (like 'in' or 'up')—it is usually the biggest clue to finding the correct phrasal verb or idiom.",
+      "strategic_advice": "Memorise these fixed pairs for expressing choices:\n- **'prefer'** pairs with **'to'** (e.g., prefer sushi to pizza).\n- **'would rather'** pairs with **'than'** (e.g., would rather go out than play).\n- **'preference'** pairs with **'for'** and **'over'** (e.g., a preference for X over Y).",
       "trigger_keywords": [
-        "preference",
-        "prefer",
-        "blank",
-        "choose"
+        "prefers",
+        "would rather",
+        "preference"
       ]
     }
   ],
@@ -137,7 +132,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -157,7 +152,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -165,7 +160,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -181,11 +176,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 19,
@@ -221,7 +216,7 @@
     },
     {
       "idx": 27,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 28,
@@ -305,7 +300,7 @@
     },
     {
       "idx": 48,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 49,
@@ -329,7 +324,7 @@
     },
     {
       "idx": 54,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 55,
@@ -345,7 +340,7 @@
     },
     {
       "idx": 58,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 59,
@@ -381,11 +376,11 @@
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 68,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 69,
@@ -393,7 +388,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 71,
@@ -405,11 +400,11 @@
     },
     {
       "idx": 73,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 74,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 75,
@@ -425,7 +420,7 @@
     },
     {
       "idx": 78,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 79,
@@ -548,10 +543,17 @@
     "85": "cmok07at9006md4vnhst1ikn4",
     "86": "cmok07at9006od4vnksk4v1te"
   },
-  "generatedAt": "2026-06-15T02:11:38.575Z",
+  "generatedAt": "2026-06-17T07:37:23.794Z",
   "wrongCounts": {
     "total": 86,
     "oeq": 53,
     "mcq": 33
-  }
+  },
+  "toplineSnapshot": {
+    "avgPct": 69,
+    "totalAwarded": 262.5,
+    "totalAvailable": 379,
+    "paperCount": 22
+  },
+  "previousAssessment": null
 }

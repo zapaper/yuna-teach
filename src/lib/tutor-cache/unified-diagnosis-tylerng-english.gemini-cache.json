@@ -1,135 +1,128 @@
 {
   "patterns": [
     {
-      "name": "Subject-Verb Agreement Traps",
-      "what": "Tylerng sometimes gets tricked by extra phrases like 'together with' or 'as well as' that separate the main subject from the action.",
+      "name": "Extra Subject Words",
+      "what": "Sometimes gets tricked when matching subjects to their verbs, especially when there are extra phrases like 'together with' or 'as well as' in the middle.",
       "specific_examples": [
         {
           "questionRef": "[32]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng saw 'her brothers' right before the blank and chose the plural 'are', forgetting that the main subject 'Emily' is singular."
+          "whatWentWrong": "Tylerng picked 'are' instead of 'is' because the phrase 'together with her brothers' made the subject look plural."
         },
         {
           "questionRef": "[40]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'is' by looking at 'my cousin', missing that the main subject is 'I', which pairs with 'am'."
+          "whatWentWrong": "He chose 'is' instead of 'am' for the subject 'I', getting distracted by the extra words 'as well as my cousin'."
         },
         {
-          "questionRef": "[52]",
-          "type": "mcq",
-          "whatWentWrong": "He picked the plural 'were' because of 'her cousins', overlooking that the sentence is actually about 'Jane'."
+          "questionRef": "[56]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng wrote 'has' instead of 'have' for the plural subject 'otters'."
         }
       ],
-      "strategic_advice": "When you see phrases like 'together with', 'as well as', or 'along with', **cross them out lightly** with your pencil. This helps you spot the true main subject at the start of the sentence. Then, match your verb to that main subject!",
+      "strategic_advice": "When you see phrases like **'together with'**, **'as well as'**, or **'along with'**, cross them out lightly with your pencil. The true subject is the very first person or thing mentioned! For basic sentences, always double-check if the main noun is singular or plural before picking your verb.",
       "trigger_keywords": [
         "together with",
         "as well as",
-        "along with",
-        "either",
-        "neither"
+        "Either ... or",
+        "has / have",
+        "is / are"
       ]
     },
     {
-      "name": "Spotting Hidden Negatives and Contrasts",
-      "what": "Tylerng occasionally misses 'hidden' negative words or contrast clues that completely flip the meaning of the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[33]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng missed the negative meaning of 'seldom' and chose 'doesn't he' instead of the correct positive tag 'does he'."
-        },
-        {
-          "questionRef": "[47]",
-          "type": "mcq",
-          "whatWentWrong": "He overlooked the bolded word 'not' in the question, leading him to pick a statement that was actually true."
-        },
-        {
-          "questionRef": "[41]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'Although' instead of 'Except for', missing the contrast clue that Jane was in London while the rest attended the party."
-        }
-      ],
-      "strategic_advice": "When you read a question, always **circle negative words** like 'not', 'seldom', 'rarely', or 'never'. If the sentence has a contrast word like 'but', 'although', or 'despite', **draw an arrow** to remind yourself that the second half of the sentence will be the opposite of the first half.",
-      "trigger_keywords": [
-        "seldom",
-        "not",
-        "but",
-        "although",
-        "despite",
-        "except",
-        "however"
-      ]
-    },
-    {
-      "name": "Decoding Phrasal Verbs and Idioms",
-      "what": "Tylerng tends to find phrasal verbs and idioms a bit tricky, sometimes picking options that sound literal rather than their special figurative meaning.",
+      "name": "Phrasal Verbs and Idioms",
+      "what": "Occasionally mixes up common idioms and phrasal verbs that look or sound similar.",
       "specific_examples": [
         {
           "questionRef": "[45]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng picked 'the apple of my eye' instead of 'the cherry on top' to describe a final, wonderful addition to a great camp."
+          "whatWentWrong": "Tylerng chose 'the apple of my eye' instead of 'the cherry on top' to describe a wonderful final touch to a camp."
         },
         {
           "questionRef": "[43]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'taken off' instead of 'taken in', not realising that 'taken in' is the specific phrasal verb for being tricked or fooled."
+          "whatWentWrong": "He picked 'taken off' instead of 'taken in' when describing being tricked by a magician."
         },
         {
           "questionRef": "[36]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'bitter pill to swallow' rather than 'pain in the neck' to describe an annoying younger brother."
+          "whatWentWrong": "Tylerng selected 'bitter pill to swallow' instead of 'pain in the neck' for an annoying younger brother."
         }
       ],
-      "strategic_advice": "When faced with idioms or phrasal verbs, try to **visualise the situation** rather than just reading the words literally. If you are unsure, **use the elimination method** to cross out the ones you know definitely don't fit the context of the sentence.",
+      "strategic_advice": "Idioms and phrasal verbs can be tricky because you cannot guess their meaning just by looking at the individual words. When you learn a new one like **'taken in'** or **'cherry on top'**, try drawing a quick silly picture of what it means, or write a sentence about someone you know using that phrase!",
       "trigger_keywords": [
-        "told",
-        "set",
-        "taken",
-        "cherry",
-        "pain",
-        "apple"
+        "taken in",
+        "cherry on top",
+        "pain in the neck",
+        "told off"
       ]
     },
     {
-      "name": "Checking Immediate Grammatical Fit",
-      "what": "In cloze passages and relative clauses, Tylerng sometimes fills in a word without checking if it matches the grammar of the words immediately before and after it.",
+      "name": "Contrast Word Traps",
+      "what": "Tends to overlook contrast words that signal a shift in meaning, leading to answers that don't quite fit the context.",
       "specific_examples": [
         {
-          "questionRef": "[64]",
+          "questionRef": "[61]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng wrote 'line' after the word 'an', missing the grammatical rule that 'an' must be followed by a word starting with a vowel sound, like 'attempt'."
+          "whatWentWrong": "Tylerng wrote 'many' instead of 'permanent', missing the contrast word 'Unlike' which pairs with 'temporary nests'."
         },
         {
-          "questionRef": "[63]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'variety' in the phrase 'include a ___ workers', missing that 'variety' would need the word 'of' right after it to be grammatically correct."
-        },
-        {
-          "questionRef": "[51]",
+          "questionRef": "[31]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'whom' instead of 'whose', not noticing that the immediate next word 'mother' requires a possessive word to show it is the man's mother."
+          "whatWentWrong": "He chose 'so' instead of 'nevertheless', missing the contrast set up by the word 'but' earlier in the sentence."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng picked 'Although' instead of 'Except for' when the sentence contrasted Jane's absence with everyone else attending."
         }
       ],
-      "strategic_advice": "After filling in a blank, always **read the three words before and the three words after** it aloud in your head. Check for clues like 'a' vs 'an', missing prepositions like 'of', or nouns that belong to someone (which need 'whose').",
+      "strategic_advice": "When you spot contrast words like **'Unlike'**, **'but'**, or **'Although'**, treat them as a U-turn sign! They mean the second half of the sentence will be the opposite of the first half. **Highlight or circle** these words so you remember to look for an answer that shows a change in direction.",
       "trigger_keywords": [
-        "blank",
-        "passage",
-        "fill in",
-        "choose the word",
-        "who",
-        "whom",
-        "whose"
+        "Unlike",
+        "but",
+        "Although",
+        "Despite",
+        "nevertheless"
+      ]
+    },
+    {
+      "name": "Hidden Negative Words",
+      "what": "Sometimes reads past negative words like 'seldom' or 'not', which completely flips the correct answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[33]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng picked 'doesn't he' instead of 'does he', missing that 'seldom' is a hidden negative word that requires a positive question tag."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "mcq",
+          "whatWentWrong": "He chose an option that was true, missing the bolded 'not' in the question."
+        },
+        {
+          "questionRef": "[50]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng missed the negative phrasing 'not supported' when comparing the two visual texts."
+        }
+      ],
+      "strategic_advice": "Negative words are small but mighty! When you see words like **'not'**, **'never'**, **'seldom'**, or **'false'**, circle them immediately. For question tags, remember that a negative word in the sentence means the tag at the end must be **positive**.",
+      "trigger_keywords": [
+        "seldom",
+        "not true",
+        "not supported",
+        "never"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 3,
@@ -145,7 +138,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -161,11 +154,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
@@ -177,7 +170,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -197,7 +190,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 20,
@@ -205,15 +198,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 24,
@@ -245,7 +238,7 @@
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 32,
@@ -253,7 +246,7 @@
     },
     {
       "idx": 33,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 34,
@@ -265,11 +258,11 @@
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 37,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 38,
@@ -285,7 +278,7 @@
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 42,
@@ -293,7 +286,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 44,
@@ -301,7 +294,7 @@
     },
     {
       "idx": 45,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 46,
@@ -309,7 +302,7 @@
     },
     {
       "idx": 47,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 48,
@@ -321,11 +314,11 @@
     },
     {
       "idx": 50,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 51,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 52,
@@ -333,7 +326,7 @@
     },
     {
       "idx": 53,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 54,
@@ -345,43 +338,43 @@
     },
     {
       "idx": 56,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 57,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 58,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 59,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 61,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 62,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 3
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -451,7 +444,7 @@
     "64": "cmol9rajj007zqlmbntcoxpc7",
     "65": "cmol9rajj0080qlmbki6cmdf1"
   },
-  "generatedAt": "2026-06-15T06:46:37.509Z",
+  "generatedAt": "2026-06-17T07:47:04.511Z",
   "wrongCounts": {
     "total": 65,
     "oeq": 10,
@@ -463,24 +456,5 @@
     "totalAvailable": 133,
     "paperCount": 15
   },
-  "previousAssessment": {
-    "generatedAt": "2026-06-15T04:47:01.651Z",
-    "patternNames": [
-      "Getting Tricked by Extra Nouns",
-      "Missing Hidden Negative Words",
-      "Misaligned Answer Entries",
-      "Overlooking Surrounding Context Clues"
-    ],
-    "wrongCounts": {
-      "total": 71,
-      "oeq": 16,
-      "mcq": 55
-    },
-    "toplineSnapshot": {
-      "avgPct": 47,
-      "totalAwarded": 62,
-      "totalAvailable": 133,
-      "paperCount": 15
-    }
-  }
+  "previousAssessment": null
 }
