@@ -1389,24 +1389,35 @@ async function handle(
             // three subpart notes pile up at the page bottom.
             if (pdfTopY - (blockH + lineSpacingPx * 0.5) < minPdfTopY) {
               const maxPdfTopY = pageH - effNoteSize;
-              let upY = pdfTopY + blockH + lineSpacingPx * 0.5;
+              // Two passes: first require both no-collision AND
+              // whitespace (the cleanest landing). Second pass drops
+              // the whitespace requirement — overlapping printed text
+              // is still readable; overlapping another note isn't.
+              // Without the second pass, Q36(a)/(c) and Q40(a)/(b)
+              // on dense end-of-page subparts landed on top of each
+              // other when no whitespace gap existed above the
+              // already-placed sibling note.
               let placedAbove = false;
-              for (let upGuard = 0; upGuard < 16 && upY <= maxPdfTopY; upGuard++) {
-                const upRect = { x: noteX, y: upY - blockH, w: longestW, h: blockH };
-                const upOverlaps = (r: { x: number; y: number; w: number; h: number }) =>
-                  upRect.x < r.x + r.w &&
-                  upRect.x + upRect.w > r.x &&
-                  upRect.y < r.y + r.h &&
-                  upRect.y + upRect.h > r.y;
-                const upCollides = placedNoteRects.some(upOverlaps) || paddedMarks.some(upOverlaps);
-                const upWhite = isRectMostlyWhitespace(noteX, pageH - upY, longestW, blockH);
-                if (!upCollides && upWhite) {
-                  pdfTopY = upY;
-                  placedAbove = true;
-                  break;
+              const tryUpSlide = (requireWhitespace: boolean): boolean => {
+                let upY = pdfTopY + blockH + lineSpacingPx * 0.5;
+                for (let upGuard = 0; upGuard < 16 && upY <= maxPdfTopY; upGuard++) {
+                  const upRect = { x: noteX, y: upY - blockH, w: longestW, h: blockH };
+                  const upOverlaps = (r: { x: number; y: number; w: number; h: number }) =>
+                    upRect.x < r.x + r.w &&
+                    upRect.x + upRect.w > r.x &&
+                    upRect.y < r.y + r.h &&
+                    upRect.y + upRect.h > r.y;
+                  const upCollides = placedNoteRects.some(upOverlaps) || paddedMarks.some(upOverlaps);
+                  const upWhite = !requireWhitespace || isRectMostlyWhitespace(noteX, pageH - upY, longestW, blockH);
+                  if (!upCollides && upWhite) {
+                    pdfTopY = upY;
+                    return true;
+                  }
+                  upY += blockH + lineSpacingPx * 0.5;
                 }
-                upY += blockH + lineSpacingPx * 0.5;
-              }
+                return false;
+              };
+              placedAbove = tryUpSlide(true) || tryUpSlide(false);
               if (!placedAbove && firstCollisionFreeTopY !== null) pdfTopY = firstCollisionFreeTopY;
               break;
             }
