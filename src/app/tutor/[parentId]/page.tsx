@@ -626,7 +626,15 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
             <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} />
           </div>
           <div className="w-full shrink-0">
-            {view !== null && <DetailPanel data={data} view={view} onBack={() => setView(null)} />}
+            {view !== null && <DetailPanel data={data} view={view} onBack={() => setView(null)} onGoToFocusedPractice={() => {
+              setView(null);
+              // Wait one tick for the overview to remount, then scroll
+              // to the Topics for Practice section.
+              setTimeout(() => {
+                const el = document.getElementById("topics-section");
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }} />}
           </div>
         </div>
       </div>
@@ -1300,7 +1308,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
   );
 }
 
-function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; onBack: () => void }) {
+function DetailPanel({ data, view, onBack, onGoToFocusedPractice }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; onBack: () => void; onGoToFocusedPractice: () => void }) {
   return (
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#003366] mb-4">
@@ -1308,10 +1316,10 @@ function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: 
         Back to overview
       </button>
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
-        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
+        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} onGoToFocusedPractice={onGoToFocusedPractice} />
       )}
       {view.kind === "concept" && data.conceptualGaps[view.index] && (
-        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} />
+        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} onGoToFocusedPractice={onGoToFocusedPractice} />
       )}
     </div>
   );
@@ -1340,7 +1348,7 @@ function dominantExampleTopic(examples: { topic?: string | null }[]): string | n
   return topCount / total >= 0.6 ? topTopic : null;
 }
 
-function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
+function MistakeDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number; onGoToFocusedPractice: () => void }) {
   // MathText (instead of boldifyHtml) so $...$ LaTeX renders as math
   // in Lumi's advice + the headline "what went wrong" copy. Bold and
   // underline markers still work — MathText handles them natively.
@@ -1357,7 +1365,10 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
         {dominantTopic && (
           <p className="text-sm font-bold text-emerald-900 leading-relaxed mb-3">
-            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.
+            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.{" "}
+            <button type="button" onClick={onGoToFocusedPractice} className="text-emerald-700 underline decoration-emerald-400 hover:decoration-emerald-700 underline-offset-2 font-semibold">
+              (here)
+            </button>
           </p>
         )}
         <p className="text-sm text-emerald-900 leading-relaxed"><MathText text={adviceText} /></p>
@@ -1391,7 +1402,7 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
   );
 }
 
-function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
+function ConceptDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number; onGoToFocusedPractice: () => void }) {
   const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   const dominantTopic = dominantExampleTopic(card.examples);
@@ -1405,7 +1416,10 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
         {dominantTopic && (
           <p className="text-sm font-bold text-orange-900 leading-relaxed mb-3">
-            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.
+            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.{" "}
+            <button type="button" onClick={onGoToFocusedPractice} className="text-orange-700 underline decoration-orange-400 hover:decoration-orange-700 underline-offset-2 font-semibold">
+              (here)
+            </button>
           </p>
         )}
         <p className="text-sm text-orange-900 leading-relaxed"><MathText text={adviceText} /></p>

@@ -222,7 +222,15 @@ type StandardBucket = MistakeCard["bucket"] | ConceptCard["bucket"] | "incomplet
 // when their diagnosis had patterns like "Reversing Energy Flow" or
 // "Misinterpreting Visual Data".
 const INVERSE_RE = /\binverse|inverted|reciprocal|opposite\s+relationship|revers(e|ing|al)\b/i;
-const CONCEPT_RE = /conflat|confus(e|ing|ion)\b|misattribut|misappl|wrong\s+(process|concept|idea)|misidentif|misjudg|misinterpret|mix(ing|es)?\s+up|mis-?understand|faulty\s+(logic|reasoning|deduction)/i;
+// Matches words that signal a conceptual confusion. Two recent
+// additions worth flagging:
+//   • mix[\s-]?up — catches "Mix-Up" (hyphenated, the v4 prompt's
+//     preferred form), "Mix Up", "MixUp" and the older "Mixing Up".
+//     Without this, all v4 patterns ending in "Mix-Up" silently
+//     bucket as common mistakes instead of conceptual gaps.
+//   • \bvs\.?\b — pattern names like "Heart vs Lungs", "Volume vs
+//     Capacity" are concept-pair confusions by definition.
+const CONCEPT_RE = /conflat|confus(e|ing|ion)\b|misattribut|misappl|wrong\s+(process|concept|idea)|misidentif|misjudg|misinterpret|mix(ing|es)?[\s-]?up|mix[\s-]?up|mis-?understand|faulty\s+(logic|reasoning|deduction)|\bvs\.?\b/i;
 const INCOMPLETE_RE = /\bblank\s+(answer|submission)|skipping?\s+(sub|initial|or\s+incomplete|open[- ]?ended)|incomplete\s+(or\s+blank|sub|explanation|answer|response)|left\s+blank|skipped\s+sub-?questions?|holding\s+back\s+(on\s+)?(written\s+)?evidence|overly\s+general\s+explanation/i;
 const FINAL_RE = /final\s+consequence|stops?\s+short|stopping\s+(one\s+)?step\s+short|stopping\s+at\s+the\s+immediate|connecting\s+(the\s+)?(final\s+)?dot/i;
 const VAGUE_RE = /vague\s+(everyday\s+)?language|scientific\s+(term|vocab|keyword)|terminology|precise\s+scientific|imprecise|missing\s+scientific/i;
