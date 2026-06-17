@@ -794,7 +794,15 @@ function emphasiseQuoted(s: string): string {
   if (!s) return s;
   return s
     .replace(/"([^"]{2,}?)"/g, "**$1**")
-    .replace(/'([^']{2,}?)'/g, "**$1**");
+    // Single-quote variant: opening ' must be preceded by start-of-string
+    // or whitespace (not by a letter — otherwise we'd match the apostrophe
+    // inside "doesn't" / "She's" / "won't"). Closing ' must be followed
+    // by whitespace, punctuation, or end-of-string (lookahead, so we don't
+    // consume the trailing character). Pre-2026-06-17 the bare regex
+    // mangled passages with multiple contractions — e.g. David's English
+    // pattern 4 advice rendered "doesn**t she" because the regex was
+    // matching across "doesn't she".
+    .replace(/(^|\s)'([^'\n]{2,}?)'(?=\s|[.,!?;:)]|$)/g, "$1**$2**");
 }
 
 // A4-portrait Lumi report for offscreen html2canvas capture. Inline
