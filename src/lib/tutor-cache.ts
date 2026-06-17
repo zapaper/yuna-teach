@@ -14,6 +14,7 @@ import markMath from "./tutor-cache/unified-diagnosis-mark-lim-math.gemini-cache
 import davidMath from "./tutor-cache/unified-diagnosis-david-lim-math.gemini-cache.json";
 import emilyMath from "./tutor-cache/unified-diagnosis-emily-lim-math.gemini-cache.json";
 import emilyEnglish from "./tutor-cache/unified-diagnosis-emily-lim-english.gemini-cache.json";
+import emilyScience from "./tutor-cache/unified-diagnosis-emily-lim-science.gemini-cache.json";
 import kaiyangMath from "./tutor-cache/unified-diagnosis-kaiyangnggg-math.gemini-cache.json";
 import benjaminMath from "./tutor-cache/unified-diagnosis-benjamin-ong-math.gemini-cache.json";
 import hooperMath from "./tutor-cache/unified-diagnosis-hooper-math.gemini-cache.json";
@@ -86,6 +87,7 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "david-lim:math":       davidMath as CachedReport,
   "emily-lim:math":       emilyMath as CachedReport,
   "emily-lim:english":    emilyEnglish as CachedReport,
+  "emily-lim:science":    emilyScience as CachedReport,
   "kaiyangnggg:math":     kaiyangMath as CachedReport,
   "benjamin-ong:math":    benjaminMath as CachedReport,
   "hooper:math":          hooperMath as CachedReport,
