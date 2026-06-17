@@ -374,11 +374,18 @@ export async function POST(
     const updatedPaper = await prisma.examPaper.update({
       where: { id },
       data: { completedAt: new Date() },
-      select: { paperType: true },
+      select: { paperType: true, metadata: true },
     });
 
-    // Auto-mark in background — fire and forget
-    if (updatedPaper.paperType === "focused" || updatedPaper.paperType === "mastery") {
+    // Review-mode revision papers ship pre-marked at creation (see
+    // admin/student-revision/route.ts) — answers are baked in, the kid
+    // is only reading, so kicking off a fresh marker run wastes Gemini
+    // tokens and risks clobbering the prior marksAwarded. Practice-mode
+    // revisions (kid actually redoes the questions) DO need marking.
+    const revisionMode = (updatedPaper.metadata as { revisionMode?: string } | null)?.revisionMode;
+    if (revisionMode === "review") {
+      console.log(`[Auto-mark] Skipping ${id} — review-mode revision (already marked at creation)`);
+    } else if (updatedPaper.paperType === "focused" || updatedPaper.paperType === "mastery") {
       markFocusedTest(id).catch((err) =>
         console.error(`[Auto-mark] ${updatedPaper.paperType} marking for ${id} failed:`, err)
       );
