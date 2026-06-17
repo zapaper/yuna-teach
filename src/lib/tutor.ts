@@ -128,6 +128,10 @@ export type MistakeExample = {
   options: string[];
   picked: string | null;
   correct: string | null;
+  // Syllabus topic for this question — used by the runtime to detect
+  // when most examples of a pattern come from one topic, so the UI
+  // can suggest a focused practice on that topic.
+  topic?: string | null;
 };
 export type MistakeCard = {
   bucket:
@@ -650,7 +654,7 @@ function shapeTutorData(args: {
         questionRef: ex.questionRef, whatWentWrong: ex.whatWentWrong,
         paperTitle: null, questionNum: null, questionText: null, studentAnswer: null,
         markingNotes: null, diagramImageData: null, isMcq: false,
-        options: [], picked: null, correct: null,
+        options: [], picked: null, correct: null, topic: null,
       };
     }
     return {
@@ -672,6 +676,7 @@ function shapeTutorData(args: {
       // with no indication of what the right answer was. Cloze sections
       // store the correct word in q.answer; show it.
       correct: w.correctAnswer || null,
+      topic: w.topic || null,
     };
   };
   const patternStats: PatternStat[] = report.patterns.map(p => ({
@@ -794,6 +799,7 @@ function shapeTutorData(args: {
           options: w.options,
           picked: w.isMcq ? w.studentAnswer : null,
           correct: w.isMcq ? w.correctAnswer : null,
+          topic: w.topic || null,
         })),
         marksLost: Math.round(q.marksLost * 10) / 10,
       });

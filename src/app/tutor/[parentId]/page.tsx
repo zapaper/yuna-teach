@@ -67,6 +67,10 @@ type MistakeExample = {
   options: string[];
   picked: string | null;
   correct: string | null;
+  // Syllabus topic of the question. Used by the runtime to surface
+  // a "Most of these mistakes are in [topic]" callout when the pattern's
+  // examples concentrate on one topic.
+  topic?: string | null;
 };
 type MistakeCard = {
   bucket: string;
@@ -1313,12 +1317,36 @@ function DetailPanel({ data, view, onBack }: { data: Extract<TutorData, { kind: 
   );
 }
 
+// If a clear majority (≥60%) of a pattern's examples come from the
+// same syllabus topic, return that topic name so the UI can suggest
+// a focused practice on it. Returns null when the spread is too even
+// or topic data is missing.
+function dominantExampleTopic(examples: { topic?: string | null }[]): string | null {
+  const tally: Record<string, number> = {};
+  let total = 0;
+  for (const ex of examples) {
+    const t = (ex.topic ?? "").trim();
+    if (!t || t === "Untagged") continue;
+    tally[t] = (tally[t] ?? 0) + 1;
+    total++;
+  }
+  if (total < 2) return null;
+  let topTopic: string | null = null;
+  let topCount = 0;
+  for (const [t, n] of Object.entries(tally)) {
+    if (n > topCount) { topCount = n; topTopic = t; }
+  }
+  if (topTopic === null) return null;
+  return topCount / total >= 0.6 ? topTopic : null;
+}
+
 function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number }) {
   // MathText (instead of boldifyHtml) so $...$ LaTeX renders as math
   // in Lumi's advice + the headline "what went wrong" copy. Bold and
   // underline markers still work — MathText handles them natively.
   const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
+  const dominantTopic = dominantExampleTopic(card.examples);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
@@ -1327,6 +1355,11 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Lumi&apos;s Advice</p>
+        {dominantTopic && (
+          <p className="text-sm font-bold text-emerald-900 leading-relaxed mb-3">
+            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.
+          </p>
+        )}
         <p className="text-sm text-emerald-900 leading-relaxed"><MathText text={adviceText} /></p>
         {card.triggerKeywords.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -1361,6 +1394,7 @@ function MistakeDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number }) {
   const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
+  const dominantTopic = dominantExampleTopic(card.examples);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
       <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
@@ -1369,6 +1403,11 @@ function ConceptDetail({ card, childFirst, totalAvailable }: { card: Extract<Tut
 
       <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-4 mb-6">
         <p className="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Lumi&apos;s Explanation</p>
+        {dominantTopic && (
+          <p className="text-sm font-bold text-orange-900 leading-relaxed mb-3">
+            Most of these mistakes are in <strong>{dominantTopic}</strong> — a focused practice on this topic can help.
+          </p>
+        )}
         <p className="text-sm text-orange-900 leading-relaxed"><MathText text={adviceText} /></p>
       </div>
 
