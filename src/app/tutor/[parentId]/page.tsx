@@ -721,18 +721,21 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
   // skip the bullet entirely.
   const sinceLast = previousAssessment ? (() => {
     const date = new Date(previousAssessment.generatedAt).toLocaleDateString();
-    const cleared = previousAssessment.patternsCleared.slice(0, 2);
     const avgDelta = previousAssessment.avgDelta;
     const papersGained = previousAssessment.paperCountDelta ?? 0;
-    const hasMovement = cleared.length > 0 || (avgDelta !== null && Math.abs(avgDelta) >= 2) || papersGained > 0;
+    // Pattern-cleared signal was removed on 2026-06-17 — the workshop's
+    // pattern classification is non-deterministic, so a pattern "dropping
+    // out" of the top 4 between runs can be reclassification noise, not
+    // real improvement. Keep only the deterministic signals (avg delta
+    // and paper-count delta).
+    const hasMovement = (avgDelta !== null && Math.abs(avgDelta) >= 2) || papersGained > 0;
     if (!hasMovement) return null;
     return (
       <li>
         Since the last check on <strong>{date}</strong>:
         {avgDelta !== null && avgDelta >= 2 && <> {childFirst}&apos;s average is <strong>up {Math.round(avgDelta)} percentage points</strong>.</>}
         {avgDelta !== null && avgDelta <= -2 && <> the average has slipped <strong>{Math.abs(Math.round(avgDelta))} percentage points</strong> — worth a look.</>}
-        {cleared.length > 0 && <> The pattern{cleared.length > 1 ? "s" : ""} <strong>&ldquo;{cleared.join("”, “")}&rdquo;</strong> {cleared.length > 1 ? "have" : "has"} dropped out of the top 4 — nice progress.</>}
-        {papersGained > 0 && cleared.length === 0 && (avgDelta === null || Math.abs(avgDelta) < 2) && <> {childFirst} has completed {papersGained} more {subject.toLowerCase()} paper{papersGained === 1 ? "" : "s"} since.</>}
+        {papersGained > 0 && (avgDelta === null || Math.abs(avgDelta) < 2) && <> {childFirst} has completed {papersGained} more {subject.toLowerCase()} paper{papersGained === 1 ? "" : "s"} since.</>}
       </li>
     );
   })() : null;
