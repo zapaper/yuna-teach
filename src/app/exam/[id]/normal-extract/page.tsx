@@ -777,20 +777,24 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
         <PageSelectionModal
           pageImages={pageImages}
           defaultPageIndex={selectTarget.defaultPageIndex}
-          onConfirm={async (croppedDataUrl, selectedPage, yStartPct, yEndPct) => {
+          onConfirm={async (croppedDataUrl, selectedPage, yStartPct, yEndPct, xStartPct, xEndPct) => {
             const qId = selectTarget.questionId;
             const field = selectTarget.field;
             setSelectTarget(null);
 
             if (field === "imageData") {
-              // Save image + page + boundaries in one PATCH
+              // Save image + page + bounds in one PATCH. xStartPct /
+              // xEndPct flow through so a manual re-select on a Grammar
+              // Cloze / Editing / Comp Cloze question (sections that
+              // store narrow horizontal bounds) overwrites the original
+              // auto-extracted X bounds instead of leaving them stale.
               setSaving(qId + field);
               setSaveError(null);
               try {
                 const res = await fetch(`/api/exam/questions/${qId}`, {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct }),
+                  body: JSON.stringify({ imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct, xStartPct, xEndPct }),
                 });
                 if (!res.ok) {
                   const errData = await res.json().catch(() => ({}));
@@ -799,7 +803,7 @@ function EnglishNormalExtractContent({ id }: { id: string }) {
                   setPaper((prev) =>
                     prev
                       ? { ...prev, questions: prev.questions.map((qq) =>
-                          qq.id === qId ? { ...qq, imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct } : qq
+                          qq.id === qId ? { ...qq, imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct, xStartPct, xEndPct } : qq
                         ) }
                       : prev
                   );
@@ -1430,7 +1434,7 @@ function PageSelectionModal({
 }: {
   pageImages: string[];
   defaultPageIndex: number;
-  onConfirm: (croppedDataUrl: string, pageIndex: number, yStartPct: number, yEndPct: number) => void;
+  onConfirm: (croppedDataUrl: string, pageIndex: number, yStartPct: number, yEndPct: number, xStartPct: number, xEndPct: number) => void;
   onClose: () => void;
 }) {
   const [pageIndex, setPageIndex] = useState(
@@ -1557,7 +1561,14 @@ function PageSelectionModal({
     // Convert selection y-coordinates to percentage of page height
     const yStartPct = Math.round(selection.y * 1000) / 10;       // e.g. 0.175 → 17.5
     const yEndPct = Math.round((selection.y + selection.h) * 1000) / 10;
-    onConfirm(outCanvas.toDataURL("image/jpeg", 0.78), pageIndex, yStartPct, yEndPct);
+    // Also pass X bounds so the parent can persist them — without this
+    // a manual re-select on a narrow-box section (Grammar Cloze, Editing,
+    // Comp Cloze) updates only Y while xStartPct/xEndPct stay at the
+    // original auto-extracted values, making the displayed box look
+    // shifted relative to the new selection.
+    const xStartPct = Math.round(selection.x * 1000) / 10;
+    const xEndPct = Math.round((selection.x + selection.w) * 1000) / 10;
+    onConfirm(outCanvas.toDataURL("image/jpeg", 0.78), pageIndex, yStartPct, yEndPct, xStartPct, xEndPct);
   }, [selection, onConfirm, pageIndex]);
 
   const hasSelection = selection && selection.w > 0.01 && selection.h > 0.01;

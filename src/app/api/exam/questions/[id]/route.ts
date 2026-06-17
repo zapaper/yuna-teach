@@ -14,6 +14,8 @@ export async function PATCH(
   if ("pageIndex" in body) data.pageIndex = body.pageIndex;
   if ("yStartPct" in body) data.yStartPct = body.yStartPct ?? null;
   if ("yEndPct" in body) data.yEndPct = body.yEndPct ?? null;
+  if ("xStartPct" in body) data.xStartPct = body.xStartPct ?? null;
+  if ("xEndPct" in body) data.xEndPct = body.xEndPct ?? null;
   if ("answer" in body) data.answer = body.answer ?? null;
   if ("imageData" in body) data.imageData = body.imageData;
   if ("answerImageData" in body) data.answerImageData = body.answerImageData ?? null;
