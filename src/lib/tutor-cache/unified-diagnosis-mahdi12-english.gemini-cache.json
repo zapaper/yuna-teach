@@ -1,90 +1,87 @@
 {
   "patterns": [
     {
-      "name": "Word Partnerships",
-      "what": "Sometimes chooses a word that has the right general meaning but isn't the natural fit for the specific situation or noun.",
+      "name": "Close Meaning Mix-Up",
+      "what": "Tends to choose a vocabulary word that has a similar general meaning but doesn't quite fit the specific situation or sentence.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'achieves' instead of 'yields' for a garden producing a crop."
+          "whatWentWrong": "Mahdi12 chose 'prevented' instead of 'impeded' for a lack of confidence slowing down an ability."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
+          "whatWentWrong": "He chose 'intensive' instead of 'overwhelming' to describe a very strong, sickening smell."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected 'bustle' instead of 'flurry' for a sudden burst of activity."
+          "whatWentWrong": "Mahdi12 chose 'bustle' instead of 'flurry' for a sudden, short burst of panicked activity."
         }
       ],
-      "strategic_advice": "When you see a blank testing vocabulary, treat it as a matching game:\n- Look closely at the **noun right next to the blank** (like 'crop' or 'smell').\n- Ask yourself, **'Have I heard these two words used together before?'**\n- Read the whole sentence aloud with your choice to see if it sounds like natural, everyday English.",
+      "strategic_advice": "When you see words with similar meanings, look for context clues in the sentence to help you decide:\n- **Check the degree**: Is the feeling or action mild or extreme? (e.g., a smell that makes someone vomit is 'overwhelming', not just 'intensive').\n- **Check the exact fit**: Does the word describe a physical action, a feeling, or a specific situation? (e.g., 'impeded' means slowed down, while 'prevented' means stopped completely).\n- **Try substituting**: Put your chosen word into the sentence and see if it sounds natural in everyday speech.",
       "trigger_keywords": [
-        "crop",
-        "smell",
-        "activity",
-        "concern",
-        "visibility"
+        "most suitable word",
+        "closest in meaning",
+        "fill in the blank"
       ]
     },
     {
-      "name": "Small Word Mix-Ups",
-      "what": "Occasionally picks the wrong small word (like 'in', 'to', or 'out') to pair with an action word or adjective.",
+      "name": "Partner Words",
+      "what": "Occasionally mixes up which preposition or small word naturally pairs with a specific verb to create the right meaning.",
       "specific_examples": [
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 picked 'from' instead of 'to' when saying something is 'similar'."
+          "whatWentWrong": "Mahdi12 chose 'fell apart' instead of 'fell out' to describe friends having a disagreement."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'with' instead of 'in' for the phrase 'confided in'."
+          "whatWentWrong": "He chose 'confided with' instead of 'confided in' when talking about sharing a secret with a friend."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'similar from' instead of 'similar to' when comparing two pencil cases."
         }
       ],
-      "strategic_advice": "When you see action words or adjectives that need a small connecting word, remember these tips:\n- Some words are 'best friends' with specific small words. When you learn a new word, **learn its partner too** (e.g., 'similar to', not 'similar from').\n- For two-part action words (like 'fell out' or 'give off'), try replacing the blank with a **simple word** like 'argued' or 'produced' to see which option matches the meaning.",
+      "strategic_advice": "When you see a blank right after a verb or adjective, treat it as a 'partner word' question:\n- **Read the phrase aloud**: Often, your ears will catch the right pairing (like 'similar to' instead of 'similar from').\n- **Memorise common pairs**: Keep a small list of tricky phrasal verbs (like 'fall out' for arguing, or 'give off' for smells).\n- **Check the meaning**: Phrasal verbs change meaning completely based on the small word (e.g., 'look to' means rely on, while 'look over' means examine).",
       "trigger_keywords": [
-        "similar",
-        "confided",
-        "congratulated",
-        "fell",
-        "give"
+        "fell ___",
+        "similar ___",
+        "confided ___",
+        "give ___"
       ]
     },
     {
-      "name": "Tricky Pronouns and Tags",
-      "what": "Tends to get caught out by question tags at the end of sentences, or when choosing between 'I' and 'me' for multiple people.",
+      "name": "Hidden Grammar Clues",
+      "what": "Sometimes misses small clues in the sentence that decide the grammar rule, like whether a noun is singular, who is receiving the action, or if a statement is positive.",
       "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'Sally and I' instead of 'Sally and me' when receiving an action from the teacher."
-        },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'didn't he' instead of 'hasn't he' for the question tag."
+          "whatWentWrong": "Mahdi12 missed that 'Ahmad's' meant 'Ahmad has', choosing 'didn't he' instead of 'hasn't he'."
         },
         {
-          "questionRef": "[17]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 selected 'did' instead of 'didn't' for a question tag following a positive sentence."
+          "whatWentWrong": "He chose 'I' instead of 'me', missing that the speaker is receiving the action from the teacher."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'those' instead of 'that' for a 'stack of books', missing that 'stack' is a singular noun."
         }
       ],
-      "strategic_advice": "When you see questions about 'someone and me' or short tags at the end of sentences, use these tricks:\n- For 'someone and me' questions, **hide the other person's name** and read it again. 'My teacher asked me' sounds right, but 'My teacher asked I' sounds wrong!\n- For question tags, remember that **opposites attract**: a positive sentence gets a negative tag, and a negative sentence gets a positive tag.\n- Always check the **helping verb** in the main sentence (like 'has' or 'did') and use the **same one** in the tag.",
+      "strategic_advice": "When you see grammar questions, look for the hidden clues before choosing your answer:\n- **For 'I' vs 'me'**: Take away the other person's name (e.g., 'asked Sally and ___' becomes 'asked ___'). Your ears will tell you the right answer!\n- **For question tags**: Check if the main sentence is positive or negative, and make sure the tag is the **opposite**. Also, check the tense (e.g., 'Ahmad's' = 'Ahmad has').\n- **For group nouns**: Look at the main word. A 'stack of books' is one stack, so it needs a singular word like 'that' or 'is'.",
       "trigger_keywords": [
         "and I",
         "and me",
         "isn't he",
         "didn't she",
-        "hasn't he"
+        "stack of"
       ]
     }
   ],
@@ -111,7 +108,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 7,
@@ -211,19 +208,19 @@
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 32,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 33,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 35,
@@ -287,7 +284,7 @@
     "38": "cmpuji76e000y14eovr4sqfll",
     "39": "cmpuji76e000z14eoydag3q51"
   },
-  "generatedAt": "2026-06-17T08:06:49.996Z",
+  "generatedAt": "2026-06-17T09:27:28.870Z",
   "wrongCounts": {
     "total": 39,
     "oeq": 0,

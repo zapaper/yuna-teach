@@ -1,94 +1,82 @@
 {
   "patterns": [
     {
-      "name": "Hidden Shape Details",
-      "what": "Occasionally misses hidden blocks, folded edges, or specific side lengths when looking at diagrams of 2D and 3D shapes.",
+      "name": "Hidden 3D Blocks",
+      "what": "Sometimes misses the hidden blocks or faces that cannot be seen directly from the front when counting parts of a 3D shape.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 counted the visible faces of the painted blocks but missed some of the hidden faces at the back and bottom."
-        },
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 miscounted the number of outer edges that make up the perimeter when the wire shape is folded."
+          "whatWentWrong": "Counted the visible painted faces but missed some of the identical faces hidden on the back and bottom."
         },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 counted the visible cubes but missed the hidden cube supporting the stack in the corner."
+          "whatWentWrong": "Counted the visible cubes but missed the hidden cube supporting the structure in the corner."
         }
       ],
-      "strategic_advice": "When working with 3D shapes, try these tricks:\n- **Count by layers** from top to bottom to make sure you don't miss hidden supporting blocks.\n- **Match opposite sides**: the front area is usually equal to the back area, and top equals bottom.\n- For folding nets, **draw a dot** on the edges that will touch each other so you don't count them twice.",
+      "strategic_advice": "When working with stacked blocks, remember that every block must be supported.\n- **For volume:** Count layer by layer (top to bottom) to make sure you include the hidden blocks underneath.\n- **For surface area:** Match opposite sides. The number of faces you see from the front is exactly the same as the hidden back!",
       "trigger_keywords": [
+        "solid",
         "surface area",
-        "volume of the solid",
-        "perimeter of the figure",
-        "net of a cuboid"
+        "1-cm cubes",
+        "volume"
       ]
     },
     {
-      "name": "Wrong Total Used",
-      "what": "Sometimes calculates a fraction or percentage using the grand total or the final amount, instead of the specific group the question asked for.",
+      "name": "Wrong Total Mix-Up",
+      "what": "Occasionally mixes up which number to use as the bottom of a fraction or percentage, often using the grand total instead of the specific group asked for.",
       "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "LohXY2014 subtracted the 60% directly from the total instead of calculating 60% of the leftover stamps."
-        },
         {
           "questionRef": "[20]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 found savings out of the total money, rather than savings out of the money spent."
+          "whatWentWrong": "Found the savings correctly, but compared it to his total money instead of his expenditure."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 divided the decrease by the final number of marbles instead of the original starting number."
+          "whatWentWrong": "Found the decrease correctly, but divided by the leftover marbles instead of the starting amount to find the percentage."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'of the remainder'** → calculate the leftover first, then multiply\n- **'fraction of [A] is [B]'** → put [B] on top and [A] on the bottom\n- **'percentage decrease'** → always divide the change by the **original** starting amount, never the final amount",
+      "strategic_advice": "When you see prompts asking for a fraction or percentage, treat them as stop signs:\n- **'fraction of his expenditure'** → the word after 'of' is your bottom number (denominator).\n- **'percentage decrease'** → always divide by the **original starting amount**, never the leftover.",
       "trigger_keywords": [
-        "of the remainder",
         "fraction of",
         "percentage decrease",
-        "percentage of"
+        "ratio of"
       ]
     },
     {
-      "name": "Place Value Slips",
-      "what": "Occasionally gets tripped up by decimal places, reading scale markings, or converting between units like cents and dollars.",
+      "name": "One Step Short",
+      "what": "Sometimes does the hard work to find a middle step, but stops just before answering the final question asked.",
       "specific_examples": [
         {
-          "questionRef": "[6]",
+          "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 combined the digits directly into 3.033 without converting the fractions to their proper decimal places."
+          "whatWentWrong": "Successfully calculated the amount of paint used, but forgot to subtract it to find the amount left."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 correctly divided to find the cost, but mixed up 50 cents with 5 cents."
+          "whatWentWrong": "Found the carpeted area for the bedroom, but forgot to add the living room's carpet before making the final ratio."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "LohXY2014 found the total cost in cents, but forgot to divide by 100 to convert the final answer into dollars."
+          "whatWentWrong": "Found the total cost of the stamps in cents, but forgot the final step of dividing by 100 to convert it to dollars."
         }
       ],
-      "strategic_advice": "When dealing with money or decimals, take a moment to double-check your units:\n- **Write out the conversion**: remind yourself that $1 = 100 cents.\n- **Line up the decimal points** when adding fractions converted to decimals.\n- If an answer looks too big or too small (like a stamp costing 5 cents), **re-read the units** in the question.",
+      "strategic_advice": "You are doing the math correctly! To catch that final step, try the **'Double Read'** trick:\n- Read the question once to make your plan.\n- Do your calculations.\n- **Read the last sentence one more time** before picking your answer to make sure you are answering exactly what was asked (like 'left with' instead of 'used').",
       "trigger_keywords": [
-        "cost of each",
-        "in terms of",
-        "mass of",
-        "simplify"
+        "left with",
+        "total",
+        "in terms of"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -96,11 +84,11 @@
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 5,
@@ -108,15 +96,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -132,11 +120,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 14,
@@ -156,7 +144,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -194,7 +182,7 @@
     "20": "cmpuqfgdn000h12ltq3yutj96",
     "21": "cmpuqfgdn000i12lti80bc76g"
   },
-  "generatedAt": "2026-06-17T08:06:59.190Z",
+  "generatedAt": "2026-06-17T09:27:15.002Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 0,

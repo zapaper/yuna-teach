@@ -2,105 +2,109 @@
   "patterns": [
     {
       "name": "Missing Context Clues",
-      "what": "Sometimes picks a vocabulary word without fully checking the surrounding clues in the sentence that point to the exact meaning needed.",
+      "what": "Sometimes picks a vocabulary word without fully using the surrounding clues in the sentence.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'poet' instead of 'journalist', missing the clues about 'researching and interviewing' for a 'news article'."
+          "whatWentWrong": "UmarM chose 'poet' instead of 'journalist', missing the clues about 'interviewing people' and writing a 'news article'."
         },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'victorious' instead of 'tenacious', overlooking the clue 'never giving up till the end'."
+          "whatWentWrong": "He chose 'victorious' instead of 'tenacious', overlooking the clue that the opponent was 'never giving up'."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He selected 'extensively' instead of 'momentarily', which doesn't quite fit the action of someone who 'hesitated' before answering."
+          "whatWentWrong": "He chose 'extensively' instead of 'momentarily', even though the sentence mentions the student 'hesitated' before answering."
         }
       ],
-      "strategic_advice": "When you see a blank in a vocabulary question, treat it like a detective game:\n- **Highlight the clues** in the sentence before looking at the options.\n- Ask yourself, 'What specific action or feeling is the sentence describing?'\n- Plug your chosen word back into the sentence to see if it matches the clues perfectly.",
+      "strategic_advice": "Treat vocabulary questions like a detective game.\n- **Highlight the clues** in the sentence before looking at the options.\n- Ask yourself, **'What is the sentence trying to tell me?'** and match the word to those specific clues.",
       "trigger_keywords": [
-        "researching",
-        "never giving up",
-        "hesitated"
+        "because",
+        "before",
+        "when"
       ]
     },
     {
-      "name": "Tricky Phrasal Verbs",
-      "what": "Occasionally mixes up the small prepositions in common phrases, which changes the meaning of the action.",
+      "name": "Phrasal Verb Mix-Ups",
+      "what": "Occasionally confuses phrasal verbs that look similar but have different meanings.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'put down' instead of 'put off' for postponing a birthday party."
+          "whatWentWrong": "UmarM chose 'put down' instead of 'put off' for postponing a birthday party."
         },
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'looked into' instead of 'looked to' when Ravi was seeking support from his brother."
+          "whatWentWrong": "He chose 'looked into' instead of 'looked to' for seeking support from an older brother."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[12]",
           "type": "oeq",
           "whatWentWrong": "He wrote 'on' instead of 'out' for the phrase 'break out in a cold sweat'."
         }
       ],
-      "strategic_advice": "Phrasal verbs can be tricky because changing one small word changes the whole meaning!\n- When you see verbs like **'put'**, **'look'**, or **'break'**, read the whole sentence to understand the context.\n- Try to memorize common pairings, like **'put off'** for delay, or **'look to'** for relying on someone.\n- Read the completed phrase aloud to see if it sounds right.",
+      "strategic_advice": "When learning new verbs, pay attention to the prepositions attached to them.\n- Try to memorise them as a **complete phrase** (e.g., 'break out', 'put off').\n- Create your own sentences to remember their **specific meanings**.",
       "trigger_keywords": [
         "put",
-        "look",
+        "creep",
+        "looked",
         "break",
-        "creep"
+        "get"
       ]
     },
     {
-      "name": "Wrong Word Form",
-      "what": "Tends to figure out the correct base word but occasionally writes it as a verb when a noun or an '-ing' word is needed.",
+      "name": "Word Form Mix-Up",
+      "what": "Tends to use the wrong form of a word, such as writing a verb when a noun or adverb is needed.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "He wrote the verb 'encourage' instead of the noun 'encouragement' after the possessive 'friends''."
+          "whatWentWrong": "UmarM wrote the verb 'encourage' instead of the noun 'encouragement' after the possessive 'friends''."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "He used the past-tense verb 'included' instead of the noun 'inclusion' after the article 'an'."
+          "whatWentWrong": "He wrote the verb 'included' instead of the noun 'inclusion' after the article 'an'."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'test' instead of 'testing', missing that an '-ing' word is needed after the preposition 'of'."
+          "whatWentWrong": "He wrote the base verb 'test' instead of the '-ing' form 'testing' after the preposition 'of'."
         }
       ],
-      "strategic_advice": "When editing a word, always check its job in the sentence:\n- If it comes after words like **'an'** or **'friends''**, you usually need a noun (like 'inclusion' or 'encouragement').\n- If it comes after a preposition like **'of'** or **'for'**, you often need an **'-ing'** word (like 'testing').\n- Read the sentence with your new word to check if the grammar flows smoothly.",
+      "strategic_advice": "Look closely at the words immediately before the blank to decide what type of word fits.\n- **'an' or 'the'** → you usually need a noun (e.g., 'an inclusion').\n- **'of' or 'for'** → you often need an '-ing' word (e.g., 'process of testing').\n- **Describing an adjective** → you need an adverb ending in '-ly' (e.g., 'highly anticipated').",
       "trigger_keywords": [
         "an",
+        "the",
         "of",
+        "process of",
         "friends'"
       ]
     },
     {
-      "name": "Subject-Verb Agreement",
-      "what": "Occasionally confuses whether to use a singular or plural verb, especially when there are extra words between the subject and the verb.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Occasionally mixes up singular and plural verb forms depending on the main subject of the sentence.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He chose the singular 'enjoys' instead of the plural 'enjoy', getting tricked by the phrase 'except Raj' instead of looking at the main subject 'All the boys'."
+          "whatWentWrong": "UmarM chose the singular 'enjoys' instead of the plural 'enjoy' for the plural subject 'All the boys'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "He wrote the plural 'expect' instead of the singular 'expects' for the company 'Nintendo'."
+          "whatWentWrong": "He wrote the plural 'expect' instead of the singular 'expects' for the singular subject 'Nintendo'."
         }
       ],
-      "strategic_advice": "When choosing a verb, always find the true subject of the sentence:\n- Cross out extra phrases like **'except Raj'** or **'as well as'** to see the main subject clearly.\n- Remember that company names (like **'Nintendo'**) are singular and need a singular verb (with an 's').\n- Match the verb to the main subject, not the noun closest to the blank.",
+      "strategic_advice": "When checking verbs, always trace back to the **main subject**.\n- If the subject is **singular** (like 'Nintendo'), the verb needs an 's' (expects).\n- If the subject is **plural** (like 'All the boys'), the verb does not need an 's' (enjoy).\n- Ignore extra phrases like **'except Raj'** that try to trick you.",
       "trigger_keywords": [
-        "All the boys except",
-        "Nintendo"
+        "All the",
+        "company",
+        "except"
       ]
     }
   ],
@@ -143,7 +147,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 11,
@@ -171,7 +175,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 18,
@@ -223,7 +227,7 @@
     "22": "cmpuhw35m001c818su2utsmmw",
     "23": "cmpuhw35m001d818snk0jvztj"
   },
-  "generatedAt": "2026-06-17T08:14:45.802Z",
+  "generatedAt": "2026-06-17T09:27:19.315Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 12,

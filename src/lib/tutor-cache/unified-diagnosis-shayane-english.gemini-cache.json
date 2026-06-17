@@ -1,114 +1,86 @@
 {
   "patterns": [
     {
-      "name": "Word Meaning Mix-Up",
-      "what": "Sometimes chooses a vocabulary word that is related to the topic but doesn't quite fit the exact meaning or feeling of the sentence.",
+      "name": "Similar Word Mix-Up",
+      "what": "Sometimes chooses a vocabulary word that has a similar general idea but doesn't perfectly fit the specific sentence.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Shayane picked 'reaps' instead of 'yields', missing that a garden yields crops while a farmer reaps them."
+          "whatWentWrong": "Shayane picked 'reaps' instead of 'yields' for a garden producing crops, missing that a farmer reaps but a garden yields."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "Shayane chose 'pandering to' instead of 'tailoring to', overlooking that 'pandering' usually has a negative feeling."
+          "whatWentWrong": "She picked 'pandering to' instead of 'tailoring to', not realising that 'pandering' has a negative feeling."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Shayane selected 'retreated' instead of 'yanked', which better matches the clue 'quickly drew my hand back'."
+          "whatWentWrong": "She chose 'retreated' instead of 'yanked' to describe quickly pulling a hand back."
         }
       ],
-      "strategic_advice": "When you are stuck between two words, try these steps:\n- **Look for clues** in the surrounding words (like 'quickly' pointing to a fast action like 'yanked').\n- **Check who is doing the action** to see if the word makes sense for that subject.\n- **Think about the feeling** of the word—is it positive, negative, or neutral?",
+      "strategic_advice": "- When stuck between two similar words, look at the surrounding words (like **\"garden\"** vs **\"farmer\"**) to see which fits better.\n- Think about whether the word has a **positive or negative feeling**.\n- Try plugging both words into the sentence and **reading it aloud** to see which sounds more natural.",
       "trigger_keywords": [
-        "blank",
-        "vocabulary",
-        "closest in meaning"
+        "closest in meaning",
+        "fill in the blank"
       ]
     },
     {
-      "name": "Skipping Small Details",
-      "what": "Tends to pick an answer that looks good at first glance but occasionally misses a specific condition, hidden detail, or the main idea in the text.",
+      "name": "Skimming Over Details",
+      "what": "Tends to spot familiar words from the text in the options, but occasionally misses the exact detail that answers the specific question asked.",
       "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane missed the word 'not' in the question and picked an option that actually describes the virtual experience."
-        },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "Shayane picked 'before 31 October' instead of 'at least three friends' when looking for the biggest savings."
+          "whatWentWrong": "Shayane picked the early bird date instead of the group discount when asked how to get the 'biggest savings'."
         },
         {
-          "questionRef": "[12]",
+          "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "Shayane chose a specific detail about a new game instead of the overall main purpose of the website."
+          "whatWentWrong": "She chose 'competition' instead of 'pulling in the sails' for what Amanda enjoyed most."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'cook in front of many people' instead of 'make a video' for the steps to become a finalist."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'biggest'** or **'most'** → check all the options in the text and compare them before deciding.\n- **'not'** or **'false'** → circle these words in the question so you don't forget them!\n- **'main purpose'** → ask yourself: 'Does this answer cover the whole poster, or just one small part of it?'",
+      "strategic_advice": "- When you see **\"Which of the following\"** or **\"true\"**, treat it like a matching game. Find the exact sentence in the text and compare it word-for-word with the option.\n- Highlight the key question words like **\"biggest savings\"** or **\"enjoy most\"** so you know exactly what clue to hunt for in the passage.",
       "trigger_keywords": [
-        "not",
-        "biggest",
+        "Which of the following",
+        "true",
         "most",
-        "main purpose",
-        "true"
+        "biggest"
       ]
     },
     {
       "name": "Preposition Mix-Up",
-      "what": "Occasionally mixes up which small connecting words (like 'on', 'about', or 'since') belong with certain phrases or time periods.",
+      "what": "Occasionally confuses which small connecting word to use to show time, direction, or what something is about.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Shayane picked 'of' instead of 'on' for the phrase 'congratulated the young singer'."
+          "whatWentWrong": "Shayane picked 'of' instead of 'on' for congratulating someone on their performance."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Shayane chose 'since' instead of 'about' when talking about a 'convincing conclusion'."
+          "whatWentWrong": "She chose 'since' instead of 'about' when talking about reaching a conclusion."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Shayane picked 'by' instead of 'since' to show that something has been happening from 'ancient times' until now."
+          "whatWentWrong": "She selected 'by' instead of 'since' for something happening from ancient times until now."
         }
       ],
-      "strategic_advice": "To get more comfortable with connecting words:\n- Read the phrase aloud to see if it **sounds right**—we usually say 'congratulations **on** your win' or 'a conclusion **about** a topic'.\n- When talking about a starting point in time that continues to now, use **'since'** (e.g., 'since ancient times').\n- Keep a small notebook of **word pairs** that always go together (like 'congratulate + on').",
+      "strategic_advice": "- When talking about a starting point in time that continues to now, use **\"since\"** (e.g., **\"since ancient times\"**).\n- Pay attention to common word pairs that always go together, like **\"congratulate on\"** or **\"conclusion about\"**.\n- Read the whole phrase together to check if it sounds right.",
       "trigger_keywords": [
-        "blank",
-        "cloze",
-        "preposition"
-      ]
-    },
-    {
-      "name": "Grammar Rule Mix-Up",
-      "what": "Sometimes gets tripped up by specific grammar rules, like subject-verb agreement or special sentence structures.",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane picked a plural verb for 'Neither of the siblings', but 'Neither' is always treated as singular."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane missed that the word 'Should' can be used at the start of a sentence to mean 'If'."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "Shayane picked 'only' instead of 'what' to complete the phrase 'is ___ separates humans from animals'."
-        }
-      ],
-      "strategic_advice": "When you see these tricky grammar setups, remember:\n- Words like **'Neither'**, **'Either'**, and **'Each'** are singular, so they need a singular verb (like 'attends').\n- If a sentence sounds like a condition but doesn't have 'If', try putting **'Should'** at the start to see if it makes sense.\n- Break long sentences into smaller parts to figure out what the missing word needs to do.",
-      "trigger_keywords": [
-        "Neither",
-        "If",
-        "blank",
-        "grammar"
+        "since",
+        "by",
+        "about",
+        "on",
+        "of"
       ]
     }
   ],
@@ -119,11 +91,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -147,7 +119,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
@@ -159,11 +131,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -187,7 +159,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -221,7 +193,7 @@
     "20": "cmpurkl31000s13h3iuhgud73",
     "21": "cmpurkl31000x13h3qm5i29bu"
   },
-  "generatedAt": "2026-06-17T08:13:26.860Z",
+  "generatedAt": "2026-06-17T09:27:06.042Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 3,
