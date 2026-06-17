@@ -687,13 +687,31 @@ function shapeTutorData(args: {
       topic: w.topic || null,
     };
   };
+  // Dedupe Gemini's example picks by the underlying master question
+  // (sourceQuestionId, falling back to questionId). Without this, Emily
+  // Sci's "Forgetting Hidden Air" pattern showed 3 examples that all
+  // pointed to the same master question via different clone idx — same
+  // diagnosis text 3 times, looked like Lumi was repeating itself.
+  const dedupeExamples = (examples: MistakeExample[]): MistakeExample[] => {
+    const seen = new Set<string>();
+    const out: MistakeExample[] = [];
+    for (const ex of examples) {
+      const w = ex.questionId ? wrongByQuestionId.get(ex.questionId) : null;
+      const key = (w?.sourceQuestionId || ex.questionId || ex.questionRef);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(ex);
+    }
+    return out;
+  };
+
   const patternStats: PatternStat[] = report.patterns.map(p => ({
     name: p.name,
     bucket: bucketFor(p.name),
     what: p.what,
     advice: p.strategic_advice,
     triggerKeywords: p.trigger_keywords ?? [],
-    examples: (p.specific_examples ?? []).map(enrichExample),
+    examples: dedupeExamples((p.specific_examples ?? []).map(enrichExample)),
     marksLost: 0,
   }));
   for (const c of report.classification) {
