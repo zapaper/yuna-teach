@@ -422,18 +422,33 @@ ${w.imageDescription ? `  image: ${w.imageDescription.replace(/\s+/g, " ")}\n` :
 
 TONE — this report is read by a parent who will work through it WITH their child. Be warm and constructive, never clinical. Use ${childFirst}'s first name (NEVER "the student"). Use gentle qualifiers: "${childFirst} sometimes…", "occasionally", "tends to" — NOT "struggles", "fails", "cannot", "consistently". The goal is to point at fixable habits, not to label a deficiency.
 
-Identify the TOP 4 RECURRING ERROR PATTERNS that may span both formats. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY ${childFirst} loses marks (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
+Identify the TOP 3 OR 4 RECURRING ERROR PATTERNS that may span both formats. PREFER 3 STRONG PATTERNS OVER 4 WEAK ONES — if the signal for a 4th pattern is generic ("occasional arithmetic slips", "tricky spellings", "format details"), drop it and emit 3 instead. The summary will frame these as "what we can work on this week", so a tight 3 is better than a padded 4. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY marks are lost (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
 
-THEN classify EVERY record [1..${wrongs.length}] into exactly one of the 4 patterns (patternIndex 0-3). Records that don't fit → patternIndex -1.
+THEN classify EVERY record [1..${wrongs.length}] into exactly one of the patterns (patternIndex 0-2 or 0-3). Records that don't fit → patternIndex -1.
 
 For each pattern provide:
-  name — short vivid label (3-6 words)
-  what — one warm sentence describing the pattern, naming ${childFirst} (NOT "the student") and using gentle qualifiers as above.
+  name — 2 to 4 WORDS. Concrete noun phrase (NOT a gerund/-ing word). Must be quotable in a WhatsApp message from one parent to another.
+    Good (CONCRETE NOUN PHRASES): "Place Value and Decimals", "Reversing Ratio Order", "Hidden 3D Faces", "Reported Speech Tenses", "Trap-Matching MCQs", "Compass Turns and Angles", "Reference Whole Confusion".
+    Bad (ABSTRACT GERUND OPENERS — DO NOT USE ANY -ING WORD AS THE FIRST WORD): "Mastering Experimental Design", "Pinpointing Exact Details", "Tracing Step-by-Step Processes", "Visualising Hidden Elements", "Navigating the Remainder Trap", "Misidentifying the Reference Whole", "Extracting Numbers Accurately", "Stopping One Step Short".
+    RULE: if the first word ends in -ing, rewrite the name as a noun phrase. ("Stopping One Step Short" → "One Step Short" or "Premature Final Answer". "Extracting Numbers Accurately" → "Copying Errors" or "Number Transcription Slips". "Misidentifying the Reference Whole" → "Reference Whole Confusion".)
+  what — one sentence describing the pattern. RULES:
+    • DO NOT start with the kid's name. Lead with a present-tense verb.
+    • Gentle qualifiers like "sometimes" / "occasionally" / "tends to" are GOOD — they're accurate and warm.
+    • Praise is OK when warranted, but the diagnosis must be in the FIRST HALF of the sentence, not buried after a "BUT".
+    Good: "Sometimes calculates the next fraction using the original total instead of the leftover."
+    Bad (kid name opener): "${childFirst} sometimes does the heavy lifting to find an intermediate value, but occasionally stops one step short of the final question."  ← if your sentence starts with "${childFirst}" or any first name, REWRITE IT to start with a verb.
+    Bad (praise burial): "${childFirst} often sets up the maths beautifully, but occasionally makes a small slip."  ← put the diagnosis first.
+  DO NOT EMIT TWO PATTERNS ABOUT THE SAME THING. Each pattern must be distinct from the others — no two patterns about units, no two patterns about ratio reading, no two patterns about reading the question carefully. If two candidate patterns overlap heavily, merge them or drop the weaker one.
   specific_examples — 3 examples (pick from records classified into this pattern, prefer a MIX of OEQ and MCQ when both formats are present). Each:
     questionRef — e.g. "[49]"
     type — "oeq" or "mcq"
     whatWentWrong — one sentence diagnosis (concise, parent-readable, same warm tone — use the first name or "he/she" not "the student")
-  strategic_advice — advice keyed to question-stem TRIGGER WORDS, not topic. E.g. "When you see 'explain why', always include a 'so that...' clause showing the final consequence." 2-4 sentences. WRAP KEY PHRASES IN **double-asterisk markdown** to render bold.
+  strategic_advice — actionable coaching keyed to question-stem TRIGGER WORDS. 2-4 sentences OR a bulleted list. WRAP KEY PHRASES IN **double-asterisk markdown** to render bold.
+    USE BULLETS (lines starting with "- ") if there are multiple trigger phrases or multiple distinct coaching moves. Use prose if it's one core move.
+    Example (prose): "When you see **'explain why'**, always include a **'so that…'** clause showing the final consequence."
+    Example (bullets): "When you see these prompts, treat them as stop signs:
+      - **'of the remaining'** → use the leftover, not the original total
+      - **'how much more'** → subtract, then double-check whose value is bigger"
   trigger_keywords — question-stem phrases that flag this pattern
 
 OUTPUT STRICT JSON:
@@ -444,7 +459,7 @@ OUTPUT STRICT JSON:
   "classification": [ { "idx": 1, "patternIndex": 0 }, ... ]
 }
 
-Classification array MUST have exactly ${wrongs.length} entries.${repeatBlock}
+The patterns array MUST have 3 or 4 entries. The classification array MUST have exactly ${wrongs.length} entries.${repeatBlock}
 
 DATA:
 

@@ -1,0 +1,511 @@
+{
+  "patterns": [
+    {
+      "name": "Compass Turn Directions",
+      "what": "Tends to calculate the angle for the opposite direction of rotation, such as finding the clockwise angle when the question asks for anti-clockwise.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Calculated the clockwise turn (225°) instead of the requested anti-clockwise turn (135°)."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Found the angle for turning the wrong way around the compass."
+        },
+        {
+          "questionRef": "[37]",
+          "type": "mcq",
+          "whatWentWrong": "Missed the 'anti-clockwise' instruction and selected the angle for a clockwise turn."
+        }
+      ],
+      "strategic_advice": "When you see **'anti-clockwise'** or **'clockwise'**, treat it as a stop sign. Draw a quick circle and an arrow showing the direction of the turn before you start counting the angles. If you are turning anti-clockwise, imagine the hands of a clock going backwards!",
+      "trigger_keywords": [
+        "anti-clockwise",
+        "clockwise",
+        "turns through an angle",
+        "facing"
+      ]
+    },
+    {
+      "name": "Number Transcription Slips",
+      "what": "Occasionally drops a digit when copying numbers from the question into her working, which changes the final calculation.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Copied the movie duration as 2 hours 4 minutes instead of 2 hours 24 minutes."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Missed the '2' in 24 minutes when setting up the time addition."
+        },
+        {
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "Used 2 h 4 min for the calculation, which led to an incorrect final time despite using the right method."
+        }
+      ],
+      "strategic_advice": "When a question has multiple numbers or units, underline them as you read. After writing down your equation, do a quick **'copy check'** to make sure the numbers in your working exactly match the numbers in the question.",
+      "trigger_keywords": [
+        "h",
+        "min",
+        "started at",
+        "watched the movie for"
+      ]
+    },
+    {
+      "name": "Geometry Line Notation",
+      "what": "Sometimes includes extra letters or symbols when naming a straight line, rather than using exactly two letters for the endpoints.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Named the line 'LWX' instead of just using the two endpoints 'WX'."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "Used three letters to name a line, which is how we name angles, not straight lines."
+        },
+        {
+          "questionRef": "[65]",
+          "type": "oeq",
+          "whatWentWrong": "Combined multiple letters into 'ABLAE' instead of naming two distinct lines with two letters each."
+        }
+      ],
+      "strategic_advice": "When you see **'name a pair of lines'**, remember that a straight line is always named using exactly **two letters** (its endpoints). If you use three letters, it looks like you are naming an angle!",
+      "trigger_keywords": [
+        "name a pair",
+        "perpendicular lines",
+        "parallel lines",
+        "identify a pair"
+      ]
+    },
+    {
+      "name": "Measurement Unit Details",
+      "what": "Occasionally forgets to include the unit of measurement in the final answer or writes the wrong type of unit.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "Found the correct angle but forgot to include the degree (°) symbol."
+        },
+        {
+          "questionRef": "[61]",
+          "type": "oeq",
+          "whatWentWrong": "Calculated the angle perfectly but left out the degree symbol in the final answer."
+        },
+        {
+          "questionRef": "[62]",
+          "type": "oeq",
+          "whatWentWrong": "Found the correct area but wrote the unit for volume (cm³) instead of area (cm²)."
+        }
+      ],
+      "strategic_advice": "When you finish a calculation, always check what the question is asking for. If it's an angle, add your **degree symbol (°)**. If it's area, make sure your unit has a **little 2 (cm²)**, not a 3!",
+      "trigger_keywords": [
+        "find ∠",
+        "area of the square",
+        "perimeter"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 2
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": 2
+    },
+    {
+      "idx": 42,
+      "patternIndex": 1
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": 2
+    },
+    {
+      "idx": 45,
+      "patternIndex": 1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": 2
+    },
+    {
+      "idx": 48,
+      "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": 2
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": 2
+    },
+    {
+      "idx": 54,
+      "patternIndex": 1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 0
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": 1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": -1
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": 3
+    },
+    {
+      "idx": 62,
+      "patternIndex": 3
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
+      "idx": 65,
+      "patternIndex": 2
+    },
+    {
+      "idx": 66,
+      "patternIndex": -1
+    },
+    {
+      "idx": 67,
+      "patternIndex": -1
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmotr5z7f0010h6io610y18lq",
+    "2": "cmom3yjol000812j8t08tx9ss",
+    "3": "cmom3yjol000912j8hi7h564m",
+    "4": "cmonttv42005r8eodapx1lvph",
+    "5": "cmonttv43005u8eodpinlmtq3",
+    "6": "cmonttv43005z8eodgascr2zz",
+    "7": "cmonttv4300668eodarttrisp",
+    "8": "cmoazp5jh001xw4dzx9zk1bgu",
+    "9": "cmoazp5ji0021w4dz32kcu7eq",
+    "10": "cmpuiru3b0007btcz265kr8pw",
+    "11": "cmpuiru3a0002btczaz8bvhjs",
+    "12": "cmpuiru3b000abtcznhozfw4z",
+    "13": "cmpuiru3b0009btczhq9t85bc",
+    "14": "cmpuiru3b000bbtcz4ju86cyy",
+    "15": "cmpuiru3a0003btcznrpewwvf",
+    "16": "cmq257wye000je8x4iwl0sa49",
+    "17": "cmq257wye000le8x4i7446kh2",
+    "18": "cmq257wye000ne8x401pikku9",
+    "19": "cmoc9clzi0003gb2thp4pga5s",
+    "20": "cmoc9clzj0009gb2ton9vup3b",
+    "21": "cmoc9clzj000agb2towlqdrek",
+    "22": "cmq1uxxdl000jfbd538mcqfry",
+    "23": "cmq1uxxdl000lfbd5ci0od2fs",
+    "24": "cmq1uxxdl000nfbd5c1qwvx2z",
+    "25": "cmq12wsyl000jgqr9bbsae82y",
+    "26": "cmq12wsyl000lgqr9ct44rgi6",
+    "27": "cmq12wsyl000ngqr911mi5xoy",
+    "28": "cmq1lrvyj000ji806zay00zos",
+    "29": "cmq1lrvyj000li806k7czmm21",
+    "30": "cmq1lrvyj000ni806hmm2zfm6",
+    "31": "cmq0mtnmg000j9ahmh3n7kb6l",
+    "32": "cmq0mtnmg000l9ahmjznr6ai8",
+    "33": "cmq0mtnmg000n9ahmruvm6bdx",
+    "34": "cmq0txtpy000j6ipxse43enb8",
+    "35": "cmq0txtpy000l6ipxvt1w74yl",
+    "36": "cmq0txtpy000n6ipxfg37ri4n",
+    "37": "cmpzn00k2000jbd1amoi1x6z6",
+    "38": "cmpzn00k2000lbd1anqh39iuy",
+    "39": "cmpzn00k3000nbd1a0b5nmwxt",
+    "40": "cmq0unh87000jy88mlmwlrwjj",
+    "41": "cmq0unh87000ly88m3t2x11er",
+    "42": "cmq0unh87000ny88mtpdha26v",
+    "43": "cmq0o59sk000jc8ksaelj4az2",
+    "44": "cmq0o59sk000lc8ks710c6i0s",
+    "45": "cmq0o59sk000nc8ksxb0taufu",
+    "46": "cmq1vmwp2000jrupkp18mg5rt",
+    "47": "cmq1vmwp2000lrupkwau85suq",
+    "48": "cmq1vmwp2000nrupk7vmvjbah",
+    "49": "cmq09t3mq000jd3mf6r2mqytn",
+    "50": "cmq09t3mq000ld3mfuzpodwg7",
+    "51": "cmq09t3mq000nd3mfg9q4ow89",
+    "52": "cmq1xfxan000jjek6bys2iv6v",
+    "53": "cmq1xfxao000ljek6v6ki8yan",
+    "54": "cmq1xfxao000njek650xoc5uz",
+    "55": "cmq601nyn000fpovehbljeotv",
+    "56": "cmq601nyn000hpovedx93g2j3",
+    "57": "cmq601nyn000jpovetp3yk5wr",
+    "58": "cmo7usj1r0013j4n7qx74zkfg",
+    "59": "cmo7usj1r0014j4n7yxiv4b58",
+    "60": "cmo7usj1r0015j4n76w2dj69c",
+    "61": "cmo7usj1r0018j4n7fs7u0ji8",
+    "62": "cmo7usj1r001bj4n7y5m0d8b0",
+    "63": "cmnx0jvsc00025elxsmnvnlb2",
+    "64": "cmnx0jvsc000a5elxoadqzzlu",
+    "65": "cmnx0jvsc000g5elxeis3hij0",
+    "66": "cmnwtdxvf007bc1mtvyia7629",
+    "67": "cmnx2aaax000wbjj1u3hivqlf",
+    "68": "cmnx2aaay0012bjj1vf83h8pm",
+    "69": "cmnx2aaay0014bjj1kf1uv70e",
+    "70": "cmnwtcz50005yc1mtzi1pf0uy",
+    "71": "cmmfrnfcq0063e0huejlpbiyk",
+    "72": "cmmfrnfcq0069e0huofudzzao"
+  },
+  "generatedAt": "2026-06-17T03:56:55.618Z",
+  "wrongCounts": {
+    "total": 72,
+    "oeq": 43,
+    "mcq": 29
+  },
+  "toplineSnapshot": {
+    "avgPct": 81,
+    "totalAwarded": 509.5,
+    "totalAvailable": 632,
+    "paperCount": 27
+  },
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T03:46:14.067Z",
+    "patternNames": [
+      "Geometry Line Notation",
+      "Compass Turns and Angles",
+      "Extracting Numbers Accurately",
+      "Units and Symbols"
+    ],
+    "wrongCounts": {
+      "total": 72,
+      "oeq": 43,
+      "mcq": 29
+    },
+    "toplineSnapshot": {
+      "avgPct": 81,
+      "totalAwarded": 509.5,
+      "totalAvailable": 632,
+      "paperCount": 27
+    }
+  }
+}
