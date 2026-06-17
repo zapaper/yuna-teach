@@ -915,7 +915,13 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 <div style={{ display: "flex", height: plotH, gap: 16 }}>
                   {chartTopics.map(t => {
                     const h = Math.max(2, (t.pct / colMax) * plotH);
-                    const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                    // Below the kid's own average → yellow (attention).
+                    // At or above the average → green (doing well).
+                    // Anchoring on avgPct rather than fixed 75 / 40
+                    // thresholds keeps the chart calibrated to THIS kid:
+                    // a strong kid's "below avg" still reads as weak,
+                    // a struggling kid's "above avg" still reads as strong.
+                    const barColor = t.pct < topline.avgPct ? "#ffb952" : "#006c49";
                     return (
                       <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
                         <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 12, lineHeight: 1 }}>{t.pct}%</div>
