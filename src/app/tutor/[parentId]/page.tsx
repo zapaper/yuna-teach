@@ -948,14 +948,50 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 </div>
               </div>
               {/* Topic labels — separate row below the plot so they
-                  don't compete with the bar / pct positioning. */}
-              <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
-                {chartTopics.map(t => (
-                  <div key={t.topic} style={{ flex: 1, minWidth: 0, overflowWrap: "break-word", wordBreak: "break-word", fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
-                    {t.topic}
+                  don't compete with the bar / pct positioning.
+                  Science gets vertical labels (read bottom-to-top, CCW)
+                  because Science kids surface up to ~18 topics with
+                  long names like "Interaction of forces (Frictional…)" —
+                  horizontal labels at 1/18 column width wrap to 5-6 tiny
+                  lines and become unreadable. Other subjects keep the
+                  horizontal layout. */}
+              {(() => {
+                const isScience = subject.toLowerCase() === "science";
+                if (isScience) {
+                  return (
+                    <div style={{ display: "flex", gap: 16, marginTop: 8, alignItems: "flex-start" }}>
+                      {chartTopics.map(t => (
+                        <div key={t.topic} style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+                          {/* writing-mode + rotate(180deg) gives a CCW
+                              vertical label that reads bottom-to-top.
+                              whiteSpace: nowrap keeps each topic on one
+                              line so column-to-label alignment stays exact. */}
+                          <div style={{
+                            writingMode: "vertical-rl",
+                            transform: "rotate(180deg)",
+                            whiteSpace: "nowrap",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#0b1c30",
+                            lineHeight: 1,
+                          }}>
+                            {t.topic}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                    {chartTopics.map(t => (
+                      <div key={t.topic} style={{ flex: 1, minWidth: 0, overflowWrap: "break-word", wordBreak: "break-word", fontSize: 11, fontWeight: 600, color: "#0b1c30", textAlign: "center", lineHeight: 1.3 }}>
+                        {t.topic}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
           );
         })()}
