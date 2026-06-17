@@ -1,7 +1,7 @@
 {
   "patterns": [
     {
-      "name": "Leaving Out Crucial Details",
+      "name": "Missing Key Details",
       "what": "Mark sometimes drops specific pronouns, adjectives, or key actions in his answers, which can slightly change the meaning or leave the answer incomplete.",
       "specific_examples": [
         {
@@ -29,7 +29,7 @@
       ]
     },
     {
-      "name": "Losing Track of Subject-Verb Agreement",
+      "name": "Subject and Verb Matching",
       "what": "Mark occasionally gets distracted by extra words between the subject and the verb, leading to a mismatch in singular and plural forms or forgetting to shift tenses.",
       "specific_examples": [
         {
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "name": "Missing Contextual Contrasts and Negatives",
+      "name": "Missing Contrast Words",
       "what": "Mark tends to overlook hidden negative words or contrast clues, which leads to incorrect question tags or missing the shift in a passage's tone.",
       "specific_examples": [
         {

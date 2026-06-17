@@ -1,114 +1,114 @@
 {
   "patterns": [
     {
-      "name": "Compass Turn Directions",
-      "what": "Tends to calculate the angle for the opposite direction of rotation, such as finding the clockwise angle when the question asks for anti-clockwise.",
+      "name": "Turning the Wrong Way",
+      "what": "Sometimes calculates the turn in a clockwise direction instead of anti-clockwise, leading to the wrong final facing direction.",
       "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "Calculated the clockwise turn (225°) instead of the requested anti-clockwise turn (135°)."
-        },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Found the angle for turning the wrong way around the compass."
+          "whatWentWrong": "Emily calculated the angle for a clockwise turn to face East, rather than the requested anti-clockwise turn."
         },
         {
           "questionRef": "[37]",
           "type": "mcq",
-          "whatWentWrong": "Missed the 'anti-clockwise' instruction and selected the angle for a clockwise turn."
+          "whatWentWrong": "She found the correct angle for turning clockwise, but the question asked for an anti-clockwise turn."
+        },
+        {
+          "questionRef": "[49]",
+          "type": "mcq",
+          "whatWentWrong": "Emily mixed up the turning direction, selecting the angle that represents a clockwise turn instead."
         }
       ],
-      "strategic_advice": "When you see **'anti-clockwise'** or **'clockwise'**, treat it as a stop sign. Draw a quick circle and an arrow showing the direction of the turn before you start counting the angles. If you are turning anti-clockwise, imagine the hands of a clock going backwards!",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'anti-clockwise'** → draw a quick arrow pointing to the left (opposite of a clock) before counting the angles\n- **'clockwise'** → draw an arrow pointing to the right\nAlways double-check your drawn arrow matches the word in the question before you start calculating.",
       "trigger_keywords": [
         "anti-clockwise",
         "clockwise",
-        "turns through an angle",
-        "facing"
+        "facing",
+        "turns through an angle"
       ]
     },
     {
-      "name": "Number Transcription Slips",
-      "what": "Occasionally drops a digit when copying numbers from the question into her working, which changes the final calculation.",
+      "name": "Copy Number Wrongly",
+      "what": "Occasionally copies a number incorrectly from the question into the working steps, which changes the final answer despite using the perfect math method.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Copied the movie duration as 2 hours 4 minutes instead of 2 hours 24 minutes."
+          "whatWentWrong": "Emily used 2 hours and 4 minutes for the movie duration instead of the 2 hours and 24 minutes stated in the question."
         },
         {
-          "questionRef": "[30]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Missed the '2' in 24 minutes when setting up the time addition."
+          "whatWentWrong": "She wrote down the movie length as 2 hours and 4 minutes, which led to an incorrect end time despite a perfect addition method."
         },
         {
-          "questionRef": "[45]",
+          "questionRef": "[24]",
           "type": "oeq",
-          "whatWentWrong": "Used 2 h 4 min for the calculation, which led to an incorrect final time despite using the right method."
+          "whatWentWrong": "Emily missed the '20' in 24 minutes when copying the movie duration, changing the final calculated time."
         }
       ],
-      "strategic_advice": "When a question has multiple numbers or units, underline them as you read. After writing down your equation, do a quick **'copy check'** to make sure the numbers in your working exactly match the numbers in the question.",
+      "strategic_advice": "When you see numbers in the question, try this quick habit:\n- **Underline or highlight** the numbers as you read them.\n- After writing down your math steps, do a **one-second check** to make sure the numbers in your working exactly match the numbers you underlined.",
       "trigger_keywords": [
-        "h",
-        "min",
         "started at",
-        "watched the movie for"
+        "watched the movie for",
+        "after the movie"
       ]
     },
     {
-      "name": "Geometry Line Notation",
-      "what": "Sometimes includes extra letters or symbols when naming a straight line, rather than using exactly two letters for the endpoints.",
+      "name": "Line Naming Slips",
+      "what": "Tends to add extra letters or symbols when naming lines, which causes marks to be lost even when the correct lines are spotted.",
       "specific_examples": [
         {
-          "questionRef": "[13]",
+          "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Named the line 'LWX' instead of just using the two endpoints 'WX'."
+          "whatWentWrong": "Emily included an extra 'L' when naming line WX, writing 'LWX' instead."
         },
         {
-          "questionRef": "[41]",
+          "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "Used three letters to name a line, which is how we name angles, not straight lines."
+          "whatWentWrong": "She spotted the correct perpendicular lines but added an extra letter to the line's name."
         },
         {
-          "questionRef": "[65]",
+          "questionRef": "[29]",
           "type": "oeq",
-          "whatWentWrong": "Combined multiple letters into 'ABLAE' instead of naming two distinct lines with two letters each."
+          "whatWentWrong": "Emily wrote 'LWX' instead of 'WX', which made the line name incorrect."
         }
       ],
-      "strategic_advice": "When you see **'name a pair of lines'**, remember that a straight line is always named using exactly **two letters** (its endpoints). If you use three letters, it looks like you are naming an angle!",
+      "strategic_advice": "When you see **'name a pair'** or **'identify a line'**, remember that a straight line is always named with exactly **two letters** (like WX). If you find yourself writing three letters, stop and cross out the extra one!",
       "trigger_keywords": [
         "name a pair",
         "perpendicular lines",
         "parallel lines",
-        "identify a pair"
+        "identify"
       ]
     },
     {
-      "name": "Measurement Unit Details",
-      "what": "Occasionally forgets to include the unit of measurement in the final answer or writes the wrong type of unit.",
+      "name": "Missed Key Words",
+      "what": "Sometimes reads past important condition words like 'not', 'left', or 'greatest value', leading to an answer for a slightly different question.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "Found the correct angle but forgot to include the degree (°) symbol."
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Emily missed the word 'not' and picked a property that is true for both shapes instead of one that is false."
         },
         {
-          "questionRef": "[61]",
-          "type": "oeq",
-          "whatWentWrong": "Calculated the angle perfectly but left out the degree symbol in the final answer."
+          "questionRef": "[64]",
+          "type": "mcq",
+          "whatWentWrong": "She looked for the greatest overall number instead of checking which number gave the digit 3 the greatest value."
         },
         {
-          "questionRef": "[62]",
+          "questionRef": "[70]",
           "type": "oeq",
-          "whatWentWrong": "Found the correct area but wrote the unit for volume (cm³) instead of area (cm²)."
+          "whatWentWrong": "Emily calculated the total number of shaded squares needed, but forgot to subtract the squares that were already shaded."
         }
       ],
-      "strategic_advice": "When you finish a calculation, always check what the question is asking for. If it's an angle, add your **degree symbol (°)**. If it's area, make sure your unit has a **little 2 (cm²)**, not a 3!",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'not true'** or **'except'** → circle the word so you remember to look for the false option\n- **'left'** or **'remaining'** → double-check if you need to subtract from the total\n- **'greatest value'** → underline the specific digit you need to focus on",
       "trigger_keywords": [
-        "find ∠",
-        "area of the square",
-        "perimeter"
+        "not true",
+        "left",
+        "greatest value",
+        "must be shaded"
       ]
     }
   ],
@@ -119,7 +119,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -127,7 +127,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 5,
@@ -355,19 +355,19 @@
     },
     {
       "idx": 61,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 62,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 63,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 64,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 65,
@@ -379,7 +379,7 @@
     },
     {
       "idx": 67,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 68,
@@ -391,7 +391,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 71,
@@ -476,7 +476,7 @@
     "71": "cmmfrnfcq0063e0huejlpbiyk",
     "72": "cmmfrnfcq0069e0huofudzzao"
   },
-  "generatedAt": "2026-06-17T03:56:55.618Z",
+  "generatedAt": "2026-06-17T04:48:10.979Z",
   "wrongCounts": {
     "total": 72,
     "oeq": 43,
@@ -489,12 +489,12 @@
     "paperCount": 27
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T03:46:14.067Z",
+    "generatedAt": "2026-06-17T03:56:55.618Z",
     "patternNames": [
+      "Compass Turn Directions",
+      "Number Transcription Slips",
       "Geometry Line Notation",
-      "Compass Turns and Angles",
-      "Extracting Numbers Accurately",
-      "Units and Symbols"
+      "Measurement Unit Details"
     ],
     "wrongCounts": {
       "total": 72,

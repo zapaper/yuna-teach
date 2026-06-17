@@ -106,29 +106,35 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 // Papers list, scheduler popup, per-paper card scan icon).
 //
 // Rules:
-//   - English / Chinese REAL EXAM (paperType=null): admin-only for
-//     now (English papers without Normal Extract would scan as empty
-//     marks; admin can vet before exposing to parents).
-//   - English / Chinese QUIZ / FOCUSED (paperType=quiz/focused):
-//     admin-only. Chinese 词语搭配 / 短文填空 / 阅读理解 layouts
-//     shipped with the June 2026 Chinese launch, so admin can print
-//     and use the scan-back flow. English quiz/focused layouts may
-//     still have edge cases for non-admin parents — gate stays for
-//     them until verified.
-//   - Math / Science: no gate here.
+//   - Math / Science: never gated.
+//   - English / Chinese: gated ONLY when the paper lacks Normal
+//     Extract (cleanExtracted=false). Once a language paper has
+//     Normal Extract, the scan-back marker has the per-question
+//     bounds it needs and the printable layout works — both admin
+//     and parents can print + scan back. Real exams that haven't
+//     been normal-extracted yet still hide the buttons; admin can
+//     run Normal Extract first, then come back.
 function subjectBlocksPrintScan(
   subject: string | null | undefined,
   isAdmin = false,
-  paperType?: string | null,
+  _paperType?: string | null,
+  cleanExtracted?: boolean,
 ): boolean {
   const s = (subject ?? "").toLowerCase();
   const raw = subject ?? "";
   const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
   const isEnglish = s.includes("english");
   if (!isEnglish && !isChinese) return false;
-  // Admin always sees Print/Scan for Eng/Chi (real exam, quiz, focused).
-  return !isAdmin;
+  // Language papers: print + scan-back works iff the paper has Normal
+  // Extract (cleanExtracted). Hidden otherwise so the parent doesn't
+  // print a broken layout or scan into empty bounds.
+  return !cleanExtracted;
 }
+
+// User-facing message rendered in place of the Print button when the
+// gate above blocks. Lives next to subjectBlocksPrintScan so the
+// message and the gate condition can't drift apart.
+const PRINT_GATE_MESSAGE = "Printing English / Chinese practice papers is temporarily disabled — the lined-A4 layout for those subjects is still being rebuilt.";
 
 function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -3265,7 +3271,7 @@ export default function ParentDashboard({
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
-                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser, p.paperType) && (
+                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject, isAdminUser, p.paperType, p.cleanExtracted) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3280,6 +3286,11 @@ export default function ParentDashboard({
                               <span className="material-symbols-outlined text-base">print</span>
                               Print
                             </button>
+                          )}
+                          {subjectBlocksPrintScan(p.subject, isAdminUser, p.paperType, p.cleanExtracted) && (
+                            <span className="text-[10px] text-slate-500 italic shrink-0" title={PRINT_GATE_MESSAGE}>
+                              {PRINT_GATE_MESSAGE}
+                            </span>
                           )}
                         </div>
                       );
@@ -3387,7 +3398,7 @@ export default function ParentDashboard({
                             clean-extract content with bounds, the
                             scan-back marking flow works uniformly
                             for regular / quiz / focused. */}
-                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser, paper.paperType) && (
+                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject, isAdminUser, paper.paperType, paper.cleanExtracted) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -4273,7 +4284,7 @@ export default function ParentDashboard({
         // popup for those subjects. Admin always allowed; we
         // guarantee all English masters get Normal Extract upstream
         // so we no longer gate on a per-paper flag.
-        const popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser, popup.paperType);
+        const popupBlocked = subjectBlocksPrintScan(popup.subject, isAdminUser, popup.paperType, popup.cleanExtracted);
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
@@ -4336,6 +4347,11 @@ export default function ParentDashboard({
                     Scan
                   </button>
                 </div>
+                )}
+                {popupBlocked && (
+                  <p className="text-xs text-slate-500 italic px-2 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                    {PRINT_GATE_MESSAGE}
+                  </p>
                 )}
                 {/* Open in child's tab — quiz/focused take place at
                     /quiz/<id> (canvas workspace), regular papers

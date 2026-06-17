@@ -1,7 +1,7 @@
 {
   "patterns": [
     {
-      "name": "Premature Final Answer",
+      "name": "One Step Short",
       "what": "Sometimes stops one step short of the final answer, such as finding an intermediate value but forgetting the final operation.",
       "specific_examples": [
         {
@@ -29,7 +29,7 @@
       ]
     },
     {
-      "name": "Reference Whole Confusion",
+      "name": "Wrong Total Used",
       "what": "Occasionally uses the overall total as the denominator when finding a fraction or ratio, instead of the specific group requested by the question.",
       "specific_examples": [
         {

@@ -427,10 +427,35 @@ Identify the TOP 3 OR 4 RECURRING ERROR PATTERNS that may span both formats. PRE
 THEN classify EVERY record [1..${wrongs.length}] into exactly one of the patterns (patternIndex 0-2 or 0-3). Records that don't fit → patternIndex -1.
 
 For each pattern provide:
-  name — 2 to 4 WORDS. Concrete noun phrase (NOT a gerund/-ing word). Must be quotable in a WhatsApp message from one parent to another.
-    Good (CONCRETE NOUN PHRASES): "Place Value and Decimals", "Reversing Ratio Order", "Hidden 3D Faces", "Reported Speech Tenses", "Trap-Matching MCQs", "Compass Turns and Angles", "Reference Whole Confusion".
-    Bad (ABSTRACT GERUND OPENERS — DO NOT USE ANY -ING WORD AS THE FIRST WORD): "Mastering Experimental Design", "Pinpointing Exact Details", "Tracing Step-by-Step Processes", "Visualising Hidden Elements", "Navigating the Remainder Trap", "Misidentifying the Reference Whole", "Extracting Numbers Accurately", "Stopping One Step Short".
-    RULE: if the first word ends in -ing, rewrite the name as a noun phrase. ("Stopping One Step Short" → "One Step Short" or "Premature Final Answer". "Extracting Numbers Accurately" → "Copying Errors" or "Number Transcription Slips". "Misidentifying the Reference Whole" → "Reference Whole Confusion".)
+  name — 2 to 4 WORDS. Must satisfy ALL THREE rules:
+    (a) READABLE BY A PRIMARY 5 KID. Use everyday words. Banned vocabulary (academic / jargon):
+        "composite", "premature", "transcription", "notation", "reversal", "scenarios", "reference whole",
+        "boundaries", "configuration", "elaboration", "delineation", "demarcation", "magnitude".
+        If you'd hesitate to use the word with a 10-year-old, pick a simpler one.
+    (b) NO ABSTRACT-ACADEMIC GERUND OPENER. Banned: "Mastering", "Pinpointing", "Tracing", "Visualising",
+        "Visualizing", "Navigating", "Understanding", "Misidentifying", "Comprehending", "Overlooking",
+        "Identifying", "Determining", "Calculating", "Analysing".
+        CONCRETE kid-friendly gerunds ARE OK as openers when they are immediately clear: "Copying Errors",
+        "Skipping Questions", "Reading the Question", "Stopping Too Early" — all acceptable.
+    (c) MUST BE QUOTABLE IN A PARENT-TO-PARENT WHATSAPP MESSAGE. The parent should be able to say
+        "Lumi found a pattern called [name]" without explaining what the words mean.
+
+    Good examples (pass all three): "One Step Short", "Wrong Total Used", "Ratio in Wrong Order",
+    "Combined Shapes Trap", "Copying Numbers Wrong", "Line Naming", "Forgotten Units",
+    "Compass Direction Mix-Up", "Before and After Problems", "Trap-Matching MCQs", "Hidden 3D Faces",
+    "Place Value Slips", "Reported Speech Tenses".
+
+    Bad examples (fail one or more rules):
+      "Composite Figure Boundaries"  — fails (a): "composite" + "boundaries" are too academic.
+      "Premature Final Answer"       — fails (a): "premature".
+      "Number Transcription Slips"   — fails (a): "transcription".
+      "Reference Whole Confusion"    — fails (a): "reference whole" is math jargon.
+      "Ratio Order Reversal"         — fails (a): "reversal" is academic.
+      "Geometry Line Notation"       — fails (a): "notation".
+      "Before and After Scenarios"   — fails (a): "scenarios".
+      "Mastering Experimental Design"— fails (b): abstract academic gerund opener.
+
+    RULE: if your name contains any word from the banned vocabulary list, REWRITE IT with a simpler word.
   what — one sentence describing the pattern. RULES:
     • DO NOT start with the kid's name. Lead with a present-tense verb.
     • Gentle qualifiers like "sometimes" / "occasionally" / "tends to" are GOOD — they're accurate and warm.

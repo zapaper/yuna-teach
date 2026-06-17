@@ -1,0 +1,293 @@
+{
+  "patterns": [
+    {
+      "name": "Subject and Verb Pairs",
+      "what": "Sometimes mixes up whether to use a singular or plural verb for subjects like 'Everyone', 'Mr Tan', or 'toppings'.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Emily missed that 'Everyone' is treated as a singular subject and needs the verb 'shares'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Emily used the plural verb 'read' instead of the singular 'reads' for 'Mr Tan'."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "Emily used a singular verb for the plural subject 'toppings'."
+        }
+      ],
+      "strategic_advice": "When choosing a verb, always find the **'doer'** (the subject) first.\n- If the doer is **singular** (like 'Mr Tan' or 'Everyone'), the verb usually needs an **'s'** (reads, shares).\n- If the doer is **plural** (like 'daughters' or 'toppings'), the verb does not need an **'s'** (do, make).",
+      "trigger_keywords": [
+        "Everyone",
+        "Mr Tan",
+        "toppings",
+        "daughters",
+        "Vitamin B"
+      ]
+    },
+    {
+      "name": "Spelling Slips",
+      "what": "Occasionally misses a letter, swaps vowels, or struggles with tricky plurals when writing out answers.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "Emily missed the first 'e' in the middle of 'interesting'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Emily accidentally swapped the 'a' and 'r' when spelling 'alarm'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Emily missed the 'a' and the double 'l' when spelling 'beautiful'."
+        }
+      ],
+      "strategic_advice": "When you finish writing a word, take a quick second to read it back to yourself to catch any missing or swapped letters.\n- For words ending in **'ey'** like 'storey', just add an **'s'** to make it plural (storeys).\n- Break longer words into syllables in your head to make sure you don't miss any sounds, like **in-ter-est-ing**.",
+      "trigger_keywords": [
+        "storees",
+        "eentresting",
+        "buiteefull",
+        "alarm",
+        "library"
+      ]
+    },
+    {
+      "name": "Copying Errors",
+      "what": "Tends to accidentally change, drop, or squish together words from the original sentences when rewriting them.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Emily changed the word 'work' to 'homework', which slightly alters the meaning of the original sentence."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Emily accidentally dropped the small word 'the' when copying the sentence."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "Emily squished 'the' and 'park' together into one word."
+        }
+      ],
+      "strategic_advice": "In sentence combining, you must be a strict copycat with the original words!\n- **Check off** the words from the original sentence as you write them down.\n- Do not change words (like 'work' to 'homework') or drop small words (like 'the').\n- Double-check your spacing so words don't get squished together.",
+      "trigger_keywords": [
+        "Although",
+        "If",
+        "unless",
+        "either"
+      ]
+    },
+    {
+      "name": "Tricky Word Choices",
+      "what": "Occasionally picks a word that has a similar meaning but doesn't quite fit the exact situation or common English phrases.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Emily picked 'streak' instead of the common phrase 'flash of fear' to describe a quick reaction."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Emily chose 'scampered', which is for small animals, instead of 'prowled' for a hunting lion."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Emily chose 'camouflage', which has the right meaning but doesn't fit grammatically with the word 'in' like 'blend' does."
+        }
+      ],
+      "strategic_advice": "When you are unsure which word fits best, look for clues in the surrounding words.\n- For animal movements, picture the animal: lions **'prowl'** slowly when hunting, while smaller animals might 'scamper'.\n- Look out for common pairings (collocations) like a **'flash of fear'** or **'blend in'**.",
+      "trigger_keywords": [
+        "sudden ___ of fear",
+        "lion ___ around",
+        "helped the dinosaurs ________ in"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq1v1dqz001e4unj69gef7d7",
+    "2": "cmq1v1dqz001g4unjonxkgrd2",
+    "3": "cmq1v1dr0001i4unj5a846ezz",
+    "4": "cmq1trm2b001kzc79mccao9mb",
+    "5": "cmq1trm2b001szc79v9thowr9",
+    "6": "cmnx0k9rq000l5elxgxkort0g",
+    "7": "cmnx0k9rq000u5elxe8ide27n",
+    "8": "cmo57i1nc000ye506gqd5sdgu",
+    "9": "cmo57i1nc0014e5067ilwus0z",
+    "10": "cmo57i1nd0017e506zumfv409",
+    "11": "cmnx2rp6r00033l3di7b9leis",
+    "12": "cmnx2rp6s000b3l3dw43jlt8j",
+    "13": "cmnx2rp6s000g3l3dxrkp36tt",
+    "14": "cmnx2rp6s000m3l3dlnfguuis",
+    "15": "cmnx2rp6s000u3l3dpi33mth0",
+    "16": "cmnx2rp6s000w3l3d6upyv8re",
+    "17": "cmnx2rp6s000x3l3d85db3xh6",
+    "18": "cmnx2rp6s000y3l3ddgcfoig4",
+    "19": "cmnwtde0b006dc1mtyq71jk1s",
+    "20": "cmnwtde0b006fc1mtho86ctqa",
+    "21": "cmnwtde0c006hc1mt7t4k68cs",
+    "22": "cmnwtde0c006oc1mtplc9fvv6",
+    "23": "cmnwtd7c00068c1mt5yvnqqzn",
+    "24": "cmnwtd7c0006ac1mtt3ra0gek",
+    "25": "cmnv8rf7a0009m4y9zrra03qq",
+    "26": "cmnv8rf7a000hm4y99hks4jr8",
+    "27": "cmnu7br5u0008253a00q8yh62",
+    "28": "cmnu7br5u000a253ag6cxaje0"
+  },
+  "generatedAt": "2026-06-17T04:47:14.862Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 25,
+    "mcq": 3
+  },
+  "toplineSnapshot": {
+    "avgPct": 90,
+    "totalAwarded": 244,
+    "totalAvailable": 271,
+    "paperCount": 15
+  },
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T04:18:03.876Z",
+    "patternNames": [
+      "Subject-Verb Agreement",
+      "Tricky Spellings and Typos",
+      "Copying and Formatting Slips",
+      "Word Choices and Collocations"
+    ],
+    "wrongCounts": {
+      "total": 28,
+      "oeq": 25,
+      "mcq": 3
+    },
+    "toplineSnapshot": {
+      "avgPct": 90,
+      "totalAwarded": 244,
+      "totalAvailable": 271,
+      "paperCount": 15
+    }
+  }
+}
