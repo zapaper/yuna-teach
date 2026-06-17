@@ -1231,6 +1231,20 @@ export async function POST(request: NextRequest) {
             const passageSub = subs.find(s => s.label === "_passageText");
             if (passageSub) passage = passageSub.text;
           }
+          // Last-resort fallback: older masters (P4 EOY Nan Hua 2025
+          // and similar) put the reading passage under the _passage
+          // sentinel, before the convention was tightened to "_passage
+          // = question OCR, _passageText = reading passage". A short
+          // _passage (< ~300c) is question OCR — skip. A long one
+          // (≥ 500c) is the reading passage — use it. The threshold
+          // is a heuristic; reading passages in PSLE / P5-P6 papers
+          // are reliably 1000c+, while question-OCR sentinels are
+          // single sentences.
+          if (!passage && firstQ.transcribedSubparts) {
+            const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }>;
+            const passageSub = subs.find(s => s.label === "_passage");
+            if (passageSub && (passageSub.text ?? "").length >= 500) passage = passageSub.text;
+          }
         }
         if (!passage && !skipOcrLookup && group.key !== "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
