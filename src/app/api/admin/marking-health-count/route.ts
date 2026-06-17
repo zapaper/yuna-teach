@@ -45,7 +45,9 @@ export async function GET() {
       where: {
         markingStatus: "failed",
         completedAt: { gte: since7d },
-        paperType: { not: "eval" },
+        // Keep NULL paperTypes (master scan-back papers) — see
+        // marking-dashboard route for the SQL-NULL explanation.
+        AND: [{ OR: [{ paperType: null }, { paperType: { not: "eval" } }] }],
         ...userScope,
       },
     }),
@@ -53,7 +55,7 @@ export async function GET() {
       where: {
         markingStatus: "in_progress",
         completedAt: { gte: since7d, lt: stuckBefore },
-        paperType: { not: "eval" },
+        AND: [{ OR: [{ paperType: null }, { paperType: { not: "eval" } }] }],
         ...userScope,
       },
     }),

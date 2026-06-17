@@ -56,7 +56,14 @@ export async function GET() {
   const recent = await prisma.examPaper.findMany({
     where: {
       completedAt: { gte: since7d },
-      paperType: { not: "eval" },
+      // SQL three-valued logic: `paperType <> 'eval'` returns NULL for
+      // NULL paperType rows (master scan-back papers), which both
+      // Prisma `{ not: "eval" }` and `NOT: { paperType: "eval" }` treat
+      // as "not matched" — silently excluding every full-exam scan
+      // from the dashboard. Use the explicit OR (wrapped in AND because
+      // userScope below already injects its own root-level OR, and two
+      // root ORs would conflict on object merge).
+      AND: [{ OR: [{ paperType: null }, { paperType: { not: "eval" } }] }],
       ...userScope,
     },
     select: {
