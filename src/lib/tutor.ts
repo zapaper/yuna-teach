@@ -417,7 +417,7 @@ function reconstructWrongs(papers: Array<{
     transcribedStem: string | null; transcribedSubparts: unknown;
     syllabusTopic: string | null;
   }>;
-}>): WrongRecord[] {
+}>, masterStemById?: Map<string, string>): WrongRecord[] {
   const nonRev = papers.filter(p => !((p.metadata as { revisionMode?: unknown } | null)?.revisionMode));
   const wrongs: WrongRecord[] = [];
   let idx = 0;
@@ -464,7 +464,13 @@ function reconstructWrongs(papers: Array<{
       // can actually read the context. The empty-stem heuristic is
       // safe: only Cloze + Editing sections have empty stems, and
       // both want the passage shown.
-      const stemRaw = (q.transcribedStem ?? "").trim();
+      // If the clone has no transcribed stem but is sourced from a
+      // master that does, use the master's. [EVAL] focused-practice
+      // papers and older daily-quiz clones are the main case.
+      let stemRaw = (q.transcribedStem ?? "").trim();
+      if (!stemRaw && q.sourceQuestionId && masterStemById) {
+        stemRaw = masterStemById.get(q.sourceQuestionId) ?? "";
+      }
       const stemIsEmpty = stemRaw.length === 0;
       let questionText = stemRaw;
       const sps = q.transcribedSubparts as unknown;
@@ -601,8 +607,12 @@ function shapeTutorData(args: {
   subject: string;
   papers: Parameters<typeof reconstructWrongs>[0];
   report: GeminiReport;
+  // Fallback stems indexed by master questionId — used when a clone
+  // question has an empty transcribedStem so the example panel can
+  // still render the question text.
+  masterStemById?: Map<string, string>;
 }): TutorData {
-  const { studentName, subject, papers, report } = args;
+  const { studentName, subject, papers, report, masterStemById } = args;
   const childFirst = studentName.split(/\s+/)[0] ?? studentName;
   const topline = computeTopline(papers as Parameters<typeof computeTopline>[0]);
   if (topline.paperCount < 3) {
@@ -615,7 +625,7 @@ function shapeTutorData(args: {
   }
 
   // Pattern → bucket + marks lost
-  const wrongs = reconstructWrongs(papers);
+  const wrongs = reconstructWrongs(papers, masterStemById);
   // Two-way resolution:
   //   1. By questionId (preferred): stable across new papers — a
   //      cached example from June still maps to the same DB question
@@ -1117,7 +1127,31 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     orderBy: { completedAt: "desc" },
   }) : [];
 
-  const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport });
+  // Fallback for missing clone stems. Many [EVAL] papers and older
+  // quiz clones have empty transcribedStem because the master was the
+  // canonical home. Pull the master's stem so Lumi's example panel
+  // can still render the question text. Batch-fetch in one query to
+  // avoid N+1; only resolves masters we actually need.
+  const masterIdsNeeded = new Set<string>();
+  for (const p of subjectPapers) {
+    for (const q of p.questions) {
+      const stem = (q.transcribedStem ?? "").trim();
+      if (!stem && q.sourceQuestionId) masterIdsNeeded.add(q.sourceQuestionId);
+    }
+  }
+  const masterStemById = new Map<string, string>();
+  if (masterIdsNeeded.size > 0) {
+    const masters = await prisma.examQuestion.findMany({
+      where: { id: { in: [...masterIdsNeeded] } },
+      select: { id: true, transcribedStem: true },
+    });
+    for (const m of masters) {
+      const s = (m.transcribedStem ?? "").trim();
+      if (s) masterStemById.set(m.id, s);
+    }
+  }
+
+  const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport, masterStemById });
   if (shaped.kind !== "ready") return shaped;
 
   // Targeted diagram fetch — collect the questionIds we'll actually
