@@ -191,12 +191,12 @@ export async function GET(
   const subjectRaw = paper.subject ?? "";
   const isEnglish = subjectRawLc.includes("english");
   const isChinese = subjectRawLc.includes("chinese") || subjectRaw.includes("华文") || subjectRaw.includes("中文") || subjectRaw.includes("华语");
-  // English / Chinese quiz + focused printable is disabled for now —
-  // the writing/comprehension layouts don't translate cleanly to
-  // lined / boxed A4 yet. Blocked even for admin until the
-  // English/Chinese quiz layout is fixed. Real EXAM printing for
-  // these subjects still goes through /api/exam/[id]/print.
-  if (isEnglish || isChinese) {
+  // English / Chinese focused-test printable: admin allowed (they
+  // can verify layout themselves), parents still gated since the
+  // lined / boxed A4 layout for these subjects isn't fully baked.
+  // Parents who hit this route are doing so via the client UI which
+  // gates them already; this is the defence-in-depth layer.
+  if ((isEnglish || isChinese) && !auth.isAdmin) {
     return NextResponse.json({
       error: "Printing English / Chinese practice papers is temporarily disabled — the lined-A4 layout for those subjects is still being rebuilt.",
     }, { status: 400 });

@@ -43,22 +43,15 @@ export async function GET(
   });
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
-  // English / Chinese quiz + focused practice printing is disabled
-  // for now — same reason as /api/focused-test/[id]/printable. The
-  // /exam/[id]/print route also serves quiz clones (English Test
-  // Quiz, Chinese Test Quiz) that route through here for their
-  // master's PDF layout, so we have to gate here too.
-  {
-    const lc = (paper.subject ?? "").toLowerCase();
-    const raw = paper.subject ?? "";
-    const isEnglish = lc.includes("english");
-    const isChinese = lc.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
-    if ((isEnglish || isChinese) && (paper.paperType === "quiz" || paper.paperType === "focused")) {
-      return NextResponse.json({
-        error: "Printing English / Chinese practice papers is temporarily disabled — the lined-A4 layout for those subjects is still being rebuilt.",
-      }, { status: 400 });
-    }
-  }
+  // English / Chinese quiz + focused practice were previously blocked
+  // for everyone (incl. admin) because the lined-A4 printable layout
+  // was being rebuilt. That block has been removed — the route now
+  // falls back gracefully (Chinese print appends the OEQ pad when
+  // present, omits it when not; English clones use the master's
+  // original PDF). The English Normal-Extract check further below
+  // still gates English non-extracted papers with a clearer message.
+  // Parents are gated client-side via subjectBlocksPrintScan, which
+  // requires cleanExtracted=true for English/Chinese.
 
   // Clone fallback: Test Quiz clones (paperType="quiz") inherit
   // metadata from the master but don't carry their own pdfPath.

@@ -120,19 +120,18 @@ function subjectBlocksPrintScan(
   _paperType?: string | null,
   cleanExtracted?: boolean,
 ): boolean {
+  // Admin: never gated. They can run Normal Extract themselves and
+  // verify any print output, so blocking them just creates friction.
+  if (isAdmin) return false;
   const s = (subject ?? "").toLowerCase();
   const raw = subject ?? "";
   const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
   const isEnglish = s.includes("english");
   if (!isEnglish && !isChinese) return false;
-  // Language papers: print + scan-back works iff the paper has Normal
-  // Extract. Admin is allowed when the field is missing (e.g. an
-  // endpoint that doesn't populate cleanExtracted) — they can verify
-  // and run extraction themselves if needed. Parents still gated.
-  if (cleanExtracted === true) return false;
-  if (cleanExtracted === false) return true;
-  // Undefined: trust admin, gate parents.
-  return !isAdmin;
+  // Parents: language papers gated unless the paper has Normal Extract.
+  // (Undefined treated as missing → block, to protect parents from
+  // printing layouts that won't scan back correctly.)
+  return !cleanExtracted;
 }
 
 // User-facing message rendered in place of the Print button when the
