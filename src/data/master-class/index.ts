@@ -12,6 +12,7 @@ import { chineseComprehension } from "./chinese-comprehension";
 import { scienceDiversity } from "./science-diversity";
 import { englishSynthesisTricks } from "./english-synthesis-tricks";
 import { englishCompCloze } from "./english-comp-cloze";
+import { englishCompreCloze } from "./english-compre-cloze";
 import { englishVisualTextMcq } from "./english-visual-text-mcq";
 import { mathHiddenConstantTotal } from "./math-hidden-constant-total";
 import { mathSpeedMultiStage } from "./math-speed-multi-stage";
@@ -40,6 +41,7 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "science-diversity": scienceDiversity,
   "english-synthesis-tricks": englishSynthesisTricks,
   "english-comp-cloze": englishCompCloze,
+  "english-compre-cloze": englishCompreCloze,
   "english-visual-text-mcq": englishVisualTextMcq,
   "math-hidden-constant-total": mathHiddenConstantTotal,
   "math-speed-multi-stage": mathSpeedMultiStage,

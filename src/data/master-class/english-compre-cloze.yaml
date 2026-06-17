@@ -1,0 +1,379 @@
+# Master Class: PSLE English — Compre Cloze
+# --------------------------------------------------------------
+# Meta-skill: using sentence-level context clues to pick the
+# correct word. Covers Vocabulary MCQ (4-option), Vocabulary
+# Cloze MCQ (4-option), and Comprehension Cloze (write-the-word).
+#
+# Slide flow (10 slides total):
+#   0  Welcome              — why context-reading bags 35-44% of marks
+#   1  The 4-step method    — read whole sentence, highlight clue, predict, eliminate
+#   2  Clue Type A          — Contrast words (but / however / although)
+#   3  Clue Type B          — Cause / effect words (because / so / therefore)
+#   4  Clue Type C          — Time + sequence words (finally / suddenly / gradually)
+#   5  Try it — 2 MCQs      — Contrast / Cause / Time
+#   6  Clue Type D          — Collocations (fixed word partners)
+#   7  Trap patterns        — 3 common traps to dodge
+#   8  Try it — 2 MCQs      — Collocations + trap detection
+#   9  Start practising! (CTA → 15-Q mastery quiz)
+#
+# Bullets use {curly-brace filler words} that get spoken in the TTS
+# narration but hidden from the rendered slide.
+
+slug: english-compre-cloze
+subject: english
+level: P5-P6
+topicLabel: Compre Cloze
+title: "PSLE English — Compre Cloze Master Class"
+
+# General-pool mode: pull from ALL Vocabulary MCQ, Vocabulary Cloze
+# MCQ, and Comprehension Cloze questions regardless of sub-topic.
+# The clue types in the slide deck (contrast / cause / time /
+# collocation) drive narration only — they don't constrain the pool.
+noSubTopicFilter: true
+paperLevels: [P5, P6, PSLE]
+
+stats:
+  headline: >-
+    Vocabulary MCQ + Vocabulary Cloze MCQ + Comprehension Cloze
+    together hand you 35-44% of the English paper. Every one of
+    those marks comes down to ONE skill — reading the sentence
+    around the blank and picking the word that fits. Master the
+    4-step method and the 4 clue types and you bank quick marks.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Compre Cloze (35-44% of your English marks)"
+    mascotImage: /master-class/grammar-mcq-1/panda-welcome.png
+    body: >-
+      Three of the biggest sections on your English paper all test
+      the same thing: can you read the SENTENCE AROUND a blank and
+      pick the right word? Vocabulary MCQ, Vocabulary Cloze MCQ, and
+      Comprehension Cloze together = 35-44% of the paper. Get this
+      skill sharp and a third of your marks become quick wins.
+    bullets:
+      - |-
+        **The 3 sections that all test context-reading:**
+        -- **Vocabulary MCQ** — {a short sentence with a blank, 4 words to choose from. About }~10 marks{ on the paper.}
+        -- **Vocabulary Cloze MCQ** — {a passage with blanks, but you still pick from 4 options for each. Around }~10 marks{.}
+        -- **Comprehension Cloze** — {a passage with blanks but }NO options{ — you write the word yourself. Around }~15 marks{.}
+      - |-
+        **Why this class is different:** {We're not teaching you new vocabulary words today. We're teaching the }SKILL of reading the sentence around the blank{ — the clue word that gives away the answer. The same skill works whether the question gives you 4 options or makes you invent the word.}
+      - |-
+        **The 4 types of clue PSLE plants** {around a blank:}
+        -- 🔴 **Contrast clues** — but / however / although → {the answer is the }OPPOSITE{ of what came before.}
+        -- 🟡 **Cause / effect clues** — because / so / therefore → {the answer is the }REASON{ or the }CONSEQUENCE{.}
+        -- 🟣 **Time + sequence clues** — finally / suddenly / gradually → {tells you }WHICH MOMENT{ in the story.}
+        -- 🔵 **Collocation clues** — fixed word partners like {"take part" or "heavy rain" — these }always travel together{.}
+      - |-
+        {Next slide gives you the }**4-step routine** {to run on every blank. Then we drill each clue type one at a time.}
+
+  # ─── Slide 1: The 4-step method ─────────────────────────────
+  - title: "The 4-step method — every blank, same routine"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Most kids stare at the 4 options and pick whichever "sounds
+      nice". That's a coin flip. Run THESE 4 steps every time and
+      you stop guessing — the sentence itself tells you the answer.
+    bullets:
+      - |-
+        {Step 1 — }**Read the WHOLE sentence first.**
+        {Don't look at the options yet. Don't look at the blank in isolation. Read the full sentence from the capital letter to the full stop. If there's a sentence }before{ the blank — read that one too. The clue word is almost always somewhere OTHER than the blank itself.}
+      - |-
+        {Step 2 — }**Highlight (or mentally underline) the CLUE WORD.**
+        {The clue is one of the four types from Slide 0: }contrast / cause / time / collocation{. It might be a small word like }"but" or "so"{, or a phrase like }"the next morning"{. Train your eyes to spot these first — they're the answer key.}
+      - |-
+        {Step 3 — }**Predict the answer BEFORE you look at the options.**
+        {This is the most important step. Say in your head: "The clue word is }__but__{, so the answer must mean the OPPOSITE of }__tired__{ — something like }__energetic__{." Now look at the 4 options. If one matches your prediction — that's almost always your answer.}
+      - |-
+        {Step 4 — }**Eliminate the traps.**
+        {Now check the other 3 options. Cross out anything that }breaks the clue word{ (e.g. fits "and" but you have "but"), }breaks the collocation{ (e.g. "heavy" instead of "strong" for wind), or }contradicts the wider paragraph{. The one left standing is your answer.}
+        🧠 {Why this works — by step 3 you've already committed to a meaning, so options 1 and 4 can't trick you with their "nice-sounding" wrong words.}
+
+  # ─── Slide 2: Clue Type A — Contrast ────────────────────────
+  - title: "Clue Type A — Contrast words (the OPPOSITE is coming)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      When you spot a contrast word, the answer flips the meaning of
+      what came before. This is the EASIEST clue type to spot —
+      catch it and you've nailed half the vocab questions on the
+      paper.
+    bullets:
+      - |-
+        🔴 **The contrast trigger words** {to memorise:}
+        -- **but** · **however** · **although** · **though** · **even though**
+        -- **while** · **whereas** · **yet** · **instead** · **on the other hand**
+        -- **despite** · **in spite of** · **nevertheless**
+        🧠 {When you see ANY of these next to a blank, your brain should shout: }"OPPOSITE coming!"
+      - |-
+        **Example 1 — the simple flip:**
+        ✓ "Ahmad's older brother was tall and athletic, **but** Ahmad himself was rather ____ and clumsy."
+        {Clue word: }**but**{. Before the blank: }tall, athletic{. So the answer must mean the OPPOSITE — }short / weak / awkward{. Looking at options, you'd pick the one that means }not athletic{.}
+      - |-
+        **Example 2 — the "however" sentence-starter:**
+        ✓ "The maths test looked easy at first glance. **However**, when Mei Ling started reading the questions, she realised they were ____."
+        {Clue: }However{. Before: }easy{. Answer: opposite of easy → }tricky / challenging / difficult{.}
+      - |-
+        **Example 3 — "although" inside a sentence:**
+        ✓ "**Although** Daniel had practised the piece for hours, his performance was still ____."
+        {Clue: }Although{. He practised hours — you'd expect a }good{ performance. The contrast word flips it → answer means }not good → poor / shaky / disappointing{.}
+      - |-
+        ⚠️ **Trap to dodge:** {Don't pick a word that just }fits the grammar{. Pick the word that }flips the meaning{. If "tired" fits grammatically but the clue is "but" and the earlier word is also "tired" — you've ignored the clue.}
+
+  # ─── Slide 3: Clue Type B — Cause / Effect ──────────────────
+  - title: "Clue Type B — Cause / effect words (the REASON or the RESULT)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Cause-effect words tell you that one idea CAUSED the other.
+      The answer is either WHY something happened, or WHAT happened
+      because of it. Spotting these unlocks both reading comp AND
+      vocabulary marks.
+    bullets:
+      - |-
+        🟡 **The cause / effect trigger words:**
+        -- {Cause-pointing: }**because** · **since** · **as** · **due to** · **owing to** · **for**
+        -- {Effect-pointing: }**so** · **so that** · **therefore** · **hence** · **as a result** · **thus** · **consequently**
+        🧠 {The trick: }before you fill the blank, figure out which side of the cause-effect arrow it sits on. Is the blank the REASON, or the OUTCOME?
+      - |-
+        **Example 1 — answer is the EFFECT:**
+        ✓ "It had been raining heavily for three days, **so** the river had ____ its banks and flooded the village."
+        {Clue: }so{. Cause: }rain for 3 days{. So the answer is the OUTCOME → a river that }burst / overflowed{ its banks. You wouldn't pick "lowered" or "dried" — the cause forbids it.}
+      - |-
+        **Example 2 — answer is the CAUSE:**
+        ✓ "The match was cancelled **because** the field was completely ____ after last night's storm."
+        {Clue: }because{. Effect: }match cancelled{. So the answer is the REASON → the field must be }flooded / muddy / waterlogged{.}
+      - |-
+        **Example 3 — "due to" with a noun phrase:**
+        ✓ "**Due to** the ____ traffic, our school bus arrived twenty minutes late."
+        {Clue: }Due to{. Effect: }bus 20 mins late{. So the cause must be traffic that }holds you up{ → }heavy / congested / terrible{ traffic.}
+      - |-
+        💡 **Quick check:** {After picking your word, read it aloud with the clue word: }"Because the field was muddy, the match was cancelled."{ Does the cause-effect make sense? If yes → right. If it feels random → wrong.}
+
+  # ─── Slide 4: Clue Type C — Time + Sequence ─────────────────
+  - title: "Clue Type C — Time + sequence words (WHICH MOMENT?)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Time clues tell you WHERE in the story the blank is happening.
+      Is it the first thing? The last thing? Was the action quick or
+      slow? These words tighten the answer down to one specific word
+      from a list of synonyms.
+    bullets:
+      - |-
+        🟣 **The time + sequence trigger words:**
+        -- {Order in time: }**first** · **then** · **next** · **after** · **before** · **while** · **once** · **as soon as**
+        -- {End of a sequence: }**finally** · **eventually** · **at last** · **in the end**
+        -- {Speed of action: }**suddenly** · **gradually** · **slowly** · **immediately** · **at once** · **abruptly**
+        🧠 {Two questions to ask: }(1) Is the action quick or slow? (2) Is it at the start, middle, or end of the story?
+      - |-
+        **Example 1 — "finally" tells you it took a while:**
+        ✓ "Wei Ming had been searching for his lost wallet for an hour. **Finally**, he ____ it under his sister's school bag."
+        {Clue: }Finally{. Tells you the search }took ages{ and is }over{. The answer is a word that ends the search → }found / spotted / discovered{. Not "lost", not "remembered" — the clue word demands the end-of-search verb.}
+      - |-
+        **Example 2 — "suddenly" forces a quick verb:**
+        ✓ "The classroom was peaceful as everyone wrote quietly. **Suddenly**, a loud crash ____ from the corridor."
+        {Clue: }Suddenly{. Demands a SHARP, QUICK action verb → }rang out / erupted / came{. You wouldn't pick "drifted" or "whispered" — they're too gentle for "suddenly".}
+      - |-
+        **Example 3 — "gradually" forces a slow verb:**
+        ✓ "The sun rose higher in the sky, and the morning mist **gradually** ____."
+        {Clue: }Gradually{. Demands a SLOW process → }faded / cleared / lifted{. You wouldn't pick "vanished" or "exploded" — they're too sudden.}
+      - |-
+        ⚠️ **Watch this PSLE favourite:** {a sentence will say }"At first … but later"{ — the contrast word AND the time clue work together. Read both before you predict the answer.}
+
+  # ─── Slide 5: Try it — Contrast + Cause/Effect + Time ───────
+  - title: "Try it — Contrast, Cause/Effect, Time"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Contrast clue — 'but' flip"
+        stem: |-
+          Read the sentence:
+          "The morning had been warm and sunny, but by the time we reached the picnic spot, the weather had become surprisingly ____."
+          Which word fits the blank?
+        options:
+          - pleasant
+          - bright
+          - chilly
+          - humid
+        correctAnswer: 3
+        explanation: >-
+          **Step 1 — Highlight the clue word.** The clue here is __but__. Before the blank: __warm and sunny__. The contrast word __but__ tells us the second half of the sentence will FLIP the meaning. **Step 2 — Predict.** Opposite of "warm and sunny" → cold / cool / not-warm. **Step 3 — Eliminate.** "Pleasant" and "bright" both AGREE with warm-and-sunny → wrong direction → ✗. "Humid" describes hot sticky weather → doesn't flip the meaning → ✗. "**Chilly**" means cold — exactly the opposite of "warm" → ✓. **Answer: chilly.**
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Time clue — 'gradually'"
+        stem: |-
+          Read the sentence:
+          "After the heavy downpour, the floodwaters on the road gradually ____, and by evening the cars could pass through again."
+          Which word fits the blank?
+        options:
+          - vanished
+          - receded
+          - exploded
+          - rushed
+        correctAnswer: 2
+        explanation: >-
+          **Step 1 — Highlight the clue word.** The clue is __gradually__, with a second hint from __by evening__ (it took hours). **Step 2 — Predict.** "Gradually" demands a SLOW process — the floodwater went down bit by bit. **Step 3 — Eliminate.** "Vanished" means disappeared all at once → too sudden for "gradually" → ✗. "Exploded" is fast and violent → opposite of gradual → ✗. "Rushed" is also fast → ✗. "**Receded**" means slowly drew back — the exact verb for water levels falling over hours → ✓. **Answer: receded.**
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 6: Clue Type D — Collocations ────────────────────
+  - title: "Clue Type D — Collocations (the fixed word partners)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Some words ALWAYS travel together in English. "Heavy rain" —
+      yes. "Strong rain" — no. "Take part" — yes. "Make part" — no.
+      You can't reason these out; you've just got to know them. PSLE
+      tests collocations because they tell wide readers apart from
+      kids who don't read.
+    bullets:
+      - |-
+        🔵 **What is a collocation?**
+        {It's a word PARTNER that's locked in. Native speakers say one combination; the others sound broken even if they }mean the same thing{. For example, we say }"heavy rain"{ — never }"weighty rain"{. Both mean a lot of rain, but only one is right English.}
+      - |-
+        **Weather + nature collocations** {to memorise:}
+        -- **heavy** rain / snow / traffic / fog
+        -- **strong** wind / current / smell
+        -- **bright** sunshine / moonlight
+        -- **thick** fog / smoke / mist
+        -- {And, }**pouring** rain · **scorching** heat · **freezing** cold
+      - |-
+        **Verb + noun collocations** {PSLE loves:}
+        -- **take** advantage of · take part in · take a chance · take turns
+        -- **give** off (a smell) · give up · give in · give a speech
+        -- **pay** attention · pay a visit · pay a compliment
+        -- **make** a decision · make an effort · make sense · make a noise
+        -- **do** homework · do harm · do your best · do the dishes
+      - |-
+        **Feeling + noun collocations:**
+        -- **deep** regret · deep sympathy · deep sorrow
+        -- **bitter** disappointment · bitter cold
+        -- **utter** silence · utter confusion
+        -- **immense** pride · immense relief
+        🧠 {The pattern: an adjective + a noun that always go together. If you've read the phrase in books before, your gut will recognise it.}
+      - |-
+        **How to spot a collocation question:**
+        {Look for }4 options that are all roughly synonyms{ — like "heavy / large / big / huge". The grammar lets you pick any of them. But only ONE is the collocation. That's PSLE telling you: "this is a vocabulary partner question."}
+
+  # ─── Slide 7: Trap patterns ─────────────────────────────────
+  - title: "The 3 traps that cost you marks (and how to dodge them)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      The wrong options aren't random — PSLE plants them on purpose
+      to catch kids who haven't run all 4 steps. Here are the 3
+      sneakiest traps. Spot them in the option list and you'll
+      almost feel the test-maker's hand at work.
+    bullets:
+      - |-
+        ⚠️ **Trap 1 — Fits the grammar, BREAKS the meaning.**
+        {The word slots in cleanly so the sentence sounds OK if you read it fast — but it doesn't match the clue word.}
+
+        ✗ Trap: "The hike was tough, **but** by the end, Priya felt completely ____." → option (1) "tired"
+        {Why it's a trap: }"tired"{ fits grammar fine. But the clue word }but{ demands the OPPOSITE of "tough" → the answer should be a positive feeling like }proud / accomplished / triumphant{. "Tired" agrees with "tough" instead of contrasting it.}
+        🧠 {Dodge it: always ask — does my answer FLIP the meaning the way the clue word demands?}
+      - |-
+        ⚠️ **Trap 2 — Fits the meaning, BREAKS the collocation.**
+        {The word means the right thing, but it's not the locked-in partner that English uses.}
+
+        ✗ Trap: "The ____ rain made it impossible to see the road." → option (3) "strong"
+        {Why it's a trap: }"strong" rain{ means heavy rain — the meaning is right! But English says }"heavy rain"{, not "strong rain". "Strong" goes with }wind{; "heavy" goes with }rain{. Two different fixed partners.}
+        🧠 {Dodge it: when the options are all synonyms, ask "which one have I actually SEEN written before?" Your reading memory is the answer.}
+      - |-
+        ⚠️ **Trap 3 — Fits the sentence in isolation, CONTRADICTS the paragraph.**
+        {The word works fine if you only read that one sentence — but the wider paragraph rules it out.}
+
+        ✗ Trap: "Even though it was raining, the children were ____ to start the match." → option (1) "reluctant" (if the paragraph earlier said the kids LOVED football)
+        {Why it's a trap: }"reluctant"{ matches the contrast word }Even though{ — it gives a "rain → unwilling" flip. But the paragraph already told you the kids were football fans! The real answer is }eager / keen / excited{ — they want to play DESPITE the rain. The contrast is between }rain{ and }their enthusiasm{, not between }rain{ and a willingness to start.}
+        🧠 {Dodge it: read the sentence }before{ and }after{ the blank, not just the blank's sentence. PSLE plants the deciding clue in a neighbouring sentence on purpose.}
+
+  # ─── Slide 8: Try it — Collocations + Trap detection ────────
+  - title: "Try it — Collocations & Traps"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Collocation — fixed partner"
+        stem: |-
+          Read the sentence:
+          "Mrs Tan reminded us to take ____ of the school library while we still could, as it would close for renovations next week."
+          Which word fits the blank?
+        options:
+          - benefit
+          - advantage
+          - chance
+          - profit
+        correctAnswer: 2
+        explanation: >-
+          **Step 1 — Highlight the clue.** The clue isn't a contrast or cause word here — it's the FIXED PARTNER pattern: __take ____ of__. **Step 2 — Predict.** "take ___ of" is a locked-in collocation in English; only ONE noun fills that slot. The phrase is __take advantage of__ — meaning "make good use of". **Step 3 — Eliminate.** "Take benefit of" is not English — we say "benefit from", not "take benefit of" → ✗. "Take chance of" doesn't exist either — we say "take a chance" with no "of" → ✗. "Take profit of" isn't a real phrase → ✗. "**Take advantage of**" is the fixed collocation → ✓. **Answer: advantage.**
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Trap detection — paragraph context"
+        stem: |-
+          Read the passage:
+          "Jia En had been looking forward to the school camp for weeks. She had packed her bag, polished her boots, and even learnt three new campfire songs. However, when the morning arrived, the sky was dark and the rain poured down. Jia En felt ____ as she stared out of the window."
+          Which word fits the blank?
+        options:
+          - relieved
+          - thrilled
+          - disappointed
+          - bored
+        correctAnswer: 3
+        explanation: >-
+          **Step 1 — Highlight the clues.** Three clues stack up here. (a) Paragraph context: __looking forward to__, __packed her bag__, __polished her boots__ — she was EXCITED. (b) Contrast word: __However__ at the start of sentence 3 — flips to something negative. (c) Cause: __the sky was dark and the rain poured down__ — the camp is probably ruined. **Step 2 — Predict.** Someone who was excited but now sees the rain ruin everything feels SAD or LET DOWN. **Step 3 — Eliminate.** "Relieved" means glad something bad is over — wrong feeling, she wanted to GO → ✗. "Thrilled" means very excited — contradicts the __However__ flip → ✗. "Bored" doesn't match the rain-ruining-camp story → ✗. "**Disappointed**" matches all three clues: the excitement, the contrast flip, and the cause (rain) → ✓. **Answer: disappointed.** This is a Trap 3 sentence — if you only read the blank's sentence, "relieved" or "bored" might sneak past you. The paragraph above the blank is what locks the answer.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 9: Start practising! ─────────────────────────────
+  - title: "Start practising!"
+    mascotImage: /master-class/grammar-mcq-1/panda-cta.png
+    body: >-
+      Mixed practice pulled from PSLE 2016-2025 Vocabulary MCQ,
+      Vocabulary Cloze MCQ, and Comprehension Cloze. Every question
+      trains the 4-step routine on a different clue type until
+      spotting the clue word becomes automatic.
+    bullets:
+      - |-
+        {You'll tackle }**15 questions** — {a mix of }contrast clues, cause/effect clues, time clues, {and }collocations{, drawn from all three context-clue sections of the paper.}
+      - |-
+        {Any }Wrong answers {are }auto-saved, {and }reviewed in 1 week{ so the clue-spotting reflex sticks.}
+      - |-
+        {The }AI explains every answer {by pointing to the }specific clue word in the sentence — {so even when you get one wrong, you'll see exactly which clue you missed.}
+    cta:
+      label: Click here to start practice
+      quizSpec:
+        title: "Mastery: Compre Cloze"
+        # Mixed pool: Vocabulary MCQ (4 options), Vocabulary Cloze
+        # MCQ (4 options), and Comprehension Cloze (typed answer).
+        # Roughly 2/3 MCQ, 1/3 OEQ to reflect the section weighting.
+        mcq: 10
+        oeq: 5
+
+commonMistakes: []
+
+keyWords:
+  - { word: "context clue", definition: "A word in the sentence (or a neighbouring sentence) that gives away the answer. The 4 types are contrast (but/however/although), cause/effect (because/so/therefore), time/sequence (finally/suddenly/gradually), and collocation (fixed word partners like 'heavy rain')." }
+  - { word: "contrast clue", definition: "Words that signal the answer is the OPPOSITE of what came before: but, however, although, while, yet, instead, despite. When you spot one next to a blank, flip the meaning of the earlier idea to predict the answer." }
+  - { word: "cause and effect clue", definition: "Words that signal one idea CAUSED the other: because, since, as, due to, so, therefore, hence, as a result. The blank is either the REASON (cause) or the OUTCOME (effect) depending on which side of the trigger word it sits." }
+  - { word: "time and sequence clue", definition: "Words that pin down WHICH MOMENT in the story the blank refers to: finally, eventually, suddenly, gradually, after, before, while. Tells you whether to pick a quick verb or a slow one, a starting action or a finishing action." }
+  - { word: "collocation", definition: "Words that always travel together — 'heavy rain' (not 'strong rain'), 'take part' (not 'make part'), 'deep regret', 'bright sunshine'. Can't be reasoned from grammar; you have to know them from reading. PSLE tests these to separate wide readers from kids who don't read." }
+  - { word: "4-step method", definition: "The routine for every context-clue question: (1) read the WHOLE sentence first, (2) highlight the clue word, (3) PREDICT the answer before looking at the options, (4) eliminate the traps. Step 3 is the most important — once you commit to a meaning, the wrong options can't trick you." }
+  - { word: "grammar-fits trap", definition: "An option that slots in cleanly so the sentence sounds OK, but doesn't match the clue word's direction. Example: 'tired' after 'but ... tough' fits the grammar but ignores the contrast clue. Always ask: does my answer respect the clue word?" }
+  - { word: "wrong-collocation trap", definition: "An option that means the right thing but breaks the locked-in word partner. Example: 'strong rain' means heavy rain, but English says 'heavy rain'. When all four options are synonyms, you're being tested on collocation — pick the one you've SEEN written before." }
+  - { word: "paragraph contradiction trap", definition: "An option that works fine in the blank's sentence alone, but contradicts something said earlier in the passage. Dodge it by always reading the sentence BEFORE and AFTER the blank, not just the one with the blank in it." }
+
+subTopics:
+  - id: contrast-clues
+    label: Contrast clues (but / however / although)
+    description: "Words that signal the answer is the OPPOSITE of what came before. Easiest clue type to spot — catch 'but / however / although / while / despite' and flip the meaning."
+    slideIdx: 2
+  - id: cause-effect-clues
+    label: Cause / effect clues (because / so / therefore)
+    description: "Words that signal one idea caused the other. The blank is either the REASON or the OUTCOME — figure out which side of the cause-effect arrow it sits on first."
+    slideIdx: 3
+  - id: time-sequence-clues
+    label: Time + sequence clues (finally / suddenly / gradually)
+    description: "Words that pin down WHICH moment in the story the blank refers to. Tells you whether the verb should be quick (suddenly), slow (gradually), or end-of-sequence (finally)."
+    slideIdx: 4
+  - id: collocations
+    label: Collocations (fixed word partners)
+    description: "Words that always travel together — heavy rain, take advantage of, deep regret, give off. Can't be reasoned from grammar; must be memorised from reading. When all 4 options are synonyms, this is the clue type being tested."
+    slideIdx: 6
+  - id: trap-detection
+    label: Trap detection
+    description: "The 3 traps PSLE plants: (a) fits grammar but wrong meaning, (b) fits meaning but breaks collocation, (c) fits sentence in isolation but contradicts the wider paragraph. Spot the trap pattern and you'll dodge the lost marks."
+    slideIdx: 7
