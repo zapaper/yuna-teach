@@ -126,9 +126,13 @@ function subjectBlocksPrintScan(
   const isEnglish = s.includes("english");
   if (!isEnglish && !isChinese) return false;
   // Language papers: print + scan-back works iff the paper has Normal
-  // Extract (cleanExtracted). Hidden otherwise so the parent doesn't
-  // print a broken layout or scan into empty bounds.
-  return !cleanExtracted;
+  // Extract. Admin is allowed when the field is missing (e.g. an
+  // endpoint that doesn't populate cleanExtracted) — they can verify
+  // and run extraction themselves if needed. Parents still gated.
+  if (cleanExtracted === true) return false;
+  if (cleanExtracted === false) return true;
+  // Undefined: trust admin, gate parents.
+  return !isAdmin;
 }
 
 // User-facing message rendered in place of the Print button when the
