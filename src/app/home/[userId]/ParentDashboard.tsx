@@ -107,12 +107,14 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 //
 // Rules:
 //   - English / Chinese REAL EXAM (paperType=null): admin-only for
-//     now (Chinese pipeline still shipping per-section; English
-//     papers without Normal Extract would scan as empty marks).
+//     now (English papers without Normal Extract would scan as empty
+//     marks; admin can vet before exposing to parents).
 //   - English / Chinese QUIZ / FOCUSED (paperType=quiz/focused):
-//     blocked for EVERYONE. The printable for these types doesn't
-//     render English passages or Chinese 完成对话 / 短文填空 layouts
-//     cleanly yet. Re-enable per-type once the layout is fixed.
+//     admin-only. Chinese 词语搭配 / 短文填空 / 阅读理解 layouts
+//     shipped with the June 2026 Chinese launch, so admin can print
+//     and use the scan-back flow. English quiz/focused layouts may
+//     still have edge cases for non-admin parents — gate stays for
+//     them until verified.
 //   - Math / Science: no gate here.
 function subjectBlocksPrintScan(
   subject: string | null | undefined,
@@ -124,9 +126,7 @@ function subjectBlocksPrintScan(
   const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
   const isEnglish = s.includes("english");
   if (!isEnglish && !isChinese) return false;
-  // Quiz / focused practice: blocked for everyone (incl. admin).
-  if (paperType === "quiz" || paperType === "focused") return true;
-  // Real exam: admin-only for now.
+  // Admin always sees Print/Scan for Eng/Chi (real exam, quiz, focused).
   return !isAdmin;
 }
 
