@@ -1,52 +1,53 @@
 {
   "patterns": [
     {
-      "name": "Ratio in Wrong Order",
-      "what": "Sometimes works out the correct numbers for a ratio but writes them in the wrong order for the final answer.",
+      "name": "Ratio Order Mix-Up",
+      "what": "Sometimes works out the correct numbers for a ratio but writes them down in the reverse order.",
       "specific_examples": [
         {
-          "questionRef": "13",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "David correctly found the numbers for men and women but picked the option with the ratio in the wrong order."
+          "whatWentWrong": "David correctly found the number of men and women, but picked the option for women to men instead of men to women."
         },
         {
-          "questionRef": "15",
+          "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "He did the hard work to find the right numbers but wrote the final ratio as white to blue instead of blue to white."
+          "whatWentWrong": "He successfully found the number of blue and white ribbons, but wrote the final ratio as white to blue."
         },
         {
-          "questionRef": "21",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "David successfully found the relationship between the ribbons but accidentally flipped the final answer."
+          "whatWentWrong": "David did all the hard work to find the parts for each colour, but swapped the final two numbers around."
         }
       ],
-      "strategic_advice": "When you finish a ratio question, make this your final checklist:\n- **Write the letters** (like B and W) above your final numbers to match them up.\n- **Read the last sentence** of the question one more time to ensure your order matches exactly.",
+      "strategic_advice": "When you see a question asking for a ratio, treat the word **'to'** as a strict matching rule:\n- Highlight the two items asked for in the final question (e.g., **'blue to white'**).\n- Write the letters above your final numbers to check they match the exact order requested before moving on.",
       "trigger_keywords": [
-        "ratio of",
-        "to the number of"
+        "ratio of the number of",
+        "to the number of",
+        "What is the ratio"
       ]
     },
     {
-      "name": "Adding the Overlap",
-      "what": "Tends to add the overlapping section instead of subtracting it when finding the total area of combined shapes.",
+      "name": "Double Counting Overlaps",
+      "what": "Occasionally adds the overlapping shaded area when finding the total size of combined shapes, instead of subtracting it.",
       "specific_examples": [
         {
-          "questionRef": "14",
+          "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "David correctly found the value of one unit but added the overlapping area instead of subtracting it to find the total."
+          "whatWentWrong": "David correctly found the value of one unit, but added the overlapping area to the total instead of subtracting it."
         },
         {
-          "questionRef": "41",
+          "questionRef": "[41]",
           "type": "oeq",
-          "whatWentWrong": "He adjusted the ratios perfectly but counted the shared shaded area twice when finding the whole figure's area."
+          "whatWentWrong": "He adjusted the ratios perfectly to match the shaded area, but then added all the parts together, counting the overlap twice."
         },
         {
-          "questionRef": "50",
+          "questionRef": "[50]",
           "type": "oeq",
-          "whatWentWrong": "David showed great understanding of the common units but made a small slip by adding the overlap at the end."
+          "whatWentWrong": "David showed great understanding to find the common unit, but missed that the overlapping part needs to be taken away from the total."
         }
       ],
-      "strategic_advice": "When dealing with overlapping shapes, keep this rule in mind:\n- **The shaded part is shared**, so adding both full shapes counts it twice!\n- Always **subtract the overlap once** from your total to get the correct area.",
+      "strategic_advice": "When shapes overlap, remember that the shared area is counted once in Shape A and once in Shape B.\n- When finding the **'whole figure'**, always add the two shapes together and then **subtract the overlap** once so it isn't counted twice.\n- Try shading the overlap in a different colour to remind yourself it's a shared space.",
       "trigger_keywords": [
         "overlapping",
         "whole figure",
@@ -54,57 +55,30 @@
       ]
     },
     {
-      "name": "Skipping Questions",
-      "what": "Occasionally leaves questions completely blank when the problem has multiple steps or looks a bit overwhelming to start.",
-      "specific_examples": [
-        {
-          "questionRef": "12",
-          "type": "oeq",
-          "whatWentWrong": "David left this geometry question blank, missing out on marks he could have earned by finding just one or two angles."
-        },
-        {
-          "questionRef": "64",
-          "type": "mcq",
-          "whatWentWrong": "He skipped this word problem, even though drawing a simple before-and-after model could have helped him start."
-        },
-        {
-          "questionRef": "65",
-          "type": "mcq",
-          "whatWentWrong": "David left this ratio question unanswered, perhaps because the multiple steps looked a bit too tricky at first glance."
-        }
-      ],
-      "strategic_advice": "When a question looks too long or tricky to finish, try these steps to get started:\n- **Draw a simple model** or write down the very first fact you know.\n- **Solve for one part** even if you can't see the final answer yet—every step earns marks!",
-      "trigger_keywords": [
-        "at first",
-        "shared between",
-        "altogether"
-      ]
-    },
-    {
       "name": "Small Calculation Slips",
-      "what": "Sometimes sets up the math perfectly but makes a small addition or subtraction slip that changes the final answer.",
+      "what": "Occasionally makes small addition or subtraction slips in the middle of a problem, even when the overall method is completely correct.",
       "specific_examples": [
         {
-          "questionRef": "66",
+          "questionRef": "[66]",
           "type": "oeq",
-          "whatWentWrong": "David knew exactly how to solve the problem but made a small addition slip when finding the total mass of the flour."
+          "whatWentWrong": "David knew exactly how to add the weights and divide by four, but made a small slip when adding the decimals together."
         },
         {
-          "questionRef": "67",
+          "questionRef": "[67]",
           "type": "oeq",
-          "whatWentWrong": "He correctly found the first angle but made a tiny calculation error on the final step."
+          "whatWentWrong": "He correctly found the first hidden angle, but made a small subtraction error when finding the final angle."
         },
         {
-          "questionRef": "78",
+          "questionRef": "[77]",
           "type": "oeq",
-          "whatWentWrong": "David set up the angle rules beautifully but a small subtraction slip led to the wrong final answer."
+          "whatWentWrong": "David showed the right steps to find the mass of each bag, but a tiny addition slip at the start threw off the final answer."
         }
       ],
-      "strategic_advice": "To protect your hard work from tiny slips, try these quick checks:\n- **Double-check your addition** and subtraction before moving to the next step.\n- **Ask yourself if the number makes sense**—a quick estimate can catch a small error early!",
+      "strategic_advice": "When working with decimals or multiple steps, a small slip can hide in the middle of great working.\n- **Line up your decimal dots** neatly when adding numbers like 2.7, 3.4, and 5.02.\n- Do a quick **reverse check** (like adding your answer back up) to catch any small subtraction slips before moving to the next step.",
       "trigger_keywords": [
-        "total mass",
-        "find angle",
-        "altogether"
+        "weighing",
+        "Find ∠",
+        "repacked them equally"
       ]
     }
   ],
@@ -155,7 +129,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -363,19 +337,19 @@
     },
     {
       "idx": 64,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 66,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 68,
@@ -383,19 +357,19 @@
     },
     {
       "idx": 69,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 70,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 71,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 72,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 73,
@@ -403,23 +377,23 @@
     },
     {
       "idx": 74,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 75,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 76,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 77,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 78,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 79,
@@ -512,7 +486,7 @@
     "79": "cmmh5nd2p0010p5e8qzt5d084",
     "80": "cmmh5nd2q0017p5e8s8ujl2nu"
   },
-  "generatedAt": "2026-06-17T04:47:48.141Z",
+  "generatedAt": "2026-06-17T08:08:08.019Z",
   "wrongCounts": {
     "total": 80,
     "oeq": 54,
@@ -525,11 +499,11 @@
     "paperCount": 27
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T03:56:13.737Z",
+    "generatedAt": "2026-06-17T07:55:42.454Z",
     "patternNames": [
-      "Ratio Order Reversal",
-      "Composite Figure Boundaries",
-      "Before and After Scenarios"
+      "Ratio Order Mix-Up",
+      "Overlapping Shapes Trap",
+      "Skipping Questions"
     ],
     "wrongCounts": {
       "total": 80,

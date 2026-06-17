@@ -2,120 +2,111 @@
   "patterns": [
     {
       "name": "One Step Short",
-      "what": "Sometimes stops one step short of the final answer, such as finding an intermediate value but forgetting the final operation.",
+      "what": "Sometimes does the hard work to find a middle answer, but stops before completing the final step requested by the question.",
       "specific_examples": [
         {
           "questionRef": "[47]",
           "type": "mcq",
-          "whatWentWrong": "Mark correctly found the remaining fraction of the cake but forgot the final step of dividing it equally between the two friends."
+          "whatWentWrong": "He correctly found the fraction of the cake left for the two friends, but forgot to divide it by two to find what each friend got."
         },
         {
-          "questionRef": "[135]",
-          "type": "mcq",
-          "whatWentWrong": "He successfully calculated the amount of paint used, but stopped one step short of subtracting it to find the amount left."
-        },
-        {
-          "questionRef": "[120]",
+          "questionRef": "[112]",
           "type": "oeq",
-          "whatWentWrong": "Mark accurately calculated the discount amount, but forgot that the question asked for the usual price."
+          "whatWentWrong": "He successfully calculated the number of extra cookies bought, but stopped short of adding the initial cookies to find the total."
+        },
+        {
+          "questionRef": "[118]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly worked backwards to find the intermediate value, but missed the final step of adding one to get the actual figure number."
         }
       ],
-      "strategic_advice": "When you see prompts like **'left with'** or **'shared equally'**, treat them as stop signs to double-check your final step.\n- **'left with'** → remember to subtract the amount used from the total\n- **'shared equally'** → remember to divide your remaining fraction by the number of people\n- **'usual price'** → ensure you are finding the original 100%, not just the discount amount",
+      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'each'** → remember to divide the total among the group\n- **'altogether'** or **'in the end'** → make sure you add back any starting amounts\n- **'mixed number'** or **'kilograms'** → check if your answer needs to be converted into a different format",
       "trigger_keywords": [
-        "shared equally",
-        "left with",
-        "usual price",
-        "how many more"
+        "each",
+        "altogether",
+        "in the end",
+        "mixed number",
+        "kilograms"
       ]
     },
     {
       "name": "Wrong Total Used",
-      "what": "Occasionally uses the overall total as the denominator when finding a fraction or ratio, instead of the specific group requested by the question.",
+      "what": "Occasionally uses the grand total as the bottom of a fraction, even when the question asks to compare with a different part like 'expenditure' or 'savings'.",
       "specific_examples": [
         {
-          "questionRef": "[123]",
+          "questionRef": "[132]",
           "type": "mcq",
-          "whatWentWrong": "When asked for the fraction of savings, Mark used the total money as the denominator instead of just the savings amount."
+          "whatWentWrong": "He used the total monthly money as the bottom of his fraction instead of using the expenditure as requested."
         },
         {
-          "questionRef": "[140]",
+          "questionRef": "[146]",
           "type": "mcq",
-          "whatWentWrong": "He found the ratio of women to the total number of passengers, rather than comparing men to women as requested."
-        },
-        {
-          "questionRef": "[95]",
-          "type": "oeq",
-          "whatWentWrong": "Mark calculated the correct number of sold pens, but used the remaining pens as the denominator instead of the total red pens."
+          "whatWentWrong": "He compared the spending to the total amount of money, rather than comparing it to the savings."
         }
       ],
-      "strategic_advice": "When a question asks for a **'fraction of'** or **'ratio of'** something, the words immediately following tell you what your reference whole should be.\n- **'fraction of his savings'** → use the savings amount as the denominator, not the total money\n- **'ratio of men to women'** → compare the two specific groups, excluding the total\n- Always circle the words right after **'fraction of'** or **'ratio of'** to lock in your reference whole.",
+      "strategic_advice": "When a question asks for a **'fraction of'** something, the word right after **'of'** tells you what goes at the bottom of your fraction. If it says **'fraction of his savings'**, put the savings at the bottom, not the total money.",
       "trigger_keywords": [
-        "fraction of his savings",
         "fraction of his expenditure",
-        "fraction of the red pens",
-        "ratio of the number"
+        "fraction of his savings",
+        "fraction of"
       ]
     },
     {
-      "name": "Incomplete Perimeter",
-      "what": "Tends to calculate the curved parts of a shape accurately but occasionally forgets to add the straight edges, or forgets to halve the full circumference for a semicircle.",
+      "name": "Perimeter vs Curve Mix-Up",
+      "what": "Tends to calculate only the curved part of a shape when asked for the perimeter, forgetting to add the straight lines that close the shape.",
       "specific_examples": [
         {
           "questionRef": "[103]",
           "type": "mcq",
-          "whatWentWrong": "Mark correctly calculated the length of the curved arc but forgot to add the two straight edges to close the shape."
-        },
-        {
-          "questionRef": "[104]",
-          "type": "mcq",
-          "whatWentWrong": "He calculated the full circumference of the circle but forgot to halve it for the semicircle."
+          "whatWentWrong": "He correctly found the length of the curved arc, but forgot to add the two straight radii to complete the perimeter."
         },
         {
           "questionRef": "[107]",
           "type": "oeq",
-          "whatWentWrong": "Mark did the heavy lifting to find the curved lengths but omitted the straight line segments from the final perimeter."
+          "whatWentWrong": "He did a great job calculating the curved lengths of the semicircles, but omitted the straight line segments from the final perimeter."
         }
       ],
-      "strategic_advice": "When finding the **'perimeter of the figure'**, trace the entire outside edge with your pencil.\n- If the shape includes a **'semicircle'**, remember to divide the full circle's circumference by 2.\n- Always check if there are straight lines (like the diameter or the sides of a rectangle) that need to be added to the curved parts to close the shape.",
+      "strategic_advice": "When finding the **'perimeter'** of a shape with curves, trace the entire outside edge with your pencil. If your pencil runs over a **straight line**, make sure you add that length to your curved arc calculation!",
       "trigger_keywords": [
         "perimeter of the figure",
         "perimeter of the semicircle",
-        "quarter-circle"
+        "perimeter"
       ]
     },
     {
-      "name": "Units of Measurement",
-      "what": "Sometimes omits the units in the final answer or mixes up units of length (cm) with units of area (cm²).",
+      "name": "Unit Mix-Up",
+      "what": "Sometimes forgets to include units in the final answer, or mixes up units of length (cm) with units of area (cm²).",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "oeq",
-          "whatWentWrong": "Mark found the correct numerical area but forgot to include the 'cm²' unit in his final answer."
-        },
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "He calculated the perimeter perfectly but accidentally wrote 'cm²' (used for area) instead of 'cm'."
+          "whatWentWrong": "He found the correct numerical value for the perimeter, but accidentally used square centimetres (cm²) which is for area."
         },
         {
-          "questionRef": "[154]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Mark correctly found the total weight in grams but forgot to convert it to kilograms as requested by the question."
+          "whatWentWrong": "He calculated the area perfectly, but wrote degrees (°) instead of square centimetres (cm²)."
+        },
+        {
+          "questionRef": "[97]",
+          "type": "oeq",
+          "whatWentWrong": "He got the exact right number for the diameter, but forgot to write 'cm' at the end."
         }
       ],
-      "strategic_advice": "Get into the habit of writing the unit next to your final number immediately.\n- For **'perimeter'** or length, use plain units like **cm** or **m**.\n- For **'area'**, always use square units like **cm²** or **m²**.\n- If the question asks for **'kilograms'**, make sure you convert from grams before writing your final answer.",
+      "strategic_advice": "Before moving to the next question, always do a quick **unit check**:\n- **Lengths and perimeters** → use plain units like cm or m\n- **Areas** → use square units like cm² or m²\n- If the question gives a unit, make sure your final answer has one too!",
       "trigger_keywords": [
         "area",
         "perimeter",
-        "kilograms",
-        "cm²"
+        "diameter",
+        "cm²",
+        "cm"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 2,
@@ -491,7 +482,7 @@
     },
     {
       "idx": 95,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 96,
@@ -543,7 +534,7 @@
     },
     {
       "idx": 108,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 109,
@@ -559,7 +550,7 @@
     },
     {
       "idx": 112,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 113,
@@ -591,7 +582,7 @@
     },
     {
       "idx": 120,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 121,
@@ -607,7 +598,7 @@
     },
     {
       "idx": 124,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 125,
@@ -615,7 +606,7 @@
     },
     {
       "idx": 126,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 127,
@@ -623,7 +614,7 @@
     },
     {
       "idx": 128,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 129,
@@ -651,7 +642,7 @@
     },
     {
       "idx": 135,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 136,
@@ -663,7 +654,7 @@
     },
     {
       "idx": 138,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 139,
@@ -671,7 +662,7 @@
     },
     {
       "idx": 140,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 141,
@@ -691,7 +682,7 @@
     },
     {
       "idx": 145,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 146,
@@ -727,7 +718,7 @@
     },
     {
       "idx": 154,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 155,
@@ -891,7 +882,7 @@
     "154": "cmnbkbkq8000fstjgtdans86k",
     "155": "cmn9vsfnh000910ti521fqwng"
   },
-  "generatedAt": "2026-06-17T03:57:32.992Z",
+  "generatedAt": "2026-06-17T08:10:32.921Z",
   "wrongCounts": {
     "total": 155,
     "oeq": 99,
@@ -903,19 +894,5 @@
     "totalAvailable": 3045,
     "paperCount": 103
   },
-  "previousAssessment": {
-    "generatedAt": "2026-06-14T15:22:10.155Z",
-    "patternNames": [
-      "Stopping One Step Short",
-      "Misidentifying the Reference Whole",
-      "Unit Omissions and Mix-ups",
-      "Partial Circle Perimeter Traps"
-    ],
-    "wrongCounts": {
-      "total": 145,
-      "oeq": 91,
-      "mcq": 54
-    },
-    "toplineSnapshot": null
-  }
+  "previousAssessment": null
 }

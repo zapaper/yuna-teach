@@ -1,114 +1,92 @@
 {
   "patterns": [
     {
-      "name": "Turning the Wrong Way",
-      "what": "Sometimes calculates the turn in a clockwise direction instead of anti-clockwise, leading to the wrong final facing direction.",
+      "name": "Turning Direction Mix-Up",
+      "what": "Sometimes calculates the turn in the opposite direction, mixing up clockwise and anti-clockwise.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Emily calculated the angle for a clockwise turn to face East, rather than the requested anti-clockwise turn."
+          "whatWentWrong": "Emily needed to find the anti-clockwise turn from south-west to east, but she picked the clockwise angle instead."
         },
         {
-          "questionRef": "[37]",
+          "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "She found the correct angle for turning clockwise, but the question asked for an anti-clockwise turn."
-        },
-        {
-          "questionRef": "[49]",
-          "type": "mcq",
-          "whatWentWrong": "Emily mixed up the turning direction, selecting the angle that represents a clockwise turn instead."
+          "whatWentWrong": "She faced a similar compass question and again picked 225°, showing a small mix-up with the turning direction."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'anti-clockwise'** → draw a quick arrow pointing to the left (opposite of a clock) before counting the angles\n- **'clockwise'** → draw an arrow pointing to the right\nAlways double-check your drawn arrow matches the word in the question before you start calculating.",
+      "strategic_advice": "When you see **'anti-clockwise'** or **'clockwise'**, draw a quick clock face on the page.\n- **'clockwise'** → draw an arrow the way the hands move\n- **'anti-clockwise'** → draw an arrow backwards\nAlways trace the path with your pencil before counting the angles.",
       "trigger_keywords": [
         "anti-clockwise",
         "clockwise",
-        "facing",
-        "turns through an angle"
-      ]
-    },
-    {
-      "name": "Copying Numbers Wrong",
-      "what": "Occasionally copies a number incorrectly from the question into the working steps, which changes the final answer despite using the perfect math method.",
-      "specific_examples": [
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "Emily used 2 hours and 4 minutes for the movie duration instead of the 2 hours and 24 minutes stated in the question."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "She wrote down the movie length as 2 hours and 4 minutes, which led to an incorrect end time despite a perfect addition method."
-        },
-        {
-          "questionRef": "[24]",
-          "type": "oeq",
-          "whatWentWrong": "Emily missed the '20' in 24 minutes when copying the movie duration, changing the final calculated time."
-        }
-      ],
-      "strategic_advice": "When you see numbers in the question, try this quick habit:\n- **Underline or highlight** the numbers as you read them.\n- After writing down your math steps, do a **one-second check** to make sure the numbers in your working exactly match the numbers you underlined.",
-      "trigger_keywords": [
-        "started at",
-        "watched the movie for",
-        "after the movie"
+        "turns through an angle",
+        "facing"
       ]
     },
     {
       "name": "Line Naming Slips",
-      "what": "Tends to add extra letters or symbols when naming lines, which causes marks to be lost even when the correct lines are spotted.",
+      "what": "Tends to add an extra letter like 'L' when naming lines, which makes the final answer incorrect.",
       "specific_examples": [
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "Emily included an extra 'L' when naming line WX, writing 'LWX' instead."
-        },
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "She spotted the correct perpendicular lines but added an extra letter to the line's name."
+          "whatWentWrong": "Emily correctly spotted the perpendicular lines but wrote 'LWX' instead of just 'WX', which cost her the mark."
         },
         {
-          "questionRef": "[29]",
+          "questionRef": "[65]",
           "type": "oeq",
-          "whatWentWrong": "Emily wrote 'LWX' instead of 'WX', which made the line name incorrect."
+          "whatWentWrong": "She wrote 'ABLAE' instead of clearly naming the two lines, which made it hard for the marker to see her great thinking."
         }
       ],
-      "strategic_advice": "When you see **'name a pair'** or **'identify a line'**, remember that a straight line is always named with exactly **two letters** (like WX). If you find yourself writing three letters, stop and cross out the extra one!",
+      "strategic_advice": "When you see **'name a pair'** of lines, remember that a straight line is named using exactly two letters.\n- Double-check that you haven't accidentally added an extra letter or symbol.\n- For example, write **'WX'** instead of **'LWX'**.",
       "trigger_keywords": [
-        "name a pair",
         "perpendicular lines",
         "parallel lines",
-        "identify"
+        "name a pair"
       ]
     },
     {
-      "name": "Missed Key Words",
-      "what": "Sometimes reads past important condition words like 'not', 'left', or 'greatest value', leading to an answer for a slightly different question.",
+      "name": "Copying Numbers Wrong",
+      "what": "Tends to accidentally drop a digit when copying numbers from the question text into the working steps.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Emily missed the word 'not' and picked a property that is true for both shapes instead of one that is false."
-        },
-        {
-          "questionRef": "[64]",
-          "type": "mcq",
-          "whatWentWrong": "She looked for the greatest overall number instead of checking which number gave the digit 3 the greatest value."
-        },
-        {
-          "questionRef": "[70]",
+          "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Emily calculated the total number of shaded squares needed, but forgot to subtract the squares that were already shaded."
+          "whatWentWrong": "Emily set up the time addition perfectly, but accidentally wrote down '2 h 4 min' instead of the '2 h 24 min' given in the question."
+        },
+        {
+          "questionRef": "[36]",
+          "type": "oeq",
+          "whatWentWrong": "She knew exactly how to solve the problem, but a small slip in copying the movie's duration led to the wrong final time."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'not true'** or **'except'** → circle the word so you remember to look for the false option\n- **'left'** or **'remaining'** → double-check if you need to subtract from the total\n- **'greatest value'** → underline the specific digit you need to focus on",
+      "strategic_advice": "When a question gives you several numbers, treat them as precious cargo.\n- **Underline or circle** the numbers in the question first.\n- After writing down your first step, look back at the question to **double-check** you copied the exact same numbers.",
       "trigger_keywords": [
-        "not true",
-        "left",
-        "greatest value",
-        "must be shaded"
+        "started at",
+        "watched the movie for",
+        "arrived at"
+      ]
+    },
+    {
+      "name": "Unit Mix-Up",
+      "what": "Occasionally leaves out the degree symbol for angles or confuses the units for area and volume.",
+      "specific_examples": [
+        {
+          "questionRef": "[61]",
+          "type": "oeq",
+          "whatWentWrong": "Emily did all the angle calculations beautifully but forgot to add the little degree symbol at the end."
+        },
+        {
+          "questionRef": "[62]",
+          "type": "oeq",
+          "whatWentWrong": "She correctly found the area of the square but accidentally wrote 'cm³' (which is for volume) instead of 'cm²'."
+        }
+      ],
+      "strategic_advice": "When you reach your final answer, always do a quick 'unit check'.\n- If you found an angle, make sure you include the **degree symbol (°)**.\n- If you found an area, remember to use **square units (like cm²)** instead of volume units (like cm³).",
+      "trigger_keywords": [
+        "find ∠",
+        "area of the square",
+        "perimeter"
       ]
     }
   ],
@@ -119,7 +97,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 3,
@@ -127,7 +105,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -147,7 +125,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -163,7 +141,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -179,11 +157,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -191,11 +169,11 @@
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 22,
@@ -203,11 +181,11 @@
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 25,
@@ -215,11 +193,11 @@
     },
     {
       "idx": 26,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 28,
@@ -227,11 +205,11 @@
     },
     {
       "idx": 29,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 31,
@@ -239,11 +217,11 @@
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 33,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 34,
@@ -251,11 +229,11 @@
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 37,
@@ -263,11 +241,11 @@
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 40,
@@ -275,11 +253,11 @@
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 43,
@@ -287,11 +265,11 @@
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 46,
@@ -299,11 +277,11 @@
     },
     {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 48,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 49,
@@ -311,11 +289,11 @@
     },
     {
       "idx": 50,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 51,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 52,
@@ -323,11 +301,11 @@
     },
     {
       "idx": 53,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 54,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 55,
@@ -335,11 +313,11 @@
     },
     {
       "idx": 56,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 57,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 58,
@@ -355,23 +333,23 @@
     },
     {
       "idx": 61,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 62,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 66,
@@ -379,7 +357,7 @@
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 68,
@@ -391,7 +369,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 71,
@@ -476,7 +454,7 @@
     "71": "cmmfrnfcq0063e0huejlpbiyk",
     "72": "cmmfrnfcq0069e0huofudzzao"
   },
-  "generatedAt": "2026-06-17T04:48:10.979Z",
+  "generatedAt": "2026-06-17T08:08:28.685Z",
   "wrongCounts": {
     "total": 72,
     "oeq": 43,
@@ -489,12 +467,11 @@
     "paperCount": 27
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T03:56:55.618Z",
+    "generatedAt": "2026-06-17T07:59:47.402Z",
     "patternNames": [
-      "Compass Turn Directions",
-      "Number Transcription Slips",
-      "Geometry Line Notation",
-      "Measurement Unit Details"
+      "Line Naming Slips",
+      "Compass Direction Mix-Up",
+      "Copying Numbers Wrong"
     ],
     "wrongCounts": {
       "total": 72,

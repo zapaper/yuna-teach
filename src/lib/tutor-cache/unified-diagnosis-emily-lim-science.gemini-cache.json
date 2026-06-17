@@ -1,88 +1,109 @@
 {
   "patterns": [
     {
-      "name": "Hidden Air Trap",
-      "what": "Sometimes misses that air is a gas that occupies the empty spaces between solid objects like pebbles or coins.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "Emily correctly identified that the pebbles are solid, but she missed that the empty spaces between them are filled with gas."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "She suggested that coins could measure the space inside a bank, forgetting that solid coins leave air gaps that cannot be filled."
-        },
-        {
-          "questionRef": "[54]",
-          "type": "oeq",
-          "whatWentWrong": "Emily named solid as a state of matter in the container of pebbles, but forgot to include the gas hiding in the gaps."
-        }
-      ],
-      "strategic_advice": "When you see questions about containers filled with solid objects, treat them as a trick!\n- **'filled to its brim with pebbles'** → Remember that solid objects don't fit together perfectly. The gaps are always filled with **gas (air)**!\n- **'explain why'** → Mention that solids have a **definite shape** and cannot fill the air gaps completely.",
-      "trigger_keywords": [
-        "pebbles",
-        "filled to its brim",
-        "coin bank",
-        "space inside"
-      ]
-    },
-    {
       "name": "Volume vs Level Mix-Up",
-      "what": "Tends to confuse the water level rising with the actual volume of water increasing when an object is pushed into a container.",
+      "what": "Sometimes confuses the water level rising with the actual volume of the water increasing when an object is placed in it.",
       "specific_examples": [
         {
-          "questionRef": "[20]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Emily stated that the volume of water would increase when a cup is pushed in, confusing the rising water level with the actual amount of water."
+          "whatWentWrong": "Emily thought the volume of the water itself would increase when a cup was pushed in, confusing it with the water level rising."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She stated the water level would increase, but the question specifically asked about the volume of the water, which remains the same."
         },
         {
           "questionRef": "[49]",
           "type": "oeq",
-          "whatWentWrong": "She explained that the plastic cup occupies space, but missed the key idea that the water itself has a definite volume that remains the same."
-        },
-        {
-          "questionRef": "[65]",
-          "type": "mcq",
-          "whatWentWrong": "Emily thought the volume of the water increased when a cube was dropped in, rather than just the water level."
+          "whatWentWrong": "Emily explained that the plastic cup occupies space, but missed the key concept that water has a definite volume."
         }
       ],
-      "strategic_advice": "When an object is pushed into water, remember the difference between the water level and the water volume:\n- **'volume of water'** → This is the actual amount of water. It **remains the same** because no water was added or poured out.\n- **'water level'** → This goes up because the object takes up space and pushes the water out of the way.\n- **'explain your answer'** → Always state that **water has a definite volume**.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'volume of water'** → remember that the actual amount of water **remains the same** because water has a definite volume.\n- **'water level'** → this is what increases when an object is pushed in, because the object takes up space.",
       "trigger_keywords": [
         "volume of water",
         "water level",
         "pushed into a basin",
-        "remain the same"
+        "decrease, increase or remain the same"
       ]
     },
     {
-      "name": "Digestive System Mix-Up",
-      "what": "Occasionally swaps the roles and order of the small intestine and the large intestine when tracing the path of food.",
+      "name": "Forgetting Hidden Air",
+      "what": "Tends to identify the obvious solid objects in a container but occasionally forgets that air (a gas) is also present in the empty spaces.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Emily correctly identified that the pebbles are solid, but forgot that air (a gas) fills the empty spaces between them."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She spotted the solid state of matter but missed the invisible gas hiding in the gaps of the container."
+        },
+        {
+          "questionRef": "[51]",
+          "type": "oeq",
+          "whatWentWrong": "Emily named 'solid' for the pebbles but didn't mention the 'gas' that takes up the remaining space."
+        }
+      ],
+      "strategic_advice": "When you see a container filled with solid objects like pebbles, marbles, or coins, remember that they don't fit together perfectly! There are always gaps between them. Ask yourself: **'What is filling the empty spaces?'** The answer is usually **air (a gas)**.",
+      "trigger_keywords": [
+        "filled a container",
+        "pebbles",
+        "state(s) of matter",
+        "inside the container"
+      ]
+    },
+    {
+      "name": "Intestine Jobs Mix-Up",
+      "what": "Occasionally mixes up the jobs of the small and large intestines, such as thinking the small intestine absorbs water from undigested food.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Emily wrote that the small intestine absorbs water, which is actually the special job of the large intestine."
+          "whatWentWrong": "Emily wrote that the small intestine absorbs water from undigested food, which is actually the large intestine's job."
         },
         {
           "questionRef": "[30]",
           "type": "oeq",
-          "whatWentWrong": "She mixed up the order of the organs, placing the large intestine before the small intestine in the digestive journey."
-        },
-        {
-          "questionRef": "[84]",
-          "type": "mcq",
-          "whatWentWrong": "Emily had a little trouble comparing the amount of digested food in the stomach versus the large intestine."
+          "whatWentWrong": "She mixed up the order of the intestines and assigned the large intestine's water-absorbing role to the small intestine."
         }
       ],
-      "strategic_advice": "When you see diagrams of the digestive system, label the organs before reading the questions. Keep these special jobs in mind:\n- **'small intestine'** → This is where digestion **ends** and where digested food is **absorbed into the blood**.\n- **'large intestine'** → Digestion is already finished here! Its only job is to **absorb water** from the leftover waste.",
+      "strategic_advice": "When you see questions about the digestive system, remember the special jobs of these two organs:\n- **'small intestine'** → this is where digestion finishes and where **digested food is absorbed** into the blood.\n- **'large intestine'** → no digestion happens here! Its only job is to **absorb water** from the leftover waste.",
       "trigger_keywords": [
+        "function of part",
         "absorb water",
         "undigested food",
-        "part S",
-        "part T",
-        "digestion ends"
+        "digestive system"
+      ]
+    },
+    {
+      "name": "Stopping Too Early",
+      "what": "Often starts explanations beautifully but sometimes stops one step short of stating the final result or giving the required number of examples.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Emily correctly noted that iron and steel are magnetic, but stopped one step short of explaining that they would both be attracted and fall into the same container."
+        },
+        {
+          "questionRef": "[57]",
+          "type": "oeq",
+          "whatWentWrong": "She provided one great difference between the butterfly stages, but the question asked for two."
+        },
+        {
+          "questionRef": "[73]",
+          "type": "oeq",
+          "whatWentWrong": "Emily beautifully explained that chewing creates a greater surface area, but forgot to add the final result: that the food gets digested faster."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, make sure to complete the journey:\n- **'explain why'** or **'explain how'** → after writing your first thought, add a **'so that...'** or **'which means...'** to show the final result (like 'so digestion is faster').\n- **'state two differences'** → double-check your answer to ensure you have written both points!",
+      "trigger_keywords": [
+        "explain why",
+        "explain how",
+        "state two differences"
       ]
     }
   ],
@@ -93,7 +114,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -109,7 +130,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -117,11 +138,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -129,11 +150,11 @@
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
@@ -141,19 +162,19 @@
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": 1
-    },
-    {
-      "idx": 16,
       "patternIndex": 0
     },
     {
-      "idx": 17,
+      "idx": 16,
       "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
     },
     {
       "idx": 18,
@@ -161,35 +182,35 @@
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 24,
-      "patternIndex": 1
-    },
-    {
-      "idx": 25,
       "patternIndex": 0
     },
     {
-      "idx": 26,
+      "idx": 25,
       "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
     },
     {
       "idx": 27,
@@ -197,11 +218,11 @@
     },
     {
       "idx": 28,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 30,
@@ -209,11 +230,11 @@
     },
     {
       "idx": 31,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 32,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 33,
@@ -221,27 +242,27 @@
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 35,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 36,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 37,
-      "patternIndex": 1
-    },
-    {
-      "idx": 38,
       "patternIndex": 0
     },
     {
-      "idx": 39,
+      "idx": 38,
       "patternIndex": 1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
     },
     {
       "idx": 40,
@@ -249,11 +270,11 @@
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 43,
@@ -261,27 +282,27 @@
     },
     {
       "idx": 44,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 46,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 47,
-      "patternIndex": 1
-    },
-    {
-      "idx": 48,
       "patternIndex": 0
     },
     {
-      "idx": 49,
+      "idx": 48,
       "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
     },
     {
       "idx": 50,
@@ -289,11 +310,11 @@
     },
     {
       "idx": 51,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 52,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 53,
@@ -301,11 +322,11 @@
     },
     {
       "idx": 54,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 55,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 56,
@@ -313,7 +334,7 @@
     },
     {
       "idx": 57,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 58,
@@ -329,7 +350,7 @@
     },
     {
       "idx": 61,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 62,
@@ -345,7 +366,7 @@
     },
     {
       "idx": 65,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 66,
@@ -365,7 +386,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 71,
@@ -377,15 +398,15 @@
     },
     {
       "idx": 73,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 74,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 75,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 76,
@@ -393,7 +414,7 @@
     },
     {
       "idx": 77,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 78,
@@ -421,7 +442,7 @@
     },
     {
       "idx": 84,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 85,
@@ -433,7 +454,7 @@
     },
     {
       "idx": 87,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 88,
@@ -530,7 +551,7 @@
     "87": "cmmfsr29k000iogya4cy9590s",
     "88": "cmmfsr29k000mogya5m6tvh71"
   },
-  "generatedAt": "2026-06-17T06:52:31.414Z",
+  "generatedAt": "2026-06-17T08:08:27.247Z",
   "wrongCounts": {
     "total": 88,
     "oeq": 71,
@@ -542,5 +563,24 @@
     "totalAvailable": 963,
     "paperCount": 37
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T08:00:20.670Z",
+    "patternNames": [
+      "Hidden Air Trap",
+      "Water Level Mix-Up",
+      "Digestive Organ Mix-Up",
+      "One Step Short"
+    ],
+    "wrongCounts": {
+      "total": 88,
+      "oeq": 71,
+      "mcq": 17
+    },
+    "toplineSnapshot": {
+      "avgPct": 87,
+      "totalAwarded": 833.5,
+      "totalAvailable": 963,
+      "paperCount": 37
+    }
+  }
 }

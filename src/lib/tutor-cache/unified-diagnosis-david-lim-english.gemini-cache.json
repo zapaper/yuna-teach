@@ -1,130 +1,122 @@
 {
   "patterns": [
     {
-      "name": "Question Tag Mix-Ups",
-      "what": "Sometimes picks the wrong helping verb or forgets to switch between positive and negative when forming question tags.",
+      "name": "Reported Speech Mix-Up",
+      "what": "David sometimes forgets to shift pronouns, time words, or tenses correctly when changing direct speech to reported speech.",
       "specific_examples": [
         {
-          "questionRef": "[90]",
-          "type": "mcq",
-          "whatWentWrong": "David picked 'doesn't she' instead of 'hasn't she', missing that 'She's set' is short for 'She has set'."
+          "questionRef": "[36]",
+          "type": "oeq",
+          "whatWentWrong": "He forgot to change the pronoun 'he' to 'she' when referring to Mala's mother."
         },
         {
-          "questionRef": "[104]",
-          "type": "mcq",
-          "whatWentWrong": "David chose 'did he' instead of 'has he', forgetting to match the helping verb 'has' from the main sentence."
+          "questionRef": "[89]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'the previous week' instead of 'the previous weekend', which slightly changed the time reference."
         },
+        {
+          "questionRef": "[172]",
+          "type": "oeq",
+          "whatWentWrong": "He missed out the word 'then' to show that the action happened in the past."
+        }
+      ],
+      "strategic_advice": "When you see a direct speech sentence, treat it like a checklist:\n- **Pronouns**: Circle words like 'I' or 'you' and change them to match the speaker.\n- **Time words**: Shift words like 'yesterday' to **'the previous day'** or 'now' to **'then'**.\n- **Tenses**: Remember to take one step back in time (e.g., present becomes past).",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "said"
+      ]
+    },
+    {
+      "name": "Question Tag Mix-Up",
+      "what": "David occasionally misses hidden negative words like 'never' or 'rarely', or misidentifies the helping verb in contractions like 'She's'.",
+      "specific_examples": [
         {
           "questionRef": "[129]",
           "type": "mcq",
-          "whatWentWrong": "David selected the negative tag 'doesn't' even though the sentence already contained the negative word 'never'."
-        }
-      ],
-      "strategic_advice": "When you see a comma followed by a short question at the end of a sentence, it's a question tag.\n- **Check the main verb**: If the sentence uses 'has', the tag must use 'has' (not 'does' or 'did').\n- **Flip the positive/negative**: If the sentence is positive ('He has'), the tag must be negative ('hasn't he?'). If the sentence has a negative word like 'never', the tag must be positive!\n- **Watch out for contractions**: 'She's set' means 'She has set', so the tag should be 'hasn't she?'.",
-      "trigger_keywords": [
-        "?,",
-        "never",
-        "hasn't",
-        "doesn't",
-        "did he"
-      ]
-    },
-    {
-      "name": "Singular and Plural Matches",
-      "what": "Occasionally mixes up singular and plural forms when matching a verb to its subject or choosing the right noun.",
-      "specific_examples": [
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "David wrote 'has' instead of 'have', missing that the subject 'all the students' is plural."
+          "whatWentWrong": "He missed the hidden negative word 'never' and chose a negative tag instead of a positive one."
         },
         {
-          "questionRef": "[135]",
+          "questionRef": "[90]",
           "type": "mcq",
-          "whatWentWrong": "David picked the singular verb 'signs', but the phrase 'students who' requires the plural verb 'sign'."
+          "whatWentWrong": "He misidentified 'She's' as 'She is' instead of 'She has', leading to the wrong helping verb in the tag."
         },
         {
-          "questionRef": "[160]",
-          "type": "oeq",
-          "whatWentWrong": "David wrote the singular noun 'enthusiast' even though the word 'fellow' and the context point to a plural group."
+          "questionRef": "[134]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'rarely', which makes the sentence negative and requires a positive tag."
         }
       ],
-      "strategic_advice": "When you are filling in a verb or a noun, always check how many people or things are involved.\n- **Find the true subject**: In phrases like 'one of the students', the subject is 'one' (singular), so the verb must be singular (e.g., 'signs', not 'sign').\n- **Check for plural clues**: Words like 'both', 'all', or 'fellow' mean you need a plural noun (e.g., 'enthusiasts', not 'enthusiast').\n- **Match the pronouns**: If the subject is plural like 'the children', the reflexive pronoun must be plural too ('themselves', not 'herself').",
+      "strategic_advice": "When you see a question tag prompt, look out for these traps:\n- **Hidden negatives**: Words like **'never'**, **'rarely'**, or **'seldom'** make the sentence negative, so the tag must be positive!\n- **Contractions**: Expand words like **'She's'** to check if it means 'She is' or 'She has' before forming your tag.",
       "trigger_keywords": [
-        "one of the",
-        "both",
-        "neither",
-        "fellow",
-        "all"
+        "___?",
+        "never",
+        "rarely"
       ]
     },
     {
-      "name": "Keeping the Exact Meaning",
-      "what": "Tends to accidentally change the original meaning in transformation questions by swapping words, altering the time, or replacing specific words.",
+      "name": "Subject-Verb Agreement Confusion",
+      "what": "David tends to mix up singular and plural verbs, especially when there are extra words between the main subject and the verb.",
       "specific_examples": [
         {
-          "questionRef": "[48]",
-          "type": "oeq",
-          "whatWentWrong": "David wrote 'had wanted to go' instead of 'had gone', which changes the meaning from an action that happened to just a desire."
+          "questionRef": "[140]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the plural verb 'attend' instead of the singular 'attends' for the subject 'Neither of the siblings'."
         },
         {
-          "questionRef": "[53]",
-          "type": "oeq",
-          "whatWentWrong": "David accidentally reversed the order of the activities, making it sound like his mother prefers public transport over driving."
+          "questionRef": "[189]",
+          "type": "mcq",
+          "whatWentWrong": "He matched the verb to 'cars' instead of the true singular subject 'The lineup'."
         },
+        {
+          "questionRef": "[157]",
+          "type": "oeq",
+          "whatWentWrong": "He used the plural 'are' instead of 'was' for the singular action of 'Removing them'."
+        }
+      ],
+      "strategic_advice": "When checking your verbs, always hunt for the true subject:\n- **Cross out extra words**: If you see phrases like 'as well as' or 'together with', ignore them to find the main subject.\n- **Tricky words**: Remember that words like **'Neither'**, **'Each'**, and actions like **'Removing'** always take a singular verb!",
+      "trigger_keywords": [
+        "Neither",
+        "as well as",
+        "one of the"
+      ]
+    },
+    {
+      "name": "Spelling and Copying Slips",
+      "what": "David occasionally loses marks by misspelling words, missing a full stop, or accidentally changing a word when rewriting sentences.",
+      "specific_examples": [
         {
           "questionRef": "[185]",
           "type": "oeq",
-          "whatWentWrong": "David misread 'farmer' as 'father', which completely changes who grew the plot of corn."
-        }
-      ],
-      "strategic_advice": "When rewriting sentences, your goal is to keep the exact same message as the original without adding or losing details.\n- **Check the time and pronouns**: If the original says 'last weekend', use 'the previous weekend', not 'the previous week'. Make sure 'he' and 'she' match the right people!\n- **Don't swap preferences**: If the original says 'likes to drive more', make sure your new sentence shows a preference for driving, not public transport.\n- **Copy carefully**: Double-check that you haven't accidentally changed words like 'farmer' to 'father' or 'completing' to 'finishing'.",
-      "trigger_keywords": [
-        "prefers",
-        "told",
-        "asked",
-        "Instead of",
-        "No matter"
-      ]
-    },
-    {
-      "name": "Idioms and Context Clues",
-      "what": "Sometimes chooses a word that makes basic sense but misses the specific idiom or the deeper context of the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[46]",
-          "type": "oeq",
-          "whatWentWrong": "David wrote 'join suit' instead of the correct English idiom 'follow suit'."
+          "whatWentWrong": "He accidentally wrote 'father' instead of 'farmer', which changed the meaning of the sentence."
         },
         {
-          "questionRef": "[83]",
+          "questionRef": "[227]",
           "type": "oeq",
-          "whatWentWrong": "David used the phrase 'in great description' rather than the natural expression 'in great detail'."
+          "whatWentWrong": "He formed the sentence perfectly but missed the full stop at the end."
         },
         {
-          "questionRef": "[214]",
+          "questionRef": "[125]",
           "type": "oeq",
-          "whatWentWrong": "David wrote 'go down in the knees', missing the common idiom 'go weak in the knees' to show overwhelming emotion."
+          "whatWentWrong": "He misspelled 'tangible' as 'tanjibel' in the editing passage."
         }
       ],
-      "strategic_advice": "When you are choosing a word for a blank, look closely at the words right before and after it.\n- **Watch for idioms**: Phrases like 'follow suit', 'in great detail', or 'weak in the knees' have fixed words that cannot be swapped.\n- **Read the whole sentence for clues**: If the passage talks about a 'sweet fragrance', you need a word like 'give off' (produce a smell) rather than 'give away' (give a gift).\n- **Check the exact meaning**: Even if a word sounds okay, make sure it fits the specific situation perfectly.",
+      "strategic_advice": "When you finish a Synthesis or Open-Ended question, do a quick final check:\n- **Read word for word** to ensure you haven't accidentally swapped words (like 'farmer' for 'father').\n- **Check your punctuation**, making sure every sentence ends with a full stop.\n- **Sound it out**: For tricky spellings, break the word into syllables or think of its root word.",
       "trigger_keywords": [
-        "suit",
-        "detail",
-        "knees",
-        "fragrance",
-        "word of"
+        "Each of the underlined words",
+        "Rewrite",
+        "Explain"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -132,7 +124,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -140,15 +132,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
-    },
-    {
-      "idx": 7,
       "patternIndex": -1
     },
     {
-      "idx": 8,
+      "idx": 7,
       "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -188,31 +180,31 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": -1
-    },
-    {
-      "idx": 21,
       "patternIndex": 3
     },
     {
-      "idx": 22,
+      "idx": 21,
       "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 25,
@@ -236,15 +228,15 @@
     },
     {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
@@ -252,35 +244,35 @@
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 35,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 37,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 41,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 42,
@@ -288,27 +280,27 @@
     },
     {
       "idx": 43,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 44,
-      "patternIndex": -1
-    },
-    {
-      "idx": 45,
-      "patternIndex": -1
-    },
-    {
-      "idx": 46,
       "patternIndex": 3
     },
     {
+      "idx": 45,
+      "patternIndex": 3
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 48,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 49,
@@ -328,63 +320,63 @@
     },
     {
       "idx": 53,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 54,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 55,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 56,
-      "patternIndex": 1
-    },
-    {
-      "idx": 57,
       "patternIndex": 2
     },
     {
-      "idx": 58,
+      "idx": 57,
       "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": 3
     },
     {
       "idx": 59,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 60,
-      "patternIndex": 3
-    },
-    {
-      "idx": 61,
       "patternIndex": -1
     },
     {
-      "idx": 62,
+      "idx": 61,
       "patternIndex": 3
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
     },
     {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 66,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 68,
@@ -428,19 +420,19 @@
     },
     {
       "idx": 78,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 79,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 80,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 81,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 82,
@@ -448,15 +440,15 @@
     },
     {
       "idx": 83,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 84,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 85,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 86,
@@ -464,27 +456,27 @@
     },
     {
       "idx": 87,
-      "patternIndex": 3
-    },
-    {
-      "idx": 88,
       "patternIndex": -1
     },
     {
+      "idx": 88,
+      "patternIndex": 3
+    },
+    {
       "idx": 89,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 90,
-      "patternIndex": 0
-    },
-    {
-      "idx": 91,
       "patternIndex": 1
     },
     {
+      "idx": 91,
+      "patternIndex": 2
+    },
+    {
       "idx": 92,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 93,
@@ -492,11 +484,11 @@
     },
     {
       "idx": 94,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 95,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 96,
@@ -508,11 +500,11 @@
     },
     {
       "idx": 98,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 99,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 100,
@@ -520,7 +512,7 @@
     },
     {
       "idx": 101,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 102,
@@ -532,7 +524,7 @@
     },
     {
       "idx": 104,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 105,
@@ -544,7 +536,7 @@
     },
     {
       "idx": 107,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 108,
@@ -560,7 +552,7 @@
     },
     {
       "idx": 111,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 112,
@@ -576,7 +568,7 @@
     },
     {
       "idx": 115,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 116,
@@ -584,23 +576,23 @@
     },
     {
       "idx": 117,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 118,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 119,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 120,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 121,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 122,
@@ -608,7 +600,7 @@
     },
     {
       "idx": 123,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 124,
@@ -616,27 +608,27 @@
     },
     {
       "idx": 125,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 126,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 127,
-      "patternIndex": 3
-    },
-    {
-      "idx": 128,
       "patternIndex": -1
     },
     {
+      "idx": 128,
+      "patternIndex": 3
+    },
+    {
       "idx": 129,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 130,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 131,
@@ -644,27 +636,27 @@
     },
     {
       "idx": 132,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 133,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 134,
-      "patternIndex": 0
-    },
-    {
-      "idx": 135,
       "patternIndex": 1
     },
     {
+      "idx": 135,
+      "patternIndex": 2
+    },
+    {
       "idx": 136,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 137,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 138,
@@ -672,11 +664,11 @@
     },
     {
       "idx": 139,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 140,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 141,
@@ -684,31 +676,31 @@
     },
     {
       "idx": 142,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 143,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 144,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 145,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 146,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 147,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 148,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 149,
@@ -744,31 +736,31 @@
     },
     {
       "idx": 157,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 158,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 159,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 160,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 161,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 162,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 163,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 164,
@@ -780,23 +772,23 @@
     },
     {
       "idx": 166,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 167,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 168,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 169,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 170,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 171,
@@ -804,23 +796,23 @@
     },
     {
       "idx": 172,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 173,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 174,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 175,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 176,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 177,
@@ -828,15 +820,15 @@
     },
     {
       "idx": 178,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 179,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 180,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 181,
@@ -844,7 +836,7 @@
     },
     {
       "idx": 182,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 183,
@@ -852,27 +844,27 @@
     },
     {
       "idx": 184,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 185,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 186,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 187,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 188,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 189,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 190,
@@ -880,39 +872,39 @@
     },
     {
       "idx": 191,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 192,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 193,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 194,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 195,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 196,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 197,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 198,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 199,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 200,
@@ -920,11 +912,11 @@
     },
     {
       "idx": 201,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 202,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 203,
@@ -932,7 +924,7 @@
     },
     {
       "idx": 204,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 205,
@@ -940,27 +932,27 @@
     },
     {
       "idx": 206,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 207,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 208,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 209,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 210,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 211,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 212,
@@ -968,23 +960,23 @@
     },
     {
       "idx": 213,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 214,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 215,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 216,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 217,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 218,
@@ -1024,23 +1016,23 @@
     },
     {
       "idx": 227,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 228,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 229,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 230,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 231,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 232,
@@ -1048,7 +1040,7 @@
     },
     {
       "idx": 233,
-      "patternIndex": -1
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -1286,7 +1278,7 @@
     "232": "cmnphh4xw0011nsjpi6iydkc3",
     "233": "cmnphh4xw0017nsjpjoqrqvji"
   },
-  "generatedAt": "2026-06-17T04:48:50.156Z",
+  "generatedAt": "2026-06-17T08:08:50.000Z",
   "wrongCounts": {
     "total": 233,
     "oeq": 135,
@@ -1299,11 +1291,11 @@
     "paperCount": 177
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T04:18:21.909Z",
+    "generatedAt": "2026-06-17T07:56:11.265Z",
     "patternNames": [
-      "Passage Context Clues",
-      "Sentence Transformation Precision",
-      "Question Tags and Pronouns"
+      "Tricky Vocabulary Matches",
+      "Grammar Rule Slips",
+      "Changing the Meaning"
     ],
     "wrongCounts": {
       "total": 233,

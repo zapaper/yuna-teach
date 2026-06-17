@@ -427,7 +427,20 @@ ${w.imageDescription ? `  image: ${w.imageDescription.replace(/\s+/g, " ")}\n` :
 
 TONE — this report is read by a parent who will work through it WITH their child. Be warm and constructive, never clinical. Use ${childFirst}'s first name (NEVER "the student"). Use gentle qualifiers: "${childFirst} sometimes…", "occasionally", "tends to" — NOT "struggles", "fails", "cannot", "consistently". The goal is to point at fixable habits, not to label a deficiency.
 
-Identify the TOP 3 OR 4 RECURRING ERROR PATTERNS that may span both formats. PREFER 3 STRONG PATTERNS OVER 4 WEAK ONES — if the signal for a 4th pattern is generic ("occasional arithmetic slips", "tricky spellings", "format details"), drop it and emit 3 instead. The summary will frame these as "what we can work on this week", so a tight 3 is better than a padded 4. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY marks are lost (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
+Identify the TOP 3 OR 4 RECURRING ERROR PATTERNS that may span both formats. DO NOT pre-define a taxonomy — let patterns emerge. Patterns describing HOW/WHY marks are lost (e.g. "Stops one step short before stating the final consequence", "Misses negation words like 'not' or 'except'") are stronger than topic-specific ones.
+
+TWO TYPES of pattern to look for — surface a MIX when both are present:
+  (A) PROCEDURAL slips — how the child handles a question (skipped step, wrong reference whole, missed cue word, miscounted units).
+  (B) CONCEPTUAL confusions — the child mixes up two distinct concepts. Use words like "Mix-Up", "Confusion", "Mixes Up", "Confuses" in the name so the runtime classifies it correctly. Subject-specific examples we expect to see:
+      • Science: Force vs Energy · Heat vs Temperature · KE vs PE (kinetic vs potential energy) · Mass vs Weight · Volume vs Capacity · Series vs Parallel circuit behaviour · Reflection vs Refraction · Solute vs Solvent · Living vs Non-living traits
+      • English: Reported Speech Tenses (direct → reported tense shift) · Subject–Verb Agreement (singular/plural) · "Few" vs "A Few" · "Since" vs "For" · "Make" vs "Do" · Present Perfect vs Past Simple
+      • Math: Area vs Perimeter · Multiple vs Factor · Ratio vs Fraction (which is the "whole") · Mean vs Median · Volume vs Surface Area · Mass vs Weight
+
+THRESHOLD GUIDANCE for surfacing a conceptual confusion: even ONE clear instance of the SAME concept-pair confusion counts — you do not need 3+ examples to substantiate. A pattern accounting for as little as 1-2% of total marks lost is worth surfacing if it cleanly names a concept the child has muddled.
+
+PREFER 3 STRONG PATTERNS OVER 4 WEAK ONES — if the signal for a 4th pattern is generic ("occasional arithmetic slips", "tricky spellings", "format details"), drop it and emit 3 instead. But — if the candidate 4th IS a clear conceptual confusion, keep it even at a lower marks-lost share.
+
+The summary will frame these as "what we can work on this week", so a tight set of well-named patterns beats a padded list.
 
 THEN classify EVERY record [1..${wrongs.length}] into exactly one of the patterns (patternIndex 0-2 or 0-3). Records that don't fit → patternIndex -1.
 
@@ -469,7 +482,7 @@ For each pattern provide:
     Bad (kid name opener): "${childFirst} sometimes does the heavy lifting to find an intermediate value, but occasionally stops one step short of the final question."  ← if your sentence starts with "${childFirst}" or any first name, REWRITE IT to start with a verb.
     Bad (praise burial): "${childFirst} often sets up the maths beautifully, but occasionally makes a small slip."  ← put the diagnosis first.
   DO NOT EMIT TWO PATTERNS ABOUT THE SAME THING. Each pattern must be distinct from the others — no two patterns about units, no two patterns about ratio reading, no two patterns about reading the question carefully. If two candidate patterns overlap heavily, merge them or drop the weaker one.
-  specific_examples — 3 examples (pick from records classified into this pattern, prefer a MIX of OEQ and MCQ when both formats are present). Each:
+  specific_examples — 2 to 3 examples. PROCEDURAL patterns: 3 examples preferred. CONCEPTUAL confusions: 2 is enough — when a concept-pair confusion is clear, 2 well-chosen examples substantiate it without padding. Pick from records classified into this pattern, prefer a MIX of OEQ and MCQ when both formats are present. Each:
     questionRef — e.g. "[49]"
     type — "oeq" or "mcq"
     whatWentWrong — one sentence diagnosis (concise, parent-readable, same warm tone — use the first name or "he/she" not "the student")

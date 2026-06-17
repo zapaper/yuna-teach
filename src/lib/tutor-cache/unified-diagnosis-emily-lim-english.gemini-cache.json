@@ -1,116 +1,85 @@
 {
   "patterns": [
     {
-      "name": "Subject and Verb Pairs",
-      "what": "Sometimes mixes up whether to use a singular or plural verb for subjects like 'Everyone', 'Mr Tan', or 'toppings'.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Sometimes gets confused between singular and plural verb forms, especially when the subject is a tricky word like 'Everyone' or is separated from the verb.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "oeq",
-          "whatWentWrong": "Emily missed that 'Everyone' is treated as a singular subject and needs the verb 'shares'."
+          "whatWentWrong": "Emily chose the plural verb 'share', but words like 'Everyone' actually count as a single group and need the singular verb 'shares'."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Emily used the plural verb 'read' instead of the singular 'reads' for 'Mr Tan'."
+          "whatWentWrong": "She missed that the protein 'builds' and 'repairs' muscles, matching the singular subject 'protein'."
         },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "Emily used a singular verb for the plural subject 'toppings'."
+          "whatWentWrong": "She used the singular verb 'makes' for 'special toppings', which is a plural subject and needs 'make'."
         }
       ],
-      "strategic_advice": "When choosing a verb, always find the **'doer'** (the subject) first.\n- If the doer is **singular** (like 'Mr Tan' or 'Everyone'), the verb usually needs an **'s'** (reads, shares).\n- If the doer is **plural** (like 'daughters' or 'toppings'), the verb does not need an **'s'** (do, make).",
+      "strategic_advice": "When choosing a verb, always trace it back to its **true subject**.\n- If the subject is a word like **'Everyone' or 'Everybody'**, treat it as a single group and add an 's' to the verb.\n- If there are extra words between the subject and the verb, **cross them out lightly** in your mind to see the match clearly.",
       "trigger_keywords": [
         "Everyone",
-        "Mr Tan",
-        "toppings",
-        "daughters",
-        "Vitamin B"
+        "protein that",
+        "toppings"
       ]
     },
     {
-      "name": "Spelling Slips",
-      "what": "Occasionally misses a letter, swaps vowels, or struggles with tricky plurals when writing out answers.",
+      "name": "Small Copying Slips",
+      "what": "Occasionally misspells words that are already provided in the question or accidentally leaves out small words when rewriting sentences.",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "oeq",
-          "whatWentWrong": "Emily missed the first 'e' in the middle of 'interesting'."
-        },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "Emily accidentally swapped the 'a' and 'r' when spelling 'alarm'."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Emily missed the 'a' and the double 'l' when spelling 'beautiful'."
-        }
-      ],
-      "strategic_advice": "When you finish writing a word, take a quick second to read it back to yourself to catch any missing or swapped letters.\n- For words ending in **'ey'** like 'storey', just add an **'s'** to make it plural (storeys).\n- Break longer words into syllables in your head to make sure you don't miss any sounds, like **in-ter-est-ing**.",
-      "trigger_keywords": [
-        "storees",
-        "eentresting",
-        "buiteefull",
-        "alarm",
-        "library"
-      ]
-    },
-    {
-      "name": "Copying Errors",
-      "what": "Tends to accidentally change, drop, or squish together words from the original sentences when rewriting them.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Emily changed the word 'work' to 'homework', which slightly alters the meaning of the original sentence."
+          "whatWentWrong": "Emily accidentally wrote 'alram' instead of copying 'alarm' exactly as it appeared in the original sentence."
         },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Emily accidentally dropped the small word 'the' when copying the sentence."
+          "whatWentWrong": "She combined the sentences beautifully but accidentally left out the word 'the' before 'lesson'."
         },
         {
-          "questionRef": "[22]",
+          "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Emily squished 'the' and 'park' together into one word."
+          "whatWentWrong": "She missed the first 'r' when copying the word 'library' into her new sentence."
         }
       ],
-      "strategic_advice": "In sentence combining, you must be a strict copycat with the original words!\n- **Check off** the words from the original sentence as you write them down.\n- Do not change words (like 'work' to 'homework') or drop small words (like 'the').\n- Double-check your spacing so words don't get squished together.",
+      "strategic_advice": "When you finish writing a combined sentence, do a quick **word-for-word check** against the original sentences.\n- **Point with your pencil** at each word in the question as you read your answer to make sure no small words are left behind.\n- Pay special attention to **longer words** to ensure they are copied exactly.",
       "trigger_keywords": [
         "Although",
+        "After",
         "If",
-        "unless",
         "either"
       ]
     },
     {
-      "name": "Tricky Word Choices",
-      "what": "Occasionally picks a word that has a similar meaning but doesn't quite fit the exact situation or common English phrases.",
+      "name": "Tricky Spellings",
+      "what": "Tends to miss a letter or mix up vowels when spelling longer words in the editing section.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Emily picked 'streak' instead of the common phrase 'flash of fear' to describe a quick reaction."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "Emily chose 'scampered', which is for small animals, instead of 'prowled' for a hunting lion."
-        },
-        {
-          "questionRef": "[26]",
+          "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "Emily chose 'camouflage', which has the right meaning but doesn't fit grammatically with the word 'in' like 'blend' does."
+          "whatWentWrong": "She missed the first 'e' in 'interesting', spelling it as 'intresting'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She missed the 'a' in 'beautiful', spelling it as 'beutiful'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'stories' (like reading a book) instead of 'storeys' (the floors of a building)."
         }
       ],
-      "strategic_advice": "When you are unsure which word fits best, look for clues in the surrounding words.\n- For animal movements, picture the animal: lions **'prowl'** slowly when hunting, while smaller animals might 'scamper'.\n- Look out for common pairings (collocations) like a **'flash of fear'** or **'blend in'**.",
+      "strategic_advice": "For long words in the editing section, try breaking them down into **smaller syllables** in your head.\n- Sound it out slowly: **in-ter-est-ing** or **beau-ti-ful**.\n- For words that sound the same but have different meanings (like **storeys vs stories**), double-check the context of the sentence.",
       "trigger_keywords": [
-        "sudden ___ of fear",
-        "lion ___ around",
-        "helped the dinosaurs ________ in"
+        "storees",
+        "eentresting",
+        "buiteefull"
       ]
     }
   ],
@@ -121,15 +90,15 @@
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -137,11 +106,11 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 8,
@@ -149,7 +118,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -161,7 +130,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -169,7 +138,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 15,
@@ -181,7 +150,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 18,
@@ -189,19 +158,19 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -209,7 +178,7 @@
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 25,
@@ -217,7 +186,7 @@
     },
     {
       "idx": 26,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 27,
@@ -225,7 +194,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -258,7 +227,7 @@
     "27": "cmnu7br5u0008253a00q8yh62",
     "28": "cmnu7br5u000a253ag6cxaje0"
   },
-  "generatedAt": "2026-06-17T04:47:14.862Z",
+  "generatedAt": "2026-06-17T08:07:57.725Z",
   "wrongCounts": {
     "total": 28,
     "oeq": 25,
@@ -271,12 +240,12 @@
     "paperCount": 15
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T04:18:03.876Z",
+    "generatedAt": "2026-06-17T04:47:14.862Z",
     "patternNames": [
-      "Subject-Verb Agreement",
-      "Tricky Spellings and Typos",
-      "Copying and Formatting Slips",
-      "Word Choices and Collocations"
+      "Subject and Verb Pairs",
+      "Spelling Slips",
+      "Copying Errors",
+      "Tricky Word Choices"
     ],
     "wrongCounts": {
       "total": 28,

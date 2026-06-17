@@ -183,7 +183,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
     // that old localStorage payloads should NOT be served — the new
     // key won't hit any pre-bump cache, and the prune step removes
     // every old `tutor-*` entry.
-    const cacheKey = `tutor-v7-${studentId}-${subject}`;
+    const cacheKey = `tutor-v8-${studentId}-${subject}`;
     const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
     const cachedRaw = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
     let cachedData: TutorData | null = null;
@@ -442,7 +442,11 @@ function IneligibleView({
                   <div style={{ display: "flex", height: plotH, gap: 12 }}>
                     {chartTopics.map((t) => {
                       const h = Math.max(2, (t.pct / colMax) * plotH);
-                      const barColor = t.pct >= 75 ? "#006c49" : t.pct >= 40 ? "#ffb952" : "#ba1a1a";
+                      // Match the share-PNG chart at line ~908: below
+                      // the kid's own average → orange (attention), at
+                      // or above → green. Anchoring on avgPct keeps the
+                      // chart calibrated to THIS kid.
+                      const barColor = t.pct < topline.avgPct ? "#ffb952" : "#006c49";
                       return (
                         <div key={t.topic} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: plotH }}>
                           <div style={{ fontSize: 12, fontWeight: 800, color: barColor, marginBottom: 4, lineHeight: 1 }}>{t.pct}%</div>
