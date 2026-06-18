@@ -1028,18 +1028,19 @@ function stripDetectScaffolding(s: string): string {
 function buildMarkingNotes(result: QuestionMarkResult): string {
   const parts: string[] = [];
   if (result.studentAnswer) {
-    // The AI's detect prompt asks for 'Working: ... Final answer: X'.
-    // Strip the 'Working:' label so we don't render 'Detected: Working: …'
-    // — the label is scaffolding, not part of the answer.
-    let cleaned = result.studentAnswer.replace(/^\s*working\s*:?\s*/i, "").trim();
-    // Also strip the "(no working shown)" placeholder the AI emits when
-    // the student wrote ONLY a final answer with no intermediate
-    // steps. The parent reading "Detected: (no working shown) Final
-    // answer: 21" gains nothing from the placeholder — they can see
-    // the working area was empty from the canvas itself. Applies to
-    // every subject; particularly noisy on science where most answers
-    // are conceptual text with no expected "working" at all.
-    cleaned = cleaned.replace(/\(\s*no\s+working\s+shown\s*\)\s*\n?/gi, "").trim();
+    // The AI's detect prompt asks for 'Working: ... Final answer: X'
+    // per subpart. The labels are scaffolding for the marker, not
+    // information the parent wants to see — particularly noisy on
+    // Science where the prompt forces "Working: (no working shown)"
+    // even though Science OEQs are conceptual and have no expected
+    // working at all. Strip the orphaned sentinel first, then the
+    // bare labels everywhere they appear. Math working content
+    // survives — only the "Working:" / "Final answer:" labels go.
+    let cleaned = result.studentAnswer;
+    cleaned = cleaned.replace(/\bworking\s*:\s*\(\s*no\s+working\s+(shown|done|written)?\s*\)\s*\n?/gi, "");
+    cleaned = cleaned.replace(/\bworking\s*:\s*/gi, "");
+    cleaned = cleaned.replace(/\bfinal\s+answer\s*:\s*/gi, "");
+    cleaned = cleaned.trim();
     cleaned = stripDetectScaffolding(cleaned);
     parts.push(`Detected: ${cleaned || result.studentAnswer}`);
   }
