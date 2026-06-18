@@ -1048,8 +1048,15 @@ function ReadingPassage({ text }: { text: string }) {
     // Parse table rows, skip header separator. Preserve raw cell text in
     // a parallel array — needed to detect leading indentation (start of
     // a new paragraph) which trim() would otherwise erase.
+    //
+    // Non-table, non-empty lines between table sections (e.g. an admin-
+    // added divider like "(Second passage: Question 40 onwards)") used
+    // to fall through both branches and get silently discarded. Now
+    // captured as "divider" rows so they render as centred prose
+    // between table sections.
     const rows: string[][] = [];
     const rawRows: string[][] = [];
+    const dividerFlags: boolean[] = [];
     let pastHeader = false;
     for (const line of lines) {
       if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) { pastHeader = true; continue; }
@@ -1058,15 +1065,28 @@ function ReadingPassage({ text }: { text: string }) {
         const raw = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1);
         rawRows.push(raw);
         rows.push(raw.map(c => c.trim()));
+        dividerFlags.push(false);
       } else if (pastHeader && !line.trim()) {
         // Empty line between table rows = paragraph break
         rows.push(["", "", ""]);
         rawRows.push(["", "", ""]);
+        dividerFlags.push(false);
+      } else if (pastHeader && line.trim()) {
+        // Non-table, non-empty line inside the passage — treat as a
+        // divider/header. Stuff the text into the second cell so the
+        // existing row plumbing carries it without needing a separate
+        // structure, and flag it so the renderer can style it.
+        rows.push(["", line.trim(), ""]);
+        rawRows.push(["", line.trim(), ""]);
+        dividerFlags.push(true);
       }
     }
-    // First row is header — skip it
-    const dataRows = rows.length > 1 ? rows.slice(1) : rows;
-    const dataRawRows = rawRows.length > 1 ? rawRows.slice(1) : rawRows;
+    // First row is header — skip it (but ONLY if it actually is a
+    // header row, not a divider line we just captured).
+    const skipFirst = rows.length > 1 && !dividerFlags[0];
+    const dataRows = skipFirst ? rows.slice(1) : rows;
+    const dataRawRows = skipFirst ? rawRows.slice(1) : rawRows;
+    const dataDividerFlags = skipFirst ? dividerFlags.slice(1) : dividerFlags;
     // Use original 3rd column for line numbers if available, else compute
     const hasThirdCol = dataRows.some(cells => cells.length >= 3 && cells[2]?.trim());
     let nonBlankCount = 0;
@@ -1090,6 +1110,7 @@ function ReadingPassage({ text }: { text: string }) {
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
             const rawText = dataRawRows[ri]?.[1] ?? "";
+            const isDivider = dataDividerFlags[ri] ?? false;
             // A row is blank when the passage text is empty. OCR
             // sometimes still emits a line-counter in column 1 for a
             // paragraph-break row; ignore col-0 here so blank rows
@@ -1105,6 +1126,17 @@ function ReadingPassage({ text }: { text: string }) {
             // mis-attributed one (e.g. "| 5 | | |" for a paragraph break).
             const marginNum = isEmpty ? "" : marginNums[ri];
             if (isEmpty) return <div key={ri} className="h-6" />;
+            // Divider lines (admin-inserted prose between two passages,
+            // e.g. "(Second passage: Question 40 onwards)") get centred
+            // bold styling with extra vertical breathing room so they
+            // visually separate the two passages.
+            if (isDivider) {
+              return (
+                <div key={ri} className="my-6 text-center text-[#003366] font-bold" style={{ fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>
+                  <MathText text={textContent} />
+                </div>
+              );
+            }
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
                 <p className={`flex-1 text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>
