@@ -2311,15 +2311,31 @@ function ExamReviewContent({ id }: { id: string }) {
                         }
                         if (isLineTable && isCompOeq) {
                           const rows: string[][] = [];
+                          const dividerFlags: boolean[] = [];
+                          let pastHeader = false;
                           for (const line of pLines) {
-                            if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
+                            if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) { pastHeader = true; continue; }
                             if ((line as string).trim().startsWith("|") && (line as string).trim().endsWith("|")) {
+                              pastHeader = true;
                               rows.push((line as string).trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c.trim()));
+                              dividerFlags.push(false);
+                            } else if (pastHeader && (line as string).trim()) {
+                              // Non-table, non-empty line inside the passage
+                              // (e.g. admin-added "(Second passage: Question
+                              // 40 onwards)"). Without this branch the line
+                              // is silently dropped — same bug fix as
+                              // EnglishQuizSection.ReadingPassage (commit
+                              // 1aa2e084).
+                              rows.push(["", (line as string).trim(), ""]);
+                              dividerFlags.push(true);
                             }
                           }
-                          const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+                          const skipFirst = rows.length > 1 && !dividerFlags[0];
+                          const dataRows = skipFirst ? rows.slice(1) : rows;
+                          const dataDividerFlags = skipFirst ? dividerFlags.slice(1) : dividerFlags;
                           let oeqLineCount = 0;
-                          const oeqMargins = dataRows.map((cells: string[]) => {
+                          const oeqMargins = dataRows.map((cells: string[], ri: number) => {
+                            if (dataDividerFlags[ri]) return "";
                             const t = cells[1]?.trim() ?? "";
                             const ln = cells[0]?.trim() ?? "";
                             if (t && ln) { oeqLineCount++; return oeqLineCount % 5 === 0 ? String(oeqLineCount) : ""; }
@@ -2329,6 +2345,14 @@ function ExamReviewContent({ id }: { id: string }) {
                             const textContent = cells[1]?.trim() ?? "";
                             const marginNum = oeqMargins[ri];
                             const isEmpty = !textContent && !cells[0]?.trim();
+                            const isDivider = dataDividerFlags[ri];
+                            if (isDivider) {
+                              return (
+                                <div key={ri} className="my-4 text-center text-[#003366] font-bold" style={{ fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>
+                                  {textContent}
+                                </div>
+                              );
+                            }
                             return (
                               <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
                                 <p className={`flex-1 text-[11px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>{textContent.replace(/^\s+/, "")}</p>
