@@ -1,0 +1,234 @@
+{
+  "patterns": [
+    {
+      "name": "Leaving Blank Answers",
+      "what": "Sometimes leaves open-ended questions completely blank, missing out on partial marks that could be earned by writing down basic facts.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "He left the aim of the experiment and the explanation completely blank."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "He provided no answer for identifying the plant parts and describing how substances move."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "He left all three parts of the experiment question blank instead of writing down the steps."
+        }
+      ],
+      "strategic_advice": "When you see a written question, treat it as a chance to show what you know!\n- **Write down key science words** related to the topic.\n- **State the aim** or the basic facts, even if you aren't sure of the final conclusion.\n- **Never leave it blank**—every little bit helps earn partial marks!",
+      "trigger_keywords": [
+        "Explain why",
+        "State the aim",
+        "Describe how"
+      ]
+    },
+    {
+      "name": "Kinetic vs Potential Energy Mix-Up",
+      "what": "Occasionally confuses stored energy (potential energy) with movement energy (kinetic energy) or heat.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He thought the toy truck stopped because its kinetic energy turned into sound and heat, missing that it converted into gravitational potential energy."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He chose water stored behind a dam (which is potential energy) instead of wind (which is kinetic energy) as the non-potential source."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "He thought a phone battery converts heat to electrical energy, forgetting that batteries store potential energy."
+        }
+      ],
+      "strategic_advice": "When you see questions about energy types, use these checks:\n- **'Potential energy'** means stored energy. Look for things that are high up, stretched, or batteries.\n- **'Kinetic energy'** means movement. Look for things that are actively moving, like wind or a rolling object.",
+      "trigger_keywords": [
+        "potential energy",
+        "kinetic energy",
+        "energy conversion"
+      ]
+    },
+    {
+      "name": "How We See Things",
+      "what": "Tends to pick the wrong arrows when showing how light travels from a source to an object and into our eyes.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He selected the wrong light path arrows, forgetting that light must bounce off the door and into Peter's eyes."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He picked arrows that didn't correctly show light travelling from the lamp, to the painting, and then to the eyes."
+        }
+      ],
+      "strategic_advice": "When you need to show how a person sees an object, always follow this exact order:\n- Start at the **light source** (like a lamp or the sun).\n- Draw an arrow to the **object** (like a door or painting).\n- Draw the final arrow bouncing off the object and into the **person's eyes**.",
+      "trigger_keywords": [
+        "direction of light rays",
+        "enable Peter to see",
+        "see the painting"
+      ]
+    },
+    {
+      "name": "Food Web Chain Reactions",
+      "what": "Occasionally finds it tricky to figure out how a change in one animal's population affects the other plants and animals in the habitat.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "He left the question blank when asked to explain how a decrease in one organism would affect the populations of others."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the wrong graph to show what happens to plants and prey when a new bird-eating predator is introduced."
+        }
+      ],
+      "strategic_advice": "When a question changes the number of one animal, use the arrow trick:\n- Draw an **up arrow** if a population grows, and a **down arrow** if it shrinks.\n- If a predator increases, its prey goes **down**.\n- If the prey goes down, the plants they eat will go **up**!",
+      "trigger_keywords": [
+        "population",
+        "introduced to this habitat",
+        "food relationships"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq69gift003woedesnvlpqwg",
+    "2": "cmq69gifu003yoede7wfbywud",
+    "3": "cmq69gifv0044oedeny6izo3e",
+    "4": "cmq69gifv0045oedecrf1v6kb",
+    "5": "cmq69gifv0046oedeigao3kf3",
+    "6": "cmq69gifv0047oede5k1ethl5",
+    "7": "cmq69gifv0048oede9h0ollrc",
+    "8": "cmqj6w1ly002r6rbdwjxw80yw",
+    "9": "cmqj6w1ly002s6rbdczpmapaa",
+    "10": "cmqj6w1lz002t6rbdmsjbh131",
+    "11": "cmq7rejlm00047yw25m76m505",
+    "12": "cmq7rgqw6001u7yw2q12928a8",
+    "13": "cmq69hvm1004hoedevcx7y2l5",
+    "14": "cmq69hvm2004ooedeqsft7q0a",
+    "15": "cmq69hvm2004soede26k3a87z",
+    "16": "cmq6tux01001do0vafhxvcwot",
+    "17": "cmq6tux01001io0vaqnm70xza",
+    "18": "cmq6tvosi001qo0vafvpu77k9",
+    "19": "cmq69i75x004yoede75rjdlr1",
+    "20": "cmq69i75x0050oede6be6pavu",
+    "21": "cmq69i75x0053oede9nhlp4me",
+    "22": "cmq6a4n25005xoedelb3gdt78",
+    "23": "cmq4xjn2e002hapq2ec9kok2u"
+  },
+  "generatedAt": "2026-06-18T10:12:59.055Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 5,
+    "mcq": 18
+  },
+  "toplineSnapshot": {
+    "avgPct": 81,
+    "totalAwarded": 210,
+    "totalAvailable": 260,
+    "paperCount": 11
+  },
+  "previousAssessment": null
+}

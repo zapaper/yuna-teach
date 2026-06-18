@@ -21,6 +21,7 @@ import hooperMath from "./tutor-cache/unified-diagnosis-hooper-math.gemini-cache
 import adrielEnglish from "./tutor-cache/unified-diagnosis-adriel-english.gemini-cache.json";
 import allisonteoEnglish from "./tutor-cache/unified-diagnosis-allisonteo-english.gemini-cache.json";
 import calebEnglish from "./tutor-cache/unified-diagnosis-caleb-english.gemini-cache.json";
+import calebScience from "./tutor-cache/unified-diagnosis-caleb-science.gemini-cache.json";
 import claraEnglish from "./tutor-cache/unified-diagnosis-clara-english.gemini-cache.json";
 import davidEnglish from "./tutor-cache/unified-diagnosis-david-lim-english.gemini-cache.json";
 import egEnglish from "./tutor-cache/unified-diagnosis-eg-english.gemini-cache.json";
@@ -94,6 +95,7 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "adriel:english":       adrielEnglish as CachedReport,
   "allisonteo:english":   allisonteoEnglish as CachedReport,
   "caleb:english":        calebEnglish as CachedReport,
+  "caleb:science":        calebScience as CachedReport,
   "clara:english":        claraEnglish as CachedReport,
   "david-lim:english":    davidEnglish as CachedReport,
   "eg:english":           egEnglish as CachedReport,
