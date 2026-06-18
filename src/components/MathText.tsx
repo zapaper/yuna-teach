@@ -42,6 +42,13 @@ function isMathContent(content: string): boolean {
   const hasLetter = /[a-zA-Z]/.test(content);
   if (!hasLetter) return false;
   if (!/\s/.test(content)) return true;
+  // Has letter + whitespace. Reject if there's any 3+ letter word — the
+  // hallmark of English prose like "more", "than", "had", "after". Math
+  // variables in PSLE are 1-2 letters (x, y, AB, PQ), never form prose
+  // words at 3+ letters. Without this check, a currency phrase like
+  // "$55 more than Shanti used 2/5 of his money…$" passes the operator
+  // rule below because of the bare `/` and gets rendered as italic math.
+  if (/\b[a-zA-Z]{3,}\b/.test(content)) return false;
   if (/[+\-*/<>]/.test(content)) return true;
   return false;
 }
