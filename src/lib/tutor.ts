@@ -1210,12 +1210,24 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       where: { id: { in: [...exampleIds] } },
       select: { id: true, diagramImageData: true, imageData: true, transcribedOptionImages: true },
     });
-    const imgById = new Map(heavy.map(d => [d.id, d.diagramImageData || d.imageData]));
-    const optImgsById = new Map(heavy.map(d => [d.id, d.transcribedOptionImages]));
+    const heavyById = new Map(heavy.map(d => [d.id, d]));
     for (const ex of allExamples) {
       if (!ex.questionId) continue;
-      ex.diagramImageData = imgById.get(ex.questionId) ?? null;
-      const optImgs = optImgsById.get(ex.questionId);
+      const row = heavyById.get(ex.questionId);
+      // Image resolution rules:
+      //   1. diagramImageData (a separately-cropped diagram) always wins.
+      //   2. imageData (the whole question crop, stem + diagram baked in)
+      //      is the fallback ONLY when there's no clean transcribed text
+      //      to show. For an MCQ with transcribedStem + transcribedOptions
+      //      populated, the imageData is just a redundant raw scan of the
+      //      same content that ExpandableExample already renders cleanly.
+      //      Showing it makes Lumi look like normal-extract instead of
+      //      clean-extract. For Math/Sci OEQ with empty transcribedStem,
+      //      the imageData IS the only readable source — fall through.
+      const hasCleanText = !!(ex.questionText && ex.questionText.trim().length > 0);
+      ex.diagramImageData = row?.diagramImageData
+        ?? (!hasCleanText ? (row?.imageData ?? null) : null);
+      const optImgs = row?.transcribedOptionImages;
       if (Array.isArray(optImgs) && optImgs.length > 0 && optImgs.some(o => typeof o === "string" && o.length > 0)) {
         ex.optionImages = optImgs as string[];
       }
