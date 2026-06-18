@@ -1025,21 +1025,28 @@ function stripDetectScaffolding(s: string): string {
 }
 
 /** Build markingNotes string, prefixing with detected student answer when available */
-function buildMarkingNotes(result: QuestionMarkResult): string {
+function buildMarkingNotes(result: QuestionMarkResult, subject?: string | null): string {
   const parts: string[] = [];
   if (result.studentAnswer) {
-    // The AI's detect prompt asks for 'Working: ... Final answer: X'
-    // per subpart. The labels are scaffolding for the marker, not
-    // information the parent wants to see — particularly noisy on
-    // Science where the prompt forces "Working: (no working shown)"
-    // even though Science OEQs are conceptual and have no expected
-    // working at all. Strip the orphaned sentinel first, then the
-    // bare labels everywhere they appear. Math working content
-    // survives — only the "Working:" / "Final answer:" labels go.
+    // The AI's detect prompt emits "Working: ... / Final answer: X"
+    // scaffolding per subpart. For Math we KEEP the labels — parents
+    // genuinely want to scan the steps and the boxed final answer.
+    // For Science the labels are noise (most OEQs are conceptual and
+    // the prompt is forced to emit "Working: (no working shown)" on
+    // every subpart). Always drop the orphaned sentinel; drop the
+    // bare labels only on Science.
     let cleaned = result.studentAnswer;
     cleaned = cleaned.replace(/\bworking\s*:\s*\(\s*no\s+working\s+(shown|done|written)?\s*\)\s*\n?/gi, "");
-    cleaned = cleaned.replace(/\bworking\s*:\s*/gi, "");
-    cleaned = cleaned.replace(/\bfinal\s+answer\s*:\s*/gi, "");
+    const isScience = (subject ?? "").toLowerCase().includes("science");
+    if (isScience) {
+      cleaned = cleaned.replace(/\bworking\s*:\s*/gi, "");
+      cleaned = cleaned.replace(/\bfinal\s+answer\s*:\s*/gi, "");
+    } else {
+      // Math / English / Chinese keep the labels — still strip a lone
+      // leading "Working:" with no subpart prefix because that one's
+      // always scaffolding (the existing 1042-era behaviour).
+      cleaned = cleaned.replace(/^\s*working\s*:?\s*/i, "");
+    }
     cleaned = cleaned.trim();
     cleaned = stripDetectScaffolding(cleaned);
     parts.push(`Detected: ${cleaned || result.studentAnswer}`);
@@ -2171,7 +2178,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   await prisma.examQuestion.update({
     where: { id: questionId },
-    data: { marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable, markingNotes: buildMarkingNotes(result) },
+    data: { marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable, markingNotes: buildMarkingNotes(result, paper.subject) },
   });
 
   // Recalculate paper total score
@@ -3525,7 +3532,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       const isChineseDialogueCloze = rawTopic.includes("完成对话") || rawTopic.includes("对话填空");
       const isGrammarClozeQ = (topic.includes("grammar") && topic.includes("cloze")) || isChineseDialogueCloze;
       let finalAwarded = result.marksAwarded ?? 0;
-      let finalNotes = buildMarkingNotes(result);
+      let finalNotes = buildMarkingNotes(result, paper.subject);
       const finalAvailable = (existingMarks ?? result.marksAvailable) ?? 0;
       if (isGrammarClozeQ && detected && finalAvailable > 0) {
         // Grammar Cloze marking is DETERMINISTIC: the answer is a
@@ -4283,7 +4290,7 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
               where: { id: q.id },
               data: {
                 marksAwarded: awarded,
-                markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }, paper.subject),
               },
             })
           );
@@ -6920,7 +6927,7 @@ Return ONLY valid JSON:
                   data: {
                     marksAwarded: awarded,
                     studentAnswer: parsed.studentAnswer || null,
-                    markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                    markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }, paper.subject),
                   },
                 })
               );
@@ -6971,7 +6978,7 @@ Return ONLY valid JSON:
                     data: {
                       marksAwarded: awarded,
                       studentAnswer: parsed.studentAnswer || null,
-                      markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                      markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }, paper.subject),
                     },
                   }),
                 );
