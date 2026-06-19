@@ -1367,7 +1367,11 @@ async function handle(
             : isOeq ? 4
             : 2;
 
-          const rawLines = stripUnsupportedChars(isCompCloze
+          // CJK chars are kept end-to-end now — drawJitteredTextBold
+          // swaps to Noto SC when it sees them. (Previously this site
+          // wrapped stripUnsupportedChars and dropped every Chinese
+          // marking note before it reached the renderer.)
+          const rawLines = (isCompCloze
             ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
             : (m.note ? stripLatex(m.note) : "")
           ).split(" / ").map(s => s.trim()).filter(Boolean);
