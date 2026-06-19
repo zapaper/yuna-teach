@@ -1047,8 +1047,14 @@ async function handle(
     // standard teacher note) so a longer comment still fits in the
     // available band without crowding the student's writing.
     const englishOeqNoteSize = Math.max(14, Math.round(noteSize * 0.5));
+    // Chinese OEQ marking notes: typed Noto SC, sized like English
+    // (the Kalam-handwriting noteSize at 27-42pt was too big for
+    // typeset CJK glyphs — the user got 1-2 chars per line of red ink
+    // scattered down the page). Keep at ~50% of noteSize, floor 14.
+    const chineseOeqNoteSize = Math.max(14, Math.round(noteSize * 0.5));
     const isScience = (paper.subject ?? "").toLowerCase().includes("science");
     const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
+    const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
 
     // Per-page list of rects already occupied by previously-placed
     // notes — used to slide a new note DOWN if its chosen anchor would
@@ -1350,7 +1356,9 @@ async function handle(
           // Pick the effective font size: English OEQ uses the shrunken
           // size so notes fit in the cramped row spacing of English
           // writing-pad pages. Math/Science OEQ keeps the original.
-          const effNoteSize = (isEnglish && isOeq) ? englishOeqNoteSize : noteSize;
+          const effNoteSize = (isEnglish && isOeq) ? englishOeqNoteSize
+            : (isChinese && isOeq) ? chineseOeqNoteSize
+            : noteSize;
           // Maximum lines we'll let a note wrap to. English Comp OEQ +
           // Synthesis notes are wordy (whole-sentence rewrites + grammar
           // explanations) and historically got truncated at 2 lines — a
