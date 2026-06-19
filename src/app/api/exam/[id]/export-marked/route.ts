@@ -98,6 +98,49 @@ function hasCjk(text: string): boolean {
   return /[　-〿㐀-鿿＀-￯぀-ヿ]/.test(text);
 }
 
+// One-time @napi-rs/canvas font registration. On Linux the canvas
+// library does NOT walk the system font cache the way headless
+// Chrome does — `ctx.font = "... Noto Sans CJK SC ..."` alone will
+// silently fall back to a non-CJK glyph set ("no character comes
+// out" — confirmed live on Railway with just nixpacks-installed
+// fonts). GlobalFonts.registerFromPath() with an absolute path is
+// the supported registration mechanism (npm @napi-rs/canvas).
+//
+// Probes the standard Debian/Ubuntu fonts-noto-cjk install paths and
+// the bundled fallback. First one that exists wins. Logs the result
+// so a deploy without fonts-noto-cjk surfaces a clear error instead
+// of a blank PNG.
+const CJK_FAMILY = "NotoSansCJKsc";
+let _cjkFontRegistered: boolean | null = null;
+function ensureCjkFontRegistered(): boolean {
+  if (_cjkFontRegistered !== null) return _cjkFontRegistered;
+  const candidates = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    // Local-dev fallback (Windows path; harmless if missing on Linux).
+    "C:/Windows/Fonts/NotoSansCJK-Regular.ttc",
+  ];
+  for (const p of candidates) {
+    try {
+      // node fs sync access avoids importing fs separately.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fsSync = require("fs") as typeof import("fs");
+      if (fsSync.existsSync(p)) {
+        GlobalFonts.registerFromPath(p, CJK_FAMILY);
+        console.log(`[export-marked] CJK font registered: ${p}`);
+        _cjkFontRegistered = true;
+        return true;
+      }
+    } catch {
+      /* try next */
+    }
+  }
+  console.warn(`[export-marked] No CJK font found on any candidate path — Chinese marking notes will render blank. Verify nixpacks.toml installs fonts-noto-cjk + fontconfig.`);
+  _cjkFontRegistered = false;
+  return false;
+}
+
 // Render a Chinese / CJK marking-note as a PNG via @napi-rs/canvas
 // (which uses the system-installed Noto Sans CJK installed by
 // nixpacks.toml). Used by the Chinese OEQ branch of the stamping
@@ -105,7 +148,12 @@ function hasCjk(text: string): boolean {
 // producing scattered glyphs with NotoSansSC-VF earlier. Bold is
 // native to canvas's font weight, so no extra font asset needed.
 function renderCjkNoteToPng(text: string, opts: { fontSizePx: number; maxWidthPx: number; color: string; bold?: boolean }): { png: Buffer; widthPx: number; heightPx: number } {
-  const fontSpec = `${opts.bold ? "bold " : ""}${opts.fontSizePx}px "Noto Sans CJK SC", "Noto Sans SC", sans-serif`;
+  ensureCjkFontRegistered();
+  // Use the registered family name (matches CJK_FAMILY) so canvas
+  // looks up the file we explicitly registered. The CSS-style font
+  // names "Noto Sans CJK SC" / "Noto Sans SC" stay in the cascade
+  // as fallbacks if the registered family is ever missing.
+  const fontSpec = `${opts.bold ? "bold " : ""}${opts.fontSizePx}px ${CJK_FAMILY}, "Noto Sans CJK SC", "Noto Sans SC", sans-serif`;
   // Char-by-char wrap using canvas's measureText (which respects the
   // system CJK font's actual advance widths, not pdf-lib's VF read).
   const measureCtx = createCanvas(1, 1).getContext("2d");
