@@ -80,6 +80,12 @@ export async function POST(request: NextRequest) {
   if (student?.level === 3 && (subject ?? "").toLowerCase().includes("english")) {
     return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
   }
+  // P4 and lower are blocked for Chinese at launch — the bank covers
+  // P5/P6 only. Mirrors the daily-quiz guard so a focused practice
+  // can't slip through the API directly when the UI hides it.
+  if ((student?.level ?? 99) <= 4 && (subject ?? "").toLowerCase().includes("chinese")) {
+    return NextResponse.json({ error: "Chinese is currently available for P5 and P6 only." }, { status: 400 });
+  }
   // Revision mode: parent picked "revise P{n-1}" in the assign modal.
   // Validated server-side so a tampered request can't drop a P5
   // student to P1.

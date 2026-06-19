@@ -1692,11 +1692,17 @@ export default function ParentDashboard({
             // P3 English isn't supported yet — hide the option for P3
             // students. If quizSubject was already "english" when the
             // parent switched to a P3 student, the auto-correct effect
-            // below resets it. Chinese is admin-only.
+            // below resets it. Chinese is available to all parents at
+            // the user level (see canAssignChinese) BUT only for P5/P6
+            // children — the P4 Chinese bank + section coverage is
+            // still under build, so the picker hides 华文 when the
+            // selected child is P4 or lower.
             const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
             const isP3 = quizStudent?.level === 3;
+            const isP4OrBelow = (quizStudent?.level ?? 99) <= 4;
             const base: Array<"math" | "science" | "english"> = isP3 ? ["math", "science"] : ["math", "science", "english"];
-            const subjects: Array<"math" | "science" | "english" | "chinese"> = (isAdminUser || chineseAllowedForUser) ? [...base, "chinese"] : base;
+            const chineseAvailable = (isAdminUser || chineseAllowedForUser) && !isP4OrBelow;
+            const subjects: Array<"math" | "science" | "english" | "chinese"> = chineseAvailable ? [...base, "chinese"] : base;
             return subjects.map(s => (
               <button key={s} onClick={() => setQuizSubject(s)}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>

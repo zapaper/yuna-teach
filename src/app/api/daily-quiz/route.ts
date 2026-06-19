@@ -315,6 +315,17 @@ export async function POST(request: NextRequest) {
     if (!isAdmin(actor) && !canAssignChinese(actor?.name)) {
       return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
     }
+    // P4 and lower are blocked at launch — the Chinese bank only
+    // covers P5/P6 today. The dashboard subject picker hides 华文
+    // for these students; this is the API-side parity check so a
+    // hand-crafted POST can't bypass it.
+    const targetStudentLevel = await prisma.user.findUnique({
+      where: { id: targetStudentId },
+      select: { level: true },
+    });
+    if ((targetStudentLevel?.level ?? 99) <= 4) {
+      return NextResponse.json({ error: "Chinese is currently available for P5 and P6 only." }, { status: 400 });
+    }
     if (!chineseSections || chineseSections.length === 0) {
       return NextResponse.json({ error: "Pick at least one Chinese section." }, { status: 400 });
     }
