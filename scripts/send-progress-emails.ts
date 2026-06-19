@@ -24,6 +24,7 @@ import { prisma } from "../src/lib/db";
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
 import path from "path";
 import { createCanvas } from "@napi-rs/canvas";
+import sharp from "sharp";
 import sgMail from "@sendgrid/mail";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.markforyou.com";
@@ -62,7 +63,7 @@ type TopicRow = {
   paperCount?: number;               // distinct papers (by completedAt) that touched this topic
 };
 
-function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studentName: string): Buffer {
+export function drawTopicChart(topics: TopicRow[], avg: number, subject: string, studentName: string): Buffer {
   // Font scale: chart text doubled vs the web app's 10-13px palette,
   // title doubled again so it dominates without crowding the bars.
   // Title sits in its own header strip above padT; padT pushed down
@@ -349,6 +350,7 @@ function buildEmailHtml(args: {
   weak: TopicRow[];
   strong: TopicRow[];
   chartCid: string;
+  lumiCid: string;
   totalAttempts: number;
 }): { html: string; text: string; subject: string } {
   // "Full Report" link → /progress/<studentId>?userId=<parentId>.
@@ -498,12 +500,35 @@ function buildEmailHtml(args: {
       or open your <a href="${BASE_URL}/home/${args.parentId}" style="color:#003366;font-weight:700;">parent homepage</a>.
     </p>
 
-    <p style="margin:24px 0 4px 0;color:#737780;font-size:11px;line-height:1.5;">
+    <!-- Report-criteria disclaimer moved ABOVE the Lumi tease so the
+         email doesn't end with small grey text + a generic team
+         signature — that pattern triggers Gmail's "trimmed content"
+         heuristic and folds the Lumi tease + close under "...". -->
+    <p style="margin:16px 0 4px 0;color:#737780;font-size:11px;line-height:1.5;">
       This report is generated the first time a child completes at least ${MIN_QUIZZES} ${quizNoun}s
       covering at least ${MIN_TOPICS} distinct topics in a subject. The "spots worth a closer look" are
       simply the two lowest-scoring topics on the chart (each based on at least 3 attempts).${args.totalAttempts < 100 ? ` With more practices, we can also build a more accurate picture.` : ""}
     </p>
-    <p style="margin:6px 0 0 0;color:#737780;font-size:12px;">— The MarkForYou team</p>
+
+    <!-- Lumi tease — surfaces the Tier-2 (owl assistant) feature that
+         kicks in once the child has enough wrongs for Gemini Pro to
+         find patterns. Inline lumi1.png replaces the 🦉 emoji. -->
+    <div style="margin:24px 0 0 0;padding:16px 18px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;">
+      <p style="margin:0;color:#43474f;font-size:13px;line-height:1.55;">
+        <strong style="color:#6b21a8;">About Lumi</strong>
+        <img src="cid:${args.lumiCid}" alt="Lumi" width="22" style="height:22px;width:auto;vertical-align:middle;display:inline-block;margin:0 4px;" />
+        <br/>
+        As ${childFirst} does more practices, <strong>Lumi — our owl assistant — will start identifying ${childFirst}'s common mistakes and conceptual gaps</strong>. Look out for Lumi in a few more quizzes' time.
+      </p>
+    </div>
+
+    <!-- Personalised closing: "Cheering ${childFirst} on" includes the
+         child's name so Gmail's signature-detector doesn't recognise
+         it as boilerplate. -->
+    <p style="margin:24px 0 0 0;color:#001e40;font-size:14px;line-height:1.5;">
+      Cheering ${childFirst} on,<br/>
+      <strong>The MarkForYou team</strong>
+    </p>
   </div>
 </body></html>`;
 
@@ -833,6 +858,13 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
     }
   }
 
+  // Lumi mascot — resized once per send for the tease block. 44px @ 2x
+  // (rendered at 22px in the HTML) keeps the file ~3KB while staying
+  // crisp on retina mail clients.
+  const lumiPngFull = readFileSync(path.join(process.cwd(), "public", "avatars", "lumi1.png"));
+  const lumiPng = await sharp(lumiPngFull).resize({ height: 44 }).png().toBuffer();
+  const lumiCid = `lumi-icon-${safeStu}-${c.subjectKey}`;
+
   const totalAttempts = c.topics.reduce((s, t) => s + t.attempts, 0);
   const { html, text, subject } = buildEmailHtml({
     parentFirstName: firstName(c.parentName),
@@ -846,6 +878,7 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
     weak: c.weak,
     strong: c.strong,
     chartCid,
+    lumiCid,
     totalAttempts,
   });
 
@@ -884,6 +917,13 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
           type: "image/png",
           disposition: "inline",
           content_id: chartCid,
+        },
+        {
+          content: lumiPng.toString("base64"),
+          filename: "lumi.png",
+          type: "image/png",
+          disposition: "inline",
+          content_id: lumiCid,
         },
         ...trendAttachments,
       ],

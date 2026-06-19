@@ -233,6 +233,7 @@ export async function GET(
   // 2-line layout because it has to read from across the room.
   const noticeLines = [
     "Please write legibly in blue ink. Scan every page for submission.",
+    "For MCQs, write your chosen option number on the right of the question.",
   ];
   const noticeSize = 18;
   const noticeLineH = noticeSize + 6;

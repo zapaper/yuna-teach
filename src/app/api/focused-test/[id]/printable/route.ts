@@ -846,6 +846,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: Cov
   // reads from across the room.
   const noticeParagraphs = [
     "Please write legibly in blue ink. Scan every page for submission.",
+    "For MCQs, write your chosen option number on the right of the question.",
   ];
   const noticeSize = 18;
   const noticeLines = noticeParagraphs.flatMap(p => wrapLines(p, bold, noticeSize, CONTENT_W - 24));

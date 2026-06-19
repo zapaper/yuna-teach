@@ -304,6 +304,7 @@ function AdminUsersContent() {
                     : "no linked parents",
                   linksLabel: "Linked parents",
                   role: "STUDENT" as const,
+                  primaryParentId: s.parents[0]?.id,
                   progressEmailsSent: s.progressEmailsSent,
                 }))}
                 deleting={deleting}
@@ -363,6 +364,11 @@ function UserSection({
     links: string;
     linksLabel: string;
     role: "PARENT" | "STUDENT";
+    // First linked parent id for STUDENT rows — admin's "open home"
+    // deeplink routes to /home/<parentId>?student=<studentId> so the
+    // view shows Lumi/progress chrome (parent-side dashboard), not
+    // the student's own gamified home. Empty for parents.
+    primaryParentId?: string;
     progressEmailsSent?: { subjectKey: string; sentAt: string }[];
   }[];
   deleting: string | null;
@@ -405,10 +411,19 @@ function UserSection({
               )}
             </div>
             <a
-              href={`/home/${r.id}?userId=${r.id}`}
+              href={
+                // For STUDENT rows, route via the first linked parent
+                // so admin lands on the parent dashboard scoped to
+                // this kid (Lumi / progress / focused practice all
+                // live there). Falling back to the student's own
+                // /home only when there's no linked parent.
+                r.role === "STUDENT" && r.primaryParentId
+                  ? `/home/${r.primaryParentId}?userId=${r.primaryParentId}&student=${r.id}`
+                  : `/home/${r.id}?userId=${r.id}`
+              }
               target="_blank"
               rel="noopener"
-              title={`Open ${r.role === "PARENT" ? "parent" : "student"} home page in a new tab`}
+              title={r.role === "PARENT" ? "Open parent home page" : (r.primaryParentId ? "Open parent dashboard scoped to this student" : "Open student home (no linked parent)")}
               className="shrink-0 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
             >
               <span className="material-symbols-outlined text-base align-middle">open_in_new</span>
