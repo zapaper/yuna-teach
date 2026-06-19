@@ -431,6 +431,12 @@ async function handle(
           studentAnswer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
           syllabusTopic: true,
+          // Pulled in for the oeqPos fallback below — must match the
+          // marker's hasOpts so the OEQ ordinal numbering aligns with
+          // the on-disk page_<N>.jpg canvas indices the marker wrote.
+          transcribedOptions: true,
+          transcribedOptionImages: true,
+          transcribedOptionTable: true,
         },
         orderBy: { orderIndex: "asc" },
       },
@@ -484,10 +490,20 @@ async function handle(
   // (marking.ts:4963 fullOeqPosByQId, post the 5a1ed284 skip-fix).
   // Without this fallback, Q33+ silently fall off the export.
   const hasOpts = (q: typeof paper.questions[number]): boolean => {
-    // Mirror the marker's MCQ detection: answer reduces to a single
-    // A-D / 1-4 character after stripping parens / dots.
-    const a = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-    return /^[A-D1-4]$/i.test(a);
+    // EXACT match to marking.ts:4565 — checks transcribedOptions length,
+    // option images, or option table rows. The answer-key regex I used
+    // before missed 完成对话 (dialogue completion) where the answer key
+    // is a digit 1-8 (line number) and so /^[A-D1-4]$/ rejected it,
+    // making Q28/Q29 land in the OEQ bucket here when the marker puts
+    // them in MCQ. Result: oeqPos numbering off by 2, Q33 mapped to
+    // page_2.jpg which was actually Q33's-2 canvas in the marker run.
+    const opts = q.transcribedOptions as unknown[] | null;
+    const imgs = q.transcribedOptionImages as unknown[] | null;
+    const tbl = (q as { transcribedOptionTable?: { rows?: unknown } | null }).transcribedOptionTable;
+    if (Array.isArray(opts) && opts.length === 4) return true;
+    if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+    if (tbl && Array.isArray(tbl.rows) && (tbl.rows as unknown[]).length === 4) return true;
+    return false;
   };
   const oeqPosByQId = new Map<string, number>();
   {
