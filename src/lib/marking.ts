@@ -7033,6 +7033,110 @@ Return ONLY valid JSON:
     // 0 on the Ruthie incident when OEQ updates were lost mid-transaction.
     if (updates.length > 0) await prisma.$transaction(updates);
 
+    // ── Retry pass: re-mark questions the OEQ loop left as NULL ─────────
+    // The OEQ loop above tries multiple Gemini models + OpenAI fallback,
+    // then commits marksAwarded=NULL with "Marking error — AI unavailable,
+    // please re-mark" when every attempt fails. This catches one more
+    // retry per question with a simpler single-Q prompt + flash. Mirrors
+    // the markExamPaper retry pass at marking.ts:3017. Was the missing
+    // piece behind 3 of the 5 eval discrepancies (Cycles in matter Q9,
+    // Environment Quiz 1 Q11 + Q13 — all stayed null after first pass).
+    const stuckRows = await prisma.examQuestion.findMany({
+      where: {
+        examPaperId: paperId,
+        marksAwarded: null,
+        markingNotes: { startsWith: "Marking error" },
+        studentAnswer: { not: "__SKIPPED__" },
+      },
+      select: { id: true, questionNum: true, answer: true, marksAvailable: true, syllabusTopic: true, studentAnswer: true, printableBounds: true },
+    });
+    if (stuckRows.length > 0) {
+      console.log(`[quiz-marking] Retry pass: ${stuckRows.length} question(s) stuck at null — attempting one more pass with flash`);
+      // Rebuild the non-skipped OEQ position map (same as line 4963)
+      // so we can resolve scanPageIdx for these stragglers.
+      const retryPosByQId = new Map<string, number>();
+      {
+        let pos = 0;
+        for (const pq of paper.questions) {
+          if (!hasOpts(pq) && !typedSectionQIds.has(pq.id)) {
+            if (pq.studentAnswer === "__SKIPPED__") continue;
+            retryPosByQId.set(pq.id, pos);
+            pos++;
+          }
+        }
+      }
+      const retryUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+      const ai = getAI();
+      await Promise.all(stuckRows.map(async (q) => {
+        const bounds = q.printableBounds as PrintableBounds | null | undefined;
+        const scanPageIdxRetry = (bounds && Number.isFinite(bounds.pageIndex))
+          ? bounds.pageIndex + 1
+          : retryPosByQId.get(q.id);
+        if (scanPageIdxRetry === undefined) return;
+        const pagePath = path.join(SUBMISSIONS_DIR, paperId, `page_${scanPageIdxRetry}.jpg`);
+        let pageBuffer: Buffer;
+        try {
+          pageBuffer = await fs.readFile(pagePath);
+        } catch {
+          return; // no canvas saved → can't retry
+        }
+        const pageBase64 = pageBuffer.toString("base64");
+        const answerForPrompt = shouldStripExplanation(paper, q.answer)
+          ? stripExplanationFromAnswer(q.answer)
+          : q.answer;
+        const answerDesc = buildAnswerDesc(answerForPrompt, false);
+        const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region 0%–100%. marksAvailable: ${q.marksAvailable ?? "detect"}.${q.syllabusTopic ? ` Section: ${q.syllabusTopic}.` : ""} Expected answer: ${answerDesc} [IMAGE IS CROPPED TO ANSWER REGION ONLY]`;
+        const prompt = MARKING_PROMPT
+          .replace("{QUESTIONS}", questionLines)
+          .replace("{ANSWER_IMAGES_NOTE}", "")
+          .replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject) + chineseMarkingRules(paper.subject));
+        const retryReqParams = {
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user" as const, parts: [
+            { inlineData: { mimeType: "image/jpeg" as const, data: pageBase64 } },
+            { text: prompt },
+          ] }],
+          config: { responseMimeType: "application/json", temperature: 0.1 },
+        };
+        let result: QuestionMarkResult | null = null;
+        try {
+          const resp = await withTimeout(ai.models.generateContent(retryReqParams), GEMINI_TIMEOUT_MS, `quiz-retry Q${q.questionNum}`);
+          const text = resp.text;
+          if (text) {
+            const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+            result = parsed.questions?.find(r => r.questionId === q.id) ?? parsed.questions?.[0] ?? null;
+          }
+        } catch (err) {
+          console.warn(`[quiz-marking] Retry Q${q.questionNum} flash failed:`, err);
+          const openaiResp = await tryOpenAIMarkingFallback(retryReqParams, err, `quiz-retry Q${q.questionNum}`);
+          if (openaiResp?.text) {
+            try {
+              const parsed = extractJson(openaiResp.text) as { questions: QuestionMarkResult[] };
+              result = parsed.questions?.find(r => r.questionId === q.id) ?? parsed.questions?.[0] ?? null;
+            } catch {}
+          }
+        }
+        if (!result) return;
+        const marksAvailable = q.marksAvailable ?? result.marksAvailable ?? 1;
+        const awarded = Math.max(0, Math.min(marksAvailable, Number(result.marksAwarded ?? 0)));
+        console.log(`[quiz-marking] Retry Q${q.questionNum} salvaged: ${awarded}/${marksAvailable}`);
+        retryUpdates.push(
+          prisma.examQuestion.update({
+            where: { id: q.id },
+            data: {
+              marksAwarded: awarded,
+              studentAnswer: result.studentAnswer || q.studentAnswer,
+              markingNotes: buildMarkingNotes({ ...result, questionId: q.id, marksAvailable, marksAwarded: awarded }, paper.subject),
+            },
+          })
+        );
+      }));
+      if (retryUpdates.length > 0) {
+        await prisma.$transaction(retryUpdates);
+        console.log(`[quiz-marking] Retry pass salvaged ${retryUpdates.length}/${stuckRows.length} stuck question(s)`);
+      }
+    }
+
     const finalState = await prisma.examQuestion.findMany({
       where: { examPaperId: paperId, marksAvailable: { not: null } },
       select: { id: true, questionNum: true, marksAvailable: true, marksAwarded: true, markingNotes: true, studentAnswer: true },
