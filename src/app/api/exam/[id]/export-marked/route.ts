@@ -1327,6 +1327,54 @@ async function handle(
         const lost = m.marksLost > 0 ? m.marksLost : 1;
         const badge = `-${formatMarks(lost)}`;
         const badgeSize = Math.round(markSize * 0.475);
+
+        // ─── Chinese OEQ simple path ────────────────────────────────
+        // The Latin OEQ path below does whitespace-band search +
+        // bold-aware word wrap + handwriting jitter — none of which
+        // apply to typed CJK and which were producing the scattered
+        // chars the user saw. For Chinese OEQ we just: draw the
+        // badge, then drop the note as a single drawText call at a
+        // typed body size, wrapping at the page's right margin via
+        // char-by-char accumulation.
+        if (isChinese && isOeq && !isMcq) {
+          page.drawText(badge, {
+            x: markX + markSize * 0.6,
+            y: markY - badgeSize * 0.1,
+            size: badgeSize,
+            font: helveticaRegular,
+            color: RED,
+          });
+          if (m.note) {
+            const noteSizeCn = Math.max(14, Math.round(noteSize * 0.45));
+            const maxLineW = pageW - (markX + markSize * 1.5) - 12;
+            const lines: string[] = [];
+            let cur = "";
+            for (const ch of m.note) {
+              const candidate = cur + ch;
+              if (cjkFont.widthOfTextAtSize(candidate, noteSizeCn) <= maxLineW) {
+                cur = candidate;
+              } else {
+                if (cur) lines.push(cur);
+                cur = ch;
+              }
+            }
+            if (cur) lines.push(cur);
+            // Anchor the block below the badge.
+            let cy = markY - badgeSize * 1.4 - noteSizeCn;
+            for (const ln of lines.slice(0, 5)) {
+              page.drawText(ln, {
+                x: markX + markSize * 0.6,
+                y: cy,
+                size: noteSizeCn,
+                font: cjkFont,
+                color: RED,
+              });
+              cy -= noteSizeCn * 1.35;
+            }
+          }
+          continue;
+        }
+
         page.drawText(badge, {
           x: markX + markSize * 0.6,
           y: markY - badgeSize * 0.1,
