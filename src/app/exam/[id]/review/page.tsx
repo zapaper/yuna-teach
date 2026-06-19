@@ -1892,7 +1892,7 @@ function ExamReviewContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-base">refresh</span>
               {remarking ? "Re-marking…" : englishSections ? "Re-mark All" : "Re-mark"}
             </button>
-            {!isStudent && (paperType === null || paperType === "diagnostic" || (paperSubject ?? "").toLowerCase().includes("english")) && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
+            {!isStudent && (paperType === null || paperType === "diagnostic" || (paperSubject ?? "").toLowerCase().includes("english") || (paperSubject ?? "").toLowerCase().includes("chinese")) && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
               <button
                 onClick={async () => {
                   if (exporting) return;
