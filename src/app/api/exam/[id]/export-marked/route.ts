@@ -437,6 +437,11 @@ async function handle(
           transcribedOptions: true,
           transcribedOptionImages: true,
           transcribedOptionTable: true,
+          // printableBounds.pageIndex resolves to bounds.pageIndex+1 on
+          // disk for scan-back printables (marker uses the same lookup
+          // at marking.ts:4992). Without this we'd misroute OEQs whose
+          // bounds DID get set during the printable PDF cycle.
+          printableBounds: true,
         },
         orderBy: { orderIndex: "asc" },
       },
@@ -517,27 +522,57 @@ async function handle(
   }
 
   // Group questions by their submission-page index for fast lookup
-  // when stamping each page.
+  // when stamping each page. Resolution mirrors the marker's
+  // scanPageIdx logic (marking.ts:4992) so the export overlay lands
+  // on the SAME submission file the marker read:
+  //
+  //   OEQ with printableBounds  → bounds.pageIndex + 1 (scan-back
+  //                                printable; cover is page_0.jpg)
+  //   OEQ without printableBounds → oeqPosByQId.get(id) (in-app
+  //                                  canvas, one per OEQ)
+  //   MCQ                         → pageMap.get(masterPageIndex)
+  //                                  (scan-back master papers; tap-only
+  //                                  in-app quizzes have nowhere to
+  //                                  stamp and will land on whatever
+  //                                  canvas page that index happens to
+  //                                  hit — existing-behaviour misalign,
+  //                                  not a regression)
+  //
+  // Before this commit, OEQs with a valid pageIndex (Q26-Q29 on the
+  // Chinese paper, pageIndex=8) took the pageMap path and ended up
+  // stamped on subPage 8 (Q37's canvas), while their own canvas at
+  // page_0..3.jpg never got a stamp. Net effect: every "non-overshoot"
+  // OEQ silently misrendered too.
   const bySubPage = new Map<number, typeof paper.questions>();
-  let oeqFallbackCount = 0;
+  let oeqByOeqPosCount = 0;
+  let oeqByPrintableCount = 0;
   for (const q of paper.questions) {
-    let subPage = pageMap.get(q.pageIndex);
-    if (subPage === undefined) {
-      // OEQ fallback path (Chinese long-OEQ with overshoot pageIndex,
-      // or any in-app quiz OEQ on a paper where the master pageMap
-      // doesn't reach). MCQs whose pageIndex doesn't map are still
-      // skipped — they need the master page region to stamp anyway.
-      const oeqPos = oeqPosByQId.get(q.id);
-      if (oeqPos === undefined) continue;
-      subPage = oeqPos;
-      oeqFallbackCount++;
+    const isOeq = !hasOpts(q) && q.studentAnswer !== "__SKIPPED__";
+    let subPage: number | undefined;
+    if (isOeq) {
+      // Local PrintableBounds shape — matches marking.ts:141 but lives
+      // here so we don't pull from the marker module just for a type.
+      const bounds = q.printableBounds as { pageIndex?: number } | null | undefined;
+      if (bounds && typeof bounds.pageIndex === "number" && Number.isFinite(bounds.pageIndex)) {
+        subPage = bounds.pageIndex + 1;
+        oeqByPrintableCount++;
+      } else {
+        subPage = oeqPosByQId.get(q.id);
+        if (subPage !== undefined) oeqByOeqPosCount++;
+      }
+    } else {
+      subPage = pageMap.get(q.pageIndex);
     }
+    if (subPage === undefined) continue;
+    // Bounds check — pageFiles is the on-disk reality; anything past
+    // its length has no submission image to overlay on.
+    if (subPage >= pageFiles.length) continue;
     const arr = bySubPage.get(subPage) ?? [];
     arr.push(q);
     bySubPage.set(subPage, arr);
   }
-  if (oeqFallbackCount > 0) {
-    console.log(`[export-marked] ${oeqFallbackCount} OEQ(s) resolved via per-canvas fallback (master pageMap miss)`);
+  if (oeqByOeqPosCount > 0 || oeqByPrintableCount > 0) {
+    console.log(`[export-marked] OEQ subPage resolution: ${oeqByPrintableCount} via printableBounds, ${oeqByOeqPosCount} via oeqPos (in-app canvas)`);
   }
 
   // Crop and classify EVERY question across EVERY page in parallel.
