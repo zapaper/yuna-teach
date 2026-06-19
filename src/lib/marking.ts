@@ -4950,21 +4950,31 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
       const subDir = path.join(SUBMISSIONS_DIR, paperId);
       const ai = getAI();
 
-      // Build the FULL-OEQ-position map (skipped OEQs included). The
-      // quiz page at quiz/[id]/page.tsx:984 uploads canvas blobs
-      // numbered by the FULL OEQ list — canvas handles register on
-      // render, before the kid clicks skip — so a skipped Q in the
-      // middle still occupies its slot in the upload sequence (as a
-      // blank canvas). The marker's oeqQuestions list excludes
-      // __SKIPPED__ rows, so the loop's `i` index is the FILTERED
-      // position, which doesn't line up. Using `i` caused Q8 to read
-      // Q7's blank canvas and Q10 to read Q8's canvas on a paper
-      // with Q7 + Q9 skipped (paper cmq99idyq).
+      // Build the NON-SKIPPED OEQ-position map. The submit path on
+      // the quiz page (quiz/[id]/page.tsx:1297) explicitly filters
+      // out __SKIPPED__ rows before uploading the canvas blobs:
+      //
+      //     filter(q => oeqCanvasHandles.current[q.id]
+      //                 && !skippedIds.has(q.id))
+      //
+      // …so page_N.jpg on disk = N-th NON-skipped OEQ, NOT the N-th
+      // full-list OEQ. The June fix (86c026d2) read the wrong line
+      // of the upload code and assumed skipped Qs occupied their
+      // slots as blank canvases — that's the saveProgress path, but
+      // the final submit re-upload OVERWRITES page_0..M-1 with the
+      // FILTERED sequence. Result: any Q after a skip reads the
+      // wrong scan file. Reproed on paper cmqkwpg6q (Q12 skipped,
+      // Q13 read Q14's content, Q14 read Q15's content).
+      //
+      // Fix: skip __SKIPPED__ rows when building the position map.
+      // The marker's oeqQuestions loop already filters them out, so
+      // they'd never be looked up anyway.
       const fullOeqPosByQId = new Map<string, number>();
       {
         let pos = 0;
         for (const pq of paper.questions) {
           if (!hasOpts(pq) && !typedSectionQIds.has(pq.id)) {
+            if (pq.studentAnswer === "__SKIPPED__") continue;
             fullOeqPosByQId.set(pq.id, pos);
             pos++;
           }

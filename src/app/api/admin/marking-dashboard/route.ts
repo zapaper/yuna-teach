@@ -12,7 +12,11 @@ import { isSessionAdmin } from "@/lib/session";
 // running marker.
 const STUCK_THRESHOLD_MS = 5 * 60 * 1000;
 
-const EXCLUDED_NAMES = new Set(["admin", "student555", "student666"]);
+// student666 is treated as a real student here so its test-submissions
+// surface on the marking dashboard alongside actual kids — useful when
+// the admin is dogfooding the scan-and-mark flow end-to-end. The other
+// service accounts (admin, student555) remain excluded.
+const EXCLUDED_NAMES = new Set(["admin", "student555"]);
 
 export async function GET() {
   if (!(await isSessionAdmin())) {

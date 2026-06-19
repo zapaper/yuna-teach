@@ -1276,14 +1276,21 @@ function ExamReviewContent({ id }: { id: string }) {
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && !/^\(?blank\)?$/i.test(line) && !/^no\s+answer$/i.test(line));
     // Science OEQ: drop empty-working scaffold lines like
-    // "Working: (no working shown)" / "(a) Working: blank". For
-    // short-answer science the working line is pure noise — the
-    // AI emits it verbatim from its detection template. Math
-    // keeps it because parents use the "no working shown" signal
-    // when discussing method marks with the child.
+    // "Working: (no working shown)" / "(a) Working: blank" — AND
+    // the residual "(no working shown)" / "(blank)" line that's
+    // left behind when an earlier replace() in this function
+    // stripped the leading "Working:" label. Without the
+    // `(?:working…)?` clause being optional, the residue "(no
+    // working shown)" survives the strip for science questions
+    // with multi-subpart studentAnswer (parsePartAnswers slices a
+    // chunk that starts with "Working:", which gets stripped at
+    // line 1261, leaving the "(no working shown)" payload alone
+    // on its own line — Q11 of paper cmqkwpg6q reproed this).
+    // Math keeps the scaffolding because parents use the "no
+    // working shown" signal when discussing method marks.
     const isScience = (paperSubject ?? "").toLowerCase().includes("science");
     if (isScience) {
-      const emptyWorkingRe = /^(?:\([a-z0-9]+\)\s*)?working\s*:?\s*\(?\s*(?:no\s+working(?:\s+shown)?|blank|empty|no\s+answer|nothing|none)\s*\)?\s*$/i;
+      const emptyWorkingRe = /^(?:\([a-z0-9]+\)\s*)?(?:working\s*:?\s*)?\(?\s*(?:no\s+working(?:\s+shown)?|blank|empty|no\s+answer|nothing|none)\s*\)?\s*$/i;
       lines = lines.filter(l => !emptyWorkingRe.test(l));
     }
     // Dedup adjacent lines whose CONTENT (after stripping a
