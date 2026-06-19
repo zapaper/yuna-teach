@@ -4,6 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import { PDFDocument, PDFFont, rgb, StandardFonts, degrees } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 import { isAdmin as isAdminUser } from "@/lib/admin";
@@ -90,27 +91,52 @@ async function getHandBoldFontBytes(): Promise<Buffer> {
   return _handBoldFontBytes;
 }
 
-// Noto Sans SC for CJK glyphs. Kalam + Helvetica are WinAnsi-only and
-// throw on any 汉字 / fullwidth punctuation; Noto SC covers Chinese,
-// Japanese, and Korean. Embedded with subset=true so the PDF only
-// carries the glyphs we actually used (Noto SC full is 17 MB; a
-// typical Chinese marking-notes export uses ~200 glyphs → ~30 KB).
-let _cjkFontBytes: Buffer | null = null;
-async function getCjkFontBytes(): Promise<Buffer> {
-  if (_cjkFontBytes) return _cjkFontBytes;
-  const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansSC-Regular.ttf");
-  _cjkFontBytes = await fs.readFile(fontPath);
-  return _cjkFontBytes;
-}
-
 // Detect any char that pdf-lib's WinAnsi-encoded built-in fonts can't
 // emit — CJK ideographs (0x3400-0x9FFF), CJK punctuation (0x3000-0x303F),
 // halfwidth/fullwidth forms (0xFF00-0xFFEF), Hiragana / Katakana, etc.
-// Used by the per-segment font picker so a mixed Latin+CJK line still
-// renders cleanly (Latin glyphs from the same Noto SC font, which
-// covers basic Latin too).
 function hasCjk(text: string): boolean {
   return /[　-〿㐀-鿿＀-￯぀-ヿ]/.test(text);
+}
+
+// Render a Chinese / CJK marking-note as a PNG via @napi-rs/canvas
+// (which uses the system-installed Noto Sans CJK installed by
+// nixpacks.toml). Used by the Chinese OEQ branch of the stamping
+// loop — sidesteps pdf-lib's variable-font handling, which was
+// producing scattered glyphs with NotoSansSC-VF earlier. Bold is
+// native to canvas's font weight, so no extra font asset needed.
+function renderCjkNoteToPng(text: string, opts: { fontSizePx: number; maxWidthPx: number; color: string; bold?: boolean }): { png: Buffer; widthPx: number; heightPx: number } {
+  const fontSpec = `${opts.bold ? "bold " : ""}${opts.fontSizePx}px "Noto Sans CJK SC", "Noto Sans SC", sans-serif`;
+  // Char-by-char wrap using canvas's measureText (which respects the
+  // system CJK font's actual advance widths, not pdf-lib's VF read).
+  const measureCtx = createCanvas(1, 1).getContext("2d");
+  measureCtx.font = fontSpec;
+  const lines: string[] = [];
+  let cur = "";
+  for (const ch of text) {
+    const cand = cur + ch;
+    if (measureCtx.measureText(cand).width <= opts.maxWidthPx) cur = cand;
+    else { if (cur) lines.push(cur); cur = ch; }
+  }
+  if (cur) lines.push(cur);
+
+  const lineH = Math.ceil(opts.fontSizePx * 1.4);
+  // Width is the widest line, plus a 4px pad.
+  const widthPx = Math.min(
+    opts.maxWidthPx,
+    Math.ceil(Math.max(...lines.map(l => measureCtx.measureText(l).width), 0)) + 4,
+  );
+  const heightPx = lines.length * lineH + 4;
+  const canvas = createCanvas(widthPx, heightPx);
+  const ctx = canvas.getContext("2d");
+  ctx.font = fontSpec;
+  ctx.fillStyle = opts.color;
+  ctx.textBaseline = "alphabetic";
+  let baseline = opts.fontSizePx + 2;
+  for (const ln of lines) {
+    ctx.fillText(ln, 2, baseline);
+    baseline += lineH;
+  }
+  return { png: canvas.toBuffer("image/png"), widthPx, heightPx };
 }
 
 // Hand-extracted tick + cross PNGs (public/Marking/tick-*.png and
@@ -718,12 +744,6 @@ async function handle(
   // asterisks rendered literally on the paper.
   const handBoldFontBytes = await getHandBoldFontBytes();
   const handBoldFont = await doc.embedFont(handBoldFontBytes);
-  // Noto Sans SC, subset-embedded so the PDF only carries glyphs we
-  // actually drew. Used for any line containing CJK / fullwidth
-  // punctuation; the per-segment font picker swaps to it when the
-  // Latin-only Kalam/Helvetica would crash on a 汉字.
-  const cjkFontBytes = await getCjkFontBytes();
-  const cjkFont = await doc.embedFont(cjkFontBytes, { subset: true });
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
   const helveticaRegular = await doc.embedFont(StandardFonts.Helvetica);
   const RED = rgb(0.85, 0.10, 0.10);
@@ -1329,13 +1349,12 @@ async function handle(
         const badgeSize = Math.round(markSize * 0.475);
 
         // ─── Chinese OEQ simple path ────────────────────────────────
-        // The Latin OEQ path below does whitespace-band search +
-        // bold-aware word wrap + handwriting jitter — none of which
-        // apply to typed CJK and which were producing the scattered
-        // chars the user saw. For Chinese OEQ we just: draw the
-        // badge, then drop the note as a single drawText call at a
-        // typed body size, wrapping at the page's right margin via
-        // char-by-char accumulation.
+        // Render the Chinese marking note as a PNG via @napi-rs/canvas
+        // (using the system-installed Noto Sans CJK from nixpacks.toml)
+        // and embed the PNG in the PDF. Bypasses pdf-lib's variable-
+        // font handling — that was producing scattered glyphs even
+        // when widthOfTextAtSize reported correct metrics. Bold is
+        // native to canvas, no extra font asset needed.
         if (isChinese && isOeq && !isMcq) {
           page.drawText(badge, {
             x: markX + markSize * 0.6,
@@ -1347,29 +1366,19 @@ async function handle(
           if (m.note) {
             const noteSizeCn = Math.max(14, Math.round(noteSize * 0.45));
             const maxLineW = pageW - (markX + markSize * 1.5) - 12;
-            const lines: string[] = [];
-            let cur = "";
-            for (const ch of m.note) {
-              const candidate = cur + ch;
-              if (cjkFont.widthOfTextAtSize(candidate, noteSizeCn) <= maxLineW) {
-                cur = candidate;
-              } else {
-                if (cur) lines.push(cur);
-                cur = ch;
-              }
-            }
-            if (cur) lines.push(cur);
-            // Anchor the block below the badge.
-            let cy = markY - badgeSize * 1.4 - noteSizeCn;
-            for (const ln of lines.slice(0, 5)) {
-              page.drawText(ln, {
-                x: markX + markSize * 0.6,
-                y: cy,
-                size: noteSizeCn,
-                font: cjkFont,
-                color: RED,
+            try {
+              const { png, widthPx, heightPx } = renderCjkNoteToPng(m.note, {
+                fontSizePx: noteSizeCn,
+                maxWidthPx: Math.max(120, maxLineW),
+                color: "rgb(217, 26, 26)",
+                bold: true,
               });
-              cy -= noteSizeCn * 1.35;
+              const embedded = await doc.embedPng(png);
+              const noteX2 = markX + markSize * 0.6;
+              const noteY2 = markY - badgeSize * 1.4 - heightPx;
+              page.drawImage(embedded, { x: noteX2, y: noteY2, width: widthPx, height: heightPx });
+            } catch (err) {
+              console.warn(`[export-marked] Chinese note rasterise failed for Q${q.questionNum}:`, err);
             }
           }
           continue;
@@ -1423,11 +1432,11 @@ async function handle(
             : isOeq ? 4
             : 2;
 
-          // CJK chars are kept end-to-end now — drawJitteredTextBold
-          // swaps to Noto SC when it sees them. (Previously this site
-          // wrapped stripUnsupportedChars and dropped every Chinese
-          // marking note before it reached the renderer.)
-          const rawLines = (isCompCloze
+          // Chinese OEQ takes a dedicated PNG-rasterise path above,
+          // so any CJK leaking down here would be an artefact of the
+          // upstream label/answer text and can be stripped — the
+          // Kalam Latin path can't render it anyway.
+          const rawLines = stripUnsupportedChars(isCompCloze
             ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
             : (m.note ? stripLatex(m.note) : "")
           ).split(" / ").map(s => s.trim()).filter(Boolean);
@@ -1463,26 +1472,7 @@ async function handle(
           const wrapAt = (maxW: number) => {
             const out: string[] = [];
             for (const line of rawLines) {
-              // CJK lines wrap per-character with the Noto SC font (Chinese
-              // has no whitespace between glyphs, so wrapText's word
-              // tokeniser would emit a single overlong line that Kalam
-              // can't measure anyway). Latin lines keep the existing
-              // bold-aware word wrapper.
-              if (hasCjk(line)) {
-                let cur = "";
-                for (const ch of line) {
-                  const candidate = cur + ch;
-                  if (cjkFont.widthOfTextAtSize(candidate, effNoteSize) <= maxW) {
-                    cur = candidate;
-                  } else {
-                    if (cur) out.push(cur);
-                    cur = ch;
-                  }
-                }
-                if (cur) out.push(cur);
-              } else {
-                for (const w of wrapText(line, handFont, effNoteSize, maxW, handBoldFont)) out.push(w);
-              }
+              for (const w of wrapText(line, handFont, effNoteSize, maxW, handBoldFont)) out.push(w);
             }
             return out;
           };
@@ -1511,15 +1501,7 @@ async function handle(
           // the block so its longest line ends near the mark column,
           // keeping the comment visually attached to the cross without
           // ever wandering off the right edge.
-          // CJK lines measured with Noto SC (Kalam doesn't have the
-          // glyphs and widthOfTextAtSize would throw). Mixed-script
-          // lines fall under hasCjk too — Noto SC carries Latin too so
-          // the width is the right one to anchor the note's noteX.
-          const lineWidths = capped.map(l =>
-            hasCjk(l)
-              ? cjkFont.widthOfTextAtSize(l.replace(/\*\*/g, ""), effNoteSize)
-              : widthOfBoldText(l, handFont, handBoldFont, effNoteSize)
-          );
+          const lineWidths = capped.map(l => widthOfBoldText(l, handFont, handBoldFont, effNoteSize));
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
@@ -1672,7 +1654,6 @@ async function handle(
               size: effNoteSize,
               regFont: handFont,
               boldFont: handBoldFont,
-              cjkFont,
               color: RED,
             });
             yCursor -= lineSpacingPx;
@@ -1770,27 +1751,14 @@ function widthOfBoldText(
 function drawJitteredTextBold(
   page: Page,
   line: string,
-  opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; cjkFont?: PDFFont; color: ReturnType<typeof rgb> },
+  opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; color: ReturnType<typeof rgb> },
 ) {
   if (!line) return;
-  // CJK line → swap to Noto SC and skip the casual-handwriting jitter
-  // (it looks wrong on Chinese ideographs anyway, which are stroke-
-  // grid-based; Noto SC is the natural fit). Falls back to Kalam if
-  // somehow no cjkFont was passed and we still have a CJK line — in
-  // that case strip the unsupported chars so we don't crash.
+  // Belt + suspenders: Chinese OEQ has its own canvas-rasterise path
+  // (renderCjkNoteToPng) higher up the stamping loop. Any CJK leaking
+  // down here would be an artefact of an upstream label or answer
+  // string — strip it so Kalam doesn't throw a WinAnsi encode error.
   if (hasCjk(line)) {
-    if (opts.cjkFont) {
-      const font = opts.cjkFont;
-      const stripped = line.replace(/\*\*/g, ""); // bold markers don't apply for CJK; render plain
-      page.drawText(stripped, {
-        x: opts.x,
-        y: opts.y,
-        size: opts.size,
-        font,
-        color: opts.color,
-      });
-      return;
-    }
     line = stripUnsupportedChars(line);
     if (!line) return;
   }

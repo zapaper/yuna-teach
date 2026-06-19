@@ -1,0 +1,11 @@
+# Railway / Nixpacks build config.
+#
+# Installs system CJK fonts so @napi-rs/canvas can render Chinese
+# marking notes for the export-marked PDF route. Without these fonts
+# the canvas falls back to a font that has no CJK glyphs and Chinese
+# chars render as boxes (or scattered placeholders, depending on the
+# fallback chain).
+#
+# fonts-noto-cjk = Noto Sans CJK (SC + TC + JP + KR) — Apache 2.0
+[phases.setup]
+aptPkgs = ["fonts-noto-cjk", "fonts-noto-cjk-extra"]
