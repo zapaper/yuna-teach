@@ -1,0 +1,236 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Written Questions",
+      "what": "Tends to leave open-ended explanation questions completely blank instead of writing down the science facts she knows.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Alexa left this multi-part question about evaporation and surface area completely blank."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "She skipped this question about air occupying space and being able to escape."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "She left this question about the properties of air completely empty."
+        }
+      ],
+      "strategic_advice": "When you see a written question, treat it as a chance to show what you know!\n- **Write down key science words** related to the topic (like 'evaporate', 'occupies space', or 'gains heat').\n- **Attempt every part**, even if you are unsure of the final answer. A partial explanation can often earn you marks!",
+      "trigger_keywords": [
+        "Explain why",
+        "Give a reason",
+        "State what"
+      ]
+    },
+    {
+      "name": "Air Volume Confusion",
+      "what": "Sometimes forgets that a gas (like air) does not have a fixed volume and will always expand or compress to fill the available empty space in a container.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Alexa thought the volume of air would be the total capacity of the container, forgetting to subtract the space taken up by the water."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "She chose the total capacity of the container for the air's volume, missing that the water already takes up some of that space."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "She thought drawing air out would change its volume, but the remaining air simply expands to fill the whole container again."
+        }
+      ],
+      "strategic_advice": "When a question involves air in a sealed container, remember these rules:\n- **Air fills the empty space:** The volume of air is always the container's total capacity minus any liquids or solids inside.\n- **Pumping air in or out:** This changes the **mass** of the air, but the **volume** stays exactly the same because the container size hasn't changed!",
+      "trigger_keywords": [
+        "volume of air",
+        "pumped into",
+        "drawn out",
+        "capacity"
+      ]
+    },
+    {
+      "name": "Heat Flow Mix-Up",
+      "what": "Occasionally mixes up the direction that heat travels, confusing whether an object is gaining heat or losing heat.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Alexa thought a sweater keeps us warm by making us lose heat to it, rather than by slowing down heat loss to the surroundings."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She thought the cold spoon lost heat to the fingers, instead of realizing the warmer fingers lost heat to the spoon."
+        }
+      ],
+      "strategic_advice": "When you see questions about things feeling hot or cold, always ask yourself: **'Which object is warmer?'**\n- Heat always flows from the **warmer object** to the **cooler object**.\n- If your hand feels cold when touching something, it means your hand is **losing heat** to that object!",
+      "trigger_keywords": [
+        "felt cold",
+        "keep warm",
+        "gained heat",
+        "lost heat"
+      ]
+    },
+    {
+      "name": "Melting Temperature Mix-Up",
+      "what": "Sometimes thinks that the temperature of ice goes up while it is melting, instead of staying exactly at 0°C until it has completely melted.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Alexa chose a graph where the temperature changes during melting, rather than the one where it stays flat at 0°C."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "She thought the temperature of the melting ice cube was increasing as it gained heat, instead of remaining constant."
+        }
+      ],
+      "strategic_advice": "When you see questions about ice melting or water boiling, remember that during a change of state, the temperature **remains constant**.\n- The heat being gained is used entirely to **change the state** (from solid to liquid), not to make it hotter!\n- Look for the **flat line** on temperature graphs.",
+      "trigger_keywords": [
+        "melting ice cube",
+        "temperature over time",
+        "remains constant"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmp2j7rql000qjp6vxqu8arc4",
+    "2": "cmp2j7rql000sjp6vk7zgvdbo",
+    "3": "cmp2j7rql000tjp6vpua5zv9g",
+    "4": "cmp2j7rql000ujp6vy0v5qc2p",
+    "5": "cmp2j7rql000vjp6v53vfsj4i",
+    "6": "cmp2j7rql000wjp6vdvn7yjgj",
+    "7": "cmp2j7rqm000xjp6vl2ro8jow",
+    "8": "cmp2j7rqm000yjp6v6nwj5mp1",
+    "9": "cmp431t8l007qjqc1zobkv0fm",
+    "10": "cmp431t8m007tjqc1dbpsrl3i",
+    "11": "cmp431t8m007wjqc1m7s2kd58",
+    "12": "cmp431t8m007xjqc1vn71b0qw",
+    "13": "cmp2jdcaf001djp6v7gzc7u9s",
+    "14": "cmp2jdcag001hjp6vluikd1yh",
+    "15": "cmp2jdcag001ijp6v00c4pl3c",
+    "16": "cmp2jdcag001jjp6vt8diyged",
+    "17": "cmp2jdcag001kjp6vlaca4quw",
+    "18": "cmp2jdcag001ljp6vkedm6tfc",
+    "19": "cmp2jdcag001mjp6vfk7n3z99",
+    "20": "cmp40waxe006wjqc14et0glr6",
+    "21": "cmp40waxe006yjqc16a53uvq3",
+    "22": "cmp40waxe0071jqc1gy9hwdqq",
+    "23": "cmp40waxe0073jqc1y6nmx19i"
+  },
+  "generatedAt": "2026-06-19T02:39:55.471Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 10,
+    "mcq": 13
+  },
+  "toplineSnapshot": {
+    "avgPct": 37,
+    "totalAwarded": 34,
+    "totalAvailable": 92,
+    "paperCount": 4
+  },
+  "previousAssessment": null
+}

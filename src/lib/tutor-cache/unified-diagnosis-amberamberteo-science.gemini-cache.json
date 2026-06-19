@@ -1,0 +1,246 @@
+{
+  "patterns": [
+    {
+      "name": "Leaving Questions Blank",
+      "what": "Tends to leave several questions completely blank, especially towards the end of a practice paper or when a question has multiple parts.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Left the questions about the variables and the relationship between wing length and distance completely blank."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Did not write an answer for naming the flower part or comparing insect and wind-pollinated flowers."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Skipped both parts of the question explaining how golf balls and ping pong balls affect the water level."
+        }
+      ],
+      "strategic_advice": "When you feel stuck or tired, try these steps:\n- **Write down any science keywords** you know about the topic, even if you can't form a full sentence.\n- **Look at the marks** for the question. If it's worth 2 marks, try to write down two facts.\n- **Never leave a blank!** A partial answer can often earn you half a mark.",
+      "trigger_keywords": [
+        "(a)",
+        "(b)",
+        "(i)",
+        "(ii)"
+      ]
+    },
+    {
+      "name": "Stopping Too Early",
+      "what": "Occasionally stops one step short of writing down the specific science keywords or final consequences needed for full marks, even when the main idea is grasped.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Correctly named the ovule, but forgot to mention the key science phrase that it 'contains the egg cell'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Described the flower well, but stopped short of explaining that the pollen was transferred before the male parts were removed."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Noted that the magnet was strong, but missed stating the crucial fact that the paper clip is a 'magnetic material'."
+        }
+      ],
+      "strategic_advice": "When you see prompts like **'explain why'** or **'describe'**, treat them as a checklist:\n- **Use the right names:** Always use specific science words like 'magnetic material' or 'egg cell' instead of general words.\n- **Show the final step:** Add a **'so that...'** or **'which causes...'** clause to show the final result of what happens.",
+      "trigger_keywords": [
+        "Explain why",
+        "State why",
+        "Describe"
+      ]
+    },
+    {
+      "name": "Air and Space Mix-Up",
+      "what": "Sometimes forgets that air is matter that takes up space and can be compressed, which is key to explaining how liquids flow and balloons inflate.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "Identified that air was trapped, but missed explaining that the air needs to escape so the soy sauce can take its space."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "Incorrectly stated that air cannot be compressed when pushed by a plunger."
+        }
+      ],
+      "strategic_advice": "When a question involves empty bottles, plungers, or funnels, remember the invisible matter:\n- **Air takes up space:** If water or liquid wants to go in, the air must have a way to **escape**.\n- **Air can be compressed:** Unlike liquids and solids, gases can be squeezed into a smaller space.",
+      "trigger_keywords": [
+        "Explain why",
+        "property of matter",
+        "trapped air"
+      ]
+    },
+    {
+      "name": "Magnetic Rules Mix-Up",
+      "what": "Occasionally confuses which materials are magnetic and forgets the special rule that only two magnets can push each other away.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Forgot the golden rule that only two magnets can repel each other, while any magnetic metal can be attracted."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Thought that 'any metal' can be made into a magnet, instead of just magnetic ones like iron and steel."
+        }
+      ],
+      "strategic_advice": "When solving magnet puzzles, keep these rules in mind:\n- **Repulsion is the true test:** If two objects push each other away, they **must both be magnets**.\n- **Not all metals are magnetic:** Only specific metals like **iron and steel** can be attracted to or made into magnets.",
+      "trigger_keywords": [
+        "magnets",
+        "attract",
+        "repel",
+        "magnetic strength"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmov7t25c0006wmuxnt6txv23",
+    "2": "cmov7t25c0007wmuxpgxn9fmx",
+    "3": "cmov7t25d0009wmuxmhcmf175",
+    "4": "cmov7t25d000awmuxqpzd97z6",
+    "5": "cmov7t25d000bwmuxr834suyh",
+    "6": "cmp0wt2jy001tlmbznw79dr0v",
+    "7": "cmp0wt2k0001xlmbzn0o71f9q",
+    "8": "cmp0wt2k0001ylmbz39cpy3td",
+    "9": "cmp0wt2k00020lmbz1ynrfdpx",
+    "10": "cmp0wsggd001olmbzktcwt90g",
+    "11": "cmov7ulrk000ewmuxkgstge1e",
+    "12": "cmov7ulrk000fwmux90wffs23",
+    "13": "cmov7ulrk000gwmuxt3w2bdyp",
+    "14": "cmov7ulrl000kwmuxuny5v9v3",
+    "15": "cmov7ulrl000mwmuxcsh9se90",
+    "16": "cmov7v3zy000twmuxpdan5zhj",
+    "17": "cmov7v3zz000vwmuxgsxpyapq",
+    "18": "cmov7v400000ywmuxc19mbef3",
+    "19": "cmov7v400000zwmux4i1a5fen",
+    "20": "cmozjaknt00068hc8qivovte5",
+    "21": "cmozjaknt00078hc8kqofqrm1",
+    "22": "cmozjaknt00088hc8ey3a0ip2",
+    "23": "cmozjaknt00098hc8os17cpbe",
+    "24": "cmozjaknt000a8hc8fg4hvie8",
+    "25": "cmozjaknu000b8hc8mt6eq6bj"
+  },
+  "generatedAt": "2026-06-19T02:39:53.861Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 17,
+    "mcq": 8
+  },
+  "toplineSnapshot": {
+    "avgPct": 59,
+    "totalAwarded": 78.5,
+    "totalAvailable": 132,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

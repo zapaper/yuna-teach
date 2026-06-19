@@ -1,0 +1,218 @@
+{
+  "patterns": [
+    {
+      "name": "Similar Character Mix-Up",
+      "what": "Sometimes confuses Chinese characters that look very similar but have different meanings, such as mixing up '篇' and '遍'.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "David chose '篇' (used for articles) instead of '遍' (used for times) when completing the phrase 'said it a few times'."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He again mixed up '篇' and '遍' when describing watching a movie multiple times."
+        }
+      ],
+      "strategic_advice": "When you see characters that share the same parts, pause and look at the radical (the side part) for a hint.\n- **'辶' (walking radical)** usually means movement or passing through, like reading something a few times (遍).\n- **'竹' (bamboo radical)** is often used for writing or books, like an article (篇).",
+      "trigger_keywords": [
+        "好几",
+        "部",
+        "句话"
+      ]
+    },
+    {
+      "name": "Word Meaning Mix-Up",
+      "what": "Occasionally mixes up the exact meanings of vocabulary words or idioms, choosing an option that feels somewhat related but doesn't quite fit the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "David thought '幻想' (fantasy) meant having confidence about the future, rather than imagining something impossible."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'looking carefully' for the idiom '目不转睛', missing that it specifically describes concentrated attention."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "David confused '暂时' (temporarily) with '一时' (a momentary impulse) when picking the correct sentence."
+        }
+      ],
+      "strategic_advice": "When choosing the meaning of a word or idiom, try replacing the word in the sentence with your chosen option to see if it makes sense.\n- Look for **clue words** in the sentence. For example, '超人的力气' (superhuman strength) is a clue that it's a fantasy, not just confidence.\n- For idioms, try to remember the **core feeling** of the word (e.g., '目不转睛' is about focus and attention, not just looking closely).",
+      "trigger_keywords": [
+        "意思",
+        "形容",
+        "哪一个句子是正确的"
+      ]
+    },
+    {
+      "name": "Pinyin Tone Slips",
+      "what": "Tends to choose the correct pinyin letters but occasionally slips up on the tone marks or ending sounds.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "David picked 'chěn shí' instead of 'chéng shí' for '诚实', missing the 'g' ending and the correct tone."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the third tone 'yǐ' instead of the second tone 'yí' for the word '怀疑'."
+        }
+      ],
+      "strategic_advice": "When you see pinyin questions, read the word out loud in your head before looking at the options.\n- Pay special attention to the **tone marks** (the little lines above the vowels).\n- Double-check if the word has a **'g' at the end** (like 'cheng' vs 'chen').",
+      "trigger_keywords": [
+        "拼音",
+        "读音"
+      ]
+    },
+    {
+      "name": "Missing Story Clues",
+      "what": "Sometimes picks an answer that sounds okay on its own, but misses the specific clues hidden in the story or dialogue.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "David picked a response that didn't quite fit the flow of the conversation about a lost workbook."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He thought 'battle' referred to the fire getting bigger, rather than the firefighters actively fighting the fire."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "David guessed the mother cat was asking for help, missing the story clue that she was trying to get her kittens' attention."
+        }
+      ],
+      "strategic_advice": "When answering questions about a story or a conversation, treat yourself like a detective looking for evidence.\n- For **conversations**, read the sentence right before and right after the blank to find the missing link.\n- For **story questions**, always go back to the exact paragraph where the event happens and find the **proof** before choosing your answer.",
+      "trigger_keywords": [
+        "为什么",
+        "指的是什么",
+        "对话"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpyu81ag000ypyi2fz2zcsgl",
+    "2": "cmpyu81ag0011pyi2q4ztznet",
+    "3": "cmpyu81ag0012pyi242c1yl5z",
+    "4": "cmpxnsga80016gfs2myz6zoxt",
+    "5": "cmpxnsga8001egfs2oe88t8d1",
+    "6": "cmptj4bf3008oa619khm42x8j",
+    "7": "cmptj4bf3008ra619yigabj3t",
+    "8": "cmptj4bf3008ta61956s2mo8t",
+    "9": "cmptj1rgm007ya619sopjsbvq",
+    "10": "cmptizyig007ca619v8r13fmk",
+    "11": "cmptizyig007ea619pj3t7s3u",
+    "12": "cmptizyig007ja619qmdtpjyp",
+    "13": "cmptiwl32006sa619su08o1xj",
+    "14": "cmptiwl330070a619xv5brknk",
+    "15": "cmptiwl330074a619l13iiwa7",
+    "16": "cmptaefkd000xhch8dyt5m07i",
+    "17": "cmptaefkd000zhch87uzhruk8",
+    "18": "cmptaefke001ahch8lvefqzts",
+    "19": "cmptaefke001hhch8v7a4gfdr",
+    "20": "cmptaefke001ihch87970swlz"
+  },
+  "generatedAt": "2026-06-19T02:36:11.236Z",
+  "wrongCounts": {
+    "total": 20,
+    "oeq": 3,
+    "mcq": 17
+  },
+  "toplineSnapshot": {
+    "avgPct": 85,
+    "totalAwarded": 226,
+    "totalAvailable": 266,
+    "paperCount": 10
+  },
+  "previousAssessment": null
+}

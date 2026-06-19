@@ -1,0 +1,192 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Questions",
+      "what": "Tends to leave multi-step word problems completely blank instead of writing down the first few steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "EVANG left this ratio question about adult and child tickets completely blank."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "This before-and-after sticker problem was left blank, missing out on partial marks for finding the total."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "EVANG skipped this question about John and Ken's money instead of writing down the starting ratio."
+        }
+      ],
+      "strategic_advice": "- Even if you aren't sure how to reach the final answer, **always write down the first step**.\n- For ratio questions, draw a quick **model** or write down the **units** you know. Every correct step can earn you partial marks!",
+      "trigger_keywords": [
+        "at first",
+        "in the end",
+        "total cost"
+      ]
+    },
+    {
+      "name": "Working Backwards Mix-Up",
+      "what": "Occasionally gets tricked by 'more than' or 'twice as many' when the question gives the larger amount and requires working backwards to find the smaller one.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "The table gave the number of sweets, which was twice the chocolates, but EVANG picked the sweets number instead of dividing by two."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "The flour was heavier than the sugar, so EVANG needed to subtract to find the sugar, but likely added instead."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Ali drank more than Harry, which means Harry drank less, but EVANG got tangled up when working backwards to find Harry's amount."
+        }
+      ],
+      "strategic_advice": "- When you see **\"twice as many\"** or **\"heavier than\"**, pause and ask: \"Which one is bigger?\"\n- If you already have the bigger number, you need to **divide or subtract** to find the smaller one.\n- Always double-check your final answer to make sure the bigger item actually has the bigger number!",
+      "trigger_keywords": [
+        "twice the number",
+        "heavier than",
+        "more than"
+      ]
+    },
+    {
+      "name": "Small Calculation Slips",
+      "what": "Sometimes sets up the math perfectly but makes a small arithmetic slip along the way.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "EVANG correctly found one-ninth of the money, but made a small multiplication slip when finding five-ninths."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "EVANG knew to find the difference between March and April, but made a small slip when reading the graph or subtracting."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "EVANG knew to subtract the bag's weight from the total to find the laptop, but made a small fraction slip."
+        }
+      ],
+      "strategic_advice": "- Write your working out clearly with plenty of space so you can read your own numbers.\n- When subtracting or multiplying, do a quick **reverse check** (e.g., if you subtract, add the numbers back together to see if they match).",
+      "trigger_keywords": [
+        "difference between",
+        "how much had she left",
+        "total mass"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqc0tv9o0003ly3h92ayph6p",
+    "2": "cmqc0uei6000cly3hs518ylrb",
+    "3": "cmqc0uei7000ily3hftf3udql",
+    "4": "cmqc0uei7000jly3hbsv3hl7a",
+    "5": "cmqc0uei7000kly3hnf3l3a4d",
+    "6": "cmqc0uei7000lly3h5quj7xgb",
+    "7": "cmqc0uei7000mly3hlyqx5h45",
+    "8": "cmqbyre50003n4ehojl2xgt10",
+    "9": "cmqbyre51003p4ehozv73nsyp",
+    "10": "cmqbyre51003s4ehoaw2l5odh",
+    "11": "cmqbyre51003v4eho4ipmat23",
+    "12": "cmqbyxy7i00404ehodts1w808",
+    "13": "cmqbyxy7i00414ehoab55merp",
+    "14": "cmqbyxy7i00424eho1x33ig0w",
+    "15": "cmqbyxy7i00434eho1wj2y7jk",
+    "16": "cmqbyxy7i00444ehok9qqepqv",
+    "17": "cmqbyxy7i00454eho5yqvatoe",
+    "18": "cmqbyxy7i00464ehoeauj3gbr"
+  },
+  "generatedAt": "2026-06-19T02:38:00.753Z",
+  "wrongCounts": {
+    "total": 18,
+    "oeq": 12,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 61,
+    "totalAwarded": 59,
+    "totalAvailable": 96,
+    "paperCount": 4
+  },
+  "previousAssessment": null
+}

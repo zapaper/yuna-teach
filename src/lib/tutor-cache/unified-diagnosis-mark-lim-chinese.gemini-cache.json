@@ -1,0 +1,379 @@
+{
+  "patterns": [
+    {
+      "name": "Word Pairing Mix-Up",
+      "what": "Sometimes chooses words that seem to fit the general meaning but aren't the natural pairs used in Chinese.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He picked '十分严格' to describe a look, but '严格' (strict) is usually paired with '要求' (requirements)."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He chose '建设' (construct) for a computer game, but the correct pairing is '设计' (design)."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "mcq",
+          "whatWentWrong": "He selected '扩大' (expand) for development, but the natural pair is '推动' (promote) development."
+        }
+      ],
+      "strategic_advice": "- When learning new vocabulary, try to remember them as **word pairs** (e.g., 态度积极, 要求严格) instead of single words.\n- Read the options aloud with the noun they describe to see which one sounds like a natural **fixed phrase**.",
+      "trigger_keywords": [
+        "以下哪一个句子是正确的",
+        "填空",
+        "最适合的词语"
+      ]
+    },
+    {
+      "name": "Missing Context Clues",
+      "what": "Occasionally focuses on a single phrase and misses the hints in the surrounding sentences that point to the correct answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "He chose '轻手轻脚' (gently) for the flowers, missing the clue '在风雨中' (in the wind and rain) which points to '东摇西摆' (swaying)."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "He picked an option saying the person accepted advice, missing the earlier clue '劝了好多次' (advised many times) which implies the person didn't listen."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He selected '回忆' (memories) for a card to parents, missing the clue '写下感谢父母的话' which points to '祝福' (blessings)."
+        }
+      ],
+      "strategic_advice": "- Treat the sentences before and after the blank as **detective clues**.\n- Highlight or underline **key action words** or **descriptive phrases** in the passage before looking at the options.\n- Ask yourself: \"Does my choice make sense with the **whole story** happening around it?\"",
+      "trigger_keywords": [
+        "为什么",
+        "可以看出",
+        "指的是什么",
+        "最适合的词语"
+      ]
+    },
+    {
+      "name": "Connecting the Conversation",
+      "what": "Tends to pick a dialogue response that sounds okay on its own, but doesn't quite link the sentence before it to the sentence after it.",
+      "specific_examples": [
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "He picked an option that didn't smoothly connect the friend's interest in the place to the next sentence about searching online."
+        },
+        {
+          "questionRef": "[44]",
+          "type": "oeq",
+          "whatWentWrong": "He chose a response that didn't logically lead to the final conclusion asking why they should object to them working."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the logical flow between participating in a poster design competition and the subsequent actions."
+        }
+      ],
+      "strategic_advice": "- Always read the sentence **immediately before** and **immediately after** the blank.\n- Plug your chosen answer into the blank and read the **entire character's speech** aloud to check if the conversation flows naturally.\n- Look out for **linking words** like \"所以\" (so) or \"其实\" (actually) to guide your choice.",
+      "trigger_keywords": [
+        "完成对话",
+        "填入最适合的选项"
+      ]
+    },
+    {
+      "name": "Similar Character Mix-Up",
+      "what": "Occasionally mixes up Chinese characters that share similar sounds or look almost identical.",
+      "specific_examples": [
+        {
+          "questionRef": "[37]",
+          "type": "mcq",
+          "whatWentWrong": "He confused '培' with the correct character '倍' in the phrase '加倍' (double)."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "He picked '缤' instead of '宾' for guests, mixing up characters with the exact same sound."
+        }
+      ],
+      "strategic_advice": "- Pay close attention to the **radicals** (部首) of characters, as they give clues to the meaning.\n- When you see characters that look or sound similar, pause and double-check their **pinyin** and **meaning** before choosing.",
+      "trigger_keywords": [
+        "正确的拼音",
+        "正确的字",
+        "哪一个句子是正确的"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 0
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": 1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 2
+    },
+    {
+      "idx": 42,
+      "patternIndex": 2
+    },
+    {
+      "idx": 43,
+      "patternIndex": 2
+    },
+    {
+      "idx": 44,
+      "patternIndex": 2
+    },
+    {
+      "idx": 45,
+      "patternIndex": 0
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": 1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 1
+    },
+    {
+      "idx": 49,
+      "patternIndex": 2
+    },
+    {
+      "idx": 50,
+      "patternIndex": 1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqf48jto000mgcup3omz2657",
+    "2": "cmqd2h337000iy2vwy0bhtvo6",
+    "3": "cmqd2h338000ly2vwivhyc09y",
+    "4": "cmqd2h338000my2vwdk588osw",
+    "5": "cmqd2h338000ny2vwcfttkmle",
+    "6": "cmqd2h338000oy2vw4hbw5gth",
+    "7": "cmqd2h338000py2vw5o2b0wu8",
+    "8": "cmq28gy0s006bmr344u8iafzm",
+    "9": "cmq28gy0s006cmr34pk9mamnc",
+    "10": "cmq28gy0s006dmr343swlhidr",
+    "11": "cmq28gy0s006emr346ytdp4qt",
+    "12": "cmq28gy0s006fmr34hfrztr7d",
+    "13": "cmpvxg7n20028l2ir4quolkla",
+    "14": "cmpvxg7n2002al2irfdrs1fch",
+    "15": "cmpvxg7n2002dl2irdzaxitx9",
+    "16": "cmpvxg7n2002ml2irgng1ej5b",
+    "17": "cmpvxg7n3002ol2irdqagdynq",
+    "18": "cmpvxg7n3002pl2irnrhdiqzv",
+    "19": "cmpvxg7n3002sl2ir6r1w9c8v",
+    "20": "cmpvxg7n3002tl2irt5whe3c2",
+    "21": "cmpvxg7n3002ul2ir4275n1fh",
+    "22": "cmpvxg7n3002vl2iridoa65ri",
+    "23": "cmpvxg7n3002wl2irbxt5gxov",
+    "24": "cmpvxg7n3002xl2iryus80m1v",
+    "25": "cmpusste4002iqm74uel969yq",
+    "26": "cmpusste5002xqm74qnyekur4",
+    "27": "cmptjgb2900boa6199fkkrcfr",
+    "28": "cmptjgb2900bpa619jvf5kmk3",
+    "29": "cmptjgb2a00bxa6191x3sq9xw",
+    "30": "cmptjgb2a00bya6192pyf3raj",
+    "31": "cmptjgb2a00c2a619q59dk9u3",
+    "32": "cmptjgb2a00c3a619xa2eu32i",
+    "33": "cmptjgb2a00c5a619loi8namm",
+    "34": "cmptjgb2a00c6a619emiupp7b",
+    "35": "cmptjgb2a00c7a619w6ogvk7t",
+    "36": "cmptiizlw0065a619dcdk76xx",
+    "37": "cmptiizlw0067a6191zbgfu64",
+    "38": "cmptiizlw006ba6195ii4sprw",
+    "39": "cmptiizlw006ca619nsw2w1sk",
+    "40": "cmptiizlx006ia619dxrynlgw",
+    "41": "cmptiizlx006ja619byvk18g9",
+    "42": "cmptiizlx006ka619vvu0iexo",
+    "43": "cmptiizlx006la619zu4wev2k",
+    "44": "cmptiizlx006na6194y03g4j4",
+    "45": "cmptae65a000fhch8bxn6fb61",
+    "46": "cmptae65a000ihch8b9d7r7n2",
+    "47": "cmptae65a000nhch8gu6n88ur",
+    "48": "cmptae65a000phch8xdtvfuln",
+    "49": "cmptae65a000thch8jk47ydx7",
+    "50": "cmprugv5g000fcgi70wbzywhd",
+    "51": "cmprugv5h000lcgi7304gvnxn"
+  },
+  "generatedAt": "2026-06-19T02:36:38.575Z",
+  "wrongCounts": {
+    "total": 51,
+    "oeq": 15,
+    "mcq": 36
+  },
+  "toplineSnapshot": {
+    "avgPct": 74,
+    "totalAwarded": 300,
+    "totalAvailable": 404,
+    "paperCount": 11
+  },
+  "previousAssessment": null
+}

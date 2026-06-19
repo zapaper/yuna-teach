@@ -1,0 +1,197 @@
+{
+  "patterns": [
+    {
+      "name": "Heat and Temperature Mix-Up",
+      "what": "Tends to confuse heat energy with temperature, especially missing the rule that temperature stays exactly the same while ice is melting.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Drewie thought the temperature of a melting ice cube increases as it gains heat, rather than staying constant at 0°C until fully melted."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Drewie thought a beaker that boiled faster started at a higher temperature, instead of realising a smaller amount of water needs less heat to reach boiling point."
+        }
+      ],
+      "strategic_advice": "When you see questions about heating or melting, remember these golden rules:\n- **'Melting ice'** → The temperature stays exactly at 0°C until every last bit of ice has turned to water, even though it is gaining heat.\n- **'Different amounts of water'** → More water always needs more heat to reach the same temperature.",
+      "trigger_keywords": [
+        "melting",
+        "gains heat",
+        "temperature",
+        "identical heat sources"
+      ]
+    },
+    {
+      "name": "Fair Test Rules",
+      "what": "Tends to change more than one condition when picking a fair test, or mixes up how to make an experiment reliable.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Drewie chose an experiment setup where two things were changed at once, instead of keeping everything identical except the substance being tested."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Drewie suggested changing the room's walls to make results more reliable, rather than repeating the experiment to find an average."
+        }
+      ],
+      "strategic_advice": "When you see questions asking to check a hypothesis or make an experiment reliable, treat them as stop signs:\n- **'Check if his hypothesis was correct'** → Look for the setup that changes ONLY the one thing you are testing. Everything else must be exactly the same!\n- **'More reliable results'** → Always suggest repeating the experiment a few more times to find an average.",
+      "trigger_keywords": [
+        "hypothesis",
+        "fair test",
+        "reliable",
+        "keep constant"
+      ]
+    },
+    {
+      "name": "Missing Science Keywords",
+      "what": "Describes what is happening using everyday words, but occasionally stops one step short of using the exact science keywords needed for full marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Drewie noticed the 'air gaps' between the plates, but missed out on using key terms like 'larger exposed surface area' and 'evaporation'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Drewie correctly identified that water is transported from the roots, but forgot to mention 'mineral salts' which travel together with it."
+        }
+      ],
+      "strategic_advice": "When you are explaining how something works in an open-ended question, everyday words are a great start, but science words get the marks!\n- **'Dry faster'** → Always link this to **'evaporation'** and **'exposed surface area'**.\n- **'Transported in a plant'** → Remember that water never travels alone; always write **'water and mineral salts'**.",
+      "trigger_keywords": [
+        "explain why",
+        "give reasons",
+        "describe how"
+      ]
+    },
+    {
+      "name": "Digestion Journey Mix-Up",
+      "what": "Mixes up what happens at the end of the digestive system occasionally, particularly forgetting where water and digested food are absorbed into the body.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Drewie chose a graph showing digested food leaving the small intestine, forgetting that it gets absorbed into the blood there."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Drewie missed that water is removed from undigested food in the large intestine, choosing 'None of the above' instead."
+        }
+      ],
+      "strategic_advice": "When you see questions about the digestive system, trace the journey of the food step-by-step:\n- **'Small intestine'** → This is where digestion finishes and the good stuff (digested food) is **absorbed into the blood**.\n- **'Large intestine'** → No digestion happens here! This is just where **water is absorbed** from the waste.",
+      "trigger_keywords": [
+        "digested food",
+        "undigested food",
+        "large intestine",
+        "small intestine"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmp3uzop9004tjqc1z4zvhnue",
+    "2": "cmp3uzop90051jqc1x9vebafy",
+    "3": "cmp3uzopa0059jqc1hrx30zkh",
+    "4": "cmp3uzopa005cjqc1yo10qy9c",
+    "5": "cmoznaek9000fgf4gsiwh9il1",
+    "6": "cmp0q61wi0006tvu281d6p5xo",
+    "7": "cmowtsf98002rexaiy4szy41h",
+    "8": "cmowtsf99002uexaip0taovdr",
+    "9": "cmowtsf99002vexaiges8uihw",
+    "10": "cmov5d1fe00069xcyx6jv0hqe",
+    "11": "cmov5d1fe00079xcy9zlbibx3",
+    "12": "cmov5d1fe000a9xcyq17y8gx6",
+    "13": "cmov5d1fg000d9xcyayl89k0m",
+    "14": "cmov5d1fg000g9xcyo4g2n56q",
+    "15": "cmotxyve5003od15sx15l5gfi",
+    "16": "cmotxyve5003qd15sckfcv4g7",
+    "17": "cmotxyve5003rd15s6uxxpn2s"
+  },
+  "generatedAt": "2026-06-19T02:41:42.151Z",
+  "wrongCounts": {
+    "total": 17,
+    "oeq": 4,
+    "mcq": 13
+  },
+  "toplineSnapshot": {
+    "avgPct": 79,
+    "totalAwarded": 105.5,
+    "totalAvailable": 134,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

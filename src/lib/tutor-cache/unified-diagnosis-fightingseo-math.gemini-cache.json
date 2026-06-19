@@ -1,0 +1,260 @@
+{
+  "patterns": [
+    {
+      "name": "Place Value Slips",
+      "what": "Sometimes mixes up the names and values of different digit positions, like confusing tens with hundreds or tenths with hundredths.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo picked 30 instead of 3 000 for the value of the digit 3 in 23 581."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He thought the digit 1 in 91 234 stood for 1 hundred instead of 1 thousand."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo chose a number where the 4 was in the tenths place rather than the hundredths place."
+        }
+      ],
+      "strategic_advice": "When you see questions asking for the **value of a digit**, try this:\n- **Write the number out** and label each column (Ones, Tens, Hundreds, Thousands).\n- Pay close attention to the **'ths'** at the end of words like 'hundredths'—that means it's a decimal!",
+      "trigger_keywords": [
+        "value of the digit",
+        "stands for",
+        "place"
+      ]
+    },
+    {
+      "name": "Multiple vs Factor Mix-Up",
+      "what": "Occasionally confuses multiples (numbers you get by multiplying) with factors (numbers that divide evenly into another).",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo picked 16 as a common factor of 4 and 8, but 16 is actually a multiple."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 12 as a common multiple of 4 and 7, but 12 cannot be divided by 7."
+        }
+      ],
+      "strategic_advice": "When you see these words, remember the difference:\n- **'Factor'** → Think 'Few'. These are the smaller numbers that fit perfectly inside the target number (like 1, 2, and 4 for the number 4).\n- **'Multiple'** → Think 'Many'. These are the bigger numbers you get when you skip-count (like 4, 8, 12, 16).",
+      "trigger_keywords": [
+        "common multiple",
+        "common factor",
+        "every"
+      ]
+    },
+    {
+      "name": "Rounding Rules",
+      "what": "Tends to round to the wrong hundred or struggles to work backwards to find which numbers round to a specific target.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo picked 25 549, but since the tens digit is a 4, that would round down to 25 500 instead of up to 25 600."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 84 092, which rounds up to 84 100 rather than staying at 84 000."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo selected 49 144, which rounds down to 49 100 instead of 49 000."
+        }
+      ],
+      "strategic_advice": "When you see **'rounded to the nearest hundred'**, always circle the **tens digit**:\n- If the circled digit is **5 or more**, round up!\n- If the circled digit is **4 or less**, round down!\n- When asked for the **smallest possible amount**, look for a number that rounds *up* to your target.",
+      "trigger_keywords": [
+        "rounded to the nearest",
+        "smallest possible amount",
+        "becomes"
+      ]
+    },
+    {
+      "name": "Unit Model Puzzles",
+      "what": "Occasionally gets stuck or stops halfway when a word problem requires drawing a model to compare different units or track changes.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "fightingseo successfully found the value of 7 units (Tom's amount) but forgot the question was asking for Sarah's leftover amount (1 unit)."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He left the question blank, likely because it was tricky to set up a model comparing Ahmad, John, and Tina all at once."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "fightingseo struggled to draw the 'before and after' model showing Ryan and Chloe selling different amounts of cookies."
+        }
+      ],
+      "strategic_advice": "When you see phrases comparing amounts, treat them as clues to draw a model:\n- **'times as many'** → Draw boxes to show the units (like 3 boxes for Ryan and 1 box for Chloe).\n- **'in the end'** or **'left'** → Draw a 'Before' model and an 'After' model to see what changed.\n- Always re-read the last sentence to make sure you are solving for the right person!",
+      "trigger_keywords": [
+        "times as many",
+        "in the end",
+        "left",
+        "more than"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpovzymc001ye9rvi3oq7gb6",
+    "2": "cmpovzymc001ze9rv6z9sj1oz",
+    "3": "cmpovzymc0020e9rveq1sfepk",
+    "4": "cmpovzymd0023e9rv8lc333f1",
+    "5": "cmpovzymd0024e9rvuzdx6yin",
+    "6": "cmpovzymd0028e9rvyykk5ar0",
+    "7": "cmpovzymd0029e9rvwb4u6gth",
+    "8": "cmpovzymd002ae9rvebuqccu4",
+    "9": "cmpovzymg002be9rva4xpp0cd",
+    "10": "cmpovzymk002ce9rvxkzsbo5w",
+    "11": "cmpovzyml002de9rvrtdfi9h2",
+    "12": "cmpovzyml002fe9rvgwnuq0u0",
+    "13": "cmpovzyml002ge9rv8qqba7os",
+    "14": "cmpovzyml002he9rv5p9rusho",
+    "15": "cmpou5kcj000qiburhur5f8th",
+    "16": "cmpou5kcj000riburl3606em3",
+    "17": "cmpou5kck000yiburky87rq5c",
+    "18": "cmpou5kck0015iburzcrkd9cy",
+    "19": "cmpou5kcl0018iburaazmbsxw",
+    "20": "cmpou1stx0008ibur42c3e7tc",
+    "21": "cmpou1stx000ciburf8fcplfu",
+    "22": "cmpou1stx000diburjqzshfo1",
+    "23": "cmpou1stx000giburzved5okm",
+    "24": "cmpou1stx000iiburhwziqrzf",
+    "25": "cmpou1stx000jiburqao3hei7",
+    "26": "cmpou1stx000libursyklur0j",
+    "27": "cmpou1sty000miburbcc28hzr"
+  },
+  "generatedAt": "2026-06-19T02:38:12.880Z",
+  "wrongCounts": {
+    "total": 27,
+    "oeq": 4,
+    "mcq": 23
+  },
+  "toplineSnapshot": {
+    "avgPct": 50,
+    "totalAwarded": 56,
+    "totalAvailable": 113,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

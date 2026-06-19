@@ -1,0 +1,412 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Condensation Steps",
+      "what": "Sometimes identifies that water evaporates, but forgets to explain the next crucial steps: warm water vapour touching a cooler surface, losing heat, and condensing into droplets.",
+      "specific_examples": [
+        {
+          "questionRef": "[54]",
+          "type": "oeq",
+          "whatWentWrong": "Enxin correctly identified that water evaporates, but stopped one step short of explaining how the warm vapour touches the cooler surface and condenses."
+        },
+        {
+          "questionRef": "[55]",
+          "type": "oeq",
+          "whatWentWrong": "Enxin explained that the boiling water would evaporate, but missed the key step where the steam loses heat to the cooler metal tray to form droplets."
+        },
+        {
+          "questionRef": "[53]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin missed that a colder surface takes away heat more quickly, which speeds up the rate of condensation."
+        }
+      ],
+      "strategic_advice": "When you see questions about **water droplets**, **mist**, or **clouds**, always write down the full 'condensation story':\n- **Who:** Warm water vapour\n- **Does what:** Touches a cooler surface and **loses heat**\n- **Result:** Condenses into tiny water droplets",
+      "trigger_keywords": [
+        "explain how",
+        "water droplets",
+        "mist",
+        "white cloud",
+        "condense"
+      ]
+    },
+    {
+      "name": "Air Volume Mix-Up",
+      "what": "Occasionally forgets that air can be compressed and will always take up the remaining space in a container, unlike water which has a fixed volume.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin added the pumped air to the tank's capacity, forgetting that air can be compressed to fit the original 500 cm³ space."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin didn't account for the fact that water has a fixed volume and takes up space, forcing the air to compress into whatever room is left."
+        }
+      ],
+      "strategic_advice": "When a question involves pumping air into a sealed container, remember the golden rule of gases:\n- **Air has no fixed volume.** It can be squashed (compressed) to fit whatever space is available.\n- **Water has a fixed volume.** It cannot be compressed. Always subtract the volume of water from the container's total capacity to find the volume of the air!",
+      "trigger_keywords": [
+        "pumped in",
+        "capacity",
+        "air",
+        "sealed",
+        "plunger"
+      ]
+    },
+    {
+      "name": "Blood Flow Mix-Up",
+      "what": "Tends to mix up how the amounts of oxygen, carbon dioxide, and digested food change as blood travels through different organs like the lungs and small intestine.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin was unsure how the levels of digested food and oxygen change after blood passes through the small intestine."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin mixed up the gases, forgetting that blood picks up oxygen from the lungs and drops off carbon dioxide."
+        }
+      ],
+      "strategic_advice": "Think of the blood as a delivery truck travelling around the body:\n- At the **lungs**, it drops off **carbon dioxide** and picks up **oxygen**.\n- At the **small intestine**, it picks up **digested food** to deliver to the rest of the body, while using up oxygen.\n- At **other body parts**, it drops off oxygen and food, and picks up carbon dioxide waste.",
+      "trigger_keywords": [
+        "blood flow",
+        "carbon dioxide",
+        "oxygen",
+        "small intestine",
+        "lungs"
+      ]
+    },
+    {
+      "name": "Evaporation Rules Mix-Up",
+      "what": "Sometimes thinks evaporation only happens when it is very hot or when there is sunlight, forgetting that water can evaporate at any temperature.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin concluded that both liquids need sunlight to evaporate, but evaporation can happen even in the dark."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin incorrectly guessed that evaporation only takes place when the temperature is above 30°C."
+        }
+      ],
+      "strategic_advice": "Remember that **evaporation happens all the time, at any temperature** between 0°C and 100°C!\n- It does not need sunlight or boiling heat to occur.\n- However, factors like **wind**, **higher temperatures**, and a **larger exposed surface area** will make evaporation happen *faster*.",
+      "trigger_keywords": [
+        "evaporate",
+        "sunlight",
+        "temperature",
+        "water cycle",
+        "faster"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 2
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": 2
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": 2
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 2
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 0
+    },
+    {
+      "idx": 54,
+      "patternIndex": 0
+    },
+    {
+      "idx": 55,
+      "patternIndex": 0
+    },
+    {
+      "idx": 56,
+      "patternIndex": 0
+    },
+    {
+      "idx": 57,
+      "patternIndex": 0
+    },
+    {
+      "idx": 58,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqi132p6000bl16i5a5c2txw",
+    "2": "cmqi132p6000dl16iibpal8b5",
+    "3": "cmqgkpb4k003i1171ai6813xw",
+    "4": "cmqgkpb4k003k11714ewb00vp",
+    "5": "cmqgkpb4k003l11718gin6bbn",
+    "6": "cmqaldjin000ar417mhk1nmbp",
+    "7": "cmqaldjin000er4179mkbual3",
+    "8": "cmqaldjio000jr417f3nyzt1o",
+    "9": "cmqaldjio000lr417t1bwhsuq",
+    "10": "cmqaldu7e000pr41788wfz2vg",
+    "11": "cmqaldu7f000xr417ixbq8yhp",
+    "12": "cmqaldu7f0010r41749pgmbxx",
+    "13": "cmqaldu7f0014r417cq91xeqb",
+    "14": "cmq6ky2hf0004fgkljet6aaof",
+    "15": "cmq6ky2hg000dfgklcem9dud8",
+    "16": "cmq6ky2hh000kfgkltsd1lwsa",
+    "17": "cmpv5cjzz000petx3ja678b3e",
+    "18": "cmpv5ck02000uetx3obzd0sir",
+    "19": "cmpv5ck02000vetx31axat1uj",
+    "20": "cmpv5ck030010etx3o3ofkrrn",
+    "21": "cmpv5ck030011etx3l3pafhzb",
+    "22": "cmpv5ck030017etx333eco6sc",
+    "23": "cmpv5cqaf001aetx3iyxf819s",
+    "24": "cmpv5cqag001fetx3i6miq82s",
+    "25": "cmpv5cqag001hetx3p6waahx0",
+    "26": "cmpv5cqag001ietx3ris0dlzz",
+    "27": "cmpv5cqag001jetx3pirlqdj4",
+    "28": "cmpv5cqag001ketx38msw9sfw",
+    "29": "cmpv5ctr4001yetx3h0te8p6r",
+    "30": "cmpv5ctr40021etx3hu5uo9fd",
+    "31": "cmpv5ctr50027etx3jlksduno",
+    "32": "cmpv5ctr6002betx3upyfmc4n",
+    "33": "cmpv5cdh2000betx336jaoom4",
+    "34": "cmpv5cdh3000eetx325u22kfa",
+    "35": "cmpv5cdh3000fetx3kzbd7yci",
+    "36": "cmpv5cdh3000hetx3uvalfb80",
+    "37": "cmpv5cdh3000ietx3gu7oq1o3",
+    "38": "cmpv5cdh3000letx3uliktomx",
+    "39": "cmpuzs21o008sn2qp13k8oauh",
+    "40": "cmpuzs21o008tn2qp1z18v2zo",
+    "41": "cmpuzs21p008wn2qp8e71mmub",
+    "42": "cmpuzs21q0096n2qp2zzy900h",
+    "43": "cmpuzs21q0099n2qpv55kjlan",
+    "44": "cmpuzs21q009bn2qph7bo7xqy",
+    "45": "cmprmps3s00055vwi1jdm6hd4",
+    "46": "cmprmps3t00085vwigsxwwcpu",
+    "47": "cmprmps3t00095vwiekb1732e",
+    "48": "cmprmps3t000a5vwik8pgbc2j",
+    "49": "cmprmps3t000b5vwip1vjbeuh",
+    "50": "cmprmps3u000e5vwier1of23y",
+    "51": "cmprmps3u000g5vwiggqvmrfo",
+    "52": "cmprmps3u000h5vwib9spspyw",
+    "53": "cmpl7jgiq003co3vpy30gpg3a",
+    "54": "cmpl7jgiq003go3vpk7p4f8ux",
+    "55": "cmpl7jgiq003ho3vpvt19spnv",
+    "56": "cmpl7jgiq003io3vpq90boraw",
+    "57": "cmpl7jgir003jo3vp32be7v99",
+    "58": "cmpl7jgir003ko3vpdsa14akk"
+  },
+  "generatedAt": "2026-06-19T02:38:37.369Z",
+  "wrongCounts": {
+    "total": 58,
+    "oeq": 5,
+    "mcq": 53
+  },
+  "toplineSnapshot": {
+    "avgPct": 73,
+    "totalAwarded": 309,
+    "totalAvailable": 423,
+    "paperCount": 13
+  },
+  "previousAssessment": null
+}

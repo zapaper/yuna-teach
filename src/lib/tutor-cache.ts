@@ -57,6 +57,25 @@ import saarah1English from "./tutor-cache/unified-diagnosis-saarah1-english.gemi
 import shadowDemonEnglish from "./tutor-cache/unified-diagnosis-shadow-demon-english.gemini-cache.json";
 import shayaneEnglish from "./tutor-cache/unified-diagnosis-shayane-english.gemini-cache.json";
 import student66666English from "./tutor-cache/unified-diagnosis-student66666-english.gemini-cache.json";
+// Lumi mass-regen 2026-06-19: 16 fresh (kid × subject) caches added in
+// one push so every eligible (kid × subject) — 55 pairs total — has a
+// bundled report when the Lumi intro emails fan out.
+import marklimChinese       from "./tutor-cache/unified-diagnosis-mark-lim-chinese.gemini-cache.json";
+import davidlimChinese      from "./tutor-cache/unified-diagnosis-david-lim-chinese.gemini-cache.json";
+import lohzrp4English       from "./tutor-cache/unified-diagnosis-lohzr-p4-english.gemini-cache.json";
+import al4English           from "./tutor-cache/unified-diagnosis-al4-english.gemini-cache.json";
+import fightingseoMath      from "./tutor-cache/unified-diagnosis-fightingseo-math.gemini-cache.json";
+import evangMath            from "./tutor-cache/unified-diagnosis-evang-math.gemini-cache.json";
+import enxinScience         from "./tutor-cache/unified-diagnosis-enxin-science.gemini-cache.json";
+import lohzrp4Science       from "./tutor-cache/unified-diagnosis-lohzr-p4-science.gemini-cache.json";
+import amberamberteoScience from "./tutor-cache/unified-diagnosis-amberamberteo-science.gemini-cache.json";
+import alexagohScience      from "./tutor-cache/unified-diagnosis-alexa-goh-science.gemini-cache.json";
+import elijahScience        from "./tutor-cache/unified-diagnosis-elijah-science.gemini-cache.json";
+import shayaneScience       from "./tutor-cache/unified-diagnosis-shayane-science.gemini-cache.json";
+import al4Science           from "./tutor-cache/unified-diagnosis-al4-science.gemini-cache.json";
+import drewieScience        from "./tutor-cache/unified-diagnosis-drewie-science.gemini-cache.json";
+import umarhScience         from "./tutor-cache/unified-diagnosis-umarh-science.gemini-cache.json";
+import hongjun23Science     from "./tutor-cache/unified-diagnosis-hongjun23-science.gemini-cache.json";
 
 export type CachedReport = {
   patterns: Array<{ name: string; what: string; specific_examples: Array<{ questionRef: string; type?: "oeq" | "mcq"; whatWentWrong: string }>; strategic_advice: string; trigger_keywords: string[] }>;
@@ -131,4 +150,21 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "rizqi:english":           rizqiEnglish as CachedReport,
   "tylerng:english":         tylerngEnglish as CachedReport,
   "umarm:english":           umarmEnglish as CachedReport,
+  // Lumi mass-regen 2026-06-19
+  "mark-lim:chinese":     marklimChinese as CachedReport,
+  "david-lim:chinese":    davidlimChinese as CachedReport,
+  "lohzr-p4:english":     lohzrp4English as CachedReport,
+  "al4:english":          al4English as CachedReport,
+  "fightingseo:math":     fightingseoMath as CachedReport,
+  "evang:math":           evangMath as CachedReport,
+  "enxin:science":        enxinScience as CachedReport,
+  "lohzr-p4:science":     lohzrp4Science as CachedReport,
+  "amberamberteo:science": amberamberteoScience as CachedReport,
+  "alexa-goh:science":    alexagohScience as CachedReport,
+  "elijah:science":       elijahScience as CachedReport,
+  "shayane:science":      shayaneScience as CachedReport,
+  "al4:science":          al4Science as CachedReport,
+  "drewie:science":       drewieScience as CachedReport,
+  "umarh:science":        umarhScience as CachedReport,
+  "hongjun23:science":    hongjun23Science as CachedReport,
 };
