@@ -10,6 +10,24 @@ import { isAdmin as isAdminUser } from "@/lib/admin";
 import { requireAccessToPaper } from "@/lib/auth-guard";
 import { isCompOeqLabel } from "@/lib/english-sections";
 
+// pdf-lib's bundled fonts (Helvetica + the Kalam handwriting TTF) are
+// WinAnsi-only and throw on any char outside Latin-1 (CJK ideographs,
+// fullwidth punctuation, etc.). Until a CJK font is bundled, strip
+// such chars from anything fed to drawText / widthOfTextAtSize so the
+// export proceeds for Chinese papers. Trade-off: per-Q red-pen notes
+// from the Gemini classifier on Chinese papers will lose Chinese text
+// (mostly empty), but the tick/cross marks + cover-page tallies still
+// render. The error this catches: "WinAnsi cannot encode '语' (0x8bed)".
+function stripUnsupportedChars(text: string | null | undefined): string {
+  if (!text) return "";
+  // Keep ASCII + Latin-1 supplement (0x00-0xFF). Drop everything else
+  // (CJK 0x4E00-0x9FFF, CJK punctuation 0x3000-0x303F, fullwidth forms
+  // 0xFF00-0xFFEF, etc.). The trim collapses runs of whitespace left
+  // behind by stripped CJK.
+  const stripped = text.replace(/[^\x00-\xFF]+/g, " ");
+  return stripped.replace(/\s+/g, " ").trim();
+}
+
 // Whether this question is a Comprehension Cloze fill-in-the-blank
 // (single-word answer, no subparts). Detected from the syllabusTopic
 // label written by the structure-analysis pipeline. Other Cloze types
@@ -196,16 +214,20 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
         : rawStatus === "blank" ? "blank"
         : "wrong";
       cleaned.push({
-        label: String(m.label ?? "").trim(),
+        label: stripUnsupportedChars(String(m.label ?? "").trim()),
         yPctEnd: clamp(m.yPctEnd, 0, 100),
         xPctEnd: clamp(m.xPctEnd, 0, 100),
         status,
         marksLost: status === "wrong" ? Math.max(0, Number(m.marksLost ?? 1)) : 0,
-        note: m.note ? String(m.note).trim().slice(0, 400) : undefined,
+        // Strip CJK before the note flows down to drawText, which can
+        // only encode Latin-1 with the bundled fonts. Chinese papers
+        // get blank notes for now (mark stamps still land); a future
+        // commit will bundle a CJK font to keep the commentary.
+        note: m.note ? stripUnsupportedChars(String(m.note).trim()).slice(0, 400) || undefined : undefined,
       });
     }
     if (cleaned.length === 0) {
-      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripDetectedPrefix(q.markingNotes ?? "").slice(0, 200) || undefined });
+      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripUnsupportedChars(stripDetectedPrefix(q.markingNotes ?? "")).slice(0, 200) || undefined });
     }
     // Trust the marker over the classifier when there's only one mark
     // to stamp (MCQ, vocab cloze, single-answer short answer). The
@@ -222,7 +244,7 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
     return cleaned;
   } catch (err) {
     console.error(`[export-marked] classifyQuestion Q${q.questionNum} failed:`, err);
-    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: q.markingNotes?.slice(0, 80) }];
+    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripUnsupportedChars(q.markingNotes ?? "").slice(0, 80) || undefined }];
   }
 }
 
@@ -684,15 +706,20 @@ async function handle(
 
     let cursorY = coverH - Math.round(coverH * 0.10);
 
-    // Title — paper name
-    const titleLine = paper.title ?? "Marked Paper";
+    // Title — paper name. Strip CJK so a Chinese paper title doesn't
+    // crash WinAnsi-encoded Helvetica. Empty after strip falls back to
+    // a generic label so the cover still has SOMETHING at the top.
+    const titleLine = stripUnsupportedChars(paper.title ?? "") || "Marked Paper";
     coverPage.drawText(titleLine, { x: padX, y: cursorY, size: titleSize, font: helvetica, color: NAVY });
     cursorY -= titleSize * 1.3;
 
-    // Subline — student name + subject
-    const studentLine = paper.assignedTo?.name
-      ? `${paper.assignedTo.name}${paper.subject ? ` · ${paper.subject}` : ""}`
-      : (paper.subject ?? "");
+    // Subline — student name + subject (CJK-stripped for the same
+    // encoding reason as the title above).
+    const studentName = stripUnsupportedChars(paper.assignedTo?.name ?? "");
+    const subjectClean = stripUnsupportedChars(paper.subject ?? "");
+    const studentLine = studentName
+      ? `${studentName}${subjectClean ? ` · ${subjectClean}` : ""}`
+      : subjectClean;
     if (studentLine) {
       coverPage.drawText(studentLine, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: MUTED });
       cursorY -= labelSize * 2.5;
@@ -718,7 +745,12 @@ async function handle(
         const scoreWidth = helveticaRegular.widthOfTextAtSize(scoreText, labelSize);
         const sectionPct = s.available > 0 ? s.awarded / s.available : 1;
         const sectionColor = sectionPct < 0.5 ? RED : DARK;
-        coverPage.drawText(s.label, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: sectionColor });
+        // Strip CJK so Chinese syllabus topics (e.g. 综合填空) don't
+        // crash widthOfTextAtSize / drawText. Empty labels are skipped
+        // so we don't render an awkward "" row.
+        const labelClean = stripUnsupportedChars(s.label);
+        if (!labelClean) { cursorY -= rowH; continue; }
+        coverPage.drawText(labelClean, { x: padX, y: cursorY, size: labelSize, font: helveticaRegular, color: sectionColor });
         coverPage.drawText(scoreText, { x: colRightX - scoreWidth, y: cursorY, size: labelSize, font: helvetica, color: sectionColor });
         cursorY -= rowH;
       }
@@ -1087,9 +1119,10 @@ async function handle(
               const rawNoteAcc = q.markingNotes ? stripLatex(q.markingNotes).trim() : "";
               const acceptedRe = /^accepted\s+['"‘’“”]?[^'"‘’“”]+['"‘’“”]?\s+for\s+key\s+['"‘’“”]?[^'"‘’“”]+['"‘’“”]?\s*[—\-:]\s*/i;
               const reason = rawNoteAcc.replace(acceptedRe, "").trim();
-              const noteText = reason
+              const noteText = stripUnsupportedChars(reason
                 ? `Ans: ${keyAns}. Accepted '${studentAns}' as ${reason}`
-                : `Ans: ${keyAns}. Accepted '${studentAns}'`;
+                : `Ans: ${keyAns}. Accepted '${studentAns}'`);
+              if (!noteText) continue;
               const GREEN = rgb(0.10, 0.55, 0.25);
               // Same shrunken font as the English OEQ marker note.
               const sizeAcc = englishOeqNoteSize;
@@ -1152,7 +1185,8 @@ async function handle(
           // MCQ: append "(correctAnswer)" right of the cross. For a
           // 1-mark MCQ the answer key IS the comment — skip the -N
           // badge and the long marking note entirely.
-          const mcqNote = `(${cleanAnswer})`;
+          const mcqNote = stripUnsupportedChars(`(${cleanAnswer})`);
+          if (!mcqNote) continue;
           const mcqNoteSize = Math.round(markSize * 0.7);
           page.drawText(mcqNote, {
             x: markX + markSize * 0.6,
@@ -1216,7 +1250,7 @@ async function handle(
             : isOeq ? 4
             : 2;
 
-          const rawLines = (isCompCloze
+          const rawLines = stripUnsupportedChars(isCompCloze
             ? `${q.questionNum}: ${cleanAnswer || (q.answer ?? "")}`
             : (m.note ? stripLatex(m.note) : "")
           ).split(" / ").map(s => s.trim()).filter(Boolean);
@@ -1533,6 +1567,12 @@ function drawJitteredTextBold(
   line: string,
   opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; color: ReturnType<typeof rgb> },
 ) {
+  // Belt + suspenders: even though notes are sanitized at source,
+  // strip CJK here too so any leak (cleanAnswer-derived rawLines,
+  // future paths that forget the source-side strip) doesn't crash
+  // the export with a WinAnsi encode error.
+  line = stripUnsupportedChars(line);
+  if (!line) return;
   let cx = opts.x;
   for (const seg of parseBoldSegments(line)) {
     const font = seg.bold ? opts.boldFont : opts.regFont;
