@@ -1,18 +1,16 @@
-// Allow-list for accounts that can assign Chinese quizzes /
-// Chinese-paper test quizzes. Chinese is otherwise admin-only because
-// the bank is curated separately and the marker integration is
-// still under verification.
+// Chinese assignment gate.
 //
-// To grant access: add the user's `name` (case-insensitive) to the
-// array below. Admin accounts also bypass this gate elsewhere
-// (`isAdmin()` in src/lib/admin.ts) so they don't need to be listed.
-const ALLOWED_NAMES_LC: ReadonlySet<string> = new Set([
-  "student666",
-  "mark lim",
-  "david lim",
-]);
+// As of the 2026-06-20 PSLE Chinese launch, all signed-in users (any
+// parent, plus admin via the parallel isAdmin() gate at call sites)
+// can assign Chinese quizzes and Chinese-paper test quizzes. The gate
+// previously locked Chinese to an allow-list while the bank + marker
+// integration were under verification.
+//
+// Kept as a named function (rather than inlining `true`) so the
+// daily-quiz and ParentDashboard call sites can re-gate behind a
+// future flag without churn if needed.
 
 export function canAssignChinese(name: string | null | undefined): boolean {
-  if (!name) return false;
-  return ALLOWED_NAMES_LC.has(name.toLowerCase());
+  void name; // silence the unused-arg lint without changing the signature
+  return true;
 }
