@@ -90,6 +90,29 @@ async function getHandBoldFontBytes(): Promise<Buffer> {
   return _handBoldFontBytes;
 }
 
+// Noto Sans SC for CJK glyphs. Kalam + Helvetica are WinAnsi-only and
+// throw on any 汉字 / fullwidth punctuation; Noto SC covers Chinese,
+// Japanese, and Korean. Embedded with subset=true so the PDF only
+// carries the glyphs we actually used (Noto SC full is 17 MB; a
+// typical Chinese marking-notes export uses ~200 glyphs → ~30 KB).
+let _cjkFontBytes: Buffer | null = null;
+async function getCjkFontBytes(): Promise<Buffer> {
+  if (_cjkFontBytes) return _cjkFontBytes;
+  const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansSC-Regular.ttf");
+  _cjkFontBytes = await fs.readFile(fontPath);
+  return _cjkFontBytes;
+}
+
+// Detect any char that pdf-lib's WinAnsi-encoded built-in fonts can't
+// emit — CJK ideographs (0x3400-0x9FFF), CJK punctuation (0x3000-0x303F),
+// halfwidth/fullwidth forms (0xFF00-0xFFEF), Hiragana / Katakana, etc.
+// Used by the per-segment font picker so a mixed Latin+CJK line still
+// renders cleanly (Latin glyphs from the same Noto SC font, which
+// covers basic Latin too).
+function hasCjk(text: string): boolean {
+  return /[　-〿㐀-鿿＀-￯぀-ヿ]/.test(text);
+}
+
 // Hand-extracted tick + cross PNGs (public/Marking/tick-*.png and
 // cross-*.png). Each stamp picks one at random per question so the
 // resulting PDF has natural ink variation, not four identical
@@ -214,20 +237,20 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
         : rawStatus === "blank" ? "blank"
         : "wrong";
       cleaned.push({
-        label: stripUnsupportedChars(String(m.label ?? "").trim()),
+        label: String(m.label ?? "").trim(),
         yPctEnd: clamp(m.yPctEnd, 0, 100),
         xPctEnd: clamp(m.xPctEnd, 0, 100),
         status,
         marksLost: status === "wrong" ? Math.max(0, Number(m.marksLost ?? 1)) : 0,
-        // Strip CJK before the note flows down to drawText, which can
-        // only encode Latin-1 with the bundled fonts. Chinese papers
-        // get blank notes for now (mark stamps still land); a future
-        // commit will bundle a CJK font to keep the commentary.
-        note: m.note ? stripUnsupportedChars(String(m.note).trim()).slice(0, 400) || undefined : undefined,
+        // CJK chars flow through now — drawJitteredTextBold picks the
+        // bundled Noto SC font per line. Kalam + Helvetica still serve
+        // Latin-only lines; the per-segment switch keeps the
+        // handwriting feel where it makes sense.
+        note: m.note ? String(m.note).trim().slice(0, 400) || undefined : undefined,
       });
     }
     if (cleaned.length === 0) {
-      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripUnsupportedChars(stripDetectedPrefix(q.markingNotes ?? "")).slice(0, 200) || undefined });
+      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripDetectedPrefix(q.markingNotes ?? "").slice(0, 200) || undefined });
     }
     // Trust the marker over the classifier when there's only one mark
     // to stamp (MCQ, vocab cloze, single-answer short answer). The
@@ -244,7 +267,7 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
     return cleaned;
   } catch (err) {
     console.error(`[export-marked] classifyQuestion Q${q.questionNum} failed:`, err);
-    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: stripUnsupportedChars(q.markingNotes ?? "").slice(0, 80) || undefined }];
+    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: (q.markingNotes ?? "").slice(0, 80) || undefined }];
   }
 }
 
@@ -695,6 +718,12 @@ async function handle(
   // asterisks rendered literally on the paper.
   const handBoldFontBytes = await getHandBoldFontBytes();
   const handBoldFont = await doc.embedFont(handBoldFontBytes);
+  // Noto Sans SC, subset-embedded so the PDF only carries glyphs we
+  // actually drew. Used for any line containing CJK / fullwidth
+  // punctuation; the per-segment font picker swaps to it when the
+  // Latin-only Kalam/Helvetica would crash on a 汉字.
+  const cjkFontBytes = await getCjkFontBytes();
+  const cjkFont = await doc.embedFont(cjkFontBytes, { subset: true });
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
   const helveticaRegular = await doc.embedFont(StandardFonts.Helvetica);
   const RED = rgb(0.85, 0.10, 0.10);
@@ -1374,7 +1403,26 @@ async function handle(
           const wrapAt = (maxW: number) => {
             const out: string[] = [];
             for (const line of rawLines) {
-              for (const w of wrapText(line, handFont, effNoteSize, maxW, handBoldFont)) out.push(w);
+              // CJK lines wrap per-character with the Noto SC font (Chinese
+              // has no whitespace between glyphs, so wrapText's word
+              // tokeniser would emit a single overlong line that Kalam
+              // can't measure anyway). Latin lines keep the existing
+              // bold-aware word wrapper.
+              if (hasCjk(line)) {
+                let cur = "";
+                for (const ch of line) {
+                  const candidate = cur + ch;
+                  if (cjkFont.widthOfTextAtSize(candidate, effNoteSize) <= maxW) {
+                    cur = candidate;
+                  } else {
+                    if (cur) out.push(cur);
+                    cur = ch;
+                  }
+                }
+                if (cur) out.push(cur);
+              } else {
+                for (const w of wrapText(line, handFont, effNoteSize, maxW, handBoldFont)) out.push(w);
+              }
             }
             return out;
           };
@@ -1403,7 +1451,15 @@ async function handle(
           // the block so its longest line ends near the mark column,
           // keeping the comment visually attached to the cross without
           // ever wandering off the right edge.
-          const lineWidths = capped.map(l => widthOfBoldText(l, handFont, handBoldFont, effNoteSize));
+          // CJK lines measured with Noto SC (Kalam doesn't have the
+          // glyphs and widthOfTextAtSize would throw). Mixed-script
+          // lines fall under hasCjk too — Noto SC carries Latin too so
+          // the width is the right one to anchor the note's noteX.
+          const lineWidths = capped.map(l =>
+            hasCjk(l)
+              ? cjkFont.widthOfTextAtSize(l.replace(/\*\*/g, ""), effNoteSize)
+              : widthOfBoldText(l, handFont, handBoldFont, effNoteSize)
+          );
           const longestW = lineWidths.reduce((a, b) => Math.max(a, b), 0);
           const noteX = Math.max(pageW * 0.05, markRightX - longestW);
 
@@ -1556,6 +1612,7 @@ async function handle(
               size: effNoteSize,
               regFont: handFont,
               boldFont: handBoldFont,
+              cjkFont,
               color: RED,
             });
             yCursor -= lineSpacingPx;
@@ -1653,14 +1710,30 @@ function widthOfBoldText(
 function drawJitteredTextBold(
   page: Page,
   line: string,
-  opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; color: ReturnType<typeof rgb> },
+  opts: { x: number; y: number; size: number; regFont: PDFFont; boldFont: PDFFont; cjkFont?: PDFFont; color: ReturnType<typeof rgb> },
 ) {
-  // Belt + suspenders: even though notes are sanitized at source,
-  // strip CJK here too so any leak (cleanAnswer-derived rawLines,
-  // future paths that forget the source-side strip) doesn't crash
-  // the export with a WinAnsi encode error.
-  line = stripUnsupportedChars(line);
   if (!line) return;
+  // CJK line → swap to Noto SC and skip the casual-handwriting jitter
+  // (it looks wrong on Chinese ideographs anyway, which are stroke-
+  // grid-based; Noto SC is the natural fit). Falls back to Kalam if
+  // somehow no cjkFont was passed and we still have a CJK line — in
+  // that case strip the unsupported chars so we don't crash.
+  if (hasCjk(line)) {
+    if (opts.cjkFont) {
+      const font = opts.cjkFont;
+      const stripped = line.replace(/\*\*/g, ""); // bold markers don't apply for CJK; render plain
+      page.drawText(stripped, {
+        x: opts.x,
+        y: opts.y,
+        size: opts.size,
+        font,
+        color: opts.color,
+      });
+      return;
+    }
+    line = stripUnsupportedChars(line);
+    if (!line) return;
+  }
   let cx = opts.x;
   for (const seg of parseBoldSegments(line)) {
     const font = seg.bold ? opts.boldFont : opts.regFont;
