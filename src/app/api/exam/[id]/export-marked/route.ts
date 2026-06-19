@@ -366,7 +366,11 @@ function wrapText(
 // page-index map the marking pipeline uses (skipping answer/skip pages).
 function buildPageMap(paper: { pageCount: number; metadata: unknown; sourceExamId: string | null }, masterMeta: unknown): Map<number, number> {
   // Prefer master metadata (clones don't always carry it forward).
-  const meta = (masterMeta ?? paper.metadata ?? null) as { answerPages?: number[]; skipPages?: number[] } | null;
+  const meta = (masterMeta ?? paper.metadata ?? null) as {
+    answerPages?: number[];
+    skipPages?: number[];
+    normalExtractChinese?: { oeqPadFirstPageIndex?: number; oeqPadPages?: number };
+  } | null;
   const hidden = new Set([
     ...(meta?.answerPages ?? []).map(p => p - 1),
     ...(meta?.skipPages ?? []).map(p => p - 1),
@@ -377,6 +381,21 @@ function buildPageMap(paper: { pageCount: number; metadata: unknown; sourceExamI
     if (!hidden.has(i)) {
       map.set(i, submissionIdx);
       submissionIdx++;
+    }
+  }
+  // Chinese 阅读理解 OEQ pad: when the normal-extract pipeline detects
+  // a long-OEQ section that doesn't fit in the printed booklet, it
+  // appends extra pad pages and writes pageIndex >= pageCount on
+  // those Qs (e.g. Q33-Q40 on a 16-page booklet land at pageIndex
+  // 16-18). The marker maps those Qs to submission indices AFTER
+  // the master pages (marking.ts:1980). The export needs the same
+  // map or the stamps land on the wrong page (or get skipped
+  // entirely — Q33+ Chinese OEQ symptom).
+  const oeqPadFirst = meta?.normalExtractChinese?.oeqPadFirstPageIndex;
+  const oeqPadCount = meta?.normalExtractChinese?.oeqPadPages ?? 0;
+  if (typeof oeqPadFirst === "number" && oeqPadCount > 0) {
+    for (let off = 0; off < oeqPadCount; off++) {
+      map.set(oeqPadFirst + off, submissionIdx + off);
     }
   }
   return map;
@@ -521,48 +540,32 @@ async function handle(
     }
   }
 
-  // Group questions by their submission-page index for fast lookup
-  // when stamping each page. Resolution mirrors the marker's
-  // scanPageIdx logic (marking.ts:4992) so the export overlay lands
-  // on the SAME submission file the marker read:
+  // Resolution chain for a Q → submission page index:
   //
-  //   OEQ with printableBounds  → bounds.pageIndex + 1 (scan-back
-  //                                printable; cover is page_0.jpg)
-  //   OEQ without printableBounds → oeqPosByQId.get(id) (in-app
-  //                                  canvas, one per OEQ)
-  //   MCQ                         → pageMap.get(masterPageIndex)
-  //                                  (scan-back master papers; tap-only
-  //                                  in-app quizzes have nowhere to
-  //                                  stamp and will land on whatever
-  //                                  canvas page that index happens to
-  //                                  hit — existing-behaviour misalign,
-  //                                  not a regression)
+  //   1. OEQ with printableBounds.pageIndex → bounds.pageIndex + 1
+  //      (scan-back printable; cover is page_0.jpg)
+  //   2. pageMap.get(masterPageIndex) — now extended to include the
+  //      Chinese 阅读理解 OEQ pad (long-OEQ pages appended after
+  //      the master scan with pageIndex >= pageCount).
+  //   3. OEQ-only last-resort fallback: oeqPosByQId.get(id) — for
+  //      in-app canvas quiz papers where the submission is per-OEQ
+  //      canvas at page_<oeqPos>.jpg.
   //
-  // Before this commit, OEQs with a valid pageIndex (Q26-Q29 on the
-  // Chinese paper, pageIndex=8) took the pageMap path and ended up
-  // stamped on subPage 8 (Q37's canvas), while their own canvas at
-  // page_0..3.jpg never got a stamp. Net effect: every "non-overshoot"
-  // OEQ silently misrendered too.
+  // Mirrors the marker's scanPageIdx + remarkSingle resolution
+  // (marking.ts:4992 and marking.ts:1980) so the export overlay
+  // lands on the SAME on-disk file the marker read.
   const bySubPage = new Map<number, typeof paper.questions>();
-  let oeqByOeqPosCount = 0;
-  let oeqByPrintableCount = 0;
   for (const q of paper.questions) {
     const isOeq = !hasOpts(q) && q.studentAnswer !== "__SKIPPED__";
     let subPage: number | undefined;
     if (isOeq) {
-      // Local PrintableBounds shape — matches marking.ts:141 but lives
-      // here so we don't pull from the marker module just for a type.
       const bounds = q.printableBounds as { pageIndex?: number } | null | undefined;
       if (bounds && typeof bounds.pageIndex === "number" && Number.isFinite(bounds.pageIndex)) {
         subPage = bounds.pageIndex + 1;
-        oeqByPrintableCount++;
-      } else {
-        subPage = oeqPosByQId.get(q.id);
-        if (subPage !== undefined) oeqByOeqPosCount++;
       }
-    } else {
-      subPage = pageMap.get(q.pageIndex);
     }
+    if (subPage === undefined) subPage = pageMap.get(q.pageIndex);
+    if (subPage === undefined && isOeq) subPage = oeqPosByQId.get(q.id);
     if (subPage === undefined) continue;
     // Bounds check — pageFiles is the on-disk reality; anything past
     // its length has no submission image to overlay on.
@@ -570,9 +573,6 @@ async function handle(
     const arr = bySubPage.get(subPage) ?? [];
     arr.push(q);
     bySubPage.set(subPage, arr);
-  }
-  if (oeqByOeqPosCount > 0 || oeqByPrintableCount > 0) {
-    console.log(`[export-marked] OEQ subPage resolution: ${oeqByPrintableCount} via printableBounds, ${oeqByOeqPosCount} via oeqPos (in-app canvas)`);
   }
 
   // Crop and classify EVERY question across EVERY page in parallel.
