@@ -476,15 +476,52 @@ async function handle(
   // Map master pageIndex → submission page index (matches the marking pipeline).
   const pageMap = buildPageMap(paper, masterMeta);
 
+  // In-app quiz fallback: when a question's pageIndex doesn't map (e.g.
+  // Chinese long-OEQ Q33+ whose master pageIndex 16-18 overshoots
+  // pageCount 16), the submission file is the per-OEQ canvas at
+  // page_<oeqPos>.jpg. oeqPos counts non-skipped OEQs in document
+  // order — same scheme the marker uses to resolve scanPageIdx
+  // (marking.ts:4963 fullOeqPosByQId, post the 5a1ed284 skip-fix).
+  // Without this fallback, Q33+ silently fall off the export.
+  const hasOpts = (q: typeof paper.questions[number]): boolean => {
+    // Mirror the marker's MCQ detection: answer reduces to a single
+    // A-D / 1-4 character after stripping parens / dots.
+    const a = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+    return /^[A-D1-4]$/i.test(a);
+  };
+  const oeqPosByQId = new Map<string, number>();
+  {
+    let pos = 0;
+    for (const q of paper.questions) {
+      if (hasOpts(q)) continue;
+      if (q.studentAnswer === "__SKIPPED__") continue;
+      oeqPosByQId.set(q.id, pos);
+      pos++;
+    }
+  }
+
   // Group questions by their submission-page index for fast lookup
   // when stamping each page.
   const bySubPage = new Map<number, typeof paper.questions>();
+  let oeqFallbackCount = 0;
   for (const q of paper.questions) {
-    const subPage = pageMap.get(q.pageIndex);
-    if (subPage === undefined) continue;
+    let subPage = pageMap.get(q.pageIndex);
+    if (subPage === undefined) {
+      // OEQ fallback path (Chinese long-OEQ with overshoot pageIndex,
+      // or any in-app quiz OEQ on a paper where the master pageMap
+      // doesn't reach). MCQs whose pageIndex doesn't map are still
+      // skipped — they need the master page region to stamp anyway.
+      const oeqPos = oeqPosByQId.get(q.id);
+      if (oeqPos === undefined) continue;
+      subPage = oeqPos;
+      oeqFallbackCount++;
+    }
     const arr = bySubPage.get(subPage) ?? [];
     arr.push(q);
     bySubPage.set(subPage, arr);
+  }
+  if (oeqFallbackCount > 0) {
+    console.log(`[export-marked] ${oeqFallbackCount} OEQ(s) resolved via per-canvas fallback (master pageMap miss)`);
   }
 
   // Crop and classify EVERY question across EVERY page in parallel.
