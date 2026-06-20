@@ -184,7 +184,21 @@ function ensureCjkFontRegistered(): boolean {
 // returns the probe results as JSON instead of the PDF. Lets us
 // confirm whether fonts-noto-cjk actually installed without needing
 // shell access to Railway.
-function diagnoseCjkFonts(): { registered: boolean; chosenPath: string | null; directProbes: { path: string; exists: boolean }[]; discovered: string[] } {
+//
+// Expanded after the first diagnostic returned discovered:[] — meaning
+// not just no CJK fonts but no font files anywhere under /usr/share/fonts.
+// That points at Nixpacks's Nix-store layout, where apt-installed
+// packages don't always land in standard Debian paths. The expanded
+// probe walks /nix/store, /root, and reads /etc/os-release to also
+// surface what the runtime container actually is.
+function diagnoseCjkFonts(): {
+  registered: boolean;
+  chosenPath: string | null;
+  directProbes: { path: string; exists: boolean }[];
+  discovered: string[];
+  rootListings: { path: string; entries: string[] | "missing" | "denied" }[];
+  osRelease: string | null;
+} {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fsSync = require("fs") as typeof import("fs");
   const directProbes = [
@@ -196,22 +210,49 @@ function diagnoseCjkFonts(): { registered: boolean; chosenPath: string | null; d
   ].map(p => ({ path: p, exists: (() => { try { return fsSync.existsSync(p); } catch { return false; } })() }));
 
   const discovered: string[] = [];
-  const walk = (dir: string, depth: number) => {
-    if (depth > 6 || discovered.length > 50) return;
+  const walk = (dir: string, depth: number, maxDepth: number) => {
+    if (depth > maxDepth || discovered.length > 100) return;
     let entries: import("fs").Dirent[];
     try { entries = fsSync.readdirSync(dir, { withFileTypes: true }); } catch { return; }
     for (const e of entries) {
       const full = `${dir}/${e.name}`;
-      if (e.isDirectory()) walk(full, depth + 1);
+      if (e.isDirectory()) walk(full, depth + 1, maxDepth);
       else if (/\.(ttc|ttf|otf)$/i.test(e.name)) discovered.push(full);
     }
   };
-  for (const r of ["/usr/share/fonts", "/usr/local/share/fonts"]) {
-    try { if (fsSync.existsSync(r)) walk(r, 0); } catch { /* skip */ }
+  // Wider net — Nixpacks may land fonts in /nix/store or /root, not
+  // the standard Debian paths.
+  for (const r of [
+    "/usr/share/fonts",
+    "/usr/local/share/fonts",
+    "/nix/store",
+    "/root/.fonts",
+    "/etc/fonts",
+  ]) {
+    try { if (fsSync.existsSync(r)) walk(r, 0, r === "/nix/store" ? 5 : 6); } catch { /* skip */ }
   }
+
+  // Top-level listing of a few key dirs so we can tell IF there's any
+  // /usr/share/fonts at all, what /nix/store contains, etc.
+  const rootListings = ["/", "/usr/share", "/usr/share/fonts", "/nix/store", "/etc"].map(p => {
+    try {
+      if (!fsSync.existsSync(p)) return { path: p, entries: "missing" as const };
+      return { path: p, entries: fsSync.readdirSync(p).slice(0, 50) };
+    } catch {
+      return { path: p, entries: "denied" as const };
+    }
+  });
+
+  let osRelease: string | null = null;
+  try {
+    osRelease = fsSync.readFileSync("/etc/os-release", "utf8").slice(0, 800);
+  } catch {
+    osRelease = null;
+  }
+
   ensureCjkFontRegistered();
   const chosenPath = _cjkFontRegistered ? "(see runtime log [export-marked] CJK font registered: …)" : null;
-  return { registered: !!_cjkFontRegistered, chosenPath, directProbes, discovered };
+  return { registered: !!_cjkFontRegistered, chosenPath, directProbes, discovered, rootListings, osRelease };
 }
 
 // Render a Chinese / CJK marking-note as a PNG via @napi-rs/canvas
