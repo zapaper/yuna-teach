@@ -114,31 +114,104 @@ const CJK_FAMILY = "NotoSansCJKsc";
 let _cjkFontRegistered: boolean | null = null;
 function ensureCjkFontRegistered(): boolean {
   if (_cjkFontRegistered !== null) return _cjkFontRegistered;
-  const candidates = [
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fsSync = require("fs") as typeof import("fs");
+
+  // Path probes — covers Debian/Ubuntu fonts-noto-cjk + fonts-noto-cjk-extra
+  // standard install locations. Order matters: Sans CJK first, then
+  // Serif, then any *CJK*.ttc found recursively in /usr/share/fonts.
+  const directCandidates = [
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/opentype/noto/NotoSansCJK.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-VF.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
     // Local-dev fallback (Windows path; harmless if missing on Linux).
     "C:/Windows/Fonts/NotoSansCJK-Regular.ttc",
   ];
-  for (const p of candidates) {
+
+  const tryRegister = (p: string): boolean => {
     try {
-      // node fs sync access avoids importing fs separately.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const fsSync = require("fs") as typeof import("fs");
-      if (fsSync.existsSync(p)) {
-        GlobalFonts.registerFromPath(p, CJK_FAMILY);
-        console.log(`[export-marked] CJK font registered: ${p}`);
-        _cjkFontRegistered = true;
-        return true;
-      }
-    } catch {
-      /* try next */
+      if (!fsSync.existsSync(p)) return false;
+      GlobalFonts.registerFromPath(p, CJK_FAMILY);
+      console.log(`[export-marked] CJK font registered: ${p}`);
+      _cjkFontRegistered = true;
+      return true;
+    } catch (err) {
+      console.warn(`[export-marked] registerFromPath failed for ${p}:`, err);
+      return false;
     }
+  };
+
+  for (const p of directCandidates) {
+    if (tryRegister(p)) return true;
   }
-  console.warn(`[export-marked] No CJK font found on any candidate path — Chinese marking notes will render blank. Verify nixpacks.toml installs fonts-noto-cjk + fontconfig.`);
+
+  // Recursive sweep of /usr/share/fonts looking for any *CJK*.ttc or
+  // *.ttc named like a CJK pack. Catches the case where the Nixpacks
+  // build laid the font down at a non-standard path.
+  const searchRoots = ["/usr/share/fonts", "/usr/local/share/fonts"];
+  for (const root of searchRoots) {
+    try {
+      if (!fsSync.existsSync(root)) continue;
+      const walk = (dir: string, depth: number): string | null => {
+        if (depth > 6) return null;
+        let entries: import("fs").Dirent[];
+        try { entries = fsSync.readdirSync(dir, { withFileTypes: true }); } catch { return null; }
+        for (const e of entries) {
+          const full = `${dir}/${e.name}`;
+          if (e.isDirectory()) {
+            const found = walk(full, depth + 1);
+            if (found) return found;
+          } else if (/CJK.*\.(ttc|ttf|otf)$/i.test(e.name) && /Sans/i.test(e.name)) {
+            return full;
+          }
+        }
+        return null;
+      };
+      const found = walk(root, 0);
+      if (found && tryRegister(found)) return true;
+    } catch { /* next root */ }
+  }
+
+  console.warn(`[export-marked] No CJK font found on any candidate path or recursive sweep — Chinese marking notes will render blank. Verify nixpacks.toml installs fonts-noto-cjk + fontconfig and that Railway did a clean rebuild (not a cached deploy).`);
   _cjkFontRegistered = false;
   return false;
+}
+
+// Diagnostic: list available CJK fonts on the running container. Hit
+// /api/exam/<id>/export-marked?debug=fonts as an admin and the route
+// returns the probe results as JSON instead of the PDF. Lets us
+// confirm whether fonts-noto-cjk actually installed without needing
+// shell access to Railway.
+function diagnoseCjkFonts(): { registered: boolean; chosenPath: string | null; directProbes: { path: string; exists: boolean }[]; discovered: string[] } {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fsSync = require("fs") as typeof import("fs");
+  const directProbes = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-VF.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
+  ].map(p => ({ path: p, exists: (() => { try { return fsSync.existsSync(p); } catch { return false; } })() }));
+
+  const discovered: string[] = [];
+  const walk = (dir: string, depth: number) => {
+    if (depth > 6 || discovered.length > 50) return;
+    let entries: import("fs").Dirent[];
+    try { entries = fsSync.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const full = `${dir}/${e.name}`;
+      if (e.isDirectory()) walk(full, depth + 1);
+      else if (/\.(ttc|ttf|otf)$/i.test(e.name)) discovered.push(full);
+    }
+  };
+  for (const r of ["/usr/share/fonts", "/usr/local/share/fonts"]) {
+    try { if (fsSync.existsSync(r)) walk(r, 0); } catch { /* skip */ }
+  }
+  ensureCjkFontRegistered();
+  const chosenPath = _cjkFontRegistered ? "(see runtime log [export-marked] CJK font registered: …)" : null;
+  return { registered: !!_cjkFontRegistered, chosenPath, directProbes, discovered };
 }
 
 // Render a Chinese / CJK marking-note as a PNG via @napi-rs/canvas
@@ -522,6 +595,15 @@ async function handle(
   // fields so we leave it as-is.
   const auth = await requireAccessToPaper(id);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  // CJK font diagnostic — admin can hit
+  // /api/exam/<any-id>/export-marked?debug=fonts to see what's
+  // actually on the deploy container's filesystem. Saves the
+  // round-trip of "did Railway install fonts-noto-cjk on the last
+  // rebuild?". Returns JSON instead of the PDF.
+  if (auth.isAdmin && request.nextUrl.searchParams.get("debug") === "fonts") {
+    return NextResponse.json(diagnoseCjkFonts());
+  }
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
