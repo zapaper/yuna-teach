@@ -1160,12 +1160,65 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       previousAssessment: null,
     };
   }
-  // Cached path: heavy pull only (no preceding light pull). Heavy is a
-  // column superset of light, so the topline + eligibility check can
-  // come straight off this result. Same WHERE/orderBy contract as the
-  // no-cache light pull above so reconstructWrongs's idx values line up
-  // with the workshop's.
-  const subjectPapers = await prisma.examPaper.findMany({
+  // Cached path. Same WHERE/orderBy contract as the no-cache pull
+  // above so reconstructWrongs's idx ordering matches the workshop's
+  // for legacy caches that depend on idx resolution.
+  //
+  // Two sub-paths:
+  //   FAST (questionIdByIdx present): the workshop stamped a stable
+  //     idx → questionId map onto the cache, so we resolve every
+  //     example by id and never need text columns for non-example
+  //     questions. The bulk papers pull drops transcribedStem,
+  //     transcribedSubparts, and answer (the heaviest fields —
+  //     transcribedSubparts alone is 1.5MB on Mark's English / 3MB
+  //     on Mark Lim Math). We hydrate those three columns in
+  //     parallel for just the ~12 example question ids the cards
+  //     reference. ~5x wire reduction on power users.
+  //   LEGACY (no questionIdByIdx): every wrong-record idx has to be
+  //     reconstructed by walking every paper's questions in order,
+  //     so we still pull the full text-column set.
+  const cachedReportTyped = cachedReport as GeminiReport;
+  const questionIdByIdx = cachedReportTyped.questionIdByIdx ?? {};
+  const exampleQuestionIds = new Set<string>();
+  if (Object.keys(questionIdByIdx).length > 0) {
+    // Walk the cached pattern cards to collect the questionIds we'll
+    // actually display. enrichExample resolves via this same id map,
+    // so anything not surfaced here was never going to render anyway.
+    const cards: Array<{ examples?: Array<{ questionRef?: string }> }> = [
+      ...((cachedReportTyped as unknown as { commonMistakes?: Array<{ examples?: Array<{ questionRef?: string }> }> }).commonMistakes ?? []),
+      ...((cachedReportTyped as unknown as { conceptualGaps?: Array<{ examples?: Array<{ questionRef?: string }> }> }).conceptualGaps ?? []),
+    ];
+    for (const card of cards) {
+      for (const ex of (card.examples ?? [])) {
+        const m = /\[(\d+)\]/.exec(ex.questionRef ?? "");
+        if (!m) continue;
+        const qid = questionIdByIdx[m[1]];
+        if (qid) exampleQuestionIds.add(qid);
+      }
+    }
+  }
+  const fastPath = exampleQuestionIds.size > 0;
+
+  // Slim select — drops transcribedStem, transcribedSubparts, answer
+  // (only used in displayed examples, hydrated below in fast path).
+  // Keeps markingNotes + studentAnswer + transcribedOptions because
+  // reconstructWrongs's filter at the top of every iteration uses
+  // them to decide whether the question even enters `wrongs[]`.
+  const SLIM_QUESTION_SELECT = {
+    id: true, questionNum: true, sourceQuestionId: true,
+    studentAnswer: true,
+    marksAwarded: true, marksAvailable: true,
+    markingNotes: true, syllabusTopic: true,
+    transcribedOptions: true,
+  } as const;
+  const HEAVY_QUESTION_SELECT = {
+    ...SLIM_QUESTION_SELECT,
+    answer: true,
+    transcribedStem: true,
+    transcribedSubparts: true,
+  } as const;
+
+  const papersPromise = prisma.examPaper.findMany({
     where: {
       assignedToId: dataStudentId,
       markingStatus: { in: ["complete", "released"] },
@@ -1174,47 +1227,93 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     select: {
       id: true, title: true, metadata: true, subject: true,
       questions: {
-        select: {
-          id: true,
-          questionNum: true,
-          sourceQuestionId: true,
-          studentAnswer: true, answer: true,
-          marksAwarded: true, marksAvailable: true,
-          markingNotes: true, syllabusTopic: true,
-          transcribedOptions: true, transcribedStem: true,
-          transcribedSubparts: true,
-        },
+        select: fastPath ? SLIM_QUESTION_SELECT : HEAVY_QUESTION_SELECT,
         orderBy: { orderIndex: "asc" },
       },
     },
     orderBy: { completedAt: "desc" },
   });
+  // Hydration + master-stem resolution for the FAST path can race
+  // alongside the bulk papers query. exampleHydration → check which
+  // examples need master fallback → master-stems pull. Total wall
+  // clock on this branch is `max(papers, hydration + masters)`
+  // instead of the prior sequential `papers + hydration + masters`.
+  const fastPathMasterChain: Promise<{ examples: Array<{ id: string; transcribedStem: string | null; transcribedSubparts: unknown; answer: string | null; sourceQuestionId: string | null }>; masterStems: Map<string, string> }> = fastPath
+    ? (async () => {
+        const examples = await prisma.examQuestion.findMany({
+          where: { id: { in: [...exampleQuestionIds] } },
+          select: { id: true, transcribedStem: true, transcribedSubparts: true, answer: true, sourceQuestionId: true },
+        });
+        const needed = new Set<string>();
+        for (const ex of examples) {
+          const stem = (ex.transcribedStem ?? "").trim();
+          if (!stem && ex.sourceQuestionId) needed.add(ex.sourceQuestionId);
+        }
+        const masterStems = new Map<string, string>();
+        if (needed.size > 0) {
+          const masters = await prisma.examQuestion.findMany({
+            where: { id: { in: [...needed] } },
+            select: { id: true, transcribedStem: true },
+          });
+          for (const m of masters) {
+            const s = (m.transcribedStem ?? "").trim();
+            if (s) masterStems.set(m.id, s);
+          }
+        }
+        return { examples, masterStems };
+      })()
+    : Promise.resolve({ examples: [], masterStems: new Map<string, string>() });
 
-  // Fallback for missing clone stems. Many [EVAL] papers and older
-  // quiz clones have empty transcribedStem because the master was the
-  // canonical home. Pull the master's stem so Lumi's example panel
-  // can still render the question text. Batch-fetch in one query to
-  // avoid N+1; only resolves masters we actually need.
-  const masterIdsNeeded = new Set<string>();
-  for (const p of subjectPapers) {
-    for (const q of p.questions) {
-      const stem = (q.transcribedStem ?? "").trim();
-      if (!stem && q.sourceQuestionId) masterIdsNeeded.add(q.sourceQuestionId);
+  const [subjectPapersRaw, fastPathResult] = await Promise.all([papersPromise, fastPathMasterChain]);
+
+  // Inject hydrated text columns onto example rows so reconstructWrongs
+  // sees populated fields when it visits these questions. Non-example
+  // rows get explicit nulls so the function's `?? ""` / Array.isArray
+  // guards do the right thing.
+  if (fastPath) {
+    const hyd = new Map(fastPathResult.examples.map(h => [h.id, h]));
+    for (const p of subjectPapersRaw) {
+      for (const q of p.questions as Array<Record<string, unknown>>) {
+        const h = hyd.get(q.id as string);
+        q.transcribedStem = h?.transcribedStem ?? null;
+        q.transcribedSubparts = h?.transcribedSubparts ?? null;
+        q.answer = h?.answer ?? null;
+      }
     }
   }
-  const masterStemById = new Map<string, string>();
-  if (masterIdsNeeded.size > 0) {
-    const masters = await prisma.examQuestion.findMany({
-      where: { id: { in: [...masterIdsNeeded] } },
-      select: { id: true, transcribedStem: true },
-    });
-    for (const m of masters) {
-      const s = (m.transcribedStem ?? "").trim();
-      if (s) masterStemById.set(m.id, s);
+  // After hydration the structural shape matches HEAVY_QUESTION_SELECT
+  // in both paths, so the cast below is safe for both reconstructWrongs
+  // and computeTopline.
+  const subjectPapers = subjectPapersRaw as unknown as Parameters<typeof shapeTutorData>[0]["papers"];
+
+  // Master-stem fallback. Fast path reused the masters resolved
+  // inside fastPathMasterChain (above). Legacy path: walk all
+  // questions sequentially after the bulk pull lands — the workshop
+  // may have referenced any of them via idx.
+  const masterStemById = fastPath
+    ? fastPathResult.masterStems
+    : new Map<string, string>();
+  if (!fastPath) {
+    const masterIdsNeeded = new Set<string>();
+    for (const p of subjectPapers) {
+      for (const q of p.questions) {
+        const stem = (q.transcribedStem ?? "").trim();
+        if (!stem && q.sourceQuestionId) masterIdsNeeded.add(q.sourceQuestionId);
+      }
+    }
+    if (masterIdsNeeded.size > 0) {
+      const masters = await prisma.examQuestion.findMany({
+        where: { id: { in: [...masterIdsNeeded] } },
+        select: { id: true, transcribedStem: true },
+      });
+      for (const m of masters) {
+        const s = (m.transcribedStem ?? "").trim();
+        if (s) masterStemById.set(m.id, s);
+      }
     }
   }
 
-  const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport, masterStemById });
+  const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReportTyped, masterStemById });
   if (shaped.kind !== "ready") return shaped;
 
   // Diagrams are NO LONGER hydrated here. The previous targeted-fetch

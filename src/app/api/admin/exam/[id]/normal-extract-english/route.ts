@@ -684,6 +684,21 @@ export async function POST(
       });
       break;
     case "grammar-cloze":
+      // P4 quirk: some P4 school papers (e.g. Tao Nan SA2) ship TWO
+      // Grammar Cloze passages back-to-back -- a word-bank one (~4
+      // Qs, table at top of page) then a 2-option inline word-choice
+      // one (~4 Qs, stems like `(N) [optA / optB]`). Clean Extract
+      // tags every question in BOTH passages "Grammar Cloze", so the
+      // section-grouping step lumps them into one heterogeneous block
+      // and the table extractor either bails or returns garbage.
+      // Until the extractor splits on layout, the fix is either:
+      //   (a) retag the 2-option Qs to a different syllabusTopic
+      //       before running this route, or
+      //   (b) hand-fix the 2-option Qs with a script that rewrites
+      //       stems to `**(N)________**` markers and seeds the
+      //       passage on metadata.sectionOcrTexts["Grammar Cloze 2"]
+      //       (see scripts/_fix-tao-nan-grammar-cloze-2.ts for an
+      //       example).
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
