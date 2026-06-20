@@ -161,6 +161,27 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
   // the parent knows the cached diagnosis is from before the latest
   // quizzes were completed.
   const [currentPaperCount, setCurrentPaperCount] = useState<number | null>(null);
+  // Progress data for the embedded per-topic chart inside ReadyView.
+  // Prefetched HERE (in parallel with the tutor fetch) instead of
+  // inside FullProgressEmbed's own mount-time useEffect — that removed
+  // one waterfall tier off the Lumi load. Keyed on studentId/parentId
+  // since the payload spans all subjects.
+  const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [progressErr, setProgressErr] = useState(false);
+
+  useEffect(() => {
+    setProgress(null);
+    setProgressErr(false);
+    const ctrl = new AbortController();
+    fetch(`/api/student-progress?parentId=${parentId}&studentId=${studentId}`, { signal: ctrl.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) setProgress(d as ProgressData);
+        else setProgressErr(true);
+      })
+      .catch(err => { if (err?.name !== "AbortError") setProgressErr(true); });
+    return () => ctrl.abort();
+  }, [studentId, parentId]);
 
   useEffect(() => {
     // Clear `data` on every student / subject switch — the previous
@@ -288,7 +309,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
               Since this diagnosis, {firstName || "your child"} has done {paperDelta} more {subject.toLowerCase()} quiz{paperDelta === 1 ? "" : "zes"}. I&apos;ll update this when more data comes in.
             </div>
           )}
-          <ReadyView data={data} parentId={parentId} studentId={studentId} />
+          <ReadyView data={data} parentId={parentId} studentId={studentId} prefetchedProgress={progress} prefetchedProgressErr={progressErr} />
         </div>
       )}
       <p className="text-[11px] text-slate-400 mt-12 text-center">
@@ -506,7 +527,7 @@ type DetailView =
   | { kind: "mistake"; index: number }
   | { kind: "concept"; index: number };
 
-function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string }) {
+function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedProgressErr }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean }) {
   const [view, setView] = useState<DetailView | null>(null);
   const isOverview = view === null;
   const stageRef = useRef<HTMLDivElement>(null);
@@ -634,7 +655,7 @@ function ReadyView({ data, parentId, studentId }: { data: Extract<TutorData, { k
       <div ref={stageRef} className="overflow-hidden scroll-mt-4">
         <div className={`flex transition-transform duration-500 ease-out will-change-transform ${isOverview ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="w-full shrink-0">
-            <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} />
+            <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} prefetchedProgress={prefetchedProgress} prefetchedProgressErr={prefetchedProgressErr} />
           </div>
           <div className="w-full shrink-0">
             {view !== null && <DetailPanel data={data} view={view} onBack={() => setView(null)} onGoToFocusedPractice={() => {
@@ -1087,7 +1108,7 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
 );
 LumiShareable.displayName = "LumiShareable";
 
-function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void }) {
+function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectConcept, prefetchedProgress, prefetchedProgressErr }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; onSelectMistake: (i: number) => void; onSelectConcept: (i: number) => void; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean }) {
   const t = data.topline;
   // Inline (no modal) assign flow — clicking the topic button POSTs
   // straight to /api/focused-test. `creatingTopic` is the topic whose
@@ -1256,7 +1277,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
       {/* Bar chart upfront — clickable bars surface a topic detail
           panel + Assign Focus Practice CTA without needing the user
           to swipe to a separate "Full Progress" view. */}
-      <FullProgressEmbed studentId={studentId} parentId={parentId} subject={data.subject} childFirst={data.childFirst} />
+      <FullProgressEmbed studentId={studentId} parentId={parentId} subject={data.subject} childFirst={data.childFirst} prefetchedProgress={prefetchedProgress} prefetchedProgressErr={prefetchedProgressErr} />
 
       {/* Common Mistakes */}
       {data.commonMistakes.length > 0 && (
@@ -1556,19 +1577,15 @@ function LumiAvatar() {
   );
 }
 
-function FullProgressEmbed({ studentId, parentId, subject, childFirst }: { studentId: string; parentId: string; subject: string; childFirst: string }) {
-  const [progress, setProgress] = useState<ProgressData | null>(null);
-  const [progressErr, setProgressErr] = useState(false);
+function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetchedProgress, prefetchedProgressErr }: { studentId: string; parentId: string; subject: string; childFirst: string; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean }) {
+  // Progress data is prefetched by the parent TutorBodyForStudent in
+  // parallel with the tutor fetch, so the chart can render as soon as
+  // either of the two completes — no waterfall.
+  const progress = prefetchedProgress;
+  const progressErr = prefetchedProgressErr;
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
   const [assignedToast, setAssignedToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`/api/student-progress?parentId=${parentId}&studentId=${studentId}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => d ? setProgress(d as ProgressData) : setProgressErr(true))
-      .catch(() => setProgressErr(true));
-  }, [studentId, parentId]);
 
   // Match Tutor's subject label to the keys used by /api/student-progress
   // ("Science", "Mathematics", "English", "Chinese") — same fallback as

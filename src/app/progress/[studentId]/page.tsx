@@ -771,6 +771,21 @@ export function AdminTopicChart({
     return padT + plotH - ((clamped - yMin) / (100 - yMin)) * plotH;
   };
 
+  // Bars grow up from the baseline on every (subject, n-topics) change
+  // — re-fires when the parent switches Math → English so the new
+  // chart feels alive rather than popping in. prefers-reduced-motion
+  // honoured by skipping the scale + delay entirely.
+  const [grown, setGrown] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setGrown(true);
+      return;
+    }
+    setGrown(false);
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setGrown(true)));
+    return () => cancelAnimationFrame(id);
+  }, [subject, topics.length]);
+
   return (
     <div className="bg-white rounded-2xl border-2 border-violet-200 p-5 mb-4 shadow-sm">
       <h3 className="text-sm font-extrabold text-violet-700 uppercase tracking-widest mb-1">Per-topic accuracy</h3>
@@ -800,15 +815,29 @@ export function AdminTopicChart({
               ? "#7C3AED"
               : t.pct >= avg ? "#10B981" : "#94A3B8";
             const handleClick = () => onSelectTopic(isSel ? null : t.topic);
+            const baseline = padT + plotH;
+            const delay = i * 35;
             return (
               <g key={t.topic} style={{ cursor: "pointer" }} onClick={handleClick}>
                 {/* Larger transparent hit area so taps near the bar
                     or label also count. */}
                 <rect x={x - slot * 0.05} y={padT} width={barW + slot * 0.1} height={plotH + padB - 20} fill="transparent" />
-                <rect x={x} y={by} width={barW} height={h} fill={fill} rx={3}
-                  stroke={isSel ? "#5B21B6" : "transparent"} strokeWidth={isSel ? 2 : 0} />
-                <text x={x + barW / 2} y={by - 18} textAnchor="middle" fill="#001E40" fontSize={16} fontWeight="bold">{t.pct.toFixed(0)}%</text>
-                <text x={x + barW / 2} y={by - 4} textAnchor="middle" fill="#737780" fontSize={11}>n={t.attempts}</text>
+                <rect
+                  x={x} y={by} width={barW} height={h} fill={fill} rx={3}
+                  stroke={isSel ? "#5B21B6" : "transparent"} strokeWidth={isSel ? 2 : 0}
+                  style={{
+                    transform: grown ? "scaleY(1)" : "scaleY(0)",
+                    transformOrigin: `${x + barW / 2}px ${baseline}px`,
+                    transition: "transform 600ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    transitionDelay: `${delay}ms`,
+                  }}
+                />
+                <text x={x + barW / 2} y={by - 18} textAnchor="middle" fill="#001E40" fontSize={16} fontWeight="bold"
+                  style={{ opacity: grown ? 1 : 0, transition: "opacity 300ms ease", transitionDelay: `${delay + 400}ms` }}
+                >{t.pct.toFixed(0)}%</text>
+                <text x={x + barW / 2} y={by - 4} textAnchor="middle" fill="#737780" fontSize={11}
+                  style={{ opacity: grown ? 1 : 0, transition: "opacity 300ms ease", transitionDelay: `${delay + 400}ms` }}
+                >n={t.attempts}</text>
                 {/* x-axis label rotated -40° */}
                 <text
                   x={x + barW / 2}
@@ -836,7 +865,7 @@ export function AdminTopicChart({
           const avgFrac = (Math.max(yMin, Math.min(100, avg)) - yMin) / (100 - yMin);
           return (
             <div className="flex flex-col gap-1.5">
-              {topics.map(t => {
+              {topics.map((t, i) => {
                 const isSel = selectedTopic === t.topic;
                 const colorBar = isSel ? "bg-violet-600" : t.pct >= avg ? "bg-emerald-500" : "bg-slate-400";
                 const colorPct = isSel ? "text-violet-700" : t.pct >= avg ? "text-emerald-700" : "text-slate-600";
@@ -859,7 +888,11 @@ export function AdminTopicChart({
                         across rows regardless of label-column width. */}
                     <div className="relative h-8 bg-slate-100 rounded">
                       <div className="absolute inset-0 rounded overflow-hidden">
-                        <div className={`h-full ${colorBar}`} style={{ width: `${barFrac * 100}%` }} />
+                        <div className={`h-full ${colorBar}`} style={{
+                          width: `${(grown ? barFrac : 0) * 100}%`,
+                          transition: "width 600ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          transitionDelay: `${i * 35}ms`,
+                        }} />
                       </div>
                       <div
                         className="absolute top-0 bottom-0 border-l-2 border-dashed border-rose-600 pointer-events-none"

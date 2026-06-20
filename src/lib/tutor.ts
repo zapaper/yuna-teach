@@ -975,6 +975,26 @@ function subjectMatches(rawSubject: string | null, target: string): boolean {
   return false;
 }
 
+// Same semantics as subjectMatches above, but as a Prisma where-clause
+// fragment so we can push the filter down to Postgres instead of pulling
+// every subject's papers across the wire and filtering in JS. Caller
+// spreads this into the examPaper.findMany where{}. Unknown target =
+// match nothing (paranoid default, mirrors the `return false` above).
+function subjectWhere(target: string): Record<string, unknown> {
+  const t = target.toLowerCase();
+  if (t === "science") return { subject: { contains: "science", mode: "insensitive" } };
+  if (t === "math") return { subject: { contains: "math", mode: "insensitive" } };
+  if (t === "english") return { subject: { contains: "english", mode: "insensitive" } };
+  if (t === "chinese") return {
+    OR: [
+      { subject: { contains: "chinese", mode: "insensitive" } },
+      { subject: { contains: "华文" } },
+      { subject: { contains: "中文" } },
+    ],
+  };
+  return { id: "__never__" };
+}
+
 // Demo-video override: viewing Student666's Lumi pulls David lim's
 // papers + cache so the demo has rich content under an anonymous
 // account. The display name STAYS as Student666 — only the
@@ -1060,8 +1080,15 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   // we actually need to feed reconstructWrongs. Uncached kids (now
   // surfaced in the admin dropdown by the ≥15-wrongs path) and
   // ineligible kids (< 3 papers) skip the heavy pull entirely.
+  // Subject filter is pushed to Postgres (see subjectWhere). Pre-push
+  // we pulled every subject's papers for the kid and filtered in JS —
+  // for multi-subject kids that's ~3-4× the egress we actually need.
   const papersLight = await prisma.examPaper.findMany({
-    where: { assignedToId: dataStudentId, markingStatus: { in: ["complete", "released"] } },
+    where: {
+      assignedToId: dataStudentId,
+      markingStatus: { in: ["complete", "released"] },
+      ...subjectWhere(subject),
+    },
     select: {
       id: true, title: true, subject: true, metadata: true,
       questions: {
@@ -1082,6 +1109,10 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     // per pattern.
     orderBy: { completedAt: "desc" },
   });
+  // Defensive JS filter — subjectWhere uses Postgres `contains`, which
+  // mirrors the JS subjectMatches semantics, but keeping this layer
+  // means a subjectWhere bug can't silently leak the wrong subject's
+  // papers into the topline (the chinese OR-branch is the riskiest).
   const subjectPapersLight = papersLight.filter(p => subjectMatches(p.subject, subject));
 
   // Find the cached Gemini diagnosis for this kid + subject. cacheSafe

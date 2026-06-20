@@ -861,7 +861,10 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
   // Lumi mascot — resized once per send for the tease block. 44px @ 2x
   // (rendered at 22px in the HTML) keeps the file ~3KB while staying
   // crisp on retina mail clients.
-  const lumiPngFull = readFileSync(path.join(process.cwd(), "public", "avatars", "lumi1.png"));
+  // public/avatars is gitignored (served from Cloudflare R2 via next.config.ts
+  // redirect, see .gitignore line 51), so reading from there crashes on
+  // Railway with ENOENT. public/email-assets ships in the deploy bundle.
+  const lumiPngFull = readFileSync(path.join(process.cwd(), "public", "email-assets", "lumi1.png"));
   const lumiPng = await sharp(lumiPngFull).resize({ height: 44 }).png().toBuffer();
   const lumiCid = `lumi-icon-${safeStu}-${c.subjectKey}`;
 
