@@ -1549,7 +1549,9 @@ async function handle(
             color: RED,
           });
           if (m.note) {
-            const noteSizeCn = Math.max(14, Math.round(noteSize * 0.45));
+            // Font: 2x the previous noteSize * 0.45 sizing (= 0.9).
+            // Floor at 28 so a low-DPI scan still prints legibly.
+            const noteSizeCn = Math.max(28, Math.round(noteSize * 0.9));
             const leftMarginPx = Math.max(12, Math.round(pageW * 0.05));
             const rightMarginPx = Math.max(12, Math.round(pageW * 0.05));
             const maxLineW = pageW - leftMarginPx - rightMarginPx;
@@ -1561,13 +1563,16 @@ async function handle(
                 bold: true,
               });
               const embedded = await doc.embedPng(png);
-              // Look for a clear horizontal band below the tick / cross.
-              // findWhitespaceBand returns gray-bitmap coords (y from the
-              // TOP), so convert back to pdf coords (y from the BOTTOM)
-              // before drawing. Falls back to "just below the badge" if
-              // no clear band is found in the search window.
+              // Search anchor: BOTTOM of the question's writing area
+              // (entry.pageRegion.topPx + heightPx), NOT the cross
+              // mark. Marks sit in the rightmost column at the y
+              // where the marker scored, but the kid's handwriting
+              // extends below that — we want the note in clean
+              // whitespace AFTER the writing ends. Convert pdf-coord
+              // markRegion → gray-bitmap top-down coord.
+              const writingBottomGray = entry.pageRegion.topPx + entry.pageRegion.heightPx;
               const band = findWhitespaceBand(
-                yPx + markSize * 0.6,
+                writingBottomGray,
                 Math.ceil(grayH * 0.5),
                 heightPx,
               );
@@ -1578,10 +1583,24 @@ async function handle(
               } else {
                 noteY2 = pageH - band.y - heightPx;
               }
-              // Clamp to page so we don't fall off the bottom or top.
+              // Collision check against already-placed notes + the
+              // marks themselves. Slide DOWN by one line-height
+              // until no overlap, capped at 8 attempts so we don't
+              // run off the bottom of the page.
+              const lineH = Math.ceil(noteSizeCn * 1.4);
+              const overlaps = (r: { x: number; y: number; w: number; h: number }) =>
+                noteX2 < r.x + r.w &&
+                noteX2 + widthPx > r.x &&
+                noteY2 < r.y + r.h &&
+                noteY2 + heightPx > r.y;
+              for (let guard = 0; guard < 8; guard++) {
+                if (!placedNoteRects.some(overlaps)) break;
+                noteY2 -= lineH;
+              }
               if (noteY2 < 8) noteY2 = 8;
               if (noteY2 + heightPx > pageH - 8) noteY2 = pageH - 8 - heightPx;
               page.drawImage(embedded, { x: noteX2, y: noteY2, width: widthPx, height: heightPx });
+              placedNoteRects.push({ x: noteX2, y: noteY2, w: widthPx, h: heightPx });
             } catch (err) {
               console.warn(`[export-marked] Chinese note rasterise failed for Q${q.questionNum}:`, err);
             }
