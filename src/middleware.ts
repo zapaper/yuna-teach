@@ -42,6 +42,10 @@ const PUBLIC_REGEXES: RegExp[] = [
   // handler verifies Bearer ${NURTURE_API_TOKEN} OR an admin session,
   // so the middleware bypass is safe.
   /^\/api\/admin\/parent-progress\/?$/,
+  // markforyou-mailer Daily Emails dashboard "Refresh from main app"
+  // pulls server-event email records from here. Route handler verifies
+  // Bearer ${NURTURE_API_TOKEN} OR an admin session.
+  /^\/api\/admin\/email-events\/?$/,
 ];
 
 // Some paths are public for ONE method but auth'd for others.
