@@ -4,6 +4,74 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
+type SignupBucket = { date: string; newUsers: number; cumulative: number };
+
+// Inline SVG signup chart — 14 days of new-user counts (bars) with the
+// cumulative total user count (line) overlaid. Self-contained so we
+// don't pull in a chart library for one panel.
+function SignupChart({ data }: { data: SignupBucket[] }) {
+  if (data.length === 0) return null;
+  const W = 700;
+  const H = 160;
+  const padL = 36;
+  const padR = 40;
+  const padT = 10;
+  const padB = 24;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const maxNew = Math.max(1, ...data.map(d => d.newUsers));
+  const maxCum = Math.max(1, ...data.map(d => d.cumulative));
+  const barW = plotW / data.length * 0.7;
+  const stepX = plotW / data.length;
+  const newY = (n: number) => padT + plotH - (n / maxNew) * plotH;
+  const cumY = (n: number) => padT + plotH - (n / maxCum) * plotH;
+  const linePts = data.map((d, i) => `${padL + i * stepX + stepX / 2},${cumY(d.cumulative)}`).join(" ");
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-4">
+      <div className="flex items-baseline gap-4 mb-2">
+        <h2 className="text-sm font-bold text-slate-700">Signups — last 14 days</h2>
+        <span className="text-[11px] text-slate-400">bars = new users that day · line = cumulative total</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        {/* horizontal gridlines (1/4, 1/2, 3/4) */}
+        {[0.25, 0.5, 0.75].map(f => (
+          <line key={f} x1={padL} x2={padL + plotW} y1={padT + plotH * f} y2={padT + plotH * f} stroke="#e2e8f0" strokeDasharray="3 3" />
+        ))}
+        {/* daily bars */}
+        {data.map((d, i) => (
+          <rect key={d.date}
+            x={padL + i * stepX + (stepX - barW) / 2}
+            y={newY(d.newUsers)}
+            width={barW}
+            height={padT + plotH - newY(d.newUsers)}
+            fill="#10b981"
+            rx={2}
+          >
+            <title>{`${d.date}: +${d.newUsers} new · total ${d.cumulative}`}</title>
+          </rect>
+        ))}
+        {/* cumulative line */}
+        <polyline fill="none" stroke="#3b82f6" strokeWidth="2" points={linePts} />
+        {data.map((d, i) => (
+          <circle key={`c-${d.date}`} cx={padL + i * stepX + stepX / 2} cy={cumY(d.cumulative)} r={3} fill="#3b82f6" />
+        ))}
+        {/* left axis labels — new-user max + 0 */}
+        <text x={padL - 6} y={padT + 4} textAnchor="end" fontSize="10" fill="#64748b">{maxNew}</text>
+        <text x={padL - 6} y={padT + plotH} textAnchor="end" fontSize="10" fill="#64748b">0</text>
+        {/* right axis labels — cumulative max + start */}
+        <text x={padL + plotW + 6} y={padT + 4} fontSize="10" fill="#3b82f6">{maxCum}</text>
+        <text x={padL + plotW + 6} y={padT + plotH} fontSize="10" fill="#3b82f6">{data[0]?.cumulative ?? 0}</text>
+        {/* date labels — first, mid, last */}
+        {[0, Math.floor(data.length / 2), data.length - 1].map(i => (
+          <text key={`d-${i}`} x={padL + i * stepX + stepX / 2} y={H - 6} textAnchor="middle" fontSize="10" fill="#64748b">
+            {data[i].date.slice(5)}
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 type ParentRow = {
   id: string;
   name: string;
@@ -60,6 +128,7 @@ function AdminUsersContent() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [parents, setParents] = useState<ParentRow[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
+  const [signups14d, setSignups14d] = useState<SignupBucket[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string; role: "PARENT" | "STUDENT" } | null>(null);
@@ -193,6 +262,7 @@ function AdminUsersContent() {
       const data = await res.json();
       setParents(data.parents ?? []);
       setStudents(data.students ?? []);
+      setSignups14d(data.signups14d ?? []);
     } catch {
       setError("Failed to load users");
     } finally {
@@ -269,6 +339,7 @@ function AdminUsersContent() {
             </div>
           ) : (
             <>
+              {signups14d.length > 0 && <SignupChart data={signups14d} />}
               <UserSection
                 title="Parents"
                 count={parents.length}

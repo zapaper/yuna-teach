@@ -13,6 +13,43 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // 14-day signup series for the chart at the top of /admin/users.
+  // Daily new-user counts (PARENT + STUDENT combined) bucketed in SGT
+  // so the X-axis matches local clock-time. Cumulative is total users
+  // alive on the END of that day (covers all roles, no role filter).
+  const SGT_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const DAYS = 14;
+  const nowMs = Date.now();
+  const todaySgt = new Date(nowMs + SGT_OFFSET_MS);
+  todaySgt.setUTCHours(0, 0, 0, 0);
+  const startSgt = new Date(todaySgt.getTime() - (DAYS - 1) * 24 * 60 * 60 * 1000);
+  const startMsUtc = startSgt.getTime() - SGT_OFFSET_MS;
+  const [allCreatedAt, totalBefore] = await Promise.all([
+    prisma.user.findMany({
+      where: { createdAt: { gte: new Date(startMsUtc) } },
+      select: { createdAt: true },
+    }),
+    prisma.user.count({ where: { createdAt: { lt: new Date(startMsUtc) } } }),
+  ]);
+  const buckets: Record<string, number> = {};
+  for (let i = 0; i < DAYS; i++) {
+    const d = new Date(startSgt.getTime() + i * 24 * 60 * 60 * 1000);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+    buckets[key] = 0;
+  }
+  for (const u of allCreatedAt) {
+    const sgt = new Date(u.createdAt.getTime() + SGT_OFFSET_MS);
+    sgt.setUTCHours(0, 0, 0, 0);
+    const key = `${sgt.getUTCFullYear()}-${String(sgt.getUTCMonth() + 1).padStart(2, "0")}-${String(sgt.getUTCDate()).padStart(2, "0")}`;
+    if (buckets[key] !== undefined) buckets[key]++;
+  }
+  let cum = totalBefore;
+  const signups14d: { date: string; newUsers: number; cumulative: number }[] = [];
+  for (const key of Object.keys(buckets)) {
+    cum += buckets[key];
+    signups14d.push({ date: key, newUsers: buckets[key], cumulative: cum });
+  }
+
   const [parents, students] = await Promise.all([
     prisma.user.findMany({
       where: { role: "PARENT" },
@@ -62,6 +99,7 @@ export async function GET() {
   ]);
 
   return NextResponse.json({
+    signups14d,
     parents: parents.map(p => ({
       id: p.id,
       name: p.name,
