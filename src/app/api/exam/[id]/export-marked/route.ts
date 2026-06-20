@@ -1528,11 +1528,18 @@ async function handle(
 
         // ─── Chinese OEQ simple path ────────────────────────────────
         // Render the Chinese marking note as a PNG via @napi-rs/canvas
-        // (using the system-installed Noto Sans CJK from nixpacks.toml)
-        // and embed the PNG in the PDF. Bypasses pdf-lib's variable-
-        // font handling — that was producing scattered glyphs even
-        // when widthOfTextAtSize reported correct metrics. Bold is
-        // native to canvas, no extra font asset needed.
+        // (using the bundled Noto Sans SC) and embed the PNG in the
+        // PDF. Bypasses pdf-lib's variable-font handling.
+        //
+        // Placement: when the mark lands near the right page edge
+        // (Chinese long-OEQ answer sheets have the writing area span
+        // 90% of the page width, leaving the mark column at the
+        // right), the right-of-mark strip is too narrow and the note
+        // gets squished. Run the same findWhitespaceBand search the
+        // English Comp Cloze "accepted as" note uses, anchor the PNG
+        // to the LEFT margin, and use ~85% of the page width — so
+        // the note flows naturally under the mark into whatever
+        // empty horizontal band sits closest below it.
         if (isChinese && isOeq && !isMcq) {
           page.drawText(badge, {
             x: markX + markSize * 0.6,
@@ -1543,17 +1550,37 @@ async function handle(
           });
           if (m.note) {
             const noteSizeCn = Math.max(14, Math.round(noteSize * 0.45));
-            const maxLineW = pageW - (markX + markSize * 1.5) - 12;
+            const leftMarginPx = Math.max(12, Math.round(pageW * 0.05));
+            const rightMarginPx = Math.max(12, Math.round(pageW * 0.05));
+            const maxLineW = pageW - leftMarginPx - rightMarginPx;
             try {
               const { png, widthPx, heightPx } = renderCjkNoteToPng(m.note, {
                 fontSizePx: noteSizeCn,
-                maxWidthPx: Math.max(120, maxLineW),
+                maxWidthPx: maxLineW,
                 color: "rgb(217, 26, 26)",
                 bold: true,
               });
               const embedded = await doc.embedPng(png);
-              const noteX2 = markX + markSize * 0.6;
-              const noteY2 = markY - badgeSize * 1.4 - heightPx;
+              // Look for a clear horizontal band below the tick / cross.
+              // findWhitespaceBand returns gray-bitmap coords (y from the
+              // TOP), so convert back to pdf coords (y from the BOTTOM)
+              // before drawing. Falls back to "just below the badge" if
+              // no clear band is found in the search window.
+              const band = findWhitespaceBand(
+                yPx + markSize * 0.6,
+                Math.ceil(grayH * 0.5),
+                heightPx,
+              );
+              const noteX2 = leftMarginPx;
+              let noteY2: number;
+              if (band.direction === "fallback") {
+                noteY2 = markY - badgeSize * 1.4 - heightPx;
+              } else {
+                noteY2 = pageH - band.y - heightPx;
+              }
+              // Clamp to page so we don't fall off the bottom or top.
+              if (noteY2 < 8) noteY2 = 8;
+              if (noteY2 + heightPx > pageH - 8) noteY2 = pageH - 8 - heightPx;
               page.drawImage(embedded, { x: noteX2, y: noteY2, width: widthPx, height: heightPx });
             } catch (err) {
               console.warn(`[export-marked] Chinese note rasterise failed for Q${q.questionNum}:`, err);
