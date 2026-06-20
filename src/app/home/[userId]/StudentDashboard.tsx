@@ -439,11 +439,11 @@ export default function StudentDashboard({
   function fightAvatarCfg(type: string, points: number): { prefix: string; ext: "gif" | "mp4"; isVideo: boolean } {
     const haEligible = type === "bunny" && points >= 200;
     const tier = haEligible ? "ha" : "la";
-    if (type === "bear") return { prefix: `/avatars/fight/bear_la`, ext: "gif", isVideo: false };
-    if (type === "tiger") return { prefix: `/avatars/fight/tiger_la`, ext: "mp4", isVideo: true };
-    if (type === "fox") return { prefix: `/avatars/fight/fox_la`, ext: "mp4", isVideo: true };
-    if (type === "otter") return { prefix: `/avatars/fight/otter_la`, ext: "mp4", isVideo: true };
-    return { prefix: `/avatars/fight/bunny_${tier}`, ext: "gif", isVideo: false };
+    if (type === "bear") return { prefix: `/avatars/Fight/bear_la`, ext: "gif", isVideo: false };
+    if (type === "tiger") return { prefix: `/avatars/Fight/tiger_la`, ext: "mp4", isVideo: true };
+    if (type === "fox") return { prefix: `/avatars/Fight/fox_la`, ext: "mp4", isVideo: true };
+    if (type === "otter") return { prefix: `/avatars/Fight/otter_la`, ext: "mp4", isVideo: true };
+    return { prefix: `/avatars/Fight/bunny_${tier}`, ext: "gif", isVideo: false };
   }
 
   // Preload all arena fight assets for the player's avatar type + slime + mushroom
@@ -452,32 +452,32 @@ export default function StudentDashboard({
     for (const tier of ["la", "ha"]) {
       for (const act of ["ready", "attack", "defend", "hit"]) {
         const img = new Image();
-        img.src = `/avatars/fight/bunny_${tier}_${act}.gif`;
+        img.src = `/avatars/Fight/bunny_${tier}_${act}.gif`;
       }
     }
     for (const act of ["ready", "attack", "defend", "hit"]) {
       const img = new Image();
-      img.src = `/avatars/fight/bear_la_${act}.gif`;
+      img.src = `/avatars/Fight/bear_la_${act}.gif`;
     }
     for (const brand of ["tiger", "fox", "otter"]) {
       for (const act of ["ready", "attack", "defend", "hit"]) {
         const v = document.createElement("video");
-        v.src = `/avatars/fight/${brand}_la_${act}.mp4`;
+        v.src = `/avatars/Fight/${brand}_la_${act}.mp4`;
         v.preload = "auto";
       }
     }
     for (const act of ["attack", "hit", "dead"]) {
       const img = new Image();
-      img.src = `/avatars/fight/slime_${act}.gif`;
+      img.src = `/avatars/Fight/slime_${act}.gif`;
     }
     // Preload mushroom videos (mp4)
     for (const act of ["attack", "hit", "die"]) {
       const v = document.createElement("video");
-      v.src = `/avatars/fight/mushroom_${act}.mp4`;
+      v.src = `/avatars/Fight/mushroom_${act}.mp4`;
       v.preload = "auto";
     }
     const slashImg = new Image();
-    slashImg.src = "/avatars/fight/slash.gif";
+    slashImg.src = "/avatars/Fight/slash.gif";
   }, [hasArena]);
 
   // Trigger slash 1s after avatar attacks
@@ -1529,7 +1529,7 @@ export default function StudentDashboard({
                   Arena Battle
                 </button>
                 {showArena && (
-                  <div className="rounded-2xl flex" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
+                  <div className="rounded-2xl flex" style={{ background: `#1a1a2e url(/avatars/Fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
                       {/* Leaderboard table */}
                       <div className="w-[40%] shrink-0 p-5">
                         <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
@@ -1609,13 +1609,13 @@ export default function StudentDashboard({
                               <>
                                 {["hit", "attack", "dead"].map(s => (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                                  <img key={`s-${s}`} src={`/avatars/Fight/slime_${s}.gif`} alt={s}
                                     className={`h-36 object-contain absolute bottom-0 right-0 ${monster === "slime" && currentPair.slime === s ? "" : "invisible"}`}
                                     style={{ mixBlendMode: "screen" }}
                                   />
                                 ))}
                                 {["hit", "attack", "die"].map(s => (
-                                  <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
+                                  <video key={`m-${s}`} src={`/avatars/Fight/mushroom_${s}.mp4`}
                                     autoPlay muted playsInline loop={s !== "die"}
                                     className={`h-36 object-contain absolute bottom-2 right-12 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
                                     style={{ mixBlendMode: "screen" }}
@@ -1627,14 +1627,14 @@ export default function StudentDashboard({
                           {/* Slash — between avatar and slime */}
                           {showSlash && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
+                            <img src={`/avatars/Fight/slash.gif?t=${arenaAction}`} alt="slash"
                               className="h-64 object-contain absolute -bottom-2 left-1/2 -translate-x-1/2 z-20"
                               style={{ mixBlendMode: "screen" }}
                             />
                           )}
                           {/* Shield — over avatar when defending */}
                           {showShield && (
-                            <video key={`shield-${arenaAction}`} src="/avatars/fight/shield.mp4"
+                            <video key={`shield-${arenaAction}`} src="/avatars/Fight/shield.mp4"
                               autoPlay muted playsInline
                               className="h-48 object-contain absolute bottom-0 left-0 z-20"
                               style={{ mixBlendMode: "screen" }}
@@ -1819,7 +1819,7 @@ export default function StudentDashboard({
                 Arena Battle
               </button>
               {showArena && (
-                <div className="rounded-2xl flex flex-col p-4" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
+                <div className="rounded-2xl flex flex-col p-4" style={{ background: `#1a1a2e url(/avatars/Fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
                   <div>
                     <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
                     <table className="w-full">
@@ -1897,13 +1897,13 @@ export default function StudentDashboard({
                           <>
                             {["hit", "attack", "dead"].map(s => (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                              <img key={`s-${s}`} src={`/avatars/Fight/slime_${s}.gif`} alt={s}
                                 className={`h-20 object-contain absolute bottom-0 right-0 ${monster === "slime" && currentPair.slime === s ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen" }}
                               />
                             ))}
                             {["hit", "attack", "die"].map(s => (
-                              <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
+                              <video key={`m-${s}`} src={`/avatars/Fight/mushroom_${s}.mp4`}
                                 autoPlay muted playsInline loop={s !== "die"}
                                 className={`h-20 object-contain absolute bottom-1 right-8 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen" }}
@@ -1915,14 +1915,14 @@ export default function StudentDashboard({
                       {/* Slash — between avatar and slime */}
                       {showSlash && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
+                        <img src={`/avatars/Fight/slash.gif?t=${arenaAction}`} alt="slash"
                           className="h-40 object-contain absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"
                           style={{ mixBlendMode: "screen" }}
                         />
                       )}
                       {/* Shield — over avatar when defending */}
                       {showShield && (
-                        <video key={`shield-${arenaAction}`} src="/avatars/fight/shield.mp4"
+                        <video key={`shield-${arenaAction}`} src="/avatars/Fight/shield.mp4"
                           autoPlay muted playsInline
                           className="h-28 object-contain absolute bottom-0 left-0 z-20"
                           style={{ mixBlendMode: "screen" }}
