@@ -10,6 +10,22 @@ type SignupBucket = { date: string; newUsers: number; cumulative: number };
 // cumulative total user count (line) overlaid. Self-contained so we
 // don't pull in a chart library for one panel.
 function SignupChart({ data }: { data: SignupBucket[] }) {
+  // Mount-time animation: bars start at scaleY(0) anchored at the
+  // baseline and grow to scaleY(1) over ~600 ms with a small per-bar
+  // delay so the columns sweep up left-to-right. useEffect flips the
+  // state on the next paint, so the initial render is at 0 and the
+  // transition to 1 is the animation. Honours prefers-reduced-motion
+  // — readers who've turned animations off see the final state
+  // immediately.
+  const [grown, setGrown] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) { setGrown(true); return; }
+    const id = window.requestAnimationFrame(() => setGrown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
   if (data.length === 0) return null;
   const W = 700;
   const H = 160;
@@ -37,19 +53,33 @@ function SignupChart({ data }: { data: SignupBucket[] }) {
         {[0.25, 0.5, 0.75].map(f => (
           <line key={f} x1={padL} x2={padL + plotW} y1={padT + plotH * f} y2={padT + plotH * f} stroke="#e2e8f0" strokeDasharray="3 3" />
         ))}
-        {/* daily bars */}
-        {data.map((d, i) => (
-          <rect key={d.date}
-            x={padL + i * stepX + (stepX - barW) / 2}
-            y={newY(d.newUsers)}
-            width={barW}
-            height={padT + plotH - newY(d.newUsers)}
-            fill="#10b981"
-            rx={2}
-          >
-            <title>{`${d.date}: +${d.newUsers} new · total ${d.cumulative}`}</title>
-          </rect>
-        ))}
+        {/* daily bars — grow from baseline via scaleY transform.
+            transform-origin sits at the bar's baseline (bottom-centre
+            in SVG units); transform-box keeps the origin local to the
+            element. Per-bar delay (i * 35 ms) sweeps L→R. */}
+        {data.map((d, i) => {
+          const barHeight = padT + plotH - newY(d.newUsers);
+          const barX = padL + i * stepX + (stepX - barW) / 2;
+          const barBaselineY = padT + plotH;
+          return (
+            <rect key={d.date}
+              x={barX}
+              y={newY(d.newUsers)}
+              width={barW}
+              height={barHeight}
+              fill="#10b981"
+              rx={2}
+              style={{
+                transformOrigin: `${barX + barW / 2}px ${barBaselineY}px`,
+                transformBox: "view-box",
+                transform: grown ? "scaleY(1)" : "scaleY(0)",
+                transition: `transform 600ms cubic-bezier(0.22, 1, 0.36, 1) ${i * 35}ms`,
+              }}
+            >
+              <title>{`${d.date}: +${d.newUsers} new · total ${d.cumulative}`}</title>
+            </rect>
+          );
+        })}
         {/* cumulative line */}
         <polyline fill="none" stroke="#3b82f6" strokeWidth="2" points={linePts} />
         {data.map((d, i) => (
