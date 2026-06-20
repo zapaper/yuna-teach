@@ -237,6 +237,12 @@ function ExamReviewContent({ id }: { id: string }) {
   const [assignedToId, setAssignedToId] = useState<string | null>(null);
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [skipPages, setSkipPages] = useState<number[]>([]);
+  // Set the first time a parent (or student) hits a print endpoint. We
+  // use it to gate `isScannedBack` below — digital quiz clones inherit
+  // their master's `answerPages` metadata, which would otherwise
+  // wrongly flip the review page into scanned-back rendering and
+  // fetch /api/exam/[id]/pages?page=N for a JPG that doesn't exist.
+  const [printedAt, setPrintedAt] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
   // Chinese 阅读理解 OEQ writing pad — questions on appended pad
   // pages carry pageIndex = oeqPadFirstPageIndex + padOffset which is
@@ -443,6 +449,7 @@ function ExamReviewContent({ id }: { id: string }) {
           }
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
+          setPrintedAt(paper.printedAt ?? null);
           {
             const ne = (paper.metadata as { normalExtractChinese?: { oeqPadFirstPageIndex?: number; oeqPadPages?: number } } | undefined)?.normalExtractChinese;
             setOeqPadFirst(typeof ne?.oeqPadFirstPageIndex === "number" ? ne.oeqPadFirstPageIndex : null);
@@ -1039,7 +1046,12 @@ function ExamReviewContent({ id }: { id: string }) {
   // counter (currentQOeqIndex) is correct ONLY for digital quizzes
   // where each OEQ question got its own browser canvas saved as
   // page_<idx>.jpg.
-  const isScannedBack = skipPages.length > 0 || answerPages.length > 0;
+  // printedAt gate: digital quiz clones inherit the master's
+  // `answerPages` metadata even though they were never printed. Without
+  // the `!!printedAt` check, every such clone gets flagged as scanned-
+  // back and the bottom widget asks for /api/exam/[id]/pages?page=N
+  // (which 404s — the JPGs only exist for actual print/scan papers).
+  const isScannedBack = !!printedAt && (skipPages.length > 0 || answerPages.length > 0);
   // Use stored page map when available (set at submission time, immune to code changes).
   // For scanned-back, prefer page-based mapping over the per-OEQ counter.
   // Otherwise fall back to calculated OEQ index for digital quizzes.

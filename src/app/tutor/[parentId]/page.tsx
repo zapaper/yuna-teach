@@ -74,6 +74,12 @@ type MistakeExample = {
   // a "Most of these mistakes are in [topic]" callout when the pattern's
   // examples concentrate on one topic.
   topic?: string | null;
+  // Master examQuestion id — used by ExpandableExample to look up
+  // lazy-loaded diagram / option-image blobs from the LazyImages map.
+  // loadTutorData ships the field through instead of wiping it before
+  // returning, so the client can POST to /api/tutor/[studentId]/diagrams
+  // when a parent opens a card.
+  questionId?: string | null;
 };
 type MistakeCard = {
   bucket: string;
@@ -527,9 +533,42 @@ type DetailView =
   | { kind: "mistake"; index: number }
   | { kind: "concept"; index: number };
 
+type LazyImage = { diagramImageData: string | null; imageData: string | null; optionImages: string[] | null };
+type LazyImages = Record<string, LazyImage>;
+
 function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedProgressErr }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean }) {
   const [view, setView] = useState<DetailView | null>(null);
   const isOverview = view === null;
+  // Lazy-load diagram + image-option blobs when the parent opens a
+  // mistake / concept card. loadTutorData omits these from the base
+  // payload (saves 400KB-1MB + 100-300ms on every Lumi visit); we hit
+  // /api/tutor/[studentId]/diagrams once per card-open and cache the
+  // result so a re-open is instant.
+  const [lazyImages, setLazyImages] = useState<LazyImages>({});
+  useEffect(() => {
+    if (!view) return;
+    const card = view.kind === "mistake"
+      ? data.commonMistakes[view.index]
+      : data.conceptualGaps[view.index];
+    if (!card) return;
+    const needed = card.examples
+      .map(ex => ex.questionId)
+      .filter((id): id is string => !!id && !lazyImages[id]);
+    if (needed.length === 0) return;
+    const ctrl = new AbortController();
+    fetch(`/api/tutor/${studentId}/diagrams`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionIds: needed }),
+      signal: ctrl.signal,
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.diagrams) setLazyImages(prev => ({ ...prev, ...d.diagrams }));
+      })
+      .catch(err => { if (err?.name !== "AbortError") console.warn("[lumi] lazy-diagram fetch failed:", err); });
+    return () => ctrl.abort();
+  }, [view, data.commonMistakes, data.conceptualGaps, studentId, lazyImages]);
   const stageRef = useRef<HTMLDivElement>(null);
   // Share — html2canvas snapshots the hidden LumiShareable below into a
   // PNG, then either fires navigator.share (mobile) or falls back to a
@@ -658,7 +697,7 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
             <OverviewPanel data={data} parentId={parentId} studentId={studentId} onSelectMistake={(i) => setView({ kind: "mistake", index: i })} onSelectConcept={(i) => setView({ kind: "concept", index: i })} prefetchedProgress={prefetchedProgress} prefetchedProgressErr={prefetchedProgressErr} />
           </div>
           <div className="w-full shrink-0">
-            {view !== null && <DetailPanel data={data} view={view} onBack={() => setView(null)} onGoToFocusedPractice={() => {
+            {view !== null && <DetailPanel data={data} view={view} lazyImages={lazyImages} onBack={() => setView(null)} onGoToFocusedPractice={() => {
               setView(null);
               // Wait one tick for the overview to remount, then scroll
               // to the Topics for Practice section.
@@ -1405,7 +1444,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
   );
 }
 
-function DetailPanel({ data, view, onBack, onGoToFocusedPractice }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; onBack: () => void; onGoToFocusedPractice: () => void }) {
+function DetailPanel({ data, view, lazyImages, onBack, onGoToFocusedPractice }: { data: Extract<TutorData, { kind: "ready" }>; view: DetailView; lazyImages: LazyImages; onBack: () => void; onGoToFocusedPractice: () => void }) {
   return (
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#003366] mb-4">
@@ -1413,10 +1452,10 @@ function DetailPanel({ data, view, onBack, onGoToFocusedPractice }: { data: Extr
         Back to overview
       </button>
       {view.kind === "mistake" && data.commonMistakes[view.index] && (
-        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} onGoToFocusedPractice={onGoToFocusedPractice} />
+        <MistakeDetail card={data.commonMistakes[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} lazyImages={lazyImages} onGoToFocusedPractice={onGoToFocusedPractice} />
       )}
       {view.kind === "concept" && data.conceptualGaps[view.index] && (
-        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} onGoToFocusedPractice={onGoToFocusedPractice} />
+        <ConceptDetail card={data.conceptualGaps[view.index]} childFirst={data.childFirst} totalAvailable={data.topline.totalAvailable} lazyImages={lazyImages} onGoToFocusedPractice={onGoToFocusedPractice} />
       )}
     </div>
   );
@@ -1445,7 +1484,7 @@ function dominantExampleTopic(examples: { topic?: string | null }[]): string | n
   return topCount / total >= 0.6 ? topTopic : null;
 }
 
-function MistakeDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number; onGoToFocusedPractice: () => void }) {
+function MistakeDetail({ card, childFirst, totalAvailable, lazyImages, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["commonMistakes"][number]; childFirst: string; totalAvailable: number; lazyImages: LazyImages; onGoToFocusedPractice: () => void }) {
   // MathText (instead of boldifyHtml) so $...$ LaTeX renders as math
   // in Lumi's advice + the headline "what went wrong" copy. Bold and
   // underline markers still work — MathText handles them natively.
@@ -1484,7 +1523,7 @@ function MistakeDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Examples from {childFirst}&apos;s work</p>
           <div className="space-y-3">
             {card.examples.map((ex, i) => (
-              <ExpandableExample key={i} ex={ex} index={i} accent="violet" childFirst={childFirst} />
+              <ExpandableExample key={i} ex={ex} index={i} accent="violet" childFirst={childFirst} lazyImages={lazyImages} />
             ))}
           </div>
         </div>
@@ -1499,7 +1538,7 @@ function MistakeDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice
   );
 }
 
-function ConceptDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number; onGoToFocusedPractice: () => void }) {
+function ConceptDetail({ card, childFirst, totalAvailable, lazyImages, onGoToFocusedPractice }: { card: Extract<TutorData, { kind: "ready" }>["conceptualGaps"][number]; childFirst: string; totalAvailable: number; lazyImages: LazyImages; onGoToFocusedPractice: () => void }) {
   const adviceText = emphasiseQuoted(softenTone(card.advice, childFirst));
   const pct = pctOfSubject(card.marksLost, totalAvailable);
   const dominantTopic = dominantExampleTopic(card.examples);
@@ -1527,7 +1566,7 @@ function ConceptDetail({ card, childFirst, totalAvailable, onGoToFocusedPractice
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Where {childFirst} got mixed up</p>
           <div className="space-y-3">
             {card.examples.map((ex, i) => (
-              <ExpandableExample key={i} ex={ex} index={i} accent="orange" childFirst={childFirst} />
+              <ExpandableExample key={i} ex={ex} index={i} accent="orange" childFirst={childFirst} lazyImages={lazyImages} />
             ))}
           </div>
         </div>
@@ -1837,7 +1876,7 @@ function formatStudentAnswer(raw: string): React.ReactNode {
   }
 }
 
-function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExample; index: number; accent: "violet" | "orange"; childFirst: string }) {
+function ExpandableExample({ ex, index, accent, childFirst, lazyImages }: { ex: MistakeExample; index: number; accent: "violet" | "orange"; childFirst: string; lazyImages: LazyImages }) {
   const [open, setOpen] = useState(false);
   const accentClass = accent === "violet" ? "text-violet-600" : "text-orange-600";
   const accentBg = accent === "violet" ? "bg-violet-50 border-violet-200" : "bg-orange-50 border-orange-200";
@@ -1857,8 +1896,25 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
   const hasAnswerText = !!(ex.studentAnswer && ex.studentAnswer.trim().length > 0);
   const hasMarkingNotes = !!(ex.markingNotes && ex.markingNotes.trim().length > 0);
   const hasFullData = hasQuestionText || hasOptions || hasAnswerText || hasMarkingNotes;
-  const imgSrc = ex.diagramImageData
-    ? (ex.diagramImageData.startsWith("data:") ? ex.diagramImageData : `data:image/jpeg;base64,${ex.diagramImageData}`)
+  // Lazy-image resolution. The base /api/tutor response ships every
+  // diagram + optionImages as null; we mirror the server's old
+  // hydration rules here so the card-expand fetch populates them on
+  // demand. ex.diagramImageData / ex.optionImages survive only if a
+  // server-side path still ships them (none today, kept as a safety
+  // belt). The fallback chain matches loadTutorData's pre-lazy logic:
+  // diagramImageData wins; imageData is the fallback ONLY when the
+  // clean transcribed text is missing (i.e. Math/Sci OEQ with stem
+  // baked into the whole-question crop). MCQs with clean text + a
+  // redundant imageData should NOT show the raw scan.
+  const lazy = ex.questionId ? lazyImages[ex.questionId] : null;
+  const resolvedDiagram = ex.diagramImageData
+    ?? lazy?.diagramImageData
+    ?? (!hasQuestionText ? (lazy?.imageData ?? null) : null);
+  const resolvedOptionImages: string[] | null = (Array.isArray(ex.optionImages) && ex.optionImages.length > 0)
+    ? ex.optionImages
+    : (lazy?.optionImages ?? null);
+  const imgSrc = resolvedDiagram
+    ? (resolvedDiagram.startsWith("data:") ? resolvedDiagram : `data:image/jpeg;base64,${resolvedDiagram}`)
     : null;
   return (
     <div className="border border-slate-200 rounded-xl bg-white">
@@ -1916,11 +1972,11 @@ function ExpandableExample({ ex, index, accent, childFirst }: { ex: MistakeExamp
               parents can see which picture the kid chose vs. the right
               one. Falls through to the chips fallback below only when
               even option images are absent. */}
-          {ex.isMcq && ex.options.length === 0 && ex.optionImages && ex.optionImages.length > 0 && (
+          {ex.isMcq && ex.options.length === 0 && resolvedOptionImages && resolvedOptionImages.length > 0 && (
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Options</p>
               <div className="grid grid-cols-2 gap-2">
-                {ex.optionImages.map((img, k) => {
+                {resolvedOptionImages.map((img, k) => {
                   const num = String(k + 1);
                   const isPicked = !!ex.picked && ex.picked.includes(num);
                   const isCorrect = !!ex.correct && ex.correct.includes(num);

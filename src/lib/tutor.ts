@@ -131,9 +131,10 @@ export type MistakeExample = {
   // question; null for MCQ and for OEQs that were typed (no canvas).
   answerImagePaperId: string | null;
   answerImagePageIndex: number | null;
-  // Used by loadTutorData to know which questions actually need a
-  // diagram fetched. Always null in the public response — we wipe it
-  // before returning to the client so the wire payload stays lean.
+  // The master examQuestion id behind this example. Surfaced to the
+  // client so the lazy-load step (POST /api/tutor/[studentId]/diagrams)
+  // can request the diagram + image-option blobs only when a parent
+  // expands the mistake / concept card.
   questionId?: string | null;
   isMcq: boolean;
   options: string[];
@@ -1065,66 +1066,62 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   const dataStudentId = redirect?.sourceStudentId ?? studentId;
   const cacheSafe = redirect?.sourceSafeName ?? safeName(displayStudent.name);
 
-  // CRITICAL: keep diagramImageData OUT of this bulk select. It's a
-  // base64 JPEG per question; Mark has 36 papers × ~12 questions of
-  // these, which used to pull megabytes over the wire on every fresh
-  // Tutor load. Diagrams are fetched in a targeted second query after
-  // we know which 3-4 example questions per card we'll actually show.
+  // Check the in-memory diagnosis cache FIRST (free) and branch the
+  // SQL plan on it — we used to always pull a `papersLight` and then a
+  // `papersHeavy` even though heavy is a column superset of light.
+  // Cached kids (the common case for Lumi visits with a diagnosis)
+  // skip the light pull entirely; uncached / ineligible kids skip the
+  // heavy pull. cacheSafe honours the demo redirect so e.g. Student666
+  // loads David lim's bundled diagnosis.
+  const cacheKey = `${cacheSafe}:${subject.toLowerCase()}`;
+  const cachedReport = TUTOR_CACHE[cacheKey];
+
+  // CRITICAL: keep diagramImageData OUT of the bulk select. It's a
+  // base64 JPEG per question; pulling it for every row used to add
+  // megabytes per load. Diagrams are now lazy-loaded from the client
+  // via /api/tutor/diagrams when a mistake / concept card expands —
+  // we leave `questionId` on each example so the client knows what to
+  // request, and skip the diagram-hydration round trip here entirely.
   //
-  // Two-pass column hydrate (mirrors daily-quiz's lean-pool pattern —
-  // see project_neon_egress_costs memory): the FIRST pull is light —
-  // just the scoring columns the topline + eligibility check need.
-  // The heavy text columns (transcribedStem / transcribedOptions /
-  // transcribedSubparts / markingNotes / answer / sourceQuestionId)
-  // only flow over the wire when a cached Gemini diagnosis exists and
-  // we actually need to feed reconstructWrongs. Uncached kids (now
-  // surfaced in the admin dropdown by the ≥15-wrongs path) and
-  // ineligible kids (< 3 papers) skip the heavy pull entirely.
   // Subject filter is pushed to Postgres (see subjectWhere). Pre-push
   // we pulled every subject's papers for the kid and filtered in JS —
   // for multi-subject kids that's ~3-4× the egress we actually need.
-  const papersLight = await prisma.examPaper.findMany({
-    where: {
-      assignedToId: dataStudentId,
-      markingStatus: { in: ["complete", "released"] },
-      ...subjectWhere(subject),
-    },
-    select: {
-      id: true, title: true, subject: true, metadata: true,
-      questions: {
-        select: {
-          id: true, marksAwarded: true, marksAvailable: true,
-          studentAnswer: true, syllabusTopic: true,
-        },
-        // Deterministic question order — without this Prisma can
-        // shuffle nested includes by physical row position, which
-        // silently drifts the wrongs idx between the workshop run
-        // and the page reconstruction.
-        orderBy: { orderIndex: "asc" },
-      },
-    },
-    // CRITICAL: match the workshop's wrongs index ordering. The
-    // cached classification array references idx values assigned in
-    // this order. Mismatched ordering = mis-attributed marks lost
-    // per pattern.
-    orderBy: { completedAt: "desc" },
-  });
-  // Defensive JS filter — subjectWhere uses Postgres `contains`, which
-  // mirrors the JS subjectMatches semantics, but keeping this layer
-  // means a subjectWhere bug can't silently leak the wrong subject's
-  // papers into the topline (the chinese OR-branch is the riskiest).
-  const subjectPapersLight = papersLight.filter(p => subjectMatches(p.subject, subject));
-
-  // Find the cached Gemini diagnosis for this kid + subject. cacheSafe
-  // honours the demo redirect so e.g. Student666 loads David lim's
-  // bundled diagnosis.
-  const cacheKey = `${cacheSafe}:${subject.toLowerCase()}`;
-  const cachedReport = TUTOR_CACHE[cacheKey];
   if (!cachedReport) {
     // No diagnosis yet — empty common mistakes / conceptual gaps,
-    // but still show the topline + topics for practice. NO heavy
-    // pull needed: topline only reads marksAwarded/Available/topic
-    // which the light query already has.
+    // but still show the topline + topics for practice. The light
+    // select pulls only the scoring columns the topline + eligibility
+    // check need.
+    const papersLight = await prisma.examPaper.findMany({
+      where: {
+        assignedToId: dataStudentId,
+        markingStatus: { in: ["complete", "released"] },
+        ...subjectWhere(subject),
+      },
+      select: {
+        id: true, title: true, subject: true, metadata: true,
+        questions: {
+          select: {
+            id: true, marksAwarded: true, marksAvailable: true,
+            studentAnswer: true, syllabusTopic: true,
+          },
+          // Deterministic question order — without this Prisma can
+          // shuffle nested includes by physical row position, which
+          // silently drifts the wrongs idx between the workshop run
+          // and the page reconstruction.
+          orderBy: { orderIndex: "asc" },
+        },
+      },
+      // CRITICAL: match the workshop's wrongs index ordering. The
+      // cached classification array references idx values assigned in
+      // this order. Mismatched ordering = mis-attributed marks lost
+      // per pattern.
+      orderBy: { completedAt: "desc" },
+    });
+    // Defensive JS filter — subjectWhere uses Postgres `contains`, which
+    // mirrors subjectMatches semantics, but keeping this layer means a
+    // subjectWhere bug can't silently leak the wrong subject's papers
+    // into the topline (the chinese OR-branch is the riskiest).
+    const subjectPapersLight = papersLight.filter(p => subjectMatches(p.subject, subject));
     const topline = computeTopline(subjectPapersLight);
     if (topline.paperCount < 3) {
       return {
@@ -1163,13 +1160,17 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       previousAssessment: null,
     };
   }
-  // Heavy second pull: only the subject papers we already filtered, and
-  // only when there's a cached diagnosis to feed. Preserves the same
-  // orderBy contract (completedAt desc + questions by orderIndex asc)
-  // so reconstructWrongs's idx values line up with the workshop's.
-  const subjectPaperIds = subjectPapersLight.map(p => p.id);
-  const subjectPapers = subjectPaperIds.length > 0 ? await prisma.examPaper.findMany({
-    where: { id: { in: subjectPaperIds } },
+  // Cached path: heavy pull only (no preceding light pull). Heavy is a
+  // column superset of light, so the topline + eligibility check can
+  // come straight off this result. Same WHERE/orderBy contract as the
+  // no-cache light pull above so reconstructWrongs's idx values line up
+  // with the workshop's.
+  const subjectPapers = await prisma.examPaper.findMany({
+    where: {
+      assignedToId: dataStudentId,
+      markingStatus: { in: ["complete", "released"] },
+      ...subjectWhere(subject),
+    },
     select: {
       id: true, title: true, metadata: true, subject: true,
       questions: {
@@ -1187,7 +1188,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       },
     },
     orderBy: { completedAt: "desc" },
-  }) : [];
+  });
 
   // Fallback for missing clone stems. Many [EVAL] papers and older
   // quiz clones have empty transcribedStem because the master was the
@@ -1216,55 +1217,18 @@ export async function loadTutorData(studentId: string, subject: string): Promise
   const shaped = shapeTutorData({ studentName: displayStudent.name, subject, papers: subjectPapers, report: cachedReport as GeminiReport, masterStemById });
   if (shaped.kind !== "ready") return shaped;
 
-  // Targeted diagram fetch — collect the questionIds we'll actually
-  // show (3 examples × 2 mistake cards + 3 × 2 concept cards = ~12
-  // max) and hydrate just those. Then wipe the temporary questionId
-  // field so it doesn't leak in the wire payload.
-  const exampleIds = new Set<string>();
+  // Diagrams are NO LONGER hydrated here. The previous targeted-fetch
+  // round trip pulled diagramImageData/imageData/transcribedOptionImages
+  // for ~12 example questions per kid — base64 blobs that bloated the
+  // wire payload by 400KB-1MB and added 100-300ms per load. The client
+  // now lazy-fetches them from /api/tutor/diagrams when a mistake or
+  // concept card expands. `ex.questionId` stays on the wire so the
+  // client knows what to ask for; `ex.diagramImageData` / `optionImages`
+  // remain null in the base response.
   const allExamples = [
     ...shaped.commonMistakes.flatMap(c => c.examples),
     ...shaped.conceptualGaps.flatMap(c => c.examples),
   ];
-  for (const ex of allExamples) if (ex.questionId) exampleIds.add(ex.questionId);
-  if (exampleIds.size > 0) {
-    // Pull `imageData` alongside `diagramImageData` because Math/Sci
-    // clones store the whole question crop (stem + diagram in one
-    // image) as `imageData` and leave `diagramImageData` null. Earlier
-    // versions only checked `diagramImageData`, so every Math/Sci
-    // example in Lumi rendered without its question picture.
-    //
-    // Same trip also hydrates `transcribedOptionImages` for MCQ rows
-    // whose 4 choices are pictures (Sci circuit diagrams, Math figure
-    // choices) — without this the picked/correct chips render with no
-    // option content next to them, leaving the parent guessing.
-    const heavy = await prisma.examQuestion.findMany({
-      where: { id: { in: [...exampleIds] } },
-      select: { id: true, diagramImageData: true, imageData: true, transcribedOptionImages: true },
-    });
-    const heavyById = new Map(heavy.map(d => [d.id, d]));
-    for (const ex of allExamples) {
-      if (!ex.questionId) continue;
-      const row = heavyById.get(ex.questionId);
-      // Image resolution rules:
-      //   1. diagramImageData (a separately-cropped diagram) always wins.
-      //   2. imageData (the whole question crop, stem + diagram baked in)
-      //      is the fallback ONLY when there's no clean transcribed text
-      //      to show. For an MCQ with transcribedStem + transcribedOptions
-      //      populated, the imageData is just a redundant raw scan of the
-      //      same content that ExpandableExample already renders cleanly.
-      //      Showing it makes Lumi look like normal-extract instead of
-      //      clean-extract. For Math/Sci OEQ with empty transcribedStem,
-      //      the imageData IS the only readable source — fall through.
-      const hasCleanText = !!(ex.questionText && ex.questionText.trim().length > 0);
-      ex.diagramImageData = row?.diagramImageData
-        ?? (!hasCleanText ? (row?.imageData ?? null) : null);
-      const optImgs = row?.transcribedOptionImages;
-      if (Array.isArray(optImgs) && optImgs.length > 0 && optImgs.some(o => typeof o === "string" && o.length > 0)) {
-        ex.optionImages = optImgs as string[];
-      }
-    }
-  }
-  for (const ex of allExamples) ex.questionId = null;
 
   // Demo redirect post-process: the cache text was written for the
   // source kid ("David sometimes overlooks…"). Swap David → display
