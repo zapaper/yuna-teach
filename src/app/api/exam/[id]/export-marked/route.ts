@@ -117,10 +117,16 @@ function ensureCjkFontRegistered(): boolean {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fsSync = require("fs") as typeof import("fs");
 
-  // Path probes — covers Debian/Ubuntu fonts-noto-cjk + fonts-noto-cjk-extra
-  // standard install locations. Order matters: Sans CJK first, then
-  // Serif, then any *CJK*.ttc found recursively in /usr/share/fonts.
+  // Path probes — checks the BUNDLED asset first (public/fonts on the
+  // deployed Next.js build), then the standard Debian/Ubuntu
+  // fonts-noto-cjk install locations as fallback for any environment
+  // where the system already has it. Bundled probe wins because
+  // Nixpacks's aptPkgs install isn't reliable on Railway (confirmed
+  // via the ?debug=fonts diagnostic returning discovered:[] — zero
+  // font files anywhere on the container).
+  const bundledPath = path.join(process.cwd(), "public", "fonts", "NotoSansSC-Regular.ttf");
   const directCandidates = [
+    bundledPath,
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/opentype/noto/NotoSansCJK.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
@@ -128,6 +134,7 @@ function ensureCjkFontRegistered(): boolean {
     "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
     // Local-dev fallback (Windows path; harmless if missing on Linux).
     "C:/Windows/Fonts/NotoSansCJK-Regular.ttc",
+    "C:/Windows/Fonts/NotoSansSC-VF.ttf",
   ];
 
   const tryRegister = (p: string): boolean => {
