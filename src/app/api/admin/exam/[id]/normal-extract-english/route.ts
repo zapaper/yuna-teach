@@ -544,7 +544,7 @@ export async function POST(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, title: true, subject: true, pageCount: true, metadata: true,
+      id: true, title: true, subject: true, level: true, pageCount: true, metadata: true,
       questions: {
         select: { id: true, questionNum: true, pageIndex: true, orderIndex: true, syllabusTopic: true },
         orderBy: { orderIndex: "asc" },
@@ -687,18 +687,11 @@ export async function POST(
       // P4 quirk: some P4 school papers (e.g. Tao Nan SA2) ship TWO
       // Grammar Cloze passages back-to-back -- a word-bank one (~4
       // Qs, table at top of page) then a 2-option inline word-choice
-      // one (~4 Qs, stems like `(N) [optA / optB]`). Clean Extract
-      // tags every question in BOTH passages "Grammar Cloze", so the
-      // section-grouping step lumps them into one heterogeneous block
-      // and the table extractor either bails or returns garbage.
-      // Until the extractor splits on layout, the fix is either:
-      //   (a) retag the 2-option Qs to a different syllabusTopic
-      //       before running this route, or
-      //   (b) hand-fix the 2-option Qs with a script that rewrites
-      //       stems to `**(N)________**` markers and seeds the
-      //       passage on metadata.sectionOcrTexts["Grammar Cloze 2"]
-      //       (see scripts/_fix-tao-nan-grammar-cloze-2.ts for an
-      //       example).
+      // one (~4 Qs, stems like `(N) [optA / optB]`). The post-pass
+      // at `postProcessP4GrammarCloze` (run below the switch) handles
+      // the 2-option ones: rewrites the stem to the canonical
+      // `**(N)________** [optA/optB]` form and stores the options on
+      // transcribedOptions. P5/P6 papers skip the post-pass.
       result = await extractAnchoredCrop({
         paperId: paper.id,
         sections,
@@ -799,6 +792,23 @@ export async function POST(
       break;
   }
 
+  // P4 English Grammar Cloze post-pass. School papers in this band
+  // often pair the standard word-bank passage with a second 2-option
+  // inline word-choice passage; the OCR step above stores both
+  // verbatim, so the second passage's stems land as
+  // `(N) [optA / optB] ...`. The kid's quiz / marking pipeline can't
+  // parse that shape -- it expects either a clean cloze blank with
+  // separate transcribedOptions OR a non-MCQ stem. Rewrite each
+  // matching stem in-place to `... **(N)________** [optA/optB] ...`
+  // (the bold-marker form PassageWithInputs already parses) and store
+  // the two options on transcribedOptions. P5/P6 skip the post-pass.
+  const isP4 = sectionType === "grammar-cloze" && /\bP\s*4\b|primary\s*4/i.test(paper.level ?? "");
+  let p4Rewritten = 0;
+  if (isP4) {
+    p4Rewritten = await postProcessP4GrammarCloze(paper.id, sections, paper.questions);
+    console.log(`[normal-extract] P4 grammar-cloze post-pass: rewrote ${p4Rewritten} stems.`);
+  }
+
   // Map sectionType -> the corresponding metadata flag.
   const flagKey: Record<SectionType, keyof NormalExtractState> = {
     "booklet-a": "bookletA",
@@ -827,7 +837,76 @@ export async function POST(
     warnings: result.warnings,
     bounds: result.bounds,
     state: updatedState,
+    p4GrammarClozeRewritten: isP4 ? p4Rewritten : undefined,
   });
+}
+
+// P4 Grammar Cloze 2-option post-pass. Walks every question whose
+// orderIndex falls inside any grammar-cloze section, reads the
+// freshly-OCR'd transcribedStem, and -- if it matches the inline
+// 2-option layout `(N) [optA / optB]` -- rewrites it to the
+// canonical `**(N)________** [optA/optB]` form + stores the two
+// options on transcribedOptions. Returns the number of stems
+// rewritten.
+//
+// Detection regex is permissive: matches `(28) [ goes / go ]`,
+// `(28)[goes/go]`, `(28) [ doesn't / don't ]`. The brackets and
+// slash are the signal -- standard cloze stems carry neither.
+async function postProcessP4GrammarCloze(
+  paperId: string,
+  sections: SecMeta[],
+  allQuestions: Array<{ id: string; orderIndex: number }>,
+): Promise<number> {
+  if (sections.length === 0) return 0;
+  // Collect the questionIds inside any section's [startIndex, endIndex] range.
+  const sectionIds = new Set<string>();
+  for (const sec of sections) {
+    for (let i = sec.startIndex; i <= sec.endIndex; i++) {
+      const q = allQuestions[i];
+      if (q) sectionIds.add(q.id);
+    }
+  }
+  if (sectionIds.size === 0) return 0;
+
+  // Re-pull the questions' current stems (extractAnchoredCrop above
+  // just updated them; we need the fresh values, not the snapshot
+  // from paper.findUnique at the top of the route).
+  const qs = await prisma.examQuestion.findMany({
+    where: { id: { in: [...sectionIds] } },
+    select: { id: true, questionNum: true, transcribedStem: true },
+  });
+
+  // `(N)\s*[\s*optA\s*/\s*optB\s*]` -- optA/optB are anything that
+  // isn't a slash or close-bracket, captured non-greedily so a long
+  // multi-word phrase doesn't swallow the second option.
+  const TWO_OPTION_RE = /\((\d+)\)\s*\[\s*([^\/\]]+?)\s*\/\s*([^\/\]]+?)\s*\]/;
+
+  let rewritten = 0;
+  for (const q of qs) {
+    const stem = q.transcribedStem ?? "";
+    const m = TWO_OPTION_RE.exec(stem);
+    if (!m) continue;
+    const [whole, , optA, optB] = m;
+    const qNum = m[1];
+    // Only rewrite when the captured (N) matches the question's own
+    // questionNum. Otherwise the regex landed on an unrelated bracket
+    // pair (rare for cloze stems, but cheap guard).
+    if (qNum !== q.questionNum) continue;
+    const replacement = `**(${qNum})________** [${optA.trim()}/${optB.trim()}]`;
+    const newStem = stem.replace(whole, replacement);
+    await prisma.examQuestion.update({
+      where: { id: q.id },
+      data: {
+        transcribedStem: newStem,
+        // 2-element transcribedOptions so the daily-quiz `hasOptions`
+        // check (`length === 4`) keeps treating the row as cloze, not
+        // MCQ. Marking + UI consume the bracket text inline.
+        transcribedOptions: [optA.trim(), optB.trim()],
+      },
+    });
+    rewritten++;
+  }
+  return rewritten;
 }
 
 // Read-only view of the currently-stored bounds for a section.
