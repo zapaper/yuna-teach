@@ -934,6 +934,29 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
       },
     });
     console.log(`  sent to=${c.parentEmail} parent=${c.parentName} child=${c.studentName} subject=${c.subject} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
+    // Report this send back to the markforyou-mailer so it shows up in
+    // the Users tab's history + Daily Emails dashboard alongside the
+    // cron-sent nurture emails. Fire-and-forget — never block on this.
+    const mailerUrl = process.env.MAILER_URL;
+    const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
+    if (mailerUrl && mailerToken) {
+      fetch(`${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${mailerToken}`,
+        },
+        body: JSON.stringify({
+          to: c.parentEmail,
+          to_name: c.parentName,
+          subject,
+          body: html,
+          event_type: "subject_3_quizzes_done",
+        }),
+      }).catch((err) => {
+        console.warn(`  mailer log failed: ${err?.message ?? err}`);
+      });
+    }
     // Mark sent (one-time per child × subject). Read-modify-write the
     // student's settings.progressReportsSent map; if it already has
     // a timestamp for this subject we leave it alone.
