@@ -774,6 +774,78 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
       return `${blocks.join("\n")}\n\nTop-to-bottom sequence: ${seqValues.join(", ")}`;
     }
   }
+  // Multi-table generic: when the stem has TWO OR MORE tables (e.g.
+  // a word-bank header table + a separate answer table, separated by
+  // a non-table line like a question prompt), the existing single-
+  // table labeled-block loop further down conflates them -- it pulls
+  // headers from table 0 and tries to apply them to data rows from
+  // table 1, producing nonsense output. Canonical case: Q48 on
+  // cmqjhl9v2002812dkwa4sym01 with stem:
+  //   | arrogant | courageous | fearsome | timid |   <- word bank
+  //   | --- | --- | --- | --- |
+  //   How did Rhea's character traits change?
+  //   |.| Beginning | End |
+  //   | --- | --- | --- |
+  //   | Rhea | | |
+  // Kid writes r2c1="timid" + r2c2="courageous". UI's tableRowIdx is
+  // global across non-separator rows, so r2 = "Rhea" data row, c1 =
+  // Beginning column, c2 = End column. The block below mirrors the
+  // UI's row counter, identifies each row's parent table, and emits
+  // "Row 'label' x Column 'header' = value" so the AI marker sees
+  // the kid's answer with full context regardless of stem layout.
+  {
+    const isSepLine = (l: string) => /^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(l);
+    const isTableRowLine = (l: string) => l.startsWith("|") && l.endsWith("|") && !isSepLine(l);
+    type RowInfo = { ri: number; cells: string[]; tableIndex: number; isHeader: boolean };
+    const rows: RowInfo[] = [];
+    let mtRi = 0;
+    let mtTableIndex = -1;
+    let mtHeaderRecorded = false;
+    let mtInTableBlock = false;
+    for (const l of lines) {
+      if (isSepLine(l)) { mtInTableBlock = true; continue; }
+      if (isTableRowLine(l)) {
+        if (!mtInTableBlock) { mtTableIndex++; mtHeaderRecorded = false; mtInTableBlock = true; }
+        const sc = splitRow(l);
+        const isHdr = !mtHeaderRecorded;
+        mtHeaderRecorded = true;
+        rows.push({ ri: mtRi, cells: sc, tableIndex: mtTableIndex, isHeader: isHdr });
+        mtRi++;
+        continue;
+      }
+      mtInTableBlock = false;
+    }
+    const numTables = rows.length > 0 ? rows[rows.length - 1].tableIndex + 1 : 0;
+    if (numTables >= 2) {
+      const tableHeaders: Record<number, string[]> = {};
+      for (const r of rows) if (r.isHeader) tableHeaders[r.tableIndex] = r.cells;
+      const stripMd = (s: string) => (s ?? "").replace(/\*\*/g, "").trim();
+      const cellKeys = Object.keys(cells).filter(k => /^r\d+c\d+$/.test(k));
+      const sortedKeys = cellKeys.sort((a, b) => {
+        const ma = /^r(\d+)c(\d+)$/.exec(a)!;
+        const mb = /^r(\d+)c(\d+)$/.exec(b)!;
+        const dr = parseInt(ma[1]) - parseInt(mb[1]);
+        return dr !== 0 ? dr : (parseInt(ma[2]) - parseInt(mb[2]));
+      });
+      const out: string[] = [];
+      for (const k of sortedKeys) {
+        const m = /^r(\d+)c(\d+)$/.exec(k);
+        if (!m) continue;
+        const rNum = parseInt(m[1]);
+        const cNum = parseInt(m[2]);
+        const v = (cells[k] ?? "").trim();
+        if (!v) continue;
+        const row = rows.find(r => r.ri === rNum);
+        if (!row) continue;
+        const rowLabel = stripMd(row.cells[0] ?? "") || `row ${rNum + 1}`;
+        const header = tableHeaders[row.tableIndex] ?? [];
+        const colHeader = stripMd(header[cNum] ?? "") || `column ${cNum + 1}`;
+        out.push(`Row "${rowLabel}" × Column "${colHeader}" = "${v}"`);
+      }
+      if (out.length > 0) return out.join("\n");
+    }
+  }
+
   // Multi-label header row: every cell starts with a label like "(a)…"
   // / "a) …". When detected, the labels apply column-wise to the NEXT
   // data row (which is the empty answer row). Q77 PSLE Comp OEQ:
