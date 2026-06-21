@@ -730,23 +730,32 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
     return { label: "", text: firstCell };
   };
 
-  // Sequence-style layout: column 0 is empty across every data row,
-  // the row LABEL lives in column 1+, and the kid writes into column 0.
-  // P4 Comp OEQ "Write 1, 2, 3 in the boxes below to show the sequence
-  // of events" is the canonical case. The default loop further down
-  // assumes the opposite (col 0 = label, col 1+ = student fill) and
-  // silently drops every cell, returning null -- the marker then sees
-  // the kid's answers as "[TABLE] r3c0: 1, r1c0: 2, r2c0: 3" in JSON
-  // insertion order (NOT row-top-to-bottom), so a correct sequence reads
-  // as jumbled and gets marked wrong.
+  // Sequence-of-events layout: column 0 is empty across every data
+  // row, the row LABEL lives in column 1+, the kid writes digits into
+  // column 0, AND the stem text explicitly calls this out as a
+  // sequence / ordering / numbering question. The third condition
+  // tightens scope: we MUST see canonical phrasing in the stem before
+  // we engage the top-to-bottom-sequence interpretation, otherwise
+  // we'd risk misreading non-sequence tables that just happen to have
+  // an empty col 0 (e.g. an unusual layout where the kid wrote in
+  // col 0 for a different reason). Keep the existing labeled-block
+  // logic untouched for everything else.
+  //
+  // The default loop further down assumes the opposite (col 0 = label,
+  // col 1+ = student fill) and silently drops the kid's cells for
+  // sequence questions, returning null -- the marker then sees the
+  // raw `[TABLE] r3c0: 1, r1c0: 2, r2c0: 3` shape in JSON insertion
+  // order (NOT row-top-to-bottom), so a correct sequence reads as
+  // jumbled and gets marked wrong.
   //
   // Output: per-row mapping for context + an explicit top-to-bottom
-  // sequence string the marker can string-compare directly against the
-  // answer key (e.g. "2, 3, 1").
+  // sequence string the marker can string-compare directly against
+  // the answer key (e.g. "2, 3, 1").
+  const isSequenceStem = /\bsequence\b|\bin\s+(the\s+)?correct\s+order\b|\bnumber\s+the\s+events\b|\bshow\s+the\s+order\b/i.test(stem);
   const dataRowCells = dataLines.map(splitRow);
   const allCol0Empty = dataRowCells.length > 0 && dataRowCells.every(c => c.length > 1 && !c[0]?.trim());
   const studentFillsCol0 = Object.entries(cells).some(([k, v]) => /^r\d+c0$/.test(k) && !!v?.trim());
-  if (allCol0Empty && studentFillsCol0) {
+  if (isSequenceStem && allCol0Empty && studentFillsCol0) {
     const blocks: string[] = [];
     const seqValues: string[] = [];
     dataRowCells.forEach((rowCells, i) => {
