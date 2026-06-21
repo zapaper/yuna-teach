@@ -2328,7 +2328,19 @@ async function reconcileMcqMarks(paperId: string): Promise<void> {
       })();
     if (!isMcq) continue;
     if (q.marksAwarded == null) continue; // skipped — leave it alone
-    const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
+    // If the student answer is a typed-OEQ JSON shape (writing-pad
+    // `{"line0":"..."}` or table cells `{"r1c1":"..."}`), the
+    // question routed through OEQ marking -- the kid never saw an
+    // MCQ chooser, the answer is a sentence. Reconcile's
+    // answer-key-digit heuristic would then stomp on a correct
+    // OEQ result with "Reconciled: ... does not match key 'N'".
+    // Skip these rows; the OEQ marker's decision stands.
+    // Canonical case: P4 English Comp OEQ "How did Rhea react..."
+    // where stem has 4 options inline (no transcribedOptions array)
+    // but answer key is the option digit. UI renders as writing pad.
+    const rawStudent = (q.studentAnswer ?? "").trim();
+    if (rawStudent.startsWith("{") && rawStudent.endsWith("}")) continue;
+    const studentAns = rawStudent.replace(/[().]/g, "").trim();
     const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
     const acceptable = correctAns.split(/\s+or\s+/).map((p) => p.trim());
     const computedCorrect = studentAns !== "" && acceptable.includes(studentAns);
