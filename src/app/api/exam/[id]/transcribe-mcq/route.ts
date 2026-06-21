@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import {
   transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion,
@@ -91,6 +92,17 @@ export async function PUT(
     }[];
   };
 
+  // Nullable JSON columns need Prisma.DbNull to actually clear the
+  // column -- `?? undefined` collapses null → undefined and Prisma
+  // then skips the field, leaving the OLD value in place. The
+  // canonical case: kid toggles a question MCQ → OEQ on the
+  // transcribe-edit page, the client sends options: null, the save
+  // appears to succeed but a page refresh shows the row still
+  // classified as MCQ because transcribedOptions stayed
+  // ["","","",""]. Map explicit nulls to Prisma.DbNull while still
+  // letting undefined skip the field.
+  const dbNullable = <T,>(v: T | null | undefined): T | typeof Prisma.DbNull | undefined =>
+    v === null ? Prisma.DbNull : v === undefined ? undefined : v;
   await Promise.all(
     questions.map(q =>
       prisma.examQuestion.update({
@@ -98,11 +110,11 @@ export async function PUT(
         data: {
           ...(q.answer !== undefined ? { answer: q.answer } : {}),
           transcribedStem: q.stem,
-          transcribedOptions: q.options ?? undefined,
-          transcribedOptionImages: q.optionImages ?? undefined,
-          transcribedOptionTable: q.optionTable ?? undefined,
-          transcribedSubparts: q.subparts ?? undefined,
-          diagramBounds: q.diagramBounds ?? undefined,
+          transcribedOptions: dbNullable(q.options) as Prisma.InputJsonValue | typeof Prisma.DbNull | undefined,
+          transcribedOptionImages: dbNullable(q.optionImages) as Prisma.InputJsonValue | typeof Prisma.DbNull | undefined,
+          transcribedOptionTable: dbNullable(q.optionTable) as Prisma.InputJsonValue | typeof Prisma.DbNull | undefined,
+          transcribedSubparts: dbNullable(q.subparts) as Prisma.InputJsonValue | typeof Prisma.DbNull | undefined,
+          diagramBounds: dbNullable(q.diagramBounds) as Prisma.InputJsonValue | typeof Prisma.DbNull | undefined,
           diagramImageData: q.diagramImageData,
         },
       })

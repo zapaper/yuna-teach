@@ -729,6 +729,42 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
     if (m) return { label: `(${m[1].toLowerCase()})`, text: m[2].trim() };
     return { label: "", text: firstCell };
   };
+
+  // Sequence-style layout: column 0 is empty across every data row,
+  // the row LABEL lives in column 1+, and the kid writes into column 0.
+  // P4 Comp OEQ "Write 1, 2, 3 in the boxes below to show the sequence
+  // of events" is the canonical case. The default loop further down
+  // assumes the opposite (col 0 = label, col 1+ = student fill) and
+  // silently drops every cell, returning null -- the marker then sees
+  // the kid's answers as "[TABLE] r3c0: 1, r1c0: 2, r2c0: 3" in JSON
+  // insertion order (NOT row-top-to-bottom), so a correct sequence reads
+  // as jumbled and gets marked wrong.
+  //
+  // Output: per-row mapping for context + an explicit top-to-bottom
+  // sequence string the marker can string-compare directly against the
+  // answer key (e.g. "2, 3, 1").
+  const dataRowCells = dataLines.map(splitRow);
+  const allCol0Empty = dataRowCells.length > 0 && dataRowCells.every(c => c.length > 1 && !c[0]?.trim());
+  const studentFillsCol0 = Object.entries(cells).some(([k, v]) => /^r\d+c0$/.test(k) && !!v?.trim());
+  if (allCol0Empty && studentFillsCol0) {
+    const blocks: string[] = [];
+    const seqValues: string[] = [];
+    dataRowCells.forEach((rowCells, i) => {
+      const ri = headerCount + i;
+      const v = (cells[`r${ri}c0`] ?? "").trim();
+      const labelText = rowCells.slice(1).map(c => c.trim()).filter(Boolean).join(" | ");
+      if (v) {
+        seqValues.push(v);
+        blocks.push(`Row ${i + 1} "${labelText}" → ${v}`);
+      } else {
+        seqValues.push("(blank)");
+        blocks.push(`Row ${i + 1} "${labelText}" → (blank)`);
+      }
+    });
+    if (blocks.length > 0) {
+      return `${blocks.join("\n")}\n\nTop-to-bottom sequence: ${seqValues.join(", ")}`;
+    }
+  }
   // Multi-label header row: every cell starts with a label like "(a)…"
   // / "a) …". When detected, the labels apply column-wise to the NEXT
   // data row (which is the empty answer row). Q77 PSLE Comp OEQ:
