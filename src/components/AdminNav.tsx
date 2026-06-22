@@ -52,7 +52,16 @@ export default function AdminNav({ userId }: { userId: string }) {
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 bg-slate-900 flex-col z-40">
         <div className="px-5 py-5 border-b border-white/10">
-          <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Admin Panel</p>
+          <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Admin Panel</p>
+          <button
+            onClick={() => router.push(`/admin?userId=${userId}`)}
+            className={`w-full flex items-center gap-2 px-2 py-1.5 -mx-2 rounded-lg text-sm font-medium transition-colors ${
+              pathname === "/admin" ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: pathname === "/admin" ? "'FILL' 1" : "'FILL' 0" }}>home</span>
+            Admin Home
+          </button>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {NAV_ITEMS.map(item => {
