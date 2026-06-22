@@ -155,6 +155,20 @@ function AdminContent() {
       color: "bg-violet-50 text-violet-600",
     },
     {
+      icon: "format_align_left",
+      label: "Key Format",
+      description: "Standardise answer-key formatting on master questions — strip stray whitespace, fix capitalisation, and normalise the (a)/(b)/(c) sub-part separators so the marker can compare cleanly.",
+      href: `/admin/answer-key-format?userId=${userId}`,
+      color: "bg-slate-50 text-slate-600",
+    },
+    {
+      icon: "table_view",
+      label: "MCQ → Table",
+      description: "Convert MCQ questions whose options are arranged in a table (multi-column compare grids) into the canonical transcribedOptionTable JSON shape so the quiz UI renders them correctly.",
+      href: `/admin/convert-mcq-tables?userId=${userId}`,
+      color: "bg-teal-50 text-teal-600",
+    },
+    {
       icon: "playlist_remove",
       label: "Legacy PSLE Topics",
       description: "Review questions on topics MOE removed from the 2025/2026 PSLE syllabus (Cells / Speed / Compass). Approve to re-tag and exclude from daily-quiz + focused-practice. Full papers keep them.",
