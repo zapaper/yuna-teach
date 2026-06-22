@@ -712,12 +712,25 @@ export default function StudentDashboard({
     finally { setCreatingQuiz(false); }
   }
 
-  // Derived. Compiled "revise work" papers from the admin's tool are
-  // a curated set of past mistakes — not a fresh attempt by the
-  // student. We hide them from the student's todo / completed lists
-  // so they don't see "0%" on a paper they never sat, and so the
-  // arena / points logic below doesn't double-count.
-  const studentPapers = examPapers.filter(p => !p.isRevision);
+  // Compiled "revise work" papers come in two flavours:
+  //   - REVIEW mode  (parent picked "Compile and review") -- born
+  //     completedAt + markingStatus=complete; a static rollup the
+  //     parent and child go through together. Hide from the kid's
+  //     home so they don't see "0%" / "complete" on a paper they
+  //     never sat.
+  //   - PRACTICE mode (parent picked "Compile and set paper")  --
+  //     born blank, completedAt=null. The kid is supposed to attempt
+  //     it. Previously the bare `!p.isRevision` filter hid these
+  //     too, which broke the entire "set paper" flow -- a parent
+  //     would click Compile and set paper but the quiz never showed
+  //     up on the child's account (canonical case: Nilohoo set
+  //     paper cmqf6z1l2000uqs2gzd930z3j for LohXY2014, never
+  //     appeared). Narrow the exclusion to only completed revisions
+  //     so practice ones reach the todo list.
+  // Points / arena math below still uses `!p.isRevision` on both
+  // flavours, so neither double-counts toward avatar / habitat
+  // unlocks.
+  const studentPapers = examPapers.filter(p => !(p.isRevision && p.completedAt));
   const todoPapers = studentPapers.filter(p => !p.completedAt && p.markingStatus !== "released");
   const completedPapers = studentPapers
     .filter(p => p.completedAt || p.markingStatus === "released")
@@ -862,16 +875,19 @@ export default function StudentDashboard({
   const todayActivities = studentPapers.filter(p => paperDateStr(p) === todayStr);
   const todayTodo = todayActivities.filter(p => !p.completedAt);
   const todayDone = todayActivities.filter(p => p.completedAt);
-  // Homework to show: all undone papers that are past-due (before today) or scheduled
-  // for tomorrow. Older-than-a-week assignments must still be visible to the student —
-  // previously the filter required `d >= weekStart`, which hid anything older.
+  // Homework to show: undone papers that are past-due (any age --
+  // older-than-a-week stays visible) OR scheduled within the next
+  // 14 days. Window bumped from "tomorrow only" to "next 2 weeks"
+  // so parents who set work ahead of time know the kid sees it.
   const weekHomework = studentPapers.filter(p => {
     if (p.completedAt) return false;
     const ds = paperDateStr(p);
     if (ds === todayStr) return false;
     const d = paperDate(p);
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return d < todayStart || ds === tomorrowStr;
+    const twoWeeksOut = new Date(todayStart);
+    twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
+    return d < todayStart || (d >= todayStart && d <= twoWeeksOut);
   });
 
   function goToPaper(p: ExamPaperSummary) {
