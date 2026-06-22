@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { icon: "tune",          label: "Subpart Marks", path: "/admin/subpart-marks" },
   { icon: "build",         label: "Fix Questions", path: "/admin/fix-questions" },
   { icon: "format_align_left", label: "Key Format", path: "/admin/answer-key-format" },
-  { icon: "playlist_remove",   label: "Legacy Topics", path: "/admin/legacy-topics" },
   { icon: "table_view",    label: "MCQ → Table",  path: "/admin/convert-mcq-tables" },
   { icon: "people",        label: "Manage Users",  path: "/admin/users" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },

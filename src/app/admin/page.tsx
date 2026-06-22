@@ -155,6 +155,13 @@ function AdminContent() {
       color: "bg-violet-50 text-violet-600",
     },
     {
+      icon: "playlist_remove",
+      label: "Legacy PSLE Topics",
+      description: "Review questions on topics MOE removed from the 2025/2026 PSLE syllabus (Cells / Speed / Compass). Approve to re-tag and exclude from daily-quiz + focused-practice. Full papers keep them.",
+      href: `/admin/legacy-topics?userId=${userId}`,
+      color: "bg-amber-50 text-amber-600",
+    },
+    {
       icon: "image_search",
       label: "\"See Answer Image\" Sweep",
       description: "Questions whose stored answer is just a pointer to a diagram (so the AI marker has nothing to match against). Grouped by paper, drill in to add a written description on /edit.",

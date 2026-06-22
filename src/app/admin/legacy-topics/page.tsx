@@ -87,6 +87,10 @@ function Body() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
+      {/* lg:ml-56 clears the fixed-width admin sidebar so the page
+          content doesn't slide under it -- same pattern the admin
+          homepage uses. pb-24 leaves room for the mobile bottom bar. */}
+      <div className="lg:ml-56 pb-24 lg:pb-0">
       <div className="max-w-5xl mx-auto px-6 py-8">
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900 mb-1">Legacy PSLE topics review</h1>
@@ -170,6 +174,7 @@ function Body() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
