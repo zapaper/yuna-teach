@@ -37,12 +37,18 @@ export const LEGACY_TOPIC_SUBJECT: Record<LegacyTopic, "science" | "math"> = {
 export const LEGACY_TOPIC_DETECTOR: Record<LegacyTopic, RegExp> = {
   Cells: /\b(cell\s+(wall|membrane|nucleus|cytoplasm|division|organelle|sample)|cytoplasm|chloroplast|nuclei\b|plant\s+cell|animal\s+cell|cell\s+(?:diagram|shown|labeled|labelled)|under\s+(?:the\s+)?microscope.*cell|basic\s+unit\s+of\s+life|onion\s+cell|leaf\s+cell|root\s+(?:hair\s+)?cell)/i,
   Speed: /\b(km\s*\/\s*h|m\s*\/\s*s|cm\s*\/\s*s|metres?\s+per\s+second|kilometres?\s+per\s+hour|average\s+speed|constant\s+speed|speed\s+of\s+\d|at\s+a\s+speed|travel(?:led|s|ling)?\s+at\s+\d|speed[-\s]time\s+graph|distance[-\s]time\s+graph)/i,
-  // Compass abbreviations are only included with mandatory dots
-  // ("N.E.") or all-caps boundary ("NE" in a directional context).
-  // Bare lowercase "ne"/"sw" matches too many ordinary words
-  // ("line", "stone", "saw"), so we rely on the full-word forms
-  // ("north-east", "south-west") for high-confidence hits.
-  Compass: /\b(north[-\s]east|north[-\s]west|south[-\s]east|south[-\s]west|N\.?\s*E\.?|N\.?\s*W\.?|S\.?\s*E\.?|S\.?\s*W\.?|8[-\s]point\s+compass|eight[-\s]point\s+compass|compass\s+(?:rose|point|direction)|turn(?:s|ing)?\s+(?:clockwise|anti-?clockwise).*(?:north|south|east|west)|facing\s+(?:north|south|east|west))/i,
+  // Tight Compass detector: the stem must contain either an
+  // explicit compound direction (north-east etc.), the word
+  // "compass" / "bearing" / "direction", OR a full directional
+  // word (north/south/east/west) in an unambiguous directional
+  // phrase ("facing north", "due south", "X north of Y"). Bare
+  // "north"/"south"/"east"/"west" without that surrounding context
+  // is excluded to avoid matching proper-noun usages. Dotted
+  // abbreviations (N.E., S.W.) only match with mandatory periods.
+  // Pure two-letter forms (NE, SW, NW, SE) are dropped entirely --
+  // they false-positive on "nearest", "semicircle", "net", and any
+  // base64 substring in transcribedSubparts diagramBase64 fields.
+  Compass: /\b(?:north[-\s]?(?:east|west)\b|south[-\s]?(?:east|west)\b|compass(?:\s+(?:rose|point|direction))?\b|bearing\b|8[-\s]point\s+compass\b|eight[-\s]point\s+compass\b|(?:facing|due|directly)\s+(?:north|south|east|west)\b|(?:north|south|east|west)\s+of\s+(?:the\s+)?\w+|in\s+(?:what|which)\s+direction\b|N\.E\.|N\.W\.|S\.E\.|S\.W\.)/i,
 };
 
 // Pull every searchable string off a question into one blob so the
