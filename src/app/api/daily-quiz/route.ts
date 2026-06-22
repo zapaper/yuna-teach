@@ -5,6 +5,7 @@ import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } f
 import { guardCanAssign } from "@/lib/subscription";
 import { isCompOeqLabel } from "@/lib/english-sections";
 import { isAdmin } from "@/lib/admin";
+import { LEGACY_TOPICS } from "@/lib/legacy-topics";
 
 /** MCQ = question has transcribed options (text, images, or
  *  table). An array of 4 entries (even empty) means MCQ — the
@@ -643,6 +644,11 @@ export async function POST(request: NextRequest) {
       // mergeOeqGroup. Stem-less questions are filtered at the group
       // level.
       answer: { not: null as null },
+      // Exclude topics MOE removed from the 2025/2026 PSLE syllabus
+      // (Cells / Speed / Compass). Full-paper assignments still see
+      // them; only quiz / focused-practice pools skip. See
+      // src/lib/legacy-topics.ts for the policy.
+      syllabusTopic: { notIn: [...LEGACY_TOPICS] },
       ...(difficultyClause ?? {}),
       ...(examTypeClause ?? {}),
       examPaper: {

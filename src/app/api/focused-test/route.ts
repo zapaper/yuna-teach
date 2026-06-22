@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
+import { LEGACY_TOPICS } from "@/lib/legacy-topics";
 
 /** MCQ = question has transcribed options (4-element array),
  *  image options, or table-format options. */
@@ -65,6 +66,14 @@ export async function POST(request: NextRequest) {
 
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  // Reject focused practice on PSLE 2025/2026 removed topics
+  // (Cells / Speed / Compass). Daily-quiz pool already filters these
+  // via the syllabusTopic notIn clause; this guard catches the
+  // single-topic focused-practice path. See src/lib/legacy-topics.ts.
+  if ((LEGACY_TOPICS as readonly string[]).includes(topic)) {
+    return NextResponse.json({ error: `"${topic}" is no longer in the PSLE syllabus and isn't available for focused practice.` }, { status: 400 });
   }
 
   const blocked = await guardCanAssign(parentId);
