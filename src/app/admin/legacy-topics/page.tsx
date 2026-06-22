@@ -150,7 +150,23 @@ function Body() {
                     <span className="text-xs text-slate-400">·</span>
                     <span className="text-xs text-violet-700 font-medium">current: {c.currentTopic ?? "(none)"}</span>
                   </div>
-                  <p className="text-sm text-slate-800 leading-relaxed">{c.stemSnippet}{c.stemSnippet.length >= 220 ? "…" : ""}</p>
+                  <p className="text-sm text-slate-800 leading-relaxed mb-3">{c.stemSnippet}{c.stemSnippet.length >= 220 ? "…" : ""}</p>
+                  {/* Diagram crop -- critical for judging Science Cell
+                      candidates (the regex hits a stem mentioning "cell"
+                      but the diagram is what reveals whether it's a real
+                      cells question or a different topic that happens to
+                      use the word). Served lazy from the existing
+                      admin-gated image endpoint, so big images don't
+                      bloat the candidates JSON. onError hides the slot
+                      when the question has no stored imageData. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/exam/question/${c.questionId}/image`}
+                    alt={`Q${c.questionNum} crop`}
+                    loading="lazy"
+                    className="max-w-full max-h-[480px] rounded-md border border-slate-200 bg-slate-50"
+                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
                 </div>
                 <div className="flex flex-col gap-1 shrink-0">
                   <button
