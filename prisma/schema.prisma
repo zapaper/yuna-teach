@@ -239,6 +239,14 @@ model ExamQuestion {
   // food-web-explaining / adaptation / decomposer / human-impact.
   // Populated by the per-topic classifier (admin tool); null until then.
   subTopic        String?
+  // Cross-cutting skill tags — orthogonal to topic / sub-topic.
+  // Multiple allowed: a 3-mark OEQ with a graph that asks for evidence
+  // AND a fair-test reason can carry e.g.
+  // ["graph-trend-describe", "evidence-then-conclusion", "fair-test-explain"].
+  // Drives Lumi's cross-topic skill quizzes — pick fresh masters
+  // sharing the skill the kid is fading on, regardless of topic.
+  // Populated by the per-subject skill classifier; defaults empty.
+  skillTags       String[] @default([])
   studentAnswer   String?
   elaboration     String?
   flagged         Boolean @default(false)

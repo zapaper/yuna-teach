@@ -210,6 +210,13 @@ function AdminContent() {
       href: `/admin/english-oral-compo?userId=${userId}`,
       color: "bg-sky-50 text-sky-600",
     },
+    {
+      icon: "psychology",
+      label: "Lumi Quiz (David)",
+      description: "Generate a personalised Lumi-style Science quiz for David Lim using cross-cutting skill tags (evidence-then-conclusion, graph-trend-describe, etc.). Internal test only — not exposed to parents yet.",
+      href: `/admin/lumi-quiz?userId=${userId}`,
+      color: "bg-purple-50 text-purple-600",
+    },
   ];
 
   return (

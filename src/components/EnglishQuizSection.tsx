@@ -204,9 +204,19 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 }
                 // Starting-word optimisation: when the answer line is
                 // literally "**Keyword** ___ ___ …", collapse to one
-                // wide textarea after the keyword. Only fires when the
-                // FIRST part is a keyword (no leading text/blank).
-                if (synthAnswerParts[0]?.type === "keyword") {
+                // wide textarea after the keyword. Only fires when:
+                //   · the FIRST part is a keyword (no leading text/blank), AND
+                //   · everything AFTER is just blanks (no second keyword,
+                //     no in-between text).
+                // The second condition matters for mid-sentence templates
+                // like "**Except for** ___, **all the** ___." (PSLE 2025
+                // Q65) — the original collapse-all-after-first-keyword
+                // logic dropped the ", **all the**" segment entirely
+                // and the kid saw only one input and one bold prompt.
+                const pureStartingWord =
+                  synthAnswerParts[0]?.type === "keyword" &&
+                  synthAnswerParts.slice(1).every(p => p.type === "input");
+                if (pureStartingWord) {
                   const kwPart = synthAnswerParts[0];
                   synthAnswerParts.length = 0;
                   synthAnswerParts.push(kwPart, { type: "input", content: "", key: "in0" });
