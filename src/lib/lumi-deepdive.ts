@@ -92,37 +92,84 @@ export function getDeepDivePreamble(
   const keywords = TOPIC_KEYWORDS[topic];
   if (!keywords) return null;
 
-  // Score each pattern: count how many keywords appear in its "what"
-  // text. Highest score wins.
-  let best = -1;
-  let bestScore = 0;
+  // Score each pattern against THIS topic's keywords AND against
+  // every other topic's keywords. Two things we use:
+  //   · topicScore[i]   how relevant pattern i is to this combo's topic
+  //   · maxOtherScore[i] highest score this pattern hits on any OTHER
+  //                     topic — used to label a pattern as cross-cutting
+  //                     (it doesn't anchor to any single topic, so it
+  //                     applies to every combo as a general trap)
+  const topicScore: number[] = [];
+  const maxAnyScore: number[] = [];
   for (let i = 0; i < patterns.length; i++) {
     const what = ((patterns[i].what as string) ?? "").toLowerCase();
-    if (!what) continue;
-    let score = 0;
-    for (const kw of keywords) if (what.includes(kw)) score++;
-    if (score > bestScore) { bestScore = score; best = i; }
+    let scoreHere = 0;
+    let scoreElsewhere = 0;
+    if (what) {
+      for (const kw of keywords) if (what.includes(kw)) scoreHere++;
+      for (const [otherTopic, otherKws] of Object.entries(TOPIC_KEYWORDS)) {
+        if (otherTopic === topic) continue;
+        let s = 0;
+        for (const kw of otherKws) if (what.includes(kw)) s++;
+        if (s > scoreElsewhere) scoreElsewhere = s;
+      }
+    }
+    topicScore[i] = scoreHere;
+    maxAnyScore[i] = Math.max(scoreHere, scoreElsewhere);
   }
-  if (best < 0) return null;
 
-  const p = patterns[best];
-  const what = (p.what as string) ?? "";
-  const advice = (p.advice as string) ?? "";
-  // Split the pattern's prose into short bullets — the watchOut
-  // renderer expects a list. A pattern's "what" is usually a single
-  // sentence listing 2-3 confusions; split on commas/semicolons works
-  // well enough for v1 and gives the reader scannable bullets.
-  const fragments = [what, advice].filter(s => s && s.trim().length > 0).join(" ");
-  const bullets = fragments
-    .split(/[;.](?:\s+|$)|,\s+(?=[A-Z])/)
-    .map(s => s.replace(/^\s*and\s+/i, "").trim())
-    .filter(s => s.length > 8)
-    .slice(0, 4);
+  // Order: highest topic-scoring patterns first (these speak directly
+  // to this combo's topic), then patterns that don't anchor to any
+  // topic at all (kid-level cross-cutting traps like "jumps to outcome,
+  // skips keywords" — apply everywhere, worth a closing reminder).
+  const topicAnchored = patterns
+    .map((_, i) => i)
+    .filter(i => topicScore[i] > 0)
+    .sort((a, b) => topicScore[b] - topicScore[a]);
+  const crossCutting = patterns
+    .map((_, i) => i)
+    .filter(i => maxAnyScore[i] === 0 && ((patterns[i].what as string) ?? "").trim().length > 0);
+
+  const orderedIdxs = [...topicAnchored, ...crossCutting];
+  if (orderedIdxs.length === 0) return null;
+
+  // Pull up to 3 bullets per pattern (most patterns split into 2-3
+  // distinct confusions in the workshop output). Stop when the
+  // combined list hits 6 — that's about the most a kid will actually
+  // read before the first question.
+  const MAX_BULLETS_TOTAL = 6;
+  const MAX_BULLETS_PER_PATTERN = 3;
+  const bullets: string[] = [];
+  for (const i of orderedIdxs) {
+    const p = patterns[i];
+    const what = (p.what as string) ?? "";
+    const advice = (p.advice as string) ?? "";
+    const fragments = [what, advice].filter(s => s && s.trim().length > 0).join(" ");
+    // Split a pattern's prose into bullets. Sentence boundaries (. ; :)
+    // are the cleanest, but workshop patterns often pile up multiple
+    // confusions in a single sentence joined by ", such as" / ", or" /
+    // ", and" — so we also split on commas followed by those
+    // connectors. This is what lets a pattern like
+    //   "tangled up with heat concepts, such as thinking heat is only
+    //    gained during a change of state, or mixing up conductors"
+    // surface as three readable bullets instead of one long sentence.
+    const candidates = fragments
+      .split(/[;.:](?:\s+|$)|,\s+(?=(?:such as|including|like|or|and|but|e\.g\.)\b)/i)
+      .map(s => s.replace(/^\s*(?:such as|including|like|or|and|but|e\.g\.,?)\s+/i, "").trim())
+      .filter(s => s.length > 8);
+    const take = candidates.length > 0 ? candidates.slice(0, MAX_BULLETS_PER_PATTERN) : [what.trim()].filter(Boolean);
+    for (const b of take) {
+      if (bullets.length >= MAX_BULLETS_TOTAL) break;
+      bullets.push(b);
+    }
+    if (bullets.length >= MAX_BULLETS_TOTAL) break;
+  }
+  if (bullets.length === 0) return null;
   // Heading uses the topic short-name. Most topics' titles work
   // verbatim; trim the parenthetical for the long Forces ones.
   const heading = topic
     .replace(/\s*\([^)]*\)\s*/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  return { heading, watchOut: bullets.length > 0 ? bullets : [what] };
+  return { heading, watchOut: bullets };
 }

@@ -358,7 +358,15 @@ export async function POST(request: NextRequest) {
   function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
     const result = new Map<string, string>();
     if (!answer || !answer.trim()) return result;
-    const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
+    // Accepts "(b)" preceded by start-of-string, "|", "\n", OR ". " /
+    // "? " / "! " (sentence end + space). Without the sentence-end
+    // case, a master answer formatted as
+    //   "(a) wheels reduce friction. (b) gravity acts on the train..."
+    // would fail to split because "(b)" is preceded by ". " rather than
+    // a newline — and the merge would dump (b) AND (c) text into
+    // subpart (a)'s answer field. PSLE 2020 Q37ab hit this; spotted on
+    // Kaiyang's Forces quiz cmqrap2g70003eg2krus3gnlu.
+    const re = /(^|[|\n]|[.?!]\s)\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
     const matches = [...answer.matchAll(re)];
     if (matches.length === 0) return result;
     for (let i = 0; i < matches.length; i++) {
