@@ -1,0 +1,44 @@
+{
+  "topic": "Energy conversion",
+  "sampleSize": 48,
+  "poolSize": 48,
+  "buckets": [
+    {
+      "id": "gravitational-potential-to-kinetic",
+      "description": "Questions involving the conversion between gravitational potential energy and kinetic energy, typically using ramps, pendulums, or falling objects."
+    },
+    {
+      "id": "elastic-potential-to-kinetic",
+      "description": "Questions involving the conversion between elastic potential energy and kinetic energy, typically using springs, rubber bands, or other deformable materials."
+    },
+    {
+      "id": "electricity-generation-and-application",
+      "description": "Questions about converting various energy sources into electrical energy and its application in powering devices like bulbs or motors."
+    },
+    {
+      "id": "energy-loss-and-inefficiency",
+      "description": "Questions focusing on the conversion of useful energy into non-useful forms like heat and sound due to friction, air resistance, or inherent inefficiency."
+    }
+  ],
+  "distribution": {
+    "other": 2,
+    "gravitational-potential-to-kinetic": 13,
+    "elastic-potential-to-kinetic": 14,
+    "electricity-generation-and-application": 11,
+    "energy-loss-and-inefficiency": 8
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0g0015tsc048sip2u7",
+      "qNum": "7",
+      "reason": "No question stem was provided, so a sub-topic cannot be determined.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmnburngy003zc4crifektk11",
+      "qNum": "14",
+      "reason": "The experiment demonstrates the conversion of chemical potential energy to heat energy, and then to kinetic energy, which does not fit into the specific categories provided.",
+      "stemHead": "Henry conducted an experiment with the set-up shown. After he lighted the candle, he observed that the paper spiral started to spin."
+    }
+  ]
+}

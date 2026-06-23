@@ -1,0 +1,44 @@
+{
+  "topic": "Cycles in matter",
+  "sampleSize": 30,
+  "poolSize": 30,
+  "buckets": [
+    {
+      "id": "properties-of-matter",
+      "description": "Questions testing the fundamental properties of solids, liquids, and gases, such as having mass, occupying space, having a definite shape or volume, and compressibility."
+    },
+    {
+      "id": "interpreting-heating-curves-data",
+      "description": "Questions requiring the analysis of temperature-time graphs or tables of melting and boiling points to determine a substance's state at a given temperature or time."
+    },
+    {
+      "id": "water-cycle-applications",
+      "description": "Questions applying the concepts of evaporation, condensation, and freezing to explain everyday phenomena, particularly the formation of water droplets or ice on cold surfaces."
+    },
+    {
+      "id": "measuring-volume-displacement",
+      "description": "Questions that involve calculating or determining the volume of objects or substances, often using the water displacement method or by considering how matter occupies space in a container."
+    }
+  ],
+  "distribution": {
+    "other": 2,
+    "properties-of-matter": 10,
+    "interpreting-heating-curves-data": 10,
+    "water-cycle-applications": 5,
+    "measuring-volume-displacement": 3
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0i001ntsc06mgy7g2k",
+      "qNum": "16",
+      "reason": "The question stem is missing, so it's impossible to determine the appropriate sub-topic from the given buckets.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmo5scxyg001tplnmf77ss8ns",
+      "qNum": "13",
+      "reason": "The question is about human biology, specifically the circulatory and digestive systems' response to physical activity, which does not fit any of the provided sub-topics related to matter properties, heating curves, water cycle, or volume measurement.",
+      "stemHead": "Harry conducted two different activities, walking and running. He measured his heart rate for each activity. He only recorded his results for walking in the graph below."
+    }
+  ]
+}

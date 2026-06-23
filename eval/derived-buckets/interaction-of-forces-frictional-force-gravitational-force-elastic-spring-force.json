@@ -1,0 +1,50 @@
+{
+  "topic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+  "sampleSize": 50,
+  "poolSize": 55,
+  "buckets": [
+    {
+      "id": "investigating-frictional-force",
+      "description": "Questions involving experiments to determine how factors like surface texture, mass, or lubricants affect the amount of friction or an object's motion."
+    },
+    {
+      "id": "investigating-elastic-force",
+      "description": "Questions involving experiments with springs or elastic materials, focusing on the relationship between force, extension or compression, and material properties."
+    },
+    {
+      "id": "identifying-and-representing-forces",
+      "description": "Questions that require students to identify the presence and direction of forces like gravity, friction, and elastic force in various scenarios."
+    },
+    {
+      "id": "applying-force-concepts",
+      "description": "Questions requiring students to apply their understanding of force properties to explain phenomena, predict outcomes, or analyze energy changes."
+    }
+  ],
+  "distribution": {
+    "other": 3,
+    "investigating-frictional-force": 10,
+    "investigating-elastic-force": 9,
+    "identifying-and-representing-forces": 5,
+    "applying-force-concepts": 23
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0k0027tsc0tjwl3qjp",
+      "qNum": "26",
+      "reason": "No question stem was provided, making it impossible to categorize.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmp6ooi68003xk9u7yy7ugcnx",
+      "qNum": "17",
+      "reason": "The question is about correct measurement technique, not directly about identifying, representing, or applying concepts of frictional, gravitational, or elastic forces.",
+      "stemHead": "A boy has his height measured with a measuring tape as shown."
+    },
+    {
+      "qId": "cmnd98t0j0023tsc0ii6ayezd",
+      "qNum": "24",
+      "reason": "The question stem is missing, making it impossible to determine the appropriate sub-topic.",
+      "stemHead": ""
+    }
+  ]
+}

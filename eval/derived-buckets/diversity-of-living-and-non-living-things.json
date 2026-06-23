@@ -1,0 +1,31 @@
+{
+  "topic": "Diversity of living and non-living things",
+  "sampleSize": 48,
+  "poolSize": 48,
+  "buckets": [
+    {
+      "id": "classification-of-organisms",
+      "description": "Questions that require students to use or interpret classification tools like flowcharts, tables, and dichotomous keys to group organisms."
+    },
+    {
+      "id": "characteristics-of-animals",
+      "description": "Questions that test knowledge of the defining features of different animal groups, such as insects, birds, mammals, fish, and amphibians."
+    },
+    {
+      "id": "characteristics-of-plants-and-fungi",
+      "description": "Questions that test knowledge of the defining features of plants and fungi, including how they obtain food, reproduce, and are structured."
+    },
+    {
+      "id": "properties-of-life-and-micro-organisms",
+      "description": "Questions that cover the universal characteristics of living things, the distinction between living and non-living, and the properties of micro-organisms like bacteria."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "classification-of-organisms": 17,
+    "characteristics-of-animals": 9,
+    "characteristics-of-plants-and-fungi": 9,
+    "properties-of-life-and-micro-organisms": 13
+  },
+  "otherSamples": []
+}

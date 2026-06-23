@@ -1,0 +1,44 @@
+{
+  "topic": "Photosynthesis",
+  "sampleSize": 40,
+  "poolSize": 40,
+  "buckets": [
+    {
+      "id": "factors-affecting-photosynthesis",
+      "description": "Questions that investigate how the rate of photosynthesis is influenced by variable conditions such as light intensity, carbon dioxide concentration, and temperature."
+    },
+    {
+      "id": "photosynthesis-fundamentals",
+      "description": "Questions that test the core definition of photosynthesis, including its requirements (light, water, CO2), products (sugar, oxygen), and the role of chlorophyll or chloroplasts."
+    },
+    {
+      "id": "gas-exchange-and-respiration",
+      "description": "Questions requiring an understanding of the interplay between photosynthesis and respiration to predict or explain the net change in gas levels in a sealed environment."
+    },
+    {
+      "id": "scientific-investigation-method",
+      "description": "Questions assessing the application of the scientific method to photosynthesis experiments, including identifying variables, designing control set-ups, and ensuring a fair test."
+    }
+  ],
+  "distribution": {
+    "other": 2,
+    "factors-affecting-photosynthesis": 17,
+    "photosynthesis-fundamentals": 6,
+    "gas-exchange-and-respiration": 6,
+    "scientific-investigation-method": 9
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0h0017tsc070w5l12j",
+      "qNum": "8",
+      "reason": "The question stem is missing, so no sub-topic can be determined.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmnd98t0l002ptsc04fawiz1j",
+      "qNum": "34bc",
+      "reason": "The answer key describes ecological interactions like food chains and nutrient cycling involving a photosynthesizer, which do not fit the provided sub-topics focused on the process, its factors, gas exchange, or experimental design.",
+      "stemHead": ""
+    }
+  ]
+}

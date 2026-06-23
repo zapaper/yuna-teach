@@ -1,0 +1,31 @@
+{
+  "topic": "Plant parts and functions",
+  "sampleSize": 50,
+  "poolSize": 51,
+  "buckets": [
+    {
+      "id": "water-transport-system",
+      "description": "Questions testing the absorption of water by roots and its upward movement through the water-carrying tubes (xylem)."
+    },
+    {
+      "id": "food-production-and-transport",
+      "description": "Questions testing the process of photosynthesis in leaves and the distribution of manufactured food through the food-carrying tubes (phloem)."
+    },
+    {
+      "id": "transpiration-and-gaseous-exchange",
+      "description": "Questions testing water loss (transpiration) and the exchange of gases through tiny openings (stomata) on the leaves."
+    },
+    {
+      "id": "integrated-plant-systems",
+      "description": "Questions testing the interaction between the water and food transport systems or how different parts work together for overall plant function."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "water-transport-system": 14,
+    "food-production-and-transport": 15,
+    "transpiration-and-gaseous-exchange": 11,
+    "integrated-plant-systems": 10
+  },
+  "otherSamples": []
+}

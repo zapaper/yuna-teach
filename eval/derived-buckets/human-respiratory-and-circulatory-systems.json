@@ -1,0 +1,56 @@
+{
+  "topic": "Human respiratory and circulatory systems",
+  "sampleSize": 47,
+  "poolSize": 47,
+  "buckets": [
+    {
+      "id": "system-components-and-functions",
+      "description": "Questions that require identifying the parts of the respiratory and circulatory systems and describing their primary roles."
+    },
+    {
+      "id": "gas-exchange-and-air-composition",
+      "description": "Questions focusing on the process of gas exchange in the lungs and the differences in composition between inhaled and exhaled air."
+    },
+    {
+      "id": "blood-circulation-and-transport",
+      "description": "Questions about the pathway of blood flow and the transport of oxygen, carbon dioxide, and nutrients to and from different body parts."
+    },
+    {
+      "id": "physiological-response-to-activity",
+      "description": "Questions analyzing how and why breathing rate, heart rate, and blood flow change in response to physical activities like exercise."
+    }
+  ],
+  "distribution": {
+    "other": 4,
+    "system-components-and-functions": 9,
+    "gas-exchange-and-air-composition": 5,
+    "blood-circulation-and-transport": 11,
+    "physiological-response-to-activity": 18
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0g000xtsc0iddrjw7p",
+      "qNum": "3",
+      "reason": "No question stem was provided to categorize.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmnd98t0g000ztsc0omwjnyn6",
+      "qNum": "4",
+      "reason": "No question stem was provided, making it impossible to categorize.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmo5secno0031plnm4k0cot98",
+      "qNum": "19a",
+      "reason": "The question describes an experiment demonstrating the volume of exhaled air and its physical property of displacing water, which does not fit the provided categories focusing on system components, gas exchange, blood circulation, or physiological responses to activity.",
+      "stemHead": "Amir took a breath and then blew as much as possible into the straw using the set-up below. He recorded the changes in the height of water level in the basin as shown below."
+    },
+    {
+      "qId": "cmpn9hsy8001n49ocmdhh1pl9",
+      "qNum": "29",
+      "reason": "The question and answer key refer to the skeletal system, which is outside the scope of the provided sub-topic buckets for the respiratory and circulatory systems.",
+      "stemHead": "The diagram shows a human system."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "topic": "Heat energy and uses",
+  "sampleSize": 50,
+  "poolSize": 52,
+  "buckets": [
+    {
+      "id": "heat-transfer-and-materials",
+      "description": "Questions testing the concepts of conduction and insulation, and how factors like material type, surface area, or trapped air affect the rate of heat transfer."
+    },
+    {
+      "id": "changes-of-state",
+      "description": "Questions focusing on melting, freezing, boiling, and evaporation, often involving the interpretation of temperature-time graphs that show plateaus during these processes."
+    },
+    {
+      "id": "expansion-and-contraction",
+      "description": "Questions involving the expansion of solids, liquids, and gases when heated and their contraction when cooled, including real-world applications and consequences."
+    },
+    {
+      "id": "heat-temperature-and-measurement",
+      "description": "Questions that test the fundamental definitions of heat and temperature, the correct use of thermometers, and the relationship between heat energy, mass, and temperature change."
+    }
+  ],
+  "distribution": {
+    "other": 1,
+    "heat-transfer-and-materials": 21,
+    "changes-of-state": 11,
+    "expansion-and-contraction": 12,
+    "heat-temperature-and-measurement": 5
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0i001xtsc0e3cusn93",
+      "qNum": "21",
+      "reason": "There is no question stem provided to determine the sub-topic.",
+      "stemHead": ""
+    }
+  ]
+}

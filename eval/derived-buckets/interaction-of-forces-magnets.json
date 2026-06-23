@@ -1,0 +1,26 @@
+{
+  "topic": "Interaction of forces (Magnets)",
+  "sampleSize": 32,
+  "poolSize": 32,
+  "buckets": [
+    {
+      "id": "interaction-with-other-forces",
+      "description": "Questions analyzing scenarios where magnetic force interacts with other forces such as gravity, friction, and elastic force."
+    },
+    {
+      "id": "magnetic-properties-and-principles",
+      "description": "Questions testing fundamental magnetic characteristics like poles, attraction, repulsion, and the identification of magnetic materials."
+    },
+    {
+      "id": "electromagnetism-and-applications",
+      "description": "Questions about creating electromagnets, the factors affecting their strength, and their use in various devices."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "interaction-with-other-forces": 15,
+    "magnetic-properties-and-principles": 10,
+    "electromagnetism-and-applications": 7
+  },
+  "otherSamples": []
+}

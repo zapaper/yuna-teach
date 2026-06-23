@@ -1,0 +1,50 @@
+{
+  "topic": "Reproduction in plants and animals",
+  "sampleSize": 50,
+  "poolSize": 52,
+  "buckets": [
+    {
+      "id": "reproductive-parts-and-functions",
+      "description": "Questions that test the identification of reproductive parts in plants and humans and their specific functions."
+    },
+    {
+      "id": "pollination-and-fertilisation",
+      "description": "Questions that focus on the processes of pollination and fertilisation in both plants and animals, including the agents and conditions required."
+    },
+    {
+      "id": "fruit-and-seed-dispersal",
+      "description": "Questions about the methods, structural adaptations, and advantages of fruit and seed dispersal in plants."
+    },
+    {
+      "id": "experimental-design-and-data-interpretation",
+      "description": "Questions that require interpreting data from charts and graphs or understanding experimental setups related to any aspect of reproduction."
+    }
+  ],
+  "distribution": {
+    "other": 3,
+    "reproductive-parts-and-functions": 9,
+    "pollination-and-fertilisation": 13,
+    "fruit-and-seed-dispersal": 14,
+    "experimental-design-and-data-interpretation": 11
+  },
+  "otherSamples": [
+    {
+      "qId": "cmp4tkihq001913dnrnifrplp",
+      "qNum": "9",
+      "reason": "The question covers both the identification of reproductive parts (human ovary) and the processes of pollination and fertilisation in plants, fitting two distinct sub-topics equally.",
+      "stemHead": "The diagram below shows the human reproductive system and plant reproductive system."
+    },
+    {
+      "qId": "cmnd98t0g0011tsc05vjgq5ix",
+      "qNum": "5",
+      "reason": "No question stem was provided, so it is impossible to determine the sub-topic.",
+      "stemHead": ""
+    },
+    {
+      "qId": "cmnd98t0g0013tsc0m6dpwbiu",
+      "qNum": "6",
+      "reason": "No question stem was provided, so it is impossible to determine the sub-topic.",
+      "stemHead": ""
+    }
+  ]
+}

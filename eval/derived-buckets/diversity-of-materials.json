@@ -1,0 +1,26 @@
+{
+  "topic": "Diversity of materials",
+  "sampleSize": 27,
+  "poolSize": 27,
+  "buckets": [
+    {
+      "id": "properties-and-applications",
+      "description": "Questions that link a material's specific property (e.g., strength, flexibility, waterproof, conductivity) to its suitability for a particular function in an everyday object."
+    },
+    {
+      "id": "fundamental-concepts-of-matter",
+      "description": "Questions that test core concepts of matter, such as having mass, occupying volume, and density (as observed through floating and sinking)."
+    },
+    {
+      "id": "scientific-investigation-and-classification",
+      "description": "Questions that focus on the methods of scientific inquiry, including designing fair tests, interpreting experimental data, and classifying materials using logical tools like tables and flowcharts."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "properties-and-applications": 14,
+    "fundamental-concepts-of-matter": 5,
+    "scientific-investigation-and-classification": 8
+  },
+  "otherSamples": []
+}

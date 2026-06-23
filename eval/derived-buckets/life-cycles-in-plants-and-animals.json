@@ -1,0 +1,31 @@
+{
+  "topic": "Life cycles in plants and animals",
+  "sampleSize": 47,
+  "poolSize": 47,
+  "buckets": [
+    {
+      "id": "seed-germination-and-experiments",
+      "description": "Questions testing the conditions for seed germination, the role of seed parts during growth, and the design of fair experiments to investigate these factors."
+    },
+    {
+      "id": "animal-life-cycle-stages",
+      "description": "Questions requiring the identification, sequencing, and comparison of the stages in various animal life cycles, including their distinct characteristics."
+    },
+    {
+      "id": "plant-reproduction-and-life-cycle",
+      "description": "Questions focusing on the life cycle of a flowering plant after germination, including the functions of flowers, fruits, and the processes of reproduction."
+    },
+    {
+      "id": "factors-affecting-animal-development",
+      "description": "Questions involving the interpretation of data or scenarios to analyze how environmental factors and ecological interactions influence animal life cycles."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "seed-germination-and-experiments": 19,
+    "animal-life-cycle-stages": 14,
+    "plant-reproduction-and-life-cycle": 9,
+    "factors-affecting-animal-development": 5
+  },
+  "otherSamples": []
+}

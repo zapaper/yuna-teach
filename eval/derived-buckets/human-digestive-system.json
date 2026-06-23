@@ -1,0 +1,26 @@
+{
+  "topic": "Human digestive system",
+  "sampleSize": 28,
+  "poolSize": 28,
+  "buckets": [
+    {
+      "id": "organ-identification-and-function",
+      "description": "Questions that require students to identify parts of the digestive system from diagrams and describe the main function of specific organs."
+    },
+    {
+      "id": "process-of-digestion-and-absorption",
+      "description": "Questions focusing on the breakdown of food and absorption of nutrients, often requiring interpretation of graphs or data showing changes in substances."
+    },
+    {
+      "id": "factors-and-system-interactions",
+      "description": "Questions that explore experimental factors affecting the rate of digestion or the relationship between the digestive system and other body systems."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "organ-identification-and-function": 11,
+    "process-of-digestion-and-absorption": 11,
+    "factors-and-system-interactions": 6
+  },
+  "otherSamples": []
+}

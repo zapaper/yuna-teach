@@ -1,0 +1,38 @@
+{
+  "topic": "Water cycle, evaporation, condensation",
+  "sampleSize": 50,
+  "poolSize": 54,
+  "buckets": [
+    {
+      "id": "explaining-condensation-phenomena",
+      "description": "Questions requiring an explanation for everyday observations of condensation, such as mist, fog, or droplets forming on a cooler surface."
+    },
+    {
+      "id": "factors-affecting-evaporation",
+      "description": "Questions involving experiments or scenarios that compare how factors like temperature, wind, or exposed surface area affect the rate of evaporation."
+    },
+    {
+      "id": "evaporation-condensation-systems",
+      "description": "Questions about systems like solar stills, terrariums, or distillation where a sequence of evaporation and condensation is used to separate or transport water."
+    },
+    {
+      "id": "water-cycle-and-definitions",
+      "description": "Questions testing the identification of stages in the global water cycle or the fundamental definitions and properties of processes like evaporation and boiling."
+    }
+  ],
+  "distribution": {
+    "other": 1,
+    "explaining-condensation-phenomena": 23,
+    "factors-affecting-evaporation": 14,
+    "evaporation-condensation-systems": 7,
+    "water-cycle-and-definitions": 5
+  },
+  "otherSamples": [
+    {
+      "qId": "cmnd98t0m0031tsc0mhuoh0s1",
+      "qNum": "39",
+      "reason": "The question stem is missing, and the provided answer key is unrelated to the water cycle, evaporation, or condensation.",
+      "stemHead": ""
+    }
+  ]
+}

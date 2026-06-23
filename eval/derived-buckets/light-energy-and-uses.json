@@ -1,0 +1,31 @@
+{
+  "topic": "Light energy and uses",
+  "sampleSize": 39,
+  "poolSize": 39,
+  "buckets": [
+    {
+      "id": "shadow-formation-and-properties",
+      "description": "Questions about the formation of shadows, predicting their shape, and understanding factors that change their size or position."
+    },
+    {
+      "id": "vision-and-reflection",
+      "description": "Questions testing the understanding of how light travels from a source, reflects off objects, and enters the eye to enable sight."
+    },
+    {
+      "id": "light-investigations-and-data",
+      "description": "Questions involving the design or interpretation of experiments, often using light sensors and data, to investigate properties of light and materials."
+    },
+    {
+      "id": "properties-of-materials",
+      "description": "Questions focusing on the conceptual classification of materials as transparent, translucent, or opaque based on their interaction with light."
+    }
+  ],
+  "distribution": {
+    "other": 0,
+    "shadow-formation-and-properties": 10,
+    "vision-and-reflection": 11,
+    "light-investigations-and-data": 9,
+    "properties-of-materials": 9
+  },
+  "otherSamples": []
+}
