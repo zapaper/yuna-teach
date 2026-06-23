@@ -17,12 +17,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 
-// Hardcoded for v1 — matches the userId we've been working off in
-// conversation. When this graduates from admin sandbox to a real
-// parent feature, the studentId comes from the parent dashboard's
-// selected-student state.
-const DAVID_LIM_ID = "cmm5wf91d000ryrxwaddlo6xh";
-const DAVID_LIM_NAME = "David Lim";
+// Internal admin gate: limit to David + Mark while we shake down
+// the personalised-quiz flow. ?studentId=<id> picks the kid; default
+// is David. When the CTA in LumiSummary fires, it appends the right
+// studentId so the admin lands on the matching kid here.
+const TEST_STUDENTS: Record<string, string> = {
+  "cmm5wf91d000ryrxwaddlo6xh": "David Lim",
+  "cmmfmehcz0000bbbfnwwiko75": "Mark Lim",
+};
+const DEFAULT_STUDENT_ID = "cmm5wf91d000ryrxwaddlo6xh";
 
 const SCIENCE_SKILLS: { value: string; label: string; description: string }[] = [
   {
@@ -63,6 +66,12 @@ export default function LumiQuizAdminPage() {
 function Content() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
+  // ?studentId=<cuid> picks which kid the quiz is generated for.
+  // Falls back to David if unspecified or unrecognised, so the admin
+  // tile on /admin still lands somewhere useful.
+  const studentIdParam = searchParams.get("studentId") ?? "";
+  const studentId = TEST_STUDENTS[studentIdParam] ? studentIdParam : DEFAULT_STUDENT_ID;
+  const studentName = TEST_STUDENTS[studentId];
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [skill, setSkill] = useState<string>(SCIENCE_SKILLS[1].value); // evidence-then-conclusion as default
   const [count, setCount] = useState<number>(10);
@@ -85,7 +94,7 @@ function Content() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentId: DAVID_LIM_ID,
+          studentId,
           subject: "science",
           skillTag: skill,
           count,
@@ -129,7 +138,7 @@ function Content() {
           </Link>
           <div>
             <h1 className="text-lg font-bold text-slate-800">Lumi Quiz — internal test</h1>
-            <p className="text-xs text-slate-400">Generate a personalised Science quiz for {DAVID_LIM_NAME}</p>
+            <p className="text-xs text-slate-400">Generate a personalised Science quiz for {studentName}</p>
           </div>
         </div>
 
@@ -138,7 +147,7 @@ function Content() {
           <div className="bg-purple-50 rounded-2xl border border-purple-100 px-4 py-3 flex items-start gap-2">
             <span className="material-symbols-outlined text-purple-600 text-base mt-0.5">psychology</span>
             <div className="text-xs text-purple-900">
-              <p className="font-bold">Hardcoded to David Lim for v1.</p>
+              <p className="font-bold">Quiz target: {studentName}</p>
               <p className="mt-0.5 text-purple-700">
                 Generates a 10-question Science quiz from master papers tagged with the picked skill.
                 Excludes any question David has already attempted.
@@ -207,7 +216,7 @@ function Content() {
             ) : (
               <span className="material-symbols-outlined">auto_awesome</span>
             )}
-            {submitting ? "Generating…" : `Generate ${count}-Q ${picked.label} quiz for ${DAVID_LIM_NAME}`}
+            {submitting ? "Generating…" : `Generate ${count}-Q ${picked.label} quiz for ${studentName}`}
           </button>
         </div>
       </div>

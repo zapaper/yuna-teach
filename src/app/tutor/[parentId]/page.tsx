@@ -777,9 +777,13 @@ function scrollToSection(id: string) {
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
 // Internal admin-only gate for the personalised-quiz CTA. Limited to
-// David Lim while we shake down the Lumi-quiz endpoint; remove this
-// hardcoding when we're ready to expose the CTA to all parents.
-const LUMI_QUIZ_TEST_STUDENT_ID = "cmm5wf91d000ryrxwaddlo6xh";
+// David Lim + Mark Lim while we shake down the Lumi-quiz endpoint;
+// drop the Set and remove this hardcoding when we're ready to expose
+// the CTA to all parents.
+const LUMI_QUIZ_TEST_STUDENT_IDS = new Set([
+  "cmm5wf91d000ryrxwaddlo6xh",  // David Lim
+  "cmmfmehcz0000bbbfnwwiko75",  // Mark Lim (admin@yunateach.com)
+]);
 
 function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
   const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
@@ -861,7 +865,7 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
             Sits at the end of the summary so the parent sees the suggestion
             after reading the diagnoses. Links into /admin/lumi-quiz which
             handles the skill picker + question selection. */}
-        {studentId === LUMI_QUIZ_TEST_STUDENT_ID && subject === "Science" && (m1 || concept) && (
+        {LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId) && subject === "Science" && (m1 || concept) && (
           <li className="!list-none -ml-5 mt-2">
             <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4">
               <p className="text-[#001e40] font-medium">
@@ -869,7 +873,7 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
                 fresh questions across topics, drilling the same skill the patterns above point to.
               </p>
               <a
-                href={`/admin/lumi-quiz?userId=${parentId}`}
+                href={`/admin/lumi-quiz?userId=${parentId}&studentId=${studentId}`}
                 className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors"
               >
                 <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
