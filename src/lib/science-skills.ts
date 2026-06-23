@@ -148,7 +148,7 @@ export const SCIENCE_SKILL_PREAMBLE: Record<ScienceSkillTag, SkillPreambleBlock>
     tested:
       "Questions where the answer lives IN the diagram — labelled parts, arrows showing direction, connections.",
     watchOut: [
-      "Don't guess from the stem text. Look at the diagram first, then answer.",
+      "Don't guess from the question text. Look at the diagram first, then answer.",
       "Trace every arrow before you decide the flow direction.",
       "Count parts carefully — \"three\" is not \"a few\".",
     ],
