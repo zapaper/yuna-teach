@@ -116,4 +116,8 @@ const MARK_COMBOS: LumiQuizCombo[] = [
 export const LUMI_QUIZ_COMBOS: Record<string, LumiQuizCombo[]> = {
   "cmm5wf91d000ryrxwaddlo6xh": DAVID_COMBOS,   // David Lim
   "cmmbbyvs30004qa9yinn3drl6": MARK_COMBOS,    // Mark Lim (kid; admin@yunateach.com's student)
+  // student67 cloned from David's combos — same level, same target gaps
+  // for the test cohort. Swap to bespoke combos when we have a real
+  // diagnosis for this kid.
+  "cmqg8upha0000l3ijfr3co6t8": DAVID_COMBOS,   // student67
 };
