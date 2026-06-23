@@ -1854,19 +1854,23 @@ export async function POST(request: NextRequest) {
   const allSelected = [...selectedMcq, ...selectedOeq];
 
   // Hydrate selected questions with blob data.
-  // IMPORTANT: hydrateBlobs fetches by q.id which, for merged OEQ groups,
-  // is the FIRST member's id only. Both diagramImageData and
-  // transcribedSubparts on the merged record are already the union across
-  // group members (see mergeOeqGroup) — don't let the hydrate clobber
-  // them with the first member's narrower values.
   T.mark(`pre-hydrate (mcq=${selectedMcq.length} oeq=${selectedOeq.length})`);
   const blobMap2 = await hydrateBlobs(allSelected.map(q => q.id));
   T.mark(`hydrateBlobs (ids=${allSelected.length})`);
+  // Merge invariant ("parts always go together"): mergeOeqGroup OWNS
+  // `transcribedSubparts` (the union of every group member's parts) and
+  // `diagramImageData` (a fallback chain across members). hydrateBlobs
+  // refetches by q.id which == first.id for a merged group, so the
+  // refetch returns only the first member's narrower values. If we let
+  // them spread on top, the merge gets silently undone — the clone ends
+  // up with sub-part (a) only while marksAvailable still reflects the
+  // full sum (the Q11 bug from 2026-06-23). Two guard lines below pin
+  // q's merged values so no downstream blob fetch can clobber them.
   const allSelectedFull2 = allSelected.map(q => {
     const hydrated = blobMap2.get(q.id);
     const merged = { ...q, ...hydrated } as FullQ;
-    if (q.diagramImageData && !merged.diagramImageData) merged.diagramImageData = q.diagramImageData;
     if (q.transcribedSubparts) merged.transcribedSubparts = q.transcribedSubparts;
+    if (q.diagramImageData) merged.diagramImageData = q.diagramImageData;
     return merged;
   }) as FullQ[];
 

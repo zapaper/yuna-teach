@@ -873,6 +873,7 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
               studentId={studentId}
               childFirst={childFirst}
               parentId={parentId}
+              totalAvailable={topline.totalAvailable}
             />
           </li>
         )}
@@ -885,7 +886,16 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
 // test gate. Each combo card has its label, rationale, and a
 // Generate button that POSTs to /api/admin/lumi-quiz with the right
 // comboIdx and navigates the parent to the quiz player.
-function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId }: { studentId: string; childFirst: string; parentId: string }) {
+// Below this many subject-wide marks of evidence, Lumi's combo
+// rationale is shaky — a single quiz can swing weakest-topic / common-
+// mistake rankings. Below the threshold we still offer the combos but
+// also nudge the parent toward a daily quiz so Lumi has more signal
+// next time. Keep in step with the gate in MEMORY.md
+// (feedback_parent_dashboard_data_gates.md) — 100 is the floor we
+// already use to suppress sparse-data panels elsewhere.
+const LUMI_COMBO_SPARSE_DATA_THRESHOLD = 100;
+
+function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalAvailable }: { studentId: string; childFirst: string; parentId: string; totalAvailable: number }) {
   const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
   // Per-combo "generated" state — keyed by comboIdx. Stays set after
   // generate so the parent doesn't see the button revert and click
@@ -920,8 +930,8 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId }: { st
   return (
     <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
       <p className="text-[#001e40] font-medium">
-        Lumi recommends two <strong>personalised quizzes</strong> for {childFirst} — each pairs a topic
-        where {childFirst} struggles with the answer pattern that&apos;s costing the most marks.
+        Lumi recommends two <strong>personalised quizzes</strong> for {childFirst} — each pairs a subtopic
+        where {childFirst} struggles with <strong>a common-mistakes pattern</strong>.
       </p>
       <div className="space-y-2">
         {combos.map((c, i) => {
@@ -961,6 +971,13 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId }: { st
           );
         })}
       </div>
+      {totalAvailable < LUMI_COMBO_SPARSE_DATA_THRESHOLD && (
+        <p className="text-xs text-[#43474f] leading-relaxed border-t border-purple-100 pt-3">
+          <span className="font-bold text-[#001e40]">Light on data so far</span> ({totalAvailable} marks).
+          A few <a href="#daily-practices-section" onClick={scrollToSection("daily-practices-section")} className="text-violet-700 font-semibold underline decoration-violet-300 hover:decoration-violet-700 underline-offset-2">daily quizzes</a> would
+          refresh {childFirst}&apos;s practice and give Lumi more to work with next time.
+        </p>
+      )}
       {err && <p className="text-xs text-red-600">{err}</p>}
     </div>
   );

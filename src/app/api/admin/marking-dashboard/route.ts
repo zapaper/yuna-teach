@@ -160,8 +160,8 @@ export async function GET() {
   // zero scores are likelier to be genuine "this kid is struggling".
   const zeroScore: Anomaly[] = [];
   const lowScore: Anomaly[] = [];
-  // Last 10 papers that finished marking, newest first. `recent` is
-  // already ordered by completedAt desc, so push the first 10 we hit
+  // Last 20 papers that finished marking, newest first. `recent` is
+  // already ordered by completedAt desc, so push the first 20 we hit
   // with markingStatus in {complete, released} below.
   const recentMarked: Anomaly[] = [];
   // Threshold: under 30% of total marks. PSLE pass is typically 50%,
@@ -269,9 +269,9 @@ export async function GET() {
       if (marked === 0) {
         zeroMarked.push({ ...baseAnomaly, reason: "complete-zero-marked", markedCount: 0 });
       }
-      // Drop into the "recently marked" feed too — first 10 hits win
+      // Drop into the "recently marked" feed too — first 20 hits win
       // since `recent` is sorted by completedAt desc above.
-      if (recentMarked.length < 10) {
+      if (recentMarked.length < 20) {
         recentMarked.push({ ...baseAnomaly, reason: "recent-marked", markedCount: marked });
       }
       // Score-based anomalies — only look at completed/released papers
