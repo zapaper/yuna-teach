@@ -1904,7 +1904,7 @@ function ExamReviewContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-base">refresh</span>
               {remarking ? "Re-marking…" : englishSections ? "Re-mark All" : "Re-mark"}
             </button>
-            {!isStudent && (paperType === null || paperType === "diagnostic" || (paperSubject ?? "").toLowerCase().includes("english") || (paperSubject ?? "").toLowerCase().includes("chinese")) && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
+            {!isStudent && data.isPrintedAndScanned && (paperType === null || paperType === "diagnostic" || (paperSubject ?? "").toLowerCase().includes("english") || (paperSubject ?? "").toLowerCase().includes("chinese")) && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
               <button
                 onClick={async () => {
                   if (exporting) return;
@@ -2056,19 +2056,33 @@ function ExamReviewContent({ id }: { id: string }) {
                   tableRows.push(line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
                 }
               }
-              // Word bank: row 0 = letters (A, B, C...), row 1 = words
-              if (tableRows.length >= 2) {
-                for (let c = 0; c < tableRows[0].length; c++) {
-                  const letter = tableRows[0][c].toUpperCase();
-                  const word = tableRows[1]?.[c] ?? "";
-                  if (letter && word) wordBank.set(letter, word);
+              // Word bank — two layouts the OCR emits:
+              //   1. row-pair:    row 0 = letters,    row 1 = words
+              //   2. interleaved: row N = "A, are, B, but, C, most"
+              //                   (letter/word alternating in the same row)
+              // P6 Grammar Cloze masters (e.g. Q11-Q20 of
+              // cmqpav4o0002u13p0e9fhh5yk) use shape 2, which the
+              // row-pair parser was reading as letter="(A)" / word="(B)"
+              // — wordBank.get("M") returned undefined and the inline
+              // wrong-answer render showed only ✗ with no student word.
+              const letterRe = /^\(?([A-Z])\)?$/;
+              // Try interleaved first
+              for (const row of tableRows) {
+                for (let c = 0; c + 1 < row.length; c += 2) {
+                  const m = row[c].match(letterRe);
+                  if (!m) continue;
+                  const word = row[c + 1];
+                  if (word && !letterRe.test(word)) wordBank.set(m[1], word);
                 }
-                // Handle additional rows (letters continue): row 2 = more letters, row 3 = more words
-                for (let r = 2; r + 1 < tableRows.length; r += 2) {
+              }
+              // Fall back to row-pair if interleaved found nothing
+              if (wordBank.size === 0 && tableRows.length >= 2) {
+                for (let r = 0; r + 1 < tableRows.length; r += 2) {
                   for (let c = 0; c < tableRows[r].length; c++) {
-                    const letter = tableRows[r][c].toUpperCase();
+                    const m = tableRows[r][c].match(letterRe);
+                    if (!m) continue;
                     const word = tableRows[r + 1]?.[c] ?? "";
-                    if (letter && word) wordBank.set(letter, word);
+                    if (word) wordBank.set(m[1], word);
                   }
                 }
               }
@@ -2741,9 +2755,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                     </>
                                   ) : (
                                     <>
-                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{studentWord}</span>
+                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{studentWord || studentLetter}</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
-                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{correctWord}</span>
+                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{correctWord || correctLetter}</span>
                                     </>
                                   )}
                                 </span>
@@ -3539,6 +3553,17 @@ function ExamReviewContent({ id }: { id: string }) {
                                 src={`/api/exam/${id}/submission?page=${sub}`}
                                 alt={`Scanned page ${sub + 1}`}
                                 className="w-full h-auto rounded-xl border border-[#e5eeff]"
+                                // Submission JPGs live on the Railway
+                                // volume. Older papers whose files
+                                // didn't survive the Neon→Railway DB
+                                // dump-and-restore still have DB rows
+                                // pointing at missing files, so the
+                                // submission API 404s. Hide the broken-
+                                // image icon instead of showing it —
+                                // the inline marking above is still
+                                // accurate; only the visual verifier
+                                // disappears.
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                               />
                             );
                           })}

@@ -224,26 +224,41 @@ export default function ReviseWorkModal({
               <p className="text-xs text-red-600 mb-3">{submitErr}</p>
             )}
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleCompile("review")}
-                disabled={!!submitting || count === 0}
-                className="flex-1 py-3 rounded-xl border-2 border-[#003366] text-[#003366] text-sm font-bold hover:bg-[#eff4ff] disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {submitting === "review"
-                  ? <span className="inline-block w-4 h-4 border-2 border-[#003366]/30 border-t-[#003366] rounded-full animate-spin" />
-                  : <span className="material-symbols-outlined text-base">menu_book</span>}
-                Compile and review
-              </button>
+            {/* Stacked so each button has room for its clarifying sub-line.
+                The two modes confused parents in the side-by-side layout
+                (Nilohoo created 7 review papers thinking they were practice
+                quizzes — see DB trace 2026-06-23). Renaming + subtitling
+                makes the choice unambiguous. */}
+            <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleCompile("practice")}
                 disabled={!!submitting || count === 0}
-                className="flex-1 py-3 rounded-xl bg-[#006c49] text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex flex-col items-center gap-0.5"
               >
-                {submitting === "practice"
-                  ? <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  : <span className="material-symbols-outlined text-base">edit</span>}
-                Compile and set paper
+                <span className="flex items-center gap-2 text-sm">
+                  {submitting === "practice"
+                    ? <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    : <span className="material-symbols-outlined text-base">edit</span>}
+                  Set as quiz for {studentName}
+                </span>
+                <span className="text-[11px] font-medium text-white/85">
+                  {studentName} will redo the mistakes themselves
+                </span>
+              </button>
+              <button
+                onClick={() => handleCompile("review")}
+                disabled={!!submitting || count === 0}
+                className="w-full py-3 px-4 rounded-xl border-2 border-[#003366] text-[#003366] font-bold hover:bg-[#eff4ff] disabled:opacity-50 flex flex-col items-center gap-0.5"
+              >
+                <span className="flex items-center gap-2 text-sm">
+                  {submitting === "review"
+                    ? <span className="inline-block w-4 h-4 border-2 border-[#003366]/30 border-t-[#003366] rounded-full animate-spin" />
+                    : <span className="material-symbols-outlined text-base">menu_book</span>}
+                  Review with me
+                </span>
+                <span className="text-[11px] font-medium text-[#43474f]">
+                  I&apos;ll go through the mistakes with {studentName}
+                </span>
               </button>
             </div>
           </div>

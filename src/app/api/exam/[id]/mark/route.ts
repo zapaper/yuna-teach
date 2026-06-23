@@ -113,7 +113,14 @@ export async function GET(
   const hasScanBackMetadata =
     (Array.isArray(skipPages) && skipPages.length > 0) ||
     (Array.isArray(answerPages) && answerPages.length > 0);
-  const isPrintedAndScanned = printableCount > 0 || chinesePadFlag || hasScanBackMetadata;
+  // Typed-quiz clones (paperType="quiz" + metadata.quizType set) inherit
+  // skipPages / answerPages from their master and would otherwise trip
+  // hasScanBackMetadata even though the kid never printed or scanned the
+  // paper. Suppress the printed-and-scanned UI for them — the review
+  // page would show a "Scanned page N" block and an Export button that
+  // both 404 against an empty /data/submissions/<id> directory.
+  const isTypedQuiz = !!(ownMeta as { quizType?: string } | null)?.quizType;
+  const isPrintedAndScanned = !isTypedQuiz && (printableCount > 0 || chinesePadFlag || hasScanBackMetadata);
 
   // If this is a clone, use the master's question structure as the source of
   // truth for questionNum, answer, marksAvailable, and pageIndex. Pull marking
