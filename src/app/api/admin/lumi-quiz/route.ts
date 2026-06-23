@@ -176,6 +176,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true,
       questionNum: true,
+      examPaperId: true,
       imageData: true,
       answer: true,
       answerImageData: true,
@@ -194,7 +195,87 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (masterPool.length < 3) {
+  // Multi-part siblings: a master like Q19 of a paper can live as TWO
+  // rows in the DB (Q19a stem-only with the diagram, Q19bc with the
+  // sub-parts and no stem of its own). Picking either row alone gives
+  // the kid half a question — empty stem OR missing diagram. Pull
+  // every sibling in the same (paperId, baseNum) group as a primary
+  // match so the merge step downstream can combine them. Mirrors
+  // daily-quiz/route.ts:803-818.
+  const baseNum = (n: string) => n.replace(/[a-zA-Z]+$/, "");
+  const siblingKeys = new Set(masterPool.map(q => `${q.examPaperId}:${baseNum(q.questionNum)}`));
+  const distinctPaperIds = [...new Set(masterPool.map(q => q.examPaperId))];
+  const siblingsRaw = distinctPaperIds.length > 0
+    ? await prisma.examQuestion.findMany({
+        where: { examPaperId: { in: distinctPaperIds }, answer: { not: null } as { not: null } },
+        select: {
+          id: true,
+          questionNum: true,
+          examPaperId: true,
+          imageData: true,
+          answer: true,
+          answerImageData: true,
+          transcribedStem: true,
+          transcribedOptions: true,
+          transcribedOptionImages: true,
+          transcribedSubparts: true,
+          diagramBounds: true,
+          diagramImageData: true,
+          marksAvailable: true,
+          syllabusTopic: true,
+          subTopic: true,
+          skillTags: true,
+          difficulty: true,
+          examPaper: { select: { level: true, title: true, year: true } },
+        },
+      })
+    : [];
+  // Union: keep every primary match plus its siblings (deduped by id).
+  // Some siblings only show up in siblingsRaw because they didn't pass
+  // the primary filter on their own — e.g. blank-stem Q19bc when its
+  // partner Q19a was the topic / skill match.
+  const byId = new Map<string, typeof masterPool[number]>();
+  for (const q of masterPool) byId.set(q.id, q);
+  for (const q of siblingsRaw) {
+    if (byId.has(q.id)) continue;
+    if (!siblingKeys.has(`${q.examPaperId}:${baseNum(q.questionNum)}`)) continue;
+    byId.set(q.id, q);
+  }
+  const expandedPool = [...byId.values()];
+
+  // Group by (paperId, baseNum). Each group is one logical question.
+  type Master = typeof masterPool[number];
+  const groupMap = new Map<string, Master[]>();
+  for (const q of expandedPool) {
+    const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(q);
+  }
+  for (const g of groupMap.values()) {
+    g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+  }
+  // Drop any group where ANY sibling is in seenIds — re-serving even
+  // one part of a question the kid already attempted defeats the dedup
+  // intent. (Primary pool's `id: notIn seenIds` only caught the lead.)
+  for (const [key, g] of groupMap) {
+    if (g.some(m => seenIds.has(m.id))) groupMap.delete(key);
+  }
+  // Each group's "representative" — the picker selects on group reps;
+  // the merge step combines all members at write time. We derive
+  // selection-relevant fields from the union (skillTags) or the first
+  // sibling that has them (subTopic, syllabusTopic, difficulty).
+  type Group = { key: string; rep: Master; members: Master[]; skillTags: string[]; subTopic: string | null; syllabusTopic: string | null; difficulty: number | null };
+  const groups: Group[] = [];
+  for (const [key, members] of groupMap) {
+    const rep = members[0];
+    const skillTags = [...new Set(members.flatMap(m => m.skillTags ?? []))];
+    const subTopic = members.find(m => m.subTopic)?.subTopic ?? null;
+    const syllabusTopic = members.find(m => m.syllabusTopic)?.syllabusTopic ?? null;
+    const difficulty = members.find(m => m.difficulty != null)?.difficulty ?? null;
+    groups.push({ key, rep, members, skillTags, subTopic, syllabusTopic, difficulty });
+  }
+
+  if (groups.length < 3) {
     return NextResponse.json({
       error: "not enough unseen questions",
       detail: activeTopic
@@ -204,14 +285,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Difficulty-shuffle helper: shuffle within each difficulty bucket,
-  // then return Qs in ascending-difficulty order. Used by every picker
-  // path so repeat quizzes don't serve identical sets.
-  const orderByDifficulty = (pool: typeof masterPool): typeof masterPool => {
-    const buckets = new Map<number, typeof masterPool>();
-    for (const q of pool) {
-      const d = q.difficulty ?? 3;
+  // then return groups in ascending-difficulty order. Used by every
+  // picker path so repeat quizzes don't serve identical sets.
+  const orderByDifficulty = (pool: Group[]): Group[] => {
+    const buckets = new Map<number, Group[]>();
+    for (const g of pool) {
+      const d = g.difficulty ?? 3;
       if (!buckets.has(d)) buckets.set(d, []);
-      buckets.get(d)!.push(q);
+      buckets.get(d)!.push(g);
     }
     for (const list of buckets.values()) {
       for (let i = list.length - 1; i > 0; i--) {
@@ -219,52 +300,165 @@ export async function POST(request: NextRequest) {
         [list[i], list[j]] = [list[j], list[i]];
       }
     }
-    const out: typeof masterPool = [];
+    const out: Group[] = [];
     for (const d of [...buckets.keys()].sort((a, b) => a - b)) {
       out.push(...buckets.get(d)!);
     }
     return out;
   };
 
-  // Step 3: pick `count` Qs from the pool.
+  // Step 3: pick `count` groups from the pool.
   //   · Combo path with sub-topic weights: for each sub-topic in the
-  //     weights map, take that many Qs, preferring skill-tagged ones.
+  //     weights map, take that many groups, preferring skill-tagged ones.
   //     Fill any shortfall by relaxing the skill preference, then
   //     by pulling from other sub-topics in the same topic.
   //   · Combo path without weights: take `count`, preferring skill-
-  //     tagged Qs.
+  //     tagged groups.
   //   · Skill-only path: just difficulty-shuffle and slice.
-  const picked: typeof masterPool = [];
-  const pickedIds = new Set<string>();
-  const takeSkillFirst = (pool: typeof masterPool, n: number) => {
+  const pickedGroups: Group[] = [];
+  const pickedKeys = new Set<string>();
+  const takeSkillFirst = (pool: Group[], n: number) => {
     const ordered = orderByDifficulty(pool);
-    const withSkill = ordered.filter(q => q.skillTags.includes(activeSkillTag));
-    const without = ordered.filter(q => !q.skillTags.includes(activeSkillTag));
-    const taken: typeof masterPool = [];
-    for (const q of [...withSkill, ...without]) {
+    const withSkill = ordered.filter(g => g.skillTags.includes(activeSkillTag));
+    const without = ordered.filter(g => !g.skillTags.includes(activeSkillTag));
+    const taken: Group[] = [];
+    for (const g of [...withSkill, ...without]) {
       if (taken.length >= n) break;
-      if (pickedIds.has(q.id)) continue;
-      taken.push(q);
-      pickedIds.add(q.id);
+      if (pickedKeys.has(g.key)) continue;
+      taken.push(g);
+      pickedKeys.add(g.key);
     }
     return taken;
   };
 
   if (activeSubTopicWeights) {
     for (const [subTopic, weight] of Object.entries(activeSubTopicWeights)) {
-      const subPool = masterPool.filter(q => q.subTopic === subTopic);
-      picked.push(...takeSkillFirst(subPool, weight));
+      const subPool = groups.filter(g => g.subTopic === subTopic);
+      pickedGroups.push(...takeSkillFirst(subPool, weight));
     }
-    // Top up the rest from any remaining topic Qs, skill-first.
-    if (picked.length < count) {
-      const remaining = masterPool.filter(q => !pickedIds.has(q.id));
-      picked.push(...takeSkillFirst(remaining, count - picked.length));
+    // Top up the rest from any remaining topic groups, skill-first.
+    if (pickedGroups.length < count) {
+      const remaining = groups.filter(g => !pickedKeys.has(g.key));
+      pickedGroups.push(...takeSkillFirst(remaining, count - pickedGroups.length));
     }
   } else {
-    picked.push(...takeSkillFirst(masterPool, count));
+    pickedGroups.push(...takeSkillFirst(groups, count));
   }
   // Trim if over.
-  picked.length = Math.min(picked.length, count);
+  pickedGroups.length = Math.min(pickedGroups.length, count);
+
+  // ── Multi-part merge ──────────────────────────────────────────────
+  // Each picked group becomes ONE clone via the same merge function the
+  // daily-quiz endpoint uses. Without this, a group like Rosyth Q19a
+  // (stem + diagram) + Q19bc (sub-parts b/c, no stem of its own) would
+  // serve only one row and lose the other half of the question.
+  // Copied near-verbatim from src/app/api/daily-quiz/route.ts:1676-1810
+  // so both endpoints emit identically-shaped clones.
+  function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
+    const result = new Map<string, string>();
+    if (!answer || !answer.trim()) return result;
+    const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
+    const matches = [...answer.matchAll(re)];
+    if (matches.length === 0) return result;
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      const label = m[2].toLowerCase();
+      const start = m.index! + m[0].length;
+      const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+      const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
+      if (content) result.set(label, content);
+    }
+    return result;
+  }
+
+  type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+  function mergeOeqGroup(group: Master[]) {
+    const first = group[0];
+    const leadStem = (first.transcribedStem ?? "").trim();
+    const allSubparts: Subpart[] = [];
+    for (const q of group) {
+      const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const realSubs = subs.filter(s => !s.label.startsWith("_"));
+      const qStem = (q.transcribedStem ?? "").trim();
+      const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
+      const processed = realSubs.map((sp, idx) => {
+        let next = sp;
+        if (idx === 0 && extraStem) {
+          next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
+        }
+        if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+          const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
+          next = { ...next, refImageBase64: diagramData };
+        }
+        return next;
+      });
+      allSubparts.push(...processed);
+    }
+    const sentinels: Subpart[] = [];
+    for (const q of group) {
+      const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      sentinels.push(...subs.filter(s => s.label.startsWith("_")));
+    }
+    const firstStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+    const combinedStem = firstStem;
+    const diagramImageData = first.diagramImageData
+      || group.find(q => q.diagramImageData)?.diagramImageData
+      || null;
+    const answerParts: string[] = [];
+    for (const q of group) {
+      const ans = (q.answer ?? "").trim();
+      if (!ans) continue;
+      const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const realSubs = subs.filter(s => !s.label.startsWith("_"));
+      if (realSubs.length === 1) {
+        const lbl = realSubs[0].label.toLowerCase();
+        if (!ans.toLowerCase().includes(`(${lbl})`)) {
+          answerParts.push(`(${lbl}) ${ans}`);
+          continue;
+        }
+      }
+      answerParts.push(ans);
+    }
+    const combinedAnswer = [...new Set(answerParts)].join("\n");
+    const seenLabels = new Set<string>();
+    const uniqueSubparts: Subpart[] = [];
+    for (const sp of allSubparts) {
+      const key = sp.label.toLowerCase();
+      if (seenLabels.has(key)) continue;
+      seenLabels.add(key);
+      uniqueSubparts.push(sp);
+    }
+    const partAnswers = new Map<string, string>();
+    for (const q of group) {
+      const parsed = parsePartAnswers(q.answer);
+      if (parsed.size > 0) {
+        for (const [label, text] of parsed) partAnswers.set(label, text);
+        continue;
+      }
+      const sibSubs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+      if (sibRealSubs.length === 1 && q.answer?.trim()) {
+        partAnswers.set(sibRealSubs[0].label.toLowerCase(), q.answer.trim());
+      }
+    }
+    const enrichedSubparts = uniqueSubparts.map(sp => {
+      const ans = partAnswers.get(sp.label.toLowerCase());
+      return ans !== undefined ? { ...sp, answer: ans } : sp;
+    });
+    return {
+      ...first,
+      answer: combinedAnswer || first.answer,
+      transcribedStem: combinedStem,
+      transcribedSubparts: (enrichedSubparts.length > 0 || sentinels.length > 0)
+        ? [...enrichedSubparts, ...sentinels]
+        : null,
+      marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
+      diagramImageData,
+    };
+  }
+
+  // Merge each picked group into a single clone-shaped record.
+  const picked = pickedGroups.map(g => mergeOeqGroup(g.members));
 
   // ── Build the question creates ───────────────────────────────────
   type QuestionCreate = Prisma.ExamQuestionCreateWithoutExamPaperInput;
