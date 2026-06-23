@@ -1,7 +1,8 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LUMI_QUIZ_COMBOS } from "@/lib/lumi-combos";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
 import MathText from "@/components/MathText";
@@ -861,28 +862,87 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
             We can walk through together, plus take a guided quiz.
           </li>
         )}
-        {/* Personalised-quiz CTA — admin-only, science-only, David-only for v1.
-            Sits at the end of the summary so the parent sees the suggestion
-            after reading the diagnoses. Links into /admin/lumi-quiz which
-            handles the skill picker + question selection. */}
+        {/* Personalised-quiz CTAs — admin-only, science-only, kids
+            in the test gate for v1. Each combo is a content+skill
+            pairing ("kill two birds") drawn from LUMI_QUIZ_COMBOS
+            (src/lib/lumi-combos.ts). Two combos per kid are shown so
+            the parent can pick the angle. */}
         {LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId) && subject === "Science" && (m1 || concept) && (
           <li className="!list-none -ml-5 mt-2">
-            <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4">
-              <p className="text-[#001e40] font-medium">
-                Lumi can also set up a <strong>personalised quiz</strong> to help {childFirst} close these gaps —
-                fresh questions across topics, drilling the same skill the patterns above point to.
-              </p>
-              <a
-                href={`/admin/lumi-quiz?userId=${parentId}&studentId=${studentId}`}
-                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors"
-              >
-                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                Set up Lumi quiz for {childFirst}
-              </a>
-            </div>
+            <LumiQuizCombosCard
+              studentId={studentId}
+              childFirst={childFirst}
+              parentId={parentId}
+            />
           </li>
         )}
       </ul>
+    </div>
+  );
+}
+
+// Renders the two Lumi-recommended combo quizzes for kids in the
+// test gate. Each combo card has its label, rationale, and a
+// Generate button that POSTs to /api/admin/lumi-quiz with the right
+// comboIdx and navigates the parent to the quiz player.
+function LumiQuizCombosCard({ studentId, childFirst, parentId }: { studentId: string; childFirst: string; parentId: string }) {
+  const router = useRouter();
+  const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const combos = LUMI_QUIZ_COMBOS[studentId] ?? [];
+
+  async function handleGenerate(idx: number) {
+    setSubmittingIdx(idx);
+    setErr(null);
+    try {
+      const r = await fetch("/api/admin/lumi-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, subject: "science", comboIdx: idx, count: 10 }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data?.redirectUrl) {
+        throw new Error(data?.error ?? data?.detail ?? `failed (${r.status})`);
+      }
+      router.push(`${data.redirectUrl}&_via=lumi-summary&parentId=${parentId}`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Generate failed");
+      setSubmittingIdx(null);
+    }
+  }
+
+  if (combos.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
+      <p className="text-[#001e40] font-medium">
+        Lumi recommends two <strong>personalised quizzes</strong> for {childFirst} — each pairs a topic
+        where {childFirst} struggles with the answer pattern that&apos;s costing the most marks.
+      </p>
+      <div className="space-y-2">
+        {combos.map((c, i) => (
+          <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
+              <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">{c.rationale}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleGenerate(i)}
+              disabled={submittingIdx !== null}
+              className="shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
+            >
+              {submittingIdx === i ? (
+                <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              )}
+              {submittingIdx === i ? "Generating…" : "Generate"}
+            </button>
+          </div>
+        ))}
+      </div>
+      {err && <p className="text-xs text-red-600">{err}</p>}
     </div>
   );
 }

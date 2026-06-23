@@ -1732,34 +1732,66 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Lumi-quiz recap card — only renders for Lumi skill quizzes
+        {/* Lumi-quiz recap card — only renders for Lumi quizzes
             (paper.metadata.lumiPreamble stamped by /api/admin/lumi-quiz).
-            Sits above the first question so the kid sees the recap
-            before starting. Two halves: what's being tested, and
-            specific pitfalls to watch for. */}
+            Sits above the first question so the kid reads the recap
+            before starting.
+            Combo quizzes have TWO blocks stacked: topic content recap
+            + skill recap. Skill-only quizzes show just the skill block.
+            Backward-compat: older lumi quizzes stamped a flat
+            { heading / tested / watchOut } shape — also render those
+            as a single skill block. */}
         {(() => {
-          const preamble = (paper.metadata as { lumiPreamble?: { heading: string; tested: string; watchOut: string[] } } | null | undefined)?.lumiPreamble;
-          if (!preamble) return null;
+          // Accept both the new shape ({ topic?, skill }) and the
+          // legacy flat shape ({ heading, tested, watchOut }).
+          type PreambleBlock = { heading: string; tested?: string; watchOut: string[] };
+          const raw = (paper.metadata as { lumiPreamble?: unknown } | null | undefined)?.lumiPreamble;
+          if (!raw || typeof raw !== "object") return null;
+          const rawObj = raw as { topic?: PreambleBlock; skill?: PreambleBlock; heading?: string; tested?: string; watchOut?: string[] };
+          const topicBlock: PreambleBlock | null = rawObj.topic && rawObj.topic.heading
+            ? { heading: rawObj.topic.heading, watchOut: rawObj.topic.watchOut ?? [] }
+            : null;
+          const skillBlock: PreambleBlock | null = rawObj.skill && rawObj.skill.heading
+            ? { heading: rawObj.skill.heading, tested: rawObj.skill.tested, watchOut: rawObj.skill.watchOut ?? [] }
+            : rawObj.heading
+              ? { heading: rawObj.heading, tested: rawObj.tested, watchOut: rawObj.watchOut ?? [] }
+              : null;
+          if (!topicBlock && !skillBlock) return null;
           return (
             <div className="mb-5 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-5">
               <div className="flex items-start gap-3 mb-3">
                 <span className="material-symbols-outlined text-purple-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-purple-500">Lumi recap</p>
-                  <h2 className="text-base font-bold text-[#001e40] mt-0.5">{preamble.heading}</h2>
+                  <h2 className="text-base font-bold text-[#001e40] mt-0.5">Before you start…</h2>
                 </div>
               </div>
-              <p className="text-sm text-[#001e40] mb-3 leading-relaxed">
-                <span className="font-bold">What we're practising: </span>{preamble.tested}
-              </p>
-              <div className="text-sm text-[#001e40]">
-                <p className="font-bold mb-1">Watch out for:</p>
-                <ul className="space-y-1 list-disc list-outside pl-5">
-                  {preamble.watchOut.map((tip, i) => (
-                    <li key={i} className="leading-relaxed">{tip}</li>
-                  ))}
-                </ul>
-              </div>
+              {topicBlock && (
+                <div className="text-sm text-[#001e40] mb-4">
+                  <p className="font-bold mb-1">{topicBlock.heading}</p>
+                  <ul className="space-y-1 list-disc list-outside pl-5">
+                    {topicBlock.watchOut.map((tip, i) => (
+                      <li key={i} className="leading-relaxed">{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {skillBlock && (
+                <div className="text-sm text-[#001e40]">
+                  <p className="font-bold mb-1">{skillBlock.heading}</p>
+                  {skillBlock.tested && (
+                    <p className="mb-2 leading-relaxed">
+                      <span className="font-bold">What we&apos;re practising: </span>{skillBlock.tested}
+                    </p>
+                  )}
+                  <p className="font-bold mb-1">Watch out for:</p>
+                  <ul className="space-y-1 list-disc list-outside pl-5">
+                    {skillBlock.watchOut.map((tip, i) => (
+                      <li key={i} className="leading-relaxed">{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           );
         })()}

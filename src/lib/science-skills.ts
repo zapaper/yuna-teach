@@ -92,13 +92,27 @@ export function skillTagsPromptBlock(): string {
 //   · concrete pitfalls with the actual phrase the kid would write
 //   · two halves — "what's being tested" frames the skill;
 //                  "what to look out for" calls out the failure mode
+// Quiz-player-side preamble. Two parts: optional CONTENT recap
+// (filled in for combo quizzes that target a topic) and a required
+// SKILL recap (always present). The quiz player renders the topic
+// block first if present, then the skill block.
 export type LumiPreamble = {
-  heading: string;        // The skill name, in plain English
-  tested: string;         // "Today we're practising X" — one sentence
-  watchOut: string[];     // 2–4 bullet pitfalls to keep in mind
+  topic?: {
+    heading: string;
+    watchOut: string[];
+  };
+  skill: {
+    heading: string;        // The skill name, in plain English
+    tested: string;         // "Today we're practising X" — one sentence
+    watchOut: string[];     // 2–4 bullet pitfalls to keep in mind
+  };
 };
 
-export const SCIENCE_SKILL_PREAMBLE: Record<ScienceSkillTag, LumiPreamble> = {
+// Internal per-skill preamble shape — kept as the source for the
+// `skill` block. `SCIENCE_SKILL_PREAMBLE` below is keyed by skill tag.
+type SkillPreambleBlock = LumiPreamble["skill"];
+
+export const SCIENCE_SKILL_PREAMBLE: Record<ScienceSkillTag, SkillPreambleBlock> = {
   "graph-trend-describe": {
     heading: "Describing a trend from a graph",
     tested:

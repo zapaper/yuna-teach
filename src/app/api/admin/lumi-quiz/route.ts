@@ -41,7 +41,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag } from "@/lib/science-skills";
+import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag, type LumiPreamble } from "@/lib/science-skills";
+import { LUMI_QUIZ_COMBOS, type LumiQuizCombo } from "@/lib/lumi-combos";
 
 const SUBJECT_FULL: Record<"science", string> = {
   science: "Science",
@@ -51,24 +52,41 @@ export async function POST(request: NextRequest) {
   const callerId = await getSessionUserId();
   if (!callerId) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
 
-  let body: { studentId?: string; subject?: string; skillTag?: string; count?: number };
+  // Two entry shapes, both supported:
+  //   · combo path  — { studentId, subject, comboIdx, count? }
+  //     Pulls a hardcoded LumiQuizCombo (topic + sub-topic weights +
+  //     skill + topic recap) and runs the weighted picker. Used by the
+  //     2-button CTA in LumiSummary (the customer-facing surface).
+  //   · skill path — { studentId, subject, skillTag, count? }
+  //     The original direct-skill picker. Kept so the /admin sandbox
+  //     can still drill a single skill without going through a combo.
+  let body: { studentId?: string; subject?: string; skillTag?: string; comboIdx?: number; count?: number };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "bad JSON" }, { status: 400 });
   }
-  const { studentId, subject, skillTag } = body;
+  const { studentId, subject, skillTag, comboIdx } = body;
   const requestedCount = body.count ?? 10;
 
   // Validation
-  if (!studentId || !subject || !skillTag) {
-    return NextResponse.json({ error: "studentId, subject, skillTag required" }, { status: 400 });
+  if (!studentId || !subject) {
+    return NextResponse.json({ error: "studentId and subject required" }, { status: 400 });
   }
   if (subject !== "science") {
     return NextResponse.json({ error: "only 'science' supported in v1" }, { status: 400 });
   }
-  if (!(SCIENCE_SKILL_TAGS as readonly string[]).includes(skillTag)) {
-    return NextResponse.json({ error: `invalid skillTag (must be one of: ${SCIENCE_SKILL_TAGS.join(", ")})` }, { status: 400 });
+  if (typeof comboIdx === "number") {
+    const combos = LUMI_QUIZ_COMBOS[studentId];
+    if (!combos || comboIdx < 0 || comboIdx >= combos.length) {
+      return NextResponse.json({ error: `no combo at index ${comboIdx} for this student` }, { status: 400 });
+    }
+  } else if (skillTag) {
+    if (!(SCIENCE_SKILL_TAGS as readonly string[]).includes(skillTag)) {
+      return NextResponse.json({ error: `invalid skillTag (must be one of: ${SCIENCE_SKILL_TAGS.join(", ")})` }, { status: 400 });
+    }
+  } else {
+    return NextResponse.json({ error: "either comboIdx or skillTag required" }, { status: 400 });
   }
   const count = Math.max(3, Math.min(30, Number.isInteger(requestedCount) ? requestedCount : 10));
 
@@ -90,6 +108,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "student not found" }, { status: 404 });
   }
 
+  // Resolve the active target — either the combo's (topic, sub-topic
+  // weights, skill) tuple or just a free-standing skill tag.
+  const activeCombo: LumiQuizCombo | null =
+    typeof comboIdx === "number" ? LUMI_QUIZ_COMBOS[studentId][comboIdx] : null;
+  const activeSkillTag = (activeCombo?.skillTag ?? skillTag) as ScienceSkillTag;
+  const activeTopic = activeCombo?.topic ?? null;
+  const activeSubTopicWeights = activeCombo?.subTopicWeights ?? null;
+
   // ── Question picker ─────────────────────────────────────────────
   // Step 1: every master ID the kid has already attempted (deduped
   // via sourceQuestionId on the kid's clones). Lumi shouldn't serve
@@ -104,22 +130,22 @@ export async function POST(request: NextRequest) {
   });
   const seenIds = new Set(attemptedMasterIds.map(r => r.sourceQuestionId).filter((x): x is string => !!x));
 
-  // Step 2: master pool for this skill, EXCLUDING what the kid has seen.
+  // Step 2: master pool. For the combo path, scope by TOPIC and let
+  // the picker prefer skill-tagged Qs from within that pool. For the
+  // skill-only path, scope by SKILL — the existing behaviour.
+  // Belt + suspenders marksAvailable ≥ 2 + master-paper filter applies
+  // to both paths.
   const masterPool = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
         sourceExamId: null, paperType: null, extractionStatus: "ready",
         subject: { contains: "science", mode: "insensitive" },
       },
-      // skillTags is a String[] column; `has` matches when the array
-      // contains the value (Postgres array @> operator).
-      skillTags: { has: skillTag as ScienceSkillTag },
-      // Belt + suspenders: skill tags only get persisted on >=2 mark
-      // OEQs (see scripts/classify-science-skills.ts eligibility),
-      // but re-assert here so a stray manual tag on a 1-mark MCQ
-      // can't sneak into a Lumi quiz.
       marksAvailable: { gte: 2 },
       id: { notIn: [...seenIds] },
+      ...(activeTopic
+        ? { syllabusTopic: activeTopic }
+        : { skillTags: { has: activeSkillTag } }),
     },
     select: {
       id: true,
@@ -136,6 +162,7 @@ export async function POST(request: NextRequest) {
       marksAvailable: true,
       syllabusTopic: true,
       subTopic: true,
+      skillTags: true,
       difficulty: true,
       examPaper: { select: { level: true, title: true, year: true } },
     },
@@ -143,39 +170,75 @@ export async function POST(request: NextRequest) {
 
   if (masterPool.length < 3) {
     return NextResponse.json({
-      error: "not enough unseen questions for this skill",
-      detail: `Only ${masterPool.length} unseen masters available with skillTag="${skillTag}". Kid has likely already attempted most of them.`,
+      error: "not enough unseen questions",
+      detail: activeTopic
+        ? `Only ${masterPool.length} unseen masters in topic "${activeTopic}". Kid has likely already attempted most of them.`
+        : `Only ${masterPool.length} unseen masters with skillTag="${activeSkillTag}".`,
     }, { status: 404 });
   }
 
-  // Step 3: order by difficulty ASC with shuffle within bucket so
-  // repeat Lumi quizzes on the same skill don't serve identical sets.
-  // Difficulty null treated as 3 (middle) so untyped questions don't
-  // all land at one extreme.
-  const buckets = new Map<number, typeof masterPool>();
-  for (const q of masterPool) {
-    const d = q.difficulty ?? 3;
-    if (!buckets.has(d)) buckets.set(d, []);
-    buckets.get(d)!.push(q);
-  }
-  for (const list of buckets.values()) {
-    for (let i = list.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [list[i], list[j]] = [list[j], list[i]];
+  // Difficulty-shuffle helper: shuffle within each difficulty bucket,
+  // then return Qs in ascending-difficulty order. Used by every picker
+  // path so repeat quizzes don't serve identical sets.
+  const orderByDifficulty = (pool: typeof masterPool): typeof masterPool => {
+    const buckets = new Map<number, typeof masterPool>();
+    for (const q of pool) {
+      const d = q.difficulty ?? 3;
+      if (!buckets.has(d)) buckets.set(d, []);
+      buckets.get(d)!.push(q);
     }
-  }
-  // Take in ascending-difficulty order until we hit `count`. Smaller
-  // buckets (e.g. difficulty=5) contribute fewer Qs by their nature,
-  // which lines up with the "scaffold easy → hard" shape we want.
-  const ordered: typeof masterPool = [];
-  for (const d of [...buckets.keys()].sort((a, b) => a - b)) {
-    for (const q of buckets.get(d)!) {
-      ordered.push(q);
-      if (ordered.length >= count) break;
+    for (const list of buckets.values()) {
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
     }
-    if (ordered.length >= count) break;
+    const out: typeof masterPool = [];
+    for (const d of [...buckets.keys()].sort((a, b) => a - b)) {
+      out.push(...buckets.get(d)!);
+    }
+    return out;
+  };
+
+  // Step 3: pick `count` Qs from the pool.
+  //   · Combo path with sub-topic weights: for each sub-topic in the
+  //     weights map, take that many Qs, preferring skill-tagged ones.
+  //     Fill any shortfall by relaxing the skill preference, then
+  //     by pulling from other sub-topics in the same topic.
+  //   · Combo path without weights: take `count`, preferring skill-
+  //     tagged Qs.
+  //   · Skill-only path: just difficulty-shuffle and slice.
+  const picked: typeof masterPool = [];
+  const pickedIds = new Set<string>();
+  const takeSkillFirst = (pool: typeof masterPool, n: number) => {
+    const ordered = orderByDifficulty(pool);
+    const withSkill = ordered.filter(q => q.skillTags.includes(activeSkillTag));
+    const without = ordered.filter(q => !q.skillTags.includes(activeSkillTag));
+    const taken: typeof masterPool = [];
+    for (const q of [...withSkill, ...without]) {
+      if (taken.length >= n) break;
+      if (pickedIds.has(q.id)) continue;
+      taken.push(q);
+      pickedIds.add(q.id);
+    }
+    return taken;
+  };
+
+  if (activeSubTopicWeights) {
+    for (const [subTopic, weight] of Object.entries(activeSubTopicWeights)) {
+      const subPool = masterPool.filter(q => q.subTopic === subTopic);
+      picked.push(...takeSkillFirst(subPool, weight));
+    }
+    // Top up the rest from any remaining topic Qs, skill-first.
+    if (picked.length < count) {
+      const remaining = masterPool.filter(q => !pickedIds.has(q.id));
+      picked.push(...takeSkillFirst(remaining, count - picked.length));
+    }
+  } else {
+    picked.push(...takeSkillFirst(masterPool, count));
   }
-  const picked = ordered.slice(0, count);
+  // Trim if over.
+  picked.length = Math.min(picked.length, count);
 
   // ── Build the question creates ───────────────────────────────────
   type QuestionCreate = Prisma.ExamQuestionCreateWithoutExamPaperInput;
@@ -205,9 +268,19 @@ export async function POST(request: NextRequest) {
   const dateLabel = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Singapore" });
   const levelLabel = student.level ? `P${student.level} ` : "";
   // Title is parent-facing on the dashboard — say what the quiz is
-  // about, not "Lumi-skill-XYZ Quiz".
-  const skillTitle = SKILL_TITLE[skillTag as ScienceSkillTag];
-  const title = `${levelLabel}Science: ${skillTitle} ${dateLabel}`;
+  // about. Combo path uses the combo's label ("Electrical + Evidence
+  // + reason"); skill-only path uses the skill's title.
+  const titleSegment = activeCombo
+    ? activeCombo.label
+    : SKILL_TITLE[activeSkillTag];
+  const title = `${levelLabel}Science: ${titleSegment} ${dateLabel}`;
+
+  // Build the two-part preamble. Combo path stamps both topic + skill
+  // halves. Skill-only path stamps the skill block alone.
+  const skillBlock = SCIENCE_SKILL_PREAMBLE[activeSkillTag];
+  const lumiPreamble: LumiPreamble = activeCombo
+    ? { topic: activeCombo.topicRecap, skill: skillBlock }
+    : { skill: skillBlock };
 
   const paper = await prisma.examPaper.create({
     data: {
@@ -228,12 +301,14 @@ export async function POST(request: NextRequest) {
       isRevision: true,
       metadata: {
         revisionMode: "lumi-skill",
-        lumiSkillTag: skillTag,
+        lumiSkillTag: activeSkillTag,
         lumiSubject: subject,
+        ...(activeTopic ? { lumiTopic: activeTopic } : {}),
+        ...(activeCombo ? { lumiComboLabel: activeCombo.label } : {}),
         // Kid-facing recap rendered at the top of the quiz player.
-        // Two halves: what's being tested + what to watch out for.
+        // Topic recap (combo path only) + skill recap (always).
         // See src/lib/science-skills.ts.
-        lumiPreamble: SCIENCE_SKILL_PREAMBLE[skillTag as ScienceSkillTag],
+        lumiPreamble,
         compiledAt: new Date().toISOString(),
         compiledBy: callerId,
       },
@@ -246,7 +321,8 @@ export async function POST(request: NextRequest) {
     paperId: paper.id,
     title,
     questionCount: picked.length,
-    skillTag,
+    skillTag: activeSkillTag,
+    topic: activeTopic,
     redirectUrl: `/quiz/${paper.id}?userId=${callerId}`,
   });
 }
