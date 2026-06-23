@@ -135,14 +135,40 @@ export async function POST(request: NextRequest) {
   // skill-only path, scope by SKILL — the existing behaviour.
   // Belt + suspenders marksAvailable ≥ 2 + master-paper filter applies
   // to both paths.
+  // Level filter — Lumi quizzes are for the kid's CURRENT level.
+  // Without this we pull from any P3–P6 master pool, and a P6 kid ends
+  // up with babyish P4 MCQs ("which is not part of the respiratory
+  // system?") that don't drill the PSLE-grade skill we're targeting.
+  // Source papers store level as "P5" / "Primary 5" / "5" inconsistently
+  // — accept all variants. For P6 specifically, also include actual
+  // PSLE papers (level="PSLE") since those are the highest-value drill
+  // material for the exam Lumi is preparing the kid for.
+  const levelVariants = student.level
+    ? [
+        `P${student.level}`,
+        `Primary ${student.level}`,
+        String(student.level),
+        ...(student.level === 6 ? ["PSLE"] : []),
+      ]
+    : null;
   const masterPool = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
         sourceExamId: null, paperType: null, extractionStatus: "ready",
         subject: { contains: "science", mode: "insensitive" },
+        ...(levelVariants ? { level: { in: levelVariants } } : {}),
       },
       marksAvailable: { gte: 2 },
       id: { notIn: [...seenIds] },
+      // Defensive against blank-stem masters — those render as "Q8:"
+      // followed by a blank line and feel broken to the parent, even
+      // when self-contained subparts technically fill in the prompt.
+      // Catches both NULL stems and empty strings (the column is
+      // nullable, so we need the compound NOT).
+      AND: [
+        { transcribedStem: { not: null } },
+        { transcribedStem: { not: "" } },
+      ],
       ...(activeTopic
         ? { syllabusTopic: activeTopic }
         : { skillTags: { has: activeSkillTag } }),
