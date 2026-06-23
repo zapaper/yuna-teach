@@ -647,7 +647,12 @@ export default function StudentDashboard({
     if (!confirm("Delete this quiz/practice?")) return;
     try {
       await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
-      setExamPapers(prev => prev.filter(p => p.id !== paperId));
+      // Refetch the full papers list — the weekly scheduler, recent
+      // activities feed, and the count chips all derive from this state,
+      // and a local filter+set leaves any server-side rollup (e.g.
+      // attempted-this-week badges) stale until the next mount.
+      const r = await fetch(`/api/exam?userId=${userId}`);
+      if (r.ok) setExamPapers(((await r.json()).papers ?? []) as ExamPaperSummary[]);
     } catch { /* silent fail */ }
   }
 

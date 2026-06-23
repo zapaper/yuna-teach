@@ -1084,7 +1084,12 @@ export default function ParentDashboard({
         }
         return;
       }
-      setExamPapers(prev => prev.filter(p => p.id !== paperId));
+      // Refetch the full papers list rather than filtering locally — the
+      // server cascade also affects derived cards (recent activities feed,
+      // weekly scheduler counts) and a kid-side homepage view that this
+      // panel doesn't own. A full refetch keeps every dashboard section
+      // in step.
+      await refreshPapers();
     } catch (err) {
       alert(`Delete failed: ${err instanceof Error ? err.message : "network error"}`);
     }

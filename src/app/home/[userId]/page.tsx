@@ -218,7 +218,10 @@ export default function HomePage({
   async function handleDeleteExam(id: string) {
     try {
       await fetch(`/api/exam/${id}?userId=${userId}`, { method: "DELETE" });
-      setExamPapers((prev) => prev.filter((p) => p.id !== id));
+      // Refetch the full snapshot — local filter+set would leave the
+      // cached SWR entry, recent-activities feed, and any derived
+      // counts/badges stale until the next mount.
+      await fetchData.current?.();
     } catch (err) {
       console.error("Failed to delete exam:", err);
     }
