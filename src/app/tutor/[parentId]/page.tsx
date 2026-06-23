@@ -664,7 +664,7 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
           <p className="text-[#001e40] text-base leading-relaxed">
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
-          <LumiSummary data={data} />
+          <LumiSummary data={data} studentId={studentId} parentId={parentId} />
           {/* Share — inline directly under the summary so it's where
               the parent expects after reading the topline briefing. */}
           <div className="mt-5 flex justify-end">
@@ -776,7 +776,12 @@ function scrollToSection(id: string) {
 // jumps to the relevant section further down the page (mistakes /
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
-function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) {
+// Internal admin-only gate for the personalised-quiz CTA. Limited to
+// David Lim while we shake down the Lumi-quiz endpoint; remove this
+// hardcoding when we're ready to expose the CTA to all parents.
+const LUMI_QUIZ_TEST_STUDENT_ID = "cmm5wf91d000ryrxwaddlo6xh";
+
+function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
   const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
   const weak = topline.weakTopics[0];
   const m1 = commonMistakes[0];
@@ -850,6 +855,27 @@ function LumiSummary({ data }: { data: Extract<TutorData, { kind: "ready" }> }) 
             — he&apos;s lost {pctOfSubject(concept.marksLost, topline.totalAvailable)} on questions involving it.
             I have prepared a short explanation module {link("concepts-section", "here")}.
             We can walk through together, plus take a guided quiz.
+          </li>
+        )}
+        {/* Personalised-quiz CTA — admin-only, science-only, David-only for v1.
+            Sits at the end of the summary so the parent sees the suggestion
+            after reading the diagnoses. Links into /admin/lumi-quiz which
+            handles the skill picker + question selection. */}
+        {studentId === LUMI_QUIZ_TEST_STUDENT_ID && subject === "Science" && (m1 || concept) && (
+          <li className="!list-none -ml-5 mt-2">
+            <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4">
+              <p className="text-[#001e40] font-medium">
+                Lumi can also set up a <strong>personalised quiz</strong> to help {childFirst} close these gaps —
+                fresh questions across topics, drilling the same skill the patterns above point to.
+              </p>
+              <a
+                href={`/admin/lumi-quiz?userId=${parentId}`}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors"
+              >
+                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                Set up Lumi quiz for {childFirst}
+              </a>
+            </div>
           </li>
         )}
       </ul>
