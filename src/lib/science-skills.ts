@@ -82,3 +82,71 @@ export function skillTagsPromptBlock(): string {
     .map((tag) => `- "${tag}": ${SCIENCE_SKILL_DESCRIPTIONS[tag]}`)
     .join("\n");
 }
+
+// Kid-facing preamble for each skill. Rendered at the top of every
+// Lumi quiz so the student knows what's being tested AND what to
+// watch out for BEFORE they start.
+//
+// Phrasing rules (informed by feedback_master_class_audience.md):
+//   · plain English, no linguistic / pedagogical jargon
+//   · concrete pitfalls with the actual phrase the kid would write
+//   · two halves — "what's being tested" frames the skill;
+//                  "what to look out for" calls out the failure mode
+export type LumiPreamble = {
+  heading: string;        // The skill name, in plain English
+  tested: string;         // "Today we're practising X" — one sentence
+  watchOut: string[];     // 2–4 bullet pitfalls to keep in mind
+};
+
+export const SCIENCE_SKILL_PREAMBLE: Record<ScienceSkillTag, LumiPreamble> = {
+  "graph-trend-describe": {
+    heading: "Describing a trend from a graph",
+    tested:
+      "Reading a graph or table, then writing what the trend looks like in your own words.",
+    watchOut: [
+      "Don't just say \"it changed\" — name the direction (\"the rate increased, then decreased\").",
+      "If the graph has a turning point, give the value at that point (e.g. \"at 15 minutes\").",
+      "Use the scientific word for the variable (\"heart rate\", not \"the line\").",
+    ],
+  },
+  "evidence-then-conclusion": {
+    heading: "Evidence + reason",
+    tested:
+      "PSLE OEQs where the answer needs TWO parts: (1) what you see / what happened, AND (2) the scientific reason WHY.",
+    watchOut: [
+      "Half-answers lose half the marks. After you write what happened, add \"...because [scientific reason].\"",
+      "If the question starts with \"Why\" or \"Explain\", a one-liner is almost never enough.",
+      "Quote the evidence from the data/text — don't just paraphrase it.",
+    ],
+  },
+  "precise-vocabulary": {
+    heading: "Use the scientific word, not the everyday word",
+    tested:
+      "Picking the right scientific term instead of the casual one you'd use when talking.",
+    watchOut: [
+      "\"Got bigger\" → \"expanded\". \"Lights up\" → \"luminous\". \"Took in\" → \"absorbed\".",
+      "The answer key picks ONE specific term. Synonyms often don't count.",
+      "If you can think of a more technical word, use it.",
+    ],
+  },
+  "diagram-interpretation": {
+    heading: "Reading information from a diagram",
+    tested:
+      "Questions where the answer lives IN the diagram — labelled parts, arrows showing direction, connections.",
+    watchOut: [
+      "Don't guess from the stem text. Look at the diagram first, then answer.",
+      "Trace every arrow before you decide the flow direction.",
+      "Count parts carefully — \"three\" is not \"a few\".",
+    ],
+  },
+  "direction-of-relationship": {
+    heading: "How two things change together",
+    tested:
+      "Questions whose answer demands you write out HOW two variables relate (\"as X increases, Y decreases\").",
+    watchOut: [
+      "Don't say \"it changes\" — say WHICH WAY.",
+      "Write the full phrase: \"as the wire gets longer, the bulb gets dimmer\".",
+      "Half the marks come from getting the direction right. Read the data twice.",
+    ],
+  },
+};

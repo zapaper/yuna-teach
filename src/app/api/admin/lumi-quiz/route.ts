@@ -41,7 +41,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { SCIENCE_SKILL_TAGS, type ScienceSkillTag } from "@/lib/science-skills";
+import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag } from "@/lib/science-skills";
 
 const SUBJECT_FULL: Record<"science", string> = {
   science: "Science",
@@ -230,6 +230,10 @@ export async function POST(request: NextRequest) {
         revisionMode: "lumi-skill",
         lumiSkillTag: skillTag,
         lumiSubject: subject,
+        // Kid-facing recap rendered at the top of the quiz player.
+        // Two halves: what's being tested + what to watch out for.
+        // See src/lib/science-skills.ts.
+        lumiPreamble: SCIENCE_SKILL_PREAMBLE[skillTag as ScienceSkillTag],
         compiledAt: new Date().toISOString(),
         compiledBy: callerId,
       },

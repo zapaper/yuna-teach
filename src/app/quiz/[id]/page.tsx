@@ -1732,6 +1732,38 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
+        {/* Lumi-quiz recap card — only renders for Lumi skill quizzes
+            (paper.metadata.lumiPreamble stamped by /api/admin/lumi-quiz).
+            Sits above the first question so the kid sees the recap
+            before starting. Two halves: what's being tested, and
+            specific pitfalls to watch for. */}
+        {(() => {
+          const preamble = (paper.metadata as { lumiPreamble?: { heading: string; tested: string; watchOut: string[] } } | null | undefined)?.lumiPreamble;
+          if (!preamble) return null;
+          return (
+            <div className="mb-5 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-5">
+              <div className="flex items-start gap-3 mb-3">
+                <span className="material-symbols-outlined text-purple-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-purple-500">Lumi recap</p>
+                  <h2 className="text-base font-bold text-[#001e40] mt-0.5">{preamble.heading}</h2>
+                </div>
+              </div>
+              <p className="text-sm text-[#001e40] mb-3 leading-relaxed">
+                <span className="font-bold">What we're practising: </span>{preamble.tested}
+              </p>
+              <div className="text-sm text-[#001e40]">
+                <p className="font-bold mb-1">Watch out for:</p>
+                <ul className="space-y-1 list-disc list-outside pl-5">
+                  {preamble.watchOut.map((tip, i) => (
+                    <li key={i} className="leading-relaxed">{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Questions — English sections OR Chinese sections OR standard MCQ */}
         {(mcqQuestions.length > 0 || paper.metadata?.englishSections || chineseSectionsMeta) && (
           <>
