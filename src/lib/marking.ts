@@ -5451,9 +5451,65 @@ ${expectedAnswer}
             } catch { /* use raw */ }
           }
           if (isSynthesisQ && q.transcribedStem) {
-            const kwMatch = q.transcribedStem.match(/\*\*([^*]+)\*\*/);
-            if (kwMatch) {
-              const keyword = kwMatch[1].trim();
+            const kwMatches = [...q.transcribedStem.matchAll(/\*\*([^*]+)\*\*/g)];
+            if (kwMatches.length >= 2 && q.studentAnswer.includes("|||")) {
+              // Multi-keyword template (e.g. PSLE 2025 Q65:
+              // "**Except for** ___, **all the** ___."). The earlier
+              // single-keyword path silently dropped the 2nd keyword
+              // and the literal text BETWEEN keywords (the ", " here),
+              // reassembling "me Except for students have received the
+              // news." instead of "Except for me, all the students have
+              // received the news." and getting marked wrong.
+              //
+              // Parse the answer-template region into ordered segments
+              // (mirrors EnglishQuizSection.tsx renderer) so every
+              // keyword + literal-text segment is preserved verbatim
+              // and student fragments slot into each blank in order.
+              const lines = q.transcribedStem.split("\n");
+              let answerLineIdx = lines.findIndex(l =>
+                (/\*\*[^*]+\*\*/.test(l) && /_{3,}/.test(l)) || /^_{3,}/.test(l.trim())
+              );
+              if (answerLineIdx < 0) answerLineIdx = 0;
+              const templateText = lines.slice(answerLineIdx).join(" ");
+              const segRegex = /\*\*([^*]+)\*\*|_{3,}/g;
+              type Seg = { type: "kw" | "input" | "text"; content: string };
+              const segs: Seg[] = [];
+              let lastEnd = 0;
+              let seg: RegExpExecArray | null;
+              while ((seg = segRegex.exec(templateText)) !== null) {
+                if (seg.index > lastEnd) {
+                  const between = templateText.slice(lastEnd, seg.index).trim();
+                  if (between) segs.push({ type: "text", content: between });
+                }
+                if (seg[1]) segs.push({ type: "kw", content: seg[1].trim() });
+                else segs.push({ type: "input", content: "" });
+                lastEnd = seg.index + seg[0].length;
+              }
+              if (lastEnd < templateText.length) {
+                const tail = templateText.slice(lastEnd).trim();
+                if (tail) segs.push({ type: "text", content: tail });
+              }
+              const inputs = q.studentAnswer.split("|||").map(s => s.trim());
+              let inIdx = 0;
+              const pieces: string[] = [];
+              for (const s of segs) {
+                if (s.type === "input") {
+                  pieces.push(inputs[inIdx++] ?? "");
+                } else {
+                  pieces.push(s.content);
+                }
+              }
+              // Naive space-join leaves "me ," and "news. ." for templates
+              // that have literal-text segments like "," and "." between
+              // keywords. Strip the space before punctuation, then dedupe
+              // consecutive punctuation (covers the case where a kid wrote
+              // "news." in the input AND the template has a trailing ".").
+              let joined = pieces.join(" ");
+              joined = joined.replace(/\s+([.,;:!?])/g, "$1");
+              joined = joined.replace(/([.,;:!?])\1+/g, "$1");
+              fullStudentAnswer = joined.replace(/\s+/g, " ").trim();
+            } else if (kwMatches.length >= 1) {
+              const keyword = kwMatches[0][1].trim();
               const kwEsc = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
               // If answer has ||| (before/after keyword), combine
               if (q.studentAnswer.includes("|||")) {
