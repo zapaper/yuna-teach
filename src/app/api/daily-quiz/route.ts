@@ -1854,9 +1854,11 @@ export async function POST(request: NextRequest) {
   const allSelected = [...selectedMcq, ...selectedOeq];
 
   // Hydrate selected questions with blob data.
-  // IMPORTANT: hydrateBlobs only fetches the FIRST question's blobs by id, but for merged OEQ
-  // groups mergeOeqGroup may have already chosen diagramImageData from a non-first member as
-  // a fallback. Don't let the hydrate clobber that — keep the merged value when it's set.
+  // IMPORTANT: hydrateBlobs fetches by q.id which, for merged OEQ groups,
+  // is the FIRST member's id only. Both diagramImageData and
+  // transcribedSubparts on the merged record are already the union across
+  // group members (see mergeOeqGroup) — don't let the hydrate clobber
+  // them with the first member's narrower values.
   T.mark(`pre-hydrate (mcq=${selectedMcq.length} oeq=${selectedOeq.length})`);
   const blobMap2 = await hydrateBlobs(allSelected.map(q => q.id));
   T.mark(`hydrateBlobs (ids=${allSelected.length})`);
@@ -1864,6 +1866,7 @@ export async function POST(request: NextRequest) {
     const hydrated = blobMap2.get(q.id);
     const merged = { ...q, ...hydrated } as FullQ;
     if (q.diagramImageData && !merged.diagramImageData) merged.diagramImageData = q.diagramImageData;
+    if (q.transcribedSubparts) merged.transcribedSubparts = q.transcribedSubparts;
     return merged;
   }) as FullQ[];
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { LUMI_QUIZ_COMBOS } from "@/lib/lumi-combos";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
@@ -783,7 +783,7 @@ function scrollToSection(id: string) {
 // the CTA to all parents.
 const LUMI_QUIZ_TEST_STUDENT_IDS = new Set([
   "cmm5wf91d000ryrxwaddlo6xh",  // David Lim
-  "cmmfmehcz0000bbbfnwwiko75",  // Mark Lim (admin@yunateach.com)
+  "cmmbbyvs30004qa9yinn3drl6",  // Mark Lim (kid; admin@yunateach.com's student)
 ]);
 
 function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
@@ -885,9 +885,12 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
 // test gate. Each combo card has its label, rationale, and a
 // Generate button that POSTs to /api/admin/lumi-quiz with the right
 // comboIdx and navigates the parent to the quiz player.
-function LumiQuizCombosCard({ studentId, childFirst, parentId }: { studentId: string; childFirst: string; parentId: string }) {
-  const router = useRouter();
+function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId }: { studentId: string; childFirst: string; parentId: string }) {
   const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
+  // Per-combo "generated" state — keyed by comboIdx. Stays set after
+  // generate so the parent doesn't see the button revert and click
+  // twice (each click would generate ANOTHER quiz for the kid).
+  const [generatedIdxs, setGeneratedIdxs] = useState<Record<number, { paperId: string }>>({});
   const [err, setErr] = useState<string | null>(null);
   const combos = LUMI_QUIZ_COMBOS[studentId] ?? [];
 
@@ -901,10 +904,11 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId }: { studentId: st
         body: JSON.stringify({ studentId, subject: "science", comboIdx: idx, count: 10 }),
       });
       const data = await r.json().catch(() => ({}));
-      if (!r.ok || !data?.redirectUrl) {
+      if (!r.ok || !data?.paperId) {
         throw new Error(data?.error ?? data?.detail ?? `failed (${r.status})`);
       }
-      router.push(`${data.redirectUrl}&_via=lumi-summary&parentId=${parentId}`);
+      setGeneratedIdxs(prev => ({ ...prev, [idx]: { paperId: data.paperId } }));
+      setSubmittingIdx(null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Generate failed");
       setSubmittingIdx(null);
@@ -920,27 +924,42 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId }: { studentId: st
         where {childFirst} struggles with the answer pattern that&apos;s costing the most marks.
       </p>
       <div className="space-y-2">
-        {combos.map((c, i) => (
-          <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
-              <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">{c.rationale}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleGenerate(i)}
-              disabled={submittingIdx !== null}
-              className="shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
-            >
-              {submittingIdx === i ? (
-                <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        {combos.map((c, i) => {
+          const done = generatedIdxs[i];
+          return (
+            <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
+                <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">{c.rationale}</p>
+                {done && (
+                  <p className="text-xs text-green-700 mt-1 font-medium">
+                    Quiz generated — it&apos;ll show on {childFirst}&apos;s homepage next time {childFirst} logs in.
+                  </p>
+                )}
+              </div>
+              {done ? (
+                <span className="shrink-0 px-3 py-2 rounded-lg bg-green-100 text-green-800 text-xs font-bold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  Generated
+                </span>
               ) : (
-                <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                <button
+                  type="button"
+                  onClick={() => handleGenerate(i)}
+                  disabled={submittingIdx !== null}
+                  className="shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
+                >
+                  {submittingIdx === i ? (
+                    <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                  )}
+                  {submittingIdx === i ? "Generating…" : "Generate"}
+                </button>
               )}
-              {submittingIdx === i ? "Generating…" : "Generate"}
-            </button>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
       {err && <p className="text-xs text-red-600">{err}</p>}
     </div>

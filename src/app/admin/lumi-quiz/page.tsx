@@ -23,7 +23,7 @@ import AdminNav from "@/components/AdminNav";
 // studentId so the admin lands on the matching kid here.
 const TEST_STUDENTS: Record<string, string> = {
   "cmm5wf91d000ryrxwaddlo6xh": "David Lim",
-  "cmmfmehcz0000bbbfnwwiko75": "Mark Lim",
+  "cmmbbyvs30004qa9yinn3drl6": "Mark Lim",
 };
 const DEFAULT_STUDENT_ID = "cmm5wf91d000ryrxwaddlo6xh";
 

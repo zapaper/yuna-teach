@@ -115,5 +115,5 @@ const MARK_COMBOS: LumiQuizCombo[] = [
 
 export const LUMI_QUIZ_COMBOS: Record<string, LumiQuizCombo[]> = {
   "cmm5wf91d000ryrxwaddlo6xh": DAVID_COMBOS,   // David Lim
-  "cmmfmehcz0000bbbfnwwiko75": MARK_COMBOS,    // Mark Lim (admin@yunateach.com)
+  "cmmbbyvs30004qa9yinn3drl6": MARK_COMBOS,    // Mark Lim (kid; admin@yunateach.com's student)
 };
