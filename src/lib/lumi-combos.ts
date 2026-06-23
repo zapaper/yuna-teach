@@ -28,8 +28,12 @@ export type LumiQuizCombo = {
   // The skill tag to pair with. Qs matching BOTH this skill AND the
   // topic/sub-topic are preferred over single-criterion matches.
   skillTag: ScienceSkillTag;
-  // Pre-written content recap for the chosen topic. Pairs with the
-  // generic skill recap from science-skills.ts at quiz-render time.
+  // Fallback content recap for the chosen topic. The lumi-quiz
+  // endpoint prefers a pattern-derived recap pulled from the kid's
+  // Lumi diagnosis cache (src/lib/lumi-deepdive.ts) — this stays as
+  // the static fallback when the kid has no cached pattern for the
+  // topic. Hand-written combos (David/Mark) keep their own copy
+  // until we audit them against the workshop patterns too.
   topicRecap: {
     heading: string;
     watchOut: string[];
@@ -113,9 +117,127 @@ const MARK_COMBOS: LumiQuizCombo[] = [
   },
 ];
 
+// Kaiyangnggg (P6) — top weakness Forces (Fric/Grav/Elastic) at 31%
+// stable (n=13). Second weakness Heat at 25% with a regressing recent-
+// third — focused practice hasn't shifted it, the misconception is
+// what's persisting. Third weakness Energy conversion at 50% (n=22) —
+// same root pattern as Forces per the workshop. All three combos let
+// the deep-dive resolver pull pattern text from his cached diagnosis
+// (kaiyangnggg:science) for the preamble. Sub-topic weights come from
+// his marks-lost distribution per sub-topic (see scripts/_check-mark).
+const KAIYANG_COMBOS: LumiQuizCombo[] = [
+  {
+    label: "Forces + Diagrams",
+    rationale: "Your weakest topic by a wide margin (31%), and the same naming-the-force confusion keeps showing up. Drilling the sub-topics you've lost the most marks on.",
+    topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+    subTopicWeights: {
+      "identifying-and-representing-forces": 6,
+      "applying-force-concepts": 3,
+      "investigating-elastic-force": 1,
+    },
+    skillTag: "diagram-interpretation",
+    topicRecap: {
+      heading: "Forces — naming + applying",
+      watchOut: [
+        "Name the right force: ball rolling down = gravity, stretched spring = elastic, not 'a push'.",
+        "Friction acts AGAINST motion. Identify the direction of motion first, then friction opposes it.",
+      ],
+    },
+  },
+  {
+    label: "Heat — fix the misconceptions",
+    rationale: "Stuck at 25% even after focused practice — the misconception is persisting. Today's preamble walks the three traps Lumi keeps seeing.",
+    topic: "Heat energy and uses",
+    subTopicWeights: {
+      "heat-transfer-and-materials": 3,
+      "changes-of-state": 3,
+      "expansion-and-contraction": 2,
+      "heat-temperature-and-measurement": 2,
+    },
+    skillTag: "diagram-interpretation",
+    topicRecap: {
+      heading: "Heat — the three traps",
+      watchOut: [
+        "'Feels cold' ≠ 'is cold'. Metal feels colder than wood because it conducts heat AWAY faster.",
+        "Evaporation speeds up with wind, temperature, surface area. Humidity slows it.",
+        "During melting / boiling, temperature stays flat because heat is absorbed to break bonds, not raise temp.",
+      ],
+    },
+  },
+  {
+    label: "Energy conversion — name both forms",
+    rationale: "Same pattern Lumi sees in Forces — energy 'getting lost' instead of converting. Practising the language across new scenarios.",
+    topic: "Energy conversion",
+    subTopicWeights: {
+      "gravitational-potential-to-kinetic": 4,
+      "electricity-generation-and-application": 3,
+      "elastic-potential-to-kinetic": 2,
+      "energy-loss-and-inefficiency": 1,
+    },
+    skillTag: "diagram-interpretation",
+    topicRecap: {
+      heading: "Energy conversion — name two forms",
+      watchOut: [
+        "Energy doesn't disappear. KE → heat (friction). PE → KE (rolling down). Always name TWO forms.",
+        "On the way down: gravitational PE shrinks, KE grows. On the way up: opposite.",
+      ],
+    },
+  },
+];
+
+// JeremiahSy (P5) — only one stable, high-confidence weakness:
+// Reproduction at 33% (n=9). The workshop's Pattern [2] for him is
+// "mixes up biological terms, misidentifies reproductive process
+// locations" — exactly the gap a Reproduction combo addresses. Second
+// combo is Life cycles (80%, n=5, regressing) — borderline N but the
+// recent third dropping to 50% means a problem is brewing. P5 has no
+// skill tags yet so combos pass evidence-then-conclusion as a no-op
+// (picker uses topic-only matching since the skill pool is empty).
+const JEREMIAH_COMBOS: LumiQuizCombo[] = [
+  {
+    label: "Reproduction — names + processes",
+    rationale: "Your weakest topic at 33% — and the same biological-term confusion keeps coming up. Today we drill the parts and where each process happens.",
+    topic: "Reproduction in plants and animals",
+    subTopicWeights: {
+      "reproductive-parts-and-functions": 7,
+      "experimental-design-and-data-interpretation": 2,
+      "pollination-and-fertilisation": 2,
+    },
+    skillTag: "evidence-then-conclusion",
+    topicRecap: {
+      heading: "Reproduction — name parts, locate process",
+      watchOut: [
+        "Pollination is on the stigma. Fertilisation is in the ovule. Don't swap them.",
+        "Plant: stamen = male (anther + filament), pistil = female (stigma + style + ovary).",
+        "Human: sperm from testes meets egg from ovary in the fallopian tube, not the womb.",
+      ],
+    },
+  },
+  {
+    label: "Life cycles — animal stages",
+    rationale: "Recent quizzes show you slipping back here from 80% to 50%. Same scenarios, more practice.",
+    topic: "Life cycles in plants and animals",
+    subTopicWeights: {
+      "animal-life-cycle-stages": 8,
+      "plant-reproduction-and-life-cycle": 2,
+    },
+    skillTag: "evidence-then-conclusion",
+    topicRecap: {
+      heading: "Life cycles — animal stages",
+      watchOut: [
+        "Butterfly: egg → caterpillar → pupa → butterfly. Mosquito: egg → larva → pupa → adult.",
+        "Frog: tadpole has gills (water), adult has lungs (land). The change is metamorphosis.",
+        "Larva and pupa LOOK different but they're the SAME organism, just different stages.",
+      ],
+    },
+  },
+];
+
 export const LUMI_QUIZ_COMBOS: Record<string, LumiQuizCombo[]> = {
   "cmm5wf91d000ryrxwaddlo6xh": DAVID_COMBOS,   // David Lim
   "cmmbbyvs30004qa9yinn3drl6": MARK_COMBOS,    // Mark Lim (kid; admin@yunateach.com's student)
+  "cmojzr4fu004gd4vnx8wmz6zk": KAIYANG_COMBOS, // Kaiyangnggg
+  "cmnk7dkkj006z14p6yf06ohzm": JEREMIAH_COMBOS, // JeremiahSy
   // student67 cloned from David's combos — same level, same target gaps
   // for the test cohort. Swap to bespoke combos when we have a real
   // diagnosis for this kid.

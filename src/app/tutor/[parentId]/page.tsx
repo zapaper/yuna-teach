@@ -785,6 +785,8 @@ const LUMI_QUIZ_TEST_STUDENT_IDS = new Set([
   "cmm5wf91d000ryrxwaddlo6xh",  // David Lim
   "cmmbbyvs30004qa9yinn3drl6",  // Mark Lim (kid; admin@yunateach.com's student)
   "cmqg8upha0000l3ijfr3co6t8",  // student67 (combos cloned from David)
+  "cmojzr4fu004gd4vnx8wmz6zk",  // Kaiyangnggg (P6, bespoke combos)
+  "cmnk7dkkj006z14p6yf06ohzm",  // JeremiahSy (P5, bespoke combos)
 ]);
 
 function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {

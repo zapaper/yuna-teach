@@ -43,6 +43,7 @@ import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
 import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag, type LumiPreamble } from "@/lib/science-skills";
 import { LUMI_QUIZ_COMBOS, type LumiQuizCombo } from "@/lib/lumi-combos";
+import { getDeepDivePreamble } from "@/lib/lumi-deepdive";
 
 const SUBJECT_FULL: Record<"science", string> = {
   science: "Science",
@@ -497,9 +498,21 @@ export async function POST(request: NextRequest) {
 
   // Build the two-part preamble. Combo path stamps both topic + skill
   // halves. Skill-only path stamps the skill block alone.
+  //
+  // The TOPIC half prefers Lumi's stored conceptual diagnosis for THIS
+  // kid + this topic — pattern-derived watchOuts speak directly to the
+  // confusions the workshop already identified, instead of the
+  // hand-written generic content on the combo definition. Falls back
+  // to the static topicRecap when the kid has no cached patterns for
+  // this topic (e.g. P5 kid + a topic the workshop never tagged).
   const skillBlock = SCIENCE_SKILL_PREAMBLE[activeSkillTag];
+  let topicBlock = activeCombo?.topicRecap;
+  if (activeCombo) {
+    const deepDive = getDeepDivePreamble(student.name ?? "", subject as "science", activeCombo.topic);
+    if (deepDive) topicBlock = deepDive;
+  }
   const lumiPreamble: LumiPreamble = activeCombo
-    ? { topic: activeCombo.topicRecap, skill: skillBlock }
+    ? { topic: topicBlock!, skill: skillBlock }
     : { skill: skillBlock };
 
   const paper = await prisma.examPaper.create({

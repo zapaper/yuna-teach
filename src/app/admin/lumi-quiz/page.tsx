@@ -25,6 +25,8 @@ const TEST_STUDENTS: Record<string, string> = {
   "cmm5wf91d000ryrxwaddlo6xh": "David Lim",
   "cmmbbyvs30004qa9yinn3drl6": "Mark Lim",
   "cmqg8upha0000l3ijfr3co6t8": "student67",
+  "cmojzr4fu004gd4vnx8wmz6zk": "Kaiyangnggg",
+  "cmnk7dkkj006z14p6yf06ohzm": "JeremiahSy",
 };
 const DEFAULT_STUDENT_ID = "cmm5wf91d000ryrxwaddlo6xh";
 
