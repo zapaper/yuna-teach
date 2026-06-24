@@ -132,7 +132,16 @@ export async function POST(request: NextRequest) {
         sectionMap.get(topic)!.push(q);
       }
       // Sort sections in standard English paper order
-      const sectionOrder = ["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ", "Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze", "Synthesis / Transformation", "Comprehension Open Ended"];
+      // Both Synthesis forms listed — extraction/marking write
+      // "Synthesis & Transformation"; older AI normaliser wrote
+      // "Synthesis / Transformation". Either should sort to the
+      // same slot (right before Comp OEQ), so include both. Without
+      // this, a paper tagged with the ampersand form fell through to
+      // the indexOf=999 catch-all and rendered AFTER Comp OEQ — which
+      // is what the user saw on Maha Bodhi 2025 P4 EL P2 after
+      // renaming "Sentence Manipulation - Combining" to "Synthesis &
+      // Transformation".
+      const sectionOrder = ["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ", "Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze", "Synthesis & Transformation", "Synthesis / Transformation", "Comprehension Open Ended"];
       const sortedTopics = [...sectionMap.keys()].sort((a, b) => {
         const ai = sectionOrder.indexOf(a);
         const bi = sectionOrder.indexOf(b);
