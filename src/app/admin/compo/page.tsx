@@ -7,7 +7,7 @@
 // Thumbnails of staged pages render between the buttons and Analyse.
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -63,6 +63,11 @@ export default function CompoIndexPage() {
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
+  // /admin requires the userId query param for session resolution —
+  // landing there without it shows an error page.
+  const searchParams = useSearchParams();
+  const userIdParam = searchParams?.get("userId") ?? "";
+  const adminHref = userIdParam ? `/admin?userId=${userIdParam}` : "/admin";
 
   const refresh = useCallback(async () => {
     try {
@@ -141,7 +146,7 @@ export default function CompoIndexPage() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div>
-        <Link href="/admin" className="text-sm text-slate-500 hover:underline">← Admin</Link>
+        <Link href={adminHref} className="text-sm text-slate-500 hover:underline">← Admin</Link>
         <h1 className="text-2xl font-bold text-slate-900 mt-2">作文 Helper</h1>
       </div>
 
