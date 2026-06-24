@@ -748,7 +748,7 @@ function softenTone(text: string, childFirst: string): string {
   // down to "sometimes" specifically when it follows the kid's name
   // ("Kaiyangnggg often reverses…" → "Kaiyangnggg sometimes reverses…").
   const namedOftenRe = new RegExp(`\\b(${fn})\\s+often\\b`, "g");
-  return text
+  const out = text
     .replace(/\bThe student\b/g, fn)
     .replace(/\bthe student\b/g, fn.toLowerCase())
     .replace(directVerbRe, "$1 sometimes $2")
@@ -758,6 +758,17 @@ function softenTone(text: string, childFirst: string): string {
     .replace(/\bfails to\b/gi, "sometimes misses")
     .replace(/\bconsistently\b/gi, "sometimes")
     .replace(/\bcannot\b/gi, "doesn't always");
+  // Some workshop patterns drop the subject entirely ("Often understands
+  // what is happening…") — they read as floating verbs. Prepend the
+  // kid's name when the opening isn't already them or a leading "the".
+  // Lowercase the original first character so the joined sentence reads
+  // as "Kaiyangnggg often understands…", not "Kaiyangnggg Often…".
+  const trimmed = out.trimStart();
+  const firstWordMatch = trimmed.match(/^(\S+)/);
+  const firstWord = firstWordMatch?.[1] ?? "";
+  const needsPrefix = firstWord !== fn && firstWord.toLowerCase() !== "the";
+  if (!needsPrefix || trimmed.length === 0) return out;
+  return `${fn} ${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
 }
 
 // Smooth-scroll helper for the (here) anchor links inside Lumi's
