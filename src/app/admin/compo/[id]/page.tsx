@@ -188,9 +188,9 @@ export default function CompoDetailPage() {
           onClick={() => setView("elevated")}
           disabled={!row.recommendations?.elevatedDraft}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 ${view === "elevated" ? "bg-slate-900 text-white" : "bg-white border border-slate-300 text-slate-700"}`}
-          title={row.recommendations?.elevatedDraft ? "" : "Elevated draft not generated yet"}
+          title={row.recommendations?.elevatedDraft ? "" : "Enhanced draft not generated yet"}
         >
-          Elevated to 35-40 (upgrades in green)
+          Enhanced to 35-40 (upgrades in green)
         </button>
       </div>
 
@@ -286,7 +286,7 @@ function renderClean(ocr: string, ws: WrongWord[]): string {
 // (black) color; marked text gets the green-bold treatment, same
 // visual language as the Clean rewrite view.
 function renderElevated(text: string): string {
-  if (!text) return "<em style=\"color:#94a3b8\">Elevated draft not generated yet.</em>";
+  if (!text) return "<em style=\"color:#94a3b8\">Enhanced draft not generated yet.</em>";
   const parts = text.split(/\[\+([\s\S]*?)\+\]/);
   return parts.map((p, i) =>
     i % 2 === 0
@@ -334,7 +334,7 @@ function WordCountFooter({
   const currentLabel =
     view === "marked"   ? "Original (with errors marked)"  :
     view === "clean"    ? "Original (errors corrected)"    :
-                          "Elevated draft";
+                          "Enhanced draft";
   const current = view === "elevated" && elevated ? elevated : original;
   return (
     <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-slate-500 px-2">
@@ -406,7 +406,7 @@ function CritiqueCard({
                           c;
 
   const panelLabel =
-    view === "elevated" ? "Rubric — Elevated draft" :
+    view === "elevated" ? "Rubric — Enhanced draft" :
     view === "clean"    ? "Rubric — After corrections" :
                           "Rubric — As submitted";
 
