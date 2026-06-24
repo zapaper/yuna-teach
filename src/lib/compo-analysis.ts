@@ -45,20 +45,31 @@ export type WrongWord = {
 export type Critique = {
   contentScore: number;        // 0..20
   contentNotes: string;
+  contentNotesEn: string;
   vocabScore: number;          // 0..10
   vocabNotes: string;
+  vocabNotesEn: string;
   sentenceScore: number;       // 0..10
   sentenceNotes: string;
+  sentenceNotesEn: string;
   overallScore: number;        // sum of the three
   overallSummary: string;
+  overallSummaryEn: string;
+  // Estimated score IF every wrong-word fix is applied without
+  // any structural / vocab rewrites. Typically original + 0.5-2 marks
+  // depending on how many character errors there are.
+  cleanRewriteScore: number;
   benchmarkYears: string[];
 };
 
 export type Recommendations = {
   structural: Array<{
     piece: string;
+    pieceEn: string;
     issue: string;
+    issueEn: string;
     suggestion: string;
+    suggestionEn: string;
     exampleFromModel?: { year: string; snippet: string; bucket: string };
   }>;
   language: Array<{
@@ -73,6 +84,7 @@ export type Recommendations = {
   // fixes, idiom + 好句 substitutions, opening hook, transitions,
   // climax intensification, ending moral).
   elevatedDraft?: string;
+  elevatedDraftScore?: number; // self-assessed score of the elevated draft
 };
 
 // ─── OCR ─────────────────────────────────────────────────────────────
@@ -89,6 +101,25 @@ async function readFileForGemini(relPath: string): Promise<{ data: string; mimeT
     ext === ".webp" ? "image/webp"      :
                       "image/jpeg";
   return { data: buf.toString("base64"), mimeType };
+}
+
+// For text-bearing formats (.txt / .docx), pull plain text directly
+// so the OCR Gemini call can be skipped. .docx uses mammoth (handles
+// modern Word; older .doc not supported — kid would need to convert).
+async function readTextDirectly(relPath: string): Promise<string | null> {
+  const abs = path.join(COMPO_DIR, relPath);
+  const ext = path.extname(relPath).toLowerCase();
+  if (ext === ".txt") {
+    return (await fs.readFile(abs, "utf8")).trim();
+  }
+  if (ext === ".docx") {
+    const mammoth = (await import("mammoth")) as unknown as {
+      extractRawText: (opts: { path: string }) => Promise<{ value: string }>;
+    };
+    const { value } = await mammoth.extractRawText({ path: abs });
+    return value.trim();
+  }
+  return null;
 }
 
 const OCR_PROMPT_BODY = `你正在从扫描的手写小学华文作文中提取文字。
@@ -126,27 +157,43 @@ export async function runOcr(
   compositionImagePaths: string[],
   questionImagePath: string | null,
 ): Promise<{ ocrText: string; ocrQuestionText: string | null }> {
-  // Compose all composition pages into one Gemini call so the model
-  // can stitch paragraph breaks across page boundaries.
-  const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
-  let totalBytes = 0;
+  // Fast path — if every composition file is a text-bearing format
+  // (.txt or .docx), skip the OCR Gemini call entirely. The kid
+  // typed the composition; there's nothing for the model to OCR.
+  const textParts: string[] = [];
+  let allTextOnly = compositionImagePaths.length > 0;
   for (const p of compositionImagePaths) {
-    const img = await readFileForGemini(p);
-    totalBytes += Math.ceil(img.data.length * 0.75); // base64 -> bytes
-    console.log(`[compo:ocr] read ${p} (${img.mimeType}, ~${(totalBytes / 1024).toFixed(0)}KB cumulative)`);
-    compParts.push({ inlineData: img });
+    const t = await readTextDirectly(p);
+    if (t === null) { allTextOnly = false; break; }
+    textParts.push(t);
   }
-  compParts.push({ text: OCR_PROMPT_BODY });
+  let ocrText: string;
+  if (allTextOnly) {
+    ocrText = textParts.join("\n\n").trim();
+    console.log(`[compo:ocr] text-only fast path: skipped Gemini, ${ocrText.length} chars from ${compositionImagePaths.length} file(s)`);
+  } else {
+    // Compose all composition pages into one Gemini call so the model
+    // can stitch paragraph breaks across page boundaries.
+    const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
+    let totalBytes = 0;
+    for (const p of compositionImagePaths) {
+      const img = await readFileForGemini(p);
+      totalBytes += Math.ceil(img.data.length * 0.75); // base64 -> bytes
+      console.log(`[compo:ocr] read ${p} (${img.mimeType}, ~${(totalBytes / 1024).toFixed(0)}KB cumulative)`);
+      compParts.push({ inlineData: img });
+    }
+    compParts.push({ text: OCR_PROMPT_BODY });
 
-  console.log(`[compo:ocr] calling ${OCR_MODEL} with ${compositionImagePaths.length} part(s), ~${(totalBytes / 1024).toFixed(0)}KB...`);
-  const ocrStart = Date.now();
-  const ocrResp = await generateContentWithRetry({
-    model: OCR_MODEL,
-    contents: [{ role: "user", parts: compParts }],
-    config: { temperature: 0 },
-  }, 2, 5000, "compo-ocr");
-  const ocrText = (ocrResp.text ?? "").trim();
-  console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrText.length} chars`);
+    console.log(`[compo:ocr] calling ${OCR_MODEL} with ${compositionImagePaths.length} part(s), ~${(totalBytes / 1024).toFixed(0)}KB...`);
+    const ocrStart = Date.now();
+    const ocrResp = await generateContentWithRetry({
+      model: OCR_MODEL,
+      contents: [{ role: "user", parts: compParts }],
+      config: { temperature: 0 },
+    }, 2, 5000, "compo-ocr");
+    ocrText = (ocrResp.text ?? "").trim();
+    console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrText.length} chars`);
+  }
 
   let ocrQuestionText: string | null = null;
   if (questionImagePath) {
@@ -272,16 +319,21 @@ ${ocrText}
 - 评分要符合小学高年级水平 — 不要拿成年人标准，但也要诚实指出不足。
 - 每个评语 (Notes) 用 1-2 个简短句子，中文，<= 60 字。
 
-【输出格式 — 严格 JSON】
+【输出格式 — 严格 JSON】每条 Notes 都需要中文 + 英文 (家长版)。
 {
   "contentScore": <0-20 的整数或半分如 17.5>,
-  "contentNotes": "<内容评语 - 短>",
+  "contentNotes": "<内容评语 - 中文短>",
+  "contentNotesEn": "<content notes — short English>",
   "vocabScore": <0-10>,
-  "vocabNotes": "<词汇好句评语 - 短>",
+  "vocabNotes": "<词汇好句评语 - 中文短>",
+  "vocabNotesEn": "<vocabulary & phrases notes — short English>",
   "sentenceScore": <0-10>,
-  "sentenceNotes": "<句子结构与组织评语 - 短>",
+  "sentenceNotes": "<句子结构与组织评语 - 中文短>",
+  "sentenceNotesEn": "<sentence structure & organization notes — short English>",
   "overallScore": <三项总和>,
-  "overallSummary": "<总评 - 1-2 句>",
+  "overallSummary": "<总评 - 中文 1-2 句>",
+  "overallSummaryEn": "<short overall summary in English>",
+  "cleanRewriteScore": <如果学生只修正了错别字 / 漏字，分数会是多少 (整数或半分)>,
   "benchmarkYears": [<参考的 PSLE 年份，如 "2022", "2021">]
 }
 
@@ -305,15 +357,24 @@ export async function critiqueComposition(
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, ""));
+  const contentScore = Number(parsed.contentScore ?? 0);
+  const vocabScore = Number(parsed.vocabScore ?? 0);
+  const sentenceScore = Number(parsed.sentenceScore ?? 0);
+  const overallScore = Number(parsed.overallScore ?? contentScore + vocabScore + sentenceScore);
   return {
-    contentScore: Number(parsed.contentScore ?? 0),
+    contentScore,
     contentNotes: String(parsed.contentNotes ?? ""),
-    vocabScore: Number(parsed.vocabScore ?? 0),
+    contentNotesEn: String(parsed.contentNotesEn ?? ""),
+    vocabScore,
     vocabNotes: String(parsed.vocabNotes ?? ""),
-    sentenceScore: Number(parsed.sentenceScore ?? 0),
+    vocabNotesEn: String(parsed.vocabNotesEn ?? ""),
+    sentenceScore,
     sentenceNotes: String(parsed.sentenceNotes ?? ""),
-    overallScore: Number(parsed.overallScore ?? 0),
+    sentenceNotesEn: String(parsed.sentenceNotesEn ?? ""),
+    overallScore,
     overallSummary: String(parsed.overallSummary ?? ""),
+    overallSummaryEn: String(parsed.overallSummaryEn ?? ""),
+    cleanRewriteScore: Number(parsed.cleanRewriteScore ?? overallScore),
     benchmarkYears: Array.isArray(parsed.benchmarkYears) ? parsed.benchmarkYears.map(String) : [],
   };
 }
@@ -342,23 +403,26 @@ ${playbookSummary}
 1. **structural**: 找出 2-4 个结构上的缺口 — 例如缺少开头悬念、缺过渡句、高潮不够戏剧化、结尾点题不够、寓意 (moral) 不清。每个写明具体在文章哪个位置可以加。
 2. **language**: 从上面的语句库 (或自创类似水平的句子) 推荐 3-5 个具体可以加进作文的句子或词组。不要太多 — 选最有助提升的几句。每句标明应该加在哪个情境/段落。
 
-【输出格式 — 严格 JSON】
+【输出格式 — 严格 JSON】每个 structural 都需要中英文，方便家长理解。
 {
   "structural": [
     {
-      "piece": "<结构部分名称，例如 '开头悬念' / '过渡' / '高潮' / '结尾点题' / '寓意'>",
-      "issue": "<问题描述 - 1 句话>",
-      "suggestion": "<具体怎么改 - 1-2 句话>",
+      "piece":    "<中文结构部分名称，例 '开头悬念' / '过渡' / '高潮' / '结尾点题' / '寓意'>",
+      "pieceEn":  "<English label, e.g. 'Opening hook' / 'Transition' / 'Climax' / 'Moral'>",
+      "issue":    "<中文问题描述 - 1 句话>",
+      "issueEn":  "<English issue description — 1 short sentence>",
+      "suggestion":   "<中文具体改法 - 1-2 句话>",
+      "suggestionEn": "<English suggestion — 1-2 short sentences>",
       "exampleFromModel": { "year": "<参考的范文年份>", "snippet": "<可借鉴的范文片段>", "bucket": "<bucket 标签>" }
     }
   ],
   "language": [
     {
       "phraseCn": "<推荐的中文句子或词组>",
-      "phraseEn": "<英文翻译，如有>",
-      "fromYear": "<出自的范文年份，如果是创作的可省略>",
+      "phraseEn": "<English translation>",
+      "fromYear": "<出自的范文年份。如果是创作的或没特定来源，留空字串 \"\"; 不要写 'PSLE 通用' 或类似词>",
       "bucket": "<opening | closing | accident | careless | transition | emotion | scenery | action | moral>",
-      "whyItHelps": "<为什么这句对这篇作文有帮助 - 1 句话>"
+      "whyItHelps": "<为什么这句对这篇作文有帮助 - 1 句话 (中文)>"
     }
   ]
 }
@@ -449,7 +513,15 @@ ${wrongWordLine}
 ${ocrText}
 
 【任务】
-按规则改写。只输出改写后的作文 (含 [+ +] 标记)，不要 markdown 包围，不要解释，不要标题。`;
+按规则改写，并估计改写后的分数 (要在 35-40 分之间)。
+
+【输出格式 — 严格 JSON】
+{
+  "draft": "<改写后的作文，含 [+ +] 标记。保留 \\n 段落换行>",
+  "estimatedScore": <整数或半分，35-40 之间>
+}
+
+不要 markdown 包围。`;
 };
 
 export async function buildElevatedDraft(
@@ -457,17 +529,27 @@ export async function buildElevatedDraft(
   wrongWords: WrongWord[],
   critique: Critique,
   recommendations: Recommendations,
-): Promise<string> {
+): Promise<{ draft: string; estimatedScore: number }> {
   console.log(`[compo:elevate] calling ${ANALYSIS_MODEL}...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: ELEVATE_PROMPT(ocrText, wrongWords, critique, recommendations) }] }],
-    config: { temperature: 0.4 },
+    config: { responseMimeType: "application/json", temperature: 0.4 },
   }, 2, 5000, "compo-elevate");
-  const out = (resp.text ?? "").trim();
-  console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${out.length} chars`);
-  return out;
+  const raw = (resp.text ?? "").trim();
+  console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
+  try {
+    const parsed = JSON.parse(raw.replace(/^```json\s*/i, "").replace(/```\s*$/i, ""));
+    return {
+      draft: String(parsed.draft ?? raw),
+      estimatedScore: Number(parsed.estimatedScore ?? 37),
+    };
+  } catch {
+    // AI returned plain text instead of JSON — assume the whole
+    // response is the draft and pick a default 37/40 estimate.
+    return { draft: raw, estimatedScore: 37 };
+  }
 }
 
 // ─── Orchestrator ───────────────────────────────────────────────────
@@ -530,8 +612,13 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
     //    [+ ... +] markers so the UI can render kid words in black
     //    and additions in green.
     console.log(`${tag} stage 5/5: elevated draft`);
-    const elevatedDraft = await buildElevatedDraft(ocrText, wrongWords, critique, recommendations);
-    const recsWithDraft: Recommendations = { ...recommendations, elevatedDraft };
+    const elev = await buildElevatedDraft(ocrText, wrongWords, critique, recommendations);
+    console.log(`${tag} elevated draft estimated score: ${elev.estimatedScore}/40`);
+    const recsWithDraft: Recommendations = {
+      ...recommendations,
+      elevatedDraft: elev.draft,
+      elevatedDraftScore: elev.estimatedScore,
+    };
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: {

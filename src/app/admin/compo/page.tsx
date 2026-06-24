@@ -138,17 +138,17 @@ export default function CompoIndexPage() {
           <span className="text-xs font-medium text-slate-600">Question scan (optional — prompt or picture series, image or PDF)</span>
           <input
             type="file"
-            accept="image/*,application/pdf"
+            accept="image/*,application/pdf,.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="mt-1 block w-full text-sm"
             onChange={(e) => setQuestionFile(e.target.files?.[0] ?? null)}
           />
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Composition pages (required — image(s) OR a single PDF)</span>
+          <span className="text-xs font-medium text-slate-600">Composition (required — image(s) / PDF / Word .docx / .txt)</span>
           <input
             type="file"
-            accept="image/*,application/pdf"
+            accept="image/*,application/pdf,.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             multiple
             className="mt-1 block w-full text-sm"
             onChange={(e) => setPageFiles(Array.from(e.target.files ?? []))}

@@ -18,16 +18,19 @@ type WrongWord = {
 };
 
 type Critique = {
-  contentScore: number;  contentNotes: string;
-  vocabScore: number;    vocabNotes: string;
-  sentenceScore: number; sentenceNotes: string;
-  overallScore: number;  overallSummary: string;
+  contentScore: number;  contentNotes: string;  contentNotesEn?: string;
+  vocabScore: number;    vocabNotes: string;    vocabNotesEn?: string;
+  sentenceScore: number; sentenceNotes: string; sentenceNotesEn?: string;
+  overallScore: number;  overallSummary: string; overallSummaryEn?: string;
+  cleanRewriteScore?: number;
   benchmarkYears: string[];
 };
 
 type Recommendations = {
   structural: Array<{
-    piece: string; issue: string; suggestion: string;
+    piece: string; pieceEn?: string;
+    issue: string; issueEn?: string;
+    suggestion: string; suggestionEn?: string;
     exampleFromModel?: { year: string; snippet: string; bucket: string };
   }>;
   language: Array<{
@@ -35,6 +38,7 @@ type Recommendations = {
     bucket: string; whyItHelps: string;
   }>;
   elevatedDraft?: string;
+  elevatedDraftScore?: number;
 };
 
 type Row = {
@@ -112,12 +116,21 @@ export default function CompoDetailPage() {
               {row.optionType && <> · {row.optionType}</>}
             </p>
           </div>
-          <button
-            onClick={reanalyse}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
-          >
-            Re-analyse
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.print()}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+              title="Use 'Save as PDF' in the print dialog"
+            >
+              Export to PDF
+            </button>
+            <button
+              onClick={reanalyse}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+            >
+              Re-analyse
+            </button>
+          </div>
         </div>
       </div>
 
@@ -178,7 +191,7 @@ export default function CompoDetailPage() {
 
         {/* Critique + recommendations side panel */}
         <div className="col-span-1 space-y-4">
-          {row.critique && <CritiqueCard c={row.critique} />}
+          {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} />}
           {row.recommendations && <RecommendationsCard r={row.recommendations} />}
           {row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}
         </div>
@@ -254,7 +267,7 @@ function renderElevated(text: string): string {
 
 // ─── Side cards ──────────────────────────────────────────────────────
 
-function CritiqueCard({ c }: { c: Critique }) {
+function CritiqueCard({ c, r }: { c: Critique; r?: Recommendations | null }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4">
       <div className="flex items-baseline justify-between">
@@ -267,23 +280,42 @@ function CritiqueCard({ c }: { c: Critique }) {
             <span>内容 Content</span><span>{c.contentScore}/20</span>
           </div>
           <p className="text-slate-600 text-xs mt-0.5">{c.contentNotes}</p>
+          {c.contentNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.contentNotesEn}</p>}
         </div>
         <div>
           <div className="flex justify-between font-medium text-slate-700">
             <span>词汇好句 Vocab &amp; phrases</span><span>{c.vocabScore}/10</span>
           </div>
           <p className="text-slate-600 text-xs mt-0.5">{c.vocabNotes}</p>
+          {c.vocabNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.vocabNotesEn}</p>}
         </div>
         <div>
           <div className="flex justify-between font-medium text-slate-700">
             <span>句子结构 Sentence &amp; org</span><span>{c.sentenceScore}/10</span>
           </div>
           <p className="text-slate-600 text-xs mt-0.5">{c.sentenceNotes}</p>
+          {c.sentenceNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.sentenceNotesEn}</p>}
         </div>
         <div className="pt-3 border-t border-slate-100">
           <p className="text-xs text-slate-700 italic">{c.overallSummary}</p>
+          {c.overallSummaryEn && <p className="text-[11px] text-slate-500 italic mt-0.5">{c.overallSummaryEn}</p>}
           {c.benchmarkYears.length > 0 && (
             <p className="text-[10px] text-slate-400 mt-1">benchmarked vs PSLE {c.benchmarkYears.join(", ")}</p>
+          )}
+        </div>
+        {/* Projected scores for the two rewrites. */}
+        <div className="pt-3 border-t border-slate-100 space-y-1">
+          {c.cleanRewriteScore !== undefined && c.cleanRewriteScore !== c.overallScore && (
+            <div className="flex justify-between text-xs">
+              <span className="text-emerald-700 font-medium">If errors fixed (Clean rewrite)</span>
+              <span className="text-emerald-800 font-bold">{c.cleanRewriteScore}/40</span>
+            </div>
+          )}
+          {r?.elevatedDraftScore !== undefined && (
+            <div className="flex justify-between text-xs">
+              <span className="text-emerald-700 font-medium">Elevated draft (35-40 target)</span>
+              <span className="text-emerald-800 font-bold">{r.elevatedDraftScore}/40</span>
+            </div>
           )}
         </div>
       </div>
@@ -301,9 +333,14 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
           <ul className="space-y-2 text-sm">
             {r.structural.map((s, i) => (
               <li key={i} className="bg-amber-50 border border-amber-100 rounded-lg px-2 py-2">
-                <div className="font-medium text-slate-800">{s.piece}</div>
+                <div className="font-medium text-slate-800">
+                  {s.piece}
+                  {s.pieceEn && <span className="ml-1.5 text-slate-500 font-normal italic">— {s.pieceEn}</span>}
+                </div>
                 <div className="text-xs text-slate-600">{s.issue}</div>
+                {s.issueEn && <div className="text-xs text-slate-500 italic">{s.issueEn}</div>}
                 <div className="text-xs text-slate-700 mt-1"><em>→ {s.suggestion}</em></div>
+                {s.suggestionEn && <div className="text-xs text-slate-500 italic mt-0.5">→ {s.suggestionEn}</div>}
                 {s.exampleFromModel && (
                   <div className="text-xs text-slate-500 mt-1 italic">
                     PSLE {s.exampleFromModel.year}: 「{s.exampleFromModel.snippet}」
@@ -324,7 +361,8 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
                 {l.phraseEn && <div className="text-xs text-slate-500">{l.phraseEn}</div>}
                 <div className="text-xs text-slate-700 mt-1">{l.whyItHelps}</div>
                 <div className="text-[10px] text-slate-400 mt-1">
-                  {l.bucket}{l.fromYear ? ` · PSLE ${l.fromYear}` : ""}
+                  {l.bucket}
+                  {l.fromYear && l.fromYear.trim() && /^\d{4}$/.test(l.fromYear.trim()) ? ` · PSLE ${l.fromYear}` : ""}
                 </div>
               </li>
             ))}

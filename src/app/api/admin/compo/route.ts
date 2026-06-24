@@ -26,11 +26,11 @@ async function ensureDir(d: string) {
 
 function extOf(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
-  // Keep PDFs as .pdf so the OCR reader can send the right mime type
-  // to Gemini. Other recognised image extensions pass through;
-  // anything else defaults to .jpg (best-effort fallback).
-  if (ext === ".pdf") return ".pdf";
-  return [".jpg", ".jpeg", ".png", ".webp"].includes(ext) ? ext : ".jpg";
+  // Preserve .pdf / .docx / .txt so the analysis pipeline can route
+  // them correctly (text formats skip OCR; PDF + images use Gemini).
+  // Anything else defaults to .jpg as a best-effort fallback.
+  const passthrough = [".pdf", ".docx", ".txt", ".jpg", ".jpeg", ".png", ".webp"];
+  return passthrough.includes(ext) ? ext : ".jpg";
 }
 
 export async function GET() {
