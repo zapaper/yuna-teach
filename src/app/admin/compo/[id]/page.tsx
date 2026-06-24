@@ -13,7 +13,7 @@ import Link from "next/link";
 type WrongWord = {
   original: string;
   suggestion: string;
-  kind: "stroke" | "meaning" | "misuse";
+  kind: "stroke" | "meaning" | "misuse" | "omission";
   reason: string;
 };
 
@@ -34,6 +34,7 @@ type Recommendations = {
     phraseCn: string; phraseEn?: string; fromYear?: string;
     bucket: string; whyItHelps: string;
   }>;
+  elevatedDraft?: string;
 };
 
 type Row = {
@@ -56,7 +57,7 @@ export default function CompoDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const [row, setRow] = useState<Row | null>(null);
-  const [view, setView] = useState<"marked" | "clean">("marked");
+  const [view, setView] = useState<"marked" | "clean" | "elevated">("marked");
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -88,6 +89,10 @@ export default function CompoDetailPage() {
 
   const markedHtml = useMemo(() => renderMarked(ocrText, wrongWords), [ocrText, wrongWords]);
   const cleanHtml  = useMemo(() => renderClean(ocrText, wrongWords),  [ocrText, wrongWords]);
+  const elevatedHtml = useMemo(
+    () => renderElevated(row?.recommendations?.elevatedDraft ?? ""),
+    [row?.recommendations?.elevatedDraft],
+  );
 
   if (!row && !error) return <p className="p-6 text-sm text-slate-500">Loading…</p>;
   if (error)         return <p className="p-6 text-sm text-red-600">{error}</p>;
@@ -128,7 +133,7 @@ export default function CompoDetailPage() {
       )}
 
       {/* View toggle */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setView("marked")}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium ${view === "marked" ? "bg-slate-900 text-white" : "bg-white border border-slate-300 text-slate-700"}`}
@@ -141,6 +146,14 @@ export default function CompoDetailPage() {
         >
           Clean rewrite (corrections in green)
         </button>
+        <button
+          onClick={() => setView("elevated")}
+          disabled={!row.recommendations?.elevatedDraft}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 ${view === "elevated" ? "bg-slate-900 text-white" : "bg-white border border-slate-300 text-slate-700"}`}
+          title={row.recommendations?.elevatedDraft ? "" : "Elevated draft not generated yet"}
+        >
+          Elevated to 35-40 (upgrades in green)
+        </button>
       </div>
 
       <div className="grid grid-cols-3 gap-5">
@@ -150,7 +163,10 @@ export default function CompoDetailPage() {
           <div
             className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
             style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
-            dangerouslySetInnerHTML={{ __html: view === "marked" ? markedHtml : cleanHtml }}
+            dangerouslySetInnerHTML={{ __html:
+              view === "marked"   ? markedHtml :
+              view === "clean"    ? cleanHtml  :
+                                    elevatedHtml }}
           />
           {row.ocrQuestionText && (
             <details className="mt-4">
@@ -215,11 +231,25 @@ function renderClean(ocr: string, ws: WrongWord[]): string {
   let pos = 0;
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
-    out += `<span style="color:#047857;font-weight:600">${escapeHtml(r.suggestion)}</span>`;
+    out += `<span style="color:#047857;font-weight:700">${escapeHtml(r.suggestion)}</span>`;
     pos = r.end;
   }
   out += escapeHtml(ocr.slice(pos));
   return out;
+}
+
+// Elevated draft renderer — AI emits text with `[+inserted+]` markers
+// around new content. Plain text (kid's words) stays in default
+// (black) color; marked text gets the green-bold treatment, same
+// visual language as the Clean rewrite view.
+function renderElevated(text: string): string {
+  if (!text) return "<em style=\"color:#94a3b8\">Elevated draft not generated yet.</em>";
+  const parts = text.split(/\[\+([\s\S]*?)\+\]/);
+  return parts.map((p, i) =>
+    i % 2 === 0
+      ? escapeHtml(p)
+      : `<span style="color:#047857;font-weight:700">${escapeHtml(p)}</span>`
+  ).join("");
 }
 
 // ─── Side cards ──────────────────────────────────────────────────────

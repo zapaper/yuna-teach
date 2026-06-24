@@ -38,7 +38,7 @@ type PlaybookBucket = "opening" | "closing" | "accident" | "careless" |
 export type WrongWord = {
   original: string;
   suggestion: string;
-  kind: "stroke" | "meaning" | "misuse";
+  kind: "stroke" | "meaning" | "misuse" | "omission";
   reason: string;
 };
 
@@ -68,6 +68,11 @@ export type Recommendations = {
     bucket: PlaybookBucket | string;
     whyItHelps: string;
   }>;
+  // Stage 5 output — a 35-40-range rewrite anchored to the kid's
+  // original draft. Plot is kept; surgical upgrades only (wrong-word
+  // fixes, idiom + 好句 substitutions, opening hook, transitions,
+  // climax intensification, ending moral).
+  elevatedDraft?: string;
 };
 
 // ─── OCR ─────────────────────────────────────────────────────────────
@@ -124,22 +129,30 @@ export async function runOcr(
   // Compose all composition pages into one Gemini call so the model
   // can stitch paragraph breaks across page boundaries.
   const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
+  let totalBytes = 0;
   for (const p of compositionImagePaths) {
     const img = await readFileForGemini(p);
+    totalBytes += Math.ceil(img.data.length * 0.75); // base64 -> bytes
+    console.log(`[compo:ocr] read ${p} (${img.mimeType}, ~${(totalBytes / 1024).toFixed(0)}KB cumulative)`);
     compParts.push({ inlineData: img });
   }
   compParts.push({ text: OCR_PROMPT_BODY });
 
+  console.log(`[compo:ocr] calling ${OCR_MODEL} with ${compositionImagePaths.length} part(s), ~${(totalBytes / 1024).toFixed(0)}KB...`);
+  const ocrStart = Date.now();
   const ocrResp = await generateContentWithRetry({
     model: OCR_MODEL,
     contents: [{ role: "user", parts: compParts }],
     config: { temperature: 0 },
   }, 2, 5000, "compo-ocr");
   const ocrText = (ocrResp.text ?? "").trim();
+  console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrText.length} chars`);
 
   let ocrQuestionText: string | null = null;
   if (questionImagePath) {
     const img = await readFileForGemini(questionImagePath);
+    console.log(`[compo:ocr] question scan: ${questionImagePath} (${img.mimeType})`);
+    const qStart = Date.now();
     const qResp = await generateContentWithRetry({
       model: OCR_MODEL,
       contents: [{ role: "user", parts: [
@@ -149,6 +162,7 @@ export async function runOcr(
       config: { temperature: 0 },
     }, 2, 5000, "compo-ocr-question");
     ocrQuestionText = (qResp.text ?? "").trim() || null;
+    console.log(`[compo:ocr] question done in ${((Date.now() - qStart) / 1000).toFixed(1)}s, ${ocrQuestionText?.length ?? 0} chars`);
   }
 
   return { ocrText, ocrQuestionText };
@@ -156,11 +170,14 @@ export async function runOcr(
 
 // ─── Wrong-word pass ────────────────────────────────────────────────
 
-const WRONG_WORDS_PROMPT = (ocrText: string) => `下面是一篇小学华文作文的转录。请找出所有用字错误，分为三类：
+const WRONG_WORDS_PROMPT = (ocrText: string) => `下面是一篇小学华文作文的转录。请找出所有用字 / 语法错误，分为四类：
 
 1. **stroke (错别字)**: 写错笔画或字形，导致不是字典里的字。例 "兔" 写成 "免"。
 2. **meaning (用词不当)**: 是真字，但意思不通顺或与上下文不符。例如把 "保险柜" 用在不需要保险的情境。
-3. **misuse (近义词混淆)**: 是真字，但用了意思相近但更不合适的词。例 "厉害" 用成 "厉害" 类近义词混淆。
+3. **misuse (近义词混淆)**: 是真字，但用了意思相近但更不合适的词。例 "厉害" 用成 "凶猛" 类近义词混淆。
+4. **omission (漏字)**: 句子缺少一个或几个字，使得语法不通顺。例如 "一天他妈妈" 应该是 "一天他的妈妈" (漏了 "的")。
+   · original 字段写出缺字句子的上下文片段 (例 "他妈妈")。
+   · suggestion 字段写出补齐后的形式 (例 "他的妈妈")。
 
 【作文】
 ${ocrText}
@@ -168,9 +185,9 @@ ${ocrText}
 【输出格式】严格的 JSON 数组，每个错误一项：
 [
   {
-    "original": "学生写的原字",
-    "suggestion": "建议的正确字",
-    "kind": "stroke" | "meaning" | "misuse",
+    "original": "学生写的原字 (或缺字句子的上下文)",
+    "suggestion": "建议的正确字 (或补齐后的形式)",
+    "kind": "stroke" | "meaning" | "misuse" | "omission",
     "reason": "一句话解释 (中文，<25 字)"
   }
 ]
@@ -179,11 +196,14 @@ ${ocrText}
 不要 markdown 包围。`;
 
 export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
+  console.log(`[compo:wrong-words] scanning ${ocrText.length} chars with ${ANALYSIS_MODEL}...`);
+  const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: WRONG_WORDS_PROMPT(ocrText) }] }],
     config: { responseMimeType: "application/json", temperature: 0.1 },
   }, 2, 5000, "compo-wrong-words");
+  console.log(`[compo:wrong-words] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "[]").trim();
   try {
     const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, ""));
@@ -192,7 +212,7 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
       .map(x => ({
         original: String(x.original),
         suggestion: String(x.suggestion),
-        kind: ["stroke", "meaning", "misuse"].includes(x.kind) ? x.kind : "meaning",
+        kind: ["stroke", "meaning", "misuse", "omission"].includes(x.kind) ? x.kind : "meaning",
         reason: String(x.reason ?? ""),
       }));
   } catch (err) {
@@ -240,7 +260,8 @@ const CRITIQUE_PROMPT = (ocrText: string, modelEssays: ModelEssay[], studentTopi
 - 词汇与好句 (Vocabulary & Phrases) — 10 分: 词汇准确、运用成语和好词好句、描写生动。
 - 句子结构与组织 (Sentence Structure & Organization) — 10 分: 语法正确、段落过渡顺畅、故事流畅、代词使用清楚。
 
-【对标范文 — 假设这些是 40/40 满分作文，PSLE 历年水平】
+【对标范文】
+下面是 PSLE 10 年 (2016-2025) 的模范作文，全部是 40/40 满分水平。一共有 ${modelEssays.length} 篇 (Option 1 + Option 2)，下面挑了 6 篇做参考：
 ${sample}
 
 【学生作文 — 题目: ${studentTopic ?? "(未提供)"}】
@@ -274,11 +295,14 @@ export async function critiqueComposition(
 ): Promise<Critique> {
   const modelEssays = await loadModelEssays(optionType);
   if (modelEssays.length === 0) throw new Error("No model essays available in DB");
+  console.log(`[compo:critique] loaded ${modelEssays.length} model essays (optionType=${optionType ?? "any"}, topic=${studentTopic ?? "(none)"}). Calling ${ANALYSIS_MODEL}...`);
+  const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic) }] }],
     config: { responseMimeType: "application/json", temperature: 0.2 },
   }, 2, 5000, "compo-critique");
+  console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, ""));
   return {
@@ -366,11 +390,14 @@ export async function recommend(
   critique: Critique,
 ): Promise<Recommendations> {
   const playbookSummary = summarizePlaybook();
+  console.log(`[compo:recommend] calling ${ANALYSIS_MODEL} (playbook ${playbookSummary.length} chars)...`);
+  const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: RECOMMEND_PROMPT(ocrText, critique, playbookSummary) }] }],
     config: { responseMimeType: "application/json", temperature: 0.3 },
   }, 2, 5000, "compo-recommend");
+  console.log(`[compo:recommend] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, ""));
   const structural = Array.isArray(parsed.structural) ? parsed.structural : [];
@@ -378,14 +405,84 @@ export async function recommend(
   return { structural, language };
 }
 
+// ─── Stage 5: elevated draft ────────────────────────────────────────
+
+const ELEVATE_PROMPT = (
+  ocrText: string,
+  wrongWords: WrongWord[],
+  critique: Critique,
+  recs: Recommendations,
+) => {
+  const wrongWordLine = wrongWords.length === 0
+    ? "(无错别字)"
+    : wrongWords.map(w => `${w.original}→${w.suggestion} (${w.reason})`).join("; ");
+  const structuralLines = recs.structural.map(s => `· ${s.piece}: ${s.suggestion}`).join("\n");
+  const languageLines = recs.language.map(l => `· ${l.phraseCn} — ${l.whyItHelps}`).join("\n");
+
+  return `你是新加坡 PSLE 华文作文老师。我们参考的是 PSLE 10 年 (2016-2025) 模范作文 — 全部 40/40。学生的作文目前得分 ${critique.overallScore}/40。现在请你帮他改写到 35-40 分水平。
+
+【规则 — 必须遵守】
+1. **保留学生的故事主线** — 不要发明新情节，不要改变人物、地点、结局。
+2. **不要超过原文长度太多** — 上限是原文 + 30%。小学高年级水平作文，不要写成大学水准。
+3. **用 [+ +] 标记所有新加的或替换的文字** — 用法如下:
+   · 插入新文字: 在新文字外面包 [+...+]，例: 那天早上[+，阳光明媚，鸟语花香，+]我和爸爸去公园。
+   · 替换旧文字: 删掉旧字，写新字时也用 [+...+] 包起来。
+   · 学生原本写得好的文字 — 不要包 [+...+] 标记，直接保留。
+4. **改正所有错别字** (用 [+...+] 包正确字)。
+5. **不要标记单字修订** 如果只是改一两个字 (如错别字)。要选成段或成句的提升点，让 markup 有价值。
+
+【应该做的提升 (基于初评)】
+- 内容: ${critique.contentNotes}
+- 词汇好句: ${critique.vocabNotes}
+- 句子结构: ${critique.sentenceNotes}
+
+【结构上的建议】
+${structuralLines || "(无)"}
+
+【语言上的建议 — 可挑 2-3 句加入】
+${languageLines || "(无)"}
+
+【错别字】
+${wrongWordLine}
+
+【学生原作文】
+${ocrText}
+
+【任务】
+按规则改写。只输出改写后的作文 (含 [+ +] 标记)，不要 markdown 包围，不要解释，不要标题。`;
+};
+
+export async function buildElevatedDraft(
+  ocrText: string,
+  wrongWords: WrongWord[],
+  critique: Critique,
+  recommendations: Recommendations,
+): Promise<string> {
+  console.log(`[compo:elevate] calling ${ANALYSIS_MODEL}...`);
+  const start = Date.now();
+  const resp = await generateContentWithRetry({
+    model: ANALYSIS_MODEL,
+    contents: [{ role: "user", parts: [{ text: ELEVATE_PROMPT(ocrText, wrongWords, critique, recommendations) }] }],
+    config: { temperature: 0.4 },
+  }, 2, 5000, "compo-elevate");
+  const out = (resp.text ?? "").trim();
+  console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${out.length} chars`);
+  return out;
+}
+
 // ─── Orchestrator ───────────────────────────────────────────────────
 
 export async function analyseCompoAttempt(attemptId: string): Promise<void> {
+  const overallStart = Date.now();
+  const tag = `[compo:${attemptId.slice(-6)}]`;
+  console.log(`${tag} ── analyse start ────────────────────────`);
+
   const attempt = await prisma.compoAttempt.findUnique({ where: { id: attemptId } });
   if (!attempt) throw new Error(`CompoAttempt ${attemptId} not found`);
 
   const compositionImagePaths = (attempt.compositionImagePaths as unknown as string[] | null) ?? [];
   if (compositionImagePaths.length === 0) throw new Error("No composition images");
+  console.log(`${tag} input: ${compositionImagePaths.length} composition file(s), question=${attempt.questionImagePath ?? "(none)"}, optionType=${attempt.optionType ?? "(any)"}, topic=${attempt.studentTopic ?? "(none)"}`);
 
   await prisma.compoAttempt.update({
     where: { id: attemptId },
@@ -394,6 +491,7 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
 
   try {
     // 1. OCR
+    console.log(`${tag} stage 1/4: OCR`);
     const { ocrText, ocrQuestionText } = await runOcr(compositionImagePaths, attempt.questionImagePath);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
@@ -401,32 +499,52 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
     });
 
     // 2. Wrong words
+    console.log(`${tag} stage 2/4: wrong-words`);
     const wrongWords = await detectWrongWords(ocrText);
+    console.log(`${tag} found ${wrongWords.length} wrong-word issue(s)`);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: { wrongWords: wrongWords as never },
     });
 
     // 3. Critique
+    console.log(`${tag} stage 3/4: critique`);
     const critique = await critiqueComposition(ocrText, attempt.optionType, attempt.studentTopic);
+    console.log(`${tag} score: ${critique.overallScore}/40 (内容 ${critique.contentScore}/20, 词汇 ${critique.vocabScore}/10, 句子 ${critique.sentenceScore}/10)`);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: { critique: critique as never },
     });
 
     // 4. Recommendations
+    console.log(`${tag} stage 4/5: recommendations`);
     const recommendations = await recommend(ocrText, critique);
+    console.log(`${tag} ${recommendations.structural.length} structural + ${recommendations.language.length} language recommendation(s)`);
+    await prisma.compoAttempt.update({
+      where: { id: attemptId },
+      data: { recommendations: recommendations as never },
+    });
+
+    // 5. Elevated draft — write the version that would score 35-40,
+    //    anchored to the kid's original plot. New text is wrapped in
+    //    [+ ... +] markers so the UI can render kid words in black
+    //    and additions in green.
+    console.log(`${tag} stage 5/5: elevated draft`);
+    const elevatedDraft = await buildElevatedDraft(ocrText, wrongWords, critique, recommendations);
+    const recsWithDraft: Recommendations = { ...recommendations, elevatedDraft };
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: {
-        recommendations: recommendations as never,
+        recommendations: recsWithDraft as never,
         status: "ready",
         analysedAt: new Date(),
       },
     });
+    console.log(`${tag} ── analyse done in ${((Date.now() - overallStart) / 1000).toFixed(1)}s ────────────`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[compo] analyse failed for ${attemptId}:`, msg);
+    console.error(`${tag} analyse FAILED after ${((Date.now() - overallStart) / 1000).toFixed(1)}s:`, msg);
+    if (err instanceof Error && err.stack) console.error(err.stack);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: { status: "failed", errorMessage: msg },

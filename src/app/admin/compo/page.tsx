@@ -5,6 +5,7 @@
 // Admin-only; the parent /admin layout already gates access.
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type AttemptRow = {
@@ -24,6 +25,7 @@ export default function CompoIndexPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const [label, setLabel] = useState("");
   const [studentTopic, setStudentTopic] = useState("");
@@ -71,7 +73,11 @@ export default function CompoIndexPage() {
 
       setLabel(""); setStudentTopic(""); setOptionType("");
       setQuestionFile(null); setPageFiles([]);
-      await refresh();
+
+      // Land on the detail page so the OCR / wrong-words / critique /
+      // recommendations populate live as each stage completes — the
+      // index page only shows a status badge, which feels frozen.
+      router.push(`/admin/compo/${row.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
