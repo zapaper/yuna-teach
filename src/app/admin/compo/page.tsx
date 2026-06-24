@@ -7,7 +7,7 @@
 // Thumbnails of staged pages render between the buttons and Analyse.
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -64,10 +64,15 @@ export default function CompoIndexPage() {
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
   // /admin requires the userId query param for session resolution —
-  // landing there without it shows an error page.
-  const searchParams = useSearchParams();
-  const userIdParam = searchParams?.get("userId") ?? "";
-  const adminHref = userIdParam ? `/admin?userId=${userIdParam}` : "/admin";
+  // landing there without it shows an error page. Read from
+  // window.location after mount (rather than useSearchParams) so
+  // the page can stay prerenderable.
+  const [adminHref, setAdminHref] = useState("/admin");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const uid = new URLSearchParams(window.location.search).get("userId");
+    if (uid) setAdminHref(`/admin?userId=${uid}`);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
