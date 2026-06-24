@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { LUMI_QUIZ_COMBOS } from "@/lib/lumi-combos";
+import { deriveRationale } from "@/lib/lumi-rationale";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
 import MathText from "@/components/MathText";
@@ -791,7 +792,7 @@ const LUMI_QUIZ_TEST_STUDENT_IDS = new Set([
 ]);
 
 function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
-  const { childFirst, topline, commonMistakes, conceptualGaps, subject } = data;
+  const { childFirst, childFullName, topline, commonMistakes, conceptualGaps, subject } = data;
   const weak = topline.weakTopics[0];
   const m1 = commonMistakes[0];
   const m2 = commonMistakes[1];
@@ -876,6 +877,7 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
             <LumiQuizCombosCard
               studentId={studentId}
               childFirst={childFirst}
+              childFullName={childFullName}
               parentId={parentId}
               totalAvailable={topline.totalAvailable}
             />
@@ -905,7 +907,7 @@ function numWord(n: number): string {
   return ["zero", "one", "two", "three", "four", "five", "six"][n] ?? String(n);
 }
 
-function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalAvailable }: { studentId: string; childFirst: string; parentId: string; totalAvailable: number }) {
+function LumiQuizCombosCard({ studentId, childFirst, childFullName, parentId: _parentId, totalAvailable }: { studentId: string; childFirst: string; childFullName: string; parentId: string; totalAvailable: number }) {
   const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
   // Per-combo "generated" state — keyed by comboIdx. Stays set after
   // generate so the parent doesn't see the button revert and click
@@ -953,7 +955,9 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
             <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex flex-col sm:flex-row sm:items-start gap-3">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
-                <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">{c.rationale}</p>
+                <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">
+                  {deriveRationale(c, childFullName, "science", childFirst) ?? c.rationale}
+                </p>
                 {done && (
                   <p className="text-xs text-green-700 mt-1 font-medium">
                     Quiz generated — it&apos;ll show on {childFirst}&apos;s homepage next time {childFirst} logs in.
