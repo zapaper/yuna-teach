@@ -1,0 +1,58 @@
+{
+  "examples": [
+    {
+      "boringCn": "李明走出教学楼。他碰到了好友平阳。",
+      "boringEn": "Li Ming walked out of the school building. He bumped into his good friend Ping Yang.",
+      "goodCn": "一走出教学楼，李明就碰到了多日不见的好友平阳。",
+      "goodEn": "As soon as he walked out of the school building, Li Ming bumped into his good friend Ping Yang.",
+      "connectorCn": "一……就",
+      "techniqueCn": "用「一 …… 就」表示动作紧接的关联词开头",
+      "techniqueEn": "Use the 一/就 ('as soon as / immediately') pair to chain consecutive actions"
+    },
+    {
+      "boringCn": "我拼命冲向电梯。电梯门还是在我面前关上了。",
+      "boringEn": "I dashed towards the lift desperately. The lift doors still closed in front of me.",
+      "goodCn": "虽然我拼命冲过去制止，但是电梯门还是在我面前紧紧地关上了。",
+      "goodEn": "Although I dashed over desperately to stop it, the lift doors still closed tightly in front of me.",
+      "connectorCn": "虽然……但是",
+      "techniqueCn": "用「虽然 …… 但是」表示转折关系开头",
+      "techniqueEn": "Open with 虽然/但是 ('Although / but') to show a contrast or unexpected result"
+    },
+    {
+      "boringCn": "我看到他们拿出手机。我露出羡慕的目光。",
+      "boringEn": "I saw them take out their mobile phones. I showed an envious look.",
+      "goodCn": "每当看到同学们拿出最新款的手机，我都不由得露出羡慕的目光。",
+      "goodEn": "Whenever I saw my classmates take out the latest mobile phones, I couldn't help but show an envious look.",
+      "connectorCn": "每当……都",
+      "techniqueCn": "用「每当 …… 都」表示经常发生的条件开头",
+      "techniqueEn": "Use 每当/都 ('Whenever / always') to describe a recurring situation"
+    },
+    {
+      "boringCn": "我以为我很了解她。那一天我改变了想法。",
+      "boringEn": "I thought I knew her well. That day I changed my mind.",
+      "goodCn": "直到那一天发生了一件小事，我才真正了解她是一个善解人意的好女孩。",
+      "goodEn": "It was not until a small incident happened that day that I truly understood she was an understanding and kind girl.",
+      "connectorCn": "直到……才",
+      "techniqueCn": "用「直到 …… 才」强调事情发生的转折点",
+      "techniqueEn": "Start with 直到/才 ('Not until / then') to emphasize a turning point"
+    },
+    {
+      "boringCn": "我断断续续讲报告。同学们开始窃窃私语。",
+      "boringEn": "I gave the report haltingly. The classmates started whispering.",
+      "goodCn": "当我断断续续讲报告时，同学们开始窃窃私语。",
+      "goodEn": "When I gave the report haltingly, the classmates started whispering.",
+      "connectorCn": "当……时",
+      "techniqueCn": "用「当 …… 时」表示时间背景开头",
+      "techniqueEn": "Open with 当/时 ('When...') to set the time context"
+    },
+    {
+      "boringCn": "我得到了教训。我明白了互相合作的重要性。",
+      "boringEn": "I learned a lesson. I understood the importance of cooperation.",
+      "goodCn": "自从经过那次惨痛的教训以后，我深深明白了互相合作的重要性。",
+      "goodEn": "Ever since that painful lesson, I have deeply understood the importance of cooperation.",
+      "connectorCn": "自从……以后",
+      "techniqueCn": "用「自从 …… 以后」交代事情带来的长远影响",
+      "techniqueEn": "Use 自从/以后 ('Ever since') to show the long-term impact of an event"
+    }
+  ]
+}

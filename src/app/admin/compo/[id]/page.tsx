@@ -34,6 +34,13 @@ type Critique = RubricBreakdown & {
   benchmarkYears: string[];
 };
 
+type PhraseSwap = {
+  originalText: string;
+  bucket: string;
+  originalEn: string;
+  alternatives: Array<{ cn: string; en: string }>;
+};
+
 type Recommendations = {
   structural: Array<{
     piece: string; pieceEn?: string;
@@ -48,6 +55,7 @@ type Recommendations = {
   elevatedDraft?: string;
   elevatedDraftScore?: number;
   elevatedDraftRubric?: RubricBreakdown;
+  elevatedDraftSwaps?: PhraseSwap[];
 };
 
 type Row = {
@@ -124,10 +132,15 @@ export default function CompoDetailPage() {
 
   const markedHtml = useMemo(() => renderMarked(ocrText, wrongWords), [ocrText, wrongWords]);
   const cleanHtml  = useMemo(() => renderClean(ocrText, wrongWords),  [ocrText, wrongWords]);
-  const elevatedHtml = useMemo(
-    () => renderElevated(row?.recommendations?.elevatedDraft ?? ""),
-    [row?.recommendations?.elevatedDraft],
-  );
+
+  // Client-side substitutions the user has applied via the popup
+  // dropdown. Keyed by the original phrase text. Persists for this
+  // page session only.
+  const [substitutions, setSubstitutions] = useState<Map<string, string>>(new Map());
+  const elevatedDraft = row?.recommendations?.elevatedDraft ?? "";
+  const elevatedSwaps = row?.recommendations?.elevatedDraftSwaps ?? [];
+  // Reset substitutions when the underlying draft changes (re-analyse).
+  useEffect(() => { setSubstitutions(new Map()); }, [elevatedDraft]);
 
   if (!row && !error) return <p className="p-6 text-sm text-slate-500">Loading…</p>;
   if (error)         return <p className="p-6 text-sm text-red-600">{error}</p>;
@@ -203,14 +216,32 @@ export default function CompoDetailPage() {
         {/* Main composition view */}
         <div className="col-span-2">
           <h2 className="text-sm font-semibold text-slate-800 mb-2">作文</h2>
-          <div
-            className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
-            style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
-            dangerouslySetInnerHTML={{ __html:
-              view === "marked"   ? markedHtml :
-              view === "clean"    ? cleanHtml  :
-                                    elevatedHtml }}
-          />
+          {view === "elevated" ? (
+            <div
+              className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
+              style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+            >
+              <ElevatedDraftView
+                draft={elevatedDraft}
+                swaps={elevatedSwaps}
+                substitutions={substitutions}
+                onSubstitute={(orig, replacement) => {
+                  setSubstitutions(prev => {
+                    const next = new Map(prev);
+                    if (replacement) next.set(orig, replacement);
+                    else next.delete(orig);
+                    return next;
+                  });
+                }}
+              />
+            </div>
+          ) : (
+            <div
+              className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
+              style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+              dangerouslySetInnerHTML={{ __html: view === "marked" ? markedHtml : cleanHtml }}
+            />
+          )}
           <WordCountFooter
             view={view}
             ocrText={ocrText}
@@ -286,18 +317,190 @@ function renderClean(ocr: string, ws: WrongWord[]): string {
   return out;
 }
 
-// Elevated draft renderer — AI emits text with `[+inserted+]` markers
-// around new content. Plain text (kid's words) stays in default
-// (black) color; marked text gets the green-bold treatment, same
-// visual language as the Clean rewrite view.
-function renderElevated(text: string): string {
-  if (!text) return "<em style=\"color:#94a3b8\">Enhanced draft not generated yet.</em>";
-  const parts = text.split(/\[\+([\s\S]*?)\+\]/);
-  return parts.map((p, i) =>
-    i % 2 === 0
-      ? escapeHtml(p)
-      : `<span style="color:#047857;font-weight:700">${escapeHtml(p)}</span>`
-  ).join("");
+// Parse a single [+...+] segment for an optional |bucket trailer.
+// Returns { text, bucket } where bucket is null for un-tagged spans.
+function parseMarkedSegment(seg: string): { text: string; bucket: string | null } {
+  const m = seg.match(/^([\s\S]*)\|([a-z]+)$/);
+  if (m) return { text: m[1], bucket: m[2] };
+  return { text: seg, bucket: null };
+}
+
+// React component: renders the elevated draft with kid-words in
+// default colour and AI insertions in bold green. Insertions tagged
+// with a bucket (|opening, |idiom, etc.) become clickable buttons
+// that open a popup with the current phrase's English meaning + a
+// dropdown of context-fit alternatives. Picking an alternative
+// substitutes the phrase in client state.
+function ElevatedDraftView({
+  draft,
+  swaps,
+  substitutions,
+  onSubstitute,
+}: {
+  draft: string;
+  swaps: PhraseSwap[];
+  substitutions: Map<string, string>;
+  onSubstitute: (originalText: string, replacement: string | null) => void;
+}) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  if (!draft) {
+    return <em className="text-slate-400">Enhanced draft not generated yet.</em>;
+  }
+  const swapByText = new Map(swaps.map(s => [s.originalText, s] as const));
+  const parts = draft.split(/\[\+([\s\S]*?)\+\]/);
+  return (
+    <>
+      {parts.map((seg, i) => {
+        if (i % 2 === 0) return <span key={i}>{seg}</span>;
+        const { text, bucket } = parseMarkedSegment(seg);
+        const swap = swapByText.get(text);
+        const replacement = substitutions.get(text);
+        const displayed = replacement ?? text;
+        if (!bucket || !swap) {
+          // Plain green-bold insertion — no alternatives, not clickable.
+          return (
+            <span key={i} style={{ color: "#047857", fontWeight: 700 }}>{displayed}</span>
+          );
+        }
+        const key = `${i}-${text}`;
+        const isOpen = openKey === key;
+        return (
+          <span key={i} style={{ position: "relative", display: "inline" }}>
+            <button
+              type="button"
+              onClick={() => setOpenKey(isOpen ? null : key)}
+              style={{
+                color: "#047857",
+                fontWeight: 700,
+                background: replacement ? "#d1fae5" : "transparent",
+                border: 0,
+                borderBottom: "2px dotted #047857",
+                cursor: "pointer",
+                padding: "0 2px",
+                font: "inherit",
+              }}
+              title={`${bucket}: click to see alternatives`}
+            >
+              {displayed}
+            </button>
+            {isOpen && (
+              <PhrasePopup
+                swap={swap}
+                currentPick={replacement ?? null}
+                onPick={(alt) => {
+                  // Picking the same as original = remove substitution.
+                  onSubstitute(text, alt && alt !== text ? alt : null);
+                  setOpenKey(null);
+                }}
+                onClose={() => setOpenKey(null)}
+              />
+            )}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+function PhrasePopup({
+  swap,
+  currentPick,
+  onPick,
+  onClose,
+}: {
+  swap: PhraseSwap;
+  currentPick: string | null;
+  onPick: (cn: string | null) => void;
+  onClose: () => void;
+}) {
+  // Click-outside to close.
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (!t.closest?.("[data-phrase-popup]") && !t.closest?.("button[title^=" + JSON.stringify(swap.bucket) + "]")) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [onClose, swap.bucket]);
+  return (
+    <div
+      data-phrase-popup
+      style={{
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        marginTop: 4,
+        zIndex: 50,
+        background: "white",
+        border: "1px solid #cbd5e1",
+        borderRadius: 8,
+        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+        padding: 12,
+        minWidth: 280,
+        maxWidth: 420,
+        fontSize: 13,
+        fontWeight: 400,
+        color: "#0f172a",
+        whiteSpace: "normal",
+        textAlign: "left",
+      }}
+    >
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: 4 }}>
+        {swap.bucket}
+      </div>
+      <div style={{ fontWeight: 600, color: "#047857" }}>{swap.originalText}</div>
+      {swap.originalEn && <div style={{ fontStyle: "italic", color: "#475569", fontSize: 12, marginTop: 2 }}>{swap.originalEn}</div>}
+      <div style={{ borderTop: "1px solid #e2e8f0", margin: "10px 0 6px" }} />
+      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
+        {swap.alternatives.length} alternative{swap.alternatives.length === 1 ? "" : "s"}:
+      </div>
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+        {swap.alternatives.map((alt, idx) => {
+          const isPicked = currentPick === alt.cn;
+          return (
+            <li key={idx}>
+              <button
+                type="button"
+                onClick={() => onPick(alt.cn)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "6px 8px",
+                  border: "1px solid " + (isPicked ? "#10b981" : "#e2e8f0"),
+                  borderRadius: 6,
+                  background: isPicked ? "#ecfdf5" : "white",
+                  cursor: "pointer",
+                  font: "inherit",
+                }}
+              >
+                <div style={{ color: "#0f172a" }}>{alt.cn}</div>
+                {alt.en && <div style={{ color: "#64748b", fontSize: 11, fontStyle: "italic", marginTop: 2 }}>{alt.en}</div>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {currentPick && (
+        <button
+          type="button"
+          onClick={() => onPick(null)}
+          style={{
+            marginTop: 8,
+            fontSize: 11,
+            color: "#64748b",
+            background: "transparent",
+            border: 0,
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+        >
+          Revert to original
+        </button>
+      )}
+    </div>
+  );
 }
 
 // ─── Side cards ──────────────────────────────────────────────────────

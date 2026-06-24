@@ -26,6 +26,8 @@ import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
 import playbookJson from "@/data/chinese-compo/playbook.json";
 import featuredJson from "@/data/chinese-compo/featured.json";
+import sentencesJson from "@/data/chinese-compo/sentences.json";
+import phrasesJson from "@/data/chinese-compo/phrases.json";
 
 // Robust JSON extraction. Gemini occasionally appends a stray trailing
 // paragraph after the JSON object — e.g. a model essay snippet or a
@@ -137,6 +139,24 @@ export type Recommendations = {
   // Full rubric breakdown for the elevated draft, so the side panel
   // can swap to it when the user is viewing the Elevated tab.
   elevatedDraftRubric?: RubricBreakdown;
+  // Context-fit phrase alternatives — one entry per substitutable
+  // phrase tagged in the elevated draft. The detail page renders each
+  // tagged phrase as a clickable span; clicking opens a popup with
+  // the current phrase's English meaning + this dropdown.
+  elevatedDraftSwaps?: PhraseSwap[];
+};
+
+export type PhraseSwap = {
+  // Exact text wrapped in [+...+] inside the draft. Used as the
+  // lookup key when the user clicks a span.
+  originalText: string;
+  // What kind of phrase: opening | closing | moral | transition |
+  // accident | careless | idiom | description | other.
+  bucket: string;
+  // Short English meaning of the CURRENT phrase.
+  originalEn: string;
+  // 2-4 alternatives that ALSO fit this essay's specific situation.
+  alternatives: Array<{ cn: string; en: string }>;
 };
 
 // ─── OCR ─────────────────────────────────────────────────────────────
@@ -602,7 +622,46 @@ function buildPhraseBank(): Map<string, PhraseEntry[]> {
       }
     }
   }
+  // Sentence connectors (一……就, 此时此刻, 等等). Each example
+  // carries a connectorCn + a goodCn (the model sentence demonstrating
+  // it). The connector itself goes into the 'connector' bucket; the
+  // demo sentence goes into 'description' as a sentence-variation
+  // example.
+  const sentences = sentencesJson as { examples?: Array<{ connectorCn?: string; goodCn?: string; goodEn?: string; techniqueCn?: string }> };
+  for (const ex of sentences.examples ?? []) {
+    if (ex?.connectorCn) {
+      push("connector", { cn: ex.connectorCn, en: ex.techniqueCn ?? "" });
+    }
+    if (ex?.goodCn) {
+      push("description", { cn: ex.goodCn, en: ex.goodEn });
+    }
+  }
+  // Themed phrases — emotions / scenery-weather / actions. Pulled
+  // into description bucket so the AI can use them as alternatives
+  // for descriptive substitutions.
+  const phrases = phrasesJson as Record<string, unknown>;
+  for (const [, group] of Object.entries(phrases)) {
+    visitPhraseGroup(group, "description", push);
+  }
   return bank;
+}
+
+// Recursive walker for the layered phrases.json structure
+// (root → subgroups → phrases). Pulls any leaf with a cn field.
+function visitPhraseGroup(
+  node: unknown,
+  bucket: string,
+  push: (b: string, e: PhraseEntry) => void,
+): void {
+  if (!node || typeof node !== "object") return;
+  const o = node as Record<string, unknown>;
+  if (typeof o.cn === "string") {
+    push(bucket, { cn: o.cn, en: typeof o.en === "string" ? o.en : undefined });
+  }
+  for (const v of Object.values(o)) {
+    if (Array.isArray(v)) for (const item of v) visitPhraseGroup(item, bucket, push);
+    else if (v && typeof v === "object") visitPhraseGroup(v, bucket, push);
+  }
 }
 
 // FNV-1a-ish 32-bit hash for seeding the shuffle. Same essay → same
@@ -704,6 +763,16 @@ const ELEVATE_PROMPT = (
    · 插入新文字: 在新文字外面包 [+...+]，例: 那天早上[+，阳光明媚，鸟语花香，+]我和爸爸去公园。
    · 替换旧文字: 删掉旧字，写新字时也用 [+...+] 包起来。
    · 学生原本写得好的文字 — 不要包 [+...+] 标记，直接保留。
+   · **如果新加的是一段成型的好句/成语/开头/结尾/描写**，加上 bucket 标签让 UI 可以提供替代选项:
+     格式: [+text|bucket+] (bucket 用英文小写)。bucket 取值之一:
+     opening (开头) / closing (结尾) / moral (寓意) / transition (过渡) /
+     accident (突发事件描写) / careless (粗心懊悔描写) /
+     idiom (成语) / description (描写句 — 心理/场景/动作) /
+     connector (连接词 — 此时此刻 / 一……就 / 与此同时 / 等等)
+     · 例: [+岁月匆匆，许多往事都已经淡忘…|opening+]
+     · 例: [+心跳得像要从胸口跳出来一样|description+]
+     · 例: [+无地自容|idiom+]
+   · 只在 4-8 句最具影响的句子上加 bucket 标签 (典型: 1 开头 + 1 结尾 + 1-2 成语 + 2-3 描写)。其他小修订只用普通 [+...+] 即可。
 4. **改正所有错别字** (用 [+...+] 包正确字)。
 5. **不要标记单字修订** 如果只是改一两个字 (如错别字)。要选成段或成句的提升点，让 markup 有价值。
 
@@ -729,7 +798,7 @@ ${ocrText}
 
 【输出格式 — 严格 JSON】
 {
-  "draft": "<改写后的作文，含 [+ +] 标记。保留 \\n 段落换行>",
+  "draft": "<改写后的作文，含 [+ +] 和 [+...|bucket+] 标记。保留 \\n 段落换行>",
   "estimatedScore": <三项总分>,
   "rubric": {
     "contentScore": <0-20>,
@@ -744,8 +813,27 @@ ${ocrText}
     "overallScore": <三项总和，应等于 estimatedScore>,
     "whyChanged": "<中文 1-2 句: 改写后为什么得到这分 / 和原作差距在哪>",
     "whyChangedEn": "<English 1-2 sentences — why the rewrite earns this score vs the original>"
-  }
+  },
+  "phraseSwaps": [
+    {
+      "originalText": "<exact text that appears between [+ and |bucket+] in the draft>",
+      "bucket": "opening | closing | moral | transition | accident | careless | idiom | description | connector",
+      "originalEn": "<short English meaning of THIS phrase, 1 line>",
+      "alternatives": [
+        { "cn": "<alternative phrase that ALSO fits THIS specific essay's situation>", "en": "<short English meaning>" },
+        { "cn": "<another fit>", "en": "<short English>" },
+        { "cn": "<a third fit>", "en": "<short English>" }
+      ]
+    }
+  ]
 }
+
+【phraseSwaps 注意事项】
+· 每个用 [+...|bucket+] 标记的句子必须在 phraseSwaps 里有对应条目。
+· originalText 必须和 draft 里的文字完全一致 (一字不差)。
+· alternatives 必须切合本作文的具体情境 — 不要给一个安全主题的开头去配一个考试失败的故事。每个 alternative 都要能直接代入而不破坏故事的情绪和上下文。
+· 每条 phraseSwap 给 2-4 个 alternatives。
+· 如果某个 bucket (例如 idiom) 没有合适的替代，就少给一两个 — 宁缺勿滥。
 
 不要 markdown 包围。`;
 };
@@ -755,7 +843,7 @@ export async function buildElevatedDraft(
   wrongWords: WrongWord[],
   critique: Critique,
   recommendations: Recommendations,
-): Promise<{ draft: string; estimatedScore: number; rubric?: RubricBreakdown }> {
+): Promise<{ draft: string; estimatedScore: number; rubric?: RubricBreakdown; swaps?: PhraseSwap[] }> {
   console.log(`[compo:elevate] calling ${ANALYSIS_MODEL}...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
@@ -782,10 +870,29 @@ export async function buildElevatedDraft(
       whyChanged:     String(r.whyChanged ?? ""),
       whyChangedEn:   String(r.whyChangedEn ?? ""),
     } : undefined;
+    // Parse phraseSwaps — defensive: each entry must have a non-empty
+    // originalText and at least one alternative for the popup to be
+    // useful; otherwise drop it.
+    const rawSwaps = Array.isArray(parsed.phraseSwaps) ? parsed.phraseSwaps : [];
+    const swaps: PhraseSwap[] = rawSwaps
+      .filter((s: { originalText?: unknown }) => s && typeof s.originalText === "string" && s.originalText.length > 0)
+      .map((s: { originalText: string; bucket?: string; originalEn?: string; alternatives?: Array<{ cn?: string; en?: string }> }) => {
+        const alts = Array.isArray(s.alternatives) ? s.alternatives : [];
+        return {
+          originalText: s.originalText,
+          bucket: String(s.bucket ?? "other"),
+          originalEn: String(s.originalEn ?? ""),
+          alternatives: alts
+            .filter(a => a && typeof a.cn === "string" && a.cn.length > 0)
+            .map(a => ({ cn: a.cn!, en: String(a.en ?? "") })),
+        };
+      })
+      .filter((s: PhraseSwap) => s.alternatives.length > 0);
     return {
       draft: String(parsed.draft ?? raw),
       estimatedScore: Number(parsed.estimatedScore ?? rubric?.overallScore ?? 33),
       rubric,
+      swaps,
     };
   } catch {
     // AI returned plain text instead of JSON — assume the whole
@@ -861,7 +968,9 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
       elevatedDraft: elev.draft,
       elevatedDraftScore: elev.estimatedScore,
       elevatedDraftRubric: elev.rubric,
+      elevatedDraftSwaps: elev.swaps,
     };
+    console.log(`${tag} ${elev.swaps?.length ?? 0} substitutable phrase(s) with alternatives`);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
       data: {
