@@ -83,9 +83,27 @@ export default function CompoDetailPage() {
     return () => clearInterval(interval);
   }, [refresh, row?.status]);
 
+  const [reanalysing, setReanalysing] = useState(false);
   const reanalyse = async () => {
-    await fetch(`/api/admin/compo/${id}/analyse`, { method: "POST" });
-    await refresh();
+    if (reanalysing) return;
+    setReanalysing(true);
+    setError(null);
+    // Optimistic flip so the in-line tracker shows immediately,
+    // before the network round-trip + server flip lands.
+    setRow(prev => prev ? { ...prev, status: "analysing", errorMessage: null } : prev);
+    try {
+      const res = await fetch(`/api/admin/compo/${id}/analyse`, { method: "POST" });
+      if (!res.ok && res.status !== 202) {
+        const body = await res.text();
+        throw new Error(`Re-analyse failed (${res.status}): ${body}`);
+      }
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      await refresh(); // pull true state on failure
+    } finally {
+      setReanalysing(false);
+    }
   };
 
   const ocrText = row?.ocrText ?? "";
@@ -126,9 +144,10 @@ export default function CompoDetailPage() {
             </button>
             <button
               onClick={reanalyse}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+              disabled={reanalysing || row.status === "analysing"}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Re-analyse
+              {reanalysing || row.status === "analysing" ? "Re-analysing…" : "Re-analyse"}
             </button>
           </div>
         </div>

@@ -40,9 +40,12 @@ function stagedFromFile(f: File): StagedFile {
   const isPdf = f.type === "application/pdf" || name.endsWith(".pdf");
   const isDoc = name.endsWith(".docx");
   const kind: StagedFile["kind"] = isImg ? "image" : isPdf ? "pdf" : isDoc ? "doc" : "text";
+  // Image AND PDF both get a blob URL — PDFs render via <embed> below.
+  // .docx / .txt fall back to an icon tile (no built-in browser preview).
+  const previewable = isImg || isPdf;
   return {
     file: f,
-    previewUrl: isImg ? URL.createObjectURL(f) : "",
+    previewUrl: previewable ? URL.createObjectURL(f) : "",
     kind,
   };
 }
@@ -233,9 +236,24 @@ export default function CompoIndexPage() {
                   {p.kind === "image" ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.previewUrl} alt={`page ${i + 1}`} className="w-full h-44 object-cover" />
+                  ) : p.kind === "pdf" ? (
+                    // <embed> renders the PDF's first page natively in
+                    // Chrome / Edge / Safari. The overflow-hidden +
+                    // pointer-events-none isolate the thumbnail so the
+                    // viewer's scroll / toolbar can't get in the way.
+                    <div className="relative w-full h-44 bg-white overflow-hidden">
+                      <embed
+                        src={`${p.previewUrl}#toolbar=0&navpanes=0&page=1&view=FitH`}
+                        type="application/pdf"
+                        className="w-full h-44 pointer-events-none"
+                      />
+                      <div className="absolute top-1 left-1 bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        PDF
+                      </div>
+                    </div>
                   ) : (
                     <div className="w-full h-44 flex flex-col items-center justify-center text-slate-500 text-xs gap-1">
-                      <div className="text-3xl">{p.kind === "pdf" ? "📄" : p.kind === "doc" ? "📝" : "📃"}</div>
+                      <div className="text-3xl">{p.kind === "doc" ? "📝" : "📃"}</div>
                       <div className="uppercase font-medium">{p.kind}</div>
                     </div>
                   )}
