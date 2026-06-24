@@ -157,7 +157,17 @@ export async function POST(request: NextRequest) {
       englishSectionsMeta = [];
       let idx = 0;
       const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string; passageDisplayText?: string; passagePageIndices?: number[] }> | undefined;
-      for (const [topic, qs] of sectionMap) {
+      // CRITICAL: iterate sortedTopics, NOT sectionMap. sectionMap's
+      // entries() reflects INSERTION order from grouping questions —
+      // which is whatever questionNum order they came in. reorderedQs
+      // (and the order_index assigned to the clones) uses sortedTopics.
+      // Iterating sectionMap here produced startIndex/endIndex values
+      // pointing at the WRONG section, so Synthesis & Transformation
+      // metadata pointed at the Comp Cloze question range and the
+      // quiz/review rendered the Synthesis section as blank. Spotted
+      // on Maha Bodhi 2025 EOY EL P2 (cmqrh9451000114ggzp74sz3h).
+      for (const topic of sortedTopics) {
+        const qs = sectionMap.get(topic)!;
         const topicLower = topic.toLowerCase();
         // Don't set passage for standalone MCQ sections (Grammar MCQ, Vocabulary MCQ)
         const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze") && !topicLower.includes("editing"))
