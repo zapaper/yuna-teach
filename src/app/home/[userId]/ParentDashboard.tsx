@@ -1297,7 +1297,12 @@ export default function ParentDashboard({
   });
 
   function shortenTitle(title: string) {
-    return title
+    // Daily Quiz titles strip down to the bare subject ("Science"),
+    // which loses the type signal in the weekly scheduler. Tag them
+    // with a "- daily" suffix so the parent can distinguish a daily
+    // quiz from a focused practice / paper at a glance.
+    const isDaily = /Daily Quiz/.test(title);
+    const base = title
       .replace(/^P\d+\s+/, "")
       .replace(/Daily Quiz –\s*/, "")
       .replace(/\s*\(MCQ\)$/, "")
@@ -1305,6 +1310,7 @@ export default function ParentDashboard({
       .replace(/Quiz MCQ \+ OEQ$/, "Quiz +OEQ")
       .replace(/Quiz MCQ$/, "Quiz")
       .slice(0, 20);
+    return isDaily ? `${base} - daily` : base;
   }
 
   // Master papers (not assigned = available to assign)
