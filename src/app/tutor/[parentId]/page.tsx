@@ -950,7 +950,7 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
         {combos.map((c, i) => {
           const done = generatedIdxs[i];
           return (
-            <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex items-start gap-3">
+            <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex flex-col sm:flex-row sm:items-start gap-3">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
                 <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">{c.rationale}</p>
@@ -961,7 +961,7 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
                 )}
               </div>
               {done ? (
-                <span className="shrink-0 px-3 py-2 rounded-lg bg-green-100 text-green-800 text-xs font-bold flex items-center gap-1">
+                <span className="self-start sm:self-auto shrink-0 px-3 py-2 rounded-lg bg-green-100 text-green-800 text-xs font-bold flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   Generated
                 </span>
@@ -970,7 +970,7 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
                   type="button"
                   onClick={() => handleGenerate(i)}
                   disabled={submittingIdx !== null}
-                  className="shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
+                  className="self-start sm:self-auto shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
                 >
                   {submittingIdx === i ? (
                     <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
