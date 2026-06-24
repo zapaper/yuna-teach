@@ -153,7 +153,19 @@ export default function CompoDetailPage() {
         <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline print:hidden">← 作文 Helper</Link>
         <div className="flex items-end justify-between mt-2">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">{row.label ?? "(no label)"}</h1>
+            <EditableLabel
+              value={row.label}
+              onSave={async (next) => {
+                const trimmed = next.trim();
+                const result = await fetchJsonSafe<{ row: Row }>(`/api/admin/compo/${id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ label: trimmed.length === 0 ? null : trimmed }),
+                });
+                if (result.ok) setRow(result.data.row);
+                else setError(result.error);
+              }}
+            />
             {row.studentTopic && <p className="text-sm text-slate-600">{row.studentTopic}</p>}
             <p className="text-xs text-slate-500 mt-1">
               uploaded {new Date(row.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}
@@ -592,6 +604,46 @@ function WordCountFooter({
         </span>
       )}
     </div>
+  );
+}
+
+function EditableLabel({
+  value,
+  onSave,
+}: {
+  value: string | null;
+  onSave: (next: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? "");
+  // Keep draft in sync when the row refreshes from the server.
+  useEffect(() => { if (!editing) setDraft(value ?? ""); }, [value, editing]);
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter")   { e.preventDefault(); setEditing(false); void onSave(draft); }
+          if (e.key === "Escape")  { e.preventDefault(); setEditing(false); setDraft(value ?? ""); }
+        }}
+        onBlur={() => { setEditing(false); if (draft !== (value ?? "")) void onSave(draft); }}
+        placeholder="Label this composition (e.g. Mark — 2026-06-25)"
+        className="text-xl font-bold text-slate-900 bg-yellow-50 border-b-2 border-yellow-400 outline-none w-full max-w-lg px-1"
+      />
+    );
+  }
+  const isEmpty = !value;
+  return (
+    <h1
+      onClick={() => setEditing(true)}
+      className={`text-xl font-bold cursor-text hover:bg-slate-50 rounded px-1 -ml-1 inline-block ${isEmpty ? "text-slate-400 italic" : "text-slate-900"}`}
+      title="Click to edit"
+    >
+      {value ?? "(no label — click to add)"}
+    </h1>
   );
 }
 

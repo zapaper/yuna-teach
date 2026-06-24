@@ -19,6 +19,41 @@ export async function GET(
   return NextResponse.json({ row });
 }
 
+// PATCH /api/admin/compo/[id] — update mutable metadata (currently
+// just the human label). Body: { label?: string | null }. Trims
+// strings, accepts null/empty to clear back to '(no label)'.
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { id } = await params;
+  let body: { label?: unknown } = {};
+  try { body = await req.json(); } catch { /* empty body OK */ }
+  const data: { label?: string | null } = {};
+  if ("label" in body) {
+    if (body.label === null) data.label = null;
+    else if (typeof body.label === "string") {
+      const trimmed = body.label.trim();
+      data.label = trimmed.length === 0 ? null : trimmed;
+    } else {
+      return NextResponse.json({ error: "label must be string or null" }, { status: 400 });
+    }
+  }
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "no editable fields supplied" }, { status: 400 });
+  }
+  try {
+    const row = await prisma.compoAttempt.update({ where: { id }, data });
+    return NextResponse.json({ row });
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "P2025") return NextResponse.json({ error: "Not found" }, { status: 404 });
+    console.error(`[compo:${id}] patch failed:`, err);
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
