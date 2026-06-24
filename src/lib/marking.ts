@@ -2308,15 +2308,12 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 }
 
 // Maximum unmarked OEQs we'll let through on the "complete with caveat"
-// path. Anything above this caps the paper at status=failed. The
-// previous cap of 2 was too tight — a Gemini outage that left 3+
-// questions unmarked turned the whole paper into a re-mark blocker
-// when the kid could still see their attempted answers, the marked
-// questions had real verdicts, and the unmarked ones just need a
-// later re-pass. Bumped high enough that any realistic Lumi / daily
-// quiz size completes (~10 questions) with a clear caveat for the
-// parent on which Qs need a manual re-mark.
-const MAX_UNMARKED_FOR_CAVEAT = 50;
+// path. Set to 0: ANY question that the marker couldn't put a verdict
+// on (Gemini + OpenAI all failed) keeps the paper at status=failed so
+// the parent knows it needs a re-mark. Partial / "almost complete"
+// papers are misleading — the score the kid sees doesn't reflect the
+// real total until every question has been visited.
+const MAX_UNMARKED_FOR_CAVEAT = 0;
 
 // Last-resort OpenAI marking attempt for a single OEQ. Called from
 // inside the per-OEQ retry loops AFTER every Gemini attempt has
