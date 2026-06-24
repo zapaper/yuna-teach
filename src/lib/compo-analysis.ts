@@ -151,8 +151,12 @@ export type PhraseSwap = {
   // lookup key when the user clicks a span.
   originalText: string;
   // What kind of phrase: opening | closing | moral | transition |
-  // accident | careless | idiom | description | other.
+  // accident | careless | idiom | description | connector | other.
   bucket: string;
+  // Sub-type within the bucket (e.g. '天气/景物开头' / '时间紧接' /
+  // '心理描写'). Surface in the popup so the admin sees what flavour
+  // they're swapping within. Empty when the AI couldn't classify.
+  subType?: string;
   // Short English meaning of the CURRENT phrase.
   originalEn: string;
   // 2-4 alternatives that ALSO fit this essay's specific situation.
@@ -576,7 +580,18 @@ ${playbookSummary}
 
 不要 markdown 包围。`;
 
-type PhraseEntry = { cn: string; en?: string; fromYear?: string };
+type PhraseEntry = {
+  cn: string;
+  en?: string;
+  fromYear?: string;
+  // Sub-categorisation within the bucket, so the AI can match
+  // by sub-type (e.g. a 'scenery opening' should swap to another
+  // 'scenery opening', not a 'memory opening'). Free-form Chinese
+  // label — taken from the source data wherever the upstream JSON
+  // already categorises (phrases.json subgroups, sentences.json
+  // technique strings).
+  subType?: string;
+};
 
 // Canonical bucket names the recommend prompt + UI expect.
 const PLAYBOOK_BUCKET_MAP: Record<string, string> = {
@@ -625,42 +640,71 @@ function buildPhraseBank(): Map<string, PhraseEntry[]> {
   // Sentence connectors (一……就, 此时此刻, 等等). Each example
   // carries a connectorCn + a goodCn (the model sentence demonstrating
   // it). The connector itself goes into the 'connector' bucket; the
-  // demo sentence goes into 'description' as a sentence-variation
-  // example.
+  // demo sentence goes into 'description'. techniqueCn ("用「一……就」
+  // 表示动作紧接的关联词开头") is the sub-type signal.
   const sentences = sentencesJson as { examples?: Array<{ connectorCn?: string; goodCn?: string; goodEn?: string; techniqueCn?: string }> };
   for (const ex of sentences.examples ?? []) {
     if (ex?.connectorCn) {
-      push("connector", { cn: ex.connectorCn, en: ex.techniqueCn ?? "" });
+      push("connector", { cn: ex.connectorCn, en: ex.techniqueCn ?? "", subType: connectorSubType(ex.techniqueCn ?? "") });
     }
     if (ex?.goodCn) {
-      push("description", { cn: ex.goodCn, en: ex.goodEn });
+      push("description", { cn: ex.goodCn, en: ex.goodEn, subType: "sentence-variation" });
     }
   }
-  // Themed phrases — emotions / scenery-weather / actions. Pulled
-  // into description bucket so the AI can use them as alternatives
-  // for descriptive substitutions.
+  // Themed phrases — emotions / scenery-weather / actions / openings.
+  // Each top-level key carries its own bucket name + walks down to
+  // subgroups (nameCn = sub-type) before reaching the phrase leaves.
   const phrases = phrasesJson as Record<string, unknown>;
-  for (const [, group] of Object.entries(phrases)) {
-    visitPhraseGroup(group, "description", push);
+  for (const [key, group] of Object.entries(phrases)) {
+    // Top-level key maps to one of our canonical buckets where it
+    // makes sense; otherwise drop into 'description'.
+    const bucket =
+      key === "openings"       ? "opening"     :
+      key === "emotions"       ? "description" :  // emotion descriptions are still 'description'
+      key === "sceneryWeather" ? "description" :
+      key === "actions"        ? "description" :
+                                  "description";
+    walkPhraseGroup(group, bucket, /*subType*/ null, push);
   }
   return bank;
 }
 
-// Recursive walker for the layered phrases.json structure
-// (root → subgroups → phrases). Pulls any leaf with a cn field.
-function visitPhraseGroup(
+// Map the techniqueCn string from compo-v2-sentences into a short
+// sub-type label (时间紧接 / 时间地点 / 因果 / 转折 / 等等).
+function connectorSubType(technique: string): string {
+  if (/紧接|动作紧接/.test(technique)) return "时间紧接 (sequential)";
+  if (/时间|时刻|当时/.test(technique))   return "时间 (temporal)";
+  if (/原因|因为|因此|结果/.test(technique)) return "因果 (causal)";
+  if (/转折|然而|可是|但是/.test(technique)) return "转折 (contrast)";
+  if (/地点|场景|环境/.test(technique))     return "地点/场景 (locative)";
+  return "其他 (other)";
+}
+
+// Recursive walker for phrases.json. Each level can carry a nameCn
+// that we treat as the sub-type for any leaf phrases beneath it.
+// Leaves are objects with `cn` set; everything else is descended into.
+function walkPhraseGroup(
   node: unknown,
   bucket: string,
+  inheritedSubType: string | null,
   push: (b: string, e: PhraseEntry) => void,
 ): void {
   if (!node || typeof node !== "object") return;
   const o = node as Record<string, unknown>;
+  const localSubType =
+    (typeof o.nameCn === "string" && o.nameCn) ? o.nameCn :
+    (typeof o.emotionCn === "string" && o.emotionCn) ? o.emotionCn :
+    inheritedSubType;
   if (typeof o.cn === "string") {
-    push(bucket, { cn: o.cn, en: typeof o.en === "string" ? o.en : undefined });
+    push(bucket, {
+      cn: o.cn,
+      en: typeof o.en === "string" ? o.en : undefined,
+      subType: inheritedSubType ?? undefined,  // already-deepest level uses parent's subType
+    });
   }
-  for (const v of Object.values(o)) {
-    if (Array.isArray(v)) for (const item of v) visitPhraseGroup(item, bucket, push);
-    else if (v && typeof v === "object") visitPhraseGroup(v, bucket, push);
+  for (const [, v] of Object.entries(o)) {
+    if (Array.isArray(v)) for (const item of v) walkPhraseGroup(item, bucket, localSubType, push);
+    else if (v && typeof v === "object") walkPhraseGroup(v, bucket, localSubType, push);
   }
 }
 
@@ -702,13 +746,28 @@ function summarizePlaybook(seedText: string): string {
   for (const [bucket, items] of bank) {
     if (items.length === 0) continue;
     // Shuffle deterministically per-essay so the AI doesn't always
-    // see the same #1 candidate. Show ALL — the playbook isn't large
+    // see the same #1 candidate. Show ALL — the bank isn't large
     // enough to blow the token budget.
     const shuffled = seededShuffle(items, seed + bucket.charCodeAt(0));
-    lines.push(`【${bucket}】(${items.length} 个候选)`);
+    // Group by sub-type within the bucket. Phrases with the same
+    // sub-type sit together so the AI can pick alternatives that
+    // match the original phrase's flavour (a 'scenery opening'
+    // should swap to another 'scenery opening', not a 'memory
+    // opening').
+    const bySub = new Map<string, PhraseEntry[]>();
     for (const item of shuffled) {
-      const tag = item.fromYear ? ` (PSLE ${item.fromYear})` : "";
-      lines.push(`  · ${item.cn}${tag}`);
+      const k = item.subType ?? "其他";
+      const arr = bySub.get(k) ?? [];
+      arr.push(item);
+      bySub.set(k, arr);
+    }
+    lines.push(`【${bucket}】(${items.length} 个候选, ${bySub.size} 个子类型)`);
+    for (const [subType, subItems] of bySub) {
+      lines.push(`  --- ${subType} ---`);
+      for (const item of subItems) {
+        const tag = item.fromYear ? ` (PSLE ${item.fromYear})` : "";
+        lines.push(`    · ${item.cn}${tag}`);
+      }
     }
   }
   return lines.join("\n");
@@ -818,11 +877,12 @@ ${ocrText}
     {
       "originalText": "<exact text that appears between [+ and |bucket+] in the draft>",
       "bucket": "opening | closing | moral | transition | accident | careless | idiom | description | connector",
+      "subType": "<sub-type label, e.g. '天气/景物开头' / '时间紧接' / '心理描写'. 留空字串如果无法判定>",
       "originalEn": "<short English meaning of THIS phrase, 1 line>",
       "alternatives": [
-        { "cn": "<alternative phrase that ALSO fits THIS specific essay's situation>", "en": "<short English meaning>" },
-        { "cn": "<another fit>", "en": "<short English>" },
-        { "cn": "<a third fit>", "en": "<short English>" }
+        { "cn": "<same-sub-type alternative that fits THIS essay's situation>", "en": "<short English>" },
+        { "cn": "<another same-sub-type fit>", "en": "<short English>" },
+        { "cn": "<a third same-sub-type fit>", "en": "<short English>" }
       ]
     }
   ]
@@ -831,8 +891,10 @@ ${ocrText}
 【phraseSwaps 注意事项】
 · 每个用 [+...|bucket+] 标记的句子必须在 phraseSwaps 里有对应条目。
 · originalText 必须和 draft 里的文字完全一致 (一字不差)。
-· alternatives 必须切合本作文的具体情境 — 不要给一个安全主题的开头去配一个考试失败的故事。每个 alternative 都要能直接代入而不破坏故事的情绪和上下文。
+· **alternatives 必须切合本作文的具体情境** — 不要给一个安全主题的开头去配一个考试失败的故事。每个 alternative 都要能直接代入而不破坏故事的情绪和上下文。
+· **同子类型替换原则**: 上面的【语句库】每个 bucket 都按子类型分组 (例如 "天气/景物开头" / "悬念开头" / "时间紧接 (sequential)" 等)。alternatives 应该尽量从原句的子类型里挑 — 例如原句是 "景物开头"，就给其他 "景物开头" 当选项，不要混入 "悬念开头"；原句是 "时间紧接" 的 connector，alternatives 也应该是时间紧接类。
 · 每条 phraseSwap 给 2-4 个 alternatives。
+· 设置 subType 字段告诉前端这是什么子类型 (例如 "天气/景物开头" / "时间紧接" / "成语-表羞愧")。如果无法判定子类型，留空字串。
 · 如果某个 bucket (例如 idiom) 没有合适的替代，就少给一两个 — 宁缺勿滥。
 
 不要 markdown 包围。`;
@@ -876,11 +938,12 @@ export async function buildElevatedDraft(
     const rawSwaps = Array.isArray(parsed.phraseSwaps) ? parsed.phraseSwaps : [];
     const swaps: PhraseSwap[] = rawSwaps
       .filter((s: { originalText?: unknown }) => s && typeof s.originalText === "string" && s.originalText.length > 0)
-      .map((s: { originalText: string; bucket?: string; originalEn?: string; alternatives?: Array<{ cn?: string; en?: string }> }) => {
+      .map((s: { originalText: string; bucket?: string; subType?: string; originalEn?: string; alternatives?: Array<{ cn?: string; en?: string }> }) => {
         const alts = Array.isArray(s.alternatives) ? s.alternatives : [];
         return {
           originalText: s.originalText,
           bucket: String(s.bucket ?? "other"),
+          subType: s.subType ? String(s.subType) : undefined,
           originalEn: String(s.originalEn ?? ""),
           alternatives: alts
             .filter(a => a && typeof a.cn === "string" && a.cn.length > 0)

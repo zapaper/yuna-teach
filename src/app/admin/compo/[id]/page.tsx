@@ -37,6 +37,7 @@ type Critique = RubricBreakdown & {
 type PhraseSwap = {
   originalText: string;
   bucket: string;
+  subType?: string;
   originalEn: string;
   alternatives: Array<{ cn: string; en: string }>;
 };
@@ -449,6 +450,11 @@ function PhrasePopup({
     >
       <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: 4 }}>
         {swap.bucket}
+        {swap.subType && (
+          <span style={{ marginLeft: 6, textTransform: "none", letterSpacing: 0, color: "#94a3b8" }}>
+            · {swap.subType}
+          </span>
+        )}
       </div>
       <div style={{ fontWeight: 600, color: "#047857" }}>{swap.originalText}</div>
       {swap.originalEn && <div style={{ fontStyle: "italic", color: "#475569", fontSize: 12, marginTop: 2 }}>{swap.originalEn}</div>}
