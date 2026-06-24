@@ -876,24 +876,33 @@ async function postProcessP4GrammarCloze(
     select: { id: true, questionNum: true, transcribedStem: true },
   });
 
-  // `(N) [optA <SEP> optB]` where SEP is "/" or "," — both separators
-  // are used by school printers (Maha Bodhi 2025 EOY EL P2 used the
-  // comma form, Tao Nan 2025 P4 used the slash form). optA/optB
-  // exclude both separators AND the close bracket so a comma inside
-  // an option can't bleed into the second slot.
-  const TWO_OPTION_RE = /\((\d+)\)\s*\[\s*([^\/,\]]+?)\s*[\/,]\s*([^\/,\]]+?)\s*\]/;
+  // `(N) [optA <SEP> optB]` (labelled) OR plain `[optA <SEP> optB]`
+  // (no inline number — the question's row identifies it). SEP is
+  // "/" or "," — both used by school printers (Maha Bodhi 2025 used
+  // comma + label; Bedok Green 2025 P4 P2 used slash + no label).
+  // optA/optB exclude both separators AND the close bracket so a
+  // comma inside an option can't bleed into the second slot.
+  const TWO_OPTION_LABELLED_RE = /\((\d+)\)\s*\[\s*([^\/,\]]+?)\s*[\/,]\s*([^\/,\]]+?)\s*\]/;
+  const TWO_OPTION_BARE_RE = /\[\s*([^\/,\]]+?)\s*[\/,]\s*([^\/,\]]+?)\s*\]/;
 
   let rewritten = 0;
   for (const q of qs) {
     const stem = q.transcribedStem ?? "";
-    const m = TWO_OPTION_RE.exec(stem);
-    if (!m) continue;
-    const [whole, , optA, optB] = m;
-    const qNum = m[1];
-    // Only rewrite when the captured (N) matches the question's own
-    // questionNum. Otherwise the regex landed on an unrelated bracket
-    // pair (rare for cloze stems, but cheap guard).
-    if (qNum !== q.questionNum) continue;
+    let whole: string;
+    let qNum: string;
+    let optA: string;
+    let optB: string;
+    const m1 = TWO_OPTION_LABELLED_RE.exec(stem);
+    if (m1) {
+      whole = m1[0]; qNum = m1[1]; optA = m1[2]; optB = m1[3];
+      // Labelled — guard against landing on an unrelated bracket pair
+      // by requiring the captured (N) match the question's own number.
+      if (qNum !== q.questionNum) continue;
+    } else {
+      const m2 = TWO_OPTION_BARE_RE.exec(stem);
+      if (!m2) continue;
+      whole = m2[0]; qNum = q.questionNum; optA = m2[1]; optB = m2[2];
+    }
     const replacement = `**(${qNum})________** [${optA.trim()}/${optB.trim()}]`;
     const newStem = stem.replace(whole, replacement);
     await prisma.examQuestion.update({
