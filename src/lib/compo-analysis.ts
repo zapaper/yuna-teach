@@ -25,6 +25,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
 import playbookJson from "@/data/chinese-compo/playbook.json";
+import featuredJson from "@/data/chinese-compo/featured.json";
 
 // Robust JSON extraction. Gemini occasionally appends a stray trailing
 // paragraph after the JSON object — e.g. a model essay snippet or a
@@ -526,6 +527,8 @@ ${playbookSummary}
 【任务】
 1. **structural**: 找出 2-4 个结构上的缺口 — 例如缺少开头悬念、缺过渡句、高潮不够戏剧化、结尾点题不够、寓意 (moral) 不清。每个写明具体在文章哪个位置可以加。
 2. **language**: 从上面的语句库 (或自创类似水平的句子) 推荐 3-5 个具体可以加进作文的句子或词组。不要太多 — 选最有助提升的几句。每句标明应该加在哪个情境/段落。
+   · **重要**: 语句库每个 bucket 都有多个候选 (开头 12+ 个、结尾 12+ 个等等)。请根据本作文的具体情境挑选最贴合的句子，不要总是用列表第一句。如果情境对得上的有 3 个，选最切题的那一个，不要看顺序。
+   · 不同的作文应该用不同的句子 — 即使两篇都是 "明白了一个道理" 的题目。
 
 【输出格式 — 严格 JSON】每个 structural 都需要中英文，方便家长理解。
 {
@@ -553,21 +556,100 @@ ${playbookSummary}
 
 不要 markdown 包围。`;
 
-function summarizePlaybook(): string {
-  // The playbook JSON mixes shapes per top-level key (most are { cn,
-  // en }[], but multiTopicEssays has a different shape). Iterate
-  // dynamically and only emit entries that carry a `cn` field.
+type PhraseEntry = { cn: string; en?: string; fromYear?: string };
+
+// Canonical bucket names the recommend prompt + UI expect.
+const PLAYBOOK_BUCKET_MAP: Record<string, string> = {
+  universalOpenings: "opening",
+  universalClosings: "closing",
+  safetyAccidentDescription: "accident",
+  carelessConfessionDescription: "careless",
+};
+
+// Build a phrase bank merging:
+//   · The 4 hand-curated playbook buckets (universalOpenings / Closings,
+//     safetyAccident / carelessConfession description) — 20 phrases.
+//   · Every classified highlight in the 4 featured 40/40 essays — 29
+//     more phrases tagged by bucket (opening/transition/accident/
+//     careless/closing).
+// = ~49 candidate phrases vs. the 16 the old summariser used.
+function buildPhraseBank(): Map<string, PhraseEntry[]> {
+  const bank = new Map<string, PhraseEntry[]>();
+  const push = (bucket: string, entry: PhraseEntry) => {
+    const list = bank.get(bucket) ?? [];
+    list.push(entry);
+    bank.set(bucket, list);
+  };
+  // Playbook
   const pb = playbookJson as unknown as Record<string, unknown>;
-  const lines: string[] = [];
-  for (const [bucket, items] of Object.entries(pb)) {
+  for (const [rawBucket, items] of Object.entries(pb)) {
     if (!Array.isArray(items)) continue;
-    const cnItems = items.filter((it): it is { cn: string; en?: string } =>
-      !!it && typeof it === "object" && typeof (it as { cn?: unknown }).cn === "string"
-    );
-    if (cnItems.length === 0) continue;
-    lines.push(`【${bucket}】`);
-    for (const item of cnItems.slice(0, 4)) {
-      lines.push(`  · ${item.cn}`);
+    const bucket = PLAYBOOK_BUCKET_MAP[rawBucket] ?? rawBucket;
+    for (const it of items) {
+      if (it && typeof it === "object" && typeof (it as { cn?: unknown }).cn === "string") {
+        const e = it as { cn: string; en?: string };
+        push(bucket, { cn: e.cn, en: e.en });
+      }
+    }
+  }
+  // Featured essay highlights
+  const featured = featuredJson as Array<{ year?: string; highlights?: Array<{ span?: string; bucket?: string }> }>;
+  for (const essay of featured) {
+    if (!Array.isArray(essay.highlights)) continue;
+    for (const h of essay.highlights) {
+      if (h && typeof h.span === "string" && typeof h.bucket === "string") {
+        push(h.bucket, { cn: h.span, fromYear: essay.year });
+      }
+    }
+  }
+  return bank;
+}
+
+// FNV-1a-ish 32-bit hash for seeding the shuffle. Same essay → same
+// order across reruns (stable for the user), but different essays
+// see different orders so the AI's positional bias doesn't keep
+// landing on the same opening across attempts.
+function seedFromText(text: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  // Mulberry32 PRNG — small + fast, deterministic from seed.
+  let s = seed >>> 0;
+  const rand = () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function summarizePlaybook(seedText: string): string {
+  const bank = buildPhraseBank();
+  const seed = seedFromText(seedText);
+  const lines: string[] = [];
+  for (const [bucket, items] of bank) {
+    if (items.length === 0) continue;
+    // Shuffle deterministically per-essay so the AI doesn't always
+    // see the same #1 candidate. Show ALL — the playbook isn't large
+    // enough to blow the token budget.
+    const shuffled = seededShuffle(items, seed + bucket.charCodeAt(0));
+    lines.push(`【${bucket}】(${items.length} 个候选)`);
+    for (const item of shuffled) {
+      const tag = item.fromYear ? ` (PSLE ${item.fromYear})` : "";
+      lines.push(`  · ${item.cn}${tag}`);
     }
   }
   return lines.join("\n");
@@ -577,7 +659,7 @@ export async function recommend(
   ocrText: string,
   critique: Critique,
 ): Promise<Recommendations> {
-  const playbookSummary = summarizePlaybook();
+  const playbookSummary = summarizePlaybook(ocrText);
   console.log(`[compo:recommend] calling ${ANALYSIS_MODEL} (playbook ${playbookSummary.length} chars)...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
