@@ -965,9 +965,15 @@ function ExamReviewContent({ id }: { id: string }) {
     );
   }
 
+  // Sort by orderIndex (numeric) before display. The /mark API
+  // returns the questions in `questionNum` string order — so a 10-
+  // question quiz comes back as Q1, Q10, Q2, Q3, … which scrambles
+  // the review. orderIndex is a real integer set by the quiz-create
+  // endpoints and survives every clone.
+  const orderedQuestions = [...data.questions].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
   const writtenQuestions = isStudent && !isQuiz
-    ? data.questions.filter((q) => q.marksAwarded !== null)
-    : data.questions;
+    ? orderedQuestions.filter((q) => q.marksAwarded !== null)
+    : orderedQuestions;
 
   const incorrectQuestions = writtenQuestions.filter((q) => {
     if (q.marksAwarded === null || q.marksAvailable === null) return false;
