@@ -160,7 +160,12 @@ export async function POST(request: NextRequest) {
         ...(levelVariants ? { level: { in: levelVariants } } : {}),
       },
       marksAvailable: { gte: 2 },
-      id: { notIn: [...seenIds] },
+      // Note: previously this query also did `id: { notIn: [...seenIds] }`
+      // to enforce unseen-only material. For thin topics like P4 Human
+      // Digestive (Emily had attempted most of the pool) that caused a
+      // hard 404. Now we fetch the WHOLE topic pool and tag each group
+      // with isSeen below — the picker prefers unseen, only falls back
+      // to repeats when the unseen pool can't fill the quota.
       // Defensive against blank-stem masters — those render as "Q8:"
       // followed by a blank line and feel broken to the parent, even
       // when self-contained subparts technically fill in the prompt.
@@ -257,33 +262,34 @@ export async function POST(request: NextRequest) {
   for (const g of groupMap.values()) {
     g.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
   }
-  // Drop any group where ANY sibling is in seenIds — re-serving even
-  // one part of a question the kid already attempted defeats the dedup
-  // intent. (Primary pool's `id: notIn seenIds` only caught the lead.)
-  for (const [key, g] of groupMap) {
-    if (g.some(m => seenIds.has(m.id))) groupMap.delete(key);
-  }
   // Each group's "representative" — the picker selects on group reps;
   // the merge step combines all members at write time. We derive
   // selection-relevant fields from the union (skillTags) or the first
   // sibling that has them (subTopic, syllabusTopic, difficulty).
-  type Group = { key: string; rep: Master; members: Master[]; skillTags: string[]; subTopic: string | null; syllabusTopic: string | null; difficulty: number | null };
+  // `isSeen` flags groups where ANY sibling has been attempted by the
+  // kid before — picker prefers !isSeen, falls back to seen only when
+  // the unseen pool can't fill the quota.
+  type Group = { key: string; rep: Master; members: Master[]; skillTags: string[]; subTopic: string | null; syllabusTopic: string | null; difficulty: number | null; isSeen: boolean };
   const groups: Group[] = [];
-  for (const [key, members] of groupMap) {
+  for (const [, members] of groupMap) {
     const rep = members[0];
     const skillTags = [...new Set(members.flatMap(m => m.skillTags ?? []))];
     const subTopic = members.find(m => m.subTopic)?.subTopic ?? null;
     const syllabusTopic = members.find(m => m.syllabusTopic)?.syllabusTopic ?? null;
     const difficulty = members.find(m => m.difficulty != null)?.difficulty ?? null;
-    groups.push({ key, rep, members, skillTags, subTopic, syllabusTopic, difficulty });
+    const isSeen = members.some(m => seenIds.has(m.id));
+    groups.push({ key: `${rep.examPaperId}:${baseNum(rep.questionNum)}`, rep, members, skillTags, subTopic, syllabusTopic, difficulty, isSeen });
   }
 
+  // Only 404 when the whole topic has fewer than 3 master groups at
+  // all — repeats are now allowed (picker prefers unseen, falls back
+  // to seen) so "all seen" no longer fails the request.
   if (groups.length < 3) {
     return NextResponse.json({
-      error: "not enough unseen questions",
+      error: "not enough questions in topic pool",
       detail: activeTopic
-        ? `Only ${masterPool.length} unseen masters in topic "${activeTopic}". Kid has likely already attempted most of them.`
-        : `Only ${masterPool.length} unseen masters with skillTag="${activeSkillTag}".`,
+        ? `Only ${groups.length} master groups exist for topic "${activeTopic}" at this level.`
+        : `Only ${groups.length} master groups exist with skillTag="${activeSkillTag}" at this level.`,
     }, { status: 404 });
   }
 
@@ -322,10 +328,14 @@ export async function POST(request: NextRequest) {
   const pickedKeys = new Set<string>();
   const takeSkillFirst = (pool: Group[], n: number) => {
     const ordered = orderByDifficulty(pool);
-    const withSkill = ordered.filter(g => g.skillTags.includes(activeSkillTag));
-    const without = ordered.filter(g => !g.skillTags.includes(activeSkillTag));
+    // 4-tier ranking: unseen+skill > unseen+nosill > seen+skill > seen+noskill.
+    // Kid gets fresh material first; repeats only fill the remainder.
+    const unseenSkill   = ordered.filter(g => !g.isSeen && g.skillTags.includes(activeSkillTag));
+    const unseenNoSkill = ordered.filter(g => !g.isSeen && !g.skillTags.includes(activeSkillTag));
+    const seenSkill     = ordered.filter(g =>  g.isSeen && g.skillTags.includes(activeSkillTag));
+    const seenNoSkill   = ordered.filter(g =>  g.isSeen && !g.skillTags.includes(activeSkillTag));
     const taken: Group[] = [];
-    for (const g of [...withSkill, ...without]) {
+    for (const g of [...unseenSkill, ...unseenNoSkill, ...seenSkill, ...seenNoSkill]) {
       if (taken.length >= n) break;
       if (pickedKeys.has(g.key)) continue;
       taken.push(g);
