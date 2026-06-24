@@ -996,9 +996,18 @@ function formatP4GrammarClozePassageText(text: string): string {
   let bank: Array<{ letter: string; word: string }> = [];
   const flushBank = () => {
     if (bank.length === 0) return;
-    const letters = "| " + bank.map(p => p.letter).join(" | ") + " |";
-    const sep = "|" + bank.map(() => "---").join("|") + "|";
-    const words = "| " + bank.map(p => p.word).join(" | ") + " |";
+    // Sort by letter so the displayed bank is alphabetical -- some
+    // printers ship the table in column-major order (A in col 1
+    // row 1, B in col 1 row 2, C in col 2 row 1...) and the OCR
+    // reads it row-by-row, which would otherwise leave us with
+    // `A C E B D F` after the merge. Dedupe on letter so a
+    // double-rewrite can't grow the bank.
+    const sorted = [...bank].sort((a, b) => a.letter.localeCompare(b.letter));
+    const seen = new Set<string>();
+    const final = sorted.filter(p => seen.has(p.letter) ? false : (seen.add(p.letter), true));
+    const letters = "| " + final.map(p => p.letter).join(" | ") + " |";
+    const sep = "|" + final.map(() => "---").join("|") + "|";
+    const words = "| " + final.map(p => p.word).join(" | ") + " |";
     out.push(letters);
     out.push(sep);
     out.push(words);
