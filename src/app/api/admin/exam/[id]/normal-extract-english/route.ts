@@ -888,6 +888,12 @@ async function postProcessP4GrammarCloze(
   let rewritten = 0;
   for (const q of qs) {
     const stem = q.transcribedStem ?? "";
+    // Idempotency guard: if the stem already carries the rewritten
+    // `**(N)________**` marker for THIS question, skip — running the
+    // post-pass a second time used to double up the marker (saw
+    // "he **(25)________** **(25)________** [walk/walks]" on the Bedok
+    // Green Booklet A after re-extracting).
+    if (stem.includes(`**(${q.questionNum})________**`)) continue;
     let whole: string;
     let qNum: string;
     let optA: string;
@@ -900,8 +906,26 @@ async function postProcessP4GrammarCloze(
       if (qNum !== q.questionNum) continue;
     } else {
       const m2 = TWO_OPTION_BARE_RE.exec(stem);
-      if (!m2) continue;
-      whole = m2[0]; qNum = q.questionNum; optA = m2[1]; optB = m2[2];
+      if (m2) {
+        whole = m2[0]; qNum = q.questionNum; optA = m2[1]; optB = m2[2];
+      } else {
+        // Word-bank cloze case: stem has a `___` blank but no inline
+        // (N) marker AND no [optA, optB] brackets. Rewrite the FIRST
+        // bare blank to **(N)________** so the quiz player renders
+        // the question number + a real cloze input. No transcribedOptions
+        // set — student picks from the section's word bank.
+        const PLAIN_BLANK_RE = /_{3,}/;
+        const m3 = PLAIN_BLANK_RE.exec(stem);
+        if (!m3) continue;
+        if (stem.includes(`(${q.questionNum})`)) continue; // already has the label inline
+        const newStem = stem.replace(m3[0], `**(${q.questionNum})________**`);
+        await prisma.examQuestion.update({
+          where: { id: q.id },
+          data: { transcribedStem: newStem },
+        });
+        rewritten++;
+        continue;
+      }
     }
     const replacement = `**(${qNum})________** [${optA.trim()}/${optB.trim()}]`;
     const newStem = stem.replace(whole, replacement);
