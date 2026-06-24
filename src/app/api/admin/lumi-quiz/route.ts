@@ -561,11 +561,12 @@ export async function POST(request: NextRequest) {
       pageCount: 0,
       extractionStatus: "ready",
       totalMarks: String(totalMarks),
-      // Lumi quizzes are a curated PRACTICE set, not a fresh
-      // assessment — flag the same way Revise Work practice papers
-      // are flagged so weak-topics + tutor diagnoses don't double-
-      // count their results when the kid attempts them.
-      isRevision: true,
+      // Lumi quizzes ARE fresh practice (curated material the kid
+      // hasn't seen) — counted in average score and listed in All
+      // Activities like a daily quiz. The previous isRevision=true
+      // flag hid them from both, which made the personalised quiz
+      // invisible to the parent after assignment.
+      isRevision: false,
       metadata: {
         revisionMode: "lumi-skill",
         lumiSkillTag: activeSkillTag,
