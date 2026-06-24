@@ -184,6 +184,7 @@ export async function POST(request: NextRequest) {
       transcribedStem: true,
       transcribedOptions: true,
       transcribedOptionImages: true,
+      transcribedOptionTable: true,
       transcribedSubparts: true,
       diagramBounds: true,
       diagramImageData: true,
@@ -219,6 +220,7 @@ export async function POST(request: NextRequest) {
           transcribedStem: true,
           transcribedOptions: true,
           transcribedOptionImages: true,
+          transcribedOptionTable: true,
           transcribedSubparts: true,
           diagramBounds: true,
           diagramImageData: true,
@@ -484,6 +486,13 @@ export async function POST(request: NextRequest) {
     transcribedStem: m.transcribedStem,
     transcribedOptions: (m.transcribedOptions ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     transcribedOptionImages: (m.transcribedOptionImages ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    // transcribedOptionTable carries the structured rows for
+    // table-MCQs ("Which row of the table best describes…"). Without
+    // this, a table-MCQ master clones with no options at all and the
+    // quiz player treats it as an OEQ — silently lost the question
+    // type. Found on Kaiyang's Forces quiz (PSLE 2025 Q25, PSLE 2016
+    // Q21 — both table-MCQs).
+    transcribedOptionTable: (m.transcribedOptionTable ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     transcribedSubparts: (m.transcribedSubparts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     diagramBounds: (m.diagramBounds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     diagramImageData: m.diagramImageData,

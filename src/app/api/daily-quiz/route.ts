@@ -1678,10 +1678,7 @@ export async function POST(request: NextRequest) {
     if (!answer || !answer.trim()) return result;
     // Accept single-letter labels (a, b, c) AND roman-nested labels like
     // (ai), (aii), (bii), (civ). Matches the widened pattern in lib/marking.ts.
-    // Sentence-end + space is ALSO accepted as a boundary so an answer
-    // string like "(a) wheels reduced friction. (b) gravity acts..."
-    // splits at "(b)" instead of dumping all of (b)+(c) into (a).
-    const re = /(^|[|\n]|[.?!]\s)\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
+    const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
     const matches = [...answer.matchAll(re)];
     if (matches.length === 0) return result;
     for (let i = 0; i < matches.length; i++) {
