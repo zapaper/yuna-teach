@@ -940,9 +940,11 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
   return (
     <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
       <p className="text-[#001e40] font-medium">
-        Lumi recommends {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> for {childFirst} — each pair{combos.length === 1 ? "s" : ""} a subtopic
-        where {childFirst} struggles with <strong>a common-mistakes pattern</strong>. Each quiz starts
-        with a short guide and some tips.
+        First, walk through the <strong>common mistakes</strong> and <strong>conceptual gaps</strong> above with {childFirst} — those are the patterns Lumi keeps seeing.
+      </p>
+      <p className="text-[#001e40] font-medium">
+        Then, take the {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> below to drill them. Each one pairs a subtopic
+        where {childFirst} struggles with <strong>a common-mistakes pattern</strong>, and starts with a short guide and some tips.
       </p>
       <div className="space-y-2">
         {combos.map((c, i) => {
