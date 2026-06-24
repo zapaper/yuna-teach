@@ -837,7 +837,7 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
         )}
         {weak && (
           <li>
-            {childFirst}&apos;s weakest topic is <strong>{weak.topic}</strong> ({weak.pct}%).
+            {childFirst}&apos;s weakest topic is <strong>{weak.topic}</strong> (avg. {weak.pct}%).
             A focused practice on this would help — pick this topic in the bar chart above to assign one,
             or jump to {link("topics-section", "Topics for Practice")} below.
           </li>
@@ -852,15 +852,15 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
         {m1 && (
           <li>
             There are common trends in the mistakes. The biggest pattern is
-            {" "}<strong>&ldquo;{m1.name}&rdquo;</strong> ({pctOfSubject(m1.marksLost, topline.totalAvailable)} of the subject score)
-            {m2 && <> and <strong>&ldquo;{m2.name}&rdquo;</strong> ({pctOfSubject(m2.marksLost, topline.totalAvailable)})</>}.
+            {" "}<strong>&ldquo;{m1.name}&rdquo;</strong> ({pctOfSubject(m1.marksLost, topline.totalAvailable)} pt lost)
+            {m2 && <> and <strong>&ldquo;{m2.name}&rdquo;</strong> ({pctOfSubject(m2.marksLost, topline.totalAvailable)} pt lost)</>}.
             Let&apos;s go through these answering techniques with him {link("mistakes-section", "here")}.
           </li>
         )}
         {concept && (
           <li>
             I notice <strong>&ldquo;{concept.name}&rdquo;</strong> is a common conceptual mistake
-            — he&apos;s lost {pctOfSubject(concept.marksLost, topline.totalAvailable)} on questions involving it.
+            — that&apos;s {pctOfSubject(concept.marksLost, topline.totalAvailable)} pt lost on questions involving it.
             I have prepared a short explanation module {link("concepts-section", "here")}.
             We can walk through together, plus take a guided quiz.
           </li>
@@ -1082,13 +1082,13 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
           {topline.strongTopics.length > 0 && (
             <div style={{ fontSize: 14, color: "#0b1c30", lineHeight: 1.6, marginTop: 8 }}>
               <span style={{ fontWeight: 700, color: "#006c49" }}>Strong in: </span>
-              {topline.strongTopics.map(t => `${t.topic} (${t.pct}%)`).join(", ")}
+              {topline.strongTopics.map(t => `${t.topic} (avg. ${t.pct}%)`).join(", ")}
             </div>
           )}
           {topline.weakTopics.length > 0 && (
             <div style={{ fontSize: 14, color: "#0b1c30", lineHeight: 1.6, marginTop: 4 }}>
               <span style={{ fontWeight: 700, color: "#ba1a1a" }}>Watch areas: </span>
-              {topline.weakTopics.map(t => `${t.topic} (${t.pct}%)`).join(", ")}
+              {topline.weakTopics.map(t => `${t.topic} (avg. ${t.pct}%)`).join(", ")}
             </div>
           )}
         </div>
@@ -1225,7 +1225,7 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                   <div style={{ fontSize: 17, fontWeight: 800, color: "#001e40" }}>{m.name}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#7c3aed" }}>
-                    {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
+                    {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, topline.totalAvailable); return p ? ` (${p} pt lost)` : ""; })()}
                   </div>
                 </div>
                 <div
@@ -1253,7 +1253,7 @@ const LumiShareable = forwardRef<HTMLDivElement, { data: Extract<TutorData, { ki
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                   <div style={{ fontSize: 17, fontWeight: 800, color: "#001e40" }}>{c.name}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#ea580c" }}>
-                    {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, topline.totalAvailable); return p ? ` (${p})` : ""; })()}
+                    {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, topline.totalAvailable); return p ? ` (${p} pt lost)` : ""; })()}
                   </div>
                 </div>
                 <div
@@ -1463,7 +1463,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
             {data.commonMistakes.map((m, i) => (
               <button key={m.bucket} onClick={() => onSelectMistake(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-2 bg-slate-50/50 hover:bg-violet-50/40 hover:border-violet-200 transition-colors group">
                 <div>
-                  <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
+                  <p className="text-xs font-bold text-violet-600 mb-1">Mistake {i + 1} · {m.marksLost} marks lost{(() => { const p = pctOfSubject(m.marksLost, t.totalAvailable); return p ? ` (${p} pt lost)` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{m.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(m.what, data.childFirst))) }} />
                 </div>
@@ -1485,7 +1485,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
             {data.conceptualGaps.map((c, i) => (
               <button key={c.bucket} onClick={() => onSelectConcept(i)} className="w-full text-left border border-slate-100 rounded-xl p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-2 bg-slate-50/50 hover:bg-orange-50/40 hover:border-orange-200 transition-colors group">
                 <div>
-                  <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p})` : ""; })()}</p>
+                  <p className="text-xs font-bold text-orange-600 mb-1">Concept · {c.marksLost} marks lost{(() => { const p = pctOfSubject(c.marksLost, t.totalAvailable); return p ? ` (${p} pt lost)` : ""; })()}</p>
                   <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">{c.name}</h3>
                   <p className="text-sm text-slate-600 max-w-2xl" dangerouslySetInnerHTML={{ __html: boldifyHtml(emphasiseQuoted(softenTone(c.what, data.childFirst))) }} />
                 </div>
@@ -1629,7 +1629,7 @@ function MistakeDetail({ card, childFirst, totalAvailable, lazyImages, onGoToFoc
   const dominantTopic = dominantExampleTopic(card.examples);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
+      <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">Common Mistake · {card.marksLost} marks lost{pct ? ` (${pct} pt lost)` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6"><MathText text={emphasiseQuoted(softenTone(card.what, childFirst))} /></p>
 
@@ -1680,7 +1680,7 @@ function ConceptDetail({ card, childFirst, totalAvailable, lazyImages, onGoToFoc
   const dominantTopic = dominantExampleTopic(card.examples);
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct})` : ""}</p>
+      <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Conceptual Gap · {card.marksLost} marks lost{pct ? ` (${pct} pt lost)` : ""}</p>
       <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-2">{card.name}</h2>
       <p className="text-base text-slate-600 leading-relaxed mb-6"><MathText text={emphasiseQuoted(softenTone(card.what, childFirst))} /></p>
 
