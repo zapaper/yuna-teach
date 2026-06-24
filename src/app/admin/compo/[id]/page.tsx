@@ -134,10 +134,8 @@ export default function CompoDetailPage() {
         </div>
       </div>
 
-      {row.status === "analysing" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
-          Analysing… OCR + wrong-word check + 40-mark critique + recommendations. This takes 1-2 minutes.
-        </div>
+      {(row.status === "analysing" || row.status === "uploaded") && (
+        <ProgressTracker row={row} />
       )}
       {row.status === "failed" && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-800">
@@ -266,6 +264,75 @@ function renderElevated(text: string): string {
 }
 
 // ─── Side cards ──────────────────────────────────────────────────────
+
+type Stage = {
+  num: number;
+  label: string;
+  detail: string;
+  done: boolean;
+  current: boolean;
+};
+
+function ProgressTracker({ row }: { row: Row }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const startedAt = new Date(row.createdAt).getTime();
+  const elapsedSec = Math.floor((now - startedAt) / 1000);
+  const mm = Math.floor(elapsedSec / 60);
+  const ss = (elapsedSec % 60).toString().padStart(2, "0");
+
+  const ocrDone = !!row.ocrText && row.ocrText.length > 0;
+  const wrongWordsDone = row.wrongWords !== null;
+  const critiqueDone = row.critique !== null;
+  const recsDone = row.recommendations !== null && row.recommendations.structural !== undefined;
+  const elevDone = !!row.recommendations?.elevatedDraft;
+
+  // The current stage is the first one not yet done.
+  const stages: Stage[] = [
+    { num: 1, label: "OCR", detail: ocrDone ? `${row.ocrText!.length} chars transcribed` : "reading composition with Gemini 3.1-pro…", done: ocrDone, current: false },
+    { num: 2, label: "Wrong-word check", detail: wrongWordsDone ? `${row.wrongWords!.length} issue(s) flagged (错别字 / 漏字 / 用词)` : "scanning for 错别字 / 漏字 / 用词不当…", done: wrongWordsDone, current: false },
+    { num: 3, label: "40-mark rubric critique", detail: critiqueDone ? `${row.critique!.overallScore}/40 (benchmarked vs 10 years of 40/40 PSLE essays, 2016-2025)` : "scoring against 10-year PSLE 40/40 corpus (20 model essays)…", done: critiqueDone, current: false },
+    { num: 4, label: "Recommendations", detail: recsDone ? `${row.recommendations!.structural.length} structural + ${row.recommendations!.language.length} language` : "structural gaps + language upgrades from the playbook…", done: recsDone, current: false },
+    { num: 5, label: "Elevated draft (35-40 target)", detail: elevDone ? `~${row.recommendations!.elevatedDraftScore ?? "?"}/40, ${row.recommendations!.elevatedDraft!.length} chars` : "rewriting in upper-primary voice while keeping the kid's plot…", done: elevDone, current: false },
+  ];
+  const currentIdx = stages.findIndex(s => !s.done);
+  if (currentIdx >= 0) stages[currentIdx].current = true;
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-2">
+      <div className="flex justify-between items-center">
+        <div className="text-sm font-semibold text-amber-900">
+          Analysing… (typically 1-2 min)
+        </div>
+        <div className="text-xs text-amber-700 font-mono">elapsed {mm}:{ss}</div>
+      </div>
+      <ul className="space-y-1.5">
+        {stages.map(s => (
+          <li key={s.num} className="flex items-start gap-2 text-xs">
+            <span className={`mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${
+              s.done    ? "bg-emerald-500 text-white" :
+              s.current ? "bg-amber-500 text-white animate-pulse" :
+                          "bg-slate-200 text-slate-500"
+            }`}>
+              {s.done ? "✓" : s.num}
+            </span>
+            <div className="flex-1">
+              <div className={s.done ? "text-slate-700 font-medium" : s.current ? "text-amber-900 font-medium" : "text-slate-500"}>
+                Stage {s.num}/5 — {s.label}
+              </div>
+              <div className={`text-[11px] ${s.done ? "text-emerald-700" : s.current ? "text-amber-700" : "text-slate-400"}`}>
+                {s.detail}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function CritiqueCard({ c, r }: { c: Critique; r?: Recommendations | null }) {
   return (
