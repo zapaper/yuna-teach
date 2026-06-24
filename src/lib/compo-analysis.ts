@@ -76,7 +76,11 @@ export type WrongWord = {
   reason: string;
 };
 
-export type Critique = {
+// One full PSLE-style rubric breakdown (3 axes + total + why).
+// Used for the as-submitted critique, the clean-rewrite projection,
+// and the elevated-draft self-assessment so the UI can swap which
+// breakdown is shown based on the active composition view.
+export type RubricBreakdown = {
   contentScore: number;        // 0..20
   contentNotes: string;
   contentNotesEn: string;
@@ -87,12 +91,22 @@ export type Critique = {
   sentenceNotes: string;
   sentenceNotesEn: string;
   overallScore: number;        // sum of the three
+  // What changed from the as-submitted score — 1-2 sentences each.
+  // Empty for the original critique (no delta to explain).
+  whyChanged?: string;
+  whyChangedEn?: string;
+};
+
+export type Critique = RubricBreakdown & {
+  // Original-only fields.
   overallSummary: string;
   overallSummaryEn: string;
-  // Estimated score IF every wrong-word fix is applied without
-  // any structural / vocab rewrites. Typically original + 0.5-2 marks
-  // depending on how many character errors there are.
-  cleanRewriteScore: number;
+  // Clean rewrite = same essay with only wrong-word / omission fixes
+  // applied. Full rubric breakdown so the side panel can swap when
+  // the user toggles the Clean view.
+  cleanRewrite?: RubricBreakdown;
+  // Legacy aggregate kept for older rows that pre-date cleanRewrite.
+  cleanRewriteScore?: number;
   benchmarkYears: string[];
 };
 
@@ -118,7 +132,10 @@ export type Recommendations = {
   // fixes, idiom + 好句 substitutions, opening hook, transitions,
   // climax intensification, ending moral).
   elevatedDraft?: string;
-  elevatedDraftScore?: number; // self-assessed score of the elevated draft
+  elevatedDraftScore?: number; // self-assessed score of the elevated draft (legacy aggregate)
+  // Full rubric breakdown for the elevated draft, so the side panel
+  // can swap to it when the user is viewing the Elevated tab.
+  elevatedDraftRubric?: RubricBreakdown;
 };
 
 // ─── OCR ─────────────────────────────────────────────────────────────
@@ -377,7 +394,7 @@ ${ocrText}
 
 【输出格式 — 严格 JSON】每条 Notes 都需要中文 + 英文 (家长版)。
 {
-  "contentScore": <0-20 的整数或半分如 17.5>,
+  "contentScore": <0-20>,
   "contentNotes": "<内容评语 - 中文短>",
   "contentNotesEn": "<content notes — short English>",
   "vocabScore": <0-10>,
@@ -389,8 +406,21 @@ ${ocrText}
   "overallScore": <三项总和>,
   "overallSummary": "<总评 - 中文 1-2 句>",
   "overallSummaryEn": "<short overall summary in English>",
-  "cleanRewriteScore": <如果学生只修正了错别字 / 漏字，分数会是多少 (整数或半分)>,
-  "benchmarkYears": [<参考的 PSLE 年份，如 "2022", "2021">]
+  "cleanRewrite": {
+    "contentScore": <如果只修了错别字和漏字 (没改情节)，内容分会是多少。通常 +0>,
+    "contentNotes": "<中文短>",
+    "contentNotesEn": "<English short>",
+    "vocabScore": <通常 +0 至 +0.5>,
+    "vocabNotes": "<中文短>",
+    "vocabNotesEn": "<English short>",
+    "sentenceScore": <通常 +0.5 至 +1.5 (修标点 / 漏字 / 语法)>,
+    "sentenceNotes": "<中文短>",
+    "sentenceNotesEn": "<English short>",
+    "overallScore": <三项总和>,
+    "whyChanged": "<中文 1-2 句解释: 为什么分数有/没有提升>",
+    "whyChangedEn": "<English 1-2 sentences — why the score moved (or didn't)>"
+  },
+  "benchmarkYears": [<参考的 PSLE 年份>]
 }
 
 不要 markdown 包围。`;
@@ -417,6 +447,23 @@ export async function critiqueComposition(
   const vocabScore = Number(parsed.vocabScore ?? 0);
   const sentenceScore = Number(parsed.sentenceScore ?? 0);
   const overallScore = Number(parsed.overallScore ?? contentScore + vocabScore + sentenceScore);
+  // Parse the cleanRewrite sub-object if present; default to a
+  // pass-through (no delta) so the UI always has something to show.
+  const cr = parsed.cleanRewrite && typeof parsed.cleanRewrite === "object" ? parsed.cleanRewrite : null;
+  const cleanRewrite: RubricBreakdown | undefined = cr ? {
+    contentScore:   Number(cr.contentScore ?? contentScore),
+    contentNotes:   String(cr.contentNotes ?? ""),
+    contentNotesEn: String(cr.contentNotesEn ?? ""),
+    vocabScore:     Number(cr.vocabScore ?? vocabScore),
+    vocabNotes:     String(cr.vocabNotes ?? ""),
+    vocabNotesEn:   String(cr.vocabNotesEn ?? ""),
+    sentenceScore:  Number(cr.sentenceScore ?? sentenceScore),
+    sentenceNotes:  String(cr.sentenceNotes ?? ""),
+    sentenceNotesEn:String(cr.sentenceNotesEn ?? ""),
+    overallScore:   Number(cr.overallScore ?? (Number(cr.contentScore ?? contentScore) + Number(cr.vocabScore ?? vocabScore) + Number(cr.sentenceScore ?? sentenceScore))),
+    whyChanged:     String(cr.whyChanged ?? ""),
+    whyChangedEn:   String(cr.whyChangedEn ?? ""),
+  } : undefined;
   return {
     contentScore,
     contentNotes: String(parsed.contentNotes ?? ""),
@@ -430,7 +477,8 @@ export async function critiqueComposition(
     overallScore,
     overallSummary: String(parsed.overallSummary ?? ""),
     overallSummaryEn: String(parsed.overallSummaryEn ?? ""),
-    cleanRewriteScore: Number(parsed.cleanRewriteScore ?? overallScore),
+    cleanRewrite,
+    cleanRewriteScore: cleanRewrite?.overallScore ?? overallScore,
     benchmarkYears: Array.isArray(parsed.benchmarkYears) ? parsed.benchmarkYears.map(String) : [],
   };
 }
@@ -575,12 +623,26 @@ ${wrongWordLine}
 ${ocrText}
 
 【任务】
-按规则改写，并估计改写后的分数 (要在 35-40 分之间)。
+按规则改写，并对改写后的版本做一份完整的 PSLE 40 分制评分。
 
 【输出格式 — 严格 JSON】
 {
   "draft": "<改写后的作文，含 [+ +] 标记。保留 \\n 段落换行>",
-  "estimatedScore": <整数或半分，35-40 之间>
+  "estimatedScore": <三项总分>,
+  "rubric": {
+    "contentScore": <0-20>,
+    "contentNotes": "<中文短>",
+    "contentNotesEn": "<English short>",
+    "vocabScore": <0-10>,
+    "vocabNotes": "<中文短>",
+    "vocabNotesEn": "<English short>",
+    "sentenceScore": <0-10>,
+    "sentenceNotes": "<中文短>",
+    "sentenceNotesEn": "<English short>",
+    "overallScore": <三项总和，应等于 estimatedScore>,
+    "whyChanged": "<中文 1-2 句: 改写后为什么得到这分 / 和原作差距在哪>",
+    "whyChangedEn": "<English 1-2 sentences — why the rewrite earns this score vs the original>"
+  }
 }
 
 不要 markdown 包围。`;
@@ -591,7 +653,7 @@ export async function buildElevatedDraft(
   wrongWords: WrongWord[],
   critique: Critique,
   recommendations: Recommendations,
-): Promise<{ draft: string; estimatedScore: number }> {
+): Promise<{ draft: string; estimatedScore: number; rubric?: RubricBreakdown }> {
   console.log(`[compo:elevate] calling ${ANALYSIS_MODEL}...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
@@ -603,14 +665,30 @@ export async function buildElevatedDraft(
   console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
   try {
     const parsed = JSON.parse(extractJson(raw));
+    const r = parsed.rubric && typeof parsed.rubric === "object" ? parsed.rubric : null;
+    const rubric: RubricBreakdown | undefined = r ? {
+      contentScore:   Number(r.contentScore ?? 0),
+      contentNotes:   String(r.contentNotes ?? ""),
+      contentNotesEn: String(r.contentNotesEn ?? ""),
+      vocabScore:     Number(r.vocabScore ?? 0),
+      vocabNotes:     String(r.vocabNotes ?? ""),
+      vocabNotesEn:   String(r.vocabNotesEn ?? ""),
+      sentenceScore:  Number(r.sentenceScore ?? 0),
+      sentenceNotes:  String(r.sentenceNotes ?? ""),
+      sentenceNotesEn:String(r.sentenceNotesEn ?? ""),
+      overallScore:   Number(r.overallScore ?? Number(parsed.estimatedScore ?? 0)),
+      whyChanged:     String(r.whyChanged ?? ""),
+      whyChangedEn:   String(r.whyChangedEn ?? ""),
+    } : undefined;
     return {
       draft: String(parsed.draft ?? raw),
-      estimatedScore: Number(parsed.estimatedScore ?? 37),
+      estimatedScore: Number(parsed.estimatedScore ?? rubric?.overallScore ?? 33),
+      rubric,
     };
   } catch {
     // AI returned plain text instead of JSON — assume the whole
-    // response is the draft and pick a default 37/40 estimate.
-    return { draft: raw, estimatedScore: 37 };
+    // response is the draft and pick a conservative 33/40 estimate.
+    return { draft: raw, estimatedScore: 33 };
   }
 }
 
@@ -680,6 +758,7 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
       ...recommendations,
       elevatedDraft: elev.draft,
       elevatedDraftScore: elev.estimatedScore,
+      elevatedDraftRubric: elev.rubric,
     };
     await prisma.compoAttempt.update({
       where: { id: attemptId },

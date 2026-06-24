@@ -17,12 +17,19 @@ type WrongWord = {
   reason: string;
 };
 
-type Critique = {
+type RubricBreakdown = {
   contentScore: number;  contentNotes: string;  contentNotesEn?: string;
   vocabScore: number;    vocabNotes: string;    vocabNotesEn?: string;
   sentenceScore: number; sentenceNotes: string; sentenceNotesEn?: string;
-  overallScore: number;  overallSummary: string; overallSummaryEn?: string;
-  cleanRewriteScore?: number;
+  overallScore: number;
+  whyChanged?: string;
+  whyChangedEn?: string;
+};
+
+type Critique = RubricBreakdown & {
+  overallSummary: string; overallSummaryEn?: string;
+  cleanRewrite?: RubricBreakdown;
+  cleanRewriteScore?: number; // legacy aggregate
   benchmarkYears: string[];
 };
 
@@ -39,6 +46,7 @@ type Recommendations = {
   }>;
   elevatedDraft?: string;
   elevatedDraftScore?: number;
+  elevatedDraftRubric?: RubricBreakdown;
 };
 
 type Row = {
@@ -213,7 +221,7 @@ export default function CompoDetailPage() {
 
         {/* Critique + recommendations side panel */}
         <div className="col-span-1 space-y-4">
-          {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} />}
+          {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} view={view} />}
           {row.recommendations && <RecommendationsCard r={row.recommendations} />}
           {row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}
         </div>
@@ -380,60 +388,109 @@ function ProgressTracker({ row }: { row: Row }) {
   );
 }
 
-function CritiqueCard({ c, r }: { c: Critique; r?: Recommendations | null }) {
+function CritiqueCard({
+  c,
+  r,
+  view,
+}: {
+  c: Critique;
+  r?: Recommendations | null;
+  view: "marked" | "clean" | "elevated";
+}) {
+  // Pick the rubric breakdown for the active view. Falls back to the
+  // original critique if the sub-breakdown isn't populated (older
+  // rows pre-date cleanRewrite / elevatedDraftRubric).
+  const active: RubricBreakdown =
+    view === "elevated" ? (r?.elevatedDraftRubric ?? makeFallback(r?.elevatedDraftScore ?? c.overallScore)) :
+    view === "clean"    ? (c.cleanRewrite ?? makeFallback(c.cleanRewriteScore ?? c.overallScore)) :
+                          c;
+
+  const panelLabel =
+    view === "elevated" ? "Rubric — Elevated draft" :
+    view === "clean"    ? "Rubric — After corrections" :
+                          "Rubric — As submitted";
+
+  const deltaBadge =
+    view !== "marked" && active.overallScore !== c.overallScore ? (
+      <span className={`ml-2 text-[11px] font-semibold ${active.overallScore > c.overallScore ? "text-emerald-700" : "text-rose-700"}`}>
+        {active.overallScore > c.overallScore ? "+" : ""}{(active.overallScore - c.overallScore).toFixed(1)} vs. original
+      </span>
+    ) : null;
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4">
       <div className="flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-slate-800">40-mark rubric</h3>
-        <div className="text-xl font-bold text-slate-900">{c.overallScore}<span className="text-slate-500 text-sm">/40</span></div>
+        <h3 className="text-sm font-semibold text-slate-800">{panelLabel}</h3>
+        <div className="text-xl font-bold text-slate-900">
+          {active.overallScore}<span className="text-slate-500 text-sm">/40</span>
+          {deltaBadge}
+        </div>
       </div>
       <div className="mt-3 space-y-3 text-sm">
         <div>
           <div className="flex justify-between font-medium text-slate-700">
-            <span>内容 Content</span><span>{c.contentScore}/20</span>
+            <span>内容 Content</span><span>{active.contentScore}/20</span>
           </div>
-          <p className="text-slate-600 text-xs mt-0.5">{c.contentNotes}</p>
-          {c.contentNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.contentNotesEn}</p>}
+          <p className="text-slate-600 text-xs mt-0.5">{active.contentNotes}</p>
+          {active.contentNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.contentNotesEn}</p>}
         </div>
         <div>
           <div className="flex justify-between font-medium text-slate-700">
-            <span>词汇好句 Vocab &amp; phrases</span><span>{c.vocabScore}/10</span>
+            <span>词汇好句 Vocab &amp; phrases</span><span>{active.vocabScore}/10</span>
           </div>
-          <p className="text-slate-600 text-xs mt-0.5">{c.vocabNotes}</p>
-          {c.vocabNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.vocabNotesEn}</p>}
+          <p className="text-slate-600 text-xs mt-0.5">{active.vocabNotes}</p>
+          {active.vocabNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.vocabNotesEn}</p>}
         </div>
         <div>
           <div className="flex justify-between font-medium text-slate-700">
-            <span>句子结构 Sentence &amp; org</span><span>{c.sentenceScore}/10</span>
+            <span>句子结构 Sentence &amp; org</span><span>{active.sentenceScore}/10</span>
           </div>
-          <p className="text-slate-600 text-xs mt-0.5">{c.sentenceNotes}</p>
-          {c.sentenceNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{c.sentenceNotesEn}</p>}
+          <p className="text-slate-600 text-xs mt-0.5">{active.sentenceNotes}</p>
+          {active.sentenceNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.sentenceNotesEn}</p>}
         </div>
+
+        {/* "Why this score" — for the Clean / Elevated views, surface
+            the delta-vs-original explanation. For the Original view,
+            show the overall summary as before. */}
         <div className="pt-3 border-t border-slate-100">
-          <p className="text-xs text-slate-700 italic">{c.overallSummary}</p>
-          {c.overallSummaryEn && <p className="text-[11px] text-slate-500 italic mt-0.5">{c.overallSummaryEn}</p>}
-          {c.benchmarkYears.length > 0 && (
+          {view === "marked" ? (
+            <>
+              <p className="text-xs text-slate-700 italic">{c.overallSummary}</p>
+              {c.overallSummaryEn && <p className="text-[11px] text-slate-500 italic mt-0.5">{c.overallSummaryEn}</p>}
+            </>
+          ) : (
+            <>
+              <div className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">
+                Why this score
+              </div>
+              {active.whyChanged && <p className="text-xs text-slate-700">{active.whyChanged}</p>}
+              {active.whyChangedEn && <p className="text-[11px] text-slate-500 italic mt-0.5">{active.whyChangedEn}</p>}
+              {!active.whyChanged && !active.whyChangedEn && (
+                <p className="text-xs text-slate-400 italic">
+                  No detailed breakdown returned for this view — re-analyse to refresh.
+                </p>
+              )}
+            </>
+          )}
+          {c.benchmarkYears.length > 0 && view === "marked" && (
             <p className="text-[10px] text-slate-400 mt-1">benchmarked vs PSLE {c.benchmarkYears.join(", ")}</p>
-          )}
-        </div>
-        {/* Projected scores for the two rewrites. */}
-        <div className="pt-3 border-t border-slate-100 space-y-1">
-          {c.cleanRewriteScore !== undefined && c.cleanRewriteScore !== c.overallScore && (
-            <div className="flex justify-between text-xs">
-              <span className="text-emerald-700 font-medium">If errors fixed (Clean rewrite)</span>
-              <span className="text-emerald-800 font-bold">{c.cleanRewriteScore}/40</span>
-            </div>
-          )}
-          {r?.elevatedDraftScore !== undefined && (
-            <div className="flex justify-between text-xs">
-              <span className="text-emerald-700 font-medium">Elevated draft (35-40 target)</span>
-              <span className="text-emerald-800 font-bold">{r.elevatedDraftScore}/40</span>
-            </div>
           )}
         </div>
       </div>
     </div>
   );
+}
+
+// Stub-out a RubricBreakdown when the AI didn't return one (older rows,
+// fallback path). Caller picks the overall score; the axes are zeroed
+// out so the UI doesn't lie about per-axis breakdowns it can't show.
+function makeFallback(overallScore: number): RubricBreakdown {
+  return {
+    contentScore: 0, contentNotes: "", contentNotesEn: "",
+    vocabScore: 0,   vocabNotes: "",   vocabNotesEn: "",
+    sentenceScore: 0, sentenceNotes: "", sentenceNotesEn: "",
+    overallScore,
+  };
 }
 
 function RecommendationsCard({ r }: { r: Recommendations }) {
