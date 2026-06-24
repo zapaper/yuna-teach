@@ -204,6 +204,13 @@ interface ReviewData {
   // revision paper IS a curated set of past mistakes, so a 0% on
   // the ring is just demoralising).
   isRevision?: boolean;
+  // True when this paper is a Lumi personalised quiz
+  // (metadata.revisionMode === "lumi-skill"). Lumi quizzes are
+  // scored like daily quizzes — fresh material, % score is
+  // meaningful — even though they carry isRevision=true at the DB
+  // level so they don't pollute the kid's progress stats. Treat
+  // the review UI as if isRevision were false.
+  isLumiQuiz?: boolean;
   // True only when this paper was printed and the student wrote on the
   // printable PDF (signal: any question has printableBounds). In-app
   // typed quizzes never have submission images on disk, so we hide
@@ -431,6 +438,9 @@ function ExamReviewContent({ id }: { id: string }) {
         let paperIsQuiz = false;
         // Hoisted so the markData merge below can attach this.
         let paperReviewAnnotations: Record<string, string> | null = null;
+        // Hoisted so the Lumi-quiz override below can read it without
+        // pulling the whole paper object out of the if-block scope.
+        let paperRevisionMode: string | null = null;
         if (paperRes.ok) {
           const paper = await paperRes.json();
           paperReviewAnnotations = (paper.reviewAnnotations as Record<string, string> | null) ?? null;
@@ -465,6 +475,7 @@ function ExamReviewContent({ id }: { id: string }) {
             const chSecs = (paper.metadata as { chineseSections?: typeof paper.metadata.englishSections } | undefined)?.chineseSections;
             if (chSecs) setEnglishSections(chSecs);
           }
+          paperRevisionMode = (paper.metadata as { revisionMode?: string } | null)?.revisionMode ?? null;
           if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
           if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
           if (paper.metadata?.oeqPageMap) setOeqPageMap(paper.metadata.oeqPageMap as Record<string, number>);
@@ -522,6 +533,13 @@ function ExamReviewContent({ id }: { id: string }) {
           // mark route doesn't carry reviewAnnotations — pull from the
           // paper response so the overlay's initialDataUrl seeds correctly.
           markData.reviewAnnotations = paperReviewAnnotations;
+          // Lumi personalised quizzes are tagged isRevision=true at
+          // the DB level so they bypass the kid's progress stats, but
+          // for review-page rendering we want them to behave like a
+          // daily quiz (score ring + "Questions" labels, NOT
+          // "Revision set" / "Mistakes"). The metadata.revisionMode
+          // value is set by /api/admin/lumi-quiz.
+          if (paperRevisionMode === "lumi-skill") markData.isLumiQuiz = true;
           setData(markData);
           // Pre-populate cached elaborations and flagged state.
           // Cache value may be JSON ({solution, diagrams}) or legacy
@@ -1076,7 +1094,11 @@ function ExamReviewContent({ id }: { id: string }) {
   // Compiled "revise work" papers are a curated set of past mistakes;
   // any score is misleading (would always read 0–low%), so treat
   // them as if not yet marked for the score-ring purposes.
-  const isMarked = !data.isRevision && (data.markingStatus === "complete" || data.markingStatus === "released");
+  // Lumi quizzes carry isRevision=true at the DB level but render
+  // like a fresh daily quiz — score ring and totals make sense for
+  // them. Treat them as not-revision for the marked-status gate.
+  const treatAsRevision = !!data.isRevision && !data.isLumiQuiz;
+  const isMarked = !treatAsRevision && (data.markingStatus === "complete" || data.markingStatus === "released");
   const pct = isMarked && totalM && totalM > 0 ? Math.min(100, Math.round((effectiveScore / totalM) * 100)) : null;
   const denominatorLabel = rawTotal !== null
     ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
@@ -1103,7 +1125,7 @@ function ExamReviewContent({ id }: { id: string }) {
   // Friendly one-liner encouragement based on percentage. Revision
   // papers swap the score-pegged copy for plain "Revision set" so
   // there's still a useful header line.
-  const encouragement = data.isRevision ? "Revision set"
+  const encouragement = treatAsRevision ? "Revision set"
     : !isMarked ? "Not marked yet"
     : pct === null ? "Keep going!"
     : pct >= 90 ? "Outstanding work!"
@@ -1765,7 +1787,7 @@ function ExamReviewContent({ id }: { id: string }) {
                 <span className="material-symbols-outlined">quiz</span>
               </div>
               <div>
-                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">{data.isRevision ? "Mistakes" : "Questions"}</p>
+                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">{treatAsRevision ? "Mistakes" : "Questions"}</p>
                 {/* Revision papers pad passage sections with right-
                     answered companions so the cloze renderer can
                     fill every blank — the parent doesn't care that
@@ -1774,7 +1796,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     (= incorrect questions in the compiled paper).
                     Showing 328 / 100 was confusing because both
                     over-counted what the parent actually asked for. */}
-                <p className="font-headline text-xl font-bold text-[#001e40]">{data.isRevision ? incorrectQuestions.length : writtenQuestions.length}</p>
+                <p className="font-headline text-xl font-bold text-[#001e40]">{treatAsRevision ? incorrectQuestions.length : writtenQuestions.length}</p>
               </div>
             </div>
             <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm flex-1">
