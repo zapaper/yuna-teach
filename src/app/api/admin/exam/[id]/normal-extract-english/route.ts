@@ -909,15 +909,17 @@ async function postProcessP4GrammarCloze(
       if (m2) {
         whole = m2[0]; qNum = q.questionNum; optA = m2[1]; optB = m2[2];
       } else {
-        // Word-bank cloze case: stem has a `___` blank but no inline
-        // (N) marker AND no [optA, optB] brackets. Rewrite the FIRST
-        // bare blank to **(N)________** so the quiz player renders
-        // the question number + a real cloze input. No transcribedOptions
-        // set — student picks from the section's word bank.
-        const PLAIN_BLANK_RE = /_{3,}/;
-        const m3 = PLAIN_BLANK_RE.exec(stem);
+        // Word-bank cloze case: stem has a `___` blank (no [optA, optB]
+        // brackets). Two shapes seen in P4 papers:
+        //   · labelled: `(17) ___` — Bedok Green 2025 P4 Booklet B
+        //   · bare: `___` only — earlier OCR sometimes drops the label
+        // Some transcribers also emit markdown-escaped underscores
+        // (`\_\_\_`) instead of raw `___`, so accept both.
+        const BLANK = String.raw`(?:\\_|_){3,}`;
+        const LABELLED_BLANK_RE = new RegExp(String.raw`\(` + q.questionNum + String.raw`\)\s*` + BLANK);
+        const PLAIN_BLANK_RE = new RegExp(BLANK);
+        const m3 = LABELLED_BLANK_RE.exec(stem) ?? PLAIN_BLANK_RE.exec(stem);
         if (!m3) continue;
-        if (stem.includes(`(${q.questionNum})`)) continue; // already has the label inline
         const newStem = stem.replace(m3[0], `**(${q.questionNum})________**`);
         await prisma.examQuestion.update({
           where: { id: q.id },
