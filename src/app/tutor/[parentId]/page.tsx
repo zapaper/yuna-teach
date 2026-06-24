@@ -943,7 +943,7 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
         First, walk through the <strong>common mistakes</strong> and <strong>conceptual gaps</strong> above with {childFirst} — those are the patterns Lumi keeps seeing.
       </p>
       <p className="text-[#001e40] font-medium">
-        Then, take the {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> below to drill them. Each one pairs a subtopic
+        Then, take the {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> below to drill them. Each one pairs a <strong>subtopic</strong>
         where {childFirst} struggles with <strong>a common-mistakes pattern</strong>, and starts with a short guide and some tips.
       </p>
       <div className="space-y-2">
