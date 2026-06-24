@@ -308,35 +308,51 @@ export default function CompoIndexPage() {
         ) : (
           <div className="space-y-2">
             {rows.map((r) => (
-              <Link
+              <div
                 key={r.id}
-                href={`/admin/compo/${r.id}`}
-                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-400"
+                className="relative bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-400 group"
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      {r.label ?? "(no label)"}
-                      {r.studentTopic && <span className="ml-2 text-slate-500 text-sm">— {r.studentTopic}</span>}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {new Date(r.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}
-                      {r.optionType && <> · {r.optionType}</>}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <StatusBadge status={r.status} />
-                    {r.critique?.overallScore !== undefined && (
-                      <div className="text-sm font-semibold text-slate-800 mt-1">
-                        {r.critique.overallScore}/40
+                <Link href={`/admin/compo/${r.id}`} className="block">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium text-slate-800">
+                        {r.label ?? "(no label)"}
+                        {r.studentTopic && <span className="ml-2 text-slate-500 text-sm">— {r.studentTopic}</span>}
                       </div>
-                    )}
+                      <div className="text-xs text-slate-500 mt-1">
+                        {new Date(r.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}
+                        {r.optionType && <> · {r.optionType}</>}
+                      </div>
+                    </div>
+                    <div className="text-right pr-16">
+                      <StatusBadge status={r.status} />
+                      {r.critique?.overallScore !== undefined && (
+                        <div className="text-sm font-semibold text-slate-800 mt-1">
+                          {r.critique.overallScore}/40
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {r.errorMessage && (
-                  <div className="text-xs text-red-600 mt-2 line-clamp-2">{r.errorMessage}</div>
-                )}
-              </Link>
+                  {r.errorMessage && (
+                    <div className="text-xs text-red-600 mt-2 line-clamp-2">{r.errorMessage}</div>
+                  )}
+                </Link>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!confirm(`Delete '${r.label ?? "this analysis"}'? Removes the uploaded pages + generated output. Cannot be undone.`)) return;
+                    const res = await fetchJsonSafe(`/api/admin/compo/${r.id}`, { method: "DELETE" });
+                    if (res.ok) refresh();
+                    else setError(res.error);
+                  }}
+                  className="absolute top-3 right-3 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 opacity-0 group-hover:opacity-100 transition"
+                  title="Delete this analysis"
+                >
+                  Delete
+                </button>
+              </div>
             ))}
           </div>
         )}

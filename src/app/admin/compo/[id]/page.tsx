@@ -176,6 +176,21 @@ export default function CompoDetailPage() {
             >
               {reanalysing || row.status === "analysing" ? "Re-analysing…" : "Re-analyse"}
             </button>
+            <button
+              onClick={async () => {
+                if (!confirm(`Delete this analysis (${row.label ?? "no label"})? This removes the uploaded pages and all generated output. Cannot be undone.`)) return;
+                const res = await fetchJsonSafe(`/api/admin/compo/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                  window.location.href = "/admin/compo";
+                } else {
+                  setError(res.error);
+                }
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100"
+              title="Delete this analysis + uploaded pages"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -577,12 +592,17 @@ function WordCountFooter({
 }
 
 function ProgressTracker({ row }: { row: Row }) {
+  // Anchor the timer to when THIS tracker mount started (i.e. when
+  // status flipped to analysing), not to row.createdAt. The
+  // tracker is unmounted between runs (it only renders when status
+  // is analysing/uploaded), so a fresh useState on mount gives a
+  // clean 0:00 on every re-analyse.
+  const [startedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const startedAt = new Date(row.createdAt).getTime();
   const elapsedSec = Math.floor((now - startedAt) / 1000);
   const mm = Math.floor(elapsedSec / 60);
   const ss = (elapsedSec % 60).toString().padStart(2, "0");
