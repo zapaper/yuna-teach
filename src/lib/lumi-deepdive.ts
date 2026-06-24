@@ -12,6 +12,7 @@
 //   sentences for free, we just have to surface them.
 
 import { TUTOR_CACHE } from "@/lib/tutor-cache";
+import { generateContentWithRetry } from "@/lib/gemini";
 
 // Keywords per syllabus topic. Used to score each cached pattern's
 // "what" text against the combo's topic and pick the best match.
@@ -172,4 +173,64 @@ export function getDeepDivePreamble(
     .replace(/\s+/g, " ")
     .trim();
   return { heading, watchOut: bullets };
+}
+
+// In-process cache so repeat calls to reframeAsAdvice with the same
+// input don't re-hit Gemini. Server restart clears it; that's fine
+// because the reframed result lives on paper.metadata.lumiPreamble
+// after quiz creation and only THIS function needs to be fast.
+const reframeCache = new Map<string, string>();
+
+// Convert a workshop "what" bullet (mistake callout — "The student
+// tends to forget X") into kid-facing advice ("Remember that X..."),
+// using Gemini at quiz-creation time. Parallel-safe; if Gemini errors
+// or returns something useless, returns the input unchanged.
+export async function reframeAsAdvice(bullet: string): Promise<string> {
+  const trimmed = bullet.trim();
+  if (trimmed.length < 8) return trimmed;
+  const cached = reframeCache.get(trimmed);
+  if (cached) return cached;
+  const prompt = `Reframe this Singapore Primary Science workshop note into a SHORT, friendly piece of advice the student can read just before a quiz.
+
+Note: "${trimmed}"
+
+Rules:
+- DO NOT call out the mistake or use words like "you", "tends to", "often", "sometimes confuses", "the student".
+- Frame as a tip: start with "Remember", "Watch out for", "Don't forget", "Make sure to", or similar.
+- One short sentence (max ~25 words).
+- Keep the scientific content, just flip the framing.
+- No quotation marks, no leading bullet character.
+
+Example
+  Input: "Tends to identify the obvious solid objects in a container but occasionally forgets that air (a gas) is also present in the empty spaces."
+  Output: Remember that an "empty" container still holds air — air is a gas and takes up space.
+
+Just give the rewritten sentence, no labels or quotes.`;
+  try {
+    const res = await generateContentWithRetry(
+      { model: "gemini-2.5-flash", contents: prompt, config: { temperature: 0.2 } },
+      1, 3000, "reframe-advice",
+    );
+    let out = (res.text ?? "").trim();
+    // Defensive cleanup — strip wrapping quotes / leading bullet chars
+    // / "Output:" labels Gemini sometimes prepends.
+    out = out.replace(/^["'`]+|["'`]+$/g, "").replace(/^[-•*]\s+/, "").replace(/^output\s*:\s*/i, "").trim();
+    if (out.length < 8 || /tends to|sometimes confuses|often jumps|the student/i.test(out)) {
+      // Didn't reframe — fall back to original
+      reframeCache.set(trimmed, trimmed);
+      return trimmed;
+    }
+    reframeCache.set(trimmed, out);
+    return out;
+  } catch {
+    reframeCache.set(trimmed, trimmed);
+    return trimmed;
+  }
+}
+
+// Reframe a whole DeepDivePreamble's watchOut list. Calls reframeAsAdvice
+// in parallel for speed.
+export async function reframePreamble(preamble: DeepDivePreamble): Promise<DeepDivePreamble> {
+  const reframed = await Promise.all(preamble.watchOut.map(reframeAsAdvice));
+  return { heading: preamble.heading, watchOut: reframed };
 }

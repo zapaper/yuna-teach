@@ -43,7 +43,7 @@ import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
 import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag, type LumiPreamble } from "@/lib/science-skills";
 import { LUMI_QUIZ_COMBOS, type LumiQuizCombo } from "@/lib/lumi-combos";
-import { getDeepDivePreamble } from "@/lib/lumi-deepdive";
+import { getDeepDivePreamble, reframePreamble } from "@/lib/lumi-deepdive";
 
 const SUBJECT_FULL: Record<"science", string> = {
   science: "Science",
@@ -536,7 +536,14 @@ export async function POST(request: NextRequest) {
   let topicBlock = activeCombo?.topicRecap;
   if (activeCombo) {
     const deepDive = getDeepDivePreamble(student.name ?? "", subject as "science", activeCombo.topic);
-    if (deepDive) topicBlock = deepDive;
+    if (deepDive) {
+      // Reframe each "mistake callout" bullet ("Tends to forget X")
+      // into kid-facing advice ("Remember that X..."). Adds ~1-2s to
+      // quiz creation, runs in parallel across the 2-6 bullets. The
+      // result is stamped onto metadata.lumiPreamble so the quiz
+      // player renders ready-made advice — no runtime LLM call.
+      topicBlock = await reframePreamble(deepDive);
+    }
   }
   const lumiPreamble: LumiPreamble = activeCombo
     ? { topic: topicBlock!, skill: skillBlock }
