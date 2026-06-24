@@ -72,11 +72,17 @@ export type Recommendations = {
 
 // ─── OCR ─────────────────────────────────────────────────────────────
 
-async function readImageBase64(relPath: string): Promise<{ data: string; mimeType: string }> {
+async function readFileForGemini(relPath: string): Promise<{ data: string; mimeType: string }> {
   const abs = path.join(COMPO_DIR, relPath);
   const buf = await fs.readFile(abs);
   const ext = path.extname(relPath).toLowerCase();
-  const mimeType = ext === ".png" ? "image/png" : "image/jpeg";
+  // Gemini inlineData accepts image/* AND application/pdf. A user can
+  // upload either a multi-page PDF (single file) or one image per page.
+  const mimeType =
+    ext === ".pdf"  ? "application/pdf" :
+    ext === ".png"  ? "image/png"       :
+    ext === ".webp" ? "image/webp"      :
+                      "image/jpeg";
   return { data: buf.toString("base64"), mimeType };
 }
 
@@ -119,7 +125,7 @@ export async function runOcr(
   // can stitch paragraph breaks across page boundaries.
   const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
   for (const p of compositionImagePaths) {
-    const img = await readImageBase64(p);
+    const img = await readFileForGemini(p);
     compParts.push({ inlineData: img });
   }
   compParts.push({ text: OCR_PROMPT_BODY });
@@ -133,7 +139,7 @@ export async function runOcr(
 
   let ocrQuestionText: string | null = null;
   if (questionImagePath) {
-    const img = await readImageBase64(questionImagePath);
+    const img = await readFileForGemini(questionImagePath);
     const qResp = await generateContentWithRetry({
       model: OCR_MODEL,
       contents: [{ role: "user", parts: [

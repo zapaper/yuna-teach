@@ -129,27 +129,29 @@ export default function CompoIndexPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Question scan (optional — prompt or picture series)</span>
+          <span className="text-xs font-medium text-slate-600">Question scan (optional — prompt or picture series, image or PDF)</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             className="mt-1 block w-full text-sm"
             onChange={(e) => setQuestionFile(e.target.files?.[0] ?? null)}
           />
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-600">Composition pages (required — 1 or more, in order)</span>
+          <span className="text-xs font-medium text-slate-600">Composition pages (required — image(s) OR a single PDF)</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             multiple
             className="mt-1 block w-full text-sm"
             onChange={(e) => setPageFiles(Array.from(e.target.files ?? []))}
           />
-          {pageFiles.length > 0 && (
+          {pageFiles.length === 0 ? (
+            <p className="mt-1 text-xs text-amber-700">Select at least one file to enable the button below.</p>
+          ) : (
             <p className="mt-1 text-xs text-slate-500">
-              {pageFiles.length} page(s) selected: {pageFiles.map(f => f.name).join(", ")}
+              {pageFiles.length} file(s) selected: {pageFiles.map(f => f.name).join(", ")}
             </p>
           )}
         </label>
