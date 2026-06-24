@@ -131,7 +131,7 @@ export default function CompoDetailPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-5">
       <div>
-        <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline">← Compo</Link>
+        <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline">← 作文 Helper</Link>
         <div className="flex items-end justify-between mt-2">
           <div>
             <h1 className="text-xl font-bold text-slate-900">{row.label ?? "(no label)"}</h1>

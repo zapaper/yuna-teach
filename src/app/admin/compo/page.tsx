@@ -142,12 +142,7 @@ export default function CompoIndexPage() {
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div>
         <Link href="/admin" className="text-sm text-slate-500 hover:underline">← Admin</Link>
-        <h1 className="text-2xl font-bold text-slate-900 mt-2">Compo — Chinese composition marker</h1>
-        <p className="text-sm text-slate-600 mt-1">
-          Upload OR scan a student composition. Gemini 3.1-pro will OCR, flag wrong words,
-          score against the PSLE 40-mark rubric, and recommend structural + language upgrades
-          drawn from the 10-year model-essay corpus.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900 mt-2">作文 Helper</h1>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
