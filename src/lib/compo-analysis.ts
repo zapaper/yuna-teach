@@ -915,7 +915,10 @@ export async function buildElevatedDraft(
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: ELEVATE_PROMPT(ocrText, wrongWords, critique, recommendations) }] }],
-    config: { responseMimeType: "application/json", temperature: 0.4 },
+    // Elevate ships draft + rubric + phraseSwaps with nested alternatives —
+    // easily 4-6k output tokens. Default model cap can cut us off mid-JSON,
+    // which then leaks raw JSON into the displayed draft. Lift the cap.
+    config: { responseMimeType: "application/json", temperature: 0.4, maxOutputTokens: 16384 },
   }, 2, 5000, "compo-elevate");
   const raw = (resp.text ?? "").trim();
   console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
@@ -961,10 +964,20 @@ export async function buildElevatedDraft(
       rubric,
       swaps,
     };
-  } catch {
-    // AI returned plain text instead of JSON — assume the whole
-    // response is the draft and pick a conservative 33/40 estimate.
-    return { draft: raw, estimatedScore: 33 };
+  } catch (err) {
+    // AI returned plain text or truncated/malformed JSON. The previous
+    // fallback dumped the raw JSON wrapper into the draft field, which
+    // surfaced as '{ "draft": "...' in the UI — make that loud instead.
+    console.error(`[compo:elevate] JSON parse FAILED, output ${raw.length} chars. First 200 chars:`, raw.slice(0, 200));
+    console.error(`[compo:elevate] parse error:`, err);
+    // Heuristic recovery: if the response starts with a JSON object,
+    // try to pull just the "draft" string with a regex. Otherwise
+    // surface a placeholder so the admin knows to re-analyse.
+    const draftMatch = raw.match(/"draft"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"|"\s*\})/);
+    if (draftMatch && draftMatch[1].length > 50) {
+      return { draft: draftMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'), estimatedScore: 33 };
+    }
+    return { draft: "(Enhanced draft generation failed — re-analyse to retry.)", estimatedScore: 0 };
   }
 }
 

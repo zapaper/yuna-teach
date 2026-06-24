@@ -150,7 +150,7 @@ export default function CompoDetailPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-5">
       <div>
-        <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline">← 作文 Helper</Link>
+        <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline print:hidden">← 作文 Helper</Link>
         <div className="flex items-end justify-between mt-2">
           <div>
             <h1 className="text-xl font-bold text-slate-900">{row.label ?? "(no label)"}</h1>
@@ -161,7 +161,7 @@ export default function CompoDetailPage() {
               {row.optionType && <> · {row.optionType}</>}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 print:hidden">
             <button
               onClick={() => window.print()}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -205,7 +205,7 @@ export default function CompoDetailPage() {
       )}
 
       {/* View toggle */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap print:hidden">
         <button
           onClick={() => setView("marked")}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium ${view === "marked" ? "bg-slate-900 text-white" : "bg-white border border-slate-300 text-slate-700"}`}
@@ -228,9 +228,9 @@ export default function CompoDetailPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-3 gap-5 print:grid-cols-1 print:gap-0">
         {/* Main composition view */}
-        <div className="col-span-2">
+        <div className="col-span-2 print:col-span-1">
           <h2 className="text-sm font-semibold text-slate-800 mb-2">作文</h2>
           {view === "elevated" ? (
             <div
@@ -264,15 +264,19 @@ export default function CompoDetailPage() {
             elevatedDraft={row?.recommendations?.elevatedDraft ?? null}
           />
           {row.ocrQuestionText && (
-            <details className="mt-4">
+            <details className="mt-4 print:hidden">
               <summary className="text-xs text-slate-500 cursor-pointer">Question / picture-series OCR</summary>
               <pre className="mt-2 text-xs bg-slate-50 p-3 rounded-lg whitespace-pre-wrap">{row.ocrQuestionText}</pre>
             </details>
           )}
         </div>
 
-        {/* Critique + recommendations side panel */}
-        <div className="col-span-1 space-y-4">
+        {/* Critique + recommendations side panel. In print, this column
+            unfolds into a stack below the main composition (the page
+            grid collapses to one column) — and we add explicit spacing
+            so the Wrong-words card lands with breathing room below
+            the passage, full width, instead of getting scrunched. */}
+        <div className="col-span-1 print:col-span-1 space-y-4 print:mt-12 print:space-y-8">
           {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} view={view} />}
           {row.recommendations && <RecommendationsCard r={row.recommendations} />}
           {row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}

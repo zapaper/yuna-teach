@@ -159,18 +159,21 @@ function Content() {
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 24 hours · {data.tz}</h2>
               <div className="flex items-stretch gap-1 h-32">
                 {data.hourly.map((b, i) => {
-                  const hPct = Math.min(100, Math.round((b.total / maxHourly) * 100));
-                  // (cap clamped at 100% so the rare outlier bar
-                  // hits the top instead of overflowing — see
-                  // robustCap above for the cap derivation.)
-                  const failPct = b.total > 0 ? Math.round((b.failed / b.total) * 100) : 0;
-                  const stuckPct = b.total > 0 ? Math.round((b.stuck / b.total) * 100) : 0;
+                  // Each segment scales to the chart max — NOT to the
+                  // bar's own total. Otherwise the failed % stacked
+                  // on top of a full-height green bar overflows the
+                  // chart and red looks 2x bigger than it should.
+                  // Bottom-up (flex-col-reverse): complete → fail → stuck.
+                  const pct = (n: number) => Math.min(100, Math.round((n / maxHourly) * 100));
+                  const completePct = pct(b.complete);
+                  const failedPct = pct(b.failed);
+                  const stuckPct = pct(b.stuck);
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${b.bucket} — total ${b.total}, complete ${b.complete}, in-progress ${b.inProgress}, stuck ${b.stuck}, failed ${b.failed}`}>
                       <div className="w-full flex-1 flex flex-col-reverse">
-                        <div className="bg-green-500" style={{ height: `${hPct}%`, minHeight: b.total > 0 ? 2 : 0 }} />
-                        {failPct > 0 && <div className="bg-red-500" style={{ height: `${failPct}%`, minHeight: 2 }} />}
-                        {stuckPct > 0 && <div className="bg-amber-500" style={{ height: `${stuckPct}%`, minHeight: 2 }} />}
+                        {completePct > 0 && <div className="bg-green-500" style={{ height: `${completePct}%`, minHeight: 2 }} />}
+                        {failedPct > 0   && <div className="bg-red-500"   style={{ height: `${failedPct}%`,   minHeight: 2 }} />}
+                        {stuckPct > 0    && <div className="bg-amber-500" style={{ height: `${stuckPct}%`,    minHeight: 2 }} />}
                       </div>
                       <div className="text-[9px] text-slate-400 -rotate-45 origin-top-left whitespace-nowrap mt-1 ml-2">{b.bucket.slice(11, 13)}</div>
                     </div>
@@ -228,13 +231,16 @@ function Content() {
               <h2 className="text-sm font-bold text-slate-700 mb-3">Last 14 days · {data.tz}</h2>
               <div className="flex items-stretch gap-2 h-32">
                 {data.daily.map((b, i) => {
-                  const hPct = Math.min(100, Math.round((b.total / maxDaily) * 100));
+                  const pct = (n: number) => Math.min(100, Math.round((n / maxDaily) * 100));
+                  const completePct = pct(b.complete);
+                  const failedPct = pct(b.failed);
+                  const stuckPct = pct(b.stuck);
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${b.bucket} — total ${b.total}, complete ${b.complete}, in-progress ${b.inProgress}, stuck ${b.stuck}, failed ${b.failed}`}>
                       <div className="w-full flex-1 flex flex-col-reverse">
-                        <div className="bg-green-500" style={{ height: `${hPct}%`, minHeight: b.total > 0 ? 2 : 0 }} />
-                        {b.failed > 0 && <div className="bg-red-500" style={{ height: `${(b.failed / b.total) * 100}%`, minHeight: 2 }} />}
-                        {b.stuck > 0 && <div className="bg-amber-500" style={{ height: `${(b.stuck / b.total) * 100}%`, minHeight: 2 }} />}
+                        {completePct > 0 && <div className="bg-green-500" style={{ height: `${completePct}%`, minHeight: 2 }} />}
+                        {failedPct > 0   && <div className="bg-red-500"   style={{ height: `${failedPct}%`,   minHeight: 2 }} />}
+                        {stuckPct > 0    && <div className="bg-amber-500" style={{ height: `${stuckPct}%`,    minHeight: 2 }} />}
                       </div>
                       <div className="text-[10px] text-slate-500">{b.bucket.slice(5)}</div>
                       <div className="text-[9px] text-slate-400 font-bold">{b.total}</div>
