@@ -807,6 +807,15 @@ export async function POST(
   if (isP4) {
     p4Rewritten = await postProcessP4GrammarCloze(paper.id, sections, paper.questions);
     console.log(`[normal-extract] P4 grammar-cloze post-pass: rewrote ${p4Rewritten} stems.`);
+    // The OCR step stores the word-bank rows as plain inline text
+    // ("(A) he (B) it (C) us") and the inline blanks as `(N) \_\_\_`.
+    // The quiz renderer wants a markdown table for the bank and
+    // `**(N)________**` for the blanks. Rewrite the section's stored
+    // ocrText / passageDisplayText / passageOcrText so the next quiz
+    // render (which pulls from metadata.sectionOcrTexts) shows the
+    // correctly-formatted passage.
+    const rewrittenSections = await postProcessP4GrammarClozePassage(paper.id, sections);
+    console.log(`[normal-extract] P4 grammar-cloze passage rewrite: ${rewrittenSections} section(s) reformatted.`);
   }
 
   // Map sectionType -> the corresponding metadata flag.
@@ -943,6 +952,117 @@ async function postProcessP4GrammarCloze(
     });
     rewritten++;
   }
+  return rewritten;
+}
+
+// Format an inline P4 grammar-cloze passage. Two transforms:
+//   1. Merge "(A) he (B) it (C) us\n(D) me (E) her (F) you"-style
+//      word-bank rows into a single markdown table the quiz
+//      renderer (PassageWithInputs / TableLine) shows as a grid.
+//   2. Rewrite inline blanks: `(N) ___` → `**(N)________**`, and
+//      `(N) [optA / optB]` → `**(N)________** [optA/optB]`.
+//
+// Both transforms are idempotent: lines already in markdown-table
+// form are passed through; stems already in `**(N)________**` form
+// are unchanged. Escaped underscores (`\_\_\_`) and plain `___`
+// are both accepted -- different transcription runs emit either.
+function formatP4GrammarClozePassageText(text: string): string {
+  const PAIR_RE = /\(([A-Z])\)\s+(\S+)/g;
+  const pairsOnLine = (line: string): Array<{ letter: string; word: string }> | null => {
+    const t = line.trim();
+    if (!t) return null;
+    const pairs: Array<{ letter: string; word: string }> = [];
+    let m: RegExpExecArray | null;
+    let lastEnd = 0;
+    PAIR_RE.lastIndex = 0;
+    while ((m = PAIR_RE.exec(t)) !== null) {
+      if (m.index > lastEnd && !/^\s*$/.test(t.slice(lastEnd, m.index))) return null;
+      pairs.push({ letter: m[1], word: m[2] });
+      lastEnd = m.index + m[0].length;
+    }
+    if (lastEnd < t.length && !/^\s*$/.test(t.slice(lastEnd))) return null;
+    return pairs.length >= 2 ? pairs : null;
+  };
+
+  const lines = text.split("\n");
+  const out: string[] = [];
+  let bank: Array<{ letter: string; word: string }> = [];
+  const flushBank = () => {
+    if (bank.length === 0) return;
+    const letters = "| " + bank.map(p => p.letter).join(" | ") + " |";
+    const sep = "|" + bank.map(() => "---").join("|") + "|";
+    const words = "| " + bank.map(p => p.word).join(" | ") + " |";
+    out.push(letters);
+    out.push(sep);
+    out.push(words);
+    bank = [];
+  };
+  for (const line of lines) {
+    const p = pairsOnLine(line);
+    if (p) { bank.push(...p); continue; }
+    flushBank();
+    out.push(line);
+  }
+  flushBank();
+
+  let result = out.join("\n");
+  // (N) ___  or  (N) \_\_\_  -> **(N)________**
+  result = result.replace(/\((\d+)\)\s*(?:\\_|_){3,}/g, (_m, n: string) => `**(${n})________**`);
+  // (N) [optA / optB] -> **(N)________** [optA/optB]
+  result = result.replace(
+    /\((\d+)\)\s*\[\s*([^/,\]]+?)\s*[/,]\s*([^/,\]]+?)\s*\]/g,
+    (_m, n: string, a: string, b: string) => `**(${n})________** [${a.trim()}/${b.trim()}]`,
+  );
+  // Idempotency normalisation: if a prior run left `****(N)________****`
+  // (or wider) -- or this run's blank-rewrite landed inside the
+  // 2-option rewrite's already-emitted `**...**` -- collapse the
+  // outer `*` runs down to exactly two on each side.
+  result = result.replace(/\*{2,}\((\d+)\)________\*{2,}/g, (_m, n: string) => `**(${n})________**`);
+  return result;
+}
+
+async function postProcessP4GrammarClozePassage(
+  paperId: string,
+  sections: SecMeta[],
+): Promise<number> {
+  if (sections.length === 0) return 0;
+  const paper = await prisma.examPaper.findUnique({
+    where: { id: paperId },
+    select: { metadata: true },
+  });
+  if (!paper) return 0;
+  const meta = (paper.metadata ?? {}) as {
+    sectionOcrTexts?: Record<string, { ocrText?: string; passageOcrText?: string; passageDisplayText?: string }>;
+  };
+  const sectionOcrTexts = meta.sectionOcrTexts ?? {};
+  let rewritten = 0;
+  for (const sec of sections) {
+    // Section keys are stored as-is (e.g. "Grammar Cloze", "Grammar Cloze (pp7-7)").
+    // Match the section by exact label first, then by case-insensitive contains.
+    const sectionKey =
+      sectionOcrTexts[sec.label] ? sec.label :
+      Object.keys(sectionOcrTexts).find(k => k.toLowerCase() === sec.label.toLowerCase()) ??
+      Object.keys(sectionOcrTexts).find(k => k.toLowerCase().includes("grammar cloze"));
+    if (!sectionKey) continue;
+    const entry = sectionOcrTexts[sectionKey];
+    if (!entry) continue;
+    const src = entry.ocrText ?? entry.passageOcrText ?? "";
+    if (!src) continue;
+    const formatted = formatP4GrammarClozePassageText(src);
+    if (formatted === src && entry.passageDisplayText === formatted) continue;
+    sectionOcrTexts[sectionKey] = {
+      ...entry,
+      ocrText: formatted,
+      passageOcrText: formatted,
+      passageDisplayText: formatted,
+    };
+    rewritten++;
+  }
+  if (rewritten === 0) return 0;
+  await prisma.examPaper.update({
+    where: { id: paperId },
+    data: { metadata: { ...meta, sectionOcrTexts } as never },
+  });
   return rewritten;
 }
 
