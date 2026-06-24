@@ -233,11 +233,60 @@ const JEREMIAH_COMBOS: LumiQuizCombo[] = [
   },
 ];
 
+// Emily lim (P4) — strong overall (80%+ across the board) but two
+// clear stable gaps: Cycles in matter (83%, n=31 — biggest sample +
+// her two top patterns both anchor here: "confuses water volume with
+// water level" + "forgets air is present in empty containers") and
+// Human digestive system (80%, n=15 — pattern [2] is direct: "mixes
+// up small/large intestine jobs"). P4 has no skill tags yet so
+// combos pass precise-vocabulary as a no-op (picker uses topic-only
+// matching when the skill pool is empty).
+const EMILY_COMBOS: LumiQuizCombo[] = [
+  {
+    label: "Cycles in matter — volume + air",
+    rationale: "Your biggest gap with the most data (n=31, 83%). Lumi keeps seeing two patterns here — water level vs volume, and forgetting that air takes up space.",
+    topic: "Cycles in matter",
+    subTopicWeights: {
+      "measuring-volume-displacement": 3,
+      "properties-of-matter": 4,
+      "interpreting-heating-curves-data": 2,
+      "water-cycle-applications": 1,
+    },
+    skillTag: "precise-vocabulary",
+    topicRecap: {
+      heading: "Cycles in matter — volume + air",
+      watchOut: [
+        "Water LEVEL rising and water VOLUME increasing are two different things — only the displaced water tells you the object's volume.",
+        "Air is matter. An 'empty' bottle still holds air; it takes up space and has mass.",
+      ],
+    },
+  },
+  {
+    label: "Human digestive system — intestines",
+    rationale: "Your lowest stable topic (80%, n=15). Lumi sees a specific small-vs-large intestine confusion that keeps showing up.",
+    topic: "Human digestive system",
+    subTopicWeights: {
+      "organ-identification-and-function": 5,
+      "factors-and-system-interactions": 3,
+      "process-of-digestion-and-absorption": 2,
+    },
+    skillTag: "precise-vocabulary",
+    topicRecap: {
+      heading: "Digestive system — intestines",
+      watchOut: [
+        "Small intestine absorbs DIGESTED nutrients. Large intestine absorbs WATER from undigested food.",
+        "Get the order right: mouth → oesophagus → stomach → small intestine → large intestine.",
+      ],
+    },
+  },
+];
+
 export const LUMI_QUIZ_COMBOS: Record<string, LumiQuizCombo[]> = {
   "cmm5wf91d000ryrxwaddlo6xh": DAVID_COMBOS,   // David Lim
   "cmmbbyvs30004qa9yinn3drl6": MARK_COMBOS,    // Mark Lim (kid; admin@yunateach.com's student)
   "cmojzr4fu004gd4vnx8wmz6zk": KAIYANG_COMBOS, // Kaiyangnggg
   "cmnk7dkkj006z14p6yf06ohzm": JEREMIAH_COMBOS, // JeremiahSy
+  "cmmfmmnwy00fdbbbfgm7k3wpn": EMILY_COMBOS,    // Emily lim (P4)
   // student67 cloned from David's combos — same level, same target gaps
   // for the test cohort. Swap to bespoke combos when we have a real
   // diagnosis for this kid.

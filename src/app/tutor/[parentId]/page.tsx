@@ -787,6 +787,7 @@ const LUMI_QUIZ_TEST_STUDENT_IDS = new Set([
   "cmqg8upha0000l3ijfr3co6t8",  // student67 (combos cloned from David)
   "cmojzr4fu004gd4vnx8wmz6zk",  // Kaiyangnggg (P6, bespoke combos)
   "cmnk7dkkj006z14p6yf06ohzm",  // JeremiahSy (P5, bespoke combos)
+  "cmmfmmnwy00fdbbbfgm7k3wpn",  // Emily lim (P4, bespoke combos)
 ]);
 
 function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
