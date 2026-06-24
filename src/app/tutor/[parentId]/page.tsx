@@ -899,6 +899,12 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
 // already use to suppress sparse-data panels elsewhere.
 const LUMI_COMBO_SPARSE_DATA_THRESHOLD = 100;
 
+// Spell-out small integers for the intro sentence — "two" reads
+// nicer than "2" when the combo count is in prose.
+function numWord(n: number): string {
+  return ["zero", "one", "two", "three", "four", "five", "six"][n] ?? String(n);
+}
+
 function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalAvailable }: { studentId: string; childFirst: string; parentId: string; totalAvailable: number }) {
   const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
   // Per-combo "generated" state — keyed by comboIdx. Stays set after
@@ -934,7 +940,7 @@ function LumiQuizCombosCard({ studentId, childFirst, parentId: _parentId, totalA
   return (
     <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
       <p className="text-[#001e40] font-medium">
-        Lumi recommends two <strong>personalised quizzes</strong> for {childFirst} — each pairs a subtopic
+        Lumi recommends {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> for {childFirst} — each pair{combos.length === 1 ? "s" : ""} a subtopic
         where {childFirst} struggles with <strong>a common-mistakes pattern</strong>.
       </p>
       <div className="space-y-2">
