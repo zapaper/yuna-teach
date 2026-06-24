@@ -73,6 +73,7 @@ export default function DocumentScanner({
   studentName,
   paperTitle,
   onClose,
+  onComplete,
 }: {
   parentId: string;
   masterPaperId: string;
@@ -80,6 +81,12 @@ export default function DocumentScanner({
   studentName?: string | null;
   paperTitle?: string | null;
   onClose: () => void;
+  // When provided, replaces the default exam-submit flow — the parent
+  // gets the captured page blobs and handles upload itself. Used by
+  // the Compo admin tool to route scanned compositions into the
+  // /api/admin/compo endpoint instead of /api/exam/.../scan-submit.
+  // If not provided, the existing exam-paper submit behaviour runs.
+  onComplete?: (pages: Array<{ blob: Blob; index: number }>) => Promise<void>;
 }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("loading");
@@ -627,36 +634,43 @@ export default function DocumentScanner({
   const handleSubmit = useCallback(async () => {
     if (pages.length === 0) return;
     setStage("submitting");
-    setStatusMsg("Sending to marker…");
+    setStatusMsg(onComplete ? "Adding scanned pages…" : "Sending to marker…");
     try {
-      const form = new FormData();
-      form.append("studentId", studentId);
-      pages.forEach((p, i) => {
-        form.append(`page_${i}`, p.blob, `page_${i}.jpg`);
-      });
-      const res = await fetch(`/api/exam/${masterPaperId}/scan-submit?userId=${parentId}`, {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.cloneId) {
-        throw new Error(data?.error ?? `submit failed (${res.status})`);
+      if (onComplete) {
+        // Compo / external-caller mode — hand the page blobs to the
+        // parent and let it decide what to do (upload to /admin/compo,
+        // attach to a draft, etc.). The parent is responsible for any
+        // success-side navigation; we just clean up the camera + UI.
+        await onComplete(pages.map((p, i) => ({ blob: p.blob, index: i })));
+      } else {
+        const form = new FormData();
+        form.append("studentId", studentId);
+        pages.forEach((p, i) => {
+          form.append(`page_${i}`, p.blob, `page_${i}.jpg`);
+        });
+        const res = await fetch(`/api/exam/${masterPaperId}/scan-submit?userId=${parentId}`, {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.cloneId) {
+          throw new Error(data?.error ?? `submit failed (${res.status})`);
+        }
+        router.refresh();
       }
-      // Stop the camera, close the scanner overlay, and refresh the
-      // dashboard so the new clone shows up in the assigned-papers
-      // list with its 'Marking…' indicator. The parent stays on
-      // their home page rather than being yanked to a half-marked
-      // review screen.
+      // Stop the camera, close the scanner overlay, and (for the
+      // default exam flow) refresh the dashboard so the new clone
+      // shows up in the assigned-papers list with its 'Marking…'
+      // indicator.
       streamRef.current?.getTracks().forEach((t) => t.stop());
       pages.forEach((p) => URL.revokeObjectURL(p.thumbUrl));
       onClose();
-      router.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "submit failed";
       setStage("review");
       setErrorMsg(msg);
     }
-  }, [pages, studentId, masterPaperId, parentId, router, onClose]);
+  }, [pages, studentId, masterPaperId, parentId, router, onClose, onComplete]);
 
   // ── Render ──
   const closeAndCleanup = useCallback(() => {

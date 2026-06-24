@@ -1,12 +1,20 @@
 "use client";
 
-// Admin Compo index — upload a scanned Chinese composition, see the
-// list of past attempts, click one to view the detailed analysis.
-// Admin-only; the parent /admin layout already gates access.
+// Admin Compo index — upload OR scan a Chinese composition, then
+// hit Analyse. Three-button flow at the top: Upload (file picker for
+// PDF / images / .docx / .txt), Scan (opens the camera-based scanner
+// mini-app), Analyse (sends collected pages to the pipeline).
+// Thumbnails of staged pages render between the buttons and Analyse.
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Heavy scanner UI (OpenCV worker, getUserMedia) — lazy-load so the
+// admin page boot doesn't drag in 10MB of CV runtime before the admin
+// even wants it.
+const DocumentScanner = dynamic(() => import("@/components/DocumentScanner"), { ssr: false });
 
 type AttemptRow = {
   id: string;
@@ -20,6 +28,25 @@ type AttemptRow = {
   critique: { overallScore?: number } | null;
 };
 
+type StagedFile = {
+  file: File;
+  previewUrl: string;        // object URL for img thumbnail (or null for text/pdf)
+  kind: "image" | "pdf" | "doc" | "text";
+};
+
+function stagedFromFile(f: File): StagedFile {
+  const name = f.name.toLowerCase();
+  const isImg = f.type.startsWith("image/") || /\.(jpe?g|png|webp)$/.test(name);
+  const isPdf = f.type === "application/pdf" || name.endsWith(".pdf");
+  const isDoc = name.endsWith(".docx");
+  const kind: StagedFile["kind"] = isImg ? "image" : isPdf ? "pdf" : isDoc ? "doc" : "text";
+  return {
+    file: f,
+    previewUrl: isImg ? URL.createObjectURL(f) : "",
+    kind,
+  };
+}
+
 export default function CompoIndexPage() {
   const [rows, setRows] = useState<AttemptRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +58,8 @@ export default function CompoIndexPage() {
   const [studentTopic, setStudentTopic] = useState("");
   const [optionType, setOptionType] = useState<"option1" | "option2" | "">("");
   const [questionFile, setQuestionFile] = useState<File | null>(null);
-  const [pageFiles, setPageFiles] = useState<File[]>([]);
+  const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -52,8 +80,35 @@ export default function CompoIndexPage() {
     return () => clearInterval(interval);
   }, [refresh]);
 
-  const onUpload = async () => {
-    if (pageFiles.length === 0) { setError("Add at least one composition page"); return; }
+  // Free object URLs on unmount.
+  useEffect(() => () => {
+    pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
+  }, [pageFiles]);
+
+  const onUploadPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []).map(stagedFromFile);
+    if (picked.length > 0) setPageFiles(prev => [...prev, ...picked]);
+    e.target.value = ""; // allow re-picking the same file
+  };
+
+  const onScanComplete = async (pages: Array<{ blob: Blob; index: number }>) => {
+    const staged = pages.map(p => stagedFromFile(
+      new File([p.blob], `scan_${Date.now()}_${p.index + 1}.jpg`, { type: "image/jpeg" })
+    ));
+    setPageFiles(prev => [...prev, ...staged]);
+  };
+
+  const removeStaged = (idx: number) => {
+    setPageFiles(prev => {
+      const next = [...prev];
+      const removed = next.splice(idx, 1)[0];
+      if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+      return next;
+    });
+  };
+
+  const onAnalyse = async () => {
+    if (pageFiles.length === 0) { setError("Add or scan at least one composition page first"); return; }
     setUploading(true);
     setError(null);
     try {
@@ -62,21 +117,16 @@ export default function CompoIndexPage() {
       if (studentTopic) fd.append("studentTopic", studentTopic);
       if (optionType) fd.append("optionType", optionType);
       if (questionFile) fd.append("question", questionFile);
-      for (const f of pageFiles) fd.append("pages", f);
+      for (const p of pageFiles) fd.append("pages", p.file);
 
       const res = await fetch("/api/admin/compo", { method: "POST", body: fd });
       if (!res.ok) throw new Error(await res.text());
       const { row } = await res.json();
-
-      // Kick off the analyse pipeline.
       await fetch(`/api/admin/compo/${row.id}/analyse`, { method: "POST" });
 
+      pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
       setLabel(""); setStudentTopic(""); setOptionType("");
       setQuestionFile(null); setPageFiles([]);
-
-      // Land on the detail page so the OCR / wrong-words / critique /
-      // recommendations populate live as each stage completes — the
-      // index page only shows a status badge, which feels frozen.
       router.push(`/admin/compo/${row.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -91,14 +141,14 @@ export default function CompoIndexPage() {
         <Link href="/admin" className="text-sm text-slate-500 hover:underline">← Admin</Link>
         <h1 className="text-2xl font-bold text-slate-900 mt-2">Compo — Chinese composition marker</h1>
         <p className="text-sm text-slate-600 mt-1">
-          Upload a scanned student composition (and optionally the question / picture series).
-          Gemini 3.1-pro will OCR, flag wrong words, score against the PSLE 40-mark rubric,
-          and recommend structural + language upgrades drawn from the 10-year model-essay corpus.
+          Upload OR scan a student composition. Gemini 3.1-pro will OCR, flag wrong words,
+          score against the PSLE 40-mark rubric, and recommend structural + language upgrades
+          drawn from the 10-year model-essay corpus.
         </p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-        <h2 className="font-semibold text-slate-800">Upload a new composition</h2>
+        <h2 className="font-semibold text-slate-800">New composition</h2>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
@@ -144,35 +194,77 @@ export default function CompoIndexPage() {
           />
         </label>
 
-        <label className="block">
-          <span className="text-xs font-medium text-slate-600">Composition (required — image(s) / PDF / Word .docx / .txt)</span>
-          <input
-            type="file"
-            accept="image/*,application/pdf,.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            multiple
-            className="mt-1 block w-full text-sm"
-            onChange={(e) => setPageFiles(Array.from(e.target.files ?? []))}
-          />
-          {pageFiles.length === 0 ? (
-            <p className="mt-1 text-xs text-amber-700">Select at least one file to enable the button below.</p>
-          ) : (
-            <p className="mt-1 text-xs text-slate-500">
-              {pageFiles.length} file(s) selected: {pageFiles.map(f => f.name).join(", ")}
-            </p>
-          )}
-        </label>
+        {/* ── 3-button top row: Upload | Scan | Analyse ── */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+          <label className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-800 hover:bg-slate-200 cursor-pointer">
+            📂 Upload
+            <input
+              type="file"
+              accept="image/*,application/pdf,.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              multiple
+              className="hidden"
+              onChange={onUploadPick}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-800 hover:bg-slate-200"
+          >
+            📷 Scan
+          </button>
+          <button
+            type="button"
+            onClick={onAnalyse}
+            disabled={uploading || pageFiles.length === 0}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+          >
+            {uploading ? "Sending…" : `🚀 Analyse (${pageFiles.length} page${pageFiles.length === 1 ? "" : "s"})`}
+          </button>
+        </div>
+
+        {/* ── Thumbnails of staged pages ── */}
+        {pageFiles.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-slate-600 mb-2">Staged pages ({pageFiles.length}):</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {pageFiles.map((p, i) => (
+                <div key={i} className="relative bg-slate-50 border border-slate-200 rounded-lg overflow-hidden group">
+                  {p.kind === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.previewUrl} alt={`page ${i + 1}`} className="w-full h-44 object-cover" />
+                  ) : (
+                    <div className="w-full h-44 flex flex-col items-center justify-center text-slate-500 text-xs gap-1">
+                      <div className="text-3xl">{p.kind === "pdf" ? "📄" : p.kind === "doc" ? "📝" : "📃"}</div>
+                      <div className="uppercase font-medium">{p.kind}</div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-1.5 py-0.5 truncate">
+                    {i + 1}. {p.file.name}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeStaged(i)}
+                    className="absolute top-1 right-1 bg-white/90 hover:bg-white text-red-600 rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {pageFiles.length === 0 && (
+          <p className="text-xs text-slate-500">
+            No pages staged yet — Upload a file or open Scan to capture from camera.
+          </p>
+        )}
 
         {error && (
           <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
         )}
-
-        <button
-          onClick={onUpload}
-          disabled={uploading || pageFiles.length === 0}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Upload + Analyse"}
-        </button>
       </div>
 
       <div>
@@ -217,6 +309,18 @@ export default function CompoIndexPage() {
           </div>
         )}
       </div>
+
+      {/* ── Scanner overlay ── */}
+      {scannerOpen && (
+        <DocumentScanner
+          parentId="compo"
+          masterPaperId="compo"
+          studentId="compo"
+          paperTitle="Compo — scan student composition"
+          onClose={() => setScannerOpen(false)}
+          onComplete={onScanComplete}
+        />
+      )}
     </div>
   );
 }
