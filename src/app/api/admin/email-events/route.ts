@@ -115,9 +115,9 @@ export async function GET(request: NextRequest) {
       s."displayName"                               AS "studentDisplayName",
       s.settings->'progressReportsSent'             AS "progressReportsSent",
       s.settings->'lumiIntroSent'                   AS "lumiIntroSent"
-    FROM "User" p
-    INNER JOIN "ParentStudent" ps ON ps."parentId" = p.id
-    INNER JOIN "User" s ON s.id = ps."studentId"
+    FROM users p
+    INNER JOIN parent_students ps ON ps."parentId" = p.id
+    INNER JOIN users s ON s.id = ps."studentId"
     WHERE p.role = 'PARENT'
       AND p.email IS NOT NULL
       AND (
