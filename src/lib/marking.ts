@@ -2329,7 +2329,16 @@ async function tryOpenAIMarkingFallback(
   label: string,
 ): Promise<{ text: string } | null> {
   if (!isOpenAIFallbackEnabled()) return null;
-  if (!isTransientServerError(lastErr)) return null;
+  // Fire OpenAI when Gemini's failure is either:
+  //   · a transient server error (5xx, abort, socket reset — provider
+  //     swap is the recovery path), OR
+  //   · a SyntaxError (Gemini returned malformed / truncated JSON —
+  //     stochastically the SAME image often parses cleanly on a
+  //     different vendor; the OEQ at the end of David's Heat quiz
+  //     hit a mid-array truncation that 2.5-pro retried fine).
+  const isParseError = lastErr instanceof SyntaxError ||
+    (typeof (lastErr as { name?: unknown })?.name === "string" && (lastErr as { name: string }).name === "SyntaxError");
+  if (!isTransientServerError(lastErr) && !isParseError) return null;
   try {
     console.warn(`[marking] ${label} — Gemini failed with transient 5xx, attempting OpenAI fallback (gpt-5.4)`);
     // Bump the routed Gemini model to the highest tier so the OpenAI
@@ -6895,7 +6904,13 @@ Return ONLY valid JSON:
         const paperIsScienceOrMath = paperSubjLc.includes("science") || paperSubjLc.includes("math");
         const needsPro = isDrawableAny && (!!q.answerImageData || paperIsScienceOrMath);
         const QUIZ_MODELS = needsPro
-          ? ["gemini-3.1-pro-preview"]
+          // 2 attempts: 3.1-pro first, then 2.5-pro. Drawable Math /
+          // Science OEQs need a vision-capable pro tier; 2.5-pro is a
+          // good second pass that often produces valid JSON when 3.1-
+          // pro truncated mid-array. Bumped from 1 → 2 attempts after
+          // Q9 of David's Heat quiz hit a SyntaxError on 3.1-pro and
+          // had no model to retry with.
+          ? ["gemini-3.1-pro-preview", "gemini-2.5-pro"]
           // Non-drawable OEQ: start cheap, escalate on each retry.
           // The previous flash→flash→lite chain just hit the same
           // JSON-malformation bug three times in a row when 2.5-flash
