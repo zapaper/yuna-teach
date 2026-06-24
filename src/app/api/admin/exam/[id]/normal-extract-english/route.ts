@@ -876,10 +876,12 @@ async function postProcessP4GrammarCloze(
     select: { id: true, questionNum: true, transcribedStem: true },
   });
 
-  // `(N)\s*[\s*optA\s*/\s*optB\s*]` -- optA/optB are anything that
-  // isn't a slash or close-bracket, captured non-greedily so a long
-  // multi-word phrase doesn't swallow the second option.
-  const TWO_OPTION_RE = /\((\d+)\)\s*\[\s*([^\/\]]+?)\s*\/\s*([^\/\]]+?)\s*\]/;
+  // `(N) [optA <SEP> optB]` where SEP is "/" or "," — both separators
+  // are used by school printers (Maha Bodhi 2025 EOY EL P2 used the
+  // comma form, Tao Nan 2025 P4 used the slash form). optA/optB
+  // exclude both separators AND the close bracket so a comma inside
+  // an option can't bleed into the second slot.
+  const TWO_OPTION_RE = /\((\d+)\)\s*\[\s*([^\/,\]]+?)\s*[\/,]\s*([^\/,\]]+?)\s*\]/;
 
   let rewritten = 0;
   for (const q of qs) {
