@@ -121,8 +121,8 @@ export async function GET(request: NextRequest) {
     WHERE p.role = 'PARENT'
       AND p.email IS NOT NULL
       AND (
-        s.settings ? 'progressReportsSent'
-        OR s.settings ? 'lumiIntroSent'
+        s.settings->'progressReportsSent' IS NOT NULL
+        OR s.settings->'lumiIntroSent' IS NOT NULL
       )
   `);
 
