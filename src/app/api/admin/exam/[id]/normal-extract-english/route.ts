@@ -967,15 +967,22 @@ async function postProcessP4GrammarCloze(
 // are unchanged. Escaped underscores (`\_\_\_`) and plain `___`
 // are both accepted -- different transcription runs emit either.
 function formatP4GrammarClozePassageText(text: string): string {
-  const PAIR_RE = /\(([A-Z])\)\s+(\S+)/g;
-  const pairsOnLine = (line: string): Array<{ letter: string; word: string }> | null => {
+  const PAIR_INLINE_RE = /\(([A-Z])\)\s+(\S+)/g;
+  const PAIR_CELL_RE = /^\(([A-Z])\)\s+(\S+)$/;
+
+  const isSepRow = (t: string) => /^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(t);
+  const isTableRow = (t: string) => t.length > 0 && t.startsWith("|") && t.endsWith("|");
+  const tableCells = (t: string): string[] =>
+    t.replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+
+  const inlinePairs = (line: string): Array<{ letter: string; word: string }> | null => {
     const t = line.trim();
-    if (!t) return null;
+    if (!t || isTableRow(t)) return null;
     const pairs: Array<{ letter: string; word: string }> = [];
     let m: RegExpExecArray | null;
     let lastEnd = 0;
-    PAIR_RE.lastIndex = 0;
-    while ((m = PAIR_RE.exec(t)) !== null) {
+    PAIR_INLINE_RE.lastIndex = 0;
+    while ((m = PAIR_INLINE_RE.exec(t)) !== null) {
       if (m.index > lastEnd && !/^\s*$/.test(t.slice(lastEnd, m.index))) return null;
       pairs.push({ letter: m[1], word: m[2] });
       lastEnd = m.index + m[0].length;
@@ -997,11 +1004,84 @@ function formatP4GrammarClozePassageText(text: string): string {
     out.push(words);
     bank = [];
   };
-  for (const line of lines) {
-    const p = pairsOnLine(line);
-    if (p) { bank.push(...p); continue; }
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    // Table-block detection: contiguous run of `|...|` rows (with
+    // optional `|---|---|` separator rows). If every data row's
+    // cells parse as `(X) word`, treat the whole block as a word
+    // bank and re-emit as the canonical 3-row table.
+    if (isTableRow(t)) {
+      let j = i;
+      while (j < lines.length) {
+        const tj = lines[j].trim();
+        if (tj && (isTableRow(tj) || isSepRow(tj))) j++;
+        else break;
+      }
+      const blockLines = lines.slice(i, j);
+      const dataRows = blockLines
+        .map(l => l.trim())
+        .filter(tt => isTableRow(tt) && !isSepRow(tt))
+        .map(tableCells);
+      const collected: Array<{ letter: string; word: string }> = [];
+      let recognized = false;
+
+      // Pattern A: every cell is `(X) word` (OCR emitted glued pairs).
+      const allCellsArePairs = dataRows.length >= 1 && dataRows.every(cells =>
+        cells.length > 0 && cells.every(c => PAIR_CELL_RE.test(c))
+      );
+      if (allCellsArePairs) {
+        for (const row of dataRows) {
+          for (const cell of row) {
+            const m = cell.match(PAIR_CELL_RE)!;
+            collected.push({ letter: m[1], word: m[2] });
+          }
+        }
+        recognized = collected.length >= 2;
+      }
+
+      // Pattern B: alternating letter rows + word rows (a prior broken
+      // rewrite, or some printers, split the bank this way).
+      if (!recognized && dataRows.length >= 2 && dataRows.length % 2 === 0) {
+        const isLetterRow = (cells: string[]) =>
+          cells.length > 0 && cells.every(c => /^[A-Z]$/.test(c));
+        // The word row sits BELOW the letter row in the OCR'd table.
+        // Don't restrict to "not a single letter" because legit words
+        // like "I" are single uppercase chars — once we've claimed the
+        // row above as letters, this one is words by position.
+        const isWordRow = (cells: string[]) =>
+          cells.length > 0 && cells.every(c => c.length > 0);
+        let pairOK = true;
+        const tentative: Array<{ letter: string; word: string }> = [];
+        for (let k = 0; k < dataRows.length; k += 2) {
+          const lr = dataRows[k];
+          const wr = dataRows[k + 1];
+          if (!isLetterRow(lr) || !isWordRow(wr) || lr.length !== wr.length) { pairOK = false; break; }
+          for (let m = 0; m < lr.length; m++) tentative.push({ letter: lr[m], word: wr[m] });
+        }
+        if (pairOK && tentative.length >= 2) {
+          collected.push(...tentative);
+          recognized = true;
+        }
+      }
+
+      if (recognized) {
+        bank.push(...collected);
+        flushBank();
+      } else {
+        for (const bl of blockLines) out.push(bl);
+      }
+      i = j;
+      continue;
+    }
+    // Inline-text word-bank pattern: `(A) he (B) it (C) us`.
+    const p = inlinePairs(line);
+    if (p) { bank.push(...p); i++; continue; }
     flushBank();
     out.push(line);
+    i++;
   }
   flushBank();
 
