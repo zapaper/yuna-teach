@@ -211,6 +211,13 @@ function AdminContent() {
       color: "bg-sky-50 text-sky-600",
     },
     {
+      icon: "draw",
+      label: "Compo (Chinese)",
+      description: "Upload a scanned student Chinese composition. Gemini OCRs, flags wrong words (错别字 / 用词不当), scores against the PSLE 40-mark rubric (内容 20 / 词汇好句 10 / 句子结构 10), and recommends structural + language upgrades drawn from the 10-year model essay corpus.",
+      href: `/admin/compo?userId=${userId}`,
+      color: "bg-rose-50 text-rose-600",
+    },
+    {
       icon: "psychology",
       label: "Lumi Quiz (David)",
       description: "Generate a personalised Lumi-style Science quiz for David Lim using cross-cutting skill tags (evidence-then-conclusion, graph-trend-describe, etc.). Internal test only — not exposed to parents yet.",

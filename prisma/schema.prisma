@@ -610,3 +610,79 @@ model EnglishSupplementaryPaper {
 
   @@map("english_supplementary_papers")
 }
+
+// Chinese composition (Paper 1 写作) marker — admin-only tool that
+// takes a scanned student composition and runs OCR + wrong-word check
+// + rubric critique + structural / language recommendations,
+// benchmarked against the 10 years of PSLE model essays we already
+// hold in ChineseSupplementaryPaper. Lives separately from
+// ExamPaper because the shape (one composition = one document, not
+// a question-by-question grid) doesn't fit ExamPaper's row model.
+//
+// Storage: scanned page images live under VOLUME_PATH/compo/<id>/page_<N>.jpg.
+// Question-prompt scan (if any) lives at VOLUME_PATH/compo/<id>/question.jpg.
+//
+// Status flow: uploaded -> analysing -> ready | failed.
+// Idempotent re-runs are allowed (each re-run overwrites the
+// AI-produced fields below).
+model CompoAttempt {
+  id                String   @id @default(cuid())
+  uploaderId        String?  // User.id
+
+  // Optional admin-typed title (e.g. the student's name + topic).
+  label             String?
+
+  // Optional question scan(s) — admin can upload the prompt + picture
+  // series if available, so the OCR + critique can ground in it.
+  questionImagePath String?
+  // Page images of the student's handwritten composition.
+  compositionImagePaths Json   // string[] — relative paths under VOLUME_PATH
+
+  // PSLE topic the student wrote on (manual fill or extracted from question OCR).
+  studentTopic      String?
+
+  // Whether this is an Option 1 (topic-only) or Option 2 (picture-series)
+  // style composition. Affects which model essays we benchmark against.
+  optionType        String?  // "option1" | "option2" | null (unknown)
+
+  status            String   @default("uploaded")  // uploaded | analysing | ready | failed
+  errorMessage      String?  @db.Text
+
+  // Phase 1 — OCR of the student's handwritten composition.
+  ocrText           String?  @db.Text
+  ocrQuestionText   String?  @db.Text  // OCR of the question scan, if uploaded
+
+  // Phase 2 — wrong-word check. Shape:
+  //   [{ original: "学生原字", suggestion: "正确字", kind: "stroke"|"meaning"|"misuse",
+  //      reason: "短句解释 (in Chinese)", startIdx: number, endIdx: number }]
+  wrongWords        Json?
+
+  // Phase 3 — rubric critique. Shape:
+  //   {
+  //     contentScore: 0..20, contentNotes: "短评 - 内容",
+  //     vocabScore: 0..10,   vocabNotes:   "短评 - 词汇好句",
+  //     sentenceScore: 0..10, sentenceNotes: "短评 - 句子结构与组织",
+  //     overallScore: 0..40, overallSummary: "总评",
+  //     benchmarkYears: ["2022", "2021", ...]  // years used for comparison
+  //   }
+  critique          Json?
+
+  // Phase 4 — recommendations. Shape:
+  //   {
+  //     structural: [{ piece: "opening hook"|"transition"|"climax"|...,
+  //                    issue: "短评", suggestion: "短建议",
+  //                    exampleFromModel?: { year, snippet, bucket } }],
+  //     language: [{ phraseCn, phraseEn?, fromYear?: string,
+  //                  bucket: "opening"|"closing"|"accident"|"careless"|...,
+  //                  whyItHelps: "短建议" }]
+  //   }
+  recommendations   Json?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  analysedAt        DateTime?
+
+  @@index([uploaderId])
+  @@index([status])
+  @@map("compo_attempts")
+}
