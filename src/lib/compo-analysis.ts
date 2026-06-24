@@ -26,6 +26,7 @@ import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
 import playbookJson from "@/data/chinese-compo/playbook.json";
 import featuredJson from "@/data/chinese-compo/featured.json";
+import extendedJson from "@/data/chinese-compo/extended-highlights.json";
 import sentencesJson from "@/data/chinese-compo/sentences.json";
 import phrasesJson from "@/data/chinese-compo/phrases.json";
 
@@ -627,13 +628,31 @@ function buildPhraseBank(): Map<string, PhraseEntry[]> {
       }
     }
   }
-  // Featured essay highlights
-  const featured = featuredJson as Array<{ year?: string; highlights?: Array<{ span?: string; bucket?: string }> }>;
+  // Featured essay highlights (4 hand-curated essays — richer
+  // 'why' annotations, used for the small intro card too).
+  const featured = featuredJson as Array<{ year?: string; highlights?: Array<{ span?: string; bucket?: string; subType?: string }> }>;
   for (const essay of featured) {
     if (!Array.isArray(essay.highlights)) continue;
     for (const h of essay.highlights) {
       if (h && typeof h.span === "string" && typeof h.bucket === "string") {
-        push(h.bucket, { cn: h.span, fromYear: essay.year });
+        push(h.bucket, { cn: h.span, fromYear: essay.year, subType: h.subType });
+      }
+    }
+  }
+  // Extended highlights — produced by scripts/extract-compo-phrase-bank.ts
+  // from the full 20-essay PSLE corpus (10 years × 2 options).
+  // Same shape as featured.json so the bank stays uniform. Dedup
+  // by exact cn match against what's already been pushed.
+  const seen = new Set<string>();
+  for (const [, list] of bank) for (const e of list) seen.add(e.cn);
+  const extended = extendedJson as Array<{ year?: string; option?: number; titleCn?: string; highlights?: Array<{ span?: string; bucket?: string; subType?: string }> }>;
+  for (const essay of extended) {
+    if (!Array.isArray(essay.highlights)) continue;
+    for (const h of essay.highlights) {
+      if (h && typeof h.span === "string" && typeof h.bucket === "string") {
+        if (seen.has(h.span)) continue;
+        seen.add(h.span);
+        push(h.bucket, { cn: h.span, fromYear: essay.year, subType: h.subType });
       }
     }
   }
