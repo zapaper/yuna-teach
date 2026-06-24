@@ -68,18 +68,26 @@ export function isQuotaExhaustedError(err: unknown): boolean {
   return false;
 }
 
-// Detects Gemini 5xx transients (504 DEADLINE_EXCEEDED, 503 UNAVAILABLE,
-// 502 Bad Gateway, internal RPC cancellations from prefill→decode). Used
-// by the per-OEQ marker as the trigger for a final OpenAI fallback after
-// Gemini's own retries have all failed with a transient signal — i.e.
-// when retrying again on Gemini is unlikely to help, but a different
-// provider might.
+// Detects Gemini transient failures the OpenAI fallback should treat
+// as "retryable on a different provider". Three buckets:
+//   1. 5xx server errors from Gemini (504 DEADLINE_EXCEEDED, 503
+//      UNAVAILABLE, 502, internal RPC cancellations).
+//   2. Transport-layer aborts from OUR side dying mid-request — Railway
+//      redeploys kill the worker, in-flight fetch surfaces as
+//      AbortError / "socket hang up" / ECONNRESET / "Request aborted".
+//      These look like client errors but the QUESTION wasn't answered;
+//      a fresh fetch via a different provider usually completes it.
+//   3. AI-SDK error shapes that wrap a 5xx body.
 export function isTransientServerError(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const e = err as Record<string, unknown>;
   if (typeof e.status === "number" && e.status >= 500 && e.status <= 599) return true;
+  // AbortError surfaces with .name === "AbortError" on undici/fetch.
+  if (e.name === "AbortError") return true;
+  // Node fetch / undici aborts under deploy / proxy kill.
+  if (typeof e.code === "string" && /^(ECONNRESET|ECONNREFUSED|ETIMEDOUT|UND_ERR_SOCKET|UND_ERR_ABORTED)$/i.test(e.code)) return true;
   const msg = typeof e.message === "string" ? e.message : "";
-  if (/\b5\d{2}\b|DEADLINE_EXCEEDED|UNAVAILABLE|Stream cancelled|RPC.*CANCELLED|Failed to run inference/i.test(msg)) return true;
+  if (/\b5\d{2}\b|DEADLINE_EXCEEDED|UNAVAILABLE|Stream cancelled|RPC.*CANCELLED|Failed to run inference|socket hang up|ECONNRESET|aborted|Request aborted|fetch failed|premature close/i.test(msg)) return true;
   return false;
 }
 
