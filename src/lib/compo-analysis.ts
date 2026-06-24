@@ -828,6 +828,10 @@ const ELEVATE_PROMPT = (
      accident (突发事件描写) / careless (粗心懊悔描写) /
      idiom (成语) / description (描写句 — 心理/场景/动作) /
      connector (连接词 — 此时此刻 / 一……就 / 与此同时 / 等等)
+   · **每个 [+...|bucket+] 只能包一个原子级别的短语**。例如:
+     ✓ [+此时此刻|connector+]，[+心跳得像要从胸口跳出来一样|description+]
+     ✗ [+此时此刻，心跳得像要从胸口跳出来一样|connector+]   ← 不要混合
+     连接词 / 成语 / 描写句应该各自分开标记，让用户可以独立替换。
      · 例: [+岁月匆匆，许多往事都已经淡忘…|opening+]
      · 例: [+心跳得像要从胸口跳出来一样|description+]
      · 例: [+无地自容|idiom+]

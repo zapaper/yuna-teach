@@ -365,31 +365,42 @@ function ElevatedDraftView({
         }
         const key = `${i}-${text}`;
         const isOpen = openKey === key;
+        // Use an interactive <span> instead of <button> — <button>
+        // defaults to inline-block, which prevents the phrase from
+        // wrapping mid-line (the whole button drops to a new line
+        // when it doesn't fit). <span> with text-decoration mimics
+        // a dotted underline and stays purely inline.
         return (
-          <span key={i} style={{ position: "relative", display: "inline" }}>
-            <button
-              type="button"
-              onClick={() => setOpenKey(isOpen ? null : key)}
-              style={{
-                color: "#047857",
-                fontWeight: 700,
-                background: replacement ? "#d1fae5" : "transparent",
-                border: 0,
-                borderBottom: "2px dotted #047857",
-                cursor: "pointer",
-                padding: "0 2px",
-                font: "inherit",
-              }}
-              title={`${bucket}: click to see alternatives`}
-            >
-              {displayed}
-            </button>
+          <span
+            key={i}
+            role="button"
+            tabIndex={0}
+            onClick={() => setOpenKey(isOpen ? null : key)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setOpenKey(isOpen ? null : key);
+              }
+            }}
+            title={`${bucket}: click to see alternatives`}
+            style={{
+              color: "#047857",
+              fontWeight: 700,
+              background: replacement ? "#d1fae5" : "transparent",
+              cursor: "pointer",
+              textDecoration: "underline dotted #047857 2px",
+              textUnderlineOffset: "3px",
+              borderRadius: 2,
+              padding: "0 1px",
+              position: "relative",
+            }}
+          >
+            {displayed}
             {isOpen && (
               <PhrasePopup
                 swap={swap}
                 currentPick={replacement ?? null}
                 onPick={(alt) => {
-                  // Picking the same as original = remove substitution.
                   onSubstitute(text, alt && alt !== text ? alt : null);
                   setOpenKey(null);
                 }}
