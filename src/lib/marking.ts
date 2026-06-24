@@ -5650,7 +5650,8 @@ ${expectedAnswer}
             ? `\n(This is a TABLE answer — each row is labelled (a)/(b)/(c)/… and lines up 1:1 with the same letter in the expected answer (the expected answer separates subparts with " | "). For EACH row, score independently:
    1. Does the row's first field (e.g. True/False) match the expected letter's first field? If not, that row earns 0 for the choice portion.
    2. Does the row's reason / second field convey the same idea as the expected letter's reason? Synonyms / paraphrasing accepted.
-   Award the row's full marks only if BOTH match. Do NOT decide a row is wrong because the choice and reason seem to contradict each other — judge each row against the EXPECTED answer, not against the row's own internal consistency. Do NOT penalise for punctuation.)`
+   Partial-credit rubric per row (T/F + Reason format): if BOTH the choice and the reason match → full row marks; if only the choice (T/F) matches and the reason is missing/blank/wrong → HALF the row's marks (round to 0.5); if the choice is wrong → 0 regardless of reason. So a 2-mark question with 2 rows = 1 mark per row: T/F right + reason right = 1, T/F right + no reason = 0.5, T/F wrong = 0.
+   Do NOT decide a row is wrong because the choice and reason seem to contradict each other — judge each row against the EXPECTED answer, not against the row's own internal consistency. Do NOT penalise for punctuation.)`
             : "";
           parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${tableHint}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
           parts.push({
