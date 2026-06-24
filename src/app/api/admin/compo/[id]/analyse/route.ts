@@ -20,6 +20,16 @@ export async function POST(
   if (row.status === "analysing") {
     return NextResponse.json({ error: "Already analysing" }, { status: 409 });
   }
+  // Flip status SYNCHRONOUSLY before kicking off the orchestrator —
+  // otherwise the detail page's status-conditional polling
+  // (poll iff status ∈ {analysing, uploaded}) won't fire because
+  // the row still looks "ready" until the orchestrator's first
+  // async DB write lands. Re-analyse would appear to do nothing
+  // until completion.
+  await prisma.compoAttempt.update({
+    where: { id },
+    data: { status: "analysing", errorMessage: null },
+  });
   // Fire-and-forget. Errors land in the row's status=failed +
   // errorMessage by the orchestrator's own catch.
   analyseCompoAttempt(id).catch(err => {
