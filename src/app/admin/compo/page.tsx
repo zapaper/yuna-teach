@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { fetchJsonSafe } from "@/lib/client-fetch";
 
 // Heavy scanner UI (OpenCV worker, getUserMedia) — lazy-load so the
 // admin page boot doesn't drag in 10MB of CV runtime before the admin
@@ -75,16 +76,18 @@ export default function CompoIndexPage() {
   }, []);
 
   const refresh = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/compo");
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setRows(data.rows ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
+    const result = await fetchJsonSafe<{ rows: AttemptRow[] }>("/api/admin/compo");
+    if (result.ok) {
+      setRows(result.data.rows ?? []);
+      // Clear any prior transient error once we're talking again.
+      setError(prev => prev && prev.includes("restarting") ? null : prev);
+    } else if (!result.transient) {
+      // Suppress 502/503/504 spam in the background poll — those
+      // are deploy-induced and clear themselves. Surface only
+      // real errors (4xx, parse failures, network down).
+      setError(result.error);
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -132,10 +135,16 @@ export default function CompoIndexPage() {
       if (questionFile) fd.append("question", questionFile);
       for (const p of pageFiles) fd.append("pages", p.file);
 
-      const res = await fetch("/api/admin/compo", { method: "POST", body: fd });
-      if (!res.ok) throw new Error(await res.text());
-      const { row } = await res.json();
-      await fetch(`/api/admin/compo/${row.id}/analyse`, { method: "POST" });
+      const uploadRes = await fetchJsonSafe<{ row: { id: string } }>(
+        "/api/admin/compo", { method: "POST", body: fd },
+      );
+      if (!uploadRes.ok) throw new Error(uploadRes.error);
+      const row = uploadRes.data.row;
+      const analyseRes = await fetchJsonSafe(`/api/admin/compo/${row.id}/analyse`, { method: "POST" });
+      // 202 from /analyse counts as ok per the safe-fetch contract.
+      if (!analyseRes.ok && !analyseRes.transient) {
+        throw new Error(analyseRes.error);
+      }
 
       pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
       setLabel(""); setStudentTopic(""); setOptionType("");

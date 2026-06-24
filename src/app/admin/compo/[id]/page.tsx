@@ -9,6 +9,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { fetchJsonSafe } from "@/lib/client-fetch";
 
 type WrongWord = {
   original: string;
@@ -73,13 +74,15 @@ export default function CompoDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/admin/compo/${id}`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setRow(data.row);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+    const result = await fetchJsonSafe<{ row: Row }>(`/api/admin/compo/${id}`);
+    if (result.ok) {
+      setRow(result.data.row);
+      setError(prev => prev && prev.includes("restarting") ? null : prev);
+    } else if (!result.transient) {
+      // 502/503/504 are deploy-induced; swallow them during the
+      // status-conditional poll so the user doesn't see a flash
+      // of error during every push.
+      setError(result.error);
     }
   }, [id]);
 
@@ -100,15 +103,17 @@ export default function CompoDetailPage() {
     // before the network round-trip + server flip lands.
     setRow(prev => prev ? { ...prev, status: "analysing", errorMessage: null } : prev);
     try {
-      const res = await fetch(`/api/admin/compo/${id}/analyse`, { method: "POST" });
-      if (!res.ok && res.status !== 202) {
-        const body = await res.text();
-        throw new Error(`Re-analyse failed (${res.status}): ${body}`);
+      const result = await fetchJsonSafe(`/api/admin/compo/${id}/analyse`, { method: "POST" });
+      // 202 + transient 5xx both treated as ok for re-analyse — the
+      // endpoint flips status server-side before the orchestrator
+      // even starts, so the next refresh will pick it up.
+      if (!result.ok && !result.transient && result.status !== 202) {
+        throw new Error(result.error);
       }
       await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      await refresh(); // pull true state on failure
+      await refresh();
     } finally {
       setReanalysing(false);
     }
