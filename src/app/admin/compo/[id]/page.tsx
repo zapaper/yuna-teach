@@ -179,6 +179,11 @@ export default function CompoDetailPage() {
               view === "clean"    ? cleanHtml  :
                                     elevatedHtml }}
           />
+          <WordCountFooter
+            view={view}
+            ocrText={ocrText}
+            elevatedDraft={row?.recommendations?.elevatedDraft ?? null}
+          />
           {row.ocrQuestionText && (
             <details className="mt-4">
               <summary className="text-xs text-slate-500 cursor-pointer">Question / picture-series OCR</summary>
@@ -264,6 +269,60 @@ function renderElevated(text: string): string {
 }
 
 // ─── Side cards ──────────────────────────────────────────────────────
+
+// Strip the [+ ... +] markers so the count reflects the actual text
+// the kid would write, not the edit markers.
+function stripMarkers(text: string): string {
+  return text.replace(/\[\+([\s\S]*?)\+\]/g, "$1");
+}
+
+// Chinese "word count" = count of Chinese characters (CJK Unified
+// Ideographs) since Chinese isn't whitespace-delimited. Also report
+// total characters (incl. punctuation + ASCII) so the parent can see
+// both numbers — PSLE guidance is typically ≥ 150 chars at P5,
+// ≥ 200 at P6.
+function countChars(text: string): { cjk: number; total: number } {
+  const cleaned = text.replace(/\s+/g, "");
+  let cjk = 0;
+  for (const c of text) {
+    const code = c.codePointAt(0) ?? 0;
+    // CJK Unified Ideographs (basic + extension A) — covers nearly
+    // every primary-school Chinese character.
+    if ((code >= 0x4E00 && code <= 0x9FFF) || (code >= 0x3400 && code <= 0x4DBF)) cjk++;
+  }
+  return { cjk, total: cleaned.length };
+}
+
+function WordCountFooter({
+  view,
+  ocrText,
+  elevatedDraft,
+}: {
+  view: "marked" | "clean" | "elevated";
+  ocrText: string;
+  elevatedDraft: string | null;
+}) {
+  const original = countChars(ocrText);
+  const elevated = elevatedDraft ? countChars(stripMarkers(elevatedDraft)) : null;
+  const currentLabel =
+    view === "marked"   ? "Original (with errors marked)"  :
+    view === "clean"    ? "Original (errors corrected)"    :
+                          "Elevated draft";
+  const current = view === "elevated" && elevated ? elevated : original;
+  return (
+    <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-slate-500 px-2">
+      <span>
+        <span className="font-semibold text-slate-700">{currentLabel}:</span>{" "}
+        {current.cjk} Chinese chars · {current.total} total
+      </span>
+      {view === "elevated" && elevated && (
+        <span className="text-slate-400">
+          (original was {original.cjk} CJK / {original.total} total)
+        </span>
+      )}
+    </div>
+  );
+}
 
 type Stage = {
   num: number;
