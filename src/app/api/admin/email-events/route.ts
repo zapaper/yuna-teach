@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 
@@ -20,12 +21,12 @@ import { isSessionAdmin } from "@/lib/session";
 //                              user.settings.lumiIntroSent
 //
 // Friday Lumi refresh is not yet implemented in main app — when it is,
-// add a new branch here that surfaces those sends too.
+// add a new branch here that surfaces those records too.
 //
 // Auth: NURTURE_API_TOKEN bearer (same as /api/admin/parent-progress)
 // OR an admin browser session.
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 type EventType =
   | "welcome"
@@ -41,6 +42,10 @@ type EmailEvent = {
   subject_key?: string;
   child_name?: string;
 };
+
+function firstName(full: string | null | undefined): string {
+  return (full ?? "").trim().split(/\s+/)[0] ?? "";
+}
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization") ?? "";
@@ -59,83 +64,101 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid 'since' (must be ISO-8601)" }, { status: 400 });
   }
 
-  const parents = await prisma.user.findMany({
-    where: { role: "PARENT", email: { not: null } },
-    select: {
-      id: true,
-      name: true,
-      displayName: true,
-      email: true,
-      createdAt: true,
-      parentLinks: {
-        select: {
-          student: {
-            select: {
-              id: true,
-              name: true,
-              displayName: true,
-              settings: true,
-            },
-          },
-        },
-      },
+  // --- Query 1: welcome events ----------------------------------------
+  // Parents created since <since>. The settings JSON is NOT loaded here —
+  // welcome doesn't need it. Cheap query, hits the createdAt index.
+  const welcomeParents = await prisma.user.findMany({
+    where: {
+      role: "PARENT",
+      email: { not: null },
+      ...(sinceDate ? { createdAt: { gte: sinceDate } } : {}),
     },
+    select: { name: true, displayName: true, email: true, createdAt: true },
   });
 
-  const firstName = (full: string | null | undefined): string => {
-    return (full ?? "").trim().split(/\s+/)[0] ?? "";
-  };
-
   const events: EmailEvent[] = [];
-  for (const p of parents) {
+  for (const p of welcomeParents) {
     if (!p.email) continue;
-    const parentEmail = p.email;
-    const parentName = firstName(p.displayName ?? p.name);
+    events.push({
+      to: p.email,
+      to_name: firstName(p.displayName ?? p.name),
+      event_type: "welcome",
+      sent_at: p.createdAt.toISOString(),
+    });
+  }
 
-    if (!sinceDate || p.createdAt >= sinceDate) {
-      events.push({
-        to: parentEmail,
-        to_name: parentName,
-        event_type: "welcome",
-        sent_at: p.createdAt.toISOString(),
-      });
-    }
+  // --- Query 2: per-subject events (progress + lumi) ------------------
+  // Raw SQL that pulls ONLY the JSON paths we need from settings (not
+  // the entire blob — settings can be tens of KB per student between
+  // the various other features parked in it). Joins parent emails via
+  // ParentStudent so we can attribute each event to the right inbox.
+  //
+  // Returns one row per (parent, student) pair that has at least one
+  // progressReportsSent entry OR one lumiIntroSent entry. Filtering by
+  // since happens in JS after JSON.parse — JSONB date filters would
+  // require iterating the JSONB anyway.
+  type SubjectEventRow = {
+    parentEmail: string;
+    parentName: string | null;
+    parentDisplayName: string | null;
+    studentName: string;
+    studentDisplayName: string | null;
+    progressReportsSent: Record<string, string> | null;
+    lumiIntroSent: Record<string, string> | null;
+  };
+  const subjectRows = await prisma.$queryRaw<SubjectEventRow[]>(Prisma.sql`
+    SELECT
+      p.email                                       AS "parentEmail",
+      p.name                                        AS "parentName",
+      p."displayName"                               AS "parentDisplayName",
+      s.name                                        AS "studentName",
+      s."displayName"                               AS "studentDisplayName",
+      s.settings->'progressReportsSent'             AS "progressReportsSent",
+      s.settings->'lumiIntroSent'                   AS "lumiIntroSent"
+    FROM "User" p
+    INNER JOIN "ParentStudent" ps ON ps."parentId" = p.id
+    INNER JOIN "User" s ON s.id = ps."studentId"
+    WHERE p.role = 'PARENT'
+      AND p.email IS NOT NULL
+      AND (
+        s.settings ? 'progressReportsSent'
+        OR s.settings ? 'lumiIntroSent'
+      )
+  `);
 
-    for (const link of p.parentLinks) {
-      const student = link.student;
-      const studentName = firstName(student.displayName ?? student.name);
-      const settings = student.settings as {
-        progressReportsSent?: Record<string, string>;
-        lumiIntroSent?: Record<string, string>;
-      } | null;
+  for (const r of subjectRows) {
+    if (!r.parentEmail) continue;
+    const toName = firstName(r.parentDisplayName ?? r.parentName);
+    const childName = firstName(r.studentDisplayName ?? r.studentName);
 
-      const progress = settings?.progressReportsSent ?? {};
-      for (const [subjectKey, ts] of Object.entries(progress)) {
-        const date = new Date(ts);
-        if (isNaN(date.getTime())) continue;
-        if (sinceDate && date < sinceDate) continue;
+    if (r.progressReportsSent && typeof r.progressReportsSent === "object") {
+      for (const [subjectKey, ts] of Object.entries(r.progressReportsSent)) {
+        const dt = new Date(ts);
+        if (isNaN(dt.getTime())) continue;
+        if (sinceDate && dt < sinceDate) continue;
         events.push({
-          to: parentEmail,
-          to_name: parentName,
+          to: r.parentEmail,
+          to_name: toName,
           event_type: "subject_3_quizzes_done",
-          sent_at: date.toISOString(),
+          sent_at: dt.toISOString(),
           subject_key: subjectKey,
-          child_name: studentName,
+          child_name: childName,
         });
       }
+    }
 
-      const lumi = settings?.lumiIntroSent ?? {};
-      for (const [subjectKey, ts] of Object.entries(lumi)) {
-        const date = new Date(ts);
-        if (isNaN(date.getTime())) continue;
-        if (sinceDate && date < sinceDate) continue;
+    if (r.lumiIntroSent && typeof r.lumiIntroSent === "object") {
+      for (const [subjectKey, ts] of Object.entries(r.lumiIntroSent)) {
+        const dt = new Date(ts);
+        if (isNaN(dt.getTime())) continue;
+        if (sinceDate && dt < sinceDate) continue;
         events.push({
-          to: parentEmail,
-          to_name: parentName,
+          to: r.parentEmail,
+          to_name: toName,
           event_type: "lumi_intro_15_mistakes",
-          sent_at: date.toISOString(),
+          sent_at: dt.toISOString(),
           subject_key: subjectKey,
-          child_name: studentName,
+          child_name: childName,
         });
       }
     }
