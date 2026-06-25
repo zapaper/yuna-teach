@@ -21,6 +21,7 @@
 // which auto-opens the Focused Practice modal pre-filled.
 
 import { prisma } from "../src/lib/db";
+import { fetchActivitySummary, type ActivityStudent } from "../src/lib/yuna-activity";
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
 import path from "path";
 import { createCanvas } from "@napi-rs/canvas";
@@ -352,6 +353,12 @@ function buildEmailHtml(args: {
   chartCid: string;
   lumiCid: string;
   totalAttempts: number;
+  activitySummary?: {
+    totalPapers: number;
+    marks: { percent: number };
+    bySubject: Array<{ subject: string; papers: number; marks: { percent: number } }>;
+  } | null;
+  activityDays?: number;
 }): { html: string; text: string; subject: string } {
   // "Full Report" link → /progress/<studentId>?userId=<parentId>.
   // Per-topic CTAs → /home/<parentId>?focused=1&studentId=…&subject=…
@@ -489,6 +496,25 @@ function buildEmailHtml(args: {
     <p style="margin:14px 0 0 0;color:#737780;font-size:12px;font-style:italic;">
       Green bars are at or above ${childFirst}'s ${args.subjectLabel.toLowerCase()} average; grey bars sit below it. The red dashed line marks the average.
     </p>
+
+    ${(() => {
+      const a = args.activitySummary;
+      if (!a || !a.totalPapers) return "";
+      const days = args.activityDays ?? 7;
+      const pct = Number.isFinite(a.marks.percent) ? `${a.marks.percent.toFixed(0)}%` : "—";
+      const subjBits = (a.bySubject || [])
+        .filter((r) => r.papers > 0)
+        .slice(0, 5)
+        .map((r) => `<span style="color:#001e40;font-weight:600;">${r.subject}</span> <span style="color:#43474f;">${r.papers}</span>`)
+        .join(" &middot; ");
+      return `<div style="margin:18px 0 0 0;padding:12px 16px;background:#eef5ff;border:1px solid #c7dcff;border-radius:10px;">
+        <p style="margin:0;color:#001e40;font-size:13px;line-height:1.5;">
+          <strong>${childFirst}'s last ${days} days</strong> &nbsp;·&nbsp;
+          <strong>${a.totalPapers} papers</strong> across all subjects, averaging <strong>${pct}</strong>.
+          ${subjBits ? `<br/><span style="font-size:12px;color:#43474f;">${subjBits}</span>` : ""}
+        </p>
+      </div>`;
+    })()}
 
     ${strongBlock}
 
@@ -869,6 +895,25 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
   const lumiCid = `lumi-icon-${safeStu}-${c.subjectKey}`;
 
   const totalAttempts = c.topics.reduce((s, t) => s + t.attempts, 0);
+
+  // Last-7-days activity rollup for the cross-subject context box.
+  // Fetched via the markforyou-mailer's read-only /api/admin/activity-
+  // summary endpoint (same NURTURE_API_TOKEN as the other admin pulls).
+  // Failure is non-fatal — the email just renders without the block.
+  const ACTIVITY_DAYS = 7;
+  let activitySummary: ActivityStudent | null = null;
+  try {
+    const summary = await fetchActivitySummary({
+      studentId: c.studentId,
+      days: ACTIVITY_DAYS,
+      bySubject: true,
+    });
+    activitySummary = summary.students.find((s) => s.id === c.studentId) ?? null;
+  } catch (err) {
+    const e = err as Error;
+    console.warn(`  activity-summary fetch failed for ${c.studentName} (${c.studentId}): ${e.message}`);
+  }
+
   const { html, text, subject } = buildEmailHtml({
     parentFirstName: firstName(c.parentName),
     parentId: c.parentId,
@@ -883,6 +928,8 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
     chartCid,
     lumiCid,
     totalAttempts,
+    activitySummary,
+    activityDays: ACTIVITY_DAYS,
   });
 
   if (opts.dryRun) {
