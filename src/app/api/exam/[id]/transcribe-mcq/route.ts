@@ -129,7 +129,7 @@ export async function PUT(
 }
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -146,13 +146,28 @@ export async function POST(
     return NextResponse.json({ error: "Clean extraction is supported for Math and Science papers" }, { status: 400 });
   }
 
+  // ?force=1 re-transcribes every question even if it already has saved
+  // transcription data. Default is RESUME mode: questions with a saved
+  // transcribedStem return the cached row instantly, only the unfinished
+  // ones hit Gemini. This makes the endpoint idempotent and survives
+  // Cloudflare's 100s timeout on long (40+ question) papers — the
+  // client just retries and the queue shrinks each round.
+  const force = req.nextUrl.searchParams.get("force") === "1";
+
   const questions = await prisma.examQuestion.findMany({
     where: { examPaperId: id },
     orderBy: { orderIndex: "asc" },
-    select: { id: true, questionNum: true, orderIndex: true, answer: true, imageData: true, syllabusTopic: true, marksAvailable: true },
+    select: {
+      id: true, questionNum: true, orderIndex: true, answer: true, imageData: true,
+      syllabusTopic: true, marksAvailable: true,
+      transcribedStem: true, transcribedOptions: true, transcribedOptionImages: true,
+      transcribedOptionTable: true, transcribedSubparts: true,
+      diagramBounds: true, diagramImageData: true,
+    },
   });
 
-  console.log(`[transcribe] Paper ${id}: transcribing ${questions.length} questions (MCQ + open-ended)`);
+  const alreadyDone = force ? 0 : questions.filter(q => (q.transcribedStem ?? "").trim().length > 0).length;
+  console.log(`[transcribe] Paper ${id}: transcribing ${questions.length} questions (MCQ + open-ended)${force ? " — FORCE mode (will re-transcribe)" : alreadyDone > 0 ? ` — RESUME mode (${alreadyDone} already cached)` : ""}`);
 
   /** Strip trailing letters from questionNum to get the base, e.g. "35c" → "35", "35ab" → "35" */
   function baseQNum(questionNum: string) {
@@ -213,6 +228,30 @@ export async function POST(
   const CONCURRENCY = 10;
   const results: Array<Awaited<ReturnType<typeof transcribeOne>>> = new Array(questions.length);
   async function transcribeOne(q: typeof questions[number]) {
+      // RESUME: if this question already has saved transcription data
+      // (transcribedStem populated), return the cached row instantly
+      // without burning a Gemini call. Bypassed by ?force=1.
+      if (!force && (q.transcribedStem ?? "").trim().length > 0) {
+        const ansNorm = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+        const cachedMcq = /^[1-4]$/.test(ansNorm) || (q.transcribedOptions != null) || (q.transcribedOptionImages != null) || (q.transcribedOptionTable != null);
+        return {
+          id: q.id,
+          type: cachedMcq ? "mcq" as const : "open" as const,
+          questionNum: q.questionNum,
+          answer: cachedMcq ? normalizeMcqAnswer(q.answer) : (q.answer ?? ""),
+          syllabusTopic: q.syllabusTopic,
+          marksAvailable: q.marksAvailable,
+          stem: q.transcribedStem,
+          options: (q.transcribedOptions as string[] | null) ?? null,
+          optionImages: (q.transcribedOptionImages as (string | null)[] | null) ?? null,
+          optionTable: q.transcribedOptionTable as { columns: string[]; rows: string[][] } | null ?? null,
+          subparts: (q.transcribedSubparts as { label: string; text: string }[] | null) ?? null,
+          diagramBounds: q.diagramBounds as DiagramBounds | null ?? null,
+          diagramBase64: q.diagramImageData ? q.diagramImageData.replace(/^data:image\/\w+;base64,/, "") : null,
+          error: null,
+          cached: true as const,
+        };
+      }
       const base64 = await getContextualBase64(q);
       // Answer-first check — the answer key is the ground-truth
       // signal for MCQ vs OEQ. A stored answer of "(1)" / "(2)" /
@@ -355,15 +394,49 @@ export async function POST(
       }
   }
 
+  // Worker also persists each successful Gemini result to the DB
+  // immediately so a subsequent retry (after a Cloudflare 524 / network
+  // blip) skips it via the RESUME branch above. The admin still hits
+  // Save explicitly in the UI to lock in the human-reviewed final
+  // version — what we save here is a "Gemini cache" used purely by
+  // the resume path.
+  async function persist(r: NonNullable<Awaited<ReturnType<typeof transcribeOne>>>) {
+    // Don't re-save the cached-from-DB rows.
+    if ("cached" in r && r.cached) return;
+    if (r.error) return;                   // failed call — let it retry next time
+    if (!r.stem || !r.stem.trim()) return; // nothing useful to cache
+    try {
+      await prisma.examQuestion.update({
+        where: { id: r.id },
+        data: {
+          transcribedStem: r.stem,
+          transcribedOptions: r.options ?? Prisma.DbNull,
+          transcribedOptionImages: r.optionImages ?? Prisma.DbNull,
+          transcribedOptionTable: r.optionTable ?? Prisma.DbNull,
+          transcribedSubparts: r.subparts ?? Prisma.DbNull,
+          diagramBounds: r.diagramBounds ?? Prisma.DbNull,
+          diagramImageData: r.diagramBase64 ? `data:image/jpeg;base64,${r.diagramBase64}` : null,
+        },
+      });
+    } catch (e) {
+      console.warn(`[transcribe] persist Q${r.questionNum} cache failed:`, e instanceof Error ? e.message : e);
+    }
+  }
+
   let cursor = 0;
   const workers = Array.from({ length: Math.min(CONCURRENCY, questions.length) }, async () => {
     while (true) {
       const i = cursor++;
       if (i >= questions.length) return;
-      results[i] = await transcribeOne(questions[i]);
+      const r = await transcribeOne(questions[i]);
+      results[i] = r;
+      if (r) await persist(r);
     }
   });
   await Promise.all(workers);
 
+  const cachedCount = results.filter(r => r && "cached" in r && r.cached).length;
+  const errorCount = results.filter(r => r && r.error).length;
+  console.log(`[transcribe] Paper ${id} done. ${cachedCount} cached, ${results.length - cachedCount - errorCount} freshly transcribed, ${errorCount} failed.`);
   return NextResponse.json({ questions: results });
 }
