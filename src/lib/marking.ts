@@ -4661,11 +4661,23 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
 
           // Build new subparts with sp.answer attached and any extra stem prepended.
           // We preserve whatever prepending already happened (idempotent check).
+          //
+          // Compound-parent fallback: a subpart labelled "b-i" should fall
+          // back to the parent "(b)" answer key when no specific "(b)(i)"
+          // entry exists. This is a common pattern in PSLE papers where
+          // the marker writes one combined answer for all children of (b)
+          // instead of one per child. Without fallback the marker
+          // hallucinated answers for child subparts because partAnswers
+          // had only "b" and the lookup for "b-i" returned undefined.
           const newSubs = (subs ?? []).map(sp => {
             if (sp.label.startsWith("_")) return sp;
-            const ans = partAnswers.get(sp.label.toLowerCase());
+            const lbl = sp.label.toLowerCase();
+            let ans = partAnswers.get(lbl);
+            if (ans === undefined && lbl.includes("-")) {
+              ans = partAnswers.get(lbl.split("-")[0]);
+            }
             let next = ans !== undefined ? { ...sp, answer: ans } : { ...sp };
-            const extra = extraStemFor.get(sp.label.toLowerCase());
+            const extra = extraStemFor.get(lbl);
             if (extra && !(sp.text ?? "").includes(extra)) {
               next = { ...next, text: `${extra}\n\n${sp.text ?? ""}`.trim() };
             }

@@ -767,7 +767,16 @@ export async function POST(request: NextRequest) {
       }
     }
     const enrichedSubparts = allSubparts.map(sp => {
-      const ans = partAnswers.get(sp.label.toLowerCase());
+      // Compound-parent fallback: subpart "b-i" → fall back to parent "(b)"
+      // answer when no specific "(b)(i)" exists. Common PSLE pattern
+      // where the answer key writes one combined answer for compound
+      // children. Without fallback the focused clone's compound subparts
+      // landed with no .answer field and the marker had to invent one.
+      const lbl = sp.label.toLowerCase();
+      let ans = partAnswers.get(lbl);
+      if (ans === undefined && lbl.includes("-")) {
+        ans = partAnswers.get(lbl.split("-")[0]);
+      }
       return ans !== undefined ? { ...sp, answer: ans } : sp;
     });
     const rebuiltAnswer = partAnswers.size > 0
