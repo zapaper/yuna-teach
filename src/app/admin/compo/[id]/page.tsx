@@ -73,6 +73,7 @@ type Row = {
   recommendations: Recommendations | null;
   analysedAt: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 export default function CompoDetailPage() {
@@ -193,13 +194,31 @@ export default function CompoDetailPage() {
             >
               Export to PDF
             </button>
-            <button
-              onClick={reanalyse}
-              disabled={reanalysing || row.status === "analysing"}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {reanalysing || row.status === "analysing" ? "Re-analysing…" : "Re-analyse"}
-            </button>
+            {(() => {
+              // Status is 'analysing' but the row hasn't been touched
+              // in 5+ minutes? Likely the orchestrator died mid-run
+              // (Railway redeploy, OOM, network blip). Let the admin
+              // re-kick it — server-side /analyse will accept the
+              // override per the same threshold.
+              const STUCK_MS = 5 * 60 * 1000;
+              const isAnalysing = row.status === "analysing";
+              const ageMs = isAnalysing ? Date.now() - new Date(row.updatedAt).getTime() : 0;
+              const isStuck = isAnalysing && ageMs > STUCK_MS;
+              const disabled = reanalysing || (isAnalysing && !isStuck);
+              const label =
+                reanalysing                 ? "Re-analysing…" :
+                isStuck                     ? "Force re-analyse (stuck)" :
+                row.status === "analysing"  ? "Re-analysing…" :
+                                              "Re-analyse";
+              const cls = isStuck
+                ? "px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200"
+                : "px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-60 disabled:cursor-not-allowed";
+              return (
+                <button onClick={reanalyse} disabled={disabled} className={cls}>
+                  {label}
+                </button>
+              );
+            })()}
             <button
               onClick={async () => {
                 if (!confirm(`Delete this analysis (${row.label ?? "no label"})? This removes the uploaded pages and all generated output. Cannot be undone.`)) return;
@@ -672,6 +691,12 @@ function ProgressTracker({ row }: { row: Row }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.floor((now - startedAt) / 1000);
+  // Server-side stuck threshold matches /analyse route. We compare
+  // against row.updatedAt (which the orchestrator bumps after every
+  // stage) rather than startedAt — that way a tracker mounted late
+  // (admin refreshed mid-run) still uses the real update age.
+  const updatedAgeMs = now - new Date(row.updatedAt).getTime();
+  const isStuck = row.status === "analysing" && updatedAgeMs > 5 * 60 * 1000;
   const mm = Math.floor(elapsedSec / 60);
   const ss = (elapsedSec % 60).toString().padStart(2, "0");
 
@@ -692,6 +717,18 @@ function ProgressTracker({ row }: { row: Row }) {
   else if (critiqueDone && !recsDone)       { stageNum = 4; label = "Brainstorming upgrade ideas… 💡"; }
   else if (recsDone)                        { stageNum = 5; label = "Sprinkling some 好词好句 magic… ✨"; }
 
+  if (isStuck) {
+    const stuckMins = Math.floor(updatedAgeMs / 60000);
+    return (
+      <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 space-y-1">
+        <div className="flex items-center gap-2 text-sm text-rose-900 font-medium">
+          <span>🛑 Looks stuck.</span>
+          <span className="text-rose-700">No progress for {stuckMins} min — the worker probably died (redeploy / OOM / network blip).</span>
+        </div>
+        <div className="text-xs text-rose-700">Click the amber <strong>Force re-analyse (stuck)</strong> button above to restart the pipeline from scratch.</div>
+      </div>
+    );
+  }
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2 text-sm text-amber-900">

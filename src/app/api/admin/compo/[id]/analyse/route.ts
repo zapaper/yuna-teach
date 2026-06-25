@@ -16,10 +16,25 @@ export async function POST(
 ) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
-  const row = await prisma.compoAttempt.findUnique({ where: { id }, select: { id: true, status: true } });
+  const row = await prisma.compoAttempt.findUnique({ where: { id }, select: { id: true, status: true, updatedAt: true } });
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // 'analysing' usually means the orchestrator is actively walking
+  // through the pipeline — block re-triggering to avoid two parallel
+  // analyse() runs clobbering each other. BUT if updatedAt hasn't
+  // moved in 5+ minutes, the orchestrator most likely died (Railway
+  // redeploy killed the container, container OOM-killed mid-run,
+  // crash on a Gemini timeout). In that case treat the row as
+  // stuck and let the request re-kick the pipeline.
   if (row.status === "analysing") {
-    return NextResponse.json({ error: "Already analysing" }, { status: 409 });
+    const ageMs = Date.now() - row.updatedAt.getTime();
+    const STUCK_MS = 5 * 60 * 1000;
+    if (ageMs < STUCK_MS) {
+      return NextResponse.json({
+        error: "Already analysing",
+        stuckEligibleInMs: STUCK_MS - ageMs,
+      }, { status: 409 });
+    }
+    console.warn(`[compo:${id}] stuck recovery: status=analysing for ${Math.round(ageMs / 1000)}s — re-kicking pipeline`);
   }
   // Flip status SYNCHRONOUSLY before kicking off the orchestrator —
   // otherwise the detail page's status-conditional polling
