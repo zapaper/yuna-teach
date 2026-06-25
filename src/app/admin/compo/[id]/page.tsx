@@ -109,8 +109,20 @@ export default function CompoDetailPage() {
     setReanalysing(true);
     setError(null);
     // Optimistic flip so the in-line tracker shows immediately,
-    // before the network round-trip + server flip lands.
-    setRow(prev => prev ? { ...prev, status: "analysing", errorMessage: null } : prev);
+    // before the network round-trip + server flip lands. Also null
+    // out the prior-run AI fields so the progress tracker reads as
+    // Stage 1/5 — otherwise the 'first unfilled field' heuristic
+    // sees all four populated and shows Stage 5/5 throughout.
+    setRow(prev => prev ? {
+      ...prev,
+      status: "analysing",
+      errorMessage: null,
+      ocrText: null,
+      ocrQuestionText: null,
+      wrongWords: null,
+      critique: null,
+      recommendations: null,
+    } : prev);
     try {
       const result = await fetchJsonSafe(`/api/admin/compo/${id}/analyse`, { method: "POST" });
       // 202 + transient 5xx both treated as ok for re-analyse — the
@@ -670,12 +682,15 @@ function ProgressTracker({ row }: { row: Row }) {
   const critiqueDone = row.critique !== null;
   const recsDone = row.recommendations !== null && row.recommendations.structural !== undefined;
 
+  // Vague + fun copy so we don't tip our hand on the underlying
+  // pipeline / prompts. The admin still gets a sense of forward
+  // motion; the user-facing wording stays magical.
   let stageNum = 1;
-  let label = "Reading composition (OCR)…";
-  if (ocrDone && !wrongWordsDone)        { stageNum = 2; label = "Scanning for 错别字 / 漏字 / 用词不当…"; }
-  else if (wrongWordsDone && !critiqueDone) { stageNum = 3; label = "Scoring against the 40-mark rubric…"; }
-  else if (critiqueDone && !recsDone)    { stageNum = 4; label = "Drafting structural + language recommendations…"; }
-  else if (recsDone)                     { stageNum = 5; label = "Rewriting to the 35-40 target band…"; }
+  let label = "Pulling out the reading glasses… 🤓";
+  if (ocrDone && !wrongWordsDone)           { stageNum = 2; label = "Hunting for sneaky 错字… 🔍"; }
+  else if (wrongWordsDone && !critiqueDone) { stageNum = 3; label = "Channeling our inner 阅卷老师… ✍️"; }
+  else if (critiqueDone && !recsDone)       { stageNum = 4; label = "Brainstorming upgrade ideas… 💡"; }
+  else if (recsDone)                        { stageNum = 5; label = "Sprinkling some 好词好句 magic… ✨"; }
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">

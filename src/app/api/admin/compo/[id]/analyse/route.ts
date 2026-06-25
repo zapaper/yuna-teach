@@ -5,6 +5,7 @@
 // status back to "analysing" and overwrites the AI-produced fields.
 
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { isSessionAdmin } from "@/lib/session";
 import { analyseCompoAttempt } from "@/lib/compo-analysis";
 import { prisma } from "@/lib/db";
@@ -26,9 +27,23 @@ export async function POST(
   // the row still looks "ready" until the orchestrator's first
   // async DB write lands. Re-analyse would appear to do nothing
   // until completion.
+  //
+  // ALSO clear the AI-produced fields so the progress tracker
+  // resets to Stage 1/5. Without this, an already-ready row keeps
+  // its old ocrText / wrongWords / critique / recommendations
+  // until each stage of the new run overwrites them, and the
+  // 'first unfilled field' tracker reads as Stage 5/5 throughout.
   await prisma.compoAttempt.update({
     where: { id },
-    data: { status: "analysing", errorMessage: null },
+    data: {
+      status: "analysing",
+      errorMessage: null,
+      ocrText: null,
+      ocrQuestionText: null,
+      wrongWords: Prisma.DbNull,
+      critique: Prisma.DbNull,
+      recommendations: Prisma.DbNull,
+    },
   });
   // Fire-and-forget. Errors land in the row's status=failed +
   // errorMessage by the orchestrator's own catch.
