@@ -166,6 +166,43 @@ export type PhraseSwap = {
 
 // ─── OCR ─────────────────────────────────────────────────────────────
 
+// Safety-net post-pass for the most common OCR misread:
+// handwritten 了 → '3'. Even with the prompt's screaming about this,
+// Gemini still ships an essay with stray '3' in 了 positions. Only
+// rewrites in contexts that are statistically unambiguous, so a real
+// digit '3' in a quantifier or multi-digit context can't be touched:
+//
+//   ✓ rewrite: (CJK)3(CJK-not-quantifier | sentence-end punctuation)
+//   ✗ keep:    after a digit (multi-digit number)
+//   ✗ keep:    before a quantifier (个 / 只 / 人 / 天 / 元 / etc.)
+//
+// Logs the count of substitutions so an admin can spot when this
+// safety net is overfitting and tighten the regex.
+const QUANTIFIERS = "个只人天元分岁年月点时秒次本张片块条段步岁号位条棵把件双只匹群队组层次种类米厘公千吨";
+function fixHandwriting3ToLe(text: string): string {
+  if (!text) return text;
+  // (?<=CJK) digit '3' (?=CJK-not-quantifier | sentence punct | line end)
+  const re = new RegExp(
+    `(?<=[\\u4e00-\\u9fff])3(?=[\\u4e00-\\u9fff，。！？、；：""''「」、]|\\s*$|\\s*\\n)`,
+    "gu",
+  );
+  // First pass — gather candidate indices so we can apply a quantifier
+  // look-ahead negative-filter ourselves (lookbehind+lookahead-with-set
+  // doesn't compose cleanly in JS regex).
+  let out = text;
+  let removed = 0;
+  out = out.replace(re, (_match, offset: number, full: string) => {
+    const next = full[offset + 1] ?? "";
+    if (QUANTIFIERS.includes(next)) return "3"; // "3个", "3只" → keep
+    removed++;
+    return "了";
+  });
+  if (removed > 0) {
+    console.log(`[compo:ocr] safety-net replaced ${removed} handwriting '3' → '了' (post-pass)`);
+  }
+  return out;
+}
+
 async function readFileForGemini(relPath: string): Promise<{ data: string; mimeType: string }> {
   const abs = path.join(COMPO_DIR, relPath);
   const buf = await fs.readFile(abs);
@@ -200,6 +237,28 @@ async function readTextDirectly(relPath: string): Promise<string | null> {
 }
 
 const OCR_PROMPT_BODY = `你正在从扫描的手写小学华文作文页面中提取文字。
+
+🚨🚨🚨 第一优先级 — "3" 几乎一定是 "了" 🚨🚨🚨
+小学手写体的 "了" 字 (尤其在句尾) 经常被 OCR 看成数字 "3"。这是 **最常见、最严重** 的错误。
+
+【硬性规则】 — 输出 essay 字段前，必须执行以下扫描:
+1. 找出 essay 里每一个数字 "3"。
+2. 对每一个 "3" 自问: 它的前一个字是中文吗？后面是中文 / 标点 (，。！？)、或行尾吗？
+3. 如果是，**几乎可以肯定是 "了"** — 不要犹豫，直接改成 "了"。
+4. 只有在以下情况才保留数字 "3":
+   · "3" 后面紧跟量词 (个 / 只 / 人 / 天 / 元 / 分 / 岁 / 年 / 月 / 点 / 小时 / 公斤 / 等等)
+   · "3" 是多位数字的一部分 (13, 23, 30, 31, 等)
+   · "3" 出现在明显的数字上下文中 (例 "13岁", "第3名")
+
+【典型例子】
+- "他走3。"           → "他走了。"       ✓ 改
+- "妈妈笑3！"         → "妈妈笑了！"     ✓ 改
+- "我吃3，"           → "我吃了，"       ✓ 改
+- "她哭3起来。"       → "她哭了起来。"   ✓ 改 (3 后面不是量词)
+- "我吃了3个苹果。"   → 保留 (3 后面是量词 "个")  ✗ 不改
+- "他13岁。"          → 保留 (多位数字)            ✗ 不改
+
+完成扫描后再写 JSON。
 
 【任务】输出严格的 JSON:
 {
@@ -396,6 +455,11 @@ export async function runOcr(
     // than picking the prompt out of a half-page above the essay.
     if (qText.length > 0) ocrQuestionText = qText;
   }
+
+  // Final post-pass: rewrite handwriting-3-mistaken-for-了 in safe
+  // contexts. Applied LAST so a fresh OCR run, the text-only
+  // fast-path, and the regex-recovery fallback all benefit.
+  ocrText = fixHandwriting3ToLe(ocrText);
 
   return { ocrText, ocrQuestionText };
 }
