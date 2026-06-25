@@ -396,15 +396,33 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Eval: ${papers.length} paper(s), tolerance ±${tolerance} mark per question, cleanup=${cleanup}${verbose ? ", verbose" : ""}`);
+  // Concurrency cap. Within a paper the marker already fan-outs OEQs
+  // via Promise.all, so paper-level parallelism multiplies the in-flight
+  // Gemini calls. 4 papers in flight × ~10 OEQs each = ~40 concurrent
+  // Gemini calls, which is comfortable for our quota and roughly 4×
+  // the throughput of the old serial loop. Override with --concurrency=N.
+  const concurrencyArg = process.argv.find(a => a.startsWith("--concurrency="))?.split("=")[1];
+  const concurrency = concurrencyArg ? Math.max(1, parseInt(concurrencyArg, 10)) : 4;
+  console.log(`Eval: ${papers.length} paper(s), tolerance ±${tolerance} mark per question, cleanup=${cleanup}, concurrency=${concurrency}${verbose ? ", verbose" : ""}`);
   const results: PaperResult[] = [];
-  for (const snap of papers) {
-    try {
-      results.push(await evalPaper(snap, tolerance, cleanup, verbose));
-    } catch (err) {
-      console.error(`[${snap.id}] FAILED:`, err instanceof Error ? err.message : err);
+  // Simple bounded-concurrency queue: each worker pulls the next snap
+  // index off a shared cursor. Cleaner than chunking because slow
+  // papers don't block fast ones from starting.
+  let nextIdx = 0;
+  const worker = async () => {
+    while (true) {
+      const idx = nextIdx++;
+      if (idx >= papers.length) return;
+      const snap = papers[idx];
+      try {
+        const r = await evalPaper(snap, tolerance, cleanup, verbose);
+        results.push(r);
+      } catch (err) {
+        console.error(`[${snap.id}] FAILED:`, err instanceof Error ? err.message : err);
+      }
     }
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, papers.length) }, worker));
 
   const passed = results.filter(r => r.pass).length;
   const totalQ = results.reduce((s, r) => s + r.total, 0);

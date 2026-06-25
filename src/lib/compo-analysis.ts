@@ -106,25 +106,38 @@ function repairJson(s: string): string {
   }
   s = out;
 
-  // 4. Insert missing commas between a value-terminator and the next
-  //    `"key":` / `{` / `[`. State-before-consuming model:
-  //    - Closing `"` of a string value: stateBefore[i] = true
-  //    - Structural `}`, `]`, digit, etc: stateBefore[i] = false
-  //    - Opening `"` of next key: stateBefore[j] = false
+  // 4. Insert missing commas between a value-end and the next value
+  //    start. Covers both:
+  //      - object property pairs:   `"a": 1\n  "b": 2` → insert comma
+  //      - array element pairs:     `}\n  {`, `1\n  2`, `"a"\n  "b"`
+  //    State-before-consuming model disambiguates opening vs closing
+  //    `"`:
+  //      - closing `"` of a string value:  stateBefore[i] = true
+  //      - opening `"` of next key/value:  stateBefore[j] = false
   sb = buildStateBefore(s);
-  // Trailing-letter detector for true / false / null. We accept `l` (null,
-  // null end) and `e` (true/false end) as value-end chars.
+  // Value-end chars (outside strings): closing of string / object / array,
+  // last digit of a number, `e` (end of true/false), `l` (end of null).
   const isValueEnd = (i: number) => {
     const c = s[i];
-    if (c === '"') return sb[i];        // closing quote: we were inside
+    if (c === '"') return sb[i];           // closing quote
     if (c === '}' || c === ']') return !sb[i];
-    if (/[0-9]/.test(c) || c === 'e' || c === 'l') return !sb[i];
+    if (/[0-9]/.test(c) || c === "e" || c === "l") return !sb[i];
     return false;
   };
-  const isNextKeyOrStruct = (j: number) => {
+  // Value-start chars (outside strings): opening of string / object /
+  // array, sign or first digit of number, first letter of true/false/null.
+  // Note: previous version only accepted `"`, `{`, `[`, which silently
+  // skipped missing commas between array elements that were
+  // numbers/literals (and an over-restrictive `":"` peek dropped
+  // missing commas between string-array elements too). Both gaps caused
+  // the wrong-words array Gemini occasionally emits to fail repair.
+  const isValueStart = (j: number) => {
     if (j >= s.length) return false;
-    if (sb[j]) return false;             // we're inside a string
-    return s[j] === '"' || s[j] === '{' || s[j] === '[';
+    if (sb[j]) return false;
+    const c = s[j];
+    return c === '"' || c === '{' || c === '['
+      || c === '-' || /[0-9]/.test(c)
+      || c === "t" || c === "f" || c === "n";
   };
 
   out = "";
@@ -133,26 +146,9 @@ function repairJson(s: string): string {
     if (!isValueEnd(i)) continue;
     let j = i + 1;
     while (j < s.length && /\s/.test(s[j])) j++;
-    if (!isNextKeyOrStruct(j)) continue;
-    // For `"key":`, peek further: after the next `"`'s closing pair
-    // there must be a `:` (modulo whitespace). This avoids inserting
-    // a comma into e.g. `[ "x", "y" ]` where the second `"y"` is a
-    // string value, not a key.
-    if (s[j] === '"') {
-      let k = j + 1;
-      let escaped = false;
-      while (k < s.length) {
-        if (escaped) { escaped = false; k++; continue; }
-        if (s[k] === "\\") { escaped = true; k++; continue; }
-        if (s[k] === '"') break;
-        k++;
-      }
-      if (k >= s.length) continue;
-      let m = k + 1;
-      while (m < s.length && /\s/.test(s[m])) m++;
-      if (s[m] !== ":") continue;
-    }
-    // Need whitespace between value and next — guards `{"a":1,"b":2}`.
+    if (!isValueStart(j)) continue;
+    // Must have whitespace between value-end and value-start — guards
+    // legitimate `{"a":1,"b":2}` / `[1,2]` from spurious commas.
     if (j === i + 1) continue;
     out += ",";
   }
