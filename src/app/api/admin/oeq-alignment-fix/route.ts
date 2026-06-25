@@ -182,9 +182,17 @@ export async function POST(req: NextRequest) {
     }
     const imageDataUrl = q.imageData.startsWith("data:") ? q.imageData : `data:image/jpeg;base64,${q.imageData}`;
     const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
-    let result;
+    // Hard per-question deadline. The underlying Gemini client has a
+    // 180s timeout that's way past Cloudflare's 100s — one stuck call
+    // hung the whole batch. 25s is generous for the typical
+    // pro-tier extract (~7-15s) and aborts pathological cases as ERROR
+    // instead of poisoning the dry-run.
+    let result: Awaited<ReturnType<typeof transcribeScienceOpenEndedQuestion>>;
     try {
-      result = await transcribeScienceOpenEndedQuestion(base64);
+      result = await Promise.race([
+        transcribeScienceOpenEndedQuestion(base64),
+        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("per-question deadline: 25s")), 25000)),
+      ]);
     } catch (err) {
       return {
         paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
@@ -230,11 +238,12 @@ export async function POST(req: NextRequest) {
     };
   }
 
-  // Sliding-window concurrency. Sequential was hitting Cloudflare 524s
-  // (10 × ~7s per Gemini call ≈ 70s, plus DB I/O) — admin never saw
-  // the samples. Run 5 at a time: keeps Gemini quota happy and brings
-  // the dry-run inside the 100s timeout for typical limit values.
-  const CONCURRENCY = 5;
+  // Sliding-window concurrency. With the per-question 25s deadline
+  // above, 10-way fan-out makes the worst case 10 × 25s = 250s wall
+  // if all timed out (but that'd just mean Gemini is down). Typical
+  // is min(N/10, 1) × ~10s ≈ 10s for limit=10, which fits well inside
+  // Cloudflare's 100s.
+  const CONCURRENCY = 10;
   const proposals: Proposal[] = new Array(queue.length);
   let cursor = 0;
   const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
