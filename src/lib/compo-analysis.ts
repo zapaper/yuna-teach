@@ -199,29 +199,39 @@ async function readTextDirectly(relPath: string): Promise<string | null> {
   return null;
 }
 
-const OCR_PROMPT_BODY = `你正在从扫描的手写小学华文作文中提取文字。
+const OCR_PROMPT_BODY = `你正在从扫描的手写小学华文作文页面中提取文字。
 
-【任务】
-1. 按段落顺序，把学生手写的所有文字转录成简体中文 (即原文是简体就用简体；原文是繁体也转成简体)。
-2. 标点符号 (，。！？""''「」《》)请保留并用全角。
-3. 段落之间用一个空行分隔。不要加任何标题，也不要加 "学生写道:" 这类元信息。
-4. 如果某字看不清，先写一个最接近的猜测字，并在该字后用 "[?]" 标记，例如 "他很高[?]兴"。
-5. 不要纠正错别字 — 学生原文里写的错字必须保留下来 (后续步骤会处理)。
-6. 不要补充任何学生没写的字。
+【任务】输出严格的 JSON:
+{
+  "essay": "<学生手写作文正文，按段落顺序转录成简体中文，段落之间用空行分隔。看不清的字用 [?] 标注。错别字保留不要改。>",
+  "detectedQuestion": {
+    "title":   "<如果页面上印有题目 (例如 '题目一: 一件让我难忘的事' / '这件事让我明白了…')，写出来。没有就空字串。>",
+    "pictures":["<如果页面上印有看图作文的图片，逐图简短描述 (1-2 句中文)。没有就空数组。>"]
+  }
+}
+
+【转录规则】
+1. 标点符号 (，。！？""''「」《》) 保留并用全角。
+2. 段落之间用一个空行分隔。不要加 "学生写道:" 这类元信息。
+3. 不要纠正错别字 — 错字必须保留 (后续步骤会处理)。
+4. 不要补充学生没写的字。
 
 【手写常见误读 — 必查】
-小学生手写体中，这些容易被 OCR 看错。看到候选 "数字 / 拉丁字母" 出现在中文句子里时，先想想它是不是其实是这些汉字:
-- **"3" → "了"**: 句末或动词后出现 "3" 几乎一定是 "了"。例 "他走3" → "他走了"。
-- "1" / "l" / "I" → "一" (横笔)
+小学生手写体中，这些容易被 OCR 看错:
+- **"3" → "了"**: 句末或动词后的 "3" 几乎一定是 "了"。例 "他走3" → "他走了"。
+- "1" / "l" / "I" → "一"
 - "0" → "口" 或 "○"
-- 中文夹杂的孤立拉丁字母通常是 OCR 误读，回去再看一次原图。
+- 中文夹杂的孤立拉丁字母通常是误读，回去再看一次原图。
 
-字形相近的汉字也容易混 (请按上下文判断):
-- 已 / 己 / 巳     · 末 / 未     · 戍 / 戌 / 戊
-- 干 / 千 / 于     · 八 / 入 / 人     · 太 / 大 / 犬
-- 自 / 白          · 日 / 目          · 土 / 士
+字形相近的汉字 (按上下文判断):
+- 已/己/巳, 末/未, 戍/戌/戊, 干/千/于, 八/入/人, 太/大/犬, 自/白, 日/目, 土/士
 
-只输出转录的作文正文 (含段落分隔)，不要 markdown 包围、不要解释。`;
+【题目检测说明】
+- 印刷字体 (规整的方块字 / 印刷宋体) 通常是题目，手写字体 (笔画风格自然的) 是学生答案。
+- 看图作文的图片如果出现在页面上，逐图描述 (人物动作 / 场景 / 表情)。
+- 如果是纯学生作文页面 (没有印刷题目和图片)，title 和 pictures 留空 / 空数组。
+
+不要 markdown 包围。`;
 
 const OCR_QUESTION_PROMPT_BODY = `你正在从扫描的小学华文 PSLE Paper 1 写作题目中提取信息。
 
@@ -257,12 +267,18 @@ export async function runOcr(
     textParts.push(t);
   }
   let ocrText: string;
+  // Auto-detected question/picture content on the composition page —
+  // populated by the Gemini OCR branch when the page also carries the
+  // printed prompt or picture series. The dedicated questionImagePath
+  // upload below (if any) overrides this.
+  let detectedQuestionText: string | null = null;
   if (allTextOnly) {
     ocrText = textParts.join("\n\n").trim();
     console.log(`[compo:ocr] text-only fast path: skipped Gemini, ${ocrText.length} chars from ${compositionImagePaths.length} file(s)`);
   } else {
     // Compose all composition pages into one Gemini call so the model
-    // can stitch paragraph breaks across page boundaries.
+    // can stitch paragraph breaks across page boundaries AND detect
+    // any printed question prompt / picture series on the same page.
     const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
     let totalBytes = 0;
     for (const p of compositionImagePaths) {
@@ -278,16 +294,46 @@ export async function runOcr(
     const ocrResp = await generateContentWithRetry({
       model: OCR_MODEL,
       contents: [{ role: "user", parts: compParts }],
-      config: { temperature: 0 },
+      config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 8192 },
     }, 2, 5000, "compo-ocr");
-    ocrText = (ocrResp.text ?? "").trim();
-    console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrText.length} chars`);
+    const ocrRaw = (ocrResp.text ?? "").trim();
+    console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrRaw.length} chars raw`);
+
+    // Parse the structured OCR output. Fall back to treating the
+    // whole response as plain essay text if JSON parsing fails.
+    ocrText = ocrRaw;
+    try {
+      const parsed = JSON.parse(extractJson(ocrRaw));
+      if (typeof parsed.essay === "string" && parsed.essay.trim().length > 0) {
+        ocrText = parsed.essay.trim();
+      }
+      if (parsed.detectedQuestion && typeof parsed.detectedQuestion === "object") {
+        const dq = parsed.detectedQuestion as { title?: unknown; pictures?: unknown };
+        const parts: string[] = [];
+        if (typeof dq.title === "string" && dq.title.trim().length > 0) {
+          parts.push(`题目: ${dq.title.trim()}`);
+        }
+        if (Array.isArray(dq.pictures)) {
+          const pics = dq.pictures.filter((p): p is string => typeof p === "string" && p.trim().length > 0);
+          if (pics.length > 0) {
+            parts.push("看图作文图片描述:");
+            pics.forEach((p, i) => parts.push(`  图 ${i + 1}: ${p.trim()}`));
+          }
+        }
+        if (parts.length > 0) {
+          detectedQuestionText = parts.join("\n");
+          console.log(`[compo:ocr] auto-detected printed prompt / pictures (${detectedQuestionText.length} chars)`);
+        }
+      }
+    } catch (err) {
+      console.warn(`[compo:ocr] structured parse failed (${err instanceof Error ? err.message : err}); using raw output as essay text`);
+    }
   }
 
-  let ocrQuestionText: string | null = null;
+  let ocrQuestionText: string | null = detectedQuestionText;
   if (questionImagePath) {
     const img = await readFileForGemini(questionImagePath);
-    console.log(`[compo:ocr] question scan: ${questionImagePath} (${img.mimeType})`);
+    console.log(`[compo:ocr] separate question scan: ${questionImagePath} (${img.mimeType})`);
     const qStart = Date.now();
     const qResp = await generateContentWithRetry({
       model: OCR_MODEL,
@@ -297,8 +343,11 @@ export async function runOcr(
       ] }],
       config: { temperature: 0 },
     }, 2, 5000, "compo-ocr-question");
-    ocrQuestionText = (qResp.text ?? "").trim() || null;
-    console.log(`[compo:ocr] question done in ${((Date.now() - qStart) / 1000).toFixed(1)}s, ${ocrQuestionText?.length ?? 0} chars`);
+    const qText = (qResp.text ?? "").trim();
+    console.log(`[compo:ocr] separate question done in ${((Date.now() - qStart) / 1000).toFixed(1)}s, ${qText.length} chars`);
+    // Dedicated question scan always wins — it's higher fidelity
+    // than picking the prompt out of a half-page above the essay.
+    if (qText.length > 0) ocrQuestionText = qText;
   }
 
   return { ocrText, ocrQuestionText };
@@ -394,12 +443,36 @@ async function loadModelEssays(optionType: string | null): Promise<ModelEssay[]>
   return out;
 }
 
-const CRITIQUE_PROMPT = (ocrText: string, modelEssays: ModelEssay[], studentTopic: string | null) => {
+const CRITIQUE_PROMPT = (
+  ocrText: string,
+  modelEssays: ModelEssay[],
+  studentTopic: string | null,
+  detectedQuestionText: string | null,
+) => {
   const sample = modelEssays.slice(0, 6).map(e =>
     `=== ${e.year} ${e.option === "option1" ? "Option 1" : "Option 2"} —  ${e.topic} ===\n${e.essay}`
   ).join("\n\n");
+  // If we have an explicit question/picture prompt (either the
+  // admin uploaded a separate question scan, or we auto-detected it
+  // on the composition page), drop in the strict on-point rule.
+  const questionBlock = detectedQuestionText ? `
 
-  return `你是新加坡 PSLE 华文作文 (Paper 1 写作) 阅卷老师。请按 PSLE 40 分制评分学生作文。
+【题目 / 看图作文提示 (auto-detected or admin-supplied)】
+${detectedQuestionText}
+
+【题意/图意匹配 — 严格规则 (因为我们已经知道题目了)】
+判断作文是否符合题目 / 图意:
+- **完全离题** (作文情节、人物、地点、主题与题目 / 图意完全无关): **内容 (Content) 直接给 0 分**。在 contentNotes 里说明哪里离题。其他两轴照常评。
+- **部分离题** (主体故事方向对，但有重要情节 / 角色 / 寓意偏离题目要求): **内容 (Content) 扣 10 分** (从你按其他标准给的内容分数中再减 10，下限是 0)。在 contentNotes 里说明偏离了什么。
+- **完全符合**: 按下面的常规打分要点评。
+
+判断时:
+- 看图作文必须 *扣紧每幅图* — 缺一幅图的情节就算部分离题。
+- 题目里的关键词 (例如 "勇敢"、"合作"、"明白了一个道理") 必须在作文里有明显呼应；只有情节没有点题也算部分离题。
+- 不要因为风格不同就算离题 — 只要情节方向和题目对得上即可。
+` : "";
+
+  return `你是新加坡 PSLE 华文作文 (Paper 1 写作) 阅卷老师。请按 PSLE 40 分制评分学生作文。${questionBlock}
 
 【三个评分轴】
 - 内容 (Content) — 20 分: 情节完整、紧扣题意、有起承转合、感情真切、寓意 (moral/启示) 清楚。
@@ -476,14 +549,15 @@ export async function critiqueComposition(
   ocrText: string,
   optionType: string | null,
   studentTopic: string | null,
+  detectedQuestionText: string | null,
 ): Promise<Critique> {
   const modelEssays = await loadModelEssays(optionType);
   if (modelEssays.length === 0) throw new Error("No model essays available in DB");
-  console.log(`[compo:critique] loaded ${modelEssays.length} model essays (optionType=${optionType ?? "any"}, topic=${studentTopic ?? "(none)"}). Calling ${ANALYSIS_MODEL}...`);
+  console.log(`[compo:critique] loaded ${modelEssays.length} model essays (optionType=${optionType ?? "any"}, topic=${studentTopic ?? "(none)"}, onPointCheck=${detectedQuestionText ? "yes" : "no"}). Calling ${ANALYSIS_MODEL}...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
-    contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic) }] }],
+    contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic, detectedQuestionText) }] }],
     config: { responseMimeType: "application/json", temperature: 0.2 },
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
@@ -1041,7 +1115,7 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
 
     // 3. Critique
     console.log(`${tag} stage 3/4: critique`);
-    const critique = await critiqueComposition(ocrText, attempt.optionType, attempt.studentTopic);
+    const critique = await critiqueComposition(ocrText, attempt.optionType, attempt.studentTopic, ocrQuestionText);
     console.log(`${tag} score: ${critique.overallScore}/40 (内容 ${critique.contentScore}/20, 词汇 ${critique.vocabScore}/10, 句子 ${critique.sentenceScore}/10)`);
     await prisma.compoAttempt.update({
       where: { id: attemptId },
