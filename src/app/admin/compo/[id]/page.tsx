@@ -147,17 +147,16 @@ export default function CompoDetailPage() {
   const wrongWords = row?.wrongWords ?? [];
 
   // Inline-highlight filter for the main composition body. Default
-  // is 'none' — the side panel still lists every flagged item, but
-  // the prose stays clean. 'wrong' lights up stroke / meaning /
-  // misuse / omission; 'awkward' lights up only the awkward-phrase
-  // rewrites (different colour band).
-  const [highlight, setHighlight] = useState<"none" | "wrong" | "awkward">("none");
+  // 'both' lights everything up; 'wrong' narrows to stroke / meaning
+  // / misuse / omission; 'awkward' narrows to the awkward-phrase
+  // rewrites only.
+  const [highlight, setHighlight] = useState<"both" | "wrong" | "awkward">("both");
   const visibleForHighlight = useMemo(() => {
-    if (highlight === "none") return [];
     if (highlight === "awkward") return wrongWords.filter(w => w.kind === "awkward");
-    return wrongWords.filter(w =>
+    if (highlight === "wrong")   return wrongWords.filter(w =>
       w.kind === "stroke" || w.kind === "meaning" || w.kind === "misuse" || w.kind === "omission"
     );
+    return wrongWords;
   }, [wrongWords, highlight]);
 
   const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight), [ocrText, visibleForHighlight]);
@@ -289,16 +288,16 @@ export default function CompoDetailPage() {
 
       {/* Highlight filter — only affects the marked / clean views.
           Toggles which categories from the wrong-words panel show
-          up inline in the main composition body. Default 'None'
-          keeps the prose un-marked so the admin can read it cold. */}
+          up inline in the main composition body. Default 'Both'
+          lights everything so the admin sees the full marking. */}
       {view !== "elevated" && wrongWords.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap print:hidden text-xs">
           <span className="text-slate-500 font-medium">Highlight:</span>
           <button
-            onClick={() => setHighlight("none")}
-            className={`px-2.5 py-1 rounded-md font-medium ${highlight === "none" ? "bg-slate-700 text-white" : "bg-white border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+            onClick={() => setHighlight("both")}
+            className={`px-2.5 py-1 rounded-md font-medium ${highlight === "both" ? "bg-slate-700 text-white" : "bg-white border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
           >
-            None
+            Both
           </button>
           <button
             onClick={() => setHighlight("wrong")}
