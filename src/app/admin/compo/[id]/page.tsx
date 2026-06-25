@@ -380,7 +380,48 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-type Range = { start: number; end: number; original: string; suggestion: string };
+// Char-level diff: walk LCS dp table, mark each char in `suggestion`
+// as either kept (also present in `original` at the matching position)
+// or new (only in suggestion). Used so we can bold ONLY the chars
+// the AI actually changed instead of bolding the whole suggestion.
+function diffSuggestion(original: string, suggestion: string): Array<{ char: string; isNew: boolean }> {
+  const m = original.length;
+  const n = suggestion.length;
+  if (m === 0) return [...suggestion].map(c => ({ char: c, isNew: true }));
+  if (n === 0) return [];
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (original[i - 1] === suggestion[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  const out: Array<{ char: string; isNew: boolean }> = [];
+  let i = m, j = n;
+  while (i > 0 && j > 0) {
+    if (original[i - 1] === suggestion[j - 1]) { out.push({ char: suggestion[j - 1], isNew: false }); i--; j--; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) { i--; }
+    else { out.push({ char: suggestion[j - 1], isNew: true }); j--; }
+  }
+  while (j > 0) { out.push({ char: suggestion[j - 1], isNew: true }); j--; }
+  return out.reverse();
+}
+
+// Render the suggestion with the changed chars bolded. For 'awkward'
+// (clumsy phrasing) bold the whole new phrase — the rewrite is the
+// whole point and char-diffing it doesn't help the reader.
+function renderSuggestion(original: string, suggestion: string, kind: string | undefined, color: string): string {
+  if (kind === "awkward") {
+    return `<span style="color:${color};font-weight:700">${escapeHtml(suggestion)}</span>`;
+  }
+  const diff = diffSuggestion(original, suggestion);
+  return diff.map(d => d.isNew
+    ? `<strong style="color:${color}">${escapeHtml(d.char)}</strong>`
+    : `<span style="color:${color}">${escapeHtml(d.char)}</span>`
+  ).join("");
+}
+
+type Range = { start: number; end: number; original: string; suggestion: string; kind: string };
 
 function findRanges(ocr: string, ws: WrongWord[]): Range[] {
   // Longer originals first so e.g. a 2-character "厉害" doesn't get
@@ -393,7 +434,7 @@ function findRanges(ocr: string, ws: WrongWord[]): Range[] {
     if (idx < 0) continue;
     // Reject overlap with an already-claimed range.
     if (ranges.some(r => idx < r.end && idx + w.original.length > r.start)) continue;
-    ranges.push({ start: idx, end: idx + w.original.length, original: w.original, suggestion: w.suggestion });
+    ranges.push({ start: idx, end: idx + w.original.length, original: w.original, suggestion: w.suggestion, kind: w.kind });
   }
   return ranges.sort((a, b) => a.start - b.start);
 }
@@ -405,7 +446,9 @@ function renderMarked(ocr: string, ws: WrongWord[]): string {
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
     out += `<span style="color:#b91c1c;text-decoration:line-through">${escapeHtml(r.original)}</span>`;
-    out += `<span style="color:#b91c1c;font-weight:600">[${escapeHtml(r.suggestion)}]</span>`;
+    // Suggestion: bold only the changed chars (except for awkward,
+    // where the whole new phrase is the point).
+    out += `<span style="color:#b91c1c">[</span>${renderSuggestion(r.original, r.suggestion, r.kind, "#b91c1c")}<span style="color:#b91c1c">]</span>`;
     pos = r.end;
   }
   out += escapeHtml(ocr.slice(pos));
@@ -418,7 +461,7 @@ function renderClean(ocr: string, ws: WrongWord[]): string {
   let pos = 0;
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
-    out += `<span style="color:#047857;font-weight:700">${escapeHtml(r.suggestion)}</span>`;
+    out += renderSuggestion(r.original, r.suggestion, r.kind, "#047857");
     pos = r.end;
   }
   out += escapeHtml(ocr.slice(pos));
@@ -950,7 +993,10 @@ function WrongWordsCard({ ws }: { ws: WrongWord[] }) {
           <li key={i} className="flex items-baseline gap-2">
             <span className="text-red-700 line-through font-medium">{w.original}</span>
             <span className="text-slate-400">→</span>
-            <span className="text-emerald-700 font-medium">{w.suggestion}</span>
+            <span
+              className="text-emerald-700"
+              dangerouslySetInnerHTML={{ __html: renderSuggestion(w.original, w.suggestion, w.kind, "#047857") }}
+            />
             <span className="text-[10px] text-slate-400 ml-1">{w.kind}</span>
             <span className="text-xs text-slate-500 ml-auto">{w.reason}</span>
           </li>
