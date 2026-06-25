@@ -14,7 +14,7 @@ import { fetchJsonSafe } from "@/lib/client-fetch";
 type WrongWord = {
   original: string;
   suggestion: string;
-  kind: "stroke" | "meaning" | "misuse" | "omission";
+  kind: "stroke" | "meaning" | "misuse" | "omission" | "awkward";
   reason: string;
 };
 
@@ -146,8 +146,22 @@ export default function CompoDetailPage() {
   const ocrText = row?.ocrText ?? "";
   const wrongWords = row?.wrongWords ?? [];
 
-  const markedHtml = useMemo(() => renderMarked(ocrText, wrongWords), [ocrText, wrongWords]);
-  const cleanHtml  = useMemo(() => renderClean(ocrText, wrongWords),  [ocrText, wrongWords]);
+  // Inline-highlight filter for the main composition body. Default
+  // is 'none' — the side panel still lists every flagged item, but
+  // the prose stays clean. 'wrong' lights up stroke / meaning /
+  // misuse / omission; 'awkward' lights up only the awkward-phrase
+  // rewrites (different colour band).
+  const [highlight, setHighlight] = useState<"none" | "wrong" | "awkward">("none");
+  const visibleForHighlight = useMemo(() => {
+    if (highlight === "none") return [];
+    if (highlight === "awkward") return wrongWords.filter(w => w.kind === "awkward");
+    return wrongWords.filter(w =>
+      w.kind === "stroke" || w.kind === "meaning" || w.kind === "misuse" || w.kind === "omission"
+    );
+  }, [wrongWords, highlight]);
+
+  const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight), [ocrText, visibleForHighlight]);
+  const cleanHtml  = useMemo(() => renderClean(ocrText, visibleForHighlight),  [ocrText, visibleForHighlight]);
 
   // Client-side substitutions the user has applied via the popup
   // dropdown. Keyed by the original phrase text. Persists for this
@@ -272,6 +286,34 @@ export default function CompoDetailPage() {
           Enhanced to 35-40 (upgrades in green)
         </button>
       </div>
+
+      {/* Highlight filter — only affects the marked / clean views.
+          Toggles which categories from the wrong-words panel show
+          up inline in the main composition body. Default 'None'
+          keeps the prose un-marked so the admin can read it cold. */}
+      {view !== "elevated" && wrongWords.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap print:hidden text-xs">
+          <span className="text-slate-500 font-medium">Highlight:</span>
+          <button
+            onClick={() => setHighlight("none")}
+            className={`px-2.5 py-1 rounded-md font-medium ${highlight === "none" ? "bg-slate-700 text-white" : "bg-white border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+          >
+            None
+          </button>
+          <button
+            onClick={() => setHighlight("wrong")}
+            className={`px-2.5 py-1 rounded-md font-medium ${highlight === "wrong" ? "bg-rose-600 text-white" : "bg-white border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+          >
+            Wrong words
+          </button>
+          <button
+            onClick={() => setHighlight("awkward")}
+            className={`px-2.5 py-1 rounded-md font-medium ${highlight === "awkward" ? "bg-amber-600 text-white" : "bg-white border border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+          >
+            Awkward phrase
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-5 print:grid-cols-1 print:gap-0">
         {/* Main composition view */}
@@ -987,7 +1029,7 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
 function WrongWordsCard({ ws }: { ws: WrongWord[] }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4">
-      <h3 className="text-sm font-semibold text-slate-800">用字检查 Wrong words ({ws.length})</h3>
+      <h3 className="text-sm font-semibold text-slate-800">Wrong words / Awkward phrase ({ws.length})</h3>
       <ul className="mt-2 space-y-1 text-sm">
         {ws.map((w, i) => (
           <li key={i} className="flex items-baseline gap-2">
