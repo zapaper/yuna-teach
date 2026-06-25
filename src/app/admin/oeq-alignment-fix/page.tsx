@@ -25,11 +25,13 @@ type Proposal = {
   newStem: string | null;
   oldSubparts: Subpart[];
   newSubparts: Subpart[];
+  oldAnswer: string | null;
   oldMisses: number;
   newMisses: number;
   verdict: "improve" | "no-change" | "no-image" | "error";
   error?: string;
   applied?: boolean;
+  imageDataUrl: string | null;
 };
 
 export default function Page() {
@@ -231,22 +233,62 @@ function ProposalCard({ p, idx }: { p: Proposal; idx: number }) {
         >transcribe-edit ↗</a>
       </div>
       {p.error && <p className="mt-2 text-xs text-rose-700">{p.error}</p>}
+
+      {/* THE QUESTION IMAGE — admin can visually verify Gemini's proposal
+          against what the scanned question actually shows. */}
+      {p.imageDataUrl && (
+        <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
+          <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1 font-semibold">Question image</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={p.imageDataUrl} alt={`Q${p.questionNum}`} className="max-h-96 w-auto mx-auto border border-slate-100 rounded" />
+        </div>
+      )}
+
       <div className="mt-3 grid grid-cols-2 gap-4 text-xs">
         <div>
-          <div className="text-slate-500 mb-1">Current — labels [{p.oldLabels.join(",")}], misses {p.oldMisses}</div>
+          <div className="text-slate-500 mb-1 font-semibold">
+            BEFORE — subpart labels <code className="bg-slate-100 px-1">[{p.oldLabels.join(", ")}]</code>, misses {p.oldMisses}
+          </div>
+          {p.oldStem && (
+            <div className="mb-2 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-600 whitespace-pre-wrap">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wide">Stem</span><br />
+              {p.oldStem}
+            </div>
+          )}
           <ul className="space-y-1 text-slate-700">
             {p.oldSubparts.map((s, i) => (
-              <li key={i}><span className="font-semibold">({s.label})</span> {(s.text ?? "").slice(0, 140)}</li>
+              <li key={i} className="whitespace-pre-wrap">
+                <span className="font-semibold">({s.label})</span> {s.text ?? ""}
+              </li>
             ))}
           </ul>
+          {p.oldAnswer && (
+            <div className="mt-2 bg-amber-50 border border-amber-200 rounded px-2 py-1 text-slate-700 whitespace-pre-wrap">
+              <span className="text-[10px] text-amber-700 uppercase tracking-wide font-semibold">Answer key</span><br />
+              {p.oldAnswer}
+            </div>
+          )}
         </div>
         <div>
-          <div className="text-slate-500 mb-1">Proposed — labels [{p.newLabels.join(",")}], misses {p.newMisses}</div>
+          <div className="text-slate-500 mb-1 font-semibold">
+            AFTER (Gemini re-extract) — subpart labels <code className="bg-slate-100 px-1">[{p.newLabels.join(", ")}]</code>, misses {p.newMisses}
+          </div>
+          {p.newStem && (
+            <div className="mb-2 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-600 whitespace-pre-wrap">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wide">Stem</span><br />
+              {p.newStem}
+            </div>
+          )}
           <ul className="space-y-1 text-slate-700">
             {p.newSubparts.map((s, i) => (
-              <li key={i}><span className="font-semibold">({s.label})</span> {(s.text ?? "").slice(0, 140)}</li>
+              <li key={i} className="whitespace-pre-wrap">
+                <span className="font-semibold">({s.label})</span> {s.text ?? ""}
+              </li>
             ))}
           </ul>
+          <div className="mt-2 text-[10px] text-slate-400 italic">
+            Note: Gemini re-extract proposes subpart shape only. The answer key isn't auto-edited.
+          </div>
         </div>
       </div>
     </div>

@@ -26,19 +26,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 import { transcribeScienceOpenEndedQuestion } from "@/lib/gemini";
+import { parsePartAnswers } from "@/lib/marking";
 
 type Subpart = { label: string; text?: string };
 
+// Use the marker's parsePartAnswers — it's the SAME function the actual
+// marker uses to attach answers to subparts. Reusing it here means our
+// "is this question broken?" detection matches what the marker sees,
+// so we don't surface false-positives where the answer key looks fine
+// to the marker but our naive regex flags it.
+//
+// parsePartAnswers handles:
+//   - "(a) X | (b) Y | (c) Z"           (pipe-separated)
+//   - "(a) X. (b) Y. (c) Z."            (no pipes)
+//   - "(a)(i) K (a)(ii) J | (b) ..."    (compound)
+//   - "(a-i)" / "(a-ii)" hyphen forms
+//   - Forward-walk relaxed scan for "(a) X (b) Y" without separators
 function extractAnswerKeyLabels(answer: string | null): Set<string> {
-  const out = new Set<string>();
-  if (!answer) return out;
-  for (const seg of answer.split("|")) {
-    const m = seg.trim().match(/^\(([a-z](?:-[ivx]+)?|[ivx]+)\)/i);
-    if (m) out.add(m[1].toLowerCase());
-    const compound = seg.trim().match(/^\(([a-z])\)\s*\(([ivx]+)\)/i);
-    if (compound) out.add(`${compound[1]}-${compound[2]}`.toLowerCase());
-  }
-  return out;
+  if (!answer) return new Set<string>();
+  return new Set(parsePartAnswers(answer).keys());
 }
 function parseLabel(l: string): { parent: string } {
   const norm = l.toLowerCase();
@@ -122,7 +128,7 @@ export async function POST(req: NextRequest) {
   const broken = await findBroken();
   const queue = broken.slice(0, limit);
 
-  const proposals: Array<{
+  type Proposal = {
     paperId: string;
     paperTitle: string;
     questionId: string;
@@ -133,58 +139,66 @@ export async function POST(req: NextRequest) {
     newStem: string | null;
     oldSubparts: Subpart[];
     newSubparts: Subpart[];
+    oldAnswer: string | null;
     oldMisses: number;
     newMisses: number;
     verdict: "improve" | "no-change" | "no-image" | "error";
     error?: string;
     applied?: boolean;
-  }> = [];
+    // Question image as data URL so the admin can visually verify
+    // Gemini's proposed re-extract against the actual scanned question.
+    imageDataUrl: string | null;
+  };
 
-  for (const b of queue) {
+  async function processOne(b: typeof queue[number]): Promise<Proposal> {
     if (!b.hasImage) {
-      proposals.push({
+      return {
         paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
         questionNum: b.questionNum,
         oldLabels: b.subs.map(s => s.label.toLowerCase()),
         newLabels: [],
         oldStem: b.stem, newStem: null,
         oldSubparts: b.subs, newSubparts: [],
+        oldAnswer: b.answer,
         oldMisses: -1, newMisses: -1,
         verdict: "no-image",
-      });
-      continue;
+        imageDataUrl: null,
+      };
     }
     const q = await prisma.examQuestion.findUnique({ where: { id: b.questionId }, select: { imageData: true } });
     if (!q?.imageData) {
-      proposals.push({
+      return {
         paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
         questionNum: b.questionNum,
         oldLabels: b.subs.map(s => s.label.toLowerCase()),
         newLabels: [],
         oldStem: b.stem, newStem: null,
         oldSubparts: b.subs, newSubparts: [],
+        oldAnswer: b.answer,
         oldMisses: -1, newMisses: -1,
         verdict: "no-image",
-      });
-      continue;
+        imageDataUrl: null,
+      };
     }
+    const imageDataUrl = q.imageData.startsWith("data:") ? q.imageData : `data:image/jpeg;base64,${q.imageData}`;
     const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
     let result;
     try {
       result = await transcribeScienceOpenEndedQuestion(base64);
     } catch (err) {
-      proposals.push({
+      return {
         paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
         questionNum: b.questionNum,
         oldLabels: b.subs.map(s => s.label.toLowerCase()),
         newLabels: [],
         oldStem: b.stem, newStem: null,
         oldSubparts: b.subs, newSubparts: [],
+        oldAnswer: b.answer,
         oldMisses: -1, newMisses: -1,
         verdict: "error",
         error: (err as Error).message,
-      });
-      continue;
+        imageDataUrl,
+      };
     }
     const newSubs: Subpart[] = (result.subparts ?? []).map(s => ({ label: s.label, text: s.text }));
     const oldLabels = b.subs.map(s => s.label.toLowerCase());
@@ -202,17 +216,35 @@ export async function POST(req: NextRequest) {
       });
       applied = true;
     }
-    proposals.push({
+    return {
       paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
       questionNum: b.questionNum,
       oldLabels, newLabels,
       oldStem: b.stem, newStem: result.stem ?? null,
       oldSubparts: b.subs, newSubparts: newSubs,
+      oldAnswer: b.answer,
       oldMisses, newMisses,
       verdict,
       applied,
-    });
+      imageDataUrl,
+    };
   }
+
+  // Sliding-window concurrency. Sequential was hitting Cloudflare 524s
+  // (10 × ~7s per Gemini call ≈ 70s, plus DB I/O) — admin never saw
+  // the samples. Run 5 at a time: keeps Gemini quota happy and brings
+  // the dry-run inside the 100s timeout for typical limit values.
+  const CONCURRENCY = 5;
+  const proposals: Proposal[] = new Array(queue.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= queue.length) return;
+      proposals[i] = await processOne(queue[i]);
+    }
+  });
+  await Promise.all(workers);
 
   return NextResponse.json({
     totalBroken: broken.length,

@@ -827,17 +827,11 @@ function ExamOverviewContent({ id }: { id: string }) {
           </span>
         </div>
         {hasMarksMismatch ? (
-          <div className="mt-1 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="text-amber-500 mt-0.5 shrink-0">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            <p className="text-xs text-amber-700">
-              Sum of question marks ({sumMarksAvailable}) does not match paper total ({expectedTotal}). Check marks in Edit.
-            </p>
-          </div>
+          <MarksMismatchBreakdown
+            questions={paper.questions}
+            sumMarksAvailable={sumMarksAvailable}
+            expectedTotal={expectedTotal}
+          />
         ) : null}
         {hasMissingMarks && !hasMarksMismatch ? (
           <div className="mt-1 flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
@@ -1806,6 +1800,93 @@ function ExamOverviewContent({ id }: { id: string }) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// Detailed marks-mismatch breakdown: shows MCQ subtotal, OEQ subtotal,
+// and a list of "missing" question numbers (gaps in the base-numeric
+// sequence — e.g. if we have Q30,31,33 but no Q32, Q32 is flagged).
+// MCQ is detected from the answer field shape: bare 1-4 / (1)-(4) /
+// A-D = MCQ. Anything else (including blank / text answers) counts as
+// OEQ for this accounting.
+function MarksMismatchBreakdown({
+  questions,
+  sumMarksAvailable,
+  expectedTotal,
+}: {
+  questions: { id: string; questionNum: string; answer: string | null; marksAvailable: number | null }[];
+  sumMarksAvailable: number;
+  expectedTotal: number | null;
+}) {
+  const isMcq = (ans: string | null) => {
+    if (!ans) return false;
+    const n = ans.trim().replace(/[().\s]/g, "").toUpperCase();
+    return n === "1" || n === "2" || n === "3" || n === "4" || n === "A" || n === "B" || n === "C" || n === "D";
+  };
+  const mcqQs = questions.filter(q => isMcq(q.answer));
+  const oeqQs = questions.filter(q => !isMcq(q.answer));
+  const mcqMarks = mcqQs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+  const oeqMarks = oeqQs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+  // Missing questions: take base numeric prefix of each questionNum so
+  // Q39ab + Q39cd both count as "Q39 present". Walk the range and flag
+  // any number in [min, max] not seen.
+  const baseNumOf = (qn: string) => {
+    const m = qn.match(/^\d+/);
+    return m ? parseInt(m[0], 10) : NaN;
+  };
+  const bases = [...new Set(questions.map(q => baseNumOf(q.questionNum)).filter(n => Number.isFinite(n)))]
+    .sort((a, b) => a - b);
+  const missing: number[] = [];
+  if (bases.length > 0) {
+    const lo = bases[0];
+    const hi = bases[bases.length - 1];
+    const seen = new Set(bases);
+    for (let n = lo; n <= hi; n++) if (!seen.has(n)) missing.push(n);
+  }
+  const delta = expectedTotal !== null ? expectedTotal - sumMarksAvailable : 0;
+  const deltaStr = expectedTotal !== null ? `${delta > 0 ? "+" : ""}${delta}` : "—";
+
+  return (
+    <div className="mt-1 space-y-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
+      <div className="flex items-start gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className="text-amber-500 mt-0.5 shrink-0">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <p className="text-xs text-amber-700">
+          Sum of question marks ({sumMarksAvailable}) does not match paper total ({expectedTotal}) — Δ {deltaStr}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="bg-white border border-amber-200 rounded-lg px-2 py-1.5">
+          <div className="text-amber-700 font-semibold text-[10px] uppercase tracking-wide">MCQ</div>
+          <div className="text-slate-700 mt-0.5">
+            <strong>{mcqMarks}</strong> marks · <strong>{mcqQs.length}</strong> question{mcqQs.length === 1 ? "" : "s"}
+          </div>
+        </div>
+        <div className="bg-white border border-amber-200 rounded-lg px-2 py-1.5">
+          <div className="text-amber-700 font-semibold text-[10px] uppercase tracking-wide">OEQ</div>
+          <div className="text-slate-700 mt-0.5">
+            <strong>{oeqMarks}</strong> marks · <strong>{oeqQs.length}</strong> question{oeqQs.length === 1 ? "" : "s"}
+          </div>
+        </div>
+      </div>
+      {missing.length > 0 && (
+        <div className="bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs">
+          <div className="text-rose-700 font-semibold text-[10px] uppercase tracking-wide">Missing question{missing.length > 1 ? "s" : ""}</div>
+          <div className="text-slate-700 mt-0.5 flex flex-wrap gap-1">
+            {missing.map(n => (
+              <code key={n} className="bg-rose-50 text-rose-700 px-1 py-0.5 rounded">Q{n}</code>
+            ))}
+          </div>
+          <div className="text-[10px] text-slate-500 italic mt-1">
+            The questionNum sequence skips these. Usually clean-extract missed them — re-upload or use Choose-Zone to crop them in.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
