@@ -4468,6 +4468,15 @@ CHINESE PAPER (华文) — language-specific rules:
        [ ] weak
        [ ] persevering
     This matters because downstream parsing (renderer + marker) assigns each tick box its own answer slot keyed on its position. When multiple boxes share a line the labels collapse and ticked-correct can't be distinguished from ticked-wrong.
+  * SEQUENCE / ORDERING questions ("Write 1, 2 and 3 in the blanks below to indicate the order in which the events occurred"): emit as a 2-column markdown table, NOT tick boxes / NOT underscores. Column 0 stays empty (kid writes the digit there); column 1 holds the event text. Example:
+       Write 1, 2 and 3 in the blanks below to indicate the order in which the events occurred in the story.
+
+       |  | Event |
+       |---|---|
+       |  | The old woman told Alek that she could not take him with her. |
+       |  | Alek got separated from his family. |
+       |  | Alek asked for an explanation. |
+    The renderer treats "all-empty col 0 + stem mentions order/sequence/numbering" as digit inputs per row. Tick boxes ([ ]) or underscores in front of these events would break that detection.
   * If a question references a passage, note: [See passage above]
   * Flow diagrams with boxes and arrows: describe as [DIAGRAM: Box A → Box B → Box C]
 - TABLES: whenever you see a table or grid in the image, reproduce it as a markdown table with | separators and --- header row.
@@ -4629,7 +4638,17 @@ For EACH question, extract:
   If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
   For Comprehension OEQ: include the FULL question text in RICH TEXT format.
   - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
-  - If the question contains checkboxes, use [ ] and [x] — put EACH checkbox on its OWN LINE (newline-separated), never multiple checkboxes on the same line
+  - **SEQUENCE / ORDERING QUESTIONS — IMPORTANT**: when the question instructs the student to write digits (typically 1, 2, 3) into blanks to indicate the order events occurred (canonical wording: "Write 1, 2 and 3 in the blanks below to indicate the order in which the events occurred in the story"), format the event list as a 2-column MARKDOWN TABLE — NOT as tick boxes or underscores.
+    Shape: column 0 = empty (kid writes the digit), column 1 = event text. One row per event. Example:
+        Write 1, 2 and 3 in the blanks below to indicate the order in which the events occurred in the story.
+
+        |  | Event |
+        |---|---|
+        |  | The old woman told Alek that she could not take him with her. |
+        |  | Alek got separated from his family. |
+        |  | Alek asked for an explanation. |
+    The renderer detects "column 0 empty across every row + the stem mentions sequence/order/numbering" and turns col 0 into per-row digit inputs. DO NOT emit "[ ] event" / "___ event" / "( ) event" for these questions — only the table layout is parseable as a sequence question.
+  - If the question contains TRUE/FALSE checkboxes (e.g. "Tick two" / "True or False"), keep using the [ ] / [x] one-per-line shape — that's for non-ordering checkbox questions.
   - If there are answer lines, show as [LINES: N] on its OWN line at the END of the stem (N = total printed answer lines for that question; default to [LINES: 1] if exactly one).
   - NEVER include raw underscore runs (___, ____________, ____________________) at the end of an OEQ stem. The OCR pass may have left them in; CONVERT them: every contiguous block of underscore-only rows at the tail of the stem becomes a SINGLE [LINES: N] marker where N is the number of rows you replaced. The renderer turns [LINES: N] into the correct number of writing lines, while raw underscores render as literal text and look broken on the quiz page.
   - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}${isChineseBooklet ? `
