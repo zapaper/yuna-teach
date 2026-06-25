@@ -61,6 +61,7 @@ export default function CompoIndexPage() {
   const [label, setLabel] = useState("");
   const [studentTopic, setStudentTopic] = useState("");
   const [optionType, setOptionType] = useState<"option1" | "option2" | "">("");
+  const [compareToMarkings, setCompareToMarkings] = useState(false);
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -132,6 +133,7 @@ export default function CompoIndexPage() {
       if (label) fd.append("label", label);
       if (studentTopic) fd.append("studentTopic", studentTopic);
       if (optionType) fd.append("optionType", optionType);
+      if (compareToMarkings) fd.append("compareToMarkings", "true");
       if (questionFile) fd.append("question", questionFile);
       for (const p of pageFiles) fd.append("pages", p.file);
 
@@ -209,6 +211,28 @@ export default function CompoIndexPage() {
             className="mt-1 block w-full text-sm"
             onChange={(e) => setQuestionFile(e.target.files?.[0] ?? null)}
           />
+        </label>
+
+        {/* Admin-only flag — when uploading a teacher-marked paper to
+            benchmark whether the AI catches the same edits the teacher
+            made. Runs OCR twice: once treating red/green strokes as
+            invisible (the version the wrong-word pipeline analyses),
+            once preserving them so the detail page can show what the
+            teacher wrote. */}
+        <label className="flex items-start gap-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 cursor-pointer hover:bg-amber-100/60">
+          <input
+            type="checkbox"
+            checked={compareToMarkings}
+            onChange={(e) => setCompareToMarkings(e.target.checked)}
+            className="mt-0.5 accent-amber-700"
+          />
+          <span className="text-xs text-amber-900">
+            <span className="font-semibold">Remove red/green markings (admin benchmark)</span>
+            <br />
+            <span className="text-amber-700">
+              Use when uploading a teacher-marked paper to test if our AI picks up the same edits. Runs OCR twice — once stripping the corrections so the AI analyses the kid&apos;s original text, once preserving them so you can compare what the teacher wrote.
+            </span>
+          </span>
         </label>
 
         {/* ── 3-button top row: Upload | Scan | Analyse ── */}

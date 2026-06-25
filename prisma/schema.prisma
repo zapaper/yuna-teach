@@ -648,8 +648,17 @@ model CompoAttempt {
   status            String   @default("uploaded")  // uploaded | analysing | ready | failed
   errorMessage      String?  @db.Text
 
+  // Admin-only: when true, the OCR stage runs twice — once over
+  // the raw scan (which includes teacher's red/green corrections)
+  // and once with an "ignore red/green annotations" prompt that
+  // produces the student's original text. The wrong-word / critique
+  // pipeline runs on the cleaned version; the detail page surfaces
+  // BOTH so the admin can compare teacher edits to AI edits.
+  compareToMarkings Boolean @default(false)
+
   // Phase 1 — OCR of the student's handwritten composition.
-  ocrText           String?  @db.Text
+  ocrText           String?  @db.Text  // Cleaned essay (markings stripped if compareToMarkings)
+  ocrTextWithMarkings String? @db.Text // Raw essay incl. teacher's red/green edits (only when compareToMarkings = true)
   ocrQuestionText   String?  @db.Text  // OCR of the question scan, if uploaded
 
   // Phase 2 — wrong-word check. Shape:

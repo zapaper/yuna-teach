@@ -46,6 +46,9 @@ const PUBLIC_REGEXES: RegExp[] = [
   // pulls server-event email records from here. Route handler verifies
   // Bearer ${NURTURE_API_TOKEN} OR an admin session.
   /^\/api\/admin\/email-events\/?$/,
+  // markforyou-mailer quiz-activity summaries for the
+  // weekly-progress / nurture emails. Bearer ${NURTURE_API_TOKEN}.
+  /^\/api\/admin\/activity-summary\/?$/,
 ];
 
 // Some paths are public for ONE method but auth'd for others.

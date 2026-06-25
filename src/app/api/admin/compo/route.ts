@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
   const studentTopic = ((form.get("studentTopic") as string | null) ?? "").trim() || null;
   const optionTypeRaw = ((form.get("optionType") as string | null) ?? "").trim();
   const optionType = optionTypeRaw === "option1" || optionTypeRaw === "option2" ? optionTypeRaw : null;
+  const compareToMarkings = String(form.get("compareToMarkings") ?? "").toLowerCase() === "true";
   const questionFile = form.get("question");
   const pageEntries = form.getAll("pages");
 
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
       label,
       studentTopic,
       optionType,
+      compareToMarkings,
       compositionImagePaths: [],
       status: "uploaded",
     },

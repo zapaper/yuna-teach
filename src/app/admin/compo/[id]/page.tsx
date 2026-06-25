@@ -66,7 +66,9 @@ type Row = {
   optionType: string | null;
   status: "uploaded" | "analysing" | "ready" | "failed";
   errorMessage: string | null;
+  compareToMarkings: boolean;
   ocrText: string | null;
+  ocrTextWithMarkings: string | null;
   ocrQuestionText: string | null;
   wrongWords: WrongWord[] | null;
   critique: Critique | null;
@@ -312,6 +314,22 @@ export default function CompoDetailPage() {
               <pre className="mt-2 text-xs bg-slate-50 p-3 rounded-lg whitespace-pre-wrap">{row.ocrQuestionText}</pre>
             </details>
           )}
+          {row.compareToMarkings && row.ocrTextWithMarkings && (
+            <div className="mt-4 print:hidden">
+              <div className="text-xs font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+                Teacher-marked OCR (red/green corrections preserved)
+              </div>
+              <div
+                className="bg-amber-50/40 border border-amber-200 rounded-2xl p-5 text-sm leading-relaxed whitespace-pre-wrap text-slate-800"
+                style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+                dangerouslySetInnerHTML={{ __html: renderMarkingsOcr(row.ocrTextWithMarkings) }}
+              />
+              <p className="mt-2 text-[11px] text-slate-500 italic">
+                ~~strikethrough~~ = teacher crossed out · <strong>bold</strong> = teacher added · The AI markup above runs on the clean OCR (no red/green) — compare to spot where the AI and the teacher disagree.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Critique + recommendations side panel. In print, this column
@@ -330,6 +348,33 @@ export default function CompoDetailPage() {
 }
 
 // ─── Renderers ───────────────────────────────────────────────────────
+
+// Render the teacher-marked OCR. AI emits `~~text~~` for things the
+// teacher crossed out (red strikethrough) and `**text**` for additions
+// (green bold). Everything else is plain. Also supports [comment] for
+// the teacher's margin annotations.
+function renderMarkingsOcr(text: string): string {
+  // Tokenise: split by the three markup forms in priority order.
+  // Use a single regex with named alternatives so the parts array
+  // alternates between plain text and matched groups.
+  const re = /(~~[\s\S]+?~~)|(\*\*[\s\S]+?\*\*)|(\[[^\]]+\])/g;
+  const out: string[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(escapeHtml(text.slice(last, m.index)));
+    if (m[1]) {
+      out.push(`<span style="color:#b91c1c;text-decoration:line-through">${escapeHtml(m[1].slice(2, -2))}</span>`);
+    } else if (m[2]) {
+      out.push(`<span style="color:#047857;font-weight:700">${escapeHtml(m[2].slice(2, -2))}</span>`);
+    } else if (m[3]) {
+      out.push(`<span style="color:#a16207;font-style:italic;font-size:0.85em">${escapeHtml(m[3])}</span>`);
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(escapeHtml(text.slice(last)));
+  return out.join("");
+}
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
