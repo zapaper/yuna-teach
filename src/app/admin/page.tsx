@@ -148,6 +148,13 @@ function AdminContent() {
       color: "bg-rose-50 text-rose-600",
     },
     {
+      icon: "auto_fix_high",
+      label: "Science OEQ Alignment Fix",
+      description: "Master science questions whose subpart labels don't match the answer-key labels (e.g. (bi) vs (b)(i), or missing compound children). Dry-run + apply normalises label shape via Gemini re-extract. Won't synthesise missing answer content.",
+      href: `/admin/oeq-alignment-fix?userId=${userId}`,
+      color: "bg-amber-50 text-amber-600",
+    },
+    {
       icon: "fact_check",
       label: "Audit Answer Keys",
       description: "Re-extract answer-key pages with gemini-3.1-pro and diff against stored question.answer rows. Pick 1-3 papers; results stream in as cards with per-question status.",
