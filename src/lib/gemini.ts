@@ -999,6 +999,7 @@ ${CURRENCY_ESCAPE_INSTRUCTION}
     • COMPOUND sub-part "(a)(ii)" → label is "a-ii"
     • COMPOUND sub-part "(b)(i)"  → label is "b-i"
   The student-facing UI maps "a-i" back to "(a)(i)" when rendering. DO NOT flatten (a)(i) and (a)(ii) into two siblings called "a" and "i" — that loses the hierarchy.
+- CRITICAL — DO NOT RELABEL: read the EXACT sub-part letter that appears in the image. If the image shows "(c)" as its only sub-part (e.g. this question was split — earlier parts are on a different page), label it "c", NOT "a" or "b". A single-sub-part question crop is often part (c) or part (d) of a larger original question; using "a" because it's the first label you see in THIS crop loses the original labelling and breaks downstream merging. When the label is unclear or missing, infer from the surrounding question-number context (e.g. if the master question is "Question 7" and the kid sees just one part, look for "(c)" or "(d)" before defaulting to "a").
 - If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Find the area of the triangle. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
 - For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Calculate the total cost. [4marks]")
 
@@ -1330,6 +1331,7 @@ ${CURRENCY_ESCAPE_INSTRUCTION}
     • COMPOUND sub-part "(a)(ii)" → label is "a-ii"
     • COMPOUND sub-part "(b)(i)"  → label is "b-i"
   The student-facing UI maps "a-i" back to "(a)(i)" when rendering. DO NOT flatten (a)(i) and (a)(ii) into two siblings called "a" and "i" — that loses the hierarchy.
+- CRITICAL — DO NOT RELABEL: read the EXACT sub-part letter that appears in the image. If the image shows "(c)" as its only sub-part (e.g. this question was split — earlier parts are on a different page), label it "c", NOT "a" or "b". A single-sub-part question crop is often part (c) or part (d) of a larger original question; using "a" because it's the first label you see in THIS crop loses the original labelling and breaks downstream merging. When the label is unclear or missing, infer from the surrounding question-number context (e.g. if the master question is "Question 7" and the kid sees just one part, look for "(c)" or "(d)" before defaulting to "a").
 - If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Explain why Plant A grew taller. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
 - For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Explain why the plant wilted. [4marks]")
 
