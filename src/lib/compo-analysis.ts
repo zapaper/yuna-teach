@@ -76,7 +76,7 @@ type PlaybookBucket = "opening" | "closing" | "accident" | "careless" |
 export type WrongWord = {
   original: string;
   suggestion: string;
-  kind: "stroke" | "meaning" | "misuse" | "omission";
+  kind: "stroke" | "meaning" | "misuse" | "omission" | "awkward";
   reason: string;
 };
 
@@ -554,24 +554,33 @@ export async function runOcr(
 
 // ─── Wrong-word pass ────────────────────────────────────────────────
 
-const WRONG_WORDS_PROMPT = (ocrText: string) => `下面是一篇小学华文作文的转录。请找出确定的用字 / 语法错误，分为四类：
+const WRONG_WORDS_PROMPT = (ocrText: string) => `下面是一篇小学华文作文的转录。请找出用字 / 语法 / 表达问题，分为五类：
 
-1. **stroke (错别字)**: 写错笔画或字形，导致不是字典里的字。例 "兔" 写成 "免"。
-2. **meaning (用词不当)**: 是真字，但意思不通顺或与上下文不符。例如把 "保险柜" 用在不需要保险的情境。
+1. **stroke (错别字)**: 写错笔画或字形，导致不是字典里的字。例 "兔" 写成 "免"，"默" 写成 "黑+口"。
+   · 字形相近的常见错字必须查 — 别因为 "看起来像" 就放过：默/黑 · 已/己 · 末/未 · 戍/戌/戊 · 干/千/于 · 玻璃 (常写错璃)
+2. **meaning (用词不当)**: 是真字，但意思不通顺或与上下文不符。例 "保险柜" 用在不需要保险的情境。
 3. **misuse (近义词混淆)**: 是真字，但用了意思相近但更不合适的词。例 "厉害" 用成 "凶猛" 类近义词混淆。
-4. **omission (漏字)**: 句子缺少一个或几个字，使得语法不通顺。例如 "一天他妈妈" 应该是 "一天他的妈妈" (漏了 "的")。
-   · original 字段写出缺字句子的上下文片段 (例 "他妈妈")。
-   · suggestion 字段写出补齐后的形式 (例 "他的妈妈")。
+4. **omission (漏字)**: 句子缺少一个或几个字，使得语法不通顺。例 "一天他妈妈" 应该是 "一天他的妈妈" (漏了 "的")。
+   · original: 缺字句子上下文片段 (例 "他妈妈")
+   · suggestion: 补齐后形式 (例 "他的妈妈")
+5. **awkward (表达生硬 / 不通顺)**: 不是字典错字，每个字也都对，但中文母语者读起来感觉别扭、不自然、生造。常见类型:
+   · **动宾搭配不当** — "把自己的道歉说了出来" ✗ → "向…道歉了" / "说出自己想说的道歉" ✓
+   · **词语搭配不当** — "明杰接受林老师的话" ✗ (接受不能搭配"话") → "明杰听了林老师的话" / "明杰接受了林老师的建议" ✓
+   · **句式生硬** — 直译式中文、外语腔
+   · 这些错误不是 "可以更好" 而是 "明显别扭" — 一个母语成人读会皱眉的程度才标。
+   · 重点关注: 把字句 (是否搭配自然)、动词与抽象名词的搭配 (说话 vs 说出道歉)、动宾间是否需要补语。
 
-【三次确认 — 重要】
-在你列出每个错误之前，先在脑里 (不输出) 做以下三次确认：
-- 第一次: 这个字 / 用词真的错吗？小学高年级作文允许文学色彩，不要把风格选择算成错误。
-- 第二次: 你建议的字本身有没有错？检查你写的 suggestion 字段 — 没有错字、没有漏标点、没有多余空格。
-- 第三次: 如果把 original 替换成 suggestion，整句话还通顺吗？标点 / 主谓 / 语序都对吗？
+【两次确认 — 重要】
+在列出每个错误前，先 (不输出地) 做两次确认:
+- 第一次: 你的建议 (suggestion) 本身有没有错？没有错字、漏字、标点错误。
+- 第二次: original 替换成 suggestion 后，整句还通顺吗？
 
-只列出 100% 确定是错误的项目。如果有怀疑，宁可不列出。
-不要标记 "风格" / "可以更好" / "建议升级" 类的非错误。
-不要标记 [+ +] 这种标记符号 — 那是之前 AI 留下的修订标记，不是学生写的错字。
+【信心阈值 — 注意】
+- stroke / omission / awkward: **比较确定 (~80%)** 就列出。这三类是最常被漏掉的，不要太保守。
+- meaning / misuse: 比较主观，**95%+ 确定** 才列出。
+
+不要标记 "风格" / "可以更好" / "建议升级" 类的纯文学性建议。
+不要标记 [+ +] 标记符号 — 那是之前 AI 留下的修订标记，不是学生写的错字。
 
 【作文】
 ${ocrText}
@@ -581,7 +590,7 @@ ${ocrText}
   {
     "original": "学生写的原字 (或缺字句子的上下文)",
     "suggestion": "建议的正确字 (或补齐后的形式)",
-    "kind": "stroke" | "meaning" | "misuse" | "omission",
+    "kind": "stroke" | "meaning" | "misuse" | "omission" | "awkward",
     "reason": "一句话解释 (中文，<25 字)"
   }
 ]
@@ -606,7 +615,7 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
       .map(x => ({
         original: String(x.original),
         suggestion: String(x.suggestion),
-        kind: ["stroke", "meaning", "misuse", "omission"].includes(x.kind) ? x.kind : "meaning",
+        kind: ["stroke", "meaning", "misuse", "omission", "awkward"].includes(x.kind) ? x.kind : "meaning",
         reason: String(x.reason ?? ""),
       }));
   } catch (err) {
