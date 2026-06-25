@@ -179,6 +179,7 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [paperTitle, setPaperTitle] = useState("");
   const [paperSubject, setPaperSubject] = useState("");
+  const [paperTotalMarks, setPaperTotalMarks] = useState<string | null>(null);
   const [editingDiagramQ, setEditingDiagramQ] = useState<string | null>(null); // question ID being diagram-edited
   const [cropping, setCropping] = useState<string | null>(null); // "questionId-target"
   const [recropQ, setRecropQ] = useState<string | null>(null); // question ID being recropped
@@ -242,6 +243,7 @@ function TranscribeEditContent({ id }: { id: string }) {
           const pd = await paperRes.json();
           setPaperTitle(pd.title ?? "");
           setPaperSubject((pd.subject ?? "").toLowerCase());
+          setPaperTotalMarks(pd.totalMarks ?? null);
           for (const q of pd.questions ?? []) {
             if (q.id && q.imageData) imgMap[q.id] = q.imageData;
             if (q.id) pageMap[q.id] = (q.pageIndex ?? null) as number | null;
@@ -694,6 +696,8 @@ function TranscribeEditContent({ id }: { id: string }) {
       <h1 className="text-xl font-bold text-slate-800 mb-1">Clean Question Editor</h1>
       {paperTitle && <p className="text-sm text-slate-400 mb-4">{paperTitle}</p>}
 
+      <ScoreHealthPanel questions={questions} totalMarksStr={paperTotalMarks} />
+
       {questions.length === 0 ? (
         <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-6 text-center">
           <span className="inline-flex items-center gap-2 text-slate-500 text-sm">
@@ -861,6 +865,87 @@ function TranscribeEditContent({ id }: { id: string }) {
 }
 
 // ─── Question Card ─────────────────────────────────────────────────────────────
+
+// Surfaces score-accounting issues at the top of the editor: when the
+// paper's stated totalMarks doesn't match the sum of the questions'
+// marksAvailable, OR when there are gaps in the question-number
+// sequence (e.g. Q39 / Q40 absent — usually means the clean-extract
+// missed entire questions). Stays hidden when everything lines up so
+// the regular editing flow isn't cluttered.
+function ScoreHealthPanel({ questions, totalMarksStr }: { questions: EditQuestion[]; totalMarksStr: string | null }) {
+  if (questions.length === 0) return null;
+  const stated = totalMarksStr != null ? parseFloat(totalMarksStr) : NaN;
+  const mcqQs = questions.filter(q => q.type === "mcq");
+  const oeqQs = questions.filter(q => q.type === "open");
+  const mcqMarks = mcqQs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+  const oeqMarks = oeqQs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+  const summed = mcqMarks + oeqMarks;
+  const totalsMatch = Number.isFinite(stated) ? Math.abs(stated - summed) < 0.01 : true;
+
+  // Missing question numbers: walk the BASE numeric prefix of each
+  // questionNum (so Q39ab + Q39cd both contribute base "39"), find gaps
+  // between minQ and maxQ. Anything missing in the run is suspicious.
+  const baseNumOf = (qn: string) => {
+    const m = qn.match(/^\d+/);
+    return m ? parseInt(m[0], 10) : NaN;
+  };
+  const bases = [...new Set(questions.map(q => baseNumOf(q.questionNum)).filter(n => Number.isFinite(n)))]
+    .sort((a, b) => a - b);
+  const missing: number[] = [];
+  if (bases.length > 0) {
+    const lo = bases[0];
+    const hi = bases[bases.length - 1];
+    const seen = new Set(bases);
+    for (let n = lo; n <= hi; n++) if (!seen.has(n)) missing.push(n);
+  }
+
+  // If nothing's worth flagging, render nothing.
+  if (totalsMatch && missing.length === 0) return null;
+
+  const delta = summed - stated;
+  const deltaStr = Number.isFinite(stated) ? `${delta > 0 ? "+" : ""}${delta}` : "—";
+
+  return (
+    <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 space-y-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-sm font-bold text-amber-900">⚠ Score accounting</h3>
+        {!totalsMatch && Number.isFinite(stated) && (
+          <span className="text-xs font-mono text-amber-800">
+            stated <strong>{stated}</strong> · summed <strong>{summed}</strong> · Δ {deltaStr}
+          </span>
+        )}
+      </div>
+
+      {/* MCQ vs OEQ breakdown — answers the "where's the mismatch coming from?" question. */}
+      <div className="grid grid-cols-2 gap-3 text-xs">
+        <div className="bg-white border border-amber-200 rounded-lg px-3 py-2">
+          <div className="text-amber-700 font-semibold mb-0.5">MCQ</div>
+          <div className="text-slate-700">
+            <strong>{mcqMarks}</strong> marks across <strong>{mcqQs.length}</strong> question(s)
+          </div>
+        </div>
+        <div className="bg-white border border-amber-200 rounded-lg px-3 py-2">
+          <div className="text-amber-700 font-semibold mb-0.5">OEQ</div>
+          <div className="text-slate-700">
+            <strong>{oeqMarks}</strong> marks across <strong>{oeqQs.length}</strong> question(s)
+          </div>
+        </div>
+      </div>
+
+      {missing.length > 0 && (
+        <div className="bg-white border border-rose-200 rounded-lg px-3 py-2 text-xs">
+          <div className="text-rose-700 font-semibold mb-0.5">Missing question number{missing.length > 1 ? "s" : ""}</div>
+          <div className="text-slate-700">
+            The questionNum sequence skips: {missing.map(n => <code key={n} className="bg-rose-50 text-rose-700 px-1 py-0.5 rounded mr-1">Q{n}</code>)}
+            <div className="text-slate-500 italic mt-1">
+              Usually means the clean-extract didn't pick up these from the source PDF. Re-upload or use Choose-Zone to crop them in manually.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function QuestionCard({
   question: q,
