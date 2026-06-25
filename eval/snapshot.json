@@ -2390,6 +2390,80 @@
           "syllabusTopic": "Comprehension Open Ended"
         }
       ]
+    },
+    {
+      "id": "cmomk8o7u000d9wmzz4x7fy1v",
+      "title": "P6 Focused: Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+      "subject": "Science",
+      "paperType": "focused",
+      "level": 6,
+      "score": 21.5,
+      "totalMarks": "28",
+      "questionCount": 10,
+      "capturedAt": "2026-06-25T16:02:36.482Z",
+      "note": "Added to broaden science coverage — physics topic, P6 Mark. Marks captured under unified scienceStrictRules (post-Q6c fix); some Qs noisy ±0.5.",
+      "questions": [
+        {
+          "questionNum": "1",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "2",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "3",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "4",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "5",
+          "marksAvailable": 2,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "6",
+          "marksAvailable": 3,
+          "marksAwarded": 0.5,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "7",
+          "marksAvailable": 3,
+          "marksAwarded": 2,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "8",
+          "marksAvailable": 4,
+          "marksAwarded": 3.5,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "9",
+          "marksAvailable": 4,
+          "marksAwarded": 1.5,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        },
+        {
+          "questionNum": "10",
+          "marksAvailable": 4,
+          "marksAwarded": 4,
+          "syllabusTopic": "Interaction of forces (Frictional force, gravitational force, elastic spring force)"
+        }
+      ]
     }
   ],
   "errors": []

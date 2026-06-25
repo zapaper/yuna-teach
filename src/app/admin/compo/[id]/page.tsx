@@ -462,6 +462,34 @@ function renderSuggestion(original: string, suggestion: string, kind: string | u
   ).join("");
 }
 
+// Walk LCS the OTHER direction: which chars of the original were
+// DROPPED (i.e. don't appear in the suggestion's LCS-matched path)?
+// Used so the marked-up view can preserve the original prose but
+// highlight only the specific wrong char(s) instead of striking out
+// the whole 2–3 char phrase the AI reported.
+function diffOriginal(original: string, suggestion: string): Array<{ char: string; isRemoved: boolean }> {
+  const m = original.length;
+  const n = suggestion.length;
+  if (n === 0) return [...original].map(c => ({ char: c, isRemoved: true }));
+  if (m === 0) return [];
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (original[i - 1] === suggestion[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  const out: Array<{ char: string; isRemoved: boolean }> = [];
+  let i = m, j = n;
+  while (i > 0 && j > 0) {
+    if (original[i - 1] === suggestion[j - 1]) { out.push({ char: original[i - 1], isRemoved: false }); i--; j--; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) { out.push({ char: original[i - 1], isRemoved: true }); i--; }
+    else { j--; }
+  }
+  while (i > 0) { out.push({ char: original[i - 1], isRemoved: true }); i--; }
+  return out.reverse();
+}
+
 type Range = { start: number; end: number; original: string; suggestion: string; kind: string };
 
 function findRanges(ocr: string, ws: WrongWord[]): Range[] {
@@ -486,10 +514,35 @@ function renderMarked(ocr: string, ws: WrongWord[]): string {
   let pos = 0;
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
-    out += `<span style="color:#b91c1c;text-decoration:line-through">${escapeHtml(r.original)}</span>`;
-    // Suggestion: bold only the changed chars (except for awkward,
-    // where the whole new phrase is the point).
-    out += `<span style="color:#b91c1c">[</span>${renderSuggestion(r.original, r.suggestion, r.kind, "#b91c1c")}<span style="color:#b91c1c">]</span>`;
+    if (r.kind === "awkward") {
+      // Awkward = clumsy phrasing rewrite. Strike out the whole
+      // original phrase and bold the new one — the rewrite IS the
+      // marking point, char-level diff doesn't help.
+      out += `<span style="color:#b91c1c;text-decoration:line-through">${escapeHtml(r.original)}</span>`;
+      out += ` <span style="color:#b91c1c;font-weight:700">${escapeHtml(r.suggestion)}</span>`;
+    } else {
+      // Wrong-word edits (stroke / meaning / misuse / omission) are
+      // usually 1–2 chars off in a 2–3 char phrase — striking through
+      // the whole phrase visually obliterates the kid's correct chars
+      // too. Instead, preserve the original prose unchanged except
+      // for the specific wrong char(s), which get a red wavy underline
+      // (the conventional Chinese teacher "circle" mark). The
+      // corrected char(s) follow directly afterwards in bold red.
+      const origDiff = diffOriginal(r.original, r.suggestion);
+      for (const d of origDiff) {
+        if (d.isRemoved) {
+          out += `<span style="color:#b91c1c;text-decoration:underline wavy #b91c1c;text-underline-offset:3px">${escapeHtml(d.char)}</span>`;
+        } else {
+          out += escapeHtml(d.char);
+        }
+      }
+      // Append only the chars present in the suggestion that are NOT
+      // already in the original (the actual corrections), in bold red.
+      const newChars = diffSuggestion(r.original, r.suggestion).filter(d => d.isNew).map(d => d.char).join("");
+      if (newChars) {
+        out += `<span style="color:#b91c1c;font-weight:700">${escapeHtml(newChars)}</span>`;
+      }
+    }
     pos = r.end;
   }
   out += escapeHtml(ocr.slice(pos));
