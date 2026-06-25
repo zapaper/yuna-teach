@@ -1378,8 +1378,8 @@ function scienceStrictRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
 
-SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (THIS OVERRIDES THE GENERIC STEP 5 PARTIAL-CREDIT RULE ABOVE):
-For Science questions, IGNORE the generic "proportional × marksAvailable" rule from STEP 5B. Use the phrase deduction process below instead. The answer key has been written by a human marker; EVERY phrase in it is a discrete marking point. Vagueness, paraphrase that loses the key word, or skipping a phrase are ALL deduction-worthy.
+SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (THIS OVERRIDES ANY GENERIC PARTIAL-CREDIT RULE ABOVE):
+For Science questions, IGNORE any generic "proportional × marksAvailable" or "partial marks for matching portions" rule above. Use the phrase deduction process below instead. The answer key has been written by a human marker; EVERY phrase in it is a discrete marking point. Vagueness, paraphrase that loses the key word, or skipping a phrase are ALL deduction-worthy.
 
 ═══════════════════════════════════════════════════════════════
 ANSWER KEY NOTATION — READ THIS BEFORE ANYTHING ELSE:
@@ -1535,6 +1535,39 @@ SCORING TABLE (apply strictly):
 - 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
 - 2-mark definition question: full marks ONLY if every discriminating component is present. Missing one of two key components → 1. Missing both → 0. An answer that "broadly captures the idea" but no specific terms → 0.
 - 3+ mark definition question: deduct one mark per missing discriminating component, never below 0.
+
+LABELLED-LIST ANSWERS (IMPORTANT — special case):
+When a part's answer key takes the form "<LABEL>: <value> | <LABEL>: <value> | <LABEL>: <value>" — for example "A: nose | B: windpipe | C: lungs", "P: heart | Q: lung", "1: oxygen | 2: carbon dioxide", or "X: evaporation | Y: condensation" — EACH labelled entry is a SEPARATE marking point. The student must provide a correct label for EACH item, not just one.
+- Within a single label, "/" separates ACCEPTABLE alternatives (e.g. "nose / nostril" = nose OR nostril is accepted for that one label).
+- Between labels, "|" separates SEPARATE labels the student must each get right.
+
+SCORING for labelled-list answers (apply STRICTLY, override the general 0.5-deduction rule for this pattern):
+- 1-mark part with N labels (N ≥ 2): all-or-nothing within rounding. Each label is worth 1/N. Sum correct labels and round DOWN to the nearest 0.5. Concretely:
+    N=2: 1/2 correct → 0.5; 2/2 → 1; 0/2 → 0.
+    N=3: 1/3 correct → 0 (0.33 rounds down to 0); 2/3 → 0.5; 3/3 → 1.
+    N=4: 1/4 → 0; 2/4 → 0.5; 3/4 → 0.5; 4/4 → 1.
+  DO NOT award the full 1 mark unless ALL labels are correct.
+- 2-mark part with N labels: each label worth 2/N. Sum and round DOWN to nearest 0.5.
+- 3-mark or higher with N labels: each label worth marksAvailable/N. Standard rounding.
+
+WORKED EXAMPLE — labelled list:
+  Part (a) — "Name the parts A, B and C [1 mark]." Answer key "A: nose / nostril | B: windpipe | C: lungs / lung." Student wrote "lung" for C only (B and A left blank).
+  Correct labels = 1/3. Score = floor(1/3 × 1 to nearest 0.5) = 0. Awarded 0 mark(s).
+  GOOD notes: "Correctly identified **lungs** for C, but did not name **nose/nostril** for A or **windpipe** for B. With only 1 of 3 labels correct, no marks are awarded for this 1-mark part."
+
+SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
+Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
+- If the student's answer (a) is scientifically correct at primary-school level, (b) directly answers what the question asks, and (c) is consistent with the diagram / context provided, AWARD CREDIT proportional to how completely it addresses the question — even if no concept overlaps with the expected answer.
+- Use this rule sparingly and only when the alternative reasoning is clearly valid science. Do NOT use it to rescue partial / vague / off-topic answers.
+- When applying this rule, prefix the notes with "[Alternative valid answer]" so the parent can spot it during review and override if they disagree.
+- Do NOT apply this rule for English questions, math, or factual recall (e.g. "name the parts of a flower"). Only for Science explanation/reasoning questions where multiple valid lines of reasoning may exist.
+
+SCIENCE KEY-TERM EMPHASIS IN NOTES (IMPORTANT):
+In the notes field, wrap every key scientific term or phrase from the expected answer in **double asterisks** so the review UI renders them in bold. Emphasise especially the terms/phrases the student MISSED (the ones that cost them marks).
+- Examples of key terms: **photosynthesis**, **chlorophyll**, **evaporation**, **blocks light**, **heat energy is transferred**, **potential energy**.
+- If a required concept was missing, name it and bold it: "The student did not mention **chlorophyll** or **sunlight**, so 1 mark was not awarded."
+- If the student got a key term right, you may also bold it when calling it out positively.
+- Only bold actual key terms/phrases — do not bold ordinary connector words.
 `;
 }
 
@@ -6568,162 +6601,11 @@ The student answers WHAT THE QUESTION ASKS. Do NOT demand extra phrasing that ju
 Only insist on the relationship word / qualifier when the question EXPLICITLY asks the student to "describe", "explain", "state why", or "justify".
 ` : "";
 
-        const isScience = (paper.subject ?? "").toLowerCase().includes("science");
-        const sciencePartialRule = isScience ? `
-
-CONTEXT-FROM-STEM RULE (Science — applies BEFORE phrase deduction below):
-The question stem (text + image) was provided above. Anything the stem ALREADY ESTABLISHES — named objects, scope ("two plants", "both balls"), the experimental setup, observable givens ("water level X after plasticine is added") — is CONTEXT, not something the student must re-state to score.
-
-The marking point is the NEW assertion / inference the student must produce. Do NOT deduct for missing words that the stem already gave.
-
-Examples:
-- Stem: "The diagram shows two plants." Key: "Part X of both plants absorbs water and mineral salts." Student: "Part X absorbs water and mineral salts." → "both plants" is established scope. Award full credit; the student's statement applies to the same Part X already named in the stem.
-- Stem describes an observable setup ("X shows the water level after plasticine is added"). Key: "The water level dropped." → "water level" is stem context; the INFERENCE the student must produce is "dropped / decreased". If the student concludes the level dropped (in any wording), award the point. Only deduct if the student's reasoning never addresses the level's change. Frame any deduction as "the level-change inference was missing", NOT "did not say water level".
-
-Default: when borderline between stem-context and new-inference, lean ACCEPT. Penalising students for omitting words the question already gave them is a common false-positive — avoid it.
-
-SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (IMPORTANT):
-Primary-school Science answers are marked against the SPECIFIC phrases in the answer key, not against a vague concept. The answer key has been written by a human marker and EVERY phrase in it is load-bearing — it tests a discrete piece of knowledge the student is expected to demonstrate.
-
-PROCESS:
-1. Break the answer key into its distinct marking-point phrases. Each phrase is one of:
-   (a) a named scientific term ("photosynthesis", "ovum", "chlorophyll"),
-   (b) a clause describing a process or mechanism ("water loses heat", "energy is released", "the bulb glows brighter"),
-   (c) a function or purpose statement ("the function is to absorb water", "to protect against predators"),
-   (d) a property statement ("poor conductor of heat", "good insulator", "soluble in water"),
-   (e) a relational link ("...thereby condensing", "...therefore the temperature rises").
-   Example: "Water loses heat to the surroundings, thereby condensing." → TWO phrases.
-   Example: "Energy is released in respiration." → TWO phrases.
-   Example: "Vacuum is a poor conductor of heat so heat cannot pass through it." → THREE phrases.
-
-2. Start at marksAvailable. Deduct 0.5 for each marking-point phrase MISSING from the student's answer (or only vaguely paraphrased without the key idea). Floor at 0.
-
-3. A paraphrase ONLY counts as present if it captures the same scientific meaning AND uses a recognised scientific equivalent for any named term in that phrase. Everyday paraphrase that loses the named term → MISSING.
-   - "joining of male and female cells" is NOT equivalent to "fertilisation".
-   - "the heat moves" IS equivalent to "heat is transferred".
-   - "the gas was kept inside" IS NOT equivalent to "energy is released".
-
-4. If the student's answer captures NONE of the answer-key phrases (or is blank / fully off-topic), award 0.
-
-5. Internally apply the per-phrase logic above, but in the notes field write plain feedback for a parent and child to read.
-
-NOTES STYLE — STRICT:
-  - One short paragraph, 1–2 sentences total.
-  - Lead with what the student got right (briefly).
-  - Then say plainly what was missing or wrong, wrapping each missing key phrase / named term in **double asterisks**.
-  - End with a one-clause deduction reason like "−0.5 for not stating the function" or "−0.5 because **respiration** was not named".
-
-NOTES — FORBIDDEN PATTERNS (DO NOT USE ANY OF THESE):
-  - Labels like "PRESENT", "MISSING", or "marking point (1)/(2)/(3)".
-  - Tables or numbered lists of marking points.
-  - Scaffolding like "Marking points: (1) X, (2) Y" or "Per-phrase: ..." or "(1) PRESENT (2) MISSING".
-  - Score summaries like "Starting 4/4, -0.5 for each MISSING. Awarded 2.5/4." or "Score: 2/3" or "Awarded 1.5/2".
-  - The phrase "Starting X/X" in any form.
-  - ANY restatement of marksAwarded inside the notes — the marks number lives in marksAwarded, not in notes.
-
-These forbidden patterns are debug scaffolding from earlier prompts. The current notes field is read by a primary-school student and their parent — write for them, not for a marker rubric.
-
-WORKED EXAMPLE (notes style):
-  Part (a) — answer key "Plant F grew to cover the surface | blocked light from reaching plant G | Plant G could not photosynthesise | so plant G died." Student wrote "F blocks light".
-  GOOD notes: "Correctly captured that **F blocks light**, but did not explain that **plant F grew to cover the surface**, that **plant G could not photosynthesise**, or that **plant G died**. −1.5 across three missing points."
-  BAD notes (FORBIDDEN): "Starting 2/2. Missing Plant F grew to cover the surface (-0.5), Plant G could not photosynthesise (-0.5), and died (-0.5). Awarded 0.5/2."
-
-LABELLED-LIST ANSWERS (IMPORTANT — special case):
-When a part's answer key takes the form "<LABEL>: <value> | <LABEL>: <value> | <LABEL>: <value>" — for example "A: nose | B: windpipe | C: lungs", "P: heart | Q: lung", "1: oxygen | 2: carbon dioxide", or "X: evaporation | Y: condensation" — EACH labelled entry is a SEPARATE marking point. The student must provide a correct label for EACH item, not just one.
-- Within a single label, "/" separates ACCEPTABLE alternatives (e.g. "nose / nostril" = nose OR nostril is accepted for that one label).
-- Between labels, "|" separates SEPARATE labels the student must each get right.
-
-SCORING for labelled-list answers (apply STRICTLY, override the general 0.5-deduction rule for this pattern):
-- 1-mark part with N labels (N ≥ 2): all-or-nothing within rounding. Each label is worth 1/N. Sum correct labels and round DOWN to the nearest 0.5. Concretely:
-    N=2: 1/2 correct → 0.5; 2/2 → 1; 0/2 → 0.
-    N=3: 1/3 correct → 0 (0.33 rounds down to 0); 2/3 → 0.5; 3/3 → 1.
-    N=4: 1/4 → 0; 2/4 → 0.5; 3/4 → 0.5; 4/4 → 1.
-  DO NOT award the full 1 mark unless ALL labels are correct.
-- 2-mark part with N labels: each label worth 2/N. Sum and round DOWN to nearest 0.5.
-- 3-mark or higher with N labels: each label worth marksAvailable/N. Standard rounding.
-
-WORKED EXAMPLE — labelled list:
-  Part (a) — "Name the parts A, B and C [1 mark]." Answer key "A: nose / nostril | B: windpipe | C: lungs / lung." Student wrote "lung" for C only (B and A left blank).
-  Correct labels = 1/3. Score = floor(1/3 × 1 to nearest 0.5) = 0. Awarded 0 mark(s).
-  GOOD notes: "Correctly identified **lungs** for C, but did not name **nose/nostril** for A or **windpipe** for B. With only 1 of 3 labels correct, no marks are awarded for this 1-mark part."
-
-KEY-TERM REQUIREMENT (IMPORTANT):
-When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
-- 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Mark 0 for that concept.
-- Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
-- This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
-
-DISCRIMINATING TERMS (IMPORTANT — STRICTEST):
-Some scientific terms have close-but-different neighbours that often confuse students. When the answer key uses one term and the student writes a related-but-WRONG term, score it as WRONG for that concept — partial credit does NOT apply, even if the answer is otherwise on-topic.
-
-Examples (not exhaustive — apply the same principle to any pair of related terms):
-- ovum vs ovule (animal egg cell vs plant egg cell)
-- ovule vs ovary (cell vs container)
-- sperm vs pollen (animal vs plant male gamete)
-- mass vs weight (matter vs gravitational force)
-- evaporation vs condensation vs boiling (different phase changes)
-- voltage vs current (potential difference vs flow rate)
-- respiration vs photosynthesis (gas exchange/energy release vs food-making)
-- transmit vs absorb vs reflect (opposite light interactions)
-- transparent vs translucent vs opaque (different transmission levels)
-- conductor vs insulator (opposite electrical/thermal properties)
-- predator vs prey (opposite food-chain roles)
-- producer vs consumer vs decomposer (different trophic levels)
-- inhale vs exhale (opposite breathing directions)
-- artery vs vein (different blood-vessel types)
-- germinate vs reproduce vs grow (different life-cycle stages)
-- dissolve vs melt (solute-in-solvent vs phase change)
-
-Rule: if the answer key's discriminating term is X and the student writes a different-but-related Y from the same conceptual family, score that concept as 0 in the partial-credit calculation. State in notes which discriminating term was wrong, wrapped in **double asterisks** (e.g. "Student wrote **ovule** instead of the required **ovum**.").
-
-DEFINITION QUESTIONS (IMPORTANT — STRICT):
-When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is", "What is photosynthesis?"), the marking is significantly STRICTER than for a regular reasoning question. Definition questions test exact knowledge of a textbook definition, not approximate understanding.
-
-PROCESS:
-1. The term being defined is in the QUESTION — the student does not need to repeat it.
-2. **BEFORE listing discriminating components, STRIP any clause from the answer key that just restates what the question asked.** If the question is "State how a shadow is formed" and the key starts "A shadow is formed when…", the phrase "A shadow is formed" is the question's framing, NOT a discriminating component. Drop it. The same goes for "Explain how X happens" + key "X happens when…", "Define X" + key "X is a/an…", "Describe how Y moves" + key "Y moves by…", etc. The student already knows the topic — the key information is the mechanism / cause / property that follows. Only THAT survives to step 3.
-3. Read the (now-trimmed) expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
-4. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
-
-CONCRETE EXAMPLE OF THE STRIP IN STEP 2 (this MUST work to ACCEPT the student):
-  - Question: "State how a shadow is formed."
-  - Key: "A shadow is formed when light is partially or completely blocked by an object."
-  - STEP 2 STRIP: "A shadow is formed" is restated from the question stem → DROP IT. Remaining: "when light is partially or completely blocked by an object."
-  - STEP 3 components: ["light is blocked / partially blocked / completely blocked", "by an object / by an opaque object"].
-  - Student: "Light that travels in a straight line is partially or completely blocked by the opaque or translucent object."
-  - Student covers BOTH components → AWARD FULL CREDIT (1/1). Do NOT deduct because they didn't write "a shadow is formed" — the stem already established it.
-
-SCORING TABLE (apply strictly):
-- 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
-- 2-mark definition question: full marks ONLY if every discriminating component is present. Missing one of two key components → 1. Missing both → 0. An answer that "broadly captures the idea" but no specific terms → 0.
-- 3+ mark definition question: deduct one mark per missing discriminating component, never below 0.
-
-ANCHOR EXAMPLES (use these to calibrate strictness):
-- Q: "What is a community?" Expected: "Different populations of organisms living together in a habitat." (2 marks)
-  - "A group of organisms living together" → 0/2. Missing "different populations" (could describe a single population) and missing "habitat". Not specific enough to be a community.
-  - "Different populations living together" → 1/2. Has "different populations" but missing "habitat".
-  - "Different populations of organisms in a habitat" → 2/2.
-- Q: "What is photosynthesis?" Expected: "The process by which plants use sunlight to make food (glucose) from water and carbon dioxide." (2 marks)
-  - "Plants make food" → 0/2. Missing the entire mechanism — sunlight, water, carbon dioxide. Vague paraphrase, not a definition.
-  - "Plants make food using sunlight" → 1/2.
-  - "Plants use sunlight to make food from water and carbon dioxide" → 2/2.
-
-In notes: write each discriminating component with **double asterisks** and tick / cross each one. Be explicit ("missing **habitat**"). Never give a definition question full marks unless every discriminating component is present.
-
-SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
-Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
-- If the student's answer (a) is scientifically correct at primary-school level, (b) directly answers what the question asks, and (c) is consistent with the diagram / context provided, AWARD CREDIT proportional to how completely it addresses the question — even if no concept overlaps with the expected answer.
-- Use this rule sparingly and only when the alternative reasoning is clearly valid science. Do NOT use it to rescue partial / vague / off-topic answers.
-- When applying this rule, prefix the notes with "[Alternative valid answer]" so the parent can spot it during review and override if they disagree.
-- Do NOT apply this rule for English questions, math, or factual recall (e.g. "name the parts of a flower"). Only for Science explanation/reasoning questions where multiple valid lines of reasoning may exist.
-
-SCIENCE KEY-TERM EMPHASIS IN NOTES (IMPORTANT):
-In the notes field, wrap every key scientific term or phrase from the expected answer in **double asterisks** so the review UI renders them in bold. Emphasise especially the terms/phrases the student MISSED (the ones that cost them marks).
-- Examples of key terms: **photosynthesis**, **chlorophyll**, **evaporation**, **blocks light**, **heat energy is transferred**, **potential energy**.
-- If a required concept was missing, name it and bold it: "The student did not mention **chlorophyll** or **sunlight**, so 1 mark was not awarded."
-- If the student got a key term right, you may also bold it when calling it out positively.
-- Only bold actual key terms/phrases — do not bold ordinary connector words.
-` : "";
+        // Single source of truth for the science marking rule. Both the
+        // exam-paper marker and this quiz/focused marker now call the
+        // same scienceStrictRules() function — previously this code
+        // path had its own inline copy that had drifted.
+        const sciencePartialRule = scienceStrictRules(paper.subject);
 
         // Anti-hallucination guard: when Phase 1 detection (which has
         // already retried with pro if pixel-confirmed ink looked like
@@ -6862,7 +6744,7 @@ Sometimes the expected answer above doesn't cover every part of the question. Ex
 - DO NOT use this rule as an excuse to overrule a part that the answer key DOES cover. The ABSOLUTE RULE still binds those parts.
 
 Instructions:
-1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
+1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION rule above (deduct 0.5 per missing pipe-separated marking point).
    - If correct → FULL MARKS.
    - Partially correct → PARTIAL marks for matching portions.
    - Wrong or blank → ZERO.
