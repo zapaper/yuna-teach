@@ -7,10 +7,10 @@
 // Two sweeps live here:
 //   1. recoverStuckCompo()  — CompoAttempt rows where the analyse
 //      pipeline stalled (status="analysing" + idle ≥ 5 min) or
-//      previously failed (within 14 days).
+//      previously failed (within 3 days).
 //   2. recoverStuckExamMarking() — ExamPaper rows where the marker
 //      stalled (markingStatus="in_progress" + idle ≥ 5 min) or
-//      previously failed (within 14 days). Mirrors what
+//      previously failed (within 3 days). Mirrors what
 //      /api/admin/auto-remark-stuck has always done — just exposed
 //      as a callable so the instrumentation hook can reuse it
 //      without an HTTP round-trip.
@@ -21,7 +21,7 @@ import { analyseCompoAttempt } from "@/lib/compo-analysis";
 import { markExamPaper, markQuizPaper, markFocusedTest } from "@/lib/marking";
 
 const STUCK_MS = 5 * 60 * 1000;             // 5 min idle = presumed dead
-const FAILED_LOOKBACK_MS = 14 * 24 * 60 * 60 * 1000; // 14 d back for failed-state retries
+const FAILED_LOOKBACK_MS = 3 * 24 * 60 * 60 * 1000; // 3 d back for failed-state retries
 
 export type CompoRecoverySummary = {
   rescued: number;

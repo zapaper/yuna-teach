@@ -36,10 +36,10 @@ export async function POST() {
     return NextResponse.json({ error: "admin only" }, { status: 403 });
   }
   const now = Date.now();
-  // 14 days back — matches the marking-dashboard window. Beyond that
-  // re-marks are unlikely to be useful (kid has long since moved on),
-  // and a wider window risks paging through too many ancient rows.
-  const since = new Date(now - 14 * 24 * 60 * 60 * 1000);
+  // 3 days back. Beyond that re-marks are unlikely to be useful
+  // (kid has long since moved on), and a wider window risks paging
+  // through too many ancient rows.
+  const since = new Date(now - 3 * 24 * 60 * 60 * 1000);
   const stuckCandidates = await prisma.examPaper.findMany({
     where: {
       OR: [

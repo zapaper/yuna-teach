@@ -133,6 +133,22 @@ function coerceMarks(v: unknown): number | null {
 //   - Replace the whole tail with a single "[LINES: N]" marker.
 //   - If the AI already emitted [LINES: N], leave it alone.
 //   - If the stem has NO trailing underscore block, return as-is.
+// Normalise bare "a)" / "a." subpart labels in OEQ stems to the
+// parenthesised "(a)" form the answer key + marker prompts assume.
+// Without this, a stem with "a) Why was Alek scared?" mismatches an
+// answer key shaped "(a) He was scared because…", and the marker
+// sub-part router fails to associate the kid's answer with the right
+// rubric line. Only fires at start-of-line, so prose like "lots of
+// a)b)c) variations" elsewhere can't be mis-rewritten.
+function normaliseOeqSubpartLabels(stem: string): string {
+  if (!stem) return stem;
+  return stem
+    // "a)" at start of line → "(a)"
+    .replace(/^(\s*)([a-h])\)\s/gm, "$1($2) ")
+    // "a." at start of line → "(a)"
+    .replace(/^(\s*)([a-h])\.\s/gm, "$1($2) ");
+}
+
 function normaliseOeqAnswerLines(stem: string): string {
   if (!stem) return stem;
   // Already has a final [LINES: N] — assume the AI did the right
@@ -526,7 +542,7 @@ async function extractExamPaperCore(
               const topicLc = (q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? "").toLowerCase();
               const isCompOeqForLines = topicLc.includes("comprehension") && topicLc.includes("open");
               if (!isCompOeqForLines) return raw;
-              return normaliseOeqAnswerLines(raw);
+              return normaliseOeqSubpartLabels(normaliseOeqAnswerLines(raw));
             })(),
             transcribedOptions: ext._options || undefined,
           });
