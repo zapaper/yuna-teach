@@ -864,18 +864,37 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
     return parsed.every(p => p !== null) ? parsed : null;
   };
 
+  // The renderer increments tableRowIdx ONLY for non-separator rows
+  // (separators return null without bumping the counter). Mirror that
+  // here: build (dataLine, ri) pairs where ri matches what the
+  // renderer used to key the cells map. Without this, two stacked
+  // tables sharing a stem — the canonical Q69 'Ali table + Ming
+  // table' shape on cmqt6dlpw002jeg24moqilvam — see an internal
+  // |---|---| separator land in dataLines, formatter's i bumps past
+  // it, and ri lookup misses the second sub-table's answer row
+  // entirely. (a)(b) marked, (c)(d) silently dropped.
+  const isSepRow = (l: string) => /^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(l);
+  const dataLinesWithRi: Array<{ line: string; ri: number }> = [];
+  let nextRi = headerCount;
+  for (const l of dataLines) {
+    if (isSepRow(l)) continue;
+    dataLinesWithRi.push({ line: l, ri: nextRi });
+    nextRi++;
+  }
+
   const blocks: string[] = [];
   let i = 0;
-  while (i < dataLines.length) {
-    const rowCells = splitRow(dataLines[i]);
-    const ri = headerCount + i;
+  while (i < dataLinesWithRi.length) {
+    const { line, ri } = dataLinesWithRi[i];
+    const rowCells = splitRow(line);
     const multiLabels = detectMultiLabel(rowCells);
-    if (multiLabels && i + 1 < dataLines.length) {
-      const ansCells = splitRow(dataLines[i + 1]);
+    if (multiLabels && i + 1 < dataLinesWithRi.length) {
+      const next = dataLinesWithRi[i + 1];
+      const ansCells = splitRow(next.line);
       const sameWidth = ansCells.length === rowCells.length;
       const allBlank = sameWidth && ansCells.every(c => !c);
       if (sameWidth && allBlank) {
-        const ansRi = headerCount + i + 1;
+        const ansRi = next.ri;
         multiLabels.forEach((ml, colIdx) => {
           if (!ml) return;
           const v = cells[`r${ansRi}c${colIdx}`];
