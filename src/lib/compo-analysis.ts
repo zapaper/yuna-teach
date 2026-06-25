@@ -64,6 +64,124 @@ function extractJson(raw: string): string {
   return cleaned;
 }
 
+// Repair common Gemini JSON malformations that trip strict JSON.parse:
+//   - missing commas between adjacent properties or array elements
+//     (most common — e.g. `"a": "x"\n  "b": "y"` instead of `"a": "x",`)
+//   - trailing commas before } or ]
+//   - smart/full-width quotes inserted around CJK strings
+// The walker operates OUTSIDE of strings by tracking the open/close
+// state BEFORE consuming each character — opening `"` is reached from
+// outside a string and closing `"` is reached from inside, so a single
+// `stateBefore[i]` boolean disambiguates them.
+function repairJson(s: string): string {
+  // 1. Normalize curly quotes to straight ASCII quotes. Gemini sometimes
+  //    emits "…" or '…' when generating Chinese-mixed JSON.
+  s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+
+  // 2. For every char, was the parser INSIDE a string before consuming it?
+  function buildStateBefore(str: string): boolean[] {
+    const sb: boolean[] = new Array(str.length);
+    let open = false;
+    let escaped = false;
+    for (let i = 0; i < str.length; i++) {
+      sb[i] = open;
+      const c = str[i];
+      if (escaped) { escaped = false; continue; }
+      if (c === "\\") { escaped = true; continue; }
+      if (c === '"') open = !open;
+    }
+    return sb;
+  }
+
+  // 3. Strip trailing commas before `}` or `]` (only when outside strings).
+  let sb = buildStateBefore(s);
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "," && !sb[i]) {
+      let j = i + 1;
+      while (j < s.length && /\s/.test(s[j])) j++;
+      if (j < s.length && (s[j] === "}" || s[j] === "]") && !sb[j]) continue;
+    }
+    out += s[i];
+  }
+  s = out;
+
+  // 4. Insert missing commas between a value-terminator and the next
+  //    `"key":` / `{` / `[`. State-before-consuming model:
+  //    - Closing `"` of a string value: stateBefore[i] = true
+  //    - Structural `}`, `]`, digit, etc: stateBefore[i] = false
+  //    - Opening `"` of next key: stateBefore[j] = false
+  sb = buildStateBefore(s);
+  // Trailing-letter detector for true / false / null. We accept `l` (null,
+  // null end) and `e` (true/false end) as value-end chars.
+  const isValueEnd = (i: number) => {
+    const c = s[i];
+    if (c === '"') return sb[i];        // closing quote: we were inside
+    if (c === '}' || c === ']') return !sb[i];
+    if (/[0-9]/.test(c) || c === 'e' || c === 'l') return !sb[i];
+    return false;
+  };
+  const isNextKeyOrStruct = (j: number) => {
+    if (j >= s.length) return false;
+    if (sb[j]) return false;             // we're inside a string
+    return s[j] === '"' || s[j] === '{' || s[j] === '[';
+  };
+
+  out = "";
+  for (let i = 0; i < s.length; i++) {
+    out += s[i];
+    if (!isValueEnd(i)) continue;
+    let j = i + 1;
+    while (j < s.length && /\s/.test(s[j])) j++;
+    if (!isNextKeyOrStruct(j)) continue;
+    // For `"key":`, peek further: after the next `"`'s closing pair
+    // there must be a `:` (modulo whitespace). This avoids inserting
+    // a comma into e.g. `[ "x", "y" ]` where the second `"y"` is a
+    // string value, not a key.
+    if (s[j] === '"') {
+      let k = j + 1;
+      let escaped = false;
+      while (k < s.length) {
+        if (escaped) { escaped = false; k++; continue; }
+        if (s[k] === "\\") { escaped = true; k++; continue; }
+        if (s[k] === '"') break;
+        k++;
+      }
+      if (k >= s.length) continue;
+      let m = k + 1;
+      while (m < s.length && /\s/.test(s[m])) m++;
+      if (s[m] !== ":") continue;
+    }
+    // Need whitespace between value and next — guards `{"a":1,"b":2}`.
+    if (j === i + 1) continue;
+    out += ",";
+  }
+  return out;
+}
+
+// Tries JSON.parse on the extracted text. On failure, runs a repair
+// pass for common Gemini malformations and retries. Throws the original
+// error if both attempts fail — so the failure message still points at
+// the real malformation, not the (potentially mangled) repaired version.
+// Returns `any` to match the original `JSON.parse(...)` ergonomics —
+// call sites do their own field-by-field validation downstream.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function safeJsonParse(raw: string, label = "json"): any {
+  const cleaned = extractJson(raw);
+  try {
+    return JSON.parse(cleaned);
+  } catch (err1) {
+    try {
+      const repaired = repairJson(cleaned);
+      const out = JSON.parse(repaired);
+      console.warn(`[compo:${label}] JSON repaired — original parse failed (${(err1 as Error).message}), repaired parse succeeded.`);
+      return out;
+    } catch {
+      throw err1;
+    }
+  }
+}
+
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 export const COMPO_DIR = path.join(VOLUME_PATH, "compo");
 
@@ -458,7 +576,7 @@ export async function runOcr(
       // care about the essay field (we don't double-extract questions).
       const markedRaw = (markedResp.text ?? "").trim();
       try {
-        const mp = JSON.parse(extractJson(markedRaw));
+        const mp = safeJsonParse(markedRaw, "ocr-markings");
         if (typeof mp.essay === "string" && mp.essay.trim().length > 0) {
           ocrTextWithMarkings = mp.essay.trim();
         } else {
@@ -474,7 +592,7 @@ export async function runOcr(
     // whole response as plain essay text if JSON parsing fails.
     ocrText = ocrRaw;
     try {
-      const parsed = JSON.parse(extractJson(ocrRaw));
+      const parsed = safeJsonParse(ocrRaw, "ocr");
       if (typeof parsed.essay === "string" && parsed.essay.trim().length > 0) {
         ocrText = parsed.essay.trim();
       }
@@ -620,7 +738,7 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
   console.log(`[compo:wrong-words] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "[]").trim();
   try {
-    const parsed = JSON.parse(extractJson(text));
+    const parsed = safeJsonParse(text, "wrong-words");
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(x => x && typeof x.original === "string" && typeof x.suggestion === "string")
       .map(x => ({
@@ -781,7 +899,7 @@ export async function critiqueComposition(
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
-  const parsed = JSON.parse(extractJson(text));
+  const parsed = safeJsonParse(text, "critique");
   const contentScore = Number(parsed.contentScore ?? 0);
   const vocabScore = Number(parsed.vocabScore ?? 0);
   const sentenceScore = Number(parsed.sentenceScore ?? 0);
@@ -1099,7 +1217,19 @@ export async function recommend(
   }, 2, 5000, "compo-recommend");
   console.log(`[compo:recommend] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
-  const parsed = JSON.parse(extractJson(text));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parsed: any;
+  try {
+    parsed = safeJsonParse(text, "recommend");
+  } catch (err) {
+    // Don't sink the whole pipeline if Gemini emits malformed JSON for
+    // recommendations — the critique already landed and the elevated
+    // draft can still run. Log loudly and return empty arrays; the
+    // side panel just won't show structure/language suggestions.
+    console.error(`[compo:recommend] JSON parse FAILED, ${text.length} chars. First 200 chars:`, text.slice(0, 200));
+    console.error(`[compo:recommend] parse error:`, err);
+    return { structural: [], language: [] };
+  }
   const structural = Array.isArray(parsed.structural) ? parsed.structural : [];
   const language = Array.isArray(parsed.language) ? parsed.language : [];
   return { structural, language };
@@ -1237,7 +1367,7 @@ export async function buildElevatedDraft(
   const raw = (resp.text ?? "").trim();
   console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
   try {
-    const parsed = JSON.parse(extractJson(raw));
+    const parsed = safeJsonParse(raw, "elevate");
     const r = parsed.rubric && typeof parsed.rubric === "object" ? parsed.rubric : null;
     const rubric: RubricBreakdown | undefined = r ? {
       contentScore:   Number(r.contentScore ?? 0),
