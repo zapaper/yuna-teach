@@ -651,10 +651,65 @@ export async function POST(request: NextRequest) {
     const imageSource = (first.imageData && first.imageData.length > 100)
       ? first
       : (group.find(q => q.imageData && q.imageData.length > 100) ?? first);
+    // Build per-sibling label remap to prevent label collisions when
+    // merging. The clean-extract for an isolated subpart (e.g. Q7c whose
+    // image only shows the "(c)" part) sometimes mislabels it as (a) or
+    // (b) — Gemini relabels relative to its own crop. When we then merge
+    // that sibling into a group containing Q7ab's [(a),(b)], the merged
+    // subparts array ends up with duplicate labels and downstream code
+    // (mark, render, studentAnswer split) all break.
+    //
+    // Defensive rule: keep group[0]'s labels as-is, then sequentially
+    // assign labels to subsequent siblings starting after the highest
+    // label used so far. The remap is also consulted when building
+    // partAnswers below so the answer key stays aligned.
+    const labelRemap = new Map<string, Map<string, string>>(); // sibling.id → (oldLabel → newLabel)
+    let nextCharCode = "a".charCodeAt(0);
+    const firstRealSubs = ((first.transcribedSubparts as Subpart[] | null) ?? [])
+      .filter(s => !s.label.startsWith("_"));
+    for (const sp of firstRealSubs) {
+      const code = sp.label.toLowerCase().charCodeAt(0);
+      if (code >= "a".charCodeAt(0) && code <= "z".charCodeAt(0)) {
+        nextCharCode = Math.max(nextCharCode, code + 1);
+      }
+    }
+    for (const q of group) {
+      if (q === first) continue;
+      const subs = ((q.transcribedSubparts as Subpart[] | null) ?? [])
+        .filter(s => !s.label.startsWith("_"));
+      const map = new Map<string, string>();
+      // Only remap if there is an actual collision with already-used labels.
+      // If a later sibling's labels happen not to clash (e.g. Q7c correctly
+      // says "c"), leave them alone — preserves the source labelling for
+      // questions where the clean-extract got it right.
+      const usedSoFar = new Set<string>();
+      for (const sp of firstRealSubs) usedSoFar.add(sp.label.toLowerCase());
+      for (const [, m] of labelRemap) for (const v of m.values()) usedSoFar.add(v);
+      // Also include any later sibling subparts processed already.
+      for (const sp of subs) {
+        const orig = sp.label.toLowerCase();
+        if (!usedSoFar.has(orig) && orig.length === 1 && orig >= "a" && orig <= "z") {
+          // Keep the original label.
+          map.set(orig, orig);
+          usedSoFar.add(orig);
+          const code = orig.charCodeAt(0);
+          nextCharCode = Math.max(nextCharCode, code + 1);
+        } else {
+          // Collision (or non-alpha label) → assign the next sequential code.
+          const newLabel = String.fromCharCode(nextCharCode);
+          nextCharCode++;
+          map.set(orig, newLabel);
+          usedSoFar.add(newLabel);
+        }
+      }
+      labelRemap.set(q.id, map);
+    }
+
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const realSubs = subs.filter(s => !s.label.startsWith("_"));
+      const myRemap = labelRemap.get(q.id);
       const qStem = (q.transcribedStem ?? "").trim();
       // Only prepend for LATER siblings — group[0]'s stem is the main stem,
       // not a subpart preamble. (For q=first, qStem === leadStem, so the
@@ -663,6 +718,12 @@ export async function POST(request: NextRequest) {
       const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
       const processed = realSubs.map((sp, idx) => {
         let next = sp;
+        if (myRemap) {
+          const newLabel = myRemap.get(sp.label.toLowerCase());
+          if (newLabel && newLabel !== sp.label.toLowerCase()) {
+            next = { ...next, label: newLabel };
+          }
+        }
         if (idx === 0 && extraStem) {
           next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
         }
@@ -679,18 +740,30 @@ export async function POST(request: NextRequest) {
     const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
     // Aggregate per-part answers across all siblings, then attach to subparts.
     // Also rebuild the flat answer string from the per-part map so every part is present.
+    // labelRemap applied here too so the answer key follows the subpart re-labelling.
     const partAnswers = new Map<string, string>();
     for (const q of group) {
+      const myRemap = labelRemap.get(q.id);
       const parsed = parsePartAnswers(q.answer);
       if (parsed.size > 0) {
-        for (const [label, text] of parsed) partAnswers.set(label, text);
+        for (const [label, text] of parsed) {
+          // If the source's answer field already labels correctly (e.g. Q7c
+          // answer starts with "(c)"), the parsed label is the truth and
+          // we DON'T re-remap — the remap is keyed off transcribedSubparts
+          // labels which may be wrong but the answer field is right.
+          partAnswers.set(label, text);
+        }
         continue;
       }
-      // No (a)/(b) markers — if this sibling has exactly one real subpart, use its label
+      // No (a)/(b) markers — if this sibling has exactly one real subpart, use its label.
+      // Apply remap so a Q7c-style mislabel (subpart "b" → remapped to "c")
+      // attributes the answer under the corrected label.
       const sibSubs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
       if (sibRealSubs.length === 1 && q.answer?.trim()) {
-        partAnswers.set(sibRealSubs[0].label.toLowerCase(), q.answer.trim());
+        const origLabel = sibRealSubs[0].label.toLowerCase();
+        const finalLabel = myRemap?.get(origLabel) ?? origLabel;
+        partAnswers.set(finalLabel, q.answer.trim());
       }
     }
     const enrichedSubparts = allSubparts.map(sp => {
