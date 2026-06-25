@@ -39,7 +39,7 @@ type PhraseSwap = {
   bucket: string;
   subType?: string;
   originalEn: string;
-  alternatives: Array<{ cn: string; en: string }>;
+  alternatives: Array<{ cn: string; en: string; pattern?: string }>;
 };
 
 type Recommendations = {
@@ -755,6 +755,9 @@ function PhrasePopup({
                   font: "inherit",
                 }}
               >
+                {alt.pattern && (
+                  <div style={{ color: "#0369a1", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, marginBottom: 2 }}>{alt.pattern}</div>
+                )}
                 <div style={{ color: "#0f172a" }}>{alt.cn}</div>
                 {alt.en && <div style={{ color: "#64748b", fontSize: 11, fontStyle: "italic", marginTop: 2 }}>{alt.en}</div>}
               </button>

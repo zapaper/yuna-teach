@@ -275,7 +275,11 @@ export type PhraseSwap = {
   // Short English meaning of the CURRENT phrase.
   originalEn: string;
   // 2-4 alternatives that ALSO fit this essay's specific situation.
-  alternatives: Array<{ cn: string; en: string }>;
+  // pattern is optional and used mainly by the `sentence` bucket so the
+  // popup can label each alternative with the rhetorical device it uses
+  // (比喻句 / 排比句 / 反问句 / 感叹句 / 对比句 / 倒装句). Other buckets
+  // can omit it.
+  alternatives: Array<{ cn: string; en: string; pattern?: string }>;
 };
 
 // ─── OCR ─────────────────────────────────────────────────────────────
@@ -1265,12 +1269,19 @@ const ELEVATE_PROMPT = (
      opening (开头) / closing (结尾) / moral (寓意) / transition (过渡) /
      accident (突发事件描写) / careless (粗心懊悔描写) /
      idiom (成语) / description (描写句 — 心理/场景/动作) /
-     connector (连接词 — 此时此刻 / 一……就 / 与此同时 / 等等)
+     connector (连接词 — 此时此刻 / 一……就 / 与此同时 / 等等) /
+     sentence (句型变化 — 比喻/排比/反问/感叹/对比，把平铺直叙改成有修辞的句子)
    · **每个 [+...|bucket+] 只能包一个原子级别的短语**。例如:
      ✓ [+此时此刻|connector+]，[+心跳得像要从胸口跳出来一样|description+]
      ✗ [+此时此刻，心跳得像要从胸口跳出来一样|connector+]   ← 不要混合
      连接词 / 成语 / 描写句应该各自分开标记，让用户可以独立替换。
-   · **数量不设上限**: 只要是新加的成型句子 (开头 / 结尾 / 寓意 / 过渡 / 成语 / 连接词 / 描写句)，都应该加 bucket 标签让用户能换。一篇好作文可能有 6-10 处描写、3-4 个连接词、2-3 个成语 — 全都给标记。
+   · **特别注意 sentence bucket**: 找出 2-3 处学生写得平淡 (直叙 "我很紧张" / "他很生气" / "天气很热") 的句子，改成有句型变化的句子并标记 [+...|sentence+]。例如:
+     原文: "我很紧张" → [+我紧张得手心冒汗，双腿不停地颤抖|sentence+] (具体感官描写)
+     原文: "天气很热" → [+太阳像一个大火球一样高高挂在天上|sentence+] (比喻)
+     原文: "我又累又渴又饿" → [+脚像灌了铅一样沉重，喉咙像着了火一样干渴，肚子像打鼓一样空响|sentence+] (排比)
+     原文: "我成功了" → [+难道这就是失败的滋味吗?不，这是成功前的考验!|sentence+] (反问)
+     alternatives 必须用 **不同的句型** (比喻/排比/反问/感叹/对比), 让学生看到同一个意思有多种表达方式。
+   · **数量不设上限**: 只要是新加的成型句子 (开头 / 结尾 / 寓意 / 过渡 / 成语 / 连接词 / 描写句 / 句型变化)，都应该加 bucket 标签让用户能换。一篇好作文可能有 6-10 处描写、3-4 个连接词、2-3 个成语、2-3 个句型变化 — 全都给标记。
    · 只有以下情况用普通 [+...+] (不加 bucket): 单字修订 (例如补 "的")、小标点修正、没有可替代选项的过场字句。
      · 例: [+岁月匆匆，许多往事都已经淡忘…|opening+]
      · 例: [+心跳得像要从胸口跳出来一样|description+]
@@ -1320,13 +1331,13 @@ ${ocrText}
   "phraseSwaps": [
     {
       "originalText": "<exact text that appears between [+ and |bucket+] in the draft>",
-      "bucket": "opening | closing | moral | transition | accident | careless | idiom | description | connector",
+      "bucket": "opening | closing | moral | transition | accident | careless | idiom | description | connector | sentence",
       "subType": "<sub-type label, e.g. '天气/景物开头' / '时间紧接' / '心理描写'. 留空字串如果无法判定>",
       "originalEn": "<short English meaning of THIS phrase, 1 line>",
       "alternatives": [
-        { "cn": "<same-sub-type alternative that fits THIS essay's situation>", "en": "<short English>" },
-        { "cn": "<another same-sub-type fit>", "en": "<short English>" },
-        { "cn": "<a third same-sub-type fit>", "en": "<short English>" }
+        { "cn": "<same-sub-type alternative that fits THIS essay's situation>", "en": "<short English>", "pattern": "<optional — only for sentence bucket: 比喻句 / 排比句 / 反问句 / 感叹句 / 对比句 / 倒装句>" },
+        { "cn": "<another same-sub-type fit>", "en": "<short English>", "pattern": "<optional>" },
+        { "cn": "<a third same-sub-type fit>", "en": "<short English>", "pattern": "<optional>" }
       ]
     }
   ]
@@ -1337,6 +1348,7 @@ ${ocrText}
 · originalText 必须和 draft 里的文字完全一致 (一字不差)。
 · **alternatives 必须切合本作文的具体情境** — 不要给一个安全主题的开头去配一个考试失败的故事。每个 alternative 都要能直接代入而不破坏故事的情绪和上下文。
 · **同子类型替换原则**: 上面的【语句库】每个 bucket 都按子类型分组 (例如 "天气/景物开头" / "悬念开头" / "时间紧接 (sequential)" 等)。alternatives 应该尽量从原句的子类型里挑 — 例如原句是 "景物开头"，就给其他 "景物开头" 当选项，不要混入 "悬念开头"；原句是 "时间紧接" 的 connector，alternatives 也应该是时间紧接类。
+· **句型变化 bucket (sentence) 例外 — 反同子类型原则**: 这个 bucket 的目的就是让学生看到同一个意思的多种修辞方式。alternatives 必须用 **不同的句型** (例如原句是 "比喻"，alternatives 一个用 "排比"，一个用 "反问"，一个用 "感叹")。subType 写出每个 alternative 用的是什么句型 (例如 "比喻句" / "排比句" / "反问句" / "感叹句" / "对比句" / "倒装句")。
 · 每条 phraseSwap 给 2-4 个 alternatives。
 · 设置 subType 字段告诉前端这是什么子类型 (例如 "天气/景物开头" / "时间紧接" / "成语-表羞愧")。如果无法判定子类型，留空字串。
 · 如果某个 bucket (例如 idiom) 没有合适的替代，就少给一两个 — 宁缺勿滥。
@@ -1385,7 +1397,7 @@ export async function buildElevatedDraft(
     const rawSwaps = Array.isArray(parsed.phraseSwaps) ? parsed.phraseSwaps : [];
     const swaps: PhraseSwap[] = rawSwaps
       .filter((s: { originalText?: unknown }) => s && typeof s.originalText === "string" && s.originalText.length > 0)
-      .map((s: { originalText: string; bucket?: string; subType?: string; originalEn?: string; alternatives?: Array<{ cn?: string; en?: string }> }) => {
+      .map((s: { originalText: string; bucket?: string; subType?: string; originalEn?: string; alternatives?: Array<{ cn?: string; en?: string; pattern?: string }> }) => {
         const alts = Array.isArray(s.alternatives) ? s.alternatives : [];
         return {
           originalText: s.originalText,
@@ -1394,7 +1406,11 @@ export async function buildElevatedDraft(
           originalEn: String(s.originalEn ?? ""),
           alternatives: alts
             .filter(a => a && typeof a.cn === "string" && a.cn.length > 0)
-            .map(a => ({ cn: a.cn!, en: String(a.en ?? "") })),
+            .map(a => ({
+              cn: a.cn!,
+              en: String(a.en ?? ""),
+              ...(a.pattern && typeof a.pattern === "string" && a.pattern.trim() ? { pattern: a.pattern.trim() } : {}),
+            })),
         };
       })
       .filter((s: PhraseSwap) => s.alternatives.length > 0);
