@@ -168,12 +168,11 @@ export default function ReviseWorkModal({
           </div>
         ) : (
           <div>
-            <p className="text-sm text-[#0b1c30] leading-relaxed mb-4">
+            <p className="text-sm text-[#0b1c30] leading-snug mb-3">
               {summary.studentName} has <span className="font-extrabold text-[#001e40]">{sub.mistakeCount} mistake{sub.mistakeCount === 1 ? "" : "s"}</span> in the last {summary.papersScanned} assignments
               {sub.topTopics.length > 0 && (
                 <>, covering topics such as <span className="font-bold text-[#001e40]">{sub.topTopics.slice(0, 3).join(", ")}</span></>
               )}.
-              <br />Would you like to go through them or create a practice?
             </p>
 
             {/* Quick preset chips — snap the slider to a meaningful
@@ -185,7 +184,7 @@ export default function ReviseWorkModal({
                 type="button"
                 onClick={() => setCount(Math.min(Math.max(sub.last7DaysCount, 1), max))}
                 disabled={!!submitting || sub.last7DaysCount === 0}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                   sub.last7DaysCount > 0 && count === Math.min(Math.max(sub.last7DaysCount, 1), max)
                     ? "bg-[#003366] text-white border-[#003366]"
                     : "bg-white text-[#003366] border-[#003366]/30 hover:bg-[#eff4ff]"
@@ -196,10 +195,10 @@ export default function ReviseWorkModal({
               </button>
             </div>
 
-            <div className="bg-[#eff4ff] rounded-2xl p-4 mb-3">
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#43474f]">Questions to include</span>
-                <span className="font-headline text-2xl font-extrabold text-[#001e40] tabular-nums">{count}</span>
+            <div className="bg-[#eff4ff] rounded-xl px-3 py-2 mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#43474f]">Questions to include</span>
+                <span className="font-headline text-xl font-extrabold text-[#001e40] tabular-nums leading-none">{count}</span>
               </div>
               <input
                 type="range"
@@ -208,20 +207,20 @@ export default function ReviseWorkModal({
                 step={1}
                 value={count}
                 onChange={(e) => setCount(parseInt(e.target.value, 10))}
-                className="w-full accent-[#003366]"
+                className="w-full accent-[#003366] mt-1"
                 disabled={!!submitting}
               />
-              <div className="flex justify-between text-[10px] text-[#43474f] mt-1">
+              <div className="flex justify-between text-[10px] text-[#43474f]">
                 <span>{Math.min(5, max)}</span>
                 <span>{max}</span>
               </div>
               {hasOver30 && (
-                <p className="text-[11px] text-[#43474f] mt-2 italic">We will prioritise recent mistakes.</p>
+                <p className="text-[10px] text-[#43474f] mt-1 italic">We will prioritise recent mistakes.</p>
               )}
             </div>
 
             {submitErr && (
-              <p className="text-xs text-red-600 mb-3">{submitErr}</p>
+              <p className="text-xs text-red-600 mb-2">{submitErr}</p>
             )}
 
             {/* Stacked so each button has room for its clarifying sub-line.
@@ -233,30 +232,30 @@ export default function ReviseWorkModal({
               <button
                 onClick={() => handleCompile("practice")}
                 disabled={!!submitting || count === 0}
-                className="w-full py-3 px-4 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex flex-col items-center gap-0.5"
+                className="w-full py-2 px-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex flex-col items-center"
               >
-                <span className="flex items-center gap-2 text-sm">
+                <span className="flex items-center gap-2 text-sm leading-tight">
                   {submitting === "practice"
                     ? <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     : <span className="material-symbols-outlined text-base">edit</span>}
                   Set as quiz for {studentName}
                 </span>
-                <span className="text-[11px] font-medium text-white/85">
+                <span className="text-[11px] font-medium text-white/85 leading-tight">
                   {studentName} will redo the mistakes themselves
                 </span>
               </button>
               <button
                 onClick={() => handleCompile("review")}
                 disabled={!!submitting || count === 0}
-                className="w-full py-3 px-4 rounded-xl border-2 border-[#003366] text-[#003366] font-bold hover:bg-[#eff4ff] disabled:opacity-50 flex flex-col items-center gap-0.5"
+                className="w-full py-2 px-3 rounded-xl border-2 border-[#003366] text-[#003366] font-bold hover:bg-[#eff4ff] disabled:opacity-50 flex flex-col items-center"
               >
-                <span className="flex items-center gap-2 text-sm">
+                <span className="flex items-center gap-2 text-sm leading-tight">
                   {submitting === "review"
                     ? <span className="inline-block w-4 h-4 border-2 border-[#003366]/30 border-t-[#003366] rounded-full animate-spin" />
                     : <span className="material-symbols-outlined text-base">menu_book</span>}
                   Review with me
                 </span>
-                <span className="text-[11px] font-medium text-[#43474f]">
+                <span className="text-[11px] font-medium text-[#43474f] leading-tight">
                   I&apos;ll go through the mistakes with {studentName}
                 </span>
               </button>

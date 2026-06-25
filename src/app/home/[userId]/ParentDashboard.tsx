@@ -2603,6 +2603,7 @@ export default function ParentDashboard({
       icon: "history_edu",
       label: "Revise Work",
       onClick: () => setShowReviseModal(true),
+      active: showReviseModal,
     },
     { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
     { icon: "auto_fix_high", label: "Solver", href: `/solver?userId=${userId}` },
@@ -3601,9 +3602,18 @@ export default function ParentDashboard({
                     <button
                       onClick={() => setShowReviseModal(true)}
                       title="Revise work — compile recent mistakes"
-                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                      className={`flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-xl transition-colors ${
+                        showReviseModal
+                          ? "bg-[#d3e4fe] text-[#001e40]"
+                          : "bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff]"
+                      }`}
                     >
-                      <span className="material-symbols-outlined text-base">history_edu</span>
+                      <span
+                        className="material-symbols-outlined text-base"
+                        style={showReviseModal ? { fontVariationSettings: "'FILL' 1" } : {}}
+                      >
+                        history_edu
+                      </span>
                       <span>Revise</span>
                     </button>
                     <button
