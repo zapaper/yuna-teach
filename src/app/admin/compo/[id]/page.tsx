@@ -462,16 +462,22 @@ function renderSuggestion(original: string, suggestion: string, kind: string | u
   ).join("");
 }
 
-// Walk LCS the OTHER direction: which chars of the original were
-// DROPPED (i.e. don't appear in the suggestion's LCS-matched path)?
-// Used so the marked-up view can preserve the original prose but
-// highlight only the specific wrong char(s) instead of striking out
-// the whole 2–3 char phrase the AI reported.
-function diffOriginal(original: string, suggestion: string): Array<{ char: string; isRemoved: boolean }> {
+// Walk LCS to produce an INTERLEAVED edit stream of keep/remove/insert
+// operations between original and suggestion. Inline rendering uses
+// this so each removed char is followed IMMEDIATELY by its replacement
+// instead of all replacements piling up at the end of the phrase.
+//
+// LCS preference: when tied (dp[i-1][j] == dp[i][j-1]), prefer INSERT
+// (advance suggestion first) over REMOVE. This places the new char
+// BEFORE the wrong char in the walk-back, which after reversing puts
+// it AFTER the wrong char in forward order — what the reader wants:
+// "wrong → replacement" pair.
+type Edit = { op: "keep" | "remove" | "insert"; char: string };
+function diffEdits(original: string, suggestion: string): Edit[] {
   const m = original.length;
   const n = suggestion.length;
-  if (n === 0) return [...original].map(c => ({ char: c, isRemoved: true }));
-  if (m === 0) return [];
+  if (m === 0) return [...suggestion].map(c => ({ op: "insert" as const, char: c }));
+  if (n === 0) return [...original].map(c => ({ op: "remove" as const, char: c }));
   const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
@@ -479,14 +485,27 @@ function diffOriginal(original: string, suggestion: string): Array<{ char: strin
       else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
     }
   }
-  const out: Array<{ char: string; isRemoved: boolean }> = [];
+  const out: Edit[] = [];
   let i = m, j = n;
   while (i > 0 && j > 0) {
-    if (original[i - 1] === suggestion[j - 1]) { out.push({ char: original[i - 1], isRemoved: false }); i--; j--; }
-    else if (dp[i - 1][j] >= dp[i][j - 1]) { out.push({ char: original[i - 1], isRemoved: true }); i--; }
-    else { j--; }
+    if (original[i - 1] === suggestion[j - 1]) {
+      out.push({ op: "keep", char: original[i - 1] });
+      i--; j--;
+    } else if (dp[i - 1][j] > dp[i][j - 1]) {
+      // Strict >: removing original now produces a longer downstream LCS,
+      // so the remove is unambiguously the right move.
+      out.push({ op: "remove", char: original[i - 1] });
+      i--;
+    } else {
+      // Tie or insert-side wins — push the insert in walk-back. After
+      // reverse, the insert lands right after the corresponding remove
+      // in forward order, giving "wrong → correct" adjacency.
+      out.push({ op: "insert", char: suggestion[j - 1] });
+      j--;
+    }
   }
-  while (i > 0) { out.push({ char: original[i - 1], isRemoved: true }); i--; }
+  while (i > 0) { out.push({ op: "remove", char: original[i - 1] }); i--; }
+  while (j > 0) { out.push({ op: "insert", char: suggestion[j - 1] }); j--; }
   return out.reverse();
 }
 
@@ -522,25 +541,25 @@ function renderMarked(ocr: string, ws: WrongWord[]): string {
       out += ` <span style="color:#b91c1c;font-weight:700">${escapeHtml(r.suggestion)}</span>`;
     } else {
       // Wrong-word edits (stroke / meaning / misuse / omission) are
-      // usually 1–2 chars off in a 2–3 char phrase — striking through
-      // the whole phrase visually obliterates the kid's correct chars
-      // too. Instead, preserve the original prose unchanged except
-      // for the specific wrong char(s), which get a red wavy underline
-      // (the conventional Chinese teacher "circle" mark). The
-      // corrected char(s) follow directly afterwards in bold red.
-      const origDiff = diffOriginal(r.original, r.suggestion);
-      for (const d of origDiff) {
-        if (d.isRemoved) {
-          out += `<span style="color:#b91c1c;text-decoration:underline wavy #b91c1c;text-underline-offset:3px">${escapeHtml(d.char)}</span>`;
+      // usually 1–2 chars off in a 2–3 char phrase. Use a per-char
+      // edit stream so each wrong char is IMMEDIATELY followed by its
+      // replacement (not collected at the end of the phrase). Wrong
+      // char gets a circular red border (the "teacher circle"); the
+      // replacement appears right after in bold red.
+      const edits = diffEdits(r.original, r.suggestion);
+      for (const e of edits) {
+        if (e.op === "keep") {
+          out += escapeHtml(e.char);
+        } else if (e.op === "remove") {
+          // True circle: inline-block + border + 50% border-radius. Wide
+          // padding so a single CJK char doesn't look squashed inside
+          // the border. Inline-block keeps text flow but lets the
+          // border render; the small negative margin prevents the
+          // circle from bumping adjacent chars too aggressively.
+          out += `<span style="display:inline-block;border:1.5px solid #b91c1c;border-radius:50%;padding:0 3px;color:#b91c1c;line-height:1;margin:0 1px;vertical-align:baseline">${escapeHtml(e.char)}</span>`;
         } else {
-          out += escapeHtml(d.char);
+          out += `<span style="color:#b91c1c;font-weight:700">${escapeHtml(e.char)}</span>`;
         }
-      }
-      // Append only the chars present in the suggestion that are NOT
-      // already in the original (the actual corrections), in bold red.
-      const newChars = diffSuggestion(r.original, r.suggestion).filter(d => d.isNew).map(d => d.char).join("");
-      if (newChars) {
-        out += `<span style="color:#b91c1c;font-weight:700">${escapeHtml(newChars)}</span>`;
       }
     }
     pos = r.end;
