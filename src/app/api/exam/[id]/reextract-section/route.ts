@@ -227,7 +227,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 - PARAGRAPH INDENTATION: When the original text shows a NEW PARAGRAPH (indented first line), start that line with exactly 4 spaces.
 - Preserve PARAGRAPH SPACING: use ONE blank line between paragraphs.
 - Do NOT include page break markers, page numbers, or page indicators
-- For Vocabulary Cloze MCQ: each question has an UNDERLINED WORD in the passage. The word is printed in a visually different way (underlined, bold, or italic) from the surrounding text. Mark the question number and the underlined word inline: "... word **(16) __underlinedWord__** word ..." — the __double underscores__ render as underlined text in the UI. The MCQ options are shown separately below each question.
+- For Vocabulary Cloze MCQ: each question has an UNDERLINED WORD in the passage. The word is printed in a visually different way (underlined, bold, or italic) from the surrounding text. Mark the question number and the underlined word inline: "... word **(16) __underlinedWord__** word ..." — the __double underscores__ render as underlined text in the UI.
+  CRITICAL — after the passage, on new lines, emit each question's 4 options EXACTLY as printed, one question per line:
+    16. (1) library (2) market (3) park (4) cinema
+    17. (1) puzzled (2) annoyed (3) excited (4) bored
+  The downstream question extraction PARSES these lines to populate the options array. Skip this block and the options get hallucinated. The display cleaner strips them out of the version shown in the quiz UI, so duplication is not a worry — emit them here.
 - If the Vocabulary Cloze has a BLANK instead of an underlined word, use: "... word **(16)________** word ..."
 - Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title.
 Output ONLY the clean passage/question text, no commentary.` });
