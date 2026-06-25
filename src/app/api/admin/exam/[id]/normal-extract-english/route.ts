@@ -152,7 +152,15 @@ These INLINE (N) markers ARE the question numbers — report each one. The gener
 
   const prompt = `You are reading page ${pageIndex + 1} of a Singapore PSLE English paper. The section on this page is: ${sectionHint}.
 
-Identify EVERY question number that is the START of a question on this page (a numbered question stem or numbered blank, NOT a page number, NOT a reference inside text).${clozeGuidance}
+ANSWER-KEY PAGE DETECTION — DO THIS FIRST:
+If this page is an ANSWER KEY / MARK SCHEME page (located at the back of the booklet), return \`{ "questions": [] }\` immediately. Signs of an answer-key page:
+- The page is titled "Answer Key", "Answer Scheme", "Marking Scheme", "Suggested Answers", or similar.
+- The body is a column of short \`N. answer\` pairs (e.g. "1. (3)", "2. He felt scared", "3. quickly") with no full question stems, no reading passage, no multi-line question text, and usually no answer lines / writing space.
+- For Comprehension OEQ: an answer-key page shows ONLY the model answers (a sentence or two each), NOT the original question wording. If you see something like "1. The author felt nervous because…", but the surrounding context is a list of similar one-paragraph entries 2., 3., 4., …, it's an answer key — skip it.
+
+When in doubt — if the page lacks a passage, lacks multi-line question stems, and contains short tightly-spaced numbered entries — treat it as an answer key and return empty.
+
+Identify EVERY question number that is the START of a question on this page (a numbered question stem or numbered blank, NOT a page number, NOT a reference inside text, NOT a line on an answer-key page).${clozeGuidance}
 
 For each one, report:
 - "questionNum": the bare number as it appears (e.g. "1", "12", "21", "66 (a)", "66 (b)")
@@ -220,9 +228,15 @@ async function detectAcrossSectionPages(args: {
   // Forwarded into findQuestionPositionsOnPage so callers can override
   // the substring-based cloze detection on a per-section basis.
   isClozeSectionOverride?: boolean;
+  // 0-based answer-key page indices. Skipped from the scan list so
+  // the Comp-OEQ '1.' / '2.' lines on a back-of-booklet answer key
+  // can't be mistaken for the section's first question. Caller pulls
+  // this from paper.metadata.answerPages (which is stored 1-based).
+  answerPageIndices?: number[];
 }): Promise<{ detectionsByPage: Map<number, Detection[]>; warnings: string[] }> {
-  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange, pageCount, isClozeSectionOverride } = args;
+  const { paperId, sectionQuestionIds, allQuestions, sectionHint, pageRange, pageCount, isClozeSectionOverride, answerPageIndices } = args;
   const warnings: string[] = [];
+  const answerPageSet = new Set(answerPageIndices ?? []);
 
   let pagesToScan: number[] = [];
   if (pageRange) {
@@ -280,6 +294,19 @@ async function detectAcrossSectionPages(args: {
       const upper = pageCount != null ? Math.min(lookAhead, pageCount - 1) : lookAhead;
       for (let i = min; i <= upper; i++) pagesToScan.push(i);
       console.log(`[normal-extract] ${sectionHint}: pageIndex range [${min},${max}] → scanning pages ${pagesToScan.join(",")} (upper cap=${upper}, pageCount=${pageCount ?? "?"})`);
+    }
+  }
+
+  // Drop any page tagged by the Clean Extract pipeline as an
+  // answer-key / mark-scheme page. The +6 look-ahead frequently
+  // overshoots into the back-of-booklet answer key, and Gemini
+  // happily reports the '1. answer' line there as Q1's position —
+  // which has been the headline failure mode for Comp OEQ Q1.
+  if (answerPageSet.size > 0) {
+    const before = pagesToScan.length;
+    pagesToScan = pagesToScan.filter(p => !answerPageSet.has(p));
+    if (pagesToScan.length !== before) {
+      console.log(`[normal-extract] ${sectionHint}: dropped ${before - pagesToScan.length} answer-key page(s) from scan: ${[...answerPageSet].sort((a, b) => a - b).join(",")}`);
     }
   }
 
@@ -383,6 +410,7 @@ async function extractSequential(args: {
   pageCount?: number;
   pageRange?: { start: number; endExclusive: number };
   isClozeSectionOverride?: boolean;
+  answerPageIndices?: number[];
 }): Promise<RunOutput> {
   const { sections, allQuestions } = args;
   const sectionQuestionIds = collectSectionQuestionIds(sections, allQuestions);
@@ -399,6 +427,7 @@ async function extractSequential(args: {
     pageCount: args.pageCount,
     pageRange: args.pageRange,
     isClozeSectionOverride: args.isClozeSectionOverride,
+    answerPageIndices: args.answerPageIndices,
   });
 
   if (detectionsByPage.size === 0) {
@@ -561,7 +590,10 @@ export async function POST(
     englishSections?: SecMeta[];
     normalExtractEnglish?: NormalExtractState;
     papers?: PapersEntry[];
+    answerPages?: number[]; // 1-based per gemini.ts:5350
   };
+  // 1-based → 0-based for downstream comparisons against pageIndex.
+  const answerPageIndices = (meta.answerPages ?? []).map(p => p - 1).filter(p => p >= 0);
   let sections: SecMeta[] = (meta.englishSections ?? []).filter(s => sectionMatches(s.label, sectionType));
   console.log(`[normal-extract] sectionType=${sectionType}, englishSections matched: ${sections.length}`);
 
@@ -681,6 +713,10 @@ export async function POST(
         allQuestions: paper.questions,
         sectionHint: "Comprehension open-ended questions, sequential numbering, multi-line stems",
         pageCount: paper.pageCount ?? undefined,
+        // Skip back-of-booklet answer-key pages from the scan window.
+        // Without this, the +6-page look-ahead pulls in the answer key
+        // and Gemini reports its '1.' line as Q1's position.
+        answerPageIndices,
       });
       break;
     case "grammar-cloze":
