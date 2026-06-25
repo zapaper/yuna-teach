@@ -23,6 +23,7 @@ export async function GET(_request: NextRequest) {
       paperType: true,
       visible: true,
       extractionStatus: true,
+      totalMarks: true,
       createdAt: true,
       userId: true,
       metadata: true,
@@ -31,6 +32,16 @@ export async function GET(_request: NextRequest) {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Compute Σ question.marksAvailable per paper in one groupBy so the
+  // list view can flag papers whose stated totalMarks doesn't match the
+  // questions' summed marks (Ai Tong Q39/Q40 missing → Δ+8, etc).
+  const sums = await prisma.examQuestion.groupBy({
+    by: ["examPaperId"],
+    _sum: { marksAvailable: true },
+    where: { examPaperId: { in: papers.map(p => p.id) } },
+  });
+  const summedByPaperId = new Map(sums.map(s => [s.examPaperId, s._sum.marksAvailable ?? 0]));
 
   // For each English/Chinese paper, summarise normal-extract completion:
   //   "complete" — every section flag true
@@ -63,6 +74,11 @@ export async function GET(_request: NextRequest) {
         else if (normalExtractDoneCount > 0) normalExtractStatus = "partial";
         else normalExtractStatus = "none";
       }
+      const stated = p.totalMarks ? parseFloat(p.totalMarks) : null;
+      const summed = summedByPaperId.get(p.id) ?? 0;
+      const marksDelta = stated != null && Number.isFinite(stated)
+        ? Math.round((stated - summed) * 100) / 100
+        : null;
       return {
         id: p.id,
         title: p.title,
@@ -83,6 +99,9 @@ export async function GET(_request: NextRequest) {
         normalExtractStatus,
         normalExtractDoneCount,
         normalExtractTotalCount,
+        statedMarks: stated,
+        summedMarks: summed,
+        marksDelta,
       };
     }),
   });

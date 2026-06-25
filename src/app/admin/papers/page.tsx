@@ -26,6 +26,13 @@ interface Paper {
   normalExtractStatus: "complete" | "partial" | "none" | null;
   normalExtractDoneCount: number;
   normalExtractTotalCount: number;
+  // Mark accounting: stated paper.totalMarks vs Σ question marksAvailable.
+  // marksDelta = stated − summed. Non-zero = something missing
+  // (positive) or over-allocated (negative). null = paper has no
+  // stated total to compare against.
+  statedMarks: number | null;
+  summedMarks: number;
+  marksDelta: number | null;
 }
 
 export default function AdminPapersPage() {
@@ -48,6 +55,7 @@ function AdminPapersContent() {
   const [yearFilter, setYearFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [hideQuizzes, setHideQuizzes] = useState(true);
+  const [marksMismatchOnly, setMarksMismatchOnly] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -133,6 +141,7 @@ function AdminPapersContent() {
     if (subjectFilter && canonicalSubject(p.subject) !== subjectFilter) return false;
     if (yearFilter && p.year !== yearFilter) return false;
     if (typeFilter && p.examType !== typeFilter) return false;
+    if (marksMismatchOnly && (p.marksDelta == null || Math.abs(p.marksDelta) < 0.01)) return false;
     if (search.trim()) {
       const s = search.toLowerCase();
       return (
@@ -169,14 +178,27 @@ function AdminPapersContent() {
           className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-slate-400"
         />
 
-        {/* Hide quizzes toggle */}
-        <div className="flex items-center gap-2">
+        {/* Hide quizzes + Marks-mismatch toggle */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setHideQuizzes(!hideQuizzes)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${hideQuizzes ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}
           >
             {hideQuizzes ? "Exam Papers Only" : "Showing All"}
           </button>
+          {(() => {
+            const mismatchCount = papers.filter(p => p.marksDelta != null && Math.abs(p.marksDelta) >= 0.01).length;
+            if (mismatchCount === 0) return null;
+            return (
+              <button
+                onClick={() => setMarksMismatchOnly(!marksMismatchOnly)}
+                title="Show only papers whose stated totalMarks doesn't match the sum of question marks (clean-extract probably missed a question or got a per-Q mark wrong)"
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${marksMismatchOnly ? "bg-amber-600 text-white border-amber-600" : "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400"}`}
+              >
+                ⚠ Marks mismatch ({mismatchCount})
+              </button>
+            );
+          })()}
           <span className="text-[10px] text-slate-400">{filtered.length} papers</span>
         </div>
 
@@ -302,6 +324,23 @@ function AdminPapersContent() {
                             {paper.normalExtractDoneCount}/{paper.normalExtractTotalCount}
                           </span>
                         )}
+                      </span>
+                    )}
+                    {/* Mark accounting badge — fires only on mismatch so
+                        clean papers don't get a green badge they don't need. */}
+                    {paper.marksDelta !== null && Math.abs(paper.marksDelta) >= 0.01 && (
+                      <span
+                        title={`Stated total ${paper.statedMarks} vs sum of question marks ${paper.summedMarks}. ${paper.marksDelta > 0 ? "Missing or under-allocated marks (clean-extract may have skipped a question)" : "Over-allocated marks (an extra question or wrong per-Q mark)"}`}
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${
+                          Math.abs(paper.marksDelta) >= 4 ? "bg-red-100 text-red-800" :
+                          "bg-amber-100 text-amber-800"
+                        }`}
+                      >
+                        <span aria-hidden>⚠</span>
+                        Marks Δ {paper.marksDelta > 0 ? "+" : ""}{paper.marksDelta}
+                        <span className="opacity-70 font-normal">
+                          {paper.statedMarks}/{paper.summedMarks}
+                        </span>
                       </span>
                     )}
                   </div>
