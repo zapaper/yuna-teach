@@ -2,111 +2,74 @@
   "patterns": [
     {
       "name": "Reproductive Parts Mix-Up",
-      "what": "Sometimes confuses the roles of different reproductive parts in plants and humans, such as where eggs are produced or where a baby develops.",
+      "what": "JeremiahSy sometimes mixes up the specific jobs of reproductive parts, like confusing where a baby grows with where eggs are made, or matching plant parts to the wrong human parts.",
       "specific_examples": [
         {
-          "questionRef": "[10]",
+          "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy thought the egg is produced in the womb, but it is actually produced in the ovary."
+          "whatWentWrong": "He incorrectly thought the fertilised egg develops in the ovary instead of the womb."
         },
         {
-          "questionRef": "[11]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy had a little trouble matching the female reproductive parts of a flower to the similar parts in a human."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy selected an option stating that an unfertilised egg develops in the womb, mixing up where fertilisation and development happen."
+          "whatWentWrong": "He mixed up which plant and human parts share the same function when comparing male reproductive systems."
         }
       ],
-      "strategic_advice": "When you see questions about **'reproduction'** or **'fertilisation'**, remember these key pairs:\n- The **ovary** (in both plants and humans) is where the female egg is produced.\n- The **womb** (in humans only) is where the baby develops, not where the egg is made!\n- The **testis** (humans) and **anther** (plants) are the parts that produce the male reproductive cells.",
+      "strategic_advice": "When you see questions comparing plant and human parts, or asking about fertilisation:\n- **Draw a quick match-up** in the margins (e.g., Ovary = Ovary, Testis = Anther).\n- Remember that the **ovary produces eggs**, but the **womb is where the baby grows**.",
       "trigger_keywords": [
         "reproductive parts",
         "fertilisation",
-        "ovary",
-        "womb",
-        "develops"
+        "develops in",
+        "produced in",
+        "same function"
       ]
     },
     {
-      "name": "Heat Transfer Mix-Up",
-      "what": "Occasionally mixes up whether an object is gaining heat or losing heat during processes like melting, cooling, or sweating.",
+      "name": "Heat Gain and Loss Confusion",
+      "what": "JeremiahSy occasionally gets tricked by the direction of heat travel, mixing up which item is gaining heat and which is losing heat.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy thought the air gains heat from the sweat, instead of realising that the sweat gains heat from the body to evaporate."
+          "whatWentWrong": "He thought the air gained heat from the sweat, instead of realising the sweat gains heat from the body to cool it down."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy missed that melting ice cubes gain heat from the plate, rather than losing heat to the surrounding air."
+          "whatWentWrong": "He missed identifying the correct statements about heat loss when ice melts on different plates."
         }
       ],
-      "strategic_advice": "When you see words like **'melt'**, **'cool'**, or **'sweat'**, pause and ask yourself 'Where is the heat going?':\n- If something is getting colder or freezing, it is **losing heat** to its surroundings.\n- If something is melting or evaporating (like sweat drying on skin), it needs energy, so it is **gaining heat** from the warmer object it touches.",
+      "strategic_advice": "When you see keywords about temperature changes:\n- Always ask yourself: **'Which object is hotter?'**\n- Draw an arrow from the **hotter object to the colder object** to show the direction heat is moving.\n- Remember that **melting or evaporating** means the object is **gaining heat**.",
       "trigger_keywords": [
-        "gained heat",
-        "lost heat",
+        "gains heat",
+        "loses heat",
         "melted",
-        "cooled",
-        "sweat"
+        "keep cool",
+        "temperature"
       ]
     },
     {
-      "name": "Light Path and Shadows",
-      "what": "Tends to find it tricky to trace the exact path light takes to reach our eyes, or how different materials and distances affect shadows.",
+      "name": "Light and Shadows Mix-Up",
+      "what": "JeremiahSy sometimes finds it tricky to trace the exact path light takes to bounce into our eyes, or how different materials change a shadow.",
       "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy chose the wrong arrows for how light travels, forgetting that light must bounce off the door and travel directly into the person's eyes."
+          "whatWentWrong": "He chose the wrong arrows for how light travels from a lamp, bounces off a door, and enters a person's eyes."
         },
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "JeremiahSy missed that a shadow puppet screen needs to be translucent to let some light through, rather than completely opaque."
-        },
-        {
-          "questionRef": "[19]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy was unsure how to make a shadow shorter, which happens when the light source is moved further away from the object."
+          "whatWentWrong": "He chose an opaque material instead of a translucent one for a shadow puppet screen, forgetting that some light needs to pass through to see the shadow clearly."
         }
       ],
-      "strategic_advice": "When you see questions about **'seeing objects'** or **'shadows'**, try sketching the setup:\n- To see an object, draw an arrow from the **light source to the object**, and another arrow **bouncing into the eye**.\n- For shadow puppets, remember the screen must be **translucent** to let a little light through, not completely opaque.\n- To make a shadow shorter, you need to move the **light source away** from the object.",
+      "strategic_advice": "When dealing with light and shadows:\n- For seeing objects, always draw the light path starting from the **light source**, bouncing off the **object**, and ending at the **eyes**.\n- For shadows, remember that **opaque** blocks all light (dark shadow), while **translucent** lets some light through (lighter shadow).",
       "trigger_keywords": [
         "shadow",
         "light rays",
-        "see the object",
-        "screen",
-        "torch"
-      ]
-    },
-    {
-      "name": "Incomplete Answers",
-      "what": "Sometimes leaves a written question blank or forgets to write down the final explanation after choosing the right material.",
-      "specific_examples": [
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy left the question completely blank instead of trying to arrange the materials by how much light they reflect."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy correctly identified the best material for the container but forgot to explain that it is a better conductor of heat."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy skipped this question about plant reproduction, missing out on the chance to earn partial marks."
-        }
-      ],
-      "strategic_advice": "When you see prompts like **'explain your answer'** or **'explain why'**, treat them as a checklist:\n- First, state your choice clearly.\n- Then, use a **'because...'** sentence to link your choice to a science concept (like 'because it is a better conductor of heat').\n- Never leave a question blank—always write down your best guess to grab partial marks!",
-      "trigger_keywords": [
-        "explain your answer",
-        "explain why",
-        "arrange"
+        "see the door",
+        "material",
+        "screen"
       ]
     }
   ],
@@ -145,7 +108,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -197,11 +160,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -229,17 +192,36 @@
     "22": "cmnk7iz3x007s14p628zh1vnf",
     "23": "cmnk7iz3x007t14p6i78r2ryz"
   },
-  "generatedAt": "2026-06-17T09:13:31.656Z",
+  "generatedAt": "2026-06-26T08:59:08.449Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 5,
     "mcq": 18
   },
   "toplineSnapshot": {
-    "avgPct": 66,
-    "totalAwarded": 120,
-    "totalAvailable": 183,
-    "paperCount": 9
+    "avgPct": 67,
+    "totalAwarded": 128,
+    "totalAvailable": 191,
+    "paperCount": 10
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:13:31.656Z",
+    "patternNames": [
+      "Reproductive Parts Mix-Up",
+      "Heat Transfer Mix-Up",
+      "Light Path and Shadows",
+      "Incomplete Answers"
+    ],
+    "wrongCounts": {
+      "total": 23,
+      "oeq": 5,
+      "mcq": 18
+    },
+    "toplineSnapshot": {
+      "avgPct": 66,
+      "totalAwarded": 120,
+      "totalAvailable": 183,
+      "paperCount": 9
+    }
+  }
 }

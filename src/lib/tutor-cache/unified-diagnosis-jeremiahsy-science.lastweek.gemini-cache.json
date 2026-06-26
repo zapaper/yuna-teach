@@ -1,0 +1,245 @@
+{
+  "patterns": [
+    {
+      "name": "Reproductive Parts Mix-Up",
+      "what": "Sometimes confuses the roles of different reproductive parts in plants and humans, such as where eggs are produced or where a baby develops.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy thought the egg is produced in the womb, but it is actually produced in the ovary."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy had a little trouble matching the female reproductive parts of a flower to the similar parts in a human."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy selected an option stating that an unfertilised egg develops in the womb, mixing up where fertilisation and development happen."
+        }
+      ],
+      "strategic_advice": "When you see questions about **'reproduction'** or **'fertilisation'**, remember these key pairs:\n- The **ovary** (in both plants and humans) is where the female egg is produced.\n- The **womb** (in humans only) is where the baby develops, not where the egg is made!\n- The **testis** (humans) and **anther** (plants) are the parts that produce the male reproductive cells.",
+      "trigger_keywords": [
+        "reproductive parts",
+        "fertilisation",
+        "ovary",
+        "womb",
+        "develops"
+      ]
+    },
+    {
+      "name": "Heat Transfer Mix-Up",
+      "what": "Occasionally mixes up whether an object is gaining heat or losing heat during processes like melting, cooling, or sweating.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy thought the air gains heat from the sweat, instead of realising that the sweat gains heat from the body to evaporate."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy missed that melting ice cubes gain heat from the plate, rather than losing heat to the surrounding air."
+        }
+      ],
+      "strategic_advice": "When you see words like **'melt'**, **'cool'**, or **'sweat'**, pause and ask yourself 'Where is the heat going?':\n- If something is getting colder or freezing, it is **losing heat** to its surroundings.\n- If something is melting or evaporating (like sweat drying on skin), it needs energy, so it is **gaining heat** from the warmer object it touches.",
+      "trigger_keywords": [
+        "gained heat",
+        "lost heat",
+        "melted",
+        "cooled",
+        "sweat"
+      ]
+    },
+    {
+      "name": "Light Path and Shadows",
+      "what": "Tends to find it tricky to trace the exact path light takes to reach our eyes, or how different materials and distances affect shadows.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy chose the wrong arrows for how light travels, forgetting that light must bounce off the door and travel directly into the person's eyes."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy missed that a shadow puppet screen needs to be translucent to let some light through, rather than completely opaque."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "JeremiahSy was unsure how to make a shadow shorter, which happens when the light source is moved further away from the object."
+        }
+      ],
+      "strategic_advice": "When you see questions about **'seeing objects'** or **'shadows'**, try sketching the setup:\n- To see an object, draw an arrow from the **light source to the object**, and another arrow **bouncing into the eye**.\n- For shadow puppets, remember the screen must be **translucent** to let a little light through, not completely opaque.\n- To make a shadow shorter, you need to move the **light source away** from the object.",
+      "trigger_keywords": [
+        "shadow",
+        "light rays",
+        "see the object",
+        "screen",
+        "torch"
+      ]
+    },
+    {
+      "name": "Incomplete Answers",
+      "what": "Sometimes leaves a written question blank or forgets to write down the final explanation after choosing the right material.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy left the question completely blank instead of trying to arrange the materials by how much light they reflect."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy correctly identified the best material for the container but forgot to explain that it is a better conductor of heat."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "JeremiahSy skipped this question about plant reproduction, missing out on the chance to earn partial marks."
+        }
+      ],
+      "strategic_advice": "When you see prompts like **'explain your answer'** or **'explain why'**, treat them as a checklist:\n- First, state your choice clearly.\n- Then, use a **'because...'** sentence to link your choice to a science concept (like 'because it is a better conductor of heat').\n- Never leave a question blank—always write down your best guess to grab partial marks!",
+      "trigger_keywords": [
+        "explain your answer",
+        "explain why",
+        "arrange"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmop8o6tf002e1amhkl5jgbxs",
+    "2": "cmoatus99001qw4dz5g27gz5p",
+    "3": "cmo3v0dst008y114hsx28w0jk",
+    "4": "cmo3v0dst008z114hn51ijy4p",
+    "5": "cmo3v0dst0090114hatyr82wv",
+    "6": "cmo3v0dsu0093114hjc3bd3c8",
+    "7": "cmo594vz10042e506tvp8gorw",
+    "8": "cmo594vz20046e506oz39lq8o",
+    "9": "cmo594vz20048e506v2qjmn1b",
+    "10": "cmnwv4o850013100js5xhpbz3",
+    "11": "cmnwv4o850016100jexqn4em2",
+    "12": "cmnwv4o850017100jr8nv2ko9",
+    "13": "cmnwv4o86001a100jk9d95m4e",
+    "14": "cmnwv4o86001b100jllak3gsh",
+    "15": "cmnmphw44001713kx8wufihgt",
+    "16": "cmnmphw44001913kx5x87v94n",
+    "17": "cmnmphw45001a13kxo8fmsujj",
+    "18": "cmnmphw45001m13kxvnt2bt02",
+    "19": "cmnmphw46001o13kx6ga3n84d",
+    "20": "cmnk7iz3w007p14p6qmax60mw",
+    "21": "cmnk7iz3w007q14p6hbvpf13l",
+    "22": "cmnk7iz3x007s14p628zh1vnf",
+    "23": "cmnk7iz3x007t14p6i78r2ryz"
+  },
+  "generatedAt": "2026-06-17T09:13:31.656Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 5,
+    "mcq": 18
+  },
+  "toplineSnapshot": {
+    "avgPct": 66,
+    "totalAwarded": 120,
+    "totalAvailable": 183,
+    "paperCount": 9
+  },
+  "previousAssessment": null
+}

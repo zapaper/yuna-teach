@@ -1,0 +1,251 @@
+{
+  "patterns": [
+    {
+      "name": "Forgotten Units and Formats",
+      "what": "Tends to forget the measurement unit or leave a fraction unsimplified, even after doing the hard work correctly.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct amount of rice but forgot to write 'kg' at the end."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He calculated the correct weight but left it as an improper fraction instead of a mixed number."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct fraction but forgot to simplify it to its smallest form."
+        }
+      ],
+      "strategic_advice": "When you finish a question, do a quick **format check**:\n- **Units:** Does the answer need kg, $, or cm?\n- **Fractions:** Is it in its simplest form? Is it a mixed number?",
+      "trigger_keywords": [
+        "Give your answer in",
+        "simplest form",
+        "mixed number"
+      ]
+    },
+    {
+      "name": "Of The Remaining Trap",
+      "what": "Sometimes calculates the next fraction or percentage using the original total instead of the leftover amount.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He likely used the original total instead of finding 1/6 of the remaining pies."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that Carl sold 60% of the remainder, not 60% of the total stamps."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He struggled to find 1/4 of the remaining flour after some was used for cookies."
+        }
+      ],
+      "strategic_advice": "When you see the word **'remaining'** or **'remainder'**, treat it as a stop sign!\n- First, calculate what is left over.\n- Then, draw a new branch or model for this leftover amount.\n- Apply the new fraction or percentage ONLY to this leftover part.",
+      "trigger_keywords": [
+        "of the remaining",
+        "of the remainder",
+        "rest of the"
+      ]
+    },
+    {
+      "name": "Order of Operations Mix-Up",
+      "what": "Occasionally confuses which math step to do first when a question has a mix of brackets, multiplication, and addition.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the correct sequence of solving the brackets first, then division and multiplication."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He likely did the subtraction or addition in the wrong order instead of following the BODMAS rules."
+        }
+      ],
+      "strategic_advice": "Always follow the **BODMAS** rule for mixed calculations:\n- **B**rackets first!\n- Then **D**ivision and **M**ultiplication (from left to right).\n- Finally, **A**ddition and **S**ubtraction (from left to right).",
+      "trigger_keywords": [
+        "value of",
+        "+",
+        "-",
+        "x",
+        "÷"
+      ]
+    },
+    {
+      "name": "Small Calculation Slips",
+      "what": "Sometimes makes a small addition, multiplication, or division slip along the way, even when the math steps are set up beautifully.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly combined the fractions but made a small division slip when calculating 196 divided by 4."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly figured out that 7 units equal 210, but made a quick slip dividing 210 by 7."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He found the correct cost for the desk and chair but made a tiny addition slip in the very last step."
+        }
+      ],
+      "strategic_advice": "Since your methods are usually spot on, focus on **double-checking your working**!\n- Try working backwards to check your division (e.g., if you think 210 ÷ 7 = 70, check if 70 x 7 = 210).\n- Write your numbers clearly in columns to avoid addition slips.",
+      "trigger_keywords": [
+        "Find the",
+        "How many",
+        "altogether"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 3
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq0i70h500ah2qesd16fezcd",
+    "2": "cmq0i70h600ak2qes4mgtiznp",
+    "3": "cmopa3w3s003j1amhjrcoy72j",
+    "4": "cmop997yv00301amhnd5fhl73",
+    "5": "cmocl0ysl0012fwkllbcq3jqk",
+    "6": "cmocl0tst000sfwklxh0goclq",
+    "7": "cmocl0tst000tfwkl8lzo16zn",
+    "8": "cmoates0h000pw4dzq1p7x3cj",
+    "9": "cmo9vlvez001s113kuks241jt",
+    "10": "cmo9vlvez001y113ks225yeel",
+    "11": "cmo9vlvez001z113kzude62bu",
+    "12": "cmo9lpnmf000oqw3cx00nqv7k",
+    "13": "cmo9lpnmf000rqw3cmsiayj5f",
+    "14": "cmo9lpnmf000wqw3cakccd9e1",
+    "15": "cmo82bcwk003h12oh4p0q7dst",
+    "16": "cmo82bcwk003i12oh38f91rfm",
+    "17": "cmnwx3h9c00086tptczx53dxm",
+    "18": "cmnrb4qvk00028i9zhj3adcux",
+    "19": "cmnrb4qvk00098i9znuq6xe47",
+    "20": "cmnpseah30015hi1v04hq9lyt",
+    "21": "cmnpseah30016hi1vd76kis3e",
+    "22": "cmnpseah30017hi1vr24uogsp",
+    "23": "cmnpseah30018hi1v8kbkr96h",
+    "24": "cmnpseah30019hi1vx7kvqvi8",
+    "25": "cmnpseah3001chi1vwx6n3pdu"
+  },
+  "generatedAt": "2026-06-17T09:13:36.471Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 13,
+    "mcq": 12
+  },
+  "toplineSnapshot": {
+    "avgPct": 86,
+    "totalAwarded": 279.5,
+    "totalAvailable": 324,
+    "paperCount": 15
+  },
+  "previousAssessment": null
+}

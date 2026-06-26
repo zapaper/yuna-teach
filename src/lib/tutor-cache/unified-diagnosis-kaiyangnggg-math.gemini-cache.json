@@ -1,113 +1,108 @@
 {
   "patterns": [
     {
-      "name": "Stopping One Step Short",
-      "what": "Sometimes calculates an intermediate value or a different part of the problem, but stops one step short of answering the final question.",
+      "name": "One Step Short",
+      "what": "Kaiyangnggg sometimes does the hard work to find an intermediate value, but occasionally stops before answering the final question asked.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
+          "questionRef": "[34]",
           "type": "mcq",
-          "whatWentWrong": "He correctly found the amount of paint used, but forgot that the question asked for the amount left."
+          "whatWentWrong": "He correctly calculated the fraction of paint used (1/12) but forgot to subtract it from the total to find the amount left."
         },
         {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He found the number of coins, but stopped before calculating how many more postcards there were."
-        },
-        {
-          "questionRef": "[18]",
+          "questionRef": "[51]",
           "type": "oeq",
-          "whatWentWrong": "He found the total difference in stickers, but missed the final step of dividing by 2 to find the amount given."
+          "whatWentWrong": "He successfully found the total difference in stickers (42) but stopped one step short of dividing by 2 to find the amount given."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'left with'** → subtract the amount used from the total\n- **'how many more'** → remember to do the final subtraction between the two items\n- Always underline the **final question word** before you start calculating.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'left with'** or **'in the end'** → check if you need to subtract your answer from the total.\n- **'how many did [Name] give'** → remember that giving items changes both people's amounts, so you often need to divide the difference by 2.",
       "trigger_keywords": [
         "left with",
-        "how many more",
-        "altogether"
+        "in the end",
+        "give to"
       ]
     },
     {
-      "name": "Leaving Questions Blank",
-      "what": "Occasionally skips questions entirely, especially when they involve algebra, multiple steps, or patterns.",
+      "name": "Division Order Mix-Up",
+      "what": "Kaiyangnggg occasionally mixes up which number should be divided by which, especially when dealing with fractions or rates.",
       "specific_examples": [
         {
-          "questionRef": "[30]",
+          "questionRef": "[47]",
           "type": "oeq",
-          "whatWentWrong": "He left this question about average savings completely blank."
+          "whatWentWrong": "He calculated 3/7 ÷ 8 instead of the requested 8 ÷ 3/7."
         },
         {
-          "questionRef": "[36]",
-          "type": "oeq",
-          "whatWentWrong": "He skipped this multi-step word problem about pencils and erasers."
-        },
-        {
-          "questionRef": "[63]",
+          "questionRef": "[78]",
           "type": "mcq",
-          "whatWentWrong": "He left this number pattern sequence blank instead of taking a guess."
+          "whatWentWrong": "He divided the number of planes by the time, instead of dividing the time by the number of planes to find the time per plane."
+        },
+        {
+          "questionRef": "[75]",
+          "type": "mcq",
+          "whatWentWrong": "He mixed up the division order when trying to find the printing rate per minute."
         }
       ],
-      "strategic_advice": "When you feel stuck on a question, try these steps instead of leaving it blank:\n- **Write down what you know** → even just writing the first step or drawing a model can earn you method marks.\n- For **MCQs**, always make your best guess by eliminating the answers you know are wrong.\n- For **patterns**, write the difference between each number to see if a rule appears.",
+      "strategic_advice": "When setting up a division problem, always ask yourself **'What is being shared or split up?'** The item being split up always comes **first** in the equation. For rates (like time per plane), put the word that comes after 'per' or 'each' at the end of your division.",
       "trigger_keywords": [
-        "average",
-        "in terms of",
-        "pattern"
+        "how long does he take",
+        "in 1 minute",
+        "find the value of"
       ]
     },
     {
-      "name": "Missing Units or Conversions",
-      "what": "Tends to leave out the final units (like degrees or million dollars) or forgets to convert between units (like cents to dollars).",
+      "name": "Base Value Mix-Up",
+      "what": "Kaiyangnggg tends to use the wrong starting number (or 'whole') when calculating percentages or fractions of a group.",
       "specific_examples": [
         {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "He read the graph correctly to get 56, but lost marks for forgetting to write 'million dollars'."
-        },
-        {
-          "questionRef": "[10]",
+          "questionRef": "[92]",
           "type": "mcq",
-          "whatWentWrong": "He set up the algebra correctly but forgot to convert the cents into dollars."
+          "whatWentWrong": "He calculated the percentage decrease using the final number of marbles (280) instead of the starting number (350)."
         },
         {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'cm' instead of 'cm²' for his final answer in this area question."
+          "questionRef": "[84]",
+          "type": "mcq",
+          "whatWentWrong": "He likely calculated 60% of the total stamps instead of 60% of the 'remainder'."
         }
       ],
-      "strategic_advice": "When you finish a calculation, do a quick check for units:\n- **Money** → check if the question mixes **cents and dollars**, and divide by 100 if needed.\n- **Area** → always use **square units** like cm² or m².\n- **Graphs** → look at the axis labels to see if the numbers represent **thousands or millions**.",
-      "trigger_keywords": [
-        "in terms of $",
-        "value of",
-        "area"
-      ]
-    },
-    {
-      "name": "Wrong Total Mix-Up",
-      "what": "Sometimes uses the leftover amount or the grand total as the base for a fraction or percentage, instead of the specific group asked for.",
-      "specific_examples": [
-        {
-          "questionRef": "[59]",
-          "type": "mcq",
-          "whatWentWrong": "He calculated the percentage decrease using the leftover marbles instead of the original total."
-        },
-        {
-          "questionRef": "[61]",
-          "type": "mcq",
-          "whatWentWrong": "He found the fraction of savings out of the total money, rather than comparing spending to savings as asked."
-        }
-      ],
-      "strategic_advice": "When a question asks for a fraction or percentage, be careful about which number goes on the bottom:\n- **'percentage decrease'** → always divide by the **original starting amount**, not the leftover.\n- **'fraction of [A] is [B]'** → the number for **[A]** is your total (the denominator), and **[B]** is the part (the numerator).",
+      "strategic_advice": "When you see percentage or fraction questions, always highlight the **reference word**:\n- **'percentage decrease/increase'** → always divide by the **original** starting amount.\n- **'of the remainder'** → calculate the leftover first, and use that as your new total.",
       "trigger_keywords": [
         "percentage decrease",
-        "fraction of",
-        "remainder"
+        "percentage increase",
+        "of the remainder"
+      ]
+    },
+    {
+      "name": "Forgotten Units",
+      "what": "Kaiyangnggg sometimes forgets to include the final units in his answers, or misses a step to convert them.",
+      "specific_examples": [
+        {
+          "questionRef": "[43]",
+          "type": "mcq",
+          "whatWentWrong": "He found the correct algebra expression in cents, but forgot to divide by 100 to convert it to dollars as requested."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "He calculated the correct angle but forgot to write the degree symbol (°), which cost him a mark."
+        },
+        {
+          "questionRef": "[54]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'cm' instead of 'cm²' for an area question."
+        }
+      ],
+      "strategic_advice": "Make it a habit to circle the **requested unit** in the question before you start calculating. When you write your final answer, look back at your circle to make sure your units match perfectly.",
+      "trigger_keywords": [
+        "in terms of $",
+        "find the area",
+        "find ∠"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 2,
@@ -119,7 +114,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 5,
@@ -131,11 +126,11 @@
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -143,11 +138,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -175,11 +170,11 @@
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -187,11 +182,11 @@
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 23,
@@ -203,7 +198,7 @@
     },
     {
       "idx": 25,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -211,7 +206,7 @@
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 28,
@@ -223,11 +218,11 @@
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 32,
@@ -235,39 +230,39 @@
     },
     {
       "idx": 33,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 35,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 41,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 42,
@@ -275,11 +270,11 @@
     },
     {
       "idx": 43,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 44,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 45,
@@ -287,11 +282,11 @@
     },
     {
       "idx": 46,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 47,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 48,
@@ -299,7 +294,7 @@
     },
     {
       "idx": 49,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 50,
@@ -307,7 +302,7 @@
     },
     {
       "idx": 51,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 52,
@@ -319,7 +314,7 @@
     },
     {
       "idx": 54,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 55,
@@ -339,15 +334,15 @@
     },
     {
       "idx": 59,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 61,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 62,
@@ -355,7 +350,7 @@
     },
     {
       "idx": 63,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 64,
@@ -371,7 +366,7 @@
     },
     {
       "idx": 67,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 68,
@@ -379,11 +374,11 @@
     },
     {
       "idx": 69,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 70,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 71,
@@ -392,93 +387,277 @@
     {
       "idx": 72,
       "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": 1
+    },
+    {
+      "idx": 76,
+      "patternIndex": 0
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": 1
+    },
+    {
+      "idx": 79,
+      "patternIndex": 0
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": 1
+    },
+    {
+      "idx": 82,
+      "patternIndex": 0
+    },
+    {
+      "idx": 83,
+      "patternIndex": -1
+    },
+    {
+      "idx": 84,
+      "patternIndex": 2
+    },
+    {
+      "idx": 85,
+      "patternIndex": -1
+    },
+    {
+      "idx": 86,
+      "patternIndex": -1
+    },
+    {
+      "idx": 87,
+      "patternIndex": -1
+    },
+    {
+      "idx": 88,
+      "patternIndex": -1
+    },
+    {
+      "idx": 89,
+      "patternIndex": -1
+    },
+    {
+      "idx": 90,
+      "patternIndex": 1
+    },
+    {
+      "idx": 91,
+      "patternIndex": 1
+    },
+    {
+      "idx": 92,
+      "patternIndex": 2
+    },
+    {
+      "idx": 93,
+      "patternIndex": -1
+    },
+    {
+      "idx": 94,
+      "patternIndex": -1
+    },
+    {
+      "idx": 95,
+      "patternIndex": -1
+    },
+    {
+      "idx": 96,
+      "patternIndex": -1
+    },
+    {
+      "idx": 97,
+      "patternIndex": -1
+    },
+    {
+      "idx": 98,
+      "patternIndex": -1
+    },
+    {
+      "idx": 99,
+      "patternIndex": -1
+    },
+    {
+      "idx": 100,
+      "patternIndex": 3
+    },
+    {
+      "idx": 101,
+      "patternIndex": -1
+    },
+    {
+      "idx": 102,
+      "patternIndex": 2
+    },
+    {
+      "idx": 103,
+      "patternIndex": 0
+    },
+    {
+      "idx": 104,
+      "patternIndex": -1
+    },
+    {
+      "idx": 105,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqbozznp000vsl9a3daputuy",
-    "2": "cmqbozznp000xsl9agd5wf7d7",
-    "3": "cmqbozznp0013sl9a2wobca8f",
-    "4": "cmqaa8zua004c8zk4088ffs2s",
-    "5": "cmqaa8zub004m8zk427s9qp2s",
-    "6": "cmqaa8zub004n8zk44u44hjs9",
-    "7": "cmqaa8zub004o8zk4zczqfff4",
-    "8": "cmq1yua3c002l4os1d5ts4v5q",
-    "9": "cmq1ybqfv001j4os1d5rvkryj",
-    "10": "cmq1ybqfv001l4os1htb0snen",
-    "11": "cmq1yd3ij002h4os1g7qsi3te",
-    "12": "cmpwm9ztv001t3u30vk66nmqf",
-    "13": "cmpwm9ztw001v3u30tbat6chj",
-    "14": "cmpwm9ztw001w3u30a2eoijag",
-    "15": "cmpwm9ztw00203u30hl49vud5",
-    "16": "cmpwm9ztw00213u3065zpcxxg",
-    "17": "cmpwm9ztw00223u30docmkwge",
-    "18": "cmpwm9ztw00233u308sbwyrmu",
-    "19": "cmpwm9ztw00243u30bkoxzo1p",
-    "20": "cmpwm9ztw00253u30iefuh0ei",
-    "21": "cmpwm9ztw00263u308mwnaxt1",
-    "22": "cmpwm9ztw00273u30b8aa44c9",
-    "23": "cmpwm9uru001e3u30glcvf669",
-    "24": "cmpwm9uru001h3u307mbcjp36",
-    "25": "cmpwm9uru001i3u30kf283mum",
-    "26": "cmpwm9uru001j3u30khj08kbm",
-    "27": "cmpwm9urv001k3u30ud3ful8z",
-    "28": "cmpwm9urv001l3u30xfjoc19g",
-    "29": "cmoxy7duc0012oeuroezsk3lg",
-    "30": "cmoxy7duc0013oeurtqc6hs0f",
-    "31": "cmoxy7duc0014oeurlstk2g9c",
-    "32": "cmoxy72ld0003oeurgvdr28pv",
-    "33": "cmoxy72ld0005oeurq291md32",
-    "34": "cmoxy72ld0006oeurmm2gunn7",
-    "35": "cmoxy72ld0007oeurrrqx6po5",
-    "36": "cmoxy72ld0008oeur9vt53q22",
-    "37": "cmoxy72ld0009oeurpatolx3k",
-    "38": "cmoxy72ld000aoeurz9d16hbt",
-    "39": "cmoxy72le000boeurwibihw4v",
-    "40": "cmp0xrrch0046lmbzc7rp913o",
-    "41": "cmowusgdk0033exaiuv039dnw",
-    "42": "cmowusoeh0037exaiyg48x4lz",
-    "43": "cmowusoeh0038exail22vq86a",
-    "44": "cmowusoeh003cexaiprua9c7e",
-    "45": "cmowj9qt8003n5uay5hc7fnyc",
-    "46": "cmowj9qt9003r5uaycjxpb9de",
-    "47": "cmosd0cwr002w14n1rfj55ocf",
-    "48": "cmosd0cwr002x14n173b2yk74",
-    "49": "cmosd0cwr002y14n1uoo7m145",
-    "50": "cmomhf0vd000yizdk2f1xlbau",
-    "51": "cmomhf0ve0014izdkjxe9oo68",
-    "52": "cmomhf0ve0018izdkl9rmvodt",
-    "53": "cmomhf0ve001eizdk5lmx67mh",
-    "54": "cmomhf5qi001kizdkn7k1tyxj",
-    "55": "cmomhf5qj001mizdkhx2bjmw0",
-    "56": "cmomhf5qj001nizdkehe4qwgi",
-    "57": "cmomhf5qk0023izdknlwb24z7",
-    "58": "cmol7pr1e002z13njenyapwk7",
-    "59": "cmoleut3b00m5qlmbo65qd5c0",
-    "60": "cmolfatw800naqlmb9npp19n0",
-    "61": "cmolfatw800nbqlmbm4ixgtou",
-    "62": "cmolfatw800neqlmbftmw569u",
-    "63": "cmolfatw800nfqlmbgd3q6wyk",
-    "64": "cmolfatw800nnqlmb4hd5zdum",
-    "65": "cmol7max9000213nj3sy6ic41",
-    "66": "cmol7max9000513njgv98utt7",
-    "67": "cmol7max9000a13njjcy204mu",
-    "68": "cmol7max9000c13nj8zhdwtne",
-    "69": "cmol7max9000e13njs9bd26s7",
-    "70": "cmol7max9000i13nj6wym4mb7",
-    "71": "cmol7maxa000k13njmslatwze",
-    "72": "cmok0rznd00b4d4vnu5lv3kze"
+    "1": "cmqszwwjt00411qnk0nm6awss",
+    "2": "cmqszwwju00471qnktyxj01vj",
+    "3": "cmqronwor00049ymc5cmtkwu0",
+    "4": "cmqronwor00059ymc66zqphok",
+    "5": "cmqronwor000a9ymc8xc5161l",
+    "6": "cmqkx806y00rio3ahr7wqcsh4",
+    "7": "cmqkx806y00rno3ahv1japmsq",
+    "8": "cmqkx7mbi00qzo3ahwr1h0ir2",
+    "9": "cmqkx7mbj00r3o3ah5xenkmwb",
+    "10": "cmqkx7mbj00r4o3ah06pdyuum",
+    "11": "cmqkx7mbj00r9o3ahk48vro3d",
+    "12": "cmqkx7mbk00rao3ah30u37rc6",
+    "13": "cmqkx7mbk00rco3ah4aoxzhy8",
+    "14": "cmqkx7mbk00rdo3ahygu328gt",
+    "15": "cmqp8739s000413p0ljm8lvii",
+    "16": "cmqkx7dve00qio3ahr9vqaaoe",
+    "17": "cmqkx7dve00qjo3aht62xunju",
+    "18": "cmqkx7dve00qko3ahv4yg0dv1",
+    "19": "cmqkx7dve00qmo3ahirtkb2zk",
+    "20": "cmqkx7dve00qno3ahv473q8ap",
+    "21": "cmqkx7dvf00qro3aheluhzdct",
+    "22": "cmqkx7dvf00qso3ahyloky12l",
+    "23": "cmqkx7dvf00quo3ah9sv1fh0c",
+    "24": "cmqkx7dvf00qwo3ahfer3llpm",
+    "25": "cmqkx6w6d00pko3ahe83dswha",
+    "26": "cmqkx6w6d00plo3ahx49kpvvl",
+    "27": "cmqkx6w6d00pno3ahn045w1xw",
+    "28": "cmqkx6w6d00poo3ahedvlivt1",
+    "29": "cmqkx6w6e00ppo3ahsetg0iny",
+    "30": "cmqkx6w6e00pro3ahptf2cjjd",
+    "31": "cmqkx6w6e00pso3ahxheffx54",
+    "32": "cmqkx6w6e00puo3ahpsugnk3n",
+    "33": "cmqkx6w6e00pyo3ah5yuz76sc",
+    "34": "cmqbozznp000vsl9a3daputuy",
+    "35": "cmqbozznp000xsl9agd5wf7d7",
+    "36": "cmqbozznp0013sl9a2wobca8f",
+    "37": "cmqaa8zua004c8zk4088ffs2s",
+    "38": "cmqaa8zub004m8zk427s9qp2s",
+    "39": "cmqaa8zub004n8zk44u44hjs9",
+    "40": "cmqaa8zub004o8zk4zczqfff4",
+    "41": "cmq1yua3c002l4os1d5ts4v5q",
+    "42": "cmq1ybqfv001j4os1d5rvkryj",
+    "43": "cmq1ybqfv001l4os1htb0snen",
+    "44": "cmq1yd3ij002h4os1g7qsi3te",
+    "45": "cmpwm9ztv001t3u30vk66nmqf",
+    "46": "cmpwm9ztw001v3u30tbat6chj",
+    "47": "cmpwm9ztw001w3u30a2eoijag",
+    "48": "cmpwm9ztw00203u30hl49vud5",
+    "49": "cmpwm9ztw00213u3065zpcxxg",
+    "50": "cmpwm9ztw00223u30docmkwge",
+    "51": "cmpwm9ztw00233u308sbwyrmu",
+    "52": "cmpwm9ztw00243u30bkoxzo1p",
+    "53": "cmpwm9ztw00253u30iefuh0ei",
+    "54": "cmpwm9ztw00263u308mwnaxt1",
+    "55": "cmpwm9ztw00273u30b8aa44c9",
+    "56": "cmpwm9uru001e3u30glcvf669",
+    "57": "cmpwm9uru001h3u307mbcjp36",
+    "58": "cmpwm9uru001i3u30kf283mum",
+    "59": "cmpwm9uru001j3u30khj08kbm",
+    "60": "cmpwm9urv001k3u30ud3ful8z",
+    "61": "cmpwm9urv001l3u30xfjoc19g",
+    "62": "cmoxy7duc0012oeuroezsk3lg",
+    "63": "cmoxy7duc0013oeurtqc6hs0f",
+    "64": "cmoxy7duc0014oeurlstk2g9c",
+    "65": "cmoxy72ld0003oeurgvdr28pv",
+    "66": "cmoxy72ld0005oeurq291md32",
+    "67": "cmoxy72ld0006oeurmm2gunn7",
+    "68": "cmoxy72ld0007oeurrrqx6po5",
+    "69": "cmoxy72ld0008oeur9vt53q22",
+    "70": "cmoxy72ld0009oeurpatolx3k",
+    "71": "cmoxy72ld000aoeurz9d16hbt",
+    "72": "cmoxy72le000boeurwibihw4v",
+    "73": "cmp0xrrch0046lmbzc7rp913o",
+    "74": "cmowusgdk0033exaiuv039dnw",
+    "75": "cmowusoeh0037exaiyg48x4lz",
+    "76": "cmowusoeh0038exail22vq86a",
+    "77": "cmowusoeh003cexaiprua9c7e",
+    "78": "cmowj9qt8003n5uay5hc7fnyc",
+    "79": "cmowj9qt9003r5uaycjxpb9de",
+    "80": "cmosd0cwr002w14n1rfj55ocf",
+    "81": "cmosd0cwr002x14n173b2yk74",
+    "82": "cmosd0cwr002y14n1uoo7m145",
+    "83": "cmomhf0vd000yizdk2f1xlbau",
+    "84": "cmomhf0ve0014izdkjxe9oo68",
+    "85": "cmomhf0ve0018izdkl9rmvodt",
+    "86": "cmomhf0ve001eizdk5lmx67mh",
+    "87": "cmomhf5qi001kizdkn7k1tyxj",
+    "88": "cmomhf5qj001mizdkhx2bjmw0",
+    "89": "cmomhf5qj001nizdkehe4qwgi",
+    "90": "cmomhf5qk0023izdknlwb24z7",
+    "91": "cmol7pr1e002z13njenyapwk7",
+    "92": "cmoleut3b00m5qlmbo65qd5c0",
+    "93": "cmolfatw800naqlmb9npp19n0",
+    "94": "cmolfatw800nbqlmbm4ixgtou",
+    "95": "cmolfatw800neqlmbftmw569u",
+    "96": "cmolfatw800nfqlmbgd3q6wyk",
+    "97": "cmolfatw800nnqlmb4hd5zdum",
+    "98": "cmol7max9000213nj3sy6ic41",
+    "99": "cmol7max9000513njgv98utt7",
+    "100": "cmol7max9000a13njjcy204mu",
+    "101": "cmol7max9000c13nj8zhdwtne",
+    "102": "cmol7max9000e13njs9bd26s7",
+    "103": "cmol7max9000i13nj6wym4mb7",
+    "104": "cmol7maxa000k13njmslatwze",
+    "105": "cmok0rznd00b4d4vnu5lv3kze"
   },
-  "generatedAt": "2026-06-17T09:17:41.152Z",
+  "generatedAt": "2026-06-26T08:59:47.721Z",
   "wrongCounts": {
-    "total": 72,
+    "total": 105,
     "oeq": 31,
-    "mcq": 41
+    "mcq": 74
   },
   "toplineSnapshot": {
-    "avgPct": 70,
-    "totalAwarded": 335.5,
-    "totalAvailable": 477,
-    "paperCount": 36
+    "avgPct": 69,
+    "totalAwarded": 455.5,
+    "totalAvailable": 663,
+    "paperCount": 44
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:17:41.152Z",
+    "patternNames": [
+      "Stopping One Step Short",
+      "Leaving Questions Blank",
+      "Missing Units or Conversions",
+      "Wrong Total Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 72,
+      "oeq": 31,
+      "mcq": 41
+    },
+    "toplineSnapshot": {
+      "avgPct": 70,
+      "totalAwarded": 335.5,
+      "totalAvailable": 477,
+      "paperCount": 36
+    }
+  }
 }

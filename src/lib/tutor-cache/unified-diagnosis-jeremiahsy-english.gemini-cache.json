@@ -1,94 +1,91 @@
 {
   "patterns": [
     {
-      "name": "Vocabulary Mix-Up",
-      "what": "Sometimes confuses vocabulary words or phrasal verbs that look similar or share related meanings.",
+      "name": "Tricky Word Choices",
+      "what": "JeremiahSy tends to pick words or phrasal verbs that look familiar but do not perfectly match the specific context of the sentence.",
       "specific_examples": [
         {
           "questionRef": "[26]",
           "type": "mcq",
-          "whatWentWrong": "JeremiahSy confused 'appeasing' (calming someone down) with 'appealing' (attractive and engaging)."
+          "whatWentWrong": "He chose 'set in' instead of 'set off' to describe starting a sudden rescue mission."
         },
+        {
+          "questionRef": "[27]",
+          "type": "mcq",
+          "whatWentWrong": "He confused 'appeasing' with 'appealing' when describing a likable and charming personality."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'viewers' which only applies to movies, instead of 'audience' which covers both books and movies."
+        }
+      ],
+      "strategic_advice": "When you see phrasal verbs or similar-looking words, read the whole sentence to find the context clues. Try plugging each option into the sentence to see which one makes the most sense with the surrounding actions.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "choose the most suitable word",
+        "phrasal verb"
+      ]
+    },
+    {
+      "name": "Spelling and Word Forms",
+      "what": "JeremiahSy occasionally misspells tricky words or writes the wrong form of a word, such as using a verb when a noun is needed.",
+      "specific_examples": [
         {
           "questionRef": "[25]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'set in' (which describes bad weather starting) instead of 'set off' (to trigger a sudden reaction)."
+          "type": "oeq",
+          "whatWentWrong": "He misspelled 'received' as 'recieved'."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[28]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'needs' instead of 'tastes' or 'preferences' when the passage was talking about savouring different flavours."
+          "whatWentWrong": "He wrote the verb 'included' instead of the noun 'inclusion'."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "He misspelled 'insincerity' as 'incinscerity'."
         }
       ],
-      "strategic_advice": "When you see a vocabulary question, read the whole sentence to find **context clues** before looking at the options.\n- If two words look similar (like **appealing** and **appeasing**), break them down or think of other sentences where you've heard them used.\n- For phrasal verbs (like **set in** vs **set off**), try substituting the meaning directly into the sentence to see if it makes logical sense.",
+      "strategic_advice": "When editing a passage, check if the blank needs a noun, verb, or adjective. For spelling, remember the classic rule **'i before e except after c'** for words like 'received'.",
       "trigger_keywords": [
-        "closest in meaning",
-        "fill in each blank",
-        "most suitable word"
+        "correct the spelling",
+        "editing",
+        "rewrite"
       ]
     },
     {
-      "name": "Pronoun Mix-Up",
-      "what": "Occasionally mixes up pronouns and connecting words, especially when linking two parts of a sentence.",
+      "name": "Reading the Fine Print",
+      "what": "JeremiahSy sometimes chooses an answer in visual texts that sounds believable but is not directly supported by the poster's specific details.",
       "specific_examples": [
         {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "JeremiahSy used 'It' instead of 'which' after a comma, which breaks the sentence into two without a proper connecting word."
-        },
-        {
-          "questionRef": "[37]",
+          "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He missed using 'whose' to show that the opinion belonged to the mother."
+          "whatWentWrong": "He chose an option about electricity use instead of matching the customer reviews to the fact that the company served customers well."
         },
         {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "He chose 'it' instead of 'it's' (it is) when the sentence needed a hidden verb to make sense."
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the detail in Text 2 that the impact on carbon footprint is actually limited."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "He chose an option that didn't match the text's realistic fact that 'many' (not all) children find chocolate irresistible."
         }
       ],
-      "strategic_advice": "When you need to fill in a blank that connects ideas, treat it like a puzzle piece:\n- After a comma, check if you need a **relative pronoun** like **which** or **who** to connect the ideas, rather than starting a new sentence with **it**.\n- If you are showing ownership (like a mother's opinion), always use **whose**.\n- When deciding between **it** and **it's**, read the sentence out loud with **it is** to see if it needs the hidden verb!",
-      "trigger_keywords": [
-        "fill in each blank",
-        "most suitable word",
-        "who",
-        "which",
-        "whose"
-      ]
-    },
-    {
-      "name": "Matching Exact Clues",
-      "what": "Tends to pick answers based on general impressions rather than hunting for the exact matching evidence in the text.",
-      "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "JeremiahSy assumed 'eco-friendly' meant using very little electricity, rather than spotting the exact clue about happy customer reviews."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "mcq",
-          "whatWentWrong": "He missed the subtle difference between the poster's magical claim about all children and the realistic fact that 'many' children like chocolate."
-        },
-        {
-          "questionRef": "[35]",
-          "type": "mcq",
-          "whatWentWrong": "He needed to find the statement that completely contradicted the text's facts about carbon footprints, rather than a general statement about advertisements."
-        }
-      ],
-      "strategic_advice": "When you see prompts like **'according to the poster'** or **'which of the following is true'**, treat it like a matching game:\n- Find the **exact words** in the text that prove the option, rather than guessing based on what sounds good.\n- Watch out for **absolute words** like 'all' or 'every' in the options—they are often traps! Texts usually use more realistic words like 'many' or 'some'.\n- If a question asks why a claim is **'not supported'**, look for the option that gives a realistic fact contradicting the advertisement's big promises.",
+      "strategic_advice": "When you see questions about posters or advertisements, treat them like a matching game. Find the exact words in the text that prove your answer. Watch out for absolute words like **'all'** or **'every'** compared to **'many'** or **'some'**.",
       "trigger_keywords": [
         "according to the poster",
-        "which of the following is true",
         "not supported",
-        "cannot trust"
+        "best describes"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 2,
@@ -100,7 +97,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 5,
@@ -108,15 +105,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
-    },
-    {
-      "idx": 7,
       "patternIndex": -1
     },
     {
-      "idx": 8,
+      "idx": 7,
       "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -124,7 +121,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 11,
@@ -136,39 +133,39 @@
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": 1
-    },
-    {
-      "idx": 15,
-      "patternIndex": 1
-    },
-    {
-      "idx": 16,
-      "patternIndex": 0
-    },
-    {
-      "idx": 17,
-      "patternIndex": 1
-    },
-    {
-      "idx": 18,
-      "patternIndex": 0
-    },
-    {
-      "idx": 19,
       "patternIndex": -1
     },
     {
-      "idx": 20,
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
       "patternIndex": 0
     },
     {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 22,
@@ -180,11 +177,11 @@
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 25,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 26,
@@ -192,23 +189,23 @@
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 28,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 29,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 32,
@@ -224,19 +221,19 @@
     },
     {
       "idx": 35,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 38,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 39,
@@ -244,7 +241,7 @@
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 41,
@@ -276,75 +273,98 @@
     },
     {
       "idx": 48,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 49,
       "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmoiibmk0001gep96ye3dfyuj",
-    "2": "cmoiibmk0001hep96ic0vjvkj",
-    "3": "cmoiibmk0001iep96bfm4cpvm",
-    "4": "cmoiibmk0001nep96vj3fnh2z",
-    "5": "cmo9vb7660013113kgxfcg62e",
-    "6": "cmo9uaeec000c113kg1u95ldt",
-    "7": "cmo9uaeec000m113kmpmyzsz2",
-    "8": "cmo9uaeec000n113k45kvl3sn",
-    "9": "cmo9uaeec000s113k436na9wh",
-    "10": "cmo7wtfbe001cha5avqmxmyjq",
-    "11": "cmo7wtfbf001gha5amu56qgxz",
-    "12": "cmo7wtfbf001hha5apny0ccjf",
-    "13": "cmo7wtaat000qha5ap47o1qbs",
-    "14": "cmo7wtaau000vha5axgpzj35p",
-    "15": "cmo7wtaau000zha5ajtkxuv59",
-    "16": "cmo7wu1sl001tha5avt4nha2v",
-    "17": "cmo7wu1sl001zha5alefrnvv1",
-    "18": "cmo7wu1sl0025ha5absk5q30g",
-    "19": "cmo7wu1sl0026ha5au5t0313c",
-    "20": "cmo7wu1sl0027ha5a6rzg34hv",
-    "21": "cmo59484g002se506xr277dcy",
-    "22": "cmo59484g002ue506rbzp8mgh",
-    "23": "cmo59484g002ve506gwiibnqa",
-    "24": "cmo59484g0031e506mww43w10",
-    "25": "cmo3ujufw006m114hmg9lgmbg",
-    "26": "cmo3ujufw006q114hynleiskp",
-    "27": "cmo3uk21a0079114h7p555zib",
-    "28": "cmo3uk21a007c114hsvasju99",
-    "29": "cmo3uk21a007d114h4c3z3qk3",
-    "30": "cmo3uk21a007g114hoby6tp6y",
-    "31": "cmny3o0fz000eq8eiy09dbug3",
-    "32": "cmny3o0fz000gq8eiy8584676",
-    "33": "cmnwxpb4m00025tjzy1uag4gu",
-    "34": "cmnwxpb4m00035tjzfvm3oa98",
-    "35": "cmnwxpb4m000a5tjzxixe3o0m",
-    "36": "cmnwwq19m0002at85jaylmrcz",
-    "37": "cmnwwq19m0006at85oq8y5umo",
-    "38": "cmnwwq19m000cat855ka8as6h",
-    "39": "cmnwwq19m000eat85p46ryz70",
-    "40": "cmnwwq19m000hat85auseccoc",
-    "41": "cmnwwq19m000iat85ipin1jm9",
-    "42": "cmnwwq19n000jat857z9s62vb",
-    "43": "cmnwwq19n000kat85j00k57dw",
-    "44": "cmnwwq19n000lat85h7o9w4gt",
-    "45": "cmnwwq19n000mat851tlnsuu9",
-    "46": "cmnwwq19n000nat856e647gb9",
-    "47": "cmnwwq19n000oat85jwjf9dhd",
-    "48": "cmnwwq19n000pat85b5nn3p6h",
-    "49": "cmnwwq19n000qat85uy0im11o"
+    "1": "cmqq305bf00hd13p0yz1y2cdc",
+    "2": "cmoiibmk0001gep96ye3dfyuj",
+    "3": "cmoiibmk0001hep96ic0vjvkj",
+    "4": "cmoiibmk0001iep96bfm4cpvm",
+    "5": "cmoiibmk0001nep96vj3fnh2z",
+    "6": "cmo9vb7660013113kgxfcg62e",
+    "7": "cmo9uaeec000c113kg1u95ldt",
+    "8": "cmo9uaeec000m113kmpmyzsz2",
+    "9": "cmo9uaeec000n113k45kvl3sn",
+    "10": "cmo9uaeec000s113k436na9wh",
+    "11": "cmo7wtfbe001cha5avqmxmyjq",
+    "12": "cmo7wtfbf001gha5amu56qgxz",
+    "13": "cmo7wtfbf001hha5apny0ccjf",
+    "14": "cmo7wtaat000qha5ap47o1qbs",
+    "15": "cmo7wtaau000vha5axgpzj35p",
+    "16": "cmo7wtaau000zha5ajtkxuv59",
+    "17": "cmo7wu1sl001tha5avt4nha2v",
+    "18": "cmo7wu1sl001zha5alefrnvv1",
+    "19": "cmo7wu1sl0025ha5absk5q30g",
+    "20": "cmo7wu1sl0026ha5au5t0313c",
+    "21": "cmo7wu1sl0027ha5a6rzg34hv",
+    "22": "cmo59484g002se506xr277dcy",
+    "23": "cmo59484g002ue506rbzp8mgh",
+    "24": "cmo59484g002ve506gwiibnqa",
+    "25": "cmo59484g0031e506mww43w10",
+    "26": "cmo3ujufw006m114hmg9lgmbg",
+    "27": "cmo3ujufw006q114hynleiskp",
+    "28": "cmo3uk21a0079114h7p555zib",
+    "29": "cmo3uk21a007c114hsvasju99",
+    "30": "cmo3uk21a007d114h4c3z3qk3",
+    "31": "cmo3uk21a007g114hoby6tp6y",
+    "32": "cmny3o0fz000eq8eiy09dbug3",
+    "33": "cmny3o0fz000gq8eiy8584676",
+    "34": "cmnwxpb4m00025tjzy1uag4gu",
+    "35": "cmnwxpb4m00035tjzfvm3oa98",
+    "36": "cmnwxpb4m000a5tjzxixe3o0m",
+    "37": "cmnwwq19m0002at85jaylmrcz",
+    "38": "cmnwwq19m0006at85oq8y5umo",
+    "39": "cmnwwq19m000cat855ka8as6h",
+    "40": "cmnwwq19m000eat85p46ryz70",
+    "41": "cmnwwq19m000hat85auseccoc",
+    "42": "cmnwwq19m000iat85ipin1jm9",
+    "43": "cmnwwq19n000jat857z9s62vb",
+    "44": "cmnwwq19n000kat85j00k57dw",
+    "45": "cmnwwq19n000lat85h7o9w4gt",
+    "46": "cmnwwq19n000mat851tlnsuu9",
+    "47": "cmnwwq19n000nat856e647gb9",
+    "48": "cmnwwq19n000oat85jwjf9dhd",
+    "49": "cmnwwq19n000pat85b5nn3p6h",
+    "50": "cmnwwq19n000qat85uy0im11o"
   },
-  "generatedAt": "2026-06-17T09:13:44.922Z",
+  "generatedAt": "2026-06-26T08:59:18.179Z",
   "wrongCounts": {
-    "total": 49,
+    "total": 50,
     "oeq": 31,
-    "mcq": 18
+    "mcq": 19
   },
   "toplineSnapshot": {
-    "avgPct": 78,
-    "totalAwarded": 201,
-    "totalAvailable": 259,
-    "paperCount": 16
+    "avgPct": 82,
+    "totalAwarded": 266,
+    "totalAvailable": 326,
+    "paperCount": 20
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:13:44.922Z",
+    "patternNames": [
+      "Vocabulary Mix-Up",
+      "Pronoun Mix-Up",
+      "Matching Exact Clues"
+    ],
+    "wrongCounts": {
+      "total": 49,
+      "oeq": 31,
+      "mcq": 18
+    },
+    "toplineSnapshot": {
+      "avgPct": 78,
+      "totalAwarded": 201,
+      "totalAvailable": 259,
+      "paperCount": 16
+    }
+  }
 }

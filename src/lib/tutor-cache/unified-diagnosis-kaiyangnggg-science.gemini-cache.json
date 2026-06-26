@@ -1,118 +1,117 @@
 {
   "patterns": [
     {
-      "name": "Shadow Size Mix-Up",
-      "what": "Occasionally gets confused about how the distance between an object and a light source changes the size of its shadow.",
+      "name": "State Change Mix-Up",
+      "what": "Sometimes confuses the processes of heat gain and heat loss during state changes, or forgets that a substance is still gaining heat even when its temperature is rising.",
       "specific_examples": [
         {
-          "questionRef": "[41]",
+          "questionRef": "[62]",
           "type": "mcq",
-          "whatWentWrong": "He picked the wrong order of shapes, forgetting that the largest shadow comes from the object closest to the torch."
+          "whatWentWrong": "Kaiyangnggg thought water only gained heat while melting, missing the phases where the temperature was rising."
         },
         {
-          "questionRef": "[51]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "He mixed up the positions of the shapes again when trying to match them to the final shadow on the screen."
+          "whatWentWrong": "He confused water changing from gas to liquid as boiling instead of losing heat to condense."
         }
       ],
-      "strategic_advice": "When you see questions about overlapping shadows, remember this golden rule: **closer to the light source = bigger shadow**. Draw a quick sketch of the light rays spreading out from the torch to help you visualize which object makes the biggest shadow on the screen.",
-      "trigger_keywords": [
-        "shadow",
-        "torch",
-        "screen",
-        "cut out some shapes"
-      ]
-    },
-    {
-      "name": "Light Path Mix-Up",
-      "what": "Sometimes reverses the direction of light rays when showing how we see objects, or forgets that light must start from a light source.",
-      "specific_examples": [
-        {
-          "questionRef": "[40]",
-          "type": "mcq",
-          "whatWentWrong": "He picked arrows showing light moving away from the painting instead of bouncing off it and into the eye."
-        },
-        {
-          "questionRef": "[52]",
-          "type": "mcq",
-          "whatWentWrong": "He chose the wrong light path for seeing a door, missing that light must first travel from the lamp to the door."
-        }
-      ],
-      "strategic_advice": "When asked how we see an object, always trace the light starting from the **light source** (like a lamp), bouncing off the **object**, and finally entering the **eye**. Remember, light never shoots out of our eyes!",
-      "trigger_keywords": [
-        "direction of light rays",
-        "enable Peter to see",
-        "light source"
-      ]
-    },
-    {
-      "name": "Heat Transfer Mix-Up",
-      "what": "Sometimes gets tangled up with heat concepts, such as thinking heat is only gained during a change of state, or mixing up which materials are good conductors.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "He thought the ice was only gaining heat while melting, missing that it also gains heat when its temperature is rising."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "He picked glass instead of metal for the container that cools fastest, mixing up good and poor conductors of heat."
-        }
-      ],
-      "strategic_advice": "When you see questions about heating and cooling, remember:\n- **Rising temperature** always means the object is **gaining heat**.\n- **Metals** are good conductors, so they let heat escape the fastest, making things cool down quicker!",
+      "strategic_advice": "When looking at heating curves or state changes, remember that heat is always moving!\n- **'gaining heat'** → happens when temperature goes up OR when melting/boiling.\n- **'gas to liquid'** → this is condensation, which means the water must be losing heat to cool down.",
       "trigger_keywords": [
         "gaining heat",
-        "lowest temperature",
-        "conductor",
-        "graph"
+        "losing heat",
+        "changes from gas to liquid",
+        "temperature"
       ]
     },
     {
-      "name": "Everyday Words Trap",
-      "what": "Often understands what is happening in an experiment but tends to use everyday descriptions instead of the specific science keywords needed to get full marks.",
+      "name": "Path of Light Mix-Up",
+      "what": "Occasionally reverses the direction of light rays, forgetting that light must bounce off an object and travel into our eyes for us to see it.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly noticed that the chocolate expanded, but missed out the crucial science step that it 'gained heat'."
+          "questionRef": "[79]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg picked arrows showing light leaving the eye instead of entering it to see the door."
         },
         {
-          "questionRef": "[19]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote that the cactus wouldn't 'give out water so often' instead of using the exact science phrase 'reduce water loss'."
-        },
-        {
-          "questionRef": "[38]",
-          "type": "oeq",
-          "whatWentWrong": "He described boiling as 'when water reaches 100°C' instead of defining it as a 'change in state from liquid to gas'."
+          "questionRef": "[67]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the wrong light path for seeing a painting through a hole, forgetting light starts at the source."
         }
       ],
-      "strategic_advice": "When you see prompts like **'explain why'** or **'give a reason'**, treat them as a signal to use your science vocabulary. Before writing, ask yourself: 'What is the exact science keyword for this?' Always include phrases like **'gained heat'**, **'reduce water loss'**, or **'change in state'**.",
+      "strategic_advice": "When you see questions about how we see objects, always draw the path starting from the light source!\n- **'enable Peter to see'** → light goes from the lamp, bounces off the object, and goes INTO the eye.\n- **'direction of light rays'** → the final arrow must always point AT the person's eye, never away from it.",
+      "trigger_keywords": [
+        "enable to see",
+        "direction of light rays",
+        "path taken by the light"
+      ]
+    },
+    {
+      "name": "Shadow Size Confusion",
+      "what": "Tends to mix up how distance affects shadows, occasionally forgetting that objects placed closer to a light source will cast a larger shadow.",
+      "specific_examples": [
+        {
+          "questionRef": "[68]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg mismatched the shapes to their positions based on the shadow size on the screen."
+        },
+        {
+          "questionRef": "[76]",
+          "type": "mcq",
+          "whatWentWrong": "He struggled to identify which shape was closest to the torch to form the largest part of the shadow."
+        }
+      ],
+      "strategic_advice": "When matching objects to their shadows, use the 'closer is bigger' rule!\n- **'cut out some shapes'** → find the largest part of the shadow on the screen; that shape must be the one closest to the torch.\n- **'same height and width'** → the shape that looks the smallest on the screen is the one furthest away.",
+      "trigger_keywords": [
+        "cut out some shapes",
+        "shadow",
+        "screen",
+        "torch"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Often correctly identifies what happens in an experiment, but occasionally stops one step short of stating the underlying scientific reason or comparing the key variables.",
+      "specific_examples": [
+        {
+          "questionRef": "[66]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg correctly noted the chocolate expanded and burst, but missed stating that it gained heat and expanded more than the bun."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "oeq",
+          "whatWentWrong": "He knew more heat energy was needed for the fishballs, but forgot to mention this is because there is more mass to heat up."
+        },
+        {
+          "questionRef": "[65]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg defined boiling by its temperature, but missed mentioning the change in state from liquid to gas."
+        }
+      ],
+      "strategic_advice": "When you see **'explain why'**, always check if you have included the scientific 'because'.\n- **'explain why it burst'** → mention the heat gain AND compare the expansion (e.g., 'expanded more than...').\n- **'how will the time change'** → state the change (increase/decrease) AND link it to a property like mass or volume.",
       "trigger_keywords": [
         "explain why",
         "give a reason",
-        "state what",
-        "explain how"
+        "how will the time change"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 5,
@@ -128,23 +127,23 @@
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 13,
@@ -152,11 +151,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 16,
@@ -164,7 +163,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -172,15 +171,15 @@
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 22,
@@ -192,7 +191,7 @@
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 25,
@@ -212,11 +211,11 @@
     },
     {
       "idx": 29,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 31,
@@ -228,43 +227,43 @@
     },
     {
       "idx": 33,
-      "patternIndex": 3
-    },
-    {
-      "idx": 34,
-      "patternIndex": 2
-    },
-    {
-      "idx": 35,
-      "patternIndex": 2
-    },
-    {
-      "idx": 36,
       "patternIndex": -1
     },
     {
-      "idx": 37,
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
       "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 42,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 43,
@@ -272,7 +271,7 @@
     },
     {
       "idx": 44,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 45,
@@ -280,23 +279,23 @@
     },
     {
       "idx": 46,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 47,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 48,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 49,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 50,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 51,
@@ -304,7 +303,7 @@
     },
     {
       "idx": 52,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 53,
@@ -312,15 +311,15 @@
     },
     {
       "idx": 54,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 55,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 56,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 57,
@@ -336,7 +335,7 @@
     },
     {
       "idx": 60,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 61,
@@ -344,7 +343,7 @@
     },
     {
       "idx": 62,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 63,
@@ -352,23 +351,23 @@
     },
     {
       "idx": 64,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 65,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 66,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 67,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 68,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 69,
@@ -376,102 +375,256 @@
     },
     {
       "idx": 70,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 71,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 72,
       "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": 2
+    },
+    {
+      "idx": 76,
+      "patternIndex": 2
+    },
+    {
+      "idx": 77,
+      "patternIndex": 2
+    },
+    {
+      "idx": 78,
+      "patternIndex": 2
+    },
+    {
+      "idx": 79,
+      "patternIndex": 1
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": 2
+    },
+    {
+      "idx": 82,
+      "patternIndex": 2
+    },
+    {
+      "idx": 83,
+      "patternIndex": 1
+    },
+    {
+      "idx": 84,
+      "patternIndex": -1
+    },
+    {
+      "idx": 85,
+      "patternIndex": -1
+    },
+    {
+      "idx": 86,
+      "patternIndex": -1
+    },
+    {
+      "idx": 87,
+      "patternIndex": -1
+    },
+    {
+      "idx": 88,
+      "patternIndex": 0
+    },
+    {
+      "idx": 89,
+      "patternIndex": -1
+    },
+    {
+      "idx": 90,
+      "patternIndex": -1
+    },
+    {
+      "idx": 91,
+      "patternIndex": -1
+    },
+    {
+      "idx": 92,
+      "patternIndex": -1
+    },
+    {
+      "idx": 93,
+      "patternIndex": 1
+    },
+    {
+      "idx": 94,
+      "patternIndex": -1
+    },
+    {
+      "idx": 95,
+      "patternIndex": -1
+    },
+    {
+      "idx": 96,
+      "patternIndex": 0
+    },
+    {
+      "idx": 97,
+      "patternIndex": -1
+    },
+    {
+      "idx": 98,
+      "patternIndex": -1
+    },
+    {
+      "idx": 99,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmq99a1r800wmbxufpdh27r4t",
-    "2": "cmq99a1r800wnbxuf0wvlepvb",
-    "3": "cmq99a1r800wobxuf23ui8ipu",
-    "4": "cmq8wr947007wbxuf927lkmw3",
-    "5": "cmq8wr947007xbxufh6wosfuw",
-    "6": "cmq8wrxl50087bxufvhk4bici",
-    "7": "cmq8wrxl50088bxuflifyku30",
-    "8": "cmq8wrxl6008cbxufwinusila",
-    "9": "cmq0l55k600188rg125zrzvde",
-    "10": "cmq08l2m20023ptoeemmacv1z",
-    "11": "cmq08l2m20025ptoer6vmvtwi",
-    "12": "cmpw7xhpr003plslk6jn60zsy",
-    "13": "cmpw7xhpr003qlslks1cvod4x",
-    "14": "cmpw7xhps003rlslklkzjsbll",
-    "15": "cmpw7xhps003slslkx2n06nly",
-    "16": "cmpw7xhps003tlslk3ti4gd8z",
-    "17": "cmpw7xhps003ulslkq1d1lzbh",
-    "18": "cmpw7xhps003vlslk6esfi9jc",
-    "19": "cmpw7xhps003wlslk2nth6mcj",
-    "20": "cmpw7xhps003xlslkc2pxcpzp",
-    "21": "cmpw7xhpt003ylslk1bdqlhjf",
-    "22": "cmpmlueam000ehfvwt9dxhirf",
-    "23": "cmpmlueam000fhfvwyunn5r3v",
-    "24": "cmpmluean000ihfvw1pzq24k3",
-    "25": "cmpmluean000jhfvwsx1k18px",
-    "26": "cmpmluean000lhfvwojcqgluo",
-    "27": "cmpmlueao000mhfvw1emu3l5u",
-    "28": "cmpmlozf30003hfvwh9bii54t",
-    "29": "cmpmlozf30005hfvwwj9vrk13",
-    "30": "cmpmlozf40009hfvwfd9qdaem",
-    "31": "cmpmlozf4000ahfvwr5o4c4il",
-    "32": "cmpmlozf5000bhfvwcb0xxale",
-    "33": "cmpqfdiop0003feantqplgmvp",
-    "34": "cmpmlus2k000vhfvwisi5bjkz",
-    "35": "cmpmlus2k000zhfvwr4wsi4py",
-    "36": "cmpmlus2l0011hfvwd5lnf64p",
-    "37": "cmpmlus2l0012hfvwustc5p45",
-    "38": "cmpmlus2l0013hfvwkazk6dmh",
-    "39": "cmpmlus2l0014hfvwhln7yon4",
-    "40": "cmpqfdute000lfeanen6fn1be",
-    "41": "cmpqfdutf000nfean6nbf1ujn",
-    "42": "cmpqfdutf000ofeanov66sghf",
-    "43": "cmpqfdutf000rfeand0vpnl7u",
-    "44": "cmp0xrk1s003tlmbz1t17qz9b",
-    "45": "cmp0xrk1s003vlmbzgg1yu5c5",
-    "46": "cmp0xrk1s003wlmbzvavfmqce",
-    "47": "cmp0xrk1t003zlmbzbbid3az5",
-    "48": "cmowtg6t8000qexaixdyvqt9q",
-    "49": "cmowtg6t8000rexai4rrhay9a",
-    "50": "cmowmrnka0019eqpr24vfaj71",
-    "51": "cmowmrnka001ceqprb0i2cbwu",
-    "52": "cmowmrnkb001deqprgi9d6q0y",
-    "53": "cmowmrnkb001eeqprn2p9moon",
-    "54": "cmowjaygz003y5uayexlk94m9",
-    "55": "cmowjaygz00425uaya999oi3n",
-    "56": "cmowjaygz00435uaycxe6hze1",
-    "57": "cmosczezf002f14n1h146geia",
-    "58": "cmosczezf002i14n1yi9vmtlo",
-    "59": "cmosczezg002l14n1xaeesz1x",
-    "60": "cmoscyw5o002414n1c4cxqhwd",
-    "61": "cmomhfcgv0027izdkgvvpd83y",
-    "62": "cmomhfcgw002iizdktc1hnibv",
-    "63": "cmol7pjnp002m13njedkdkdz9",
-    "64": "cmol7pjnq002n13njdn60zepz",
-    "65": "cmomhfg1g0031izdk5jocj9xs",
-    "66": "cmomhfg1i0039izdkyoljbzgf",
-    "67": "cmol7ni0f001e13njouekm3np",
-    "68": "cmol7ni0f001f13njhmrvhn5n",
-    "69": "cmol7ni0f001k13njj7x465yy",
-    "70": "cmol7mm2s001213nj8spqxcqt",
-    "71": "cmol7mm2s001313njauqoh3xk",
-    "72": "cmol7mm2s001713nj8vmcyi48"
+    "1": "cmqt6os0a000a12nkjga5ixm5",
+    "2": "cmqt6os0a000b12nk6xz46hyb",
+    "3": "cmqt6nufu005peg24llt31d7e",
+    "4": "cmqt6nufu005reg243eq9c80p",
+    "5": "cmqt6nufu005yeg240wi9zrer",
+    "6": "cmqt6gr6e004teg24g8h6sqsh",
+    "7": "cmqt66etm0002eg247ctcuc6q",
+    "8": "cmqt66etn0004eg24vp0z8bud",
+    "9": "cmqt66etn0006eg248ohrdpr7",
+    "10": "cmqt66etn0008eg24t1tuuia9",
+    "11": "cmqt66eto0009eg24an4tzjge",
+    "12": "cmqt66eto000aeg24bopj31ec",
+    "13": "cmqt5lauu00bq1qnku6vcazdx",
+    "14": "cmqt5lauv00bu1qnkvbr9v86v",
+    "15": "cmqt5lauv00bw1qnkck5shkju",
+    "16": "cmqt4ob6900ay1qnkg7runsvw",
+    "17": "cmqt4ob6900az1qnkeald81tv",
+    "18": "cmqt4ob6900b31qnkyktykt1h",
+    "19": "cmqszx6bo004p1qnk1oqceetw",
+    "20": "cmqszx6bo004q1qnkon2bl8lj",
+    "21": "cmqszx6bo004t1qnkt77zzmd5",
+    "22": "cmqkxdy1w00vdo3ahd6i57fhx",
+    "23": "cmqkxdy1w00vfo3ahoxwfamfn",
+    "24": "cmqkxcfvb00tco3ahkdoofmr6",
+    "25": "cmqkxcfvb00tgo3ahm44sf605",
+    "26": "cmqkxcfvb00tho3ah02l1ym2h",
+    "27": "cmqkxcfvc00tmo3ahoymfo1o2",
+    "28": "cmq99a1r800wmbxufpdh27r4t",
+    "29": "cmq99a1r800wnbxuf0wvlepvb",
+    "30": "cmq99a1r800wobxuf23ui8ipu",
+    "31": "cmq8wr947007wbxuf927lkmw3",
+    "32": "cmq8wr947007xbxufh6wosfuw",
+    "33": "cmq8wrxl50087bxufvhk4bici",
+    "34": "cmq8wrxl50088bxuflifyku30",
+    "35": "cmq8wrxl6008cbxufwinusila",
+    "36": "cmq0l55k600188rg125zrzvde",
+    "37": "cmq08l2m20023ptoeemmacv1z",
+    "38": "cmq08l2m20025ptoer6vmvtwi",
+    "39": "cmpw7xhpr003plslk6jn60zsy",
+    "40": "cmpw7xhpr003qlslks1cvod4x",
+    "41": "cmpw7xhps003rlslklkzjsbll",
+    "42": "cmpw7xhps003slslkx2n06nly",
+    "43": "cmpw7xhps003tlslk3ti4gd8z",
+    "44": "cmpw7xhps003ulslkq1d1lzbh",
+    "45": "cmpw7xhps003vlslk6esfi9jc",
+    "46": "cmpw7xhps003wlslk2nth6mcj",
+    "47": "cmpw7xhps003xlslkc2pxcpzp",
+    "48": "cmpw7xhpt003ylslk1bdqlhjf",
+    "49": "cmpmlueam000ehfvwt9dxhirf",
+    "50": "cmpmlueam000fhfvwyunn5r3v",
+    "51": "cmpmluean000ihfvw1pzq24k3",
+    "52": "cmpmluean000jhfvwsx1k18px",
+    "53": "cmpmluean000lhfvwojcqgluo",
+    "54": "cmpmlueao000mhfvw1emu3l5u",
+    "55": "cmpmlozf30003hfvwh9bii54t",
+    "56": "cmpmlozf30005hfvwwj9vrk13",
+    "57": "cmpmlozf40009hfvwfd9qdaem",
+    "58": "cmpmlozf4000ahfvwr5o4c4il",
+    "59": "cmpmlozf5000bhfvwcb0xxale",
+    "60": "cmpqfdiop0003feantqplgmvp",
+    "61": "cmpmlus2k000vhfvwisi5bjkz",
+    "62": "cmpmlus2k000zhfvwr4wsi4py",
+    "63": "cmpmlus2l0011hfvwd5lnf64p",
+    "64": "cmpmlus2l0012hfvwustc5p45",
+    "65": "cmpmlus2l0013hfvwkazk6dmh",
+    "66": "cmpmlus2l0014hfvwhln7yon4",
+    "67": "cmpqfdute000lfeanen6fn1be",
+    "68": "cmpqfdutf000nfean6nbf1ujn",
+    "69": "cmpqfdutf000ofeanov66sghf",
+    "70": "cmpqfdutf000rfeand0vpnl7u",
+    "71": "cmp0xrk1s003tlmbz1t17qz9b",
+    "72": "cmp0xrk1s003vlmbzgg1yu5c5",
+    "73": "cmp0xrk1s003wlmbzvavfmqce",
+    "74": "cmp0xrk1t003zlmbzbbid3az5",
+    "75": "cmowtg6t8000qexaixdyvqt9q",
+    "76": "cmowtg6t8000rexai4rrhay9a",
+    "77": "cmowmrnka0019eqpr24vfaj71",
+    "78": "cmowmrnka001ceqprb0i2cbwu",
+    "79": "cmowmrnkb001deqprgi9d6q0y",
+    "80": "cmowmrnkb001eeqprn2p9moon",
+    "81": "cmowjaygz003y5uayexlk94m9",
+    "82": "cmowjaygz00425uaya999oi3n",
+    "83": "cmowjaygz00435uaycxe6hze1",
+    "84": "cmosczezf002f14n1h146geia",
+    "85": "cmosczezf002i14n1yi9vmtlo",
+    "86": "cmosczezg002l14n1xaeesz1x",
+    "87": "cmoscyw5o002414n1c4cxqhwd",
+    "88": "cmomhfcgv0027izdkgvvpd83y",
+    "89": "cmomhfcgw002iizdktc1hnibv",
+    "90": "cmol7pjnp002m13njedkdkdz9",
+    "91": "cmol7pjnq002n13njdn60zepz",
+    "92": "cmomhfg1g0031izdk5jocj9xs",
+    "93": "cmomhfg1i0039izdkyoljbzgf",
+    "94": "cmol7ni0f001e13njouekm3np",
+    "95": "cmol7ni0f001f13njhmrvhn5n",
+    "96": "cmol7ni0f001k13njj7x465yy",
+    "97": "cmol7mm2s001213nj8spqxcqt",
+    "98": "cmol7mm2s001313njauqoh3xk",
+    "99": "cmol7mm2s001713nj8vmcyi48"
   },
-  "generatedAt": "2026-06-17T09:17:36.201Z",
+  "generatedAt": "2026-06-26T09:00:42.189Z",
   "wrongCounts": {
-    "total": 72,
+    "total": 99,
     "oeq": 21,
-    "mcq": 51
+    "mcq": 78
   },
   "toplineSnapshot": {
-    "avgPct": 63,
-    "totalAwarded": 293,
-    "totalAvailable": 465,
-    "paperCount": 27
+    "avgPct": 66,
+    "totalAwarded": 437,
+    "totalAvailable": 663,
+    "paperCount": 36
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:17:36.201Z",
+    "patternNames": [
+      "Shadow Size Mix-Up",
+      "Light Path Mix-Up",
+      "Heat Transfer Mix-Up",
+      "Everyday Words Trap"
+    ],
+    "wrongCounts": {
+      "total": 72,
+      "oeq": 21,
+      "mcq": 51
+    },
+    "toplineSnapshot": {
+      "avgPct": 63,
+      "totalAwarded": 293,
+      "totalAvailable": 465,
+      "paperCount": 27
+    }
+  }
 }
