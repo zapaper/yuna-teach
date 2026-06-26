@@ -1509,8 +1509,16 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
   if (!attempt) throw new Error(`CompoAttempt ${attemptId} not found`);
 
   const compositionImagePaths = (attempt.compositionImagePaths as unknown as string[] | null) ?? [];
-  if (compositionImagePaths.length === 0) throw new Error("No composition images");
-  console.log(`${tag} input: ${compositionImagePaths.length} composition file(s), question=${attempt.questionImagePath ?? "(none)"}, optionType=${attempt.optionType ?? "(any)"}, topic=${attempt.studentTopic ?? "(none)"}`);
+  // Pre-seeded mode: rows created from plain text (model essays, study-
+  // pack templates etc.) come in with no image files but with ocrText
+  // already populated. Skip stage 1; the rest of the pipeline reads
+  // ocrText and runs as normal.
+  const seededOcrText = (attempt.ocrText ?? "").trim();
+  const isTextSeeded = compositionImagePaths.length === 0 && seededOcrText.length > 0;
+  if (compositionImagePaths.length === 0 && !isTextSeeded) {
+    throw new Error("No composition images");
+  }
+  console.log(`${tag} input: ${isTextSeeded ? "TEXT-SEEDED" : `${compositionImagePaths.length} composition file(s)`}, question=${attempt.questionImagePath ?? "(none)"}, optionType=${attempt.optionType ?? "(any)"}, topic=${attempt.studentTopic ?? "(none)"}`);
 
   await prisma.compoAttempt.update({
     where: { id: attemptId },
@@ -1518,17 +1526,30 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
   });
 
   try {
-    // 1. OCR
-    console.log(`${tag} stage 1/4: OCR`);
-    const { ocrText, ocrTextWithMarkings, ocrQuestionText } = await runOcr(
-      compositionImagePaths,
-      attempt.questionImagePath,
-      attempt.compareToMarkings,
-    );
-    await prisma.compoAttempt.update({
-      where: { id: attemptId },
-      data: { ocrText, ocrTextWithMarkings, ocrQuestionText },
-    });
+    // 1. OCR (skipped when text-seeded)
+    let ocrText: string;
+    let ocrTextWithMarkings: string | null;
+    let ocrQuestionText: string | null;
+    if (isTextSeeded) {
+      console.log(`${tag} stage 1/4: OCR (skipped — using pre-seeded ocrText, ${seededOcrText.length} chars)`);
+      ocrText = seededOcrText;
+      ocrTextWithMarkings = attempt.ocrTextWithMarkings;
+      ocrQuestionText = attempt.ocrQuestionText;
+    } else {
+      console.log(`${tag} stage 1/4: OCR`);
+      const r = await runOcr(
+        compositionImagePaths,
+        attempt.questionImagePath,
+        attempt.compareToMarkings,
+      );
+      ocrText = r.ocrText;
+      ocrTextWithMarkings = r.ocrTextWithMarkings;
+      ocrQuestionText = r.ocrQuestionText;
+      await prisma.compoAttempt.update({
+        where: { id: attemptId },
+        data: { ocrText, ocrTextWithMarkings, ocrQuestionText },
+      });
+    }
 
     // 2. Wrong words
     console.log(`${tag} stage 2/4: wrong-words`);
