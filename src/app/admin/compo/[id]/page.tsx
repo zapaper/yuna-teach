@@ -913,6 +913,14 @@ function PhrasePopup({
         textAlign: "left",
       }}
     >
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: 4 }}>
+        {swap.bucket}
+        {swap.subType && (
+          <span style={{ marginLeft: 6, textTransform: "none", letterSpacing: 0, color: "#94a3b8" }}>
+            · {swap.subType}
+          </span>
+        )}
+      </div>
       <div style={{ fontWeight: 600, color: "#047857" }}>{swap.originalText}</div>
       {swap.originalEn && <div style={{ fontStyle: "italic", color: "#475569", fontSize: 12, marginTop: 2 }}>{swap.originalEn}</div>}
       <div style={{ borderTop: "1px solid #e2e8f0", margin: "10px 0 6px" }} />
@@ -971,10 +979,12 @@ function PhrasePopup({
 
 // ─── Side cards ──────────────────────────────────────────────────────
 
-// Strip the [+ ... +] markers so the count reflects the actual text
-// the kid would write, not the edit markers.
+// Strip the [+ ... +] markers AND the |bucket trailer so the
+// textarea / counts / export see clean prose, not internal tags.
 function stripMarkers(text: string): string {
-  return text.replace(/\[\+([\s\S]*?)\+\]/g, "$1");
+  return text.replace(/\[\+([\s\S]*?)\+\]/g, (_m, body) =>
+    body.replace(/\|[a-z]+$/, ""),
+  );
 }
 
 // Chinese "word count" = count of Chinese characters (CJK Unified
