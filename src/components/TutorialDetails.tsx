@@ -39,7 +39,7 @@ export default function TutorialDetails({ id, title, description, videoSrc }: Pr
         <video
           controls
           preload="metadata"
-          className="w-full rounded-xl border border-[#e5eeff] bg-black"
+          className="w-full aspect-video object-contain rounded-xl border border-[#e5eeff] bg-black"
         >
           <source src={videoSrc} type="video/mp4" />
           Your browser does not support the video tag.
