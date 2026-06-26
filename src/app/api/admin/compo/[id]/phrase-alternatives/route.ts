@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 import { generateContentWithRetry } from "@/lib/gemini";
+import { safeJsonParse } from "@/lib/compo-analysis";
 
 // Flash tier — alternatives for a single ~10-char phrase are easy work
 // and we want the popup to feel snappy. Pro was 5-15s; flash is 1-3s.
@@ -71,39 +72,51 @@ ${paragraph}
     const resp = await generateContentWithRetry({
       model: MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 2048 },
+      // Bumped from 2048 — flash sometimes adds extra explanation
+      // around the JSON, and the hard cap was truncating the closing
+      // brace ("unbalanced JSON object"). 6k is comfortable for the
+      // expected ~500-1000 char alternatives payload.
+      config: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 6144 },
     }, 2, 3000, "compo-phrase-alternatives");
     const raw = (resp.text ?? "").trim();
-    // Robust JSON extract — drop ``` fences if present, then take the
-    // first balanced { … }.
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
-    const start = cleaned.indexOf("{");
-    if (start < 0) throw new Error("no JSON object in response");
-    // Walk to matching close-brace, respecting strings.
-    let depth = 0, escaped = false, inStr = false, end = -1;
-    for (let i = start; i < cleaned.length; i++) {
-      const c = cleaned[i];
-      if (escaped) { escaped = false; continue; }
-      if (c === "\\") { escaped = true; continue; }
-      if (c === '"') { inStr = !inStr; continue; }
-      if (inStr) continue;
-      if (c === "{") depth++;
-      else if (c === "}") {
-        depth--;
-        if (depth === 0) { end = i; break; }
+
+    let alts: Array<{ cn: string; en: string; pattern?: string }> = [];
+    try {
+      // First-pass: shared safeJsonParse handles fences + repair
+      // (missing commas / trailing commas / smart quotes / unescaped
+      // newlines in strings).
+      const parsed = safeJsonParse(raw, "phrase-alternatives") as {
+        alternatives?: Array<{ cn?: string; en?: string; pattern?: string }>;
+      };
+      alts = (parsed.alternatives ?? [])
+        .filter(a => a && typeof a.cn === "string" && a.cn.trim().length > 0)
+        .map(a => ({
+          cn: a.cn!.trim(),
+          en: (a.en ?? "").trim(),
+          pattern: (a.pattern ?? "").trim() || undefined,
+        }));
+    } catch (parseErr) {
+      // Fallback: if the JSON is genuinely truncated mid-array (flash
+      // hit a soft cap), salvage whatever {"cn": ...} objects parse
+      // cleanly. Avoids "no alternatives" when 3 of 5 came back fine.
+      console.warn(`[compo:${id}] phrase-alternatives JSON parse failed, salvaging:`, (parseErr as Error).message);
+      const objRe = /\{[^{}]*?"cn"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"[^{}]*?\}/g;
+      let m;
+      while ((m = objRe.exec(raw)) !== null) {
+        try {
+          const obj = JSON.parse(m[0]) as { cn?: string; en?: string; pattern?: string };
+          if (obj.cn && typeof obj.cn === "string" && obj.cn.trim().length > 0) {
+            alts.push({
+              cn: obj.cn.trim(),
+              en: (obj.en ?? "").trim(),
+              pattern: (obj.pattern ?? "").trim() || undefined,
+            });
+          }
+        } catch { /* skip malformed entry */ }
       }
+      if (alts.length === 0) throw parseErr;
+      console.warn(`[compo:${id}] phrase-alternatives salvaged ${alts.length} entry(s)`);
     }
-    if (end < 0) throw new Error("unbalanced JSON object");
-    const parsed = JSON.parse(cleaned.slice(start, end + 1)) as {
-      alternatives?: Array<{ cn?: string; en?: string; pattern?: string }>;
-    };
-    const alts = (parsed.alternatives ?? [])
-      .filter(a => a && typeof a.cn === "string" && a.cn.trim().length > 0)
-      .map(a => ({
-        cn: a.cn!.trim(),
-        en: (a.en ?? "").trim(),
-        pattern: (a.pattern ?? "").trim() || undefined,
-      }));
     return NextResponse.json({ alternatives: alts });
   } catch (err) {
     console.error(`[compo:${id}] phrase-alternatives failed:`, err);

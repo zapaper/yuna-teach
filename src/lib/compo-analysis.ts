@@ -190,7 +190,7 @@ function repairJson(s: string): string {
 // Returns `any` to match the original `JSON.parse(...)` ergonomics —
 // call sites do their own field-by-field validation downstream.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function safeJsonParse(raw: string, label = "json"): any {
+export function safeJsonParse(raw: string, label = "json"): any {
   const cleaned = extractJson(raw);
   try {
     return JSON.parse(cleaned);
