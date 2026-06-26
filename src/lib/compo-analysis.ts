@@ -604,12 +604,33 @@ export async function runOcr(
     // A/B OpenAI OCR pass. Routes through runOpenAIFallback so it uses
     // gpt-5.4 vision with the same prompt — admin compares Gemini's
     // output vs OpenAI's in the detail page.
+    //
+    // OpenAI vision rejects application/pdf inlineData with "400 Invalid
+    // MIME type. Only image types are supported." Gemini accepts PDFs
+    // natively but OpenAI doesn't, so when alsoRunOpenAI is on we render
+    // any PDF parts to JPEG pages via renderPdfToJpegs first and rebuild
+    // the parts list with image-only inlineData.
     const openaiRespP = alsoRunOpenAI ? (async () => {
       try {
+        const openaiParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
+        for (const part of cleanCallParts) {
+          if ("text" in part) { openaiParts.push(part); continue; }
+          const { mimeType, data } = part.inlineData;
+          if (mimeType === "application/pdf") {
+            const { renderPdfToJpegs } = await import("./pdf-server");
+            const pages = await renderPdfToJpegs(Buffer.from(data, "base64"));
+            console.log(`[compo:ocr-openai] rendered ${pages.length} PDF page(s) to JPEG for OpenAI`);
+            for (const jpeg of pages) {
+              openaiParts.push({ inlineData: { mimeType: "image/jpeg", data: jpeg.toString("base64") } });
+            }
+          } else {
+            openaiParts.push(part);
+          }
+        }
         const { runOpenAIFallback } = await import("./openai-fallback");
         return await runOpenAIFallback({
           model: OCR_MODEL,
-          contents: [{ role: "user", parts: cleanCallParts }],
+          contents: [{ role: "user", parts: openaiParts }],
           config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 24576 },
         }, "compo-ocr-openai");
       } catch (err) {
