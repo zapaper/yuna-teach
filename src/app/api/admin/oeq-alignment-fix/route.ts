@@ -183,15 +183,16 @@ export async function POST(req: NextRequest) {
     const imageDataUrl = q.imageData.startsWith("data:") ? q.imageData : `data:image/jpeg;base64,${q.imageData}`;
     const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
     // Hard per-question deadline. The underlying Gemini client has a
-    // 180s timeout that's way past Cloudflare's 100s — one stuck call
-    // hung the whole batch. 25s is generous for the typical
-    // pro-tier extract (~7-15s) and aborts pathological cases as ERROR
-    // instead of poisoning the dry-run.
+    // 180s timeout that's way past Cloudflare's 100s. 50s leaves
+    // headroom for dense PSLE Science OEQ pages (multi-subpart with a
+    // diagram routinely run 25-40s on 3.1-pro) while still aborting
+    // pathological hangs. With concurrency=10 and limit=10, max wall
+    // is one batch × 50s = 50s — comfortably inside Cloudflare's 100s.
     let result: Awaited<ReturnType<typeof transcribeScienceOpenEndedQuestion>>;
     try {
       result = await Promise.race([
         transcribeScienceOpenEndedQuestion(base64),
-        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("per-question deadline: 25s")), 25000)),
+        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("per-question deadline: 50s")), 50000)),
       ]);
     } catch (err) {
       return {
