@@ -1034,7 +1034,34 @@ export async function critiqueComposition(
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
-  const parsed = safeJsonParse(text, "critique");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parsed: any;
+  try {
+    parsed = safeJsonParse(text, "critique");
+  } catch (err) {
+    // Critique JSON is large (rubric + cleanRewrite essay) and Gemini
+    // occasionally emits unescaped inner quotes inside the rewrite body
+    // that repairJson can't recover. Log ±200 chars around the V8-
+    // reported position so the next failure tells us exactly what to
+    // patch, then re-throw — the row goes to "failed" with a stable
+    // error message and the admin can re-analyse after a model retry.
+    const msg = (err as Error).message ?? "";
+    const posMatch = msg.match(/position (\d+)/);
+    const pos = posMatch ? parseInt(posMatch[1], 10) : -1;
+    console.error(`[compo:critique] JSON parse FAILED, ${text.length} chars. Error:`, err);
+    if (pos >= 0) {
+      const startIdx = Math.max(0, pos - 200);
+      const endIdx = Math.min(text.length, pos + 200);
+      console.error(`[compo:critique] raw at pos ${pos} (±200 chars):`);
+      console.error(`  pre:  ${JSON.stringify(text.slice(startIdx, pos))}`);
+      console.error(`  bad:  ${JSON.stringify(text.slice(pos, pos + 1))}`);
+      console.error(`  post: ${JSON.stringify(text.slice(pos + 1, endIdx))}`);
+    } else {
+      console.error(`[compo:critique] first 400 chars:`, text.slice(0, 400));
+      console.error(`[compo:critique] last 400 chars:`, text.slice(-400));
+    }
+    throw err;
+  }
   const contentScore = Number(parsed.contentScore ?? 0);
   const vocabScore = Number(parsed.vocabScore ?? 0);
   const sentenceScore = Number(parsed.sentenceScore ?? 0);
