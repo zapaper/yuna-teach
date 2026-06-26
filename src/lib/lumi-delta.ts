@@ -311,10 +311,14 @@ export async function computeWeeklyDelta(
     }
   }
 
-  const caseA = newPapers.length === 0;
-  const prefaceText = caseA
-    ? `${childFirst} hasn't had a chance to work on the recommendations from last week yet — totally fine, life gets busy. Whenever there's a moment, here's what would help most.`
-    : `Great to see ${childFirst} putting in the work — ${newPapers.length} paper${newPapers.length === 1 ? "" : "s"} since last week. Here's what that practice has shifted, and where we can keep building.`;
+  // Skip the entire delta block when the kid hasn't done any new
+  // work since the cache. Without new papers there are no wins, no
+  // topic progress, no new mistakes to surface — just a "hasn't had
+  // a chance" line that adds noise. Let the parent see the standing
+  // Lumi summary unchanged.
+  if (newPapers.length === 0) return null;
+  const caseA = false; // (always false now — kept for type stability downstream)
+  const prefaceText = `Great to see ${childFirst} putting in the work — ${newPapers.length} paper${newPapers.length === 1 ? "" : "s"} since last week. Here's what that practice has shifted, and where we can keep building.`;
 
   // Reclassify cleared patterns based on evidence.
   const wins: WeeklyDelta["wins"] = [];
