@@ -78,6 +78,34 @@ function repairJson(s: string): string {
   //    emits "…" or '…' when generating Chinese-mixed JSON.
   s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
 
+  // 1b. Escape unescaped newlines / tabs / carriage returns INSIDE
+  //     strings. Gemini occasionally writes a real "\n" line break
+  //     in a multi-paragraph "reason" / "essay" / "draft" field —
+  //     V8's parser sees the newline as ending the string prematurely
+  //     and then either bails ("Unterminated string") or, more
+  //     insidiously, succeeds at re-anchoring on a structural char
+  //     and crashes a few elements later with a confusing position.
+  //     Walk the text, track open/close, and rewrite any control
+  //     char between quotes into its escape form.
+  {
+    let open = false;
+    let escaped = false;
+    const out: string[] = [];
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (open && !escaped) {
+        if (c === "\n") { out.push("\\n"); continue; }
+        if (c === "\r") { out.push("\\r"); continue; }
+        if (c === "\t") { out.push("\\t"); continue; }
+      }
+      out.push(c);
+      if (escaped) { escaped = false; continue; }
+      if (c === "\\") { escaped = true; continue; }
+      if (c === '"') open = !open;
+    }
+    s = out.join("");
+  }
+
   // 2. For every char, was the parser INSIDE a string before consuming it?
   function buildStateBefore(str: string): boolean[] {
     const sb: boolean[] = new Array(str.length);
@@ -748,7 +776,23 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
         reason: String(x.reason ?? ""),
       }));
   } catch (err) {
+    // Surface enough context to actually fix the malformation next time.
+    // Print the surrounding ±200 chars around the V8-reported position
+    // so we can see WHICH char tripped JSON.parse.
+    const msg = (err as Error).message ?? "";
+    const posMatch = msg.match(/position (\d+)/);
+    const pos = posMatch ? parseInt(posMatch[1], 10) : -1;
     console.error("[compo] wrong-words parse failed:", err);
+    if (pos >= 0) {
+      const start = Math.max(0, pos - 200);
+      const end = Math.min(text.length, pos + 200);
+      console.error(`[compo] wrong-words raw at pos ${pos} (±200 chars):`);
+      console.error(`  pre:  ${JSON.stringify(text.slice(start, pos))}`);
+      console.error(`  bad:  ${JSON.stringify(text.slice(pos, pos + 1))}`);
+      console.error(`  post: ${JSON.stringify(text.slice(pos + 1, end))}`);
+    } else {
+      console.error(`[compo] wrong-words raw (first 400 chars):`, text.slice(0, 400));
+    }
     return [];
   }
 }
