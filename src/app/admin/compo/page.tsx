@@ -174,7 +174,7 @@ export default function CompoIndexPage() {
             <span className="text-xs font-medium text-slate-600">Label (e.g. student name + date)</span>
             <input
               className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-              placeholder="Mark — 2026-06-24"
+              placeholder="e.g. 一份特别的友谊"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />

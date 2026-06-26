@@ -1153,7 +1153,7 @@ function EditableLabel({
           if (e.key === "Escape")  { e.preventDefault(); setEditing(false); setDraft(value ?? ""); }
         }}
         onBlur={() => { setEditing(false); if (draft !== (value ?? "")) void onSave(draft); }}
-        placeholder="Label this composition (e.g. Mark — 2026-06-25)"
+        placeholder="Label this composition (e.g. 一份特别的友谊)"
         className="text-xl font-bold text-slate-900 bg-yellow-50 border-b-2 border-yellow-400 outline-none w-full max-w-lg px-1"
       />
     );
