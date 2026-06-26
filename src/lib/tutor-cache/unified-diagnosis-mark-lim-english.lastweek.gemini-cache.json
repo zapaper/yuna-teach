@@ -1,0 +1,2104 @@
+{
+  "patterns": [
+    {
+      "name": "Reported Speech Mix-Up",
+      "what": "Mark sometimes forgets to shift tenses backwards or change time words when converting direct speech into reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[376]",
+          "type": "oeq",
+          "whatWentWrong": "He kept the past tense 'wrote' instead of shifting it back to the past perfect 'had written'."
+        },
+        {
+          "questionRef": "[316]",
+          "type": "oeq",
+          "whatWentWrong": "He changed 'last weekend' to 'the following week' instead of 'the previous weekend'."
+        }
+      ],
+      "strategic_advice": "When you see quotes turning into reported speech, remember the 'Step Back' rule:\n- **Tense**: Step one tense back in time (e.g., Present becomes Past, Past becomes Past Perfect).\n- **Time/Place Words**: Change words like 'now' to **'then'**, 'yesterday' to **'the previous day'**, and 'here' to **'there'**.\n- **Pronouns**: Double-check if 'I' or 'my' needs to change to match the speaker.",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "wanted to know"
+      ]
+    },
+    {
+      "name": "Pronoun Mix-Up",
+      "what": "Mark occasionally confuses subject pronouns (like 'I' or 'who') with object pronouns (like 'me' or 'whom'), especially when there are two people in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[216]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'mine' instead of the object pronoun 'me' for the phrase 'asked Sally and me'."
+        },
+        {
+          "questionRef": "[367]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'me' instead of the subject pronoun 'I' for 'Neither Jack nor I'."
+        },
+        {
+          "questionRef": "[295]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'whom' as a subject instead of 'who' in his Synthesis and Transformation answer."
+        }
+      ],
+      "strategic_advice": "When you see a sentence with two people (like 'Sally and ___'), try the **Cover-Up Trick**:\n- Cover up the other person's name and read the sentence out loud. 'My teacher asked I' sounds wrong, but 'My teacher asked **me**' sounds right!\n- For 'who' vs 'whom', use the **He/Him Trick**: If you can replace the word with 'he', use **'who'**. If you can replace it with 'him', use **'whom'**.",
+      "trigger_keywords": [
+        "and",
+        "nor",
+        "who",
+        "whom"
+      ]
+    },
+    {
+      "name": "Question Tag Mix-Up",
+      "what": "Mark tends to get tricked by question tags when the main sentence has a hidden negative word or a contracted helping verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[240]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that 'seldom' is a negative word, so the tag should be the positive 'does she' instead of 'doesn't she'."
+        },
+        {
+          "questionRef": "[334]",
+          "type": "mcq",
+          "whatWentWrong": "He didn't spot that 'Ahmad's cleaned' means 'Ahmad has cleaned', so the tag needs to be 'hasn't he'."
+        }
+      ],
+      "strategic_advice": "When you see a comma followed by a blank at the end of a sentence, treat it as a Question Tag puzzle:\n- **Hidden Negatives**: Words like **'seldom'**, **'rarely'**, and **'never'** make the sentence negative, so the tag must be **positive**.\n- **Unpack Contractions**: Always expand words like **'Ahmad's'** or **'You've'** to find the true helping verb (is, has, or have) before choosing your tag.",
+      "trigger_keywords": [
+        "seldom",
+        "rarely",
+        "never",
+        "didn't",
+        "hasn't",
+        "doesn't"
+      ]
+    },
+    {
+      "name": "Missing Small Details",
+      "what": "Mark sometimes leaves out small but important descriptive words from the original sentence when rewriting it, which slightly changes the meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[359]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully combined the sentences but accidentally left out the word 'screen'."
+        },
+        {
+          "questionRef": "[362]",
+          "type": "oeq",
+          "whatWentWrong": "He missed out the word 'sudden' when describing Sam's illness."
+        },
+        {
+          "questionRef": "[344]",
+          "type": "oeq",
+          "whatWentWrong": "He forgot to include the phrase 'during recess' at the end of his answer."
+        }
+      ],
+      "strategic_advice": "When you finish writing a Synthesis and Transformation answer, do a quick **Word Match Check**:\n- Read the original sentences and your new sentence side-by-side.\n- Tick off the key details (like adjectives, time phrases, and specific objects) to make sure nothing got left behind.",
+      "trigger_keywords": [
+        "because of",
+        "in",
+        "would rather",
+        "preference"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 3
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 3
+    },
+    {
+      "idx": 43,
+      "patternIndex": 3
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": -1
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": 0
+    },
+    {
+      "idx": 65,
+      "patternIndex": 3
+    },
+    {
+      "idx": 66,
+      "patternIndex": 0
+    },
+    {
+      "idx": 67,
+      "patternIndex": -1
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": -1
+    },
+    {
+      "idx": 76,
+      "patternIndex": -1
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": -1
+    },
+    {
+      "idx": 79,
+      "patternIndex": -1
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": -1
+    },
+    {
+      "idx": 82,
+      "patternIndex": -1
+    },
+    {
+      "idx": 83,
+      "patternIndex": -1
+    },
+    {
+      "idx": 84,
+      "patternIndex": -1
+    },
+    {
+      "idx": 85,
+      "patternIndex": -1
+    },
+    {
+      "idx": 86,
+      "patternIndex": -1
+    },
+    {
+      "idx": 87,
+      "patternIndex": -1
+    },
+    {
+      "idx": 88,
+      "patternIndex": -1
+    },
+    {
+      "idx": 89,
+      "patternIndex": -1
+    },
+    {
+      "idx": 90,
+      "patternIndex": -1
+    },
+    {
+      "idx": 91,
+      "patternIndex": -1
+    },
+    {
+      "idx": 92,
+      "patternIndex": -1
+    },
+    {
+      "idx": 93,
+      "patternIndex": -1
+    },
+    {
+      "idx": 94,
+      "patternIndex": -1
+    },
+    {
+      "idx": 95,
+      "patternIndex": 3
+    },
+    {
+      "idx": 96,
+      "patternIndex": -1
+    },
+    {
+      "idx": 97,
+      "patternIndex": 0
+    },
+    {
+      "idx": 98,
+      "patternIndex": -1
+    },
+    {
+      "idx": 99,
+      "patternIndex": -1
+    },
+    {
+      "idx": 100,
+      "patternIndex": -1
+    },
+    {
+      "idx": 101,
+      "patternIndex": -1
+    },
+    {
+      "idx": 102,
+      "patternIndex": -1
+    },
+    {
+      "idx": 103,
+      "patternIndex": -1
+    },
+    {
+      "idx": 104,
+      "patternIndex": -1
+    },
+    {
+      "idx": 105,
+      "patternIndex": -1
+    },
+    {
+      "idx": 106,
+      "patternIndex": -1
+    },
+    {
+      "idx": 107,
+      "patternIndex": -1
+    },
+    {
+      "idx": 108,
+      "patternIndex": -1
+    },
+    {
+      "idx": 109,
+      "patternIndex": -1
+    },
+    {
+      "idx": 110,
+      "patternIndex": 3
+    },
+    {
+      "idx": 111,
+      "patternIndex": -1
+    },
+    {
+      "idx": 112,
+      "patternIndex": -1
+    },
+    {
+      "idx": 113,
+      "patternIndex": 2
+    },
+    {
+      "idx": 114,
+      "patternIndex": -1
+    },
+    {
+      "idx": 115,
+      "patternIndex": -1
+    },
+    {
+      "idx": 116,
+      "patternIndex": -1
+    },
+    {
+      "idx": 117,
+      "patternIndex": -1
+    },
+    {
+      "idx": 118,
+      "patternIndex": -1
+    },
+    {
+      "idx": 119,
+      "patternIndex": -1
+    },
+    {
+      "idx": 120,
+      "patternIndex": 1
+    },
+    {
+      "idx": 121,
+      "patternIndex": 2
+    },
+    {
+      "idx": 122,
+      "patternIndex": -1
+    },
+    {
+      "idx": 123,
+      "patternIndex": -1
+    },
+    {
+      "idx": 124,
+      "patternIndex": -1
+    },
+    {
+      "idx": 125,
+      "patternIndex": -1
+    },
+    {
+      "idx": 126,
+      "patternIndex": -1
+    },
+    {
+      "idx": 127,
+      "patternIndex": -1
+    },
+    {
+      "idx": 128,
+      "patternIndex": -1
+    },
+    {
+      "idx": 129,
+      "patternIndex": -1
+    },
+    {
+      "idx": 130,
+      "patternIndex": -1
+    },
+    {
+      "idx": 131,
+      "patternIndex": -1
+    },
+    {
+      "idx": 132,
+      "patternIndex": -1
+    },
+    {
+      "idx": 133,
+      "patternIndex": -1
+    },
+    {
+      "idx": 134,
+      "patternIndex": -1
+    },
+    {
+      "idx": 135,
+      "patternIndex": -1
+    },
+    {
+      "idx": 136,
+      "patternIndex": -1
+    },
+    {
+      "idx": 137,
+      "patternIndex": -1
+    },
+    {
+      "idx": 138,
+      "patternIndex": -1
+    },
+    {
+      "idx": 139,
+      "patternIndex": -1
+    },
+    {
+      "idx": 140,
+      "patternIndex": -1
+    },
+    {
+      "idx": 141,
+      "patternIndex": -1
+    },
+    {
+      "idx": 142,
+      "patternIndex": -1
+    },
+    {
+      "idx": 143,
+      "patternIndex": -1
+    },
+    {
+      "idx": 144,
+      "patternIndex": -1
+    },
+    {
+      "idx": 145,
+      "patternIndex": -1
+    },
+    {
+      "idx": 146,
+      "patternIndex": -1
+    },
+    {
+      "idx": 147,
+      "patternIndex": -1
+    },
+    {
+      "idx": 148,
+      "patternIndex": -1
+    },
+    {
+      "idx": 149,
+      "patternIndex": -1
+    },
+    {
+      "idx": 150,
+      "patternIndex": -1
+    },
+    {
+      "idx": 151,
+      "patternIndex": -1
+    },
+    {
+      "idx": 152,
+      "patternIndex": -1
+    },
+    {
+      "idx": 153,
+      "patternIndex": -1
+    },
+    {
+      "idx": 154,
+      "patternIndex": -1
+    },
+    {
+      "idx": 155,
+      "patternIndex": -1
+    },
+    {
+      "idx": 156,
+      "patternIndex": -1
+    },
+    {
+      "idx": 157,
+      "patternIndex": -1
+    },
+    {
+      "idx": 158,
+      "patternIndex": -1
+    },
+    {
+      "idx": 159,
+      "patternIndex": -1
+    },
+    {
+      "idx": 160,
+      "patternIndex": -1
+    },
+    {
+      "idx": 161,
+      "patternIndex": -1
+    },
+    {
+      "idx": 162,
+      "patternIndex": -1
+    },
+    {
+      "idx": 163,
+      "patternIndex": -1
+    },
+    {
+      "idx": 164,
+      "patternIndex": -1
+    },
+    {
+      "idx": 165,
+      "patternIndex": -1
+    },
+    {
+      "idx": 166,
+      "patternIndex": -1
+    },
+    {
+      "idx": 167,
+      "patternIndex": -1
+    },
+    {
+      "idx": 168,
+      "patternIndex": -1
+    },
+    {
+      "idx": 169,
+      "patternIndex": -1
+    },
+    {
+      "idx": 170,
+      "patternIndex": -1
+    },
+    {
+      "idx": 171,
+      "patternIndex": -1
+    },
+    {
+      "idx": 172,
+      "patternIndex": -1
+    },
+    {
+      "idx": 173,
+      "patternIndex": -1
+    },
+    {
+      "idx": 174,
+      "patternIndex": -1
+    },
+    {
+      "idx": 175,
+      "patternIndex": -1
+    },
+    {
+      "idx": 176,
+      "patternIndex": -1
+    },
+    {
+      "idx": 177,
+      "patternIndex": -1
+    },
+    {
+      "idx": 178,
+      "patternIndex": -1
+    },
+    {
+      "idx": 179,
+      "patternIndex": -1
+    },
+    {
+      "idx": 180,
+      "patternIndex": -1
+    },
+    {
+      "idx": 181,
+      "patternIndex": -1
+    },
+    {
+      "idx": 182,
+      "patternIndex": -1
+    },
+    {
+      "idx": 183,
+      "patternIndex": -1
+    },
+    {
+      "idx": 184,
+      "patternIndex": -1
+    },
+    {
+      "idx": 185,
+      "patternIndex": -1
+    },
+    {
+      "idx": 186,
+      "patternIndex": -1
+    },
+    {
+      "idx": 187,
+      "patternIndex": -1
+    },
+    {
+      "idx": 188,
+      "patternIndex": -1
+    },
+    {
+      "idx": 189,
+      "patternIndex": -1
+    },
+    {
+      "idx": 190,
+      "patternIndex": -1
+    },
+    {
+      "idx": 191,
+      "patternIndex": -1
+    },
+    {
+      "idx": 192,
+      "patternIndex": -1
+    },
+    {
+      "idx": 193,
+      "patternIndex": -1
+    },
+    {
+      "idx": 194,
+      "patternIndex": -1
+    },
+    {
+      "idx": 195,
+      "patternIndex": -1
+    },
+    {
+      "idx": 196,
+      "patternIndex": -1
+    },
+    {
+      "idx": 197,
+      "patternIndex": -1
+    },
+    {
+      "idx": 198,
+      "patternIndex": -1
+    },
+    {
+      "idx": 199,
+      "patternIndex": 0
+    },
+    {
+      "idx": 200,
+      "patternIndex": -1
+    },
+    {
+      "idx": 201,
+      "patternIndex": -1
+    },
+    {
+      "idx": 202,
+      "patternIndex": -1
+    },
+    {
+      "idx": 203,
+      "patternIndex": -1
+    },
+    {
+      "idx": 204,
+      "patternIndex": -1
+    },
+    {
+      "idx": 205,
+      "patternIndex": -1
+    },
+    {
+      "idx": 206,
+      "patternIndex": -1
+    },
+    {
+      "idx": 207,
+      "patternIndex": -1
+    },
+    {
+      "idx": 208,
+      "patternIndex": -1
+    },
+    {
+      "idx": 209,
+      "patternIndex": -1
+    },
+    {
+      "idx": 210,
+      "patternIndex": -1
+    },
+    {
+      "idx": 211,
+      "patternIndex": -1
+    },
+    {
+      "idx": 212,
+      "patternIndex": -1
+    },
+    {
+      "idx": 213,
+      "patternIndex": 3
+    },
+    {
+      "idx": 214,
+      "patternIndex": -1
+    },
+    {
+      "idx": 215,
+      "patternIndex": -1
+    },
+    {
+      "idx": 216,
+      "patternIndex": 1
+    },
+    {
+      "idx": 217,
+      "patternIndex": 1
+    },
+    {
+      "idx": 218,
+      "patternIndex": 1
+    },
+    {
+      "idx": 219,
+      "patternIndex": 1
+    },
+    {
+      "idx": 220,
+      "patternIndex": 1
+    },
+    {
+      "idx": 221,
+      "patternIndex": 1
+    },
+    {
+      "idx": 222,
+      "patternIndex": 1
+    },
+    {
+      "idx": 223,
+      "patternIndex": 1
+    },
+    {
+      "idx": 224,
+      "patternIndex": 1
+    },
+    {
+      "idx": 225,
+      "patternIndex": 1
+    },
+    {
+      "idx": 226,
+      "patternIndex": 1
+    },
+    {
+      "idx": 227,
+      "patternIndex": 1
+    },
+    {
+      "idx": 228,
+      "patternIndex": 1
+    },
+    {
+      "idx": 229,
+      "patternIndex": 1
+    },
+    {
+      "idx": 230,
+      "patternIndex": 1
+    },
+    {
+      "idx": 231,
+      "patternIndex": 1
+    },
+    {
+      "idx": 232,
+      "patternIndex": 1
+    },
+    {
+      "idx": 233,
+      "patternIndex": 1
+    },
+    {
+      "idx": 234,
+      "patternIndex": 1
+    },
+    {
+      "idx": 235,
+      "patternIndex": 1
+    },
+    {
+      "idx": 236,
+      "patternIndex": -1
+    },
+    {
+      "idx": 237,
+      "patternIndex": -1
+    },
+    {
+      "idx": 238,
+      "patternIndex": -1
+    },
+    {
+      "idx": 239,
+      "patternIndex": -1
+    },
+    {
+      "idx": 240,
+      "patternIndex": 2
+    },
+    {
+      "idx": 241,
+      "patternIndex": 1
+    },
+    {
+      "idx": 242,
+      "patternIndex": -1
+    },
+    {
+      "idx": 243,
+      "patternIndex": -1
+    },
+    {
+      "idx": 244,
+      "patternIndex": -1
+    },
+    {
+      "idx": 245,
+      "patternIndex": 2
+    },
+    {
+      "idx": 246,
+      "patternIndex": -1
+    },
+    {
+      "idx": 247,
+      "patternIndex": -1
+    },
+    {
+      "idx": 248,
+      "patternIndex": -1
+    },
+    {
+      "idx": 249,
+      "patternIndex": -1
+    },
+    {
+      "idx": 250,
+      "patternIndex": 2
+    },
+    {
+      "idx": 251,
+      "patternIndex": 2
+    },
+    {
+      "idx": 252,
+      "patternIndex": -1
+    },
+    {
+      "idx": 253,
+      "patternIndex": 2
+    },
+    {
+      "idx": 254,
+      "patternIndex": 1
+    },
+    {
+      "idx": 255,
+      "patternIndex": -1
+    },
+    {
+      "idx": 256,
+      "patternIndex": -1
+    },
+    {
+      "idx": 257,
+      "patternIndex": 1
+    },
+    {
+      "idx": 258,
+      "patternIndex": -1
+    },
+    {
+      "idx": 259,
+      "patternIndex": -1
+    },
+    {
+      "idx": 260,
+      "patternIndex": -1
+    },
+    {
+      "idx": 261,
+      "patternIndex": -1
+    },
+    {
+      "idx": 262,
+      "patternIndex": 1
+    },
+    {
+      "idx": 263,
+      "patternIndex": -1
+    },
+    {
+      "idx": 264,
+      "patternIndex": -1
+    },
+    {
+      "idx": 265,
+      "patternIndex": 2
+    },
+    {
+      "idx": 266,
+      "patternIndex": -1
+    },
+    {
+      "idx": 267,
+      "patternIndex": -1
+    },
+    {
+      "idx": 268,
+      "patternIndex": -1
+    },
+    {
+      "idx": 269,
+      "patternIndex": -1
+    },
+    {
+      "idx": 270,
+      "patternIndex": -1
+    },
+    {
+      "idx": 271,
+      "patternIndex": -1
+    },
+    {
+      "idx": 272,
+      "patternIndex": -1
+    },
+    {
+      "idx": 273,
+      "patternIndex": -1
+    },
+    {
+      "idx": 274,
+      "patternIndex": 1
+    },
+    {
+      "idx": 275,
+      "patternIndex": 2
+    },
+    {
+      "idx": 276,
+      "patternIndex": -1
+    },
+    {
+      "idx": 277,
+      "patternIndex": -1
+    },
+    {
+      "idx": 278,
+      "patternIndex": -1
+    },
+    {
+      "idx": 279,
+      "patternIndex": 3
+    },
+    {
+      "idx": 280,
+      "patternIndex": -1
+    },
+    {
+      "idx": 281,
+      "patternIndex": -1
+    },
+    {
+      "idx": 282,
+      "patternIndex": -1
+    },
+    {
+      "idx": 283,
+      "patternIndex": 2
+    },
+    {
+      "idx": 284,
+      "patternIndex": -1
+    },
+    {
+      "idx": 285,
+      "patternIndex": -1
+    },
+    {
+      "idx": 286,
+      "patternIndex": 0
+    },
+    {
+      "idx": 287,
+      "patternIndex": 3
+    },
+    {
+      "idx": 288,
+      "patternIndex": -1
+    },
+    {
+      "idx": 289,
+      "patternIndex": 2
+    },
+    {
+      "idx": 290,
+      "patternIndex": -1
+    },
+    {
+      "idx": 291,
+      "patternIndex": -1
+    },
+    {
+      "idx": 292,
+      "patternIndex": -1
+    },
+    {
+      "idx": 293,
+      "patternIndex": -1
+    },
+    {
+      "idx": 294,
+      "patternIndex": -1
+    },
+    {
+      "idx": 295,
+      "patternIndex": 1
+    },
+    {
+      "idx": 296,
+      "patternIndex": -1
+    },
+    {
+      "idx": 297,
+      "patternIndex": -1
+    },
+    {
+      "idx": 298,
+      "patternIndex": -1
+    },
+    {
+      "idx": 299,
+      "patternIndex": -1
+    },
+    {
+      "idx": 300,
+      "patternIndex": -1
+    },
+    {
+      "idx": 301,
+      "patternIndex": -1
+    },
+    {
+      "idx": 302,
+      "patternIndex": -1
+    },
+    {
+      "idx": 303,
+      "patternIndex": -1
+    },
+    {
+      "idx": 304,
+      "patternIndex": -1
+    },
+    {
+      "idx": 305,
+      "patternIndex": -1
+    },
+    {
+      "idx": 306,
+      "patternIndex": -1
+    },
+    {
+      "idx": 307,
+      "patternIndex": -1
+    },
+    {
+      "idx": 308,
+      "patternIndex": -1
+    },
+    {
+      "idx": 309,
+      "patternIndex": -1
+    },
+    {
+      "idx": 310,
+      "patternIndex": -1
+    },
+    {
+      "idx": 311,
+      "patternIndex": -1
+    },
+    {
+      "idx": 312,
+      "patternIndex": -1
+    },
+    {
+      "idx": 313,
+      "patternIndex": -1
+    },
+    {
+      "idx": 314,
+      "patternIndex": -1
+    },
+    {
+      "idx": 315,
+      "patternIndex": -1
+    },
+    {
+      "idx": 316,
+      "patternIndex": 0
+    },
+    {
+      "idx": 317,
+      "patternIndex": 3
+    },
+    {
+      "idx": 318,
+      "patternIndex": 1
+    },
+    {
+      "idx": 319,
+      "patternIndex": -1
+    },
+    {
+      "idx": 320,
+      "patternIndex": -1
+    },
+    {
+      "idx": 321,
+      "patternIndex": 3
+    },
+    {
+      "idx": 322,
+      "patternIndex": 0
+    },
+    {
+      "idx": 323,
+      "patternIndex": -1
+    },
+    {
+      "idx": 324,
+      "patternIndex": -1
+    },
+    {
+      "idx": 325,
+      "patternIndex": -1
+    },
+    {
+      "idx": 326,
+      "patternIndex": -1
+    },
+    {
+      "idx": 327,
+      "patternIndex": 0
+    },
+    {
+      "idx": 328,
+      "patternIndex": 1
+    },
+    {
+      "idx": 329,
+      "patternIndex": 1
+    },
+    {
+      "idx": 330,
+      "patternIndex": -1
+    },
+    {
+      "idx": 331,
+      "patternIndex": 0
+    },
+    {
+      "idx": 332,
+      "patternIndex": -1
+    },
+    {
+      "idx": 333,
+      "patternIndex": 1
+    },
+    {
+      "idx": 334,
+      "patternIndex": 2
+    },
+    {
+      "idx": 335,
+      "patternIndex": -1
+    },
+    {
+      "idx": 336,
+      "patternIndex": -1
+    },
+    {
+      "idx": 337,
+      "patternIndex": -1
+    },
+    {
+      "idx": 338,
+      "patternIndex": -1
+    },
+    {
+      "idx": 339,
+      "patternIndex": -1
+    },
+    {
+      "idx": 340,
+      "patternIndex": -1
+    },
+    {
+      "idx": 341,
+      "patternIndex": -1
+    },
+    {
+      "idx": 342,
+      "patternIndex": -1
+    },
+    {
+      "idx": 343,
+      "patternIndex": -1
+    },
+    {
+      "idx": 344,
+      "patternIndex": 3
+    },
+    {
+      "idx": 345,
+      "patternIndex": 0
+    },
+    {
+      "idx": 346,
+      "patternIndex": -1
+    },
+    {
+      "idx": 347,
+      "patternIndex": -1
+    },
+    {
+      "idx": 348,
+      "patternIndex": 2
+    },
+    {
+      "idx": 349,
+      "patternIndex": -1
+    },
+    {
+      "idx": 350,
+      "patternIndex": -1
+    },
+    {
+      "idx": 351,
+      "patternIndex": -1
+    },
+    {
+      "idx": 352,
+      "patternIndex": -1
+    },
+    {
+      "idx": 353,
+      "patternIndex": -1
+    },
+    {
+      "idx": 354,
+      "patternIndex": -1
+    },
+    {
+      "idx": 355,
+      "patternIndex": 2
+    },
+    {
+      "idx": 356,
+      "patternIndex": 2
+    },
+    {
+      "idx": 357,
+      "patternIndex": -1
+    },
+    {
+      "idx": 358,
+      "patternIndex": 0
+    },
+    {
+      "idx": 359,
+      "patternIndex": 3
+    },
+    {
+      "idx": 360,
+      "patternIndex": 0
+    },
+    {
+      "idx": 361,
+      "patternIndex": -1
+    },
+    {
+      "idx": 362,
+      "patternIndex": 3
+    },
+    {
+      "idx": 363,
+      "patternIndex": -1
+    },
+    {
+      "idx": 364,
+      "patternIndex": 2
+    },
+    {
+      "idx": 365,
+      "patternIndex": -1
+    },
+    {
+      "idx": 366,
+      "patternIndex": -1
+    },
+    {
+      "idx": 367,
+      "patternIndex": 1
+    },
+    {
+      "idx": 368,
+      "patternIndex": 2
+    },
+    {
+      "idx": 369,
+      "patternIndex": 1
+    },
+    {
+      "idx": 370,
+      "patternIndex": -1
+    },
+    {
+      "idx": 371,
+      "patternIndex": -1
+    },
+    {
+      "idx": 372,
+      "patternIndex": -1
+    },
+    {
+      "idx": 373,
+      "patternIndex": -1
+    },
+    {
+      "idx": 374,
+      "patternIndex": -1
+    },
+    {
+      "idx": 375,
+      "patternIndex": -1
+    },
+    {
+      "idx": 376,
+      "patternIndex": 0
+    },
+    {
+      "idx": 377,
+      "patternIndex": 1
+    },
+    {
+      "idx": 378,
+      "patternIndex": -1
+    },
+    {
+      "idx": 379,
+      "patternIndex": 1
+    },
+    {
+      "idx": 380,
+      "patternIndex": -1
+    },
+    {
+      "idx": 381,
+      "patternIndex": -1
+    },
+    {
+      "idx": 382,
+      "patternIndex": -1
+    },
+    {
+      "idx": 383,
+      "patternIndex": -1
+    },
+    {
+      "idx": 384,
+      "patternIndex": -1
+    },
+    {
+      "idx": 385,
+      "patternIndex": -1
+    },
+    {
+      "idx": 386,
+      "patternIndex": -1
+    },
+    {
+      "idx": 387,
+      "patternIndex": -1
+    },
+    {
+      "idx": 388,
+      "patternIndex": -1
+    },
+    {
+      "idx": 389,
+      "patternIndex": -1
+    },
+    {
+      "idx": 390,
+      "patternIndex": -1
+    },
+    {
+      "idx": 391,
+      "patternIndex": -1
+    },
+    {
+      "idx": 392,
+      "patternIndex": -1
+    },
+    {
+      "idx": 393,
+      "patternIndex": -1
+    },
+    {
+      "idx": 394,
+      "patternIndex": -1
+    },
+    {
+      "idx": 395,
+      "patternIndex": -1
+    },
+    {
+      "idx": 396,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqdfvij2000ibrihalo1sybp",
+    "2": "cmqdfvij3000ubrihg3t5ne21",
+    "3": "cmqdfvij40018brih4uasogqg",
+    "4": "cmqdfvij4001abrih6h4vop97",
+    "5": "cmqdfvij4001ebrihq3cbyilg",
+    "6": "cmqdfvij4001ibrihq3a9vmew",
+    "7": "cmqdfvij5001pbrihi9b8qceo",
+    "8": "cmqdfvij5001vbrihhdkt2vlv",
+    "9": "cmqdfvij5001xbrihzxkozlrz",
+    "10": "cmqdfvij5001ybrihqxou7fl7",
+    "11": "cmqdfvij60025briho3in2gzu",
+    "12": "cmqdfvij60026brihkddb9j4o",
+    "13": "cmqdfvij60027brihq2uo2z7j",
+    "14": "cmqdfvij60029brihpd9gykmd",
+    "15": "cmqdfvij6002bbrihmjcrr0je",
+    "16": "cmq6hs6gq001pnqlvafquzp7x",
+    "17": "cmq6hs6gr0023nqlvipa918z8",
+    "18": "cmq6hs6gr0024nqlvxnnglz8x",
+    "19": "cmq6hs6gr0025nqlvwlewahau",
+    "20": "cmq6hmlk20011nqlv4r5rf56d",
+    "21": "cmq6hmlk2001anqlvzun9ndrt",
+    "22": "cmq6hmlk2001cnqlv4ywfxjk5",
+    "23": "cmq6hmlk2001dnqlv2bd9lyze",
+    "24": "cmq6hmlk3001hnqlv4jq56r10",
+    "25": "cmq6hds1h000onqlvhdh4oxjj",
+    "26": "cmq6hds1h000pnqlv702cbeqj",
+    "27": "cmq55w996001x4b1wzpt4f38v",
+    "28": "cmq55w99700224b1w4letz4sq",
+    "29": "cmq55w99700284b1wibvvjnkn",
+    "30": "cmq54tm2l001512957qyt5o4v",
+    "31": "cmq54tm2m00171295lm21yqut",
+    "32": "cmq54tm2m001812954bmn33f0",
+    "33": "cmq54orfk004d611htncbwf3k",
+    "34": "cmq3n9q0q000p13qhz7srid92",
+    "35": "cmq3n9qth003v13qhgyohqmnx",
+    "36": "cmq3n9qtl004513qhzw899ra6",
+    "37": "cmq3n9qtj004113qhpdk6q5rs",
+    "38": "cmq3n9qs7002v13qh8cv2t88b",
+    "39": "cmq3n9qae001d13qh0m0gk96v",
+    "40": "cmq3n9qaf001n13qhor61odpk",
+    "41": "cmq3n9qsw002x13qh8vhpeygw",
+    "42": "cmq3n9qgo002013qhu6980pdh",
+    "43": "cmq3n9qmt002h13qhzvzaw7uq",
+    "44": "cmq3n9qm2002d13qh6kerrpze",
+    "45": "cmq3n9qmy002r13qh11jiyzho",
+    "46": "cmq3n9qgo002713qhkqupuyiu",
+    "47": "cmq3n9qgo002513qhrwqe7val",
+    "48": "cmq3n9qmu002l13qho1p0yk3j",
+    "49": "cmq3437it000nj5djj2ot0y0s",
+    "50": "cmq33zvcx000gj5dj7psa7bzd",
+    "51": "cmq33zvcx000ij5dj75ce2zha",
+    "52": "cmq33zvcx000jj5djas9eyrri",
+    "53": "cmq0l3na600078rg1lxm1eg12",
+    "54": "cmq0l3na6000f8rg1q5l4dhv7",
+    "55": "cmq0l3na7000g8rg1ji0tz3sh",
+    "56": "cmq0l3na7000i8rg13cceb824",
+    "57": "cmpw74b8z002ybzg3x11sdbke",
+    "58": "cmpv02ilz00a9n2qpw6hi3jqr",
+    "59": "cmpv02im000b1n2qpe8psgvcj",
+    "60": "cmpt2up1e005nji84ehdw4ub9",
+    "61": "cmpt2up1f005oji84j3fh6ciy",
+    "62": "cmprvdsyt00147tsa5l5zfaol",
+    "63": "cmprvdsyt00167tsazoo6ns6n",
+    "64": "cmprvdsyt00187tsam8xfp36g",
+    "65": "cmprvdsyt001a7tsaseqtxnig",
+    "66": "cmprvdsyt001b7tsascfe0bxz",
+    "67": "cmprvdsyt001d7tsa0ljqieqt",
+    "68": "cmprvdsyt001f7tsa0c5f1p6n",
+    "69": "cmprv3x4f001uj6807d1g8yn6",
+    "70": "cmprv3x4f001vj680bbvf4kn3",
+    "71": "cmprux9xu001bj6802dqccmv1",
+    "72": "cmprux9xu001dj680lv6tu57l",
+    "73": "cmprux9xu001fj680fvczv6n8",
+    "74": "cmprupox2001scgi75jdlrlrm",
+    "75": "cmprupox2001tcgi7tifc6725",
+    "76": "cmprupox2001xcgi73u3c0urk",
+    "77": "cmprupox20020cgi7wcbiyeor",
+    "78": "cmprn1rbd00185vwikwn8g8jt",
+    "79": "cmprmh4sh001nwvqeq3jmrmqz",
+    "80": "cmprmh4si001swvqer0ugr7d9",
+    "81": "cmprmh4si001twvqe2jj43j5u",
+    "82": "cmprmh4si001wwvqei9ipntz1",
+    "83": "cmprmh4si0020wvqemsdbuakx",
+    "84": "cmprmh4si0021wvqe5gx3alki",
+    "85": "cmpqvefp6000maqx9ct2tfhn9",
+    "86": "cmpqax2ut0026coxslrw2ulry",
+    "87": "cmpny9tiq0079t6qwdjgt64a9",
+    "88": "cmpny9tiq007bt6qwj2d2p3y7",
+    "89": "cmpny9tiq007gt6qwfyycpk7b",
+    "90": "cmpny9tiq007lt6qwwe5y2eea",
+    "91": "cmpny9tir007nt6qwg0buxfa4",
+    "92": "cmpny9tir007ut6qw09elu6io",
+    "93": "cmpny9tir0088t6qwytvta5um",
+    "94": "cmpny9tis008gt6qwqbb1y7p4",
+    "95": "cmpny9tis008kt6qwlctm0sne",
+    "96": "cmpny9tis008lt6qw9vjgg79x",
+    "97": "cmpny9tis008nt6qw1u5iywff",
+    "98": "cmpnxjmx4000jt6qwcxvtut8u",
+    "99": "cmpnxjmx4000kt6qw9zsqq1zx",
+    "100": "cmpnxjmx4000ot6qwcp8e5wn6",
+    "101": "cmpnxjmx50016t6qwns4xknhw",
+    "102": "cmpnxjmx6001at6qw61nnthr4",
+    "103": "cmpnxjmx6001bt6qwhfql629x",
+    "104": "cmpnxjmx6001dt6qwaxr9xwpn",
+    "105": "cmpnxjmx6001et6qw69vndbpu",
+    "106": "cmpnxjmx6001gt6qwv324mfjz",
+    "107": "cmpnxjmx6001it6qwe03dqvn7",
+    "108": "cmpnxjmx6001jt6qw7bx265k6",
+    "109": "cmpnxjmx6001nt6qw1xafc7kj",
+    "110": "cmpnxjmx7001st6qwndoz5zzk",
+    "111": "cmpnsi9kv002jynu6eskfintk",
+    "112": "cmpnsi9kv002rynu6see27u6i",
+    "113": "cmpnlccuo000wuzhvcebbx36v",
+    "114": "cmpmfnhiv000d103a6gszi970",
+    "115": "cmpmfnhiv000f103awnnfhu7m",
+    "116": "cmpmfklez000emswfcv4zi32n",
+    "117": "cmpmfklez000gmswf8nctmcto",
+    "118": "cmpmeab88000eh3nagiqnd6ti",
+    "119": "cmpme3nlm000n7jrbfyo7t4qn",
+    "120": "cmpme3nln000x7jrb890eyzv3",
+    "121": "cmpfi4ydg001a5k9z7wa366pc",
+    "122": "cmpfi4ydh001k5k9zpq5ls7o9",
+    "123": "cmq12yzgp001ggqr951cm4iwu",
+    "124": "cmq12yzgq001rgqr9hwiymjx5",
+    "125": "cmq12yzgo0019gqr9w06tm095",
+    "126": "cmqf5mgf00014wkiab4jveuqv",
+    "127": "cmqf5mgf1001fwkia1713j93p",
+    "128": "cmqf5mgf0000xwkiaccz3oy04",
+    "129": "cmq1xll50001gjek6jbp3ls28",
+    "130": "cmq1xll50001rjek6ovklgkqk",
+    "131": "cmq1xll500019jek6j0bevb38",
+    "132": "cmq25daco001ge8x4p1xo9zt0",
+    "133": "cmq25daco001re8x4v9fullti",
+    "134": "cmq25daco0019e8x4hyan95pq",
+    "135": "cmq1v38xy001gfbd5pkd4vka4",
+    "136": "cmq1v38xz001rfbd5h0932oyk",
+    "137": "cmq1v38xy0019fbd5dkyeargr",
+    "138": "cmpffd3wv000z1032v94tc69w",
+    "139": "cmpffd3wv0016103221xgejp7",
+    "140": "cmpffd3wv0018103208l5q0rp",
+    "141": "cmq1vspbv001grupkidizqyck",
+    "142": "cmq1vspbw001rrupkrr96s9az",
+    "143": "cmq1vspbv0019rupk205acoyf",
+    "144": "cmq0oaud3001gc8ksm5qx74kj",
+    "145": "cmq0oaud3001rc8ksdkmdzmur",
+    "146": "cmq0oaud30019c8ksqtbt1p7g",
+    "147": "cmpzn2su1001gbd1adlsu8lls",
+    "148": "cmpzn2su1001rbd1atlfay9ud",
+    "149": "cmpzn2su10019bd1af10fjzzr",
+    "150": "cmq0usqf1001gy88m0675g1n5",
+    "151": "cmq0usqf2001ry88mydu2epil",
+    "152": "cmq0usqf10019y88m1jidhbgh",
+    "153": "cmqfc95s4000aagvij8ymm8wz",
+    "154": "cmqfc95s4000lagvi2z3v7z8g",
+    "155": "cmqfc95s30003agvizfb8z2x1",
+    "156": "cmq0mzbuc001g9ahmk2r4s3f5",
+    "157": "cmq0mzbuc001r9ahmqhzx7x6z",
+    "158": "cmq0mzbub00199ahmsxe9nrdd",
+    "159": "cmqf7f6280014hufk48x6ugaz",
+    "160": "cmqf7f628001fhufkgwiizd1f",
+    "161": "cmqf7f627000xhufk29nnafzn",
+    "162": "cmq0u2y37001g6ipxg77p9rw1",
+    "163": "cmq0u2y38001r6ipx4hpcbv67",
+    "164": "cmq0u2y3700196ipxjl73rl6i",
+    "165": "cmq1lx9tm001gi8069mdrskoy",
+    "166": "cmq1lx9tn001ri8060kvoecmr",
+    "167": "cmq1lx9tm0019i806e38tlp1x",
+    "168": "cmqfbspp3000a10hgjfkmx4g6",
+    "169": "cmqfbspp3000l10hgcwq3rjx4",
+    "170": "cmqfbspp2000310hgxwqj8i9c",
+    "171": "cmqfbfj70000an6opyj6kym2r",
+    "172": "cmqfbfj71000ln6opf2szcmn2",
+    "173": "cmqfbfj700003n6ops9ghtvej",
+    "174": "cmq09ylk9001gd3mf22q34gm4",
+    "175": "cmq09ylk9001rd3mfkecc24cv",
+    "176": "cmq09ylk80019d3mf8sh65pg5",
+    "177": "cmqfbt8x9000afbjs01g2ir65",
+    "178": "cmqfbt8xa000lfbjszdiup5mn",
+    "179": "cmqfbt8x90003fbjso6l5s4gb",
+    "180": "cmq608f63001fpovef7rhheb4",
+    "181": "cmq608f63001qpovekulfrxph",
+    "182": "cmq608f630018poveoxlm4hix",
+    "183": "cmpffb5wh000710321h9ott57",
+    "184": "cmpffb5wh000e1032c1ph5jtm",
+    "185": "cmp3sofk3004ijqc1a0bvnlp1",
+    "186": "cmp3sofk3004mjqc16y6bm804",
+    "187": "cmp3sofk3004njqc1fdjs28wx",
+    "188": "cmp3sguc8003ujqc1ruv3mpha",
+    "189": "cmp3r47j20029jqc1s3pquuth",
+    "190": "cmp3r47j3002hjqc15s65ayeb",
+    "191": "cmp3r47j3002jjqc14xmobv3q",
+    "192": "cmp2ef6v9004d76qxqnhoxfgc",
+    "193": "cmp2ef6v9004f76qx8wnadlb6",
+    "194": "cmp2ef6v9004h76qxlqba6cfw",
+    "195": "cmp2ef6v9004t76qxr05y5wln",
+    "196": "cmp2gplwp00066owr73dbueqz",
+    "197": "cmp2gplwp000e6owrvpouqdua",
+    "198": "cmp2ea8v3004876qxwtwr16eu",
+    "199": "cmp2e33oy003x76qxyhm6y32o",
+    "200": "cmp2du8jv002t76qx081i2sjv",
+    "201": "cmp2du8jv002u76qx9w3h0d5t",
+    "202": "cmp2du8jv002v76qxp4vajgpt",
+    "203": "cmp2du8jv002w76qx21k5rbyv",
+    "204": "cmp2du8jv002y76qxtszils1d",
+    "205": "cmp2du8jv003h76qx5a9cyqtu",
+    "206": "cmoy8zbq00028l0nghyhk7dtg",
+    "207": "cmow6o6jn0012wvle25lkj96k",
+    "208": "cmow6o6jn0014wvle1c5movyq",
+    "209": "cmow6o6jn001bwvle6oytov94",
+    "210": "cmow6o6jn001dwvle8gla0ini",
+    "211": "cmow6o6jn001hwvlecl54fh20",
+    "212": "cmow6o6jo001nwvlea9kmvi9u",
+    "213": "cmow6o6jo001qwvleieecub0h",
+    "214": "cmp0zcpui0020ypkf9iggm7k0",
+    "215": "cmp0za1sz001hypkfch00kgr7",
+    "216": "cmq0mzn3f002b9ahmfrqfhlwn",
+    "217": "cmq0u37bh002b6ipxzcd00k8b",
+    "218": "cmq12z6hf002bgqr9q9wkjzqi",
+    "219": "cmq1v3fdn002bfbd5tkcb0kzy",
+    "220": "cmq1lxfsr002bi8067gj7mjib",
+    "221": "cmqf7fr7q001zhufk2ad4exph",
+    "222": "cmqfc9sgc0015agvib8sky07a",
+    "223": "cmq0usxmd002by88mgut876cd",
+    "224": "cmpzn30g6002bbd1apgpzrelb",
+    "225": "cmq1vswrb002brupknd7tp51u",
+    "226": "cmq0ob0yj002bc8ksjpzxabx7",
+    "227": "cmqf5mzua001zwkiagc3qjw1y",
+    "228": "cmq1xlraw002bjek654y2scqe",
+    "229": "cmq25dgjf002be8x4ea66e9ox",
+    "230": "cmq6095u4002bpovela84idyg",
+    "231": "cmp0z7a3a0006ypkf59oe1q6x",
+    "232": "cmqfbg76k0015n6op7dlw1t6k",
+    "233": "cmqfbte5b001510hghluh5l57",
+    "234": "cmqfbtw9d0015fbjsac0nn86j",
+    "235": "cmq09ysdv002bd3mfxxogzsg0",
+    "236": "cmp0z5icy002j28aq0vd44nzh",
+    "237": "cmp0z1s3t001z28aq5tji7sob",
+    "238": "cmp0z1s3t002128aqfnrcfh07",
+    "239": "cmp0z1s3t002428aqtistywdv",
+    "240": "cmoy8wg1t001jl0ng8cwed4xr",
+    "241": "cmoy8vqxx001al0ngg50obypl",
+    "242": "cmoy8r0va0002l0ng9p9shwez",
+    "243": "cmoy8r0va000il0ngetqvsmva",
+    "244": "cmoy8r0va000ml0ng7beiabl8",
+    "245": "cmoy8k5ef0012c01odxff9bws",
+    "246": "cmoy8gg560003c01o0hi9tdtc",
+    "247": "cmoxnsjiy000x2s84qxivjt2j",
+    "248": "cmoxnrm28000g2s84ycra61gw",
+    "249": "cmowals1v000t5uayby26z84i",
+    "250": "cmowadcmb002tpo7lhyqwiofl",
+    "251": "cmowa96v3001rpo7lfldkditn",
+    "252": "cmowa6yaw0015po7lddvzp6kb",
+    "253": "cmowa62ng000upo7lpfk3epb1",
+    "254": "cmowa1xv300292ufgf6lr18gi",
+    "255": "cmow9z40r001s2ufggwuxpdih",
+    "256": "cmow9w7rm000x2ufghyyqeci5",
+    "257": "cmow9u80f00042ufgh5a53vau",
+    "258": "cmotybjq4009qd15s88aj5hix",
+    "259": "cmotyaelt0095d15sin0w6xxl",
+    "260": "cmotyaelt0099d15ssxlqhswi",
+    "261": "cmoty9a3h008id15sbcp636qi",
+    "262": "cmotxyqpx002xd15srvtdxrqq",
+    "263": "cmotxyqpx002zd15s62apkkgu",
+    "264": "cmoshk41d002g13l0oalnaw4x",
+    "265": "cmoshc4tx002013l00rb4ikgz",
+    "266": "cmoshc4tx002613l09tmlkywi",
+    "267": "cmopk27fx0002102o4jyel7bl",
+    "268": "cmopk27fy0003102ocyuerjj9",
+    "269": "cmopk27fy0004102oxlvr41l2",
+    "270": "cmopk27fy0006102ow8tqcn2y",
+    "271": "cmopaizb3004s1amhvodxee4g",
+    "272": "cmopahel200441amhtvhjoo0j",
+    "273": "cmopagakl00401amhaihxjib3",
+    "274": "cmop6vuck002nzzemfpxqcckg",
+    "275": "cmoid1phg002z48op8vk2jm7a",
+    "276": "cmojxt9ey000f5v8d5cjhpfqn",
+    "277": "cmojxt9ez000n5v8d2ou5k0mb",
+    "278": "cmojxs673000b5v8dxj8hzocr",
+    "279": "cmoidi9rl005n48opl4krmwla",
+    "280": "cmoid4yas004348opdivbrbjf",
+    "281": "cmoid30sn003s48op3slt1z1b",
+    "282": "cmoid30sn003t48opr0st1t5b",
+    "283": "cmoid1r9n003848opjj7wp35z",
+    "284": "cmodmf81l009sruh9t8raopij",
+    "285": "cmodmf81l009vruh9stysj12z",
+    "286": "cmodmf81l009xruh9hhdknbqs",
+    "287": "cmodmf81l009zruh9kp9vm7cv",
+    "288": "cmo9qa41s0044j7ihv4pdh58y",
+    "289": "cmo9q5zah0039j7ihirbvw746",
+    "290": "cmo9q5zai003lj7ihxqs2e6yt",
+    "291": "cmo9q3a340034j7ihv78dmtp2",
+    "292": "cmo9q0ary002nj7ihpwtnacmc",
+    "293": "cmo9pygxd0025j7ihqomrhfw6",
+    "294": "cmo9pygxd0026j7ih11q39f5x",
+    "295": "cmo9piceb000fj7ih67671ovm",
+    "296": "cmo9pblrn001eqw3cqz90d6s6",
+    "297": "cmo9pblro001jqw3czxbwwfxy",
+    "298": "cmo9pblro001qqw3csr5xfn49",
+    "299": "cmo8nu66s00205rfsiqxi6vaf",
+    "300": "cmo8nu66s00215rfs06fku2z0",
+    "301": "cmo8nu66s00245rfsclv93j2p",
+    "302": "cmo8nrk82001r5rfs5g194v8l",
+    "303": "cmo8nrk82001s5rfsz3aobf7d",
+    "304": "cmo8ngoue001b5rfswthd9777",
+    "305": "cmo8ngoue001f5rfsrqyqjivy",
+    "306": "cmo8n7q9900035rfsz24d6bk8",
+    "307": "cmo8n7q9900075rfsbeeau71z",
+    "308": "cmo8fuppm0089klxxpvhrc3ju",
+    "309": "cmo8fsofe0081klxx96k4qbn0",
+    "310": "cmo8fpvq2007lklxxxchx6pwj",
+    "311": "cmo8fpvq2007nklxxvtdcwpp9",
+    "312": "cmo8fpvq2007pklxxrbg46po6",
+    "313": "cmo8fn6hf007fklxxgoq7grn2",
+    "314": "cmo8f8bu90048klxx8t164mqd",
+    "315": "cmo8f237t001qklxx0lybtvi4",
+    "316": "cmo8f237t001rklxxbru0jt4f",
+    "317": "cmo8evjop0002klxxuzyje2al",
+    "318": "cmo8evjop0003klxx197m9wyb",
+    "319": "cmo8evjop0004klxxqmcwywit",
+    "320": "cmo8evjop0005klxxcdh9ps5l",
+    "321": "cmo8encc7002813zzws7uogsh",
+    "322": "cmo8encc7002913zzelome8kd",
+    "323": "cmo58d0ia002be5066b8grt9n",
+    "324": "cmo58d0ia002ce50663ct6ms6",
+    "325": "cmo58d0ia002fe506b7i7k12v",
+    "326": "cmo58d0ib002ge506vz0gzab9",
+    "327": "cmo58d0ib002me506bjwprktr",
+    "328": "cmo8dzonx002h13w7hw08fzqc",
+    "329": "cmo8dwj1v001t13w7ngyqvq9l",
+    "330": "cmo8dv4dn001n13w7z9z088zc",
+    "331": "cmo8dopfk001913w716fchb1s",
+    "332": "cmo8dopfk001a13w7v5tsahzq",
+    "333": "cmo8d7a25000n13w7u6l8gxjx",
+    "334": "cmo8d62pt000a13w7ew9pb7wc",
+    "335": "cmnx49z7m000n133dd464p031",
+    "336": "cmnx49z7m000o133dw5xebfds",
+    "337": "cmnx49z7m000r133dluq154e4",
+    "338": "cmnx49z7m000v133doajjp2vl",
+    "339": "cmo7yvoxe001d12oh2siavn7e",
+    "340": "cmo7yvoxe001h12ohamvt9czj",
+    "341": "cmo7yvoxe001k12oh3ymy6nm5",
+    "342": "cmo7yvoxe001q12ohwn6qf49m",
+    "343": "cmo7yvoxe001w12ohk85bu3qg",
+    "344": "cmo8clem7000413w7klk764ur",
+    "345": "cmo8clem7000613w7sppfvd8b",
+    "346": "cmo7736l6000tyynguop4qa11",
+    "347": "cmo7736l6000uyyng2ug1bixl",
+    "348": "cmo7718w6000ayyngng6piam7",
+    "349": "cmo7718w6000dyyngbu6j67lb",
+    "350": "cmo5nlosl0002plnm02k625qe",
+    "351": "cmo76mo1p0003yyngfxt5fvfz",
+    "352": "cmo76mo1q0004yyngst3bjfel",
+    "353": "cmo71cqm1000bsa6tgf7jel45",
+    "354": "cmo71cqm1000csa6t976vce5w",
+    "355": "cmo5o32xb000vplnmry1mvmgm",
+    "356": "cmo5nsmrf000hplnmt24biv91",
+    "357": "cmo5nsmrf000jplnmh4xoyu7o",
+    "358": "cmo5nlqw1000aplnmlxy3y76s",
+    "359": "cmo5nlqw1000cplnmn0rnscdv",
+    "360": "cmo5kfw2o00091g4tts7ywcrl",
+    "361": "cmo5kfyk7000f1g4ty2vj8xzi",
+    "362": "cmo5kfyk7000h1g4t63hv60lv",
+    "363": "cmo5kfyk7000j1g4tizspy007",
+    "364": "cmo3m0lqf00031notucr01cno",
+    "365": "cmo2sxpov000v425bv6s56z41",
+    "366": "cmnx6tpdk001hi16w3ta83omj",
+    "367": "cmnzrfcws0016pnvpufdh6cwv",
+    "368": "cmnzrdrkb000gpnvplx6v2ufu",
+    "369": "cmnzrbosc0003pnvpq9hbppbj",
+    "370": "cmnzrbosc0004pnvp36ihz79c",
+    "371": "cmnzrbosc0008pnvpccwhgrlo",
+    "372": "cmnzo35cf0021p5jj4qcip2o6",
+    "373": "cmnzo35cg002ep5jjb3ai679a",
+    "374": "cmnzo35cg002hp5jjzjgb3s4n",
+    "375": "cmnzo35cg002rp5jjqanzmovy",
+    "376": "cmnzo35cg002sp5jjwjhttqgs",
+    "377": "cmnzo35cg002up5jjmb79ghd0",
+    "378": "cmnzo35cg002vp5jjimi5o4ch",
+    "379": "cmnx6tmgb0016i16w3kymx1k5",
+    "380": "cmnx6sj6q000yi16woeca2ru1",
+    "381": "cmnx6sj6q000zi16w4w944q21",
+    "382": "cmnx6bbii000qihil97qxd0we",
+    "383": "cmnx68puq00ii97iuf5jlrkwt",
+    "384": "cmnx4achj001o133dc7t9algn",
+    "385": "cmnx4achj001r133d0wimzcj7",
+    "386": "cmnx4achj001s133dafwz3bfy",
+    "387": "cmnx4achj001t133d93kmmjip",
+    "388": "cmnx4achj001u133dayxoouve",
+    "389": "cmnx4achj001y133dc29cre8w",
+    "390": "cmnx4achj0022133dw8w4mhvu",
+    "391": "cmnx4achk002b133d4b0tsp7y",
+    "392": "cmnv2ui5m00057f0ryprfbm0u",
+    "393": "cmnu83vgm0006ryoqbv8s1eg2",
+    "394": "cmnu83vgn000zryoq3qjty3fq",
+    "395": "cmnt05ys9000ju1haazt67k8r",
+    "396": "cmnt05ysa000ru1hacxza3b1h"
+  },
+  "generatedAt": "2026-06-17T08:10:10.821Z",
+  "wrongCounts": {
+    "total": 396,
+    "oeq": 238,
+    "mcq": 158
+  },
+  "toplineSnapshot": {
+    "avgPct": 92,
+    "totalAwarded": 4675.5,
+    "totalAvailable": 5109,
+    "paperCount": 264
+  },
+  "previousAssessment": null
+}

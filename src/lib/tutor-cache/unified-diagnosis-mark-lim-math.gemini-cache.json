@@ -1,124 +1,124 @@
 {
   "patterns": [
     {
-      "name": "One Step Short",
-      "what": "Sometimes does the hard work to find a middle answer, but stops before completing the final step requested by the question.",
+      "name": "Stopping Too Early",
+      "what": "Mark occasionally does the hard work to find an intermediate value, but stops one step short of the final answer requested.",
       "specific_examples": [
         {
-          "questionRef": "[47]",
+          "questionRef": "[52]",
           "type": "mcq",
-          "whatWentWrong": "He correctly found the fraction of the cake left for the two friends, but forgot to divide it by two to find what each friend got."
+          "whatWentWrong": "He correctly found the remaining fraction of the cake for the two friends, but forgot to divide it by two to find what each friend got."
         },
         {
-          "questionRef": "[112]",
+          "questionRef": "[138]",
           "type": "oeq",
-          "whatWentWrong": "He successfully calculated the number of extra cookies bought, but stopped short of adding the initial cookies to find the total."
+          "whatWentWrong": "He successfully calculated the pattern multiplier, but forgot to add 1 at the end to find the actual Figure Number."
         },
         {
-          "questionRef": "[118]",
+          "questionRef": "[54]",
           "type": "oeq",
-          "whatWentWrong": "He correctly worked backwards to find the intermediate value, but missed the final step of adding one to get the actual figure number."
+          "whatWentWrong": "He found the total number of trays, but stopped there instead of calculating how many of those trays had exactly 10 eggs."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'each'** → remember to divide the total among the group\n- **'altogether'** or **'in the end'** → make sure you add back any starting amounts\n- **'mixed number'** or **'kilograms'** → check if your answer needs to be converted into a different format",
+      "strategic_advice": "When you finish a calculation, re-read the last sentence of the question to make sure you are answering exactly what is asked.\n- **'each friend'** → remember to divide the total by the number of friends\n- **'how many more'** → remember to subtract the two values at the end\n- **'altogether'** → check if you need to add an earlier amount to your final number",
       "trigger_keywords": [
         "each",
         "altogether",
-        "in the end",
-        "mixed number",
-        "kilograms"
+        "how many more",
+        "Figure Number"
       ]
     },
     {
       "name": "Wrong Total Used",
-      "what": "Occasionally uses the grand total as the bottom of a fraction, even when the question asks to compare with a different part like 'expenditure' or 'savings'.",
+      "what": "Mark sometimes calculates a fraction or ratio using the original total, instead of the specific leftover or group asked for in the question.",
       "specific_examples": [
         {
-          "questionRef": "[132]",
+          "questionRef": "[152]",
           "type": "mcq",
-          "whatWentWrong": "He used the total monthly money as the bottom of his fraction instead of using the expenditure as requested."
+          "whatWentWrong": "He found the savings as a fraction of the total money, instead of finding it as a fraction of the expenditure."
         },
         {
-          "questionRef": "[146]",
+          "questionRef": "[160]",
           "type": "mcq",
-          "whatWentWrong": "He compared the spending to the total amount of money, rather than comparing it to the savings."
+          "whatWentWrong": "He gave the ratio of women to the total number of passengers, rather than the ratio of men to women."
         }
       ],
-      "strategic_advice": "When a question asks for a **'fraction of'** something, the word right after **'of'** tells you what goes at the bottom of your fraction. If it says **'fraction of his savings'**, put the savings at the bottom, not the total money.",
+      "strategic_advice": "When a question asks for a fraction or ratio, circle the words that come right after **'fraction of'** or **'ratio of'**.\n- **'fraction of his expenditure'** → put the expenditure at the bottom of the fraction, not the total money\n- **'ratio of men to women'** → make sure you are comparing the two groups, not a group to the total",
       "trigger_keywords": [
-        "fraction of his expenditure",
-        "fraction of his savings",
-        "fraction of"
+        "fraction of",
+        "ratio of",
+        "remainder",
+        "expenditure"
       ]
     },
     {
-      "name": "Perimeter vs Curve Mix-Up",
-      "what": "Tends to calculate only the curved part of a shape when asked for the perimeter, forgetting to add the straight lines that close the shape.",
-      "specific_examples": [
-        {
-          "questionRef": "[103]",
-          "type": "mcq",
-          "whatWentWrong": "He correctly found the length of the curved arc, but forgot to add the two straight radii to complete the perimeter."
-        },
-        {
-          "questionRef": "[107]",
-          "type": "oeq",
-          "whatWentWrong": "He did a great job calculating the curved lengths of the semicircles, but omitted the straight line segments from the final perimeter."
-        }
-      ],
-      "strategic_advice": "When finding the **'perimeter'** of a shape with curves, trace the entire outside edge with your pencil. If your pencil runs over a **straight line**, make sure you add that length to your curved arc calculation!",
-      "trigger_keywords": [
-        "perimeter of the figure",
-        "perimeter of the semicircle",
-        "perimeter"
-      ]
-    },
-    {
-      "name": "Unit Mix-Up",
-      "what": "Sometimes forgets to include units in the final answer, or mixes up units of length (cm) with units of area (cm²).",
+      "name": "Wrong or Missing Units",
+      "what": "Mark tends to leave out units in his final answer, or accidentally uses a unit for area when the question asks for length.",
       "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "He found the correct numerical value for the perimeter, but accidentally used square centimetres (cm²) which is for area."
+          "whatWentWrong": "He calculated the perimeter perfectly, but wrote 'cm²' (which is for area) instead of 'cm'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "He calculated the area perfectly, but wrote degrees (°) instead of square centimetres (cm²)."
+          "whatWentWrong": "He found the correct area of the shaded part, but accidentally used the degree symbol '°' instead of 'cm²'."
         },
         {
-          "questionRef": "[97]",
+          "questionRef": "[133]",
           "type": "oeq",
-          "whatWentWrong": "He got the exact right number for the diameter, but forgot to write 'cm' at the end."
+          "whatWentWrong": "He found the correct amount of money Tim was paid, but forgot to include the '$' sign."
         }
       ],
-      "strategic_advice": "Before moving to the next question, always do a quick **unit check**:\n- **Lengths and perimeters** → use plain units like cm or m\n- **Areas** → use square units like cm² or m²\n- If the question gives a unit, make sure your final answer has one too!",
+      "strategic_advice": "Always double-check what the question is measuring before writing your final answer.\n- **'perimeter'** or **'length'** → use cm or m\n- **'area'** → use cm² or m²\n- **'how much'** → remember the $ sign",
       "trigger_keywords": [
-        "area",
         "perimeter",
-        "diameter",
-        "cm²",
-        "cm"
+        "area",
+        "how much",
+        "diameter"
+      ]
+    },
+    {
+      "name": "Arc vs Perimeter Mix-Up",
+      "what": "Mark occasionally confuses the length of a curved arc with the total perimeter of a shape, forgetting to add the straight edges.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He found the length of the curved part of the quarter-circle, but forgot to add the two straight sides to get the full perimeter."
+        },
+        {
+          "questionRef": "[127]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly calculated the curved lengths of the semicircles, but left out the straight line segments when finding the total perimeter."
+        }
+      ],
+      "strategic_advice": "When finding the perimeter of a shape with curves, trace the entire outside edge with your pencil.\n- **'perimeter of the figure'** → add the curved arc **and** all the straight edges that make up the border",
+      "trigger_keywords": [
+        "perimeter",
+        "semicircle",
+        "quarter-circle",
+        "figure"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 5,
@@ -130,11 +130,11 @@
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -150,7 +150,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -290,7 +290,7 @@
     },
     {
       "idx": 47,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -298,11 +298,11 @@
     },
     {
       "idx": 49,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 50,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 51,
@@ -314,11 +314,11 @@
     },
     {
       "idx": 53,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 54,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 55,
@@ -326,11 +326,11 @@
     },
     {
       "idx": 56,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 57,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 58,
@@ -338,11 +338,11 @@
     },
     {
       "idx": 59,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 61,
@@ -350,7 +350,7 @@
     },
     {
       "idx": 62,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 63,
@@ -358,11 +358,11 @@
     },
     {
       "idx": 64,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 66,
@@ -374,11 +374,11 @@
     },
     {
       "idx": 68,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 69,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 70,
@@ -386,11 +386,11 @@
     },
     {
       "idx": 71,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 72,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 73,
@@ -398,11 +398,11 @@
     },
     {
       "idx": 74,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 75,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 76,
@@ -410,11 +410,11 @@
     },
     {
       "idx": 77,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 78,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 79,
@@ -422,11 +422,11 @@
     },
     {
       "idx": 80,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 81,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 82,
@@ -434,11 +434,11 @@
     },
     {
       "idx": 83,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 84,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 85,
@@ -446,11 +446,11 @@
     },
     {
       "idx": 86,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 87,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 88,
@@ -458,11 +458,11 @@
     },
     {
       "idx": 89,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 90,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 91,
@@ -470,11 +470,11 @@
     },
     {
       "idx": 92,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 93,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 94,
@@ -486,11 +486,11 @@
     },
     {
       "idx": 96,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 97,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 98,
@@ -498,11 +498,11 @@
     },
     {
       "idx": 99,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 100,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 101,
@@ -510,35 +510,35 @@
     },
     {
       "idx": 102,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 103,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 104,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 105,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 106,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 107,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 108,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 109,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 110,
@@ -546,7 +546,7 @@
     },
     {
       "idx": 111,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 112,
@@ -554,11 +554,11 @@
     },
     {
       "idx": 113,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 114,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 115,
@@ -566,15 +566,15 @@
     },
     {
       "idx": 116,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 117,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 118,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 119,
@@ -594,7 +594,7 @@
     },
     {
       "idx": 123,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 124,
@@ -610,11 +610,11 @@
     },
     {
       "idx": 127,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 128,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 129,
@@ -622,15 +622,15 @@
     },
     {
       "idx": 130,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 131,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 132,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 133,
@@ -638,7 +638,7 @@
     },
     {
       "idx": 134,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 135,
@@ -654,11 +654,11 @@
     },
     {
       "idx": 138,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 139,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 140,
@@ -670,11 +670,11 @@
     },
     {
       "idx": 142,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 143,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 144,
@@ -686,7 +686,7 @@
     },
     {
       "idx": 146,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 147,
@@ -698,7 +698,7 @@
     },
     {
       "idx": 149,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 150,
@@ -706,22 +706,102 @@
     },
     {
       "idx": 151,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 152,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 153,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 154,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 155,
+      "patternIndex": -1
+    },
+    {
+      "idx": 156,
+      "patternIndex": -1
+    },
+    {
+      "idx": 157,
+      "patternIndex": -1
+    },
+    {
+      "idx": 158,
+      "patternIndex": -1
+    },
+    {
+      "idx": 159,
+      "patternIndex": -1
+    },
+    {
+      "idx": 160,
+      "patternIndex": 1
+    },
+    {
+      "idx": 161,
+      "patternIndex": -1
+    },
+    {
+      "idx": 162,
+      "patternIndex": 1
+    },
+    {
+      "idx": 163,
+      "patternIndex": -1
+    },
+    {
+      "idx": 164,
+      "patternIndex": -1
+    },
+    {
+      "idx": 165,
+      "patternIndex": 1
+    },
+    {
+      "idx": 166,
+      "patternIndex": 1
+    },
+    {
+      "idx": 167,
+      "patternIndex": -1
+    },
+    {
+      "idx": 168,
+      "patternIndex": -1
+    },
+    {
+      "idx": 169,
+      "patternIndex": 3
+    },
+    {
+      "idx": 170,
+      "patternIndex": -1
+    },
+    {
+      "idx": 171,
+      "patternIndex": 1
+    },
+    {
+      "idx": 172,
+      "patternIndex": -1
+    },
+    {
+      "idx": 173,
+      "patternIndex": -1
+    },
+    {
+      "idx": 174,
+      "patternIndex": 2
+    },
+    {
+      "idx": 175,
       "patternIndex": -1
     }
   ],
@@ -741,158 +821,197 @@
     "13": "cmpmewwjb000bfk6tuvo1zvsm",
     "14": "cmpmefp8v000poa94sn1shtyq",
     "15": "cmpmefp8w000uoa94j53w1nvr",
-    "16": "cmpuium230007xpplnr0x96ps",
-    "17": "cmpuium23000bxppla8qrvn86",
-    "18": "cmozcbl4g001j11l7415hbsld",
-    "19": "cmozcbl4g001k11l7f437t80r",
-    "20": "cmq60bjz0003cpove1zxna1wp",
-    "21": "cmq60bjyz0036pove0w5ffedg",
-    "22": "cmqf7hk9g002vhufkz2u3rkce",
-    "23": "cmqf7hk9h0033hufkeuwmt8b7",
-    "24": "cmq25eq61003be8x4808gqf7o",
-    "25": "cmq25eq62003fe8x4qfykr5m1",
-    "26": "cmq1vu75m003brupk4sol792b",
-    "27": "cmq1vu75m003frupk7pgjiptc",
-    "28": "cmq0oc6fc003bc8ksjyddfq4j",
-    "29": "cmq0a0204003bd3mfay8gde0m",
-    "30": "cmq0a0204003fd3mfy5mf0nfv",
-    "31": "cmq0uty5h003by88mr9kn58yk",
-    "32": "cmq0uty5h003fy88mst9ntl0n",
-    "33": "cmq1v49ng003bfbd5hhgj3u3s",
-    "34": "cmq1v49ng003ffbd59bmmbovj",
-    "35": "cmpzn471h003bbd1aqq7qgzof",
-    "36": "cmpzn471h003fbd1alo7s0wcb",
-    "37": "cmq0u4a8b003b6ipxo3o722q1",
-    "38": "cmq0u4a8b003f6ipxprtk8919",
-    "39": "cmq1lynj7003bi8061vuznid8",
-    "40": "cmq1lynj7003fi806ymp1fwcj",
-    "41": "cmq0n0s4i003b9ahmjhih0lrv",
-    "42": "cmq130a14003bgqr9lfzoxnid",
-    "43": "cmq1xmurh003bjek6hm3kacsp",
-    "44": "cmq1xmurh003fjek65yfd186c",
-    "45": "cmqf5ozdj002vwkiao9169n3f",
-    "46": "cmqf5ozdk0033wkiaazjmowlo",
-    "47": "cmq1vt4zt0033rupkpr0rlsog",
-    "48": "cmq1vt4zt0031rupkxk7quwie",
-    "49": "cmq1vt4zt0032rupk34xld36k",
-    "50": "cmqf5nk27002rwkia83g8fgwu",
-    "51": "cmqf5nk27002pwkiatdp9sqh9",
-    "52": "cmqf5nk27002qwkiapfuut8sr",
-    "53": "cmq1xlzxs0033jek689akb0sf",
-    "54": "cmq1xlzxs0031jek6zqjyn4ch",
-    "55": "cmq1xlzxs0032jek6v08uisvt",
-    "56": "cmq25dnya0033e8x4h6hnvti0",
-    "57": "cmq25dnya0031e8x4fel3lvo0",
-    "58": "cmq25dnya0032e8x4j6j0hrxl",
-    "59": "cmq1v3kyb0033fbd5ep5dvdg6",
-    "60": "cmq1v3kya0031fbd5dfuow5sw",
-    "61": "cmq1v3kya0032fbd5pgfpiwh6",
-    "62": "cmqf7gbhw002rhufkdpxxenjc",
-    "63": "cmqf7gbhw002phufk77rz7xkt",
-    "64": "cmqf7gbhw002qhufkc2e7hrqw",
-    "65": "cmq0ut44p0033y88mcur4372w",
-    "66": "cmq0ut44p0031y88m73u8wqv0",
-    "67": "cmq0ut44p0032y88mdl2s2np5",
-    "68": "cmpzn39nm0033bd1ae88hcx3c",
-    "69": "cmpzn39nl0031bd1azxcl1lrx",
-    "70": "cmpzn39nl0032bd1a1ggn1i13",
-    "71": "cmq0ob8vg0033c8kszjroeua0",
-    "72": "cmq0ob8vg0031c8kss7o892ga",
-    "73": "cmq0ob8vg0032c8ksei795wn7",
-    "74": "cmq12zday0033gqr94vee29t2",
-    "75": "cmq12zday0031gqr9ltl1gu0k",
-    "76": "cmq12zday0032gqr98ib6tdus",
-    "77": "cmq09yz1h0033d3mfwgd9c8tn",
-    "78": "cmq09yz1h0031d3mfgtd18fls",
-    "79": "cmq09yz1h0032d3mf1a636s8h",
-    "80": "cmq0mztkd00339ahmp1lnwkh4",
-    "81": "cmq0mztkd00319ahmj3ke0dlo",
-    "82": "cmq0mztkd00329ahmlnjugbes",
-    "83": "cmq1lxn3r0033i806xziq7120",
-    "84": "cmq1lxn3r0031i806k5x7eqv5",
-    "85": "cmq1lxn3r0032i806vwiujmfe",
-    "86": "cmozc5ics000i11l7afgmmk27",
-    "87": "cmozc5ics000k11l75z4mv8xc",
-    "88": "cmozc5ics000m11l7u83ajdmr",
-    "89": "cmq0u3cxn00336ipxqdultslo",
-    "90": "cmq0u3cxn00316ipxvv5i15ur",
-    "91": "cmq0u3cxn00326ipxo1d58fvh",
-    "92": "cmq609zga002upovemp0rc04q",
-    "93": "cmq609zgb0032poveblrnxz9h",
-    "94": "cmq609zgb0033poveuz8x3iky",
-    "95": "cmoy6367o000wlsp29f4hl2rb",
-    "96": "cmoxn0s960005nwgmb6ywue8a",
-    "97": "cmoxn0s97000bnwgm7s0d1jlj",
-    "98": "cmotxzsv3004yd15stdps1vop",
-    "99": "cmotxzsv30050d15shpyqymfy",
-    "100": "cmow6nmvh000kwvlemanberft",
-    "101": "cmotxzo8h004pd15syqakvzs4",
-    "102": "cmotxzo8h004qd15suhefikzo",
-    "103": "cmo7yv1sa000g12ohffl5454o",
-    "104": "cmo7yv1sa000h12ohuymzj71n",
-    "105": "cmo7yv1sb000i12ohjac3ybxq",
-    "106": "cmo7yv1sb000j12ohbtt0q5ee",
-    "107": "cmo7yv1sb000k12oh7ku9vxp5",
-    "108": "cmo8eh2vk000213zzzf72zd6c",
-    "109": "cmo8eh2vk000513zzgqclqg8r",
-    "110": "cmo8eh2vk000a13zzfgb41fdr",
-    "111": "cmo8eh2vk000f13zz7a07q7x5",
-    "112": "cmnzo3llc003sp5jjq1gy330z",
-    "113": "cmo2so82k000k425b9xt4he3w",
-    "114": "cmo2so82k000m425brpzg2i08",
-    "115": "cmnzrh5nn001opnvpzh20ne45",
-    "116": "cmnx6kwyd000gi16wx63g3ytr",
-    "117": "cmnx4bosh002v133dkkn75qgd",
-    "118": "cmntmt2i200b51330q52b8g2b",
-    "119": "cmnsw23f8000d5nic0m6ti94i",
-    "120": "cmnsw23f8000g5nicjmzv8moe",
-    "121": "cmnsvqj2h00261te77vrjzg84",
-    "122": "cmnsvlpia001i1te7hh9xahh9",
-    "123": "cmnsvlpia001n1te71ii7qq6p",
-    "124": "cmnsv4zrs00041te7a05yaiy2",
-    "125": "cmnsv4zrt000c1te71z97jm8d",
-    "126": "cmnsv4zrt000e1te7jbwzfsmx",
-    "127": "cmniebk9o000d5pijd76iqbqu",
-    "128": "cmniebk9o000e5pij4946h1r9",
-    "129": "cmniebk9o000g5pijb0gd1aff",
-    "130": "cmnh76ndz005de0gjn9iam3ng",
-    "131": "cmnh4m38g0032e0gjpuwscwcb",
-    "132": "cmnh4g1ox001te0gjqj21l0xw",
-    "133": "cmnfyx6wd004qalke8ehn15lm",
-    "134": "cmnfyx6wd004yalkepc3pkzup",
-    "135": "cmnfyx6wd0051alke1bpz5rrk",
-    "136": "cmnfyulo70046alke1fzmeoqz",
-    "137": "cmnfyulo8004balkessrdr5x8",
-    "138": "cmnfyqdhl003halkecuruf83p",
-    "139": "cmnfyqdhm003kalkemxavp5tq",
-    "140": "cmnfyqdhm003nalkel7d765se",
-    "141": "cmnfyqdhm003talkekv41wnce",
-    "142": "cmnfyqdhm003xalkegwt7ta9h",
-    "143": "cmnfydywn002dalke0xhx77ke",
-    "144": "cmnfydywo002falkedyogn5mj",
-    "145": "cmnfydywo002galke216tacrx",
-    "146": "cmnfydywo002nalkebirkwkpl",
-    "147": "cmnfydywo002ralkebuf5u2qq",
-    "148": "cmnfxwsoh000oalke73rkybdu",
-    "149": "cmnfxwsoi000salkeqsuwj0pz",
-    "150": "cmnfxwsoi000walkeui4co64k",
-    "151": "cmnfxwsoi000xalke7ts49c52",
-    "152": "cmnd16sg90013f406kamx7fc1",
-    "153": "cmnd0zblc000bf406s970wspy",
-    "154": "cmnbkbkq8000fstjgtdans86k",
-    "155": "cmn9vsfnh000910ti521fqwng"
+    "16": "cmq0uty5h003by88mr9kn58yk",
+    "17": "cmq0uty5h003fy88mst9ntl0n",
+    "18": "cmq1lynj7003bi8061vuznid8",
+    "19": "cmq1lynj7003fi806ymp1fwcj",
+    "20": "cmpuium230007xpplnr0x96ps",
+    "21": "cmpuium23000bxppla8qrvn86",
+    "22": "cmq25eq61003be8x4808gqf7o",
+    "23": "cmq25eq62003fe8x4qfykr5m1",
+    "24": "cmq60bjz0003cpove1zxna1wp",
+    "25": "cmq60bjyz0036pove0w5ffedg",
+    "26": "cmpzn471h003bbd1aqq7qgzof",
+    "27": "cmpzn471h003fbd1alo7s0wcb",
+    "28": "cmqf7hk9g002vhufkz2u3rkce",
+    "29": "cmqf7hk9h0033hufkeuwmt8b7",
+    "30": "cmqt7vvm3002va6dw2yz00okl",
+    "31": "cmqt7vvm30033a6dw0cs3vjs5",
+    "32": "cmq1v49ng003bfbd5hhgj3u3s",
+    "33": "cmq1v49ng003ffbd59bmmbovj",
+    "34": "cmq0n0s4i003b9ahmjhih0lrv",
+    "35": "cmql4yuz6002va7m0xqb68ggn",
+    "36": "cmql4yuz60033a7m08hqgc565",
+    "37": "cmq130a14003bgqr9lfzoxnid",
+    "38": "cmq0u4a8b003b6ipxo3o722q1",
+    "39": "cmq0u4a8b003f6ipxprtk8919",
+    "40": "cmq1xmurh003bjek6hm3kacsp",
+    "41": "cmq1xmurh003fjek65yfd186c",
+    "42": "cmq0oc6fc003bc8ksjyddfq4j",
+    "43": "cmq1vu75m003brupk4sol792b",
+    "44": "cmq1vu75m003frupk7pgjiptc",
+    "45": "cmozcbl4g001j11l7415hbsld",
+    "46": "cmozcbl4g001k11l7f437t80r",
+    "47": "cmqf5ozdj002vwkiao9169n3f",
+    "48": "cmqf5ozdk0033wkiaazjmowlo",
+    "49": "cmql2tn4e002vojbvuo37aadk",
+    "50": "cmq0a0204003bd3mfay8gde0m",
+    "51": "cmq0a0204003fd3mfy5mf0nfv",
+    "52": "cmq0u3cxn00336ipxqdultslo",
+    "53": "cmq0u3cxn00316ipxvv5i15ur",
+    "54": "cmq0u3cxn00326ipxo1d58fvh",
+    "55": "cmq12zday0033gqr94vee29t2",
+    "56": "cmq12zday0031gqr9ltl1gu0k",
+    "57": "cmq12zday0032gqr98ib6tdus",
+    "58": "cmq0ob8vg0033c8kszjroeua0",
+    "59": "cmq0ob8vg0031c8kss7o892ga",
+    "60": "cmq0ob8vg0032c8ksei795wn7",
+    "61": "cmql4ydst002ra7m0brz3vbyh",
+    "62": "cmql4ydss002la7m07iw1jtop",
+    "63": "cmql4ydss002pa7m0x3x9xejy",
+    "64": "cmql4ydss002ja7m0f1luujwx",
+    "65": "cmql4ydst002qa7m0ic1kpx5p",
+    "66": "cmql4ydss002ka7m0m6oncbod",
+    "67": "cmpzn39nm0033bd1ae88hcx3c",
+    "68": "cmpzn39nl0031bd1azxcl1lrx",
+    "69": "cmpzn39nl0032bd1a1ggn1i13",
+    "70": "cmqf5nk27002rwkia83g8fgwu",
+    "71": "cmqf5nk27002pwkiatdp9sqh9",
+    "72": "cmqf5nk27002qwkiapfuut8sr",
+    "73": "cmq0mztkd00339ahmp1lnwkh4",
+    "74": "cmq0mztkd00319ahmj3ke0dlo",
+    "75": "cmq0mztkd00329ahmlnjugbes",
+    "76": "cmqf7gbhw002rhufkdpxxenjc",
+    "77": "cmqf7gbhw002phufk77rz7xkt",
+    "78": "cmqf7gbhw002qhufkc2e7hrqw",
+    "79": "cmq1xlzxs0033jek689akb0sf",
+    "80": "cmq1xlzxs0031jek6zqjyn4ch",
+    "81": "cmq1xlzxs0032jek6v08uisvt",
+    "82": "cmq1vt4zt0033rupkpr0rlsog",
+    "83": "cmq1vt4zt0031rupkxk7quwie",
+    "84": "cmq1vt4zt0032rupk34xld36k",
+    "85": "cmql2r3r0002rojbvxb5pldh9",
+    "86": "cmql2r3r0002pojbv9kbp95e8",
+    "87": "cmql2r3r0002qojbvwe3tfrsy",
+    "88": "cmqt7tqas002ra6dwxedlgcpg",
+    "89": "cmqt7tqar002pa6dwr7wimlo8",
+    "90": "cmqt7tqar002qa6dwmzaw8nke",
+    "91": "cmq09yz1h0033d3mfwgd9c8tn",
+    "92": "cmq09yz1h0031d3mfgtd18fls",
+    "93": "cmq09yz1h0032d3mf1a636s8h",
+    "94": "cmq1v3kyb0033fbd5ep5dvdg6",
+    "95": "cmq1v3kya0031fbd5dfuow5sw",
+    "96": "cmq1v3kya0032fbd5pgfpiwh6",
+    "97": "cmq1lxn3r0033i806xziq7120",
+    "98": "cmq1lxn3r0031i806k5x7eqv5",
+    "99": "cmq1lxn3r0032i806vwiujmfe",
+    "100": "cmq25dnya0033e8x4h6hnvti0",
+    "101": "cmq25dnya0031e8x4fel3lvo0",
+    "102": "cmq25dnya0032e8x4j6j0hrxl",
+    "103": "cmql5emsx000bzf2tqhuqggqu",
+    "104": "cmql5emsx0009zf2ts6qgao9n",
+    "105": "cmql5emsx000azf2tbsgv0799",
+    "106": "cmq609zga002upovemp0rc04q",
+    "107": "cmq609zgb0032poveblrnxz9h",
+    "108": "cmq609zgb0033poveuz8x3iky",
+    "109": "cmozc5ics000i11l7afgmmk27",
+    "110": "cmozc5ics000k11l75z4mv8xc",
+    "111": "cmozc5ics000m11l7u83ajdmr",
+    "112": "cmq0ut44p0033y88mcur4372w",
+    "113": "cmq0ut44p0031y88m73u8wqv0",
+    "114": "cmq0ut44p0032y88mdl2s2np5",
+    "115": "cmoy6367o000wlsp29f4hl2rb",
+    "116": "cmoxn0s960005nwgmb6ywue8a",
+    "117": "cmoxn0s97000bnwgm7s0d1jlj",
+    "118": "cmotxzsv3004yd15stdps1vop",
+    "119": "cmotxzsv30050d15shpyqymfy",
+    "120": "cmow6nmvh000kwvlemanberft",
+    "121": "cmotxzo8h004pd15syqakvzs4",
+    "122": "cmotxzo8h004qd15suhefikzo",
+    "123": "cmo7yv1sa000g12ohffl5454o",
+    "124": "cmo7yv1sa000h12ohuymzj71n",
+    "125": "cmo7yv1sb000i12ohjac3ybxq",
+    "126": "cmo7yv1sb000j12ohbtt0q5ee",
+    "127": "cmo7yv1sb000k12oh7ku9vxp5",
+    "128": "cmo8eh2vk000213zzzf72zd6c",
+    "129": "cmo8eh2vk000513zzgqclqg8r",
+    "130": "cmo8eh2vk000a13zzfgb41fdr",
+    "131": "cmo8eh2vk000f13zz7a07q7x5",
+    "132": "cmnzo3llc003sp5jjq1gy330z",
+    "133": "cmo2so82k000k425b9xt4he3w",
+    "134": "cmo2so82k000m425brpzg2i08",
+    "135": "cmnzrh5nn001opnvpzh20ne45",
+    "136": "cmnx6kwyd000gi16wx63g3ytr",
+    "137": "cmnx4bosh002v133dkkn75qgd",
+    "138": "cmntmt2i200b51330q52b8g2b",
+    "139": "cmnsw23f8000d5nic0m6ti94i",
+    "140": "cmnsw23f8000g5nicjmzv8moe",
+    "141": "cmnsvqj2h00261te77vrjzg84",
+    "142": "cmnsvlpia001i1te7hh9xahh9",
+    "143": "cmnsvlpia001n1te71ii7qq6p",
+    "144": "cmnsv4zrs00041te7a05yaiy2",
+    "145": "cmnsv4zrt000c1te71z97jm8d",
+    "146": "cmnsv4zrt000e1te7jbwzfsmx",
+    "147": "cmniebk9o000d5pijd76iqbqu",
+    "148": "cmniebk9o000e5pij4946h1r9",
+    "149": "cmniebk9o000g5pijb0gd1aff",
+    "150": "cmnh76ndz005de0gjn9iam3ng",
+    "151": "cmnh4m38g0032e0gjpuwscwcb",
+    "152": "cmnh4g1ox001te0gjqj21l0xw",
+    "153": "cmnfyx6wd004qalke8ehn15lm",
+    "154": "cmnfyx6wd004yalkepc3pkzup",
+    "155": "cmnfyx6wd0051alke1bpz5rrk",
+    "156": "cmnfyulo70046alke1fzmeoqz",
+    "157": "cmnfyulo8004balkessrdr5x8",
+    "158": "cmnfyqdhl003halkecuruf83p",
+    "159": "cmnfyqdhm003kalkemxavp5tq",
+    "160": "cmnfyqdhm003nalkel7d765se",
+    "161": "cmnfyqdhm003talkekv41wnce",
+    "162": "cmnfyqdhm003xalkegwt7ta9h",
+    "163": "cmnfydywn002dalke0xhx77ke",
+    "164": "cmnfydywo002falkedyogn5mj",
+    "165": "cmnfydywo002galke216tacrx",
+    "166": "cmnfydywo002nalkebirkwkpl",
+    "167": "cmnfydywo002ralkebuf5u2qq",
+    "168": "cmnfxwsoh000oalke73rkybdu",
+    "169": "cmnfxwsoi000salkeqsuwj0pz",
+    "170": "cmnfxwsoi000walkeui4co64k",
+    "171": "cmnfxwsoi000xalke7ts49c52",
+    "172": "cmnd16sg90013f406kamx7fc1",
+    "173": "cmnd0zblc000bf406s970wspy",
+    "174": "cmnbkbkq8000fstjgtdans86k",
+    "175": "cmn9vsfnh000910ti521fqwng"
   },
-  "generatedAt": "2026-06-17T08:10:32.921Z",
+  "generatedAt": "2026-06-26T06:49:46.757Z",
   "wrongCounts": {
-    "total": 155,
-    "oeq": 99,
-    "mcq": 56
+    "total": 175,
+    "oeq": 115,
+    "mcq": 60
   },
   "toplineSnapshot": {
-    "avgPct": 87,
-    "totalAwarded": 2645,
-    "totalAvailable": 3045,
-    "paperCount": 103
+    "avgPct": 86,
+    "totalAwarded": 2786,
+    "totalAvailable": 3245,
+    "paperCount": 111
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T08:10:32.921Z",
+    "patternNames": [
+      "One Step Short",
+      "Wrong Total Used",
+      "Perimeter vs Curve Mix-Up",
+      "Unit Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 155,
+      "oeq": 99,
+      "mcq": 56
+    },
+    "toplineSnapshot": {
+      "avgPct": 87,
+      "totalAwarded": 2645,
+      "totalAvailable": 3045,
+      "paperCount": 103
+    }
+  }
 }

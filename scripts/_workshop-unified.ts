@@ -22,7 +22,7 @@ import path from "path";
 
 const [, , studentNameArg, subjectArg, ...rest] = process.argv;
 if (!studentNameArg || !subjectArg) {
-  console.error("Usage: <studentName> <subject> [--refresh] [--max N]");
+  console.error("Usage: <studentName> <subject> [--refresh] [--max N] [--since YYYY-MM-DDTHH:mm:ssZ]");
   process.exit(1);
 }
 const forceRefresh = rest.includes("--refresh");
@@ -38,6 +38,18 @@ const freshRun = rest.includes("--fresh");
 // drive the diagnosis.
 const maxIdx = rest.indexOf("--max");
 const maxWrongs = maxIdx >= 0 && rest[maxIdx + 1] ? parseInt(rest[maxIdx + 1], 10) : null;
+// --since <ISO> — only pull papers completed AFTER this timestamp.
+// Drives the weekly Lumi delta: feed Gemini just the kid's last week
+// of work so the diagnosis surfaces this-week trends, not their entire
+// term history. Mark Lim English drops from 493 wrongs (423K chars,
+// 504s deadline) to ~50 wrongs (~30K chars) under this cap.
+const sinceIdx = rest.indexOf("--since");
+const sinceRaw = sinceIdx >= 0 && rest[sinceIdx + 1] ? rest[sinceIdx + 1] : null;
+const sinceDate = sinceRaw ? new Date(sinceRaw) : null;
+if (sinceRaw && (!sinceDate || Number.isNaN(sinceDate.getTime()))) {
+  console.error(`Invalid --since value: ${sinceRaw}. Expected ISO date string.`);
+  process.exit(1);
+}
 
 function subjectMatches(rawSubject: string | null, target: string): boolean {
   const t = (rawSubject ?? "").toLowerCase();
@@ -107,9 +119,14 @@ function lostSubpartLabels(notes: string): Set<string> {
   });
   if (!student) { console.error(`Student "${studentNameArg}" not found`); process.exit(1); }
   console.log(`Student: ${student.name} (P${student.level ?? "?"}) id=${student.id}`);
+  if (sinceDate) console.log(`Time window: only papers completed AFTER ${sinceDate.toISOString()}`);
 
   const papers = await prisma.examPaper.findMany({
-    where: { assignedToId: student.id, markingStatus: { in: ["complete", "released"] } },
+    where: {
+      assignedToId: student.id,
+      markingStatus: { in: ["complete", "released"] },
+      ...(sinceDate ? { completedAt: { gt: sinceDate } } : {}),
+    },
     select: {
       id: true, title: true, paperType: true, subject: true, completedAt: true,
       metadata: true,
@@ -600,10 +617,20 @@ ${records}`;
     const resp = await ai.models.generateContent({
       model: "gemini-3.1-pro-preview",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      // Higher kids (Mark, 119 wrong records) need a bigger budget — the
-      // default cut Mark's report off at 10K chars / ~2.5K tokens
-      // mid-JSON. 32K leaves plenty of headroom for the largest case.
-      config: { temperature: 0.2, responseMimeType: "application/json", maxOutputTokens: 32768 },
+      // Gemini 3.1 Pro's `maxOutputTokens` covers BOTH internal thinking
+      // AND visible output. On 200K+-char prompts (Mark Lim Science, 151
+      // wrongs) the model spends ~25-30K tokens reasoning before emitting
+      // JSON — leaving only ~2K tokens of visible output and chopping
+      // the response mid-string at the same place every run (deterministic
+      // 10372-char truncation on Mark Sci). Two changes: bump the cap to
+      // 65536, and cap thinking at 8192 so it can't starve the visible
+      // output budget no matter how complex the prompt.
+      config: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        maxOutputTokens: 65536,
+        thinkingConfig: { thinkingBudget: 8192 },
+      },
     });
     console.log(`Pro responded in ${((Date.now() - t0) / 1000).toFixed(1)}s, ${(resp.text ?? "").length} chars`);
     report = JSON.parse((resp.text ?? "").trim()) as Report;

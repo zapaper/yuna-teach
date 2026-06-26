@@ -20,6 +20,8 @@
 
 import { prisma } from "@/lib/db";
 import { TUTOR_CACHE } from "@/lib/tutor-cache";
+import { LUMI_LASTWEEK_CACHE } from "@/lib/lumi-lastweek-cache";
+import { computeWeeklyDelta, type WeeklyDelta } from "@/lib/lumi-delta";
 import MATH_TRAPS_JSON from "@/lib/math-traps.json";
 
 // Math-trap lookup. Tagged offline by scripts/_tag-math-traps.ts —
@@ -220,6 +222,11 @@ export type TutorData =
       generatedAt: string;
       stale: StaleInfo;
       previousAssessment: PreviousAssessmentDelta | null;
+      // Lumi's "update this week" block — populated when a lastweek
+      // snapshot exists in LUMI_LASTWEEK_CACHE. The Lumi page renders
+      // this above the standard report so the parent sees wins / new
+      // mistakes / topic progress on each weekly visit.
+      weeklyDelta: WeeklyDelta | null;
     };
 
 // ---- Standard taxonomy ----
@@ -929,6 +936,10 @@ function shapeTutorData(args: {
     generatedAt: new Date().toISOString(),
     stale,
     previousAssessment,
+    // Default — the loader in loadTutorData attaches the real value
+    // before returning to the caller. shapeTutorData runs synchronously
+    // and lacks the DB / cache context needed to compute it.
+    weeklyDelta: null,
   };
 }
 
@@ -1158,6 +1169,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       // already a stronger signal than a stale flag; treat as fresh.
       stale: { kind: "fresh", cachedAt: null, cachedWrongs: 0, currentWrongs: 0 },
       previousAssessment: null,
+      weeklyDelta: null,
     };
   }
   // Cached path. Same WHERE/orderBy contract as the no-cache pull
@@ -1345,6 +1357,21 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     const displayFirst = displayStudent.name.split(/\s+/)[0] ?? displayStudent.name;
     const srcRe = new RegExp(`\\b${redirect.sourceFirstName}\\b`, "g");
     return replaceStringsInTutorData(shaped, s => s.replace(srcRe, displayFirst));
+  }
+  // Weekly delta — Lumi's "update this week" block. Only computes when
+  // a last-week snapshot exists for this (kid × subject) — otherwise
+  // the field stays null and the page renders without the delta block.
+  // Cache key matches LUMI_LASTWEEK_CACHE's key shape (safe-name:subject).
+  const lastweekSnapshot = LUMI_LASTWEEK_CACHE[cacheKey] ?? null;
+  if (lastweekSnapshot) {
+    const weeklyDelta = await computeWeeklyDelta(
+      dataStudentId,
+      subject,
+      shaped.childFirst,
+      lastweekSnapshot,
+      cachedReportTyped,
+    );
+    return { ...shaped, weeklyDelta };
   }
   return shaped;
 }

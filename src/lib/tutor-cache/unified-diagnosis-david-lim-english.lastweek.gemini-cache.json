@@ -1,0 +1,1312 @@
+{
+  "patterns": [
+    {
+      "name": "Reported Speech Mix-Up",
+      "what": "David sometimes forgets to shift pronouns, time words, or tenses correctly when changing direct speech to reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[36]",
+          "type": "oeq",
+          "whatWentWrong": "He forgot to change the pronoun 'he' to 'she' when referring to Mala's mother."
+        },
+        {
+          "questionRef": "[89]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'the previous week' instead of 'the previous weekend', which slightly changed the time reference."
+        },
+        {
+          "questionRef": "[172]",
+          "type": "oeq",
+          "whatWentWrong": "He missed out the word 'then' to show that the action happened in the past."
+        }
+      ],
+      "strategic_advice": "When you see a direct speech sentence, treat it like a checklist:\n- **Pronouns**: Circle words like 'I' or 'you' and change them to match the speaker.\n- **Time words**: Shift words like 'yesterday' to **'the previous day'** or 'now' to **'then'**.\n- **Tenses**: Remember to take one step back in time (e.g., present becomes past).",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "said"
+      ]
+    },
+    {
+      "name": "Question Tag Mix-Up",
+      "what": "David occasionally misses hidden negative words like 'never' or 'rarely', or misidentifies the helping verb in contractions like 'She's'.",
+      "specific_examples": [
+        {
+          "questionRef": "[129]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the hidden negative word 'never' and chose a negative tag instead of a positive one."
+        },
+        {
+          "questionRef": "[90]",
+          "type": "mcq",
+          "whatWentWrong": "He misidentified 'She's' as 'She is' instead of 'She has', leading to the wrong helping verb in the tag."
+        },
+        {
+          "questionRef": "[134]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'rarely', which makes the sentence negative and requires a positive tag."
+        }
+      ],
+      "strategic_advice": "When you see a question tag prompt, look out for these traps:\n- **Hidden negatives**: Words like **'never'**, **'rarely'**, or **'seldom'** make the sentence negative, so the tag must be positive!\n- **Contractions**: Expand words like **'She's'** to check if it means 'She is' or 'She has' before forming your tag.",
+      "trigger_keywords": [
+        "___?",
+        "never",
+        "rarely"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement Confusion",
+      "what": "David tends to mix up singular and plural verbs, especially when there are extra words between the main subject and the verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[140]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the plural verb 'attend' instead of the singular 'attends' for the subject 'Neither of the siblings'."
+        },
+        {
+          "questionRef": "[189]",
+          "type": "mcq",
+          "whatWentWrong": "He matched the verb to 'cars' instead of the true singular subject 'The lineup'."
+        },
+        {
+          "questionRef": "[157]",
+          "type": "oeq",
+          "whatWentWrong": "He used the plural 'are' instead of 'was' for the singular action of 'Removing them'."
+        }
+      ],
+      "strategic_advice": "When checking your verbs, always hunt for the true subject:\n- **Cross out extra words**: If you see phrases like 'as well as' or 'together with', ignore them to find the main subject.\n- **Tricky words**: Remember that words like **'Neither'**, **'Each'**, and actions like **'Removing'** always take a singular verb!",
+      "trigger_keywords": [
+        "Neither",
+        "as well as",
+        "one of the"
+      ]
+    },
+    {
+      "name": "Spelling and Copying Slips",
+      "what": "David occasionally loses marks by misspelling words, missing a full stop, or accidentally changing a word when rewriting sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[185]",
+          "type": "oeq",
+          "whatWentWrong": "He accidentally wrote 'father' instead of 'farmer', which changed the meaning of the sentence."
+        },
+        {
+          "questionRef": "[227]",
+          "type": "oeq",
+          "whatWentWrong": "He formed the sentence perfectly but missed the full stop at the end."
+        },
+        {
+          "questionRef": "[125]",
+          "type": "oeq",
+          "whatWentWrong": "He misspelled 'tangible' as 'tanjibel' in the editing passage."
+        }
+      ],
+      "strategic_advice": "When you finish a Synthesis or Open-Ended question, do a quick final check:\n- **Read word for word** to ensure you haven't accidentally swapped words (like 'farmer' for 'father').\n- **Check your punctuation**, making sure every sentence ends with a full stop.\n- **Sound it out**: For tricky spellings, break the word into syllables or think of its root word.",
+      "trigger_keywords": [
+        "Each of the underlined words",
+        "Rewrite",
+        "Explain"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 3
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
+      "idx": 39,
+      "patternIndex": 2
+    },
+    {
+      "idx": 40,
+      "patternIndex": 3
+    },
+    {
+      "idx": 41,
+      "patternIndex": 3
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": 3
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": 3
+    },
+    {
+      "idx": 48,
+      "patternIndex": 0
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 3
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": 3
+    },
+    {
+      "idx": 59,
+      "patternIndex": 0
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": 3
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": -1
+    },
+    {
+      "idx": 67,
+      "patternIndex": -1
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": -1
+    },
+    {
+      "idx": 76,
+      "patternIndex": -1
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": -1
+    },
+    {
+      "idx": 79,
+      "patternIndex": -1
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": -1
+    },
+    {
+      "idx": 82,
+      "patternIndex": -1
+    },
+    {
+      "idx": 83,
+      "patternIndex": -1
+    },
+    {
+      "idx": 84,
+      "patternIndex": -1
+    },
+    {
+      "idx": 85,
+      "patternIndex": -1
+    },
+    {
+      "idx": 86,
+      "patternIndex": -1
+    },
+    {
+      "idx": 87,
+      "patternIndex": -1
+    },
+    {
+      "idx": 88,
+      "patternIndex": 3
+    },
+    {
+      "idx": 89,
+      "patternIndex": 0
+    },
+    {
+      "idx": 90,
+      "patternIndex": 1
+    },
+    {
+      "idx": 91,
+      "patternIndex": 2
+    },
+    {
+      "idx": 92,
+      "patternIndex": 1
+    },
+    {
+      "idx": 93,
+      "patternIndex": -1
+    },
+    {
+      "idx": 94,
+      "patternIndex": -1
+    },
+    {
+      "idx": 95,
+      "patternIndex": 1
+    },
+    {
+      "idx": 96,
+      "patternIndex": -1
+    },
+    {
+      "idx": 97,
+      "patternIndex": -1
+    },
+    {
+      "idx": 98,
+      "patternIndex": 1
+    },
+    {
+      "idx": 99,
+      "patternIndex": 2
+    },
+    {
+      "idx": 100,
+      "patternIndex": -1
+    },
+    {
+      "idx": 101,
+      "patternIndex": 2
+    },
+    {
+      "idx": 102,
+      "patternIndex": -1
+    },
+    {
+      "idx": 103,
+      "patternIndex": -1
+    },
+    {
+      "idx": 104,
+      "patternIndex": 1
+    },
+    {
+      "idx": 105,
+      "patternIndex": -1
+    },
+    {
+      "idx": 106,
+      "patternIndex": -1
+    },
+    {
+      "idx": 107,
+      "patternIndex": 1
+    },
+    {
+      "idx": 108,
+      "patternIndex": -1
+    },
+    {
+      "idx": 109,
+      "patternIndex": -1
+    },
+    {
+      "idx": 110,
+      "patternIndex": -1
+    },
+    {
+      "idx": 111,
+      "patternIndex": -1
+    },
+    {
+      "idx": 112,
+      "patternIndex": -1
+    },
+    {
+      "idx": 113,
+      "patternIndex": -1
+    },
+    {
+      "idx": 114,
+      "patternIndex": -1
+    },
+    {
+      "idx": 115,
+      "patternIndex": 2
+    },
+    {
+      "idx": 116,
+      "patternIndex": -1
+    },
+    {
+      "idx": 117,
+      "patternIndex": -1
+    },
+    {
+      "idx": 118,
+      "patternIndex": -1
+    },
+    {
+      "idx": 119,
+      "patternIndex": 3
+    },
+    {
+      "idx": 120,
+      "patternIndex": 3
+    },
+    {
+      "idx": 121,
+      "patternIndex": 2
+    },
+    {
+      "idx": 122,
+      "patternIndex": -1
+    },
+    {
+      "idx": 123,
+      "patternIndex": -1
+    },
+    {
+      "idx": 124,
+      "patternIndex": -1
+    },
+    {
+      "idx": 125,
+      "patternIndex": 3
+    },
+    {
+      "idx": 126,
+      "patternIndex": 3
+    },
+    {
+      "idx": 127,
+      "patternIndex": -1
+    },
+    {
+      "idx": 128,
+      "patternIndex": 3
+    },
+    {
+      "idx": 129,
+      "patternIndex": 1
+    },
+    {
+      "idx": 130,
+      "patternIndex": -1
+    },
+    {
+      "idx": 131,
+      "patternIndex": -1
+    },
+    {
+      "idx": 132,
+      "patternIndex": -1
+    },
+    {
+      "idx": 133,
+      "patternIndex": -1
+    },
+    {
+      "idx": 134,
+      "patternIndex": 1
+    },
+    {
+      "idx": 135,
+      "patternIndex": 2
+    },
+    {
+      "idx": 136,
+      "patternIndex": -1
+    },
+    {
+      "idx": 137,
+      "patternIndex": -1
+    },
+    {
+      "idx": 138,
+      "patternIndex": -1
+    },
+    {
+      "idx": 139,
+      "patternIndex": -1
+    },
+    {
+      "idx": 140,
+      "patternIndex": 2
+    },
+    {
+      "idx": 141,
+      "patternIndex": -1
+    },
+    {
+      "idx": 142,
+      "patternIndex": -1
+    },
+    {
+      "idx": 143,
+      "patternIndex": -1
+    },
+    {
+      "idx": 144,
+      "patternIndex": -1
+    },
+    {
+      "idx": 145,
+      "patternIndex": -1
+    },
+    {
+      "idx": 146,
+      "patternIndex": -1
+    },
+    {
+      "idx": 147,
+      "patternIndex": -1
+    },
+    {
+      "idx": 148,
+      "patternIndex": -1
+    },
+    {
+      "idx": 149,
+      "patternIndex": -1
+    },
+    {
+      "idx": 150,
+      "patternIndex": -1
+    },
+    {
+      "idx": 151,
+      "patternIndex": -1
+    },
+    {
+      "idx": 152,
+      "patternIndex": -1
+    },
+    {
+      "idx": 153,
+      "patternIndex": -1
+    },
+    {
+      "idx": 154,
+      "patternIndex": -1
+    },
+    {
+      "idx": 155,
+      "patternIndex": -1
+    },
+    {
+      "idx": 156,
+      "patternIndex": -1
+    },
+    {
+      "idx": 157,
+      "patternIndex": 2
+    },
+    {
+      "idx": 158,
+      "patternIndex": 3
+    },
+    {
+      "idx": 159,
+      "patternIndex": 3
+    },
+    {
+      "idx": 160,
+      "patternIndex": 3
+    },
+    {
+      "idx": 161,
+      "patternIndex": 3
+    },
+    {
+      "idx": 162,
+      "patternIndex": 3
+    },
+    {
+      "idx": 163,
+      "patternIndex": -1
+    },
+    {
+      "idx": 164,
+      "patternIndex": -1
+    },
+    {
+      "idx": 165,
+      "patternIndex": -1
+    },
+    {
+      "idx": 166,
+      "patternIndex": 1
+    },
+    {
+      "idx": 167,
+      "patternIndex": -1
+    },
+    {
+      "idx": 168,
+      "patternIndex": 2
+    },
+    {
+      "idx": 169,
+      "patternIndex": -1
+    },
+    {
+      "idx": 170,
+      "patternIndex": 2
+    },
+    {
+      "idx": 171,
+      "patternIndex": -1
+    },
+    {
+      "idx": 172,
+      "patternIndex": 0
+    },
+    {
+      "idx": 173,
+      "patternIndex": 2
+    },
+    {
+      "idx": 174,
+      "patternIndex": 3
+    },
+    {
+      "idx": 175,
+      "patternIndex": 3
+    },
+    {
+      "idx": 176,
+      "patternIndex": 3
+    },
+    {
+      "idx": 177,
+      "patternIndex": -1
+    },
+    {
+      "idx": 178,
+      "patternIndex": -1
+    },
+    {
+      "idx": 179,
+      "patternIndex": -1
+    },
+    {
+      "idx": 180,
+      "patternIndex": 2
+    },
+    {
+      "idx": 181,
+      "patternIndex": -1
+    },
+    {
+      "idx": 182,
+      "patternIndex": -1
+    },
+    {
+      "idx": 183,
+      "patternIndex": -1
+    },
+    {
+      "idx": 184,
+      "patternIndex": 3
+    },
+    {
+      "idx": 185,
+      "patternIndex": 3
+    },
+    {
+      "idx": 186,
+      "patternIndex": 0
+    },
+    {
+      "idx": 187,
+      "patternIndex": -1
+    },
+    {
+      "idx": 188,
+      "patternIndex": -1
+    },
+    {
+      "idx": 189,
+      "patternIndex": 2
+    },
+    {
+      "idx": 190,
+      "patternIndex": -1
+    },
+    {
+      "idx": 191,
+      "patternIndex": 1
+    },
+    {
+      "idx": 192,
+      "patternIndex": -1
+    },
+    {
+      "idx": 193,
+      "patternIndex": -1
+    },
+    {
+      "idx": 194,
+      "patternIndex": -1
+    },
+    {
+      "idx": 195,
+      "patternIndex": -1
+    },
+    {
+      "idx": 196,
+      "patternIndex": -1
+    },
+    {
+      "idx": 197,
+      "patternIndex": -1
+    },
+    {
+      "idx": 198,
+      "patternIndex": -1
+    },
+    {
+      "idx": 199,
+      "patternIndex": -1
+    },
+    {
+      "idx": 200,
+      "patternIndex": -1
+    },
+    {
+      "idx": 201,
+      "patternIndex": -1
+    },
+    {
+      "idx": 202,
+      "patternIndex": -1
+    },
+    {
+      "idx": 203,
+      "patternIndex": -1
+    },
+    {
+      "idx": 204,
+      "patternIndex": -1
+    },
+    {
+      "idx": 205,
+      "patternIndex": -1
+    },
+    {
+      "idx": 206,
+      "patternIndex": -1
+    },
+    {
+      "idx": 207,
+      "patternIndex": 1
+    },
+    {
+      "idx": 208,
+      "patternIndex": -1
+    },
+    {
+      "idx": 209,
+      "patternIndex": -1
+    },
+    {
+      "idx": 210,
+      "patternIndex": -1
+    },
+    {
+      "idx": 211,
+      "patternIndex": 3
+    },
+    {
+      "idx": 212,
+      "patternIndex": -1
+    },
+    {
+      "idx": 213,
+      "patternIndex": 3
+    },
+    {
+      "idx": 214,
+      "patternIndex": -1
+    },
+    {
+      "idx": 215,
+      "patternIndex": -1
+    },
+    {
+      "idx": 216,
+      "patternIndex": -1
+    },
+    {
+      "idx": 217,
+      "patternIndex": -1
+    },
+    {
+      "idx": 218,
+      "patternIndex": -1
+    },
+    {
+      "idx": 219,
+      "patternIndex": -1
+    },
+    {
+      "idx": 220,
+      "patternIndex": -1
+    },
+    {
+      "idx": 221,
+      "patternIndex": -1
+    },
+    {
+      "idx": 222,
+      "patternIndex": -1
+    },
+    {
+      "idx": 223,
+      "patternIndex": -1
+    },
+    {
+      "idx": 224,
+      "patternIndex": -1
+    },
+    {
+      "idx": 225,
+      "patternIndex": -1
+    },
+    {
+      "idx": 226,
+      "patternIndex": -1
+    },
+    {
+      "idx": 227,
+      "patternIndex": 3
+    },
+    {
+      "idx": 228,
+      "patternIndex": 3
+    },
+    {
+      "idx": 229,
+      "patternIndex": 3
+    },
+    {
+      "idx": 230,
+      "patternIndex": 3
+    },
+    {
+      "idx": 231,
+      "patternIndex": 3
+    },
+    {
+      "idx": 232,
+      "patternIndex": -1
+    },
+    {
+      "idx": 233,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqdfs31w0006brihuu4hb71d",
+    "2": "cmq6dyvih000ngvwdtn3rttuf",
+    "3": "cmq6dyvih000tgvwdmtrvahm6",
+    "4": "cmq6dyvih000ugvwd4ovd0pm6",
+    "5": "cmq54smvo000n129570g82ng2",
+    "6": "cmq4sd0qy000v3bw7pgxxyn6d",
+    "7": "cmq4sd0qy00113bw78m0tlm19",
+    "8": "cmq4sd0qy00143bw7cf9iokpj",
+    "9": "cmq4tss3l002c13yuxt1fvaib",
+    "10": "cmq4tss3o003213yunyos15dh",
+    "11": "cmq4tssku004w13yu6ltdcwel",
+    "12": "cmq4tss3n002x13yu297czhn7",
+    "13": "cmq4tss3n003013yuo6e8jb9o",
+    "14": "cmq4tst45006e13yu4fdpht0i",
+    "15": "cmq4tsslt005m13yuw33z1h6i",
+    "16": "cmq4tss9p003i13yu9k4neng7",
+    "17": "cmq4tst45006g13yucfcxfk87",
+    "18": "cmq4tsslt005x13yu87i00wa3",
+    "19": "cmq4tss9o003g13yu3ek1jgg9",
+    "20": "cmq4tssfq003u13yuduvgzu8f",
+    "21": "cmq4tssfq004a13yu93kbhzxv",
+    "22": "cmq4tssfq004c13yumfvk1blw",
+    "23": "cmq4tsslq005513yumty3jya5",
+    "24": "cmq4tsslr005813yujw23ylei",
+    "25": "cmq4tsslo005013yuzw8rd4ui",
+    "26": "cmq4tsslr005613yug22ts4dn",
+    "27": "cmq4tsslt005w13yu4max9ecs",
+    "28": "cmq4tssls005a13yui23mmivy",
+    "29": "cmq4tsslt005k13yux5cg4hyp",
+    "30": "cmq4tssls005e13yu1zt34ctd",
+    "31": "cmq3h9ck0000l60isnxrwfw5p",
+    "32": "cmq3h9ck0000n60isgwttz7x2",
+    "33": "cmpyw0lvu0009289upxf2l76x",
+    "34": "cmpyw0lvu000h289uaoahczhd",
+    "35": "cmpyusozi001gpyi2vtrav37k",
+    "36": "cmpvxgy7i003hl2ir4ttodeun",
+    "37": "cmpvxgy7i003jl2ir8b64h8kf",
+    "38": "cmpvxgy7i003ll2irbri3m9eh",
+    "39": "cmpvxgy7i003pl2ir2z6pemzs",
+    "40": "cmpumw31t000q10bdh9d8zm34",
+    "41": "cmpumw31t000t10bdhn93plrs",
+    "42": "cmptj98gr009xa6198ivimu7j",
+    "43": "cmpt2w1bf0067ji84zzrjqx34",
+    "44": "cmpt2w1bf006kji84dxcvs7jo",
+    "45": "cmpt2w1bg006rji84ogu2n8bi",
+    "46": "cmpt2w1bh0077ji84zcgc7ssi",
+    "47": "cmpt2w1bh007aji847c2jdu0l",
+    "48": "cmps8ve7f000kd04kld9t9p15",
+    "49": "cmps8ve7f000ud04kjd7cgbgt",
+    "50": "cmps8ve7f000vd04kpy6nncig",
+    "51": "cmps8ve7g000wd04kmk4wzfq8",
+    "52": "cmps8ve7g000xd04kxku1l3aq",
+    "53": "cmps8hbms0002d04kxt3ainpi",
+    "54": "cmps8hbms0003d04k5sy3p1lb",
+    "55": "cmps8hbmt0008d04kzcvyv0vt",
+    "56": "cmps8hbmt0009d04k57edhbf1",
+    "57": "cmps8hbmt000dd04kwvkivx9b",
+    "58": "cmps8hbmt000ed04kkjhw1rem",
+    "59": "cmps8hbmt000fd04k84kbo2ws",
+    "60": "cmps4yh2g006r2nr7987az6jk",
+    "61": "cmps4yh2h006s2nr7qkq1yka1",
+    "62": "cmps4yh2h006u2nr7vjp0f50g",
+    "63": "cmps4yh2h00732nr7a3tfi4xr",
+    "64": "cmps4yh2h00752nr7l7wlr27l",
+    "65": "cmps4yh2h00762nr7lhkq308o",
+    "66": "cmps4yh2h007d2nr7ezkyx6nk",
+    "67": "cmps4yh2h007e2nr7wjzwl9gr",
+    "68": "cmps4yh2i007g2nr7ug1teavi",
+    "69": "cmpqp4ukn00039bfrgohv27mo",
+    "70": "cmpqp4ukn00059bfrnc9xaa43",
+    "71": "cmpqp4ukn00069bfrpf2qaub3",
+    "72": "cmpqp4ukn00079bfrml7yz5d1",
+    "73": "cmpqp4ukn00089bfrt2px9mnc",
+    "74": "cmpqp4ukn00099bfr872sn8mm",
+    "75": "cmpnxqzt90051t6qwra63y5ra",
+    "76": "cmpnxqzta005gt6qw2adeozj5",
+    "77": "cmpnxqzta005pt6qwgrpa6sbk",
+    "78": "cmpnxqztb0067t6qw1k852h2r",
+    "79": "cmpnxqztb0068t6qwhxvyef22",
+    "80": "cmpnxqztb0069t6qwec3wvdbb",
+    "81": "cmpnxqztb006at6qwbmfcgo63",
+    "82": "cmpnxqztb006bt6qwyhj9v6kx",
+    "83": "cmpnxqztb006ct6qwvs961re0",
+    "84": "cmpnxqztb006dt6qwrk829nfs",
+    "85": "cmpnxqztb006ft6qwilisbxxe",
+    "86": "cmpnxqztb006ht6qwnssp1zdp",
+    "87": "cmpnxqztb006kt6qww5fhv5s2",
+    "88": "cmpnxqztb006mt6qwg5ow5jce",
+    "89": "cmpnxqztc006nt6qwfa55ovjo",
+    "90": "cmpl06wnj00964u6f54dxxg6v",
+    "91": "cmpl05nd500804u6fgaq73tai",
+    "92": "cmpl05nd500864u6frhca0g3x",
+    "93": "cmpl05nd500884u6ftj37lfa7",
+    "94": "cmpjfepv000321yg9e12b9ldj",
+    "95": "cmpjfdyj9002d1yg9qs20bsl0",
+    "96": "cmpjfdyja002e1yg9bdmzge1h",
+    "97": "cmpjfdyja002f1yg9r2zps578",
+    "98": "cmpjfdyja002g1yg9qins02pp",
+    "99": "cmpjfdyja002h1yg9h30kdacm",
+    "100": "cmpjfdyja002i1yg94qvapatf",
+    "101": "cmpjfdyja002j1yg9st5gp1i7",
+    "102": "cmpjfdyja002k1yg9dprsvdmm",
+    "103": "cmpjfdyja002l1yg9sdf6y18r",
+    "104": "cmpjfdyja002m1yg9d6dp91tp",
+    "105": "cmpjfdyja002n1yg99sibf811",
+    "106": "cmpjfdyja002o1yg93ibk9dpd",
+    "107": "cmpjfdyja002p1yg9paiq3ptk",
+    "108": "cmpjfdyja002q1yg9s5im4qyd",
+    "109": "cmpjfdyja002r1yg9jbvlevrd",
+    "110": "cmphmaqc60033u0lt0brfqh61",
+    "111": "cmphmaqc6003du0lthpbmcr2s",
+    "112": "cmphm78eq001vu0ltziizixtf",
+    "113": "cmphm5v2c001iu0ltllqtbx1y",
+    "114": "cmphm4jqj000xu0ltb36aarb7",
+    "115": "cmphlykys000bu0ltjkmel25v",
+    "116": "cmphlykys000fu0lt8avpr79p",
+    "117": "cmpb3zdnn001aigmkype6bdvk",
+    "118": "cmpb3zdnn001bigmktx9bbw98",
+    "119": "cmp3xagbi005jjqc1mtlqa58f",
+    "120": "cmp3xagbi005mjqc1lptxn1d2",
+    "121": "cmp3xagbj005ujqc14o5iro3p",
+    "122": "cmp3xagbj0062jqc1w6q21sr2",
+    "123": "cmp3xagbj0065jqc1w115bkgp",
+    "124": "cmp2gsi1d00106owrxqcwkhfi",
+    "125": "cmp2gsi1d00136owrrldqosue",
+    "126": "cmp2gsi1d00186owrel789bv7",
+    "127": "cmp2gsi1d00196owrv43hd5kt",
+    "128": "cmp2gsi1d001j6owrpfs1mmri",
+    "129": "cmosh75y5000213l08twvpyef",
+    "130": "cmosh6cws006d6r3v6bk0eyol",
+    "131": "cmoqxsggt00ajwu99smvhsmqa",
+    "132": "cmoqxsggt00aqwu994xnciz7v",
+    "133": "cmoqxoydr009swu99lbv38nuz",
+    "134": "cmoqxoydr009twu99hcukzuv2",
+    "135": "cmoqpeg7k004hwu990izu7mso",
+    "136": "cmoqpeg7k004nwu99ti6x4wdz",
+    "137": "cmoqp7p8x0039wu99jhk79yrm",
+    "138": "cmoqp7rv5003gwu99gpmmglei",
+    "139": "cmoqp7rv6003jwu99lo96jhao",
+    "140": "cmoqp7u0n003swu99kohut5yd",
+    "141": "cmoqp7u0n003twu99lmfdra32",
+    "142": "cmoqp7u0n003ywu99og74ttwb",
+    "143": "cmoqp6m0o002qwu996jtbkuug",
+    "144": "cmoqoo8g0001vwu99z0ku3649",
+    "145": "cmoqoo8g10021wu99xtbjhuxy",
+    "146": "cmoqoo41z001pwu99lbfa0qcc",
+    "147": "cmoqoo41z001qwu99qjvpa03g",
+    "148": "cmomkr09a000gn5p119my2xpe",
+    "149": "cmol6wtqt000ayo2taslrwiws",
+    "150": "cmol6wtqu000byo2t7b28e0iu",
+    "151": "cmol6wtqu000cyo2t1bwphu0x",
+    "152": "cmol6wtqu000dyo2ttulag249",
+    "153": "cmol6wtqu000eyo2t4yxsepfw",
+    "154": "cmol6wtqu000lyo2totfyq8mt",
+    "155": "cmol6wtqu000oyo2tfsnljxij",
+    "156": "cmofg98uq00121ets35ptz041",
+    "157": "cmofg98uq00171etsz25mkvk8",
+    "158": "cmofg98ur001b1etsroaknz65",
+    "159": "cmofg98ur001c1ets1lm8opxb",
+    "160": "cmofg98ur001h1ets1qqev7hp",
+    "161": "cmofg98ur001j1etsnhiu6wcu",
+    "162": "cmofg98ur001l1etsb6hblkl3",
+    "163": "cmofg98ur001m1ets0w4tmrb1",
+    "164": "cmo8f7pe70041klxx7pcn6dsi",
+    "165": "cmo8f4ihx002mklxxk3nr77ms",
+    "166": "cmo8f2i9l001yklxxe3lyuzi9",
+    "167": "cmo8f0xis001jklxxheoxc7w3",
+    "168": "cmo8eyhkz000gklxxkf4mkdoe",
+    "169": "cmo8eyhkz000nklxx60fi0vt0",
+    "170": "cmo8enpi6002c13zzkr504o2e",
+    "171": "cmo8enpi6002f13zzdm8wogtw",
+    "172": "cmo8enpi7002r13zz1hn8b3yp",
+    "173": "cmo8el7hj001m13zzunmfu5dz",
+    "174": "cmo57ie2o001ae506pe3y3yxj",
+    "175": "cmo57ie2o001be506i5ngfvzq",
+    "176": "cmo57ie2o001de506n4rj9etz",
+    "177": "cmo57ie2o001he5063gp5g78f",
+    "178": "cmo57ie2p001ne506nuoyv72c",
+    "179": "cmo57ie2p001oe506ur31zy0s",
+    "180": "cmo57ie2p001qe506ey3r5xru",
+    "181": "cmo57ie2p001re506zop2uf6t",
+    "182": "cmo57ie2p001se506lofwo2p0",
+    "183": "cmo57ie2p001ze506269pprx4",
+    "184": "cmo57ie2p0022e506b26fs7es",
+    "185": "cmo57ie2p0023e506pmidgz82",
+    "186": "cmo57ie2p0025e506r74misg5",
+    "187": "cmo5lzt3k005968pxoo9vaxmw",
+    "188": "cmo5ltknv001f2boyk8i0905u",
+    "189": "cmo5lrkr0000w2boyb1ekrt8j",
+    "190": "cmo5lrkr0000x2boywy9xy3bi",
+    "191": "cmo5lrkr0000y2boyuo9nfvnm",
+    "192": "cmo5lr2yy000r2boyt66vw3q4",
+    "193": "cmo3omb6c000p54mb2p2k1dnz",
+    "194": "cmnx63s4500gv97iuj51gcy18",
+    "195": "cmnx61uo100fz97iuy8hl1mzh",
+    "196": "cmnx61uo200g197iurgbbt3sf",
+    "197": "cmnx61uo200g297iuonogj0ps",
+    "198": "cmnx61uo200g397iuy060abpw",
+    "199": "cmnx605j000er97iu6nx4wm64",
+    "200": "cmnx5yll500ea97iue6y6dq2o",
+    "201": "cmnx5w55e00dw97iu2kijm2ej",
+    "202": "cmnx5w55f00e097iuq1fry1qg",
+    "203": "cmnx4yefq002c97iumi454gyr",
+    "204": "cmnx4vxq6001797iusuqnk7l0",
+    "205": "cmnx4udyj000p97iu9he5lfol",
+    "206": "cmnvh2i7x000dzzapnxun0s1d",
+    "207": "cmnvagbzz001om4y91ke1sqyg",
+    "208": "cmnv2vtru000m7f0r2b723o3j",
+    "209": "cmntya0lc0009r8rsmgqk3evb",
+    "210": "cmntya0lc000ar8rsvxf1ejki",
+    "211": "cmntya0ld000mr8rs2cbscaj5",
+    "212": "cmntya0ld000rr8rsg6574r4m",
+    "213": "cmntya0ld000ur8rsdgcnv6a5",
+    "214": "cmntya0ld000xr8rsfay58s9x",
+    "215": "cmntya0ld000zr8rswnw3j1x8",
+    "216": "cmntya0ld0012r8rsuy25jkj4",
+    "217": "cmntya0ld0016r8rsm2wqtze3",
+    "218": "cmnpndqqx00124r2kiqs3dqbo",
+    "219": "cmnphh4xw0007nsjpob4zqo52",
+    "220": "cmnphh4xw0008nsjpwnozs76d",
+    "221": "cmnphh4xw0009nsjpp8ve8drt",
+    "222": "cmnphh4xw000ansjp9ze44z6l",
+    "223": "cmnphh4xw000bnsjpjkfohmn8",
+    "224": "cmnphh4xw000cnsjp7jhvce0m",
+    "225": "cmnphh4xw000dnsjph033axu9",
+    "226": "cmnphh4xw000nnsjpl3i5v706",
+    "227": "cmnphh4xw000unsjp3lc6z58f",
+    "228": "cmnphh4xw000wnsjpjmeeq7ym",
+    "229": "cmnphh4xw000ynsjpm488exkm",
+    "230": "cmnphh4xw000znsjpuaxc37ld",
+    "231": "cmnphh4xw0010nsjppro4ko7p",
+    "232": "cmnphh4xw0011nsjpi6iydkc3",
+    "233": "cmnphh4xw0017nsjpjoqrqvji"
+  },
+  "generatedAt": "2026-06-17T08:08:50.000Z",
+  "wrongCounts": {
+    "total": 233,
+    "oeq": 135,
+    "mcq": 98
+  },
+  "toplineSnapshot": {
+    "avgPct": 88,
+    "totalAwarded": 2174,
+    "totalAvailable": 2473,
+    "paperCount": 177
+  },
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T07:56:11.265Z",
+    "patternNames": [
+      "Tricky Vocabulary Matches",
+      "Grammar Rule Slips",
+      "Changing the Meaning"
+    ],
+    "wrongCounts": {
+      "total": 233,
+      "oeq": 135,
+      "mcq": 98
+    },
+    "toplineSnapshot": {
+      "avgPct": 88,
+      "totalAwarded": 2174,
+      "totalAvailable": 2473,
+      "paperCount": 177
+    }
+  }
+}

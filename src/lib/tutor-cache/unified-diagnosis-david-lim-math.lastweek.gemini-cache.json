@@ -1,0 +1,520 @@
+{
+  "patterns": [
+    {
+      "name": "Ratio Order Mix-Up",
+      "what": "Sometimes works out the correct numbers for a ratio but writes them down in the reverse order.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "David correctly found the number of men and women, but picked the option for women to men instead of men to women."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully found the number of blue and white ribbons, but wrote the final ratio as white to blue."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "David did all the hard work to find the parts for each colour, but swapped the final two numbers around."
+        }
+      ],
+      "strategic_advice": "When you see a question asking for a ratio, treat the word **'to'** as a strict matching rule:\n- Highlight the two items asked for in the final question (e.g., **'blue to white'**).\n- Write the letters above your final numbers to check they match the exact order requested before moving on.",
+      "trigger_keywords": [
+        "ratio of the number of",
+        "to the number of",
+        "What is the ratio"
+      ]
+    },
+    {
+      "name": "Double Counting Overlaps",
+      "what": "Occasionally adds the overlapping shaded area when finding the total size of combined shapes, instead of subtracting it.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "David correctly found the value of one unit, but added the overlapping area to the total instead of subtracting it."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "He adjusted the ratios perfectly to match the shaded area, but then added all the parts together, counting the overlap twice."
+        },
+        {
+          "questionRef": "[50]",
+          "type": "oeq",
+          "whatWentWrong": "David showed great understanding to find the common unit, but missed that the overlapping part needs to be taken away from the total."
+        }
+      ],
+      "strategic_advice": "When shapes overlap, remember that the shared area is counted once in Shape A and once in Shape B.\n- When finding the **'whole figure'**, always add the two shapes together and then **subtract the overlap** once so it isn't counted twice.\n- Try shading the overlap in a different colour to remind yourself it's a shared space.",
+      "trigger_keywords": [
+        "overlapping",
+        "whole figure",
+        "shaded area"
+      ]
+    },
+    {
+      "name": "Small Calculation Slips",
+      "what": "Occasionally makes small addition or subtraction slips in the middle of a problem, even when the overall method is completely correct.",
+      "specific_examples": [
+        {
+          "questionRef": "[66]",
+          "type": "oeq",
+          "whatWentWrong": "David knew exactly how to add the weights and divide by four, but made a small slip when adding the decimals together."
+        },
+        {
+          "questionRef": "[67]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly found the first hidden angle, but made a small subtraction error when finding the final angle."
+        },
+        {
+          "questionRef": "[77]",
+          "type": "oeq",
+          "whatWentWrong": "David showed the right steps to find the mass of each bag, but a tiny addition slip at the start threw off the final answer."
+        }
+      ],
+      "strategic_advice": "When working with decimals or multiple steps, a small slip can hide in the middle of great working.\n- **Line up your decimal dots** neatly when adding numbers like 2.7, 3.4, and 5.02.\n- Do a quick **reverse check** (like adding your answer back up) to catch any small subtraction slips before moving to the next step.",
+      "trigger_keywords": [
+        "weighing",
+        "Find ∠",
+        "repacked them equally"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 0
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": 1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": 1
+    },
+    {
+      "idx": 45,
+      "patternIndex": 0
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": 1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 0
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": 1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 0
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": 1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 0
+    },
+    {
+      "idx": 55,
+      "patternIndex": 1
+    },
+    {
+      "idx": 56,
+      "patternIndex": 0
+    },
+    {
+      "idx": 57,
+      "patternIndex": 0
+    },
+    {
+      "idx": 58,
+      "patternIndex": 1
+    },
+    {
+      "idx": 59,
+      "patternIndex": 0
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": 2
+    },
+    {
+      "idx": 67,
+      "patternIndex": 2
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": 2
+    },
+    {
+      "idx": 72,
+      "patternIndex": 2
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": -1
+    },
+    {
+      "idx": 75,
+      "patternIndex": -1
+    },
+    {
+      "idx": 76,
+      "patternIndex": -1
+    },
+    {
+      "idx": 77,
+      "patternIndex": 2
+    },
+    {
+      "idx": 78,
+      "patternIndex": 2
+    },
+    {
+      "idx": 79,
+      "patternIndex": -1
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq8t3ker004mbxufnebkaf8o",
+    "2": "cmq8t3ker004nbxufu41153ls",
+    "3": "cmq8t3ker004pbxuf8oul7b28",
+    "4": "cmq8t3ker004qbxufnmf9iane",
+    "5": "cmq8t3ker004tbxuf979lxgv6",
+    "6": "cmq8t3kes004vbxufw0s173pu",
+    "7": "cmozd5z5i000bbj2gvgsokwae",
+    "8": "cmozcb8gc001511l7vf570ucy",
+    "9": "cmotxybqe0029d15sp62kzo4f",
+    "10": "cmotxybqf002ad15sn9fhcrcf",
+    "11": "cmotxybqf002bd15sd5t0kxh6",
+    "12": "cmotxybqf002dd15s1vyxhfv0",
+    "13": "cmq0a0ocw003kd3mf7ojkuys2",
+    "14": "cmq0a0ocx003rd3mfl6hgt7n1",
+    "15": "cmq0a0ocx003qd3mfim4sh3d9",
+    "16": "cmq1vv3ya003krupkcgwtb7ia",
+    "17": "cmq1vv3yb003rrupk3ujhhfiv",
+    "18": "cmq1vv3yb003qrupkrb82zlgg",
+    "19": "cmq1v52b2003kfbd52aiqhsi5",
+    "20": "cmq1v52b3003rfbd5a4h5j2dg",
+    "21": "cmq1v52b3003qfbd5m19d30tz",
+    "22": "cmq1lzk3m003ki806azfkdagn",
+    "23": "cmq1lzk3n003ri806b4l8igbs",
+    "24": "cmq1lzk3n003qi8063hfidghh",
+    "25": "cmpzn55jf003kbd1auvp31jt0",
+    "26": "cmpzn55jf003rbd1a223e276s",
+    "27": "cmpzn55jf003qbd1alvubteqm",
+    "28": "cmq0odb1q003kc8ksayjejgr3",
+    "29": "cmq0odb1q003rc8ksuajecvga",
+    "30": "cmq0odb1q003qc8ks1sanv4km",
+    "31": "cmq0u5hxz003k6ipxbeu72507",
+    "32": "cmq0u5hxz003r6ipx6mixy0n8",
+    "33": "cmq0u5hxz003q6ipxbawxzsxo",
+    "34": "cmq0n21ay003k9ahmvjdz88u7",
+    "35": "cmq0n21ay003r9ahmsg92d81p",
+    "36": "cmq0n21ay003q9ahm1e422zq2",
+    "37": "cmq60djr8003ipovepp6e0ove",
+    "38": "cmq60djr9003ppoveua7rz1jq",
+    "39": "cmq60djr9003opovexhjc3wdb",
+    "40": "cmq1xnfq1003kjek6icmsybuu",
+    "41": "cmq1xnfq1003rjek6gd5gg9an",
+    "42": "cmq1xnfq1003qjek61stwrse0",
+    "43": "cmqf5qfu10038wkiaf3s1q7s3",
+    "44": "cmqf5qfu2003ewkia1zmzfh8i",
+    "45": "cmqf5qfu2003dwkiayn5dyn3n",
+    "46": "cmq25fl98003ke8x4wccf5yvo",
+    "47": "cmq25fl99003re8x407q16rhp",
+    "48": "cmq25fl98003qe8x4s6zycxub",
+    "49": "cmqf7jbbr0038hufkl06tbsg0",
+    "50": "cmqf7jbbr003ehufkrypdnxyx",
+    "51": "cmqf7jbbr003dhufkf7vakwve",
+    "52": "cmotr5qp0000jh6io5zqs9mo1",
+    "53": "cmotr5qp0000rh6ioh0pnf0qt",
+    "54": "cmq0uum64003ky88md1dsji79",
+    "55": "cmq0uum65003ry88mz9os2793",
+    "56": "cmq0uum65003qy88mc4ts3r0a",
+    "57": "cmq131ifh003kgqr9ns9vjiyg",
+    "58": "cmq131ifi003rgqr92xgvkl71",
+    "59": "cmq131ifi003qgqr9ineguy6g",
+    "60": "cmoqknuql001hwu99c3t83dtk",
+    "61": "cmoqknuql001iwu99eqtf843h",
+    "62": "cmoqknuql001jwu99t8ab4tc8",
+    "63": "cmoqknuql001lwu99ti9buaej",
+    "64": "cmngstiuq000fvhyoua2c6fnb",
+    "65": "cmngstiuq000gvhyowx0uzcks",
+    "66": "cmngstiur000nvhyorardiztb",
+    "67": "cmngstiur000vvhyogt3v7g0g",
+    "68": "cmngstius0017vhyoo4d2llla",
+    "69": "cmngsn3ix002be4t9qyrnlflt",
+    "70": "cmngsn3hj0019e4t9kx58hmjf",
+    "71": "cmngsn3i10025e4t9lv0zgs65",
+    "72": "cmngsn3hz0023e4t9un6y6nr2",
+    "73": "cmngsn3fv000ne4t9ff130fgm",
+    "74": "cmn9z37hz000bdp27abmo12tr",
+    "75": "cmmh5nd2o000fp5e8f1wx0bhg",
+    "76": "cmmh5nd2o000gp5e8taf0e57m",
+    "77": "cmmh5nd2o000np5e8rb825wg5",
+    "78": "cmmh5nd2p000vp5e881ceswpb",
+    "79": "cmmh5nd2p0010p5e8qzt5d084",
+    "80": "cmmh5nd2q0017p5e8s8ujl2nu"
+  },
+  "generatedAt": "2026-06-17T08:08:08.019Z",
+  "wrongCounts": {
+    "total": 80,
+    "oeq": 54,
+    "mcq": 26
+  },
+  "toplineSnapshot": {
+    "avgPct": 84,
+    "totalAwarded": 695.5,
+    "totalAvailable": 831,
+    "paperCount": 27
+  },
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T07:55:42.454Z",
+    "patternNames": [
+      "Ratio Order Mix-Up",
+      "Overlapping Shapes Trap",
+      "Skipping Questions"
+    ],
+    "wrongCounts": {
+      "total": 80,
+      "oeq": 54,
+      "mcq": 26
+    },
+    "toplineSnapshot": {
+      "avgPct": 84,
+      "totalAwarded": 695.5,
+      "totalAvailable": 831,
+      "paperCount": 27
+    }
+  }
+}

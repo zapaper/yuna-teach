@@ -118,6 +118,42 @@ type PreviousAssessmentDelta = {
   avgDelta: number | null;
   paperCountDelta: number | null;
 };
+type WeeklyDelta = {
+  prevGeneratedAt: string;
+  currGeneratedAt: string;
+  papersThisWeek: number;
+  caseA: boolean;
+  prefaceText: string;
+  wins: Array<{
+    patternName: string;
+    patternWhat?: string;
+    patternAdvice?: string;
+    exampleHit: {
+      paperTitle: string;
+      questionNum: string;
+      topic: string | null;
+      aw: number;
+      av: number;
+      stem: string;
+      studentAnswer: string | null;
+    };
+  }>;
+  topicProgress: Array<{
+    topic: string;
+    thisPct: number;
+    prevPct: number;
+    delta: number;
+    attemptsThisWeek: number;
+  }>;
+  newMistakes: Array<{
+    patternName: string;
+    patternWhat?: string;
+    patternAdvice?: string;
+  }>;
+  notRetested: Array<{ patternName: string }>;
+  patternsRetested: string[];
+};
+
 type TutorData =
   | {
       kind: "ineligible";
@@ -140,6 +176,7 @@ type TutorData =
       generatedAt: string;
       stale: StaleInfo;
       previousAssessment: PreviousAssessmentDelta | null;
+      weeklyDelta: WeeklyDelta | null;
     };
 
 type LinkedStudent = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
@@ -656,6 +693,13 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
   }, [view]);
   return (
     <>
+      {/* "Lumi's update this week" — only renders when loadTutorData
+          attached a weeklyDelta (i.e. a last-week snapshot existed for
+          this kid × subject). Sits ABOVE the standard summary so the
+          parent's weekly visit leads with wins / progress / new flags. */}
+      {data.weeklyDelta && (
+        <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} />
+      )}
       {/* Lumi greeting — always visible above the swipe stage. On
           mobile we stack the avatar on its own row (centred) above a
           full-width summary; on md+ we revert to the side-by-side
@@ -790,6 +834,103 @@ function scrollToSection(id: string) {
 // concepts / topics) so the admin can act on the headline without
 // scrolling around to find the matching card.
 // Internal admin-only gate for the personalised-quiz CTA. Limited to
+// "Lumi's update this week" — the delta block surfacing wins, topic
+// progress, new mistakes, and not-retested items since last Friday's
+// snapshot. Renders ABOVE the standard LumiSummary so the parent's
+// weekly visit leads with what changed. Driven by data.weeklyDelta
+// (populated by loadTutorData when a lastweek snapshot exists).
+function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string }) {
+  return (
+    <section className="bg-gradient-to-br from-violet-50 to-white rounded-2xl border border-violet-200 shadow-sm px-6 sm:px-8 py-6 mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">Lumi&apos;s update this week</span>
+      </div>
+      <p className="text-[#001e40] text-sm leading-relaxed mb-4">{delta.prefaceText}</p>
+
+      {delta.wins.length > 0 && (
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-emerald-700 mb-2">🎉 Wins this week</h3>
+          <p className="text-sm text-emerald-800 mb-2">
+            {childFirst} made progress on {delta.wins.length} common mistake{delta.wins.length === 1 ? "" : "s"} he used to make. Great job!
+          </p>
+          <ul className="space-y-2">
+            {delta.wins.map((w, i) => (
+              <li key={i} className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r px-3 py-2">
+                <div className="font-bold text-emerald-900 text-sm">{w.patternName}</div>
+                <div className="text-xs text-slate-700 mt-1">
+                  Example: {childFirst} answered Q{w.exampleHit.questionNum} of {w.exampleHit.paperTitle} correctly ({w.exampleHit.aw}/{w.exampleHit.av}).
+                </div>
+                <details className="mt-1">
+                  <summary className="text-xs text-emerald-700 cursor-pointer font-semibold">See details</summary>
+                  <div className="mt-2 bg-white rounded p-3 text-xs leading-relaxed">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                      {w.exampleHit.paperTitle} · Q{w.exampleHit.questionNum}
+                      {w.exampleHit.topic ? ` · ${w.exampleHit.topic}` : ""}
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {w.exampleHit.stem.slice(0, 600)}{w.exampleHit.stem.length > 600 ? "…" : ""}</p>
+                    {w.exampleHit.studentAnswer && (
+                      <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {w.exampleHit.studentAnswer.slice(0, 400)}{w.exampleHit.studentAnswer.length > 400 ? "…" : ""}</p>
+                    )}
+                    <p className="mt-2 text-emerald-700 font-bold">✓ {w.exampleHit.aw}/{w.exampleHit.av} marks</p>
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {delta.topicProgress.length > 0 && (
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-emerald-700 mb-2">📈 Topic progress this week</h3>
+          <ul className="space-y-2">
+            {delta.topicProgress.map((tp, i) => (
+              <li key={i} className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r px-3 py-2">
+                <div className="font-bold text-emerald-900 text-sm">{tp.topic}</div>
+                <div className="text-xs text-slate-700 mt-1">
+                  {childFirst} scored <strong>{tp.thisPct}%</strong> this week ({tp.attemptsThisWeek} questions) — up from his prior average of {tp.prevPct}% (<strong>+{tp.delta}pp</strong>). Nice work!
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {delta.newMistakes.length > 0 && (
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-orange-700 mb-2">Something new to keep an eye on</h3>
+          <ul className="space-y-2">
+            {delta.newMistakes.map((m, i) => (
+              <li key={i} className="bg-orange-50 border-l-4 border-orange-400 rounded-r px-3 py-2">
+                <div className="font-bold text-orange-900 text-sm">{m.patternName}</div>
+                {m.patternWhat && <div className="text-xs text-slate-700 mt-1">{m.patternWhat}</div>}
+                {m.patternAdvice && (
+                  <details className="mt-1">
+                    <summary className="text-xs text-orange-700 cursor-pointer font-semibold">What to look out for</summary>
+                    <div className="mt-1 text-xs text-slate-700 whitespace-pre-wrap">{m.patternAdvice}</div>
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {delta.notRetested.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-indigo-700 mb-2">Last week&apos;s focus — keeping an eye on these</h3>
+          <p className="text-xs text-indigo-800 mb-2">
+            {childFirst} didn&apos;t run into these in this week&apos;s papers. Lumi will keep watching.
+          </p>
+          <ul className="list-disc pl-5 text-xs text-indigo-900 space-y-1">
+            {delta.notRetested.map((n, i) => <li key={i}>{n.patternName}</li>)}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // David Lim + Mark Lim while we shake down the Lumi-quiz endpoint;
 // drop the Set and remove this hardcoding when we're ready to expose
 // the CTA to all parents.
