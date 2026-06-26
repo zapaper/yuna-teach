@@ -535,7 +535,12 @@ export async function runOcr(
   // prompt that ignores red/green annotations (so the wrong-word +
   // critique pipeline sees the original student text).
   compareToMarkings: boolean = false,
-): Promise<{ ocrText: string; ocrTextWithMarkings: string | null; ocrQuestionText: string | null }> {
+  // Admin "A/B compare with OpenAI" path. When true, also fires a
+  // parallel OpenAI vision call (gpt-5.4) on the same images so the
+  // detail page can show both OCR outputs side-by-side and the admin
+  // can pick the more accurate one.
+  alsoRunOpenAI: boolean = false,
+): Promise<{ ocrText: string; ocrTextWithMarkings: string | null; ocrQuestionText: string | null; ocrTextOpenAI: string | null }> {
   // Fast path — if every composition file is a text-bearing format
   // (.txt or .docx), skip the OCR Gemini call entirely. The kid
   // typed the composition; there's nothing for the model to OCR.
@@ -596,7 +601,24 @@ export async function runOcr(
       config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 24576 },
     }, 2, 5000, "compo-ocr-with-markings") : null;
 
-    const [ocrResp, markedResp] = await Promise.all([cleanRespP, markedRespP]);
+    // A/B OpenAI OCR pass. Routes through runOpenAIFallback so it uses
+    // gpt-5.4 vision with the same prompt — admin compares Gemini's
+    // output vs OpenAI's in the detail page.
+    const openaiRespP = alsoRunOpenAI ? (async () => {
+      try {
+        const { runOpenAIFallback } = await import("./openai-fallback");
+        return await runOpenAIFallback({
+          model: OCR_MODEL,
+          contents: [{ role: "user", parts: cleanCallParts }],
+          config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 24576 },
+        }, "compo-ocr-openai");
+      } catch (err) {
+        console.error("[compo:ocr-openai] failed:", err);
+        return null;
+      }
+    })() : null;
+
+    const [ocrResp, markedResp, openaiResp] = await Promise.all([cleanRespP, markedRespP, openaiRespP]);
     const ocrRaw = (ocrResp.text ?? "").trim();
     console.log(`[compo:ocr] composition done in ${((Date.now() - ocrStart) / 1000).toFixed(1)}s, ${ocrRaw.length} chars raw`);
     if (markedResp) {
@@ -614,6 +636,35 @@ export async function runOcr(
         ocrTextWithMarkings = markedRaw;
       }
       console.log(`[compo:ocr] with-markings OCR done, ${ocrTextWithMarkings?.length ?? 0} chars`);
+    }
+    if (openaiResp) {
+      // Parse the OpenAI A/B OCR pass — same JSON shape as Gemini's
+      // clean pass. Drops into the outlet so the post-pass can apply
+      // fixHandwriting3ToLe and the return statement can ship it back.
+      const openaiRaw = (openaiResp.text ?? "").trim();
+      let parsedEssay: string | null = null;
+      try {
+        const op = safeJsonParse(openaiRaw, "ocr-openai");
+        if (typeof op.essay === "string" && op.essay.trim().length > 0) {
+          parsedEssay = op.essay.trim();
+        }
+      } catch (err) {
+        // Same regex fallback as the Gemini clean parse — pluck essay
+        // string content out of malformed/truncated JSON.
+        console.warn(`[compo:ocr-openai] structured parse failed (${err instanceof Error ? err.message : err}); attempting essay-regex recovery from ${openaiRaw.length}-char output`);
+        const m = openaiRaw.match(/"essay"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"detectedQuestion"|"\s*}\s*$)/);
+        const candidateBody = m?.[1];
+        if (candidateBody && candidateBody.length > 50) {
+          parsedEssay = candidateBody
+            .replace(/\\n/g, "\n")
+            .replace(/\\r/g, "")
+            .replace(/\\"/g, '"')
+            .replace(/\\\\/g, "\\")
+            .trim();
+        }
+      }
+      _ocrOpenAITextOutlet.value = parsedEssay && parsedEssay.length > 0 ? parsedEssay : (openaiRaw || null);
+      console.log(`[compo:ocr-openai] done, ${_ocrOpenAITextOutlet.value?.length ?? 0} chars`);
     }
 
     // Parse the structured OCR output. Fall back to treating the
@@ -705,9 +756,20 @@ export async function runOcr(
   if (ocrTextWithMarkings) {
     ocrTextWithMarkings = fixHandwriting3ToLe(ocrTextWithMarkings);
   }
+  if (_ocrOpenAITextOutlet.value) {
+    _ocrOpenAITextOutlet.value = fixHandwriting3ToLe(_ocrOpenAITextOutlet.value);
+  }
 
-  return { ocrText, ocrTextWithMarkings, ocrQuestionText };
+  const ocrTextOpenAI = _ocrOpenAITextOutlet.value;
+  _ocrOpenAITextOutlet.value = null;
+  return { ocrText, ocrTextWithMarkings, ocrQuestionText, ocrTextOpenAI };
 }
+
+// Single-slot outlet for the OpenAI A/B OCR text. The image-OCR
+// branch fills it inside the Promise.all settle code; the post-pass
+// reads + clears it. Module-level (not request-local) but compo
+// analyses are serialised one-at-a-time per attempt, so no race.
+const _ocrOpenAITextOutlet: { value: string | null } = { value: null };
 
 // ─── Wrong-word pass ────────────────────────────────────────────────
 
@@ -1536,18 +1598,24 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
       ocrTextWithMarkings = attempt.ocrTextWithMarkings;
       ocrQuestionText = attempt.ocrQuestionText;
     } else {
-      console.log(`${tag} stage 1/4: OCR`);
+      console.log(`${tag} stage 1/4: OCR${attempt.useOpenAIForOcr ? " (+ OpenAI A/B compare)" : ""}`);
       const r = await runOcr(
         compositionImagePaths,
         attempt.questionImagePath,
         attempt.compareToMarkings,
+        attempt.useOpenAIForOcr,
       );
       ocrText = r.ocrText;
       ocrTextWithMarkings = r.ocrTextWithMarkings;
       ocrQuestionText = r.ocrQuestionText;
       await prisma.compoAttempt.update({
         where: { id: attemptId },
-        data: { ocrText, ocrTextWithMarkings, ocrQuestionText },
+        data: {
+          ocrText,
+          ocrTextWithMarkings,
+          ocrQuestionText,
+          ocrTextOpenAI: r.ocrTextOpenAI,
+        },
       });
     }
 

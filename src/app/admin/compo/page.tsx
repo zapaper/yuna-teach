@@ -62,6 +62,7 @@ export default function CompoIndexPage() {
   const [studentTopic, setStudentTopic] = useState("");
   const [optionType, setOptionType] = useState<"option1" | "option2" | "">("");
   const [compareToMarkings, setCompareToMarkings] = useState(false);
+  const [useOpenAIForOcr, setUseOpenAIForOcr] = useState(false);
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -134,6 +135,7 @@ export default function CompoIndexPage() {
       if (studentTopic) fd.append("studentTopic", studentTopic);
       if (optionType) fd.append("optionType", optionType);
       if (compareToMarkings) fd.append("compareToMarkings", "true");
+      if (useOpenAIForOcr) fd.append("useOpenAIForOcr", "true");
       if (questionFile) fd.append("question", questionFile);
       for (const p of pageFiles) fd.append("pages", p.file);
 
@@ -150,6 +152,7 @@ export default function CompoIndexPage() {
 
       pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
       setLabel(""); setStudentTopic(""); setOptionType("");
+      setCompareToMarkings(false); setUseOpenAIForOcr(false);
       setQuestionFile(null); setPageFiles([]);
       router.push(`/admin/compo/${row.id}`);
     } catch (e) {
@@ -231,6 +234,22 @@ export default function CompoIndexPage() {
             <br />
             <span className="text-amber-700">
               This will remove any red/green marking on script. Enhancer will enhance the base script without the markings. It will also OCR-ed the marked version as a comparison.
+            </span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 px-3 py-2 rounded-lg border border-sky-200 bg-sky-50 cursor-pointer hover:bg-sky-100/60">
+          <input
+            type="checkbox"
+            checked={useOpenAIForOcr}
+            onChange={(e) => setUseOpenAIForOcr(e.target.checked)}
+            className="mt-0.5 accent-sky-700"
+          />
+          <span className="text-xs text-sky-900">
+            <span className="font-semibold">Also run OpenAI OCR (A/B compare)</span>
+            <br />
+            <span className="text-sky-700">
+              Runs the same images through OpenAI vision (gpt-5.4) in parallel with Gemini, so you can compare both OCR outputs side-by-side and pick the more accurate one.
             </span>
           </span>
         </label>

@@ -663,6 +663,14 @@ model CompoAttempt {
   // BOTH so the admin can compare teacher edits to AI edits.
   compareToMarkings Boolean @default(false)
 
+  // Admin per-attempt opt-in: ALSO run OpenAI vision OCR alongside
+  // the Gemini pass and store the result in ocrTextOpenAI. The detail
+  // page shows both side-by-side so the admin can A/B compare which
+  // model was more accurate for THIS essay. Pick "winning" output by
+  // copying it into ocrText via the edit mode.
+  useOpenAIForOcr   Boolean @default(false)
+  ocrTextOpenAI     String? @db.Text   // Parallel OCR — only set when useOpenAIForOcr is true
+
   // Phase 1 — OCR of the student's handwritten composition.
   ocrText           String?  @db.Text  // Cleaned essay (markings stripped if compareToMarkings)
   ocrTextWithMarkings String? @db.Text // Raw essay incl. teacher's red/green edits (only when compareToMarkings = true)

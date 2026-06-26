@@ -67,8 +67,10 @@ type Row = {
   status: "uploaded" | "analysing" | "ready" | "failed";
   errorMessage: string | null;
   compareToMarkings: boolean;
+  useOpenAIForOcr: boolean;
   ocrText: string | null;
   ocrTextWithMarkings: string | null;
+  ocrTextOpenAI: string | null;
   ocrQuestionText: string | null;
   wrongWords: WrongWord[] | null;
   critique: Critique | null;
@@ -545,6 +547,23 @@ export default function CompoDetailPage() {
               />
               <p className="mt-2 text-[11px] text-slate-500 italic">
                 ~~strikethrough~~ = teacher crossed out · <strong>bold</strong> = teacher added · The AI markup above runs on the clean OCR (no red/green) — compare to spot where the AI and the teacher disagree.
+              </p>
+            </div>
+          )}
+          {row.useOpenAIForOcr && row.ocrTextOpenAI && (
+            <div className="mt-4 print:hidden">
+              <div className="text-xs font-semibold text-sky-900 mb-2 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-sky-500" />
+                OpenAI OCR (gpt-5.4) — A/B compare with Gemini above
+              </div>
+              <div
+                className="bg-sky-50/40 border border-sky-200 rounded-2xl p-5 text-sm leading-relaxed whitespace-pre-wrap text-slate-800"
+                style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+              >
+                {row.ocrTextOpenAI}
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 italic">
+                Same images, run through OpenAI vision in parallel. Compare against the Gemini output above to see where they differ (the rest of the pipeline still uses Gemini's OCR).
               </p>
             </div>
           )}

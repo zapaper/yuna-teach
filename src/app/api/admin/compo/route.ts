@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
   const optionTypeRaw = ((form.get("optionType") as string | null) ?? "").trim();
   const optionType = optionTypeRaw === "option1" || optionTypeRaw === "option2" ? optionTypeRaw : null;
   const compareToMarkings = String(form.get("compareToMarkings") ?? "").toLowerCase() === "true";
+  const useOpenAIForOcr = String(form.get("useOpenAIForOcr") ?? "").toLowerCase() === "true";
   const questionFile = form.get("question");
   const pageEntries = form.getAll("pages");
 
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
       studentTopic,
       optionType,
       compareToMarkings,
+      useOpenAIForOcr,
       compositionImagePaths: [],
       status: "uploaded",
     },
