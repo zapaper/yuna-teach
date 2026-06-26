@@ -220,7 +220,13 @@ export async function sendLumiWeeklyForStudent(args: {
   return { status: "sent", subjects: sections.map(s => s.subject) };
 }
 
-(async () => {
+// Only run the main loop when executed as the entry point. Importing
+// this file from the replay sweeper used to kick off a dry-run for
+// all kids as a side effect — guarding lets the export ship without
+// the script running itself unexpectedly.
+const IS_ENTRY = (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/send-lumi-weekly-emails.ts")
+  || (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/send-lumi-weekly-emails.js");
+if (IS_ENTRY) (async () => {
   const { dryRun, kids, toOverride } = parseArgs();
   console.log(`Lumi weekly email — kids=${kids.join(",")} to=${toOverride ?? "(linked parents)"} dry=${dryRun}\n`);
 

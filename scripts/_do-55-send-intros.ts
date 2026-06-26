@@ -364,7 +364,13 @@ export async function sendLumiIntroForReplay(args: {
   });
 }
 
-(async () => {
+// Only run the main loop when executed as the entry point — the
+// replay sweeper imports this file just to get sendLumiIntroForReplay,
+// and used to trigger a full scan-and-send candidate enumeration as
+// a side effect of the import.
+const IS_ENTRY = (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.ts")
+  || (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.js");
+if (IS_ENTRY) (async () => {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey && !DRY) {
     console.error("SENDGRID_API_KEY not set — re-run with --dry, or export the key first.");
