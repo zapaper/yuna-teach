@@ -56,11 +56,14 @@ const STYLES = {
   body:      `font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7fb; padding: 24px;`,
   container: `max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(11, 28, 48, 0.06);`,
   intro:     `font-size: 15px; color: #1e293b; line-height: 1.6; margin: 0 0 16px 0;`,
-  subjectH:  `font-size: 18px; color: #001e40; font-weight: 800; margin: 32px 0 8px 0; border-bottom: 1px solid #ede9fe; padding-bottom: 8px;`,
+  subjectH:  `font-size: 18px; color: #001e40; font-weight: 800; margin: 32px 0 4px 0; border-bottom: 1px solid #ede9fe; padding-bottom: 8px;`,
+  activity:  `font-size: 13px; color: #475569; margin: 0 0 14px 0; font-style: italic;`,
   preface:   `font-size: 14px; color: #1e293b; line-height: 1.55; margin: 0 0 14px 0;`,
   sectionH:  `font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.1px; margin: 18px 0 8px 0;`,
+  // Wins: green (stays).
   winCard:   `background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 8px 0;`,
-  topicCard: `background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 8px 0;`,
+  // Topic progress: light blue (was green — too similar to wins).
+  topicCard: `background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 8px 0;`,
   newCard:   `background: #fff7ed; border-left: 4px solid #fb923c; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 8px 0;`,
   cardTitle: `font-size: 14px; font-weight: 700; margin: 0 0 4px 0;`,
   cardBody:  `font-size: 13px; color: #1e293b; margin: 4px 0 0 0; line-height: 1.5;`,
@@ -70,10 +73,25 @@ const STYLES = {
 
 type ReadyData = Extract<TutorData, { kind: "ready" }>;
 
+// Pull a short, parent-readable mistake summary out of the marker's
+// notes. Marker notes already explain the wrong-vs-right in 1-2
+// sentences ("Misspelled 'sufficent' (should be 'sufficient').", "The
+// word 'mess' is too informal — correct answer is 'interfere'."), so
+// keeping just the first sentence is usually exactly what we want.
+// Falls back to a "see details" stub when notes are missing.
+function summarizeMistake(notes: string | null | undefined): string {
+  if (!notes) return "see the full question below";
+  const first = (notes.split(/[.!?]\s/)[0] ?? notes).trim();
+  return first.length > 180 ? first.slice(0, 177) + "…" : first;
+}
+
 function renderDelta(data: ReadyData, childFirst: string): string {
   const delta = data.weeklyDelta;
   if (!delta) return ""; // shouldn't happen (caller filters), but safety
   const parts: string[] = [];
+  // One-line activity summary so the parent immediately sees the
+  // volume of work: "David has done 2 papers (37 questions) this week."
+  parts.push(`<p style="${STYLES.activity}">${esc(childFirst)} has done <strong>${delta.papersThisWeek}</strong> paper${delta.papersThisWeek === 1 ? "" : "s"} (<strong>${delta.questionsThisWeek}</strong> question${delta.questionsThisWeek === 1 ? "" : "s"}) this week.</p>`);
   parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)}</p>`);
 
   if (delta.wins.length > 0) {
@@ -90,12 +108,12 @@ function renderDelta(data: ReadyData, childFirst: string): string {
   }
 
   if (delta.topicProgress.length > 0) {
-    parts.push(`<div style="${STYLES.sectionH} color: #047857;">📈 Topic progress this week</div>`);
+    parts.push(`<div style="${STYLES.sectionH} color: #1d4ed8;">📈 Topic progress this week</div>`);
     for (const tp of delta.topicProgress) {
       parts.push(`
         <div style="${STYLES.topicCard}">
-          <div style="${STYLES.cardTitle} color: #047857;">${esc(tp.topic)}</div>
-          <div style="${STYLES.cardBody}">${esc(childFirst)} scored <strong>${tp.thisPct}%</strong> this week (${tp.attemptsThisWeek} questions) — up from his prior average of ${tp.prevPct}% (<strong>+${tp.delta}pp</strong>). Nice work!</div>
+          <div style="${STYLES.cardTitle} color: #1d4ed8;">${esc(tp.topic)}</div>
+          <div style="${STYLES.cardBody}">${esc(childFirst)} scored <strong>${tp.thisPct}%</strong> this week (${tp.attemptsThisWeek} questions) — up from his prior average of ${tp.prevPct}% (<strong>+${tp.delta}pp</strong> <span style="color: #10b981; font-weight: 800;">▲</span>). Nice work!</div>
         </div>`);
     }
   }
@@ -108,7 +126,7 @@ function renderDelta(data: ReadyData, childFirst: string): string {
         <div style="${STYLES.newCard}">
           <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
           ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
-          ${ex ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks on Q${esc(ex.questionNum)} of ${esc(ex.paperTitle)}.</em></div>` : ""}
+          ${ex ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summarizeMistake(ex.markingNotes))}</em></div>` : ""}
         </div>`);
     }
   }

@@ -28,6 +28,7 @@ export type WeeklyDelta = {
   prevGeneratedAt: string;
   currGeneratedAt: string;
   papersThisWeek: number;
+  questionsThisWeek: number;
   caseA: boolean;
   prefaceText: string;
   wins: Array<{
@@ -435,6 +436,7 @@ export async function computeWeeklyDelta(
     prevGeneratedAt: prev.generatedAt,
     currGeneratedAt: curr.generatedAt ?? new Date().toISOString(),
     papersThisWeek: newPapers.length,
+    questionsThisWeek: weekQuestions.length,
     caseA,
     prefaceText,
     wins,

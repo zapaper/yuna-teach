@@ -122,6 +122,7 @@ type WeeklyDelta = {
   prevGeneratedAt: string;
   currGeneratedAt: string;
   papersThisWeek: number;
+  questionsThisWeek: number;
   caseA: boolean;
   prefaceText: string;
   wins: Array<{
