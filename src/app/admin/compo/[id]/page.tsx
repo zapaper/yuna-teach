@@ -6,7 +6,7 @@
 // words in black, corrections + recommended additions in green, for the
 // kid to practice copying).
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { fetchJsonSafe } from "@/lib/client-fetch";
@@ -171,6 +171,108 @@ export default function CompoDetailPage() {
   // Reset substitutions when the underlying draft changes (re-analyse).
   useEffect(() => { setSubstitutions(new Map()); }, [elevatedDraft]);
 
+  // ─── Edit mode ─────────────────────────────────────────────────────
+  // When `editing` is true, the read-only essay panel becomes a
+  // textarea. Save calls PATCH on /api/admin/compo/[id].
+  // - Marked/Clean views write back to ocrText.
+  // - Enhanced view writes back to recommendations.elevatedDraft.
+  const [editing, setEditing] = useState(false);
+  const [draftText, setDraftText] = useState("");
+  const [savingDraft, setSavingDraft] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  // Right-click → alternatives popup state.
+  const [altMenu, setAltMenu] = useState<{ x: number; y: number; selStart: number; selEnd: number; selText: string } | null>(null);
+  const [altLoading, setAltLoading] = useState(false);
+  const [alternatives, setAlternatives] = useState<Array<{ cn: string; en: string; pattern?: string }> | null>(null);
+  const [altError, setAltError] = useState<string | null>(null);
+
+  // Seed draftText whenever editing toggles on or the view changes.
+  useEffect(() => {
+    if (!editing) return;
+    if (view === "elevated") {
+      setDraftText(stripMarkers(elevatedDraft));
+    } else {
+      setDraftText(ocrText);
+    }
+    setAltMenu(null);
+    setAlternatives(null);
+  }, [editing, view, ocrText, elevatedDraft]);
+
+  const saveDraft = async () => {
+    setSavingDraft(true);
+    setError(null);
+    try {
+      const body: { ocrText?: string; elevatedDraft?: string } = {};
+      if (view === "elevated") body.elevatedDraft = draftText;
+      else                     body.ocrText       = draftText;
+      const res = await fetchJsonSafe<{ row: Row }>(`/api/admin/compo/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setRow(res.data.row);
+        setEditing(false);
+      } else {
+        setError(res.error);
+      }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const openAltMenu = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const ta = taRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    if (end <= start) return;            // nothing selected
+    const text = draftText.slice(start, end);
+    if (text.trim().length === 0) return;
+    if (text.length > 80) return;        // too long — bail rather than confuse Gemini
+    e.preventDefault();
+    setAltMenu({ x: e.clientX, y: e.clientY, selStart: start, selEnd: end, selText: text });
+    setAlternatives(null);
+    setAltError(null);
+  };
+
+  const fetchAlternatives = async () => {
+    if (!altMenu) return;
+    setAltLoading(true);
+    setAltError(null);
+    setAlternatives(null);
+    try {
+      // Find the surrounding paragraph for context: walk back to last \n
+      // (or start) and forward to next \n (or end).
+      const pStart = draftText.lastIndexOf("\n", Math.max(0, altMenu.selStart - 1)) + 1;
+      const pEndRaw = draftText.indexOf("\n", altMenu.selEnd);
+      const pEnd = pEndRaw < 0 ? draftText.length : pEndRaw;
+      const paragraph = draftText.slice(pStart, pEnd);
+      const res = await fetch(`/api/admin/compo/${id}/phrase-alternatives`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedText: altMenu.selText, paragraph }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const j = await res.json() as { alternatives: Array<{ cn: string; en: string; pattern?: string }> };
+      setAlternatives(j.alternatives);
+    } catch (e) {
+      setAltError((e as Error).message);
+    } finally {
+      setAltLoading(false);
+    }
+  };
+
+  const applyAlternative = (alt: string) => {
+    if (!altMenu) return;
+    setDraftText(draftText.slice(0, altMenu.selStart) + alt + draftText.slice(altMenu.selEnd));
+    setAltMenu(null);
+    setAlternatives(null);
+  };
+
   if (!row && !error) return <p className="p-6 text-sm text-slate-500">Loading…</p>;
   if (error)         return <p className="p-6 text-sm text-red-600">{error}</p>;
   if (!row)          return null;
@@ -202,8 +304,43 @@ export default function CompoDetailPage() {
             </p>
           </div>
           <div className="flex gap-2 print:hidden">
+            {!editing ? (
+              <button
+                onClick={() => setEditing(true)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 inline-flex items-center gap-1"
+                title="Edit the essay directly. Right-click on selected text to get phrase alternatives from AI."
+              >
+                ✎ Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={saveDraft}
+                  disabled={savingDraft}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                >
+                  {savingDraft ? "Saving…" : "💾 Save"}
+                </button>
+                <button
+                  onClick={() => { setEditing(false); setAltMenu(null); setAlternatives(null); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                // The browser's "Save as PDF" dialog seeds the filename
+                // from <title>. Stomp it briefly so we get
+                // "<label> v3: enhanced.pdf" style names, then restore.
+                const orig = document.title;
+                document.title = exportName(row.label, view);
+                setTimeout(() => {
+                  window.print();
+                  setTimeout(() => { document.title = orig; }, 1000);
+                }, 0);
+              }}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
               title="Use 'Save as PDF' in the print dialog"
             >
@@ -330,7 +467,21 @@ export default function CompoDetailPage() {
         {/* Main composition view */}
         <div className="col-span-2 print:col-span-1">
           <h2 className="text-sm font-semibold text-slate-800 mb-2">作文</h2>
-          {view === "elevated" ? (
+          {editing ? (
+            <>
+              <textarea
+                ref={taRef}
+                value={draftText}
+                onChange={e => setDraftText(e.target.value)}
+                onContextMenu={openAltMenu}
+                className="w-full bg-white border-2 border-amber-300 rounded-2xl p-6 text-base leading-loose text-slate-900 focus:outline-none focus:border-amber-500"
+                style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif", minHeight: 500 }}
+              />
+              <p className="text-[10px] text-amber-700 mt-1">
+                ✎ Editing — right-click a selected phrase to get AI alternatives. Save above to commit.
+              </p>
+            </>
+          ) : view === "elevated" ? (
             <div
               className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
               style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
@@ -354,6 +505,20 @@ export default function CompoDetailPage() {
               className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
               style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
               dangerouslySetInnerHTML={{ __html: view === "marked" ? markedHtml : cleanHtml }}
+            />
+          )}
+          {/* Alternatives popup — appears at the right-click coords. */}
+          {altMenu && (
+            <AlternativesPopup
+              x={altMenu.x}
+              y={altMenu.y}
+              selectedText={altMenu.selText}
+              loading={altLoading}
+              alternatives={alternatives}
+              error={altError}
+              onFetch={fetchAlternatives}
+              onApply={applyAlternative}
+              onClose={() => { setAltMenu(null); setAlternatives(null); }}
             />
           )}
           <WordCountFooter
@@ -427,6 +592,20 @@ function renderMarkingsOcr(text: string): string {
   }
   if (last < text.length) out.push(escapeHtml(text.slice(last)));
   return out.join("");
+}
+
+// Naming convention for downloaded files (PDF + Word):
+//   marked   → "<label> v1: original"
+//   clean    → "<label> v2: clean rewrite"
+//   elevated → "<label> v3: enhanced"
+// label fallback to "Composition" when empty.
+function exportName(label: string | null | undefined, view: "marked" | "clean" | "elevated"): string {
+  const title = (label ?? "").trim() || "Composition";
+  const suffix =
+    view === "marked"   ? "v1: original" :
+    view === "clean"    ? "v2: clean rewrite" :
+                          "v3: enhanced";
+  return `${title} ${suffix}`;
 }
 
 function escapeHtml(s: string): string {
@@ -821,6 +1000,103 @@ function countChars(text: string): { cjk: number; total: number } {
     if ((code >= 0x4E00 && code <= 0x9FFF) || (code >= 0x3400 && code <= 0x4DBF)) cjk++;
   }
   return { cjk, total: cleaned.length };
+}
+
+// Floating popup that appears when the admin right-clicks selected text
+// in the edit-mode textarea. Lists Gemini-generated alternatives the
+// admin can click to swap in.
+function AlternativesPopup({
+  x, y,
+  selectedText,
+  loading,
+  alternatives,
+  error,
+  onFetch,
+  onApply,
+  onClose,
+}: {
+  x: number; y: number;
+  selectedText: string;
+  loading: boolean;
+  alternatives: Array<{ cn: string; en: string; pattern?: string }> | null;
+  error: string | null;
+  onFetch: () => void;
+  onApply: (alt: string) => void;
+  onClose: () => void;
+}) {
+  // Click-outside to close. Stop propagation inside the popup itself.
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (!t.closest?.("[data-alt-popup]")) onClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [onClose]);
+  // Auto-fetch on mount.
+  useEffect(() => { if (!alternatives && !loading && !error) onFetch(); /* eslint-disable-next-line */ }, []);
+  // Clamp position so the popup doesn't go off screen.
+  const left = Math.min(x, (typeof window !== "undefined" ? window.innerWidth : 1024) - 360);
+  const top  = Math.min(y, (typeof window !== "undefined" ? window.innerHeight : 800) - 320);
+  return (
+    <div
+      data-alt-popup
+      style={{
+        position: "fixed",
+        left, top,
+        zIndex: 50,
+        width: 340,
+        maxHeight: 360,
+        overflowY: "auto",
+        background: "white",
+        border: "1px solid #cbd5e1",
+        borderRadius: 10,
+        boxShadow: "0 12px 28px rgba(0,0,0,0.15)",
+        padding: 12,
+        fontSize: 13,
+      }}
+    >
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] uppercase tracking-wide font-semibold text-slate-500">Alternatives</div>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xs">×</button>
+      </div>
+      <div className="text-sm font-semibold text-slate-800 mb-2 border-b border-slate-100 pb-2">
+        「{selectedText}」
+      </div>
+      {loading && <div className="text-xs text-slate-500 italic py-3 text-center">Generating with gemini-2.5-flash…</div>}
+      {error && <div className="text-xs text-rose-600 py-3">{error}</div>}
+      {alternatives && alternatives.length === 0 && (
+        <div className="text-xs text-slate-500 italic py-3">No alternatives returned.</div>
+      )}
+      {alternatives && alternatives.length > 0 && (
+        <ul className="space-y-1.5">
+          {alternatives.map((alt, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => onApply(alt.cn)}
+                className="w-full text-left px-2 py-1.5 rounded-md border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
+              >
+                {alt.pattern && (
+                  <div className="text-[10px] uppercase tracking-wide text-sky-700 font-semibold">{alt.pattern}</div>
+                )}
+                <div className="text-slate-900">{alt.cn}</div>
+                {alt.en && <div className="text-[11px] italic text-slate-500 mt-0.5">{alt.en}</div>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!loading && (
+        <button
+          onClick={onFetch}
+          className="mt-3 w-full text-[11px] text-slate-500 hover:text-slate-800 underline"
+        >
+          Regenerate
+        </button>
+      )}
+    </div>
+  );
 }
 
 function WordCountFooter({

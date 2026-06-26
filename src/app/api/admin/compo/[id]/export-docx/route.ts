@@ -100,27 +100,26 @@ export async function GET(
   const elevated = (row.recommendations as { elevatedDraft?: string } | null)?.elevatedDraft ?? "";
 
   let body = "";
-  let viewLabel = "";
+  let suffix = "";
   if (view === "marked") {
     body = ocr;
-    viewLabel = "Original";
+    suffix = "v1: original";
   } else if (view === "clean") {
     body = applyClean(ocr, wrongWords);
-    viewLabel = "Clean";
+    suffix = "v2: clean rewrite";
   } else {
     body = stripElevateMarkers(elevated || ocr);
-    viewLabel = "Enhanced";
+    suffix = "v3: enhanced";
   }
   body = body.trim();
   if (body.length === 0) {
     return NextResponse.json({ error: `No text available for the '${view}' view` }, { status: 400 });
   }
 
-  const title = `${row.label ?? "Composition"} — ${viewLabel}`;
+  const labelText = (row.label ?? "").trim() || "Composition";
+  const title = `${labelText} ${suffix}`;
   const buf = await buildEssayDoc(title, body);
-  // Filename: safe ascii + view suffix; the kid sees this in their downloads.
-  const safeLabel = (row.label ?? "composition").replace(/[^\w一-鿿\s.-]/g, "").trim().slice(0, 60) || "composition";
-  const filename = `${safeLabel}-${view}.docx`;
+  const filename = `${title}.docx`;
   // RFC 5987 to handle CJK in the filename header.
   const fnStar = `UTF-8''${encodeURIComponent(filename)}`;
 

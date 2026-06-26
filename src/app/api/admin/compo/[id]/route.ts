@@ -19,18 +19,20 @@ export async function GET(
   return NextResponse.json({ row });
 }
 
-// PATCH /api/admin/compo/[id] — update mutable metadata (currently
-// just the human label). Body: { label?: string | null }. Trims
-// strings, accepts null/empty to clear back to '(no label)'.
+// PATCH /api/admin/compo/[id] — update mutable fields. Body accepts:
+//   label?:         string | null   — human title
+//   ocrText?:       string          — overrides Marked/Clean view text
+//   elevatedDraft?: string          — overrides Enhanced view text
+// All other recommendations / rubric data is preserved.
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
-  let body: { label?: unknown } = {};
+  let body: { label?: unknown; ocrText?: unknown; elevatedDraft?: unknown } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
-  const data: { label?: string | null } = {};
+  const data: { label?: string | null; ocrText?: string; recommendations?: unknown } = {};
   if ("label" in body) {
     if (body.label === null) data.label = null;
     else if (typeof body.label === "string") {
@@ -40,11 +42,32 @@ export async function PATCH(
       return NextResponse.json({ error: "label must be string or null" }, { status: 400 });
     }
   }
+  if ("ocrText" in body) {
+    if (typeof body.ocrText !== "string") {
+      return NextResponse.json({ error: "ocrText must be string" }, { status: 400 });
+    }
+    data.ocrText = body.ocrText;
+  }
+  if ("elevatedDraft" in body) {
+    if (typeof body.elevatedDraft !== "string") {
+      return NextResponse.json({ error: "elevatedDraft must be string" }, { status: 400 });
+    }
+    // recommendations is a JSON column — merge the new draft into the
+    // existing structure so swaps / rubric / language recs stay intact.
+    const existing = await prisma.compoAttempt.findUnique({
+      where: { id },
+      select: { recommendations: true },
+    });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const recs = (existing.recommendations as Record<string, unknown> | null) ?? {};
+    data.recommendations = { ...recs, elevatedDraft: body.elevatedDraft };
+  }
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "no editable fields supplied" }, { status: 400 });
   }
   try {
-    const row = await prisma.compoAttempt.update({ where: { id }, data });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row = await prisma.compoAttempt.update({ where: { id }, data: data as any });
     return NextResponse.json({ row });
   } catch (err) {
     const code = (err as { code?: string }).code;
