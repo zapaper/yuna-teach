@@ -47,6 +47,7 @@ function Content() {
   const userId = sp.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [totalBroken, setTotalBroken] = useState<number | null>(null);
+  const [skippedNoChange, setSkippedNoChange] = useState<number | null>(null);
   const [papersCount, setPapersCount] = useState<number | null>(null);
   const [limit, setLimit] = useState(10);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -69,11 +70,24 @@ function Content() {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json();
       setTotalBroken(j.totalBroken);
+      setSkippedNoChange(j.skippedNoChange ?? null);
       setPapersCount(j.papers ?? null);
     } catch (e) {
       setErr((e as Error).message);
     }
   }, []);
+
+  const resetSkipped = async () => {
+    if (!confirm("Clear all 'no-change' flags? Questions previously scanned with no improvement will re-appear in future dry-runs. Use this after editing answer keys via transcribe-edit.")) return;
+    setErr(null);
+    try {
+      const r = await fetch(`/api/admin/oeq-alignment-fix`, { method: "DELETE" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      await fetchCounts();
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  };
 
   useEffect(() => { if (allowed) void fetchCounts(); }, [allowed, fetchCounts]);
 
@@ -144,14 +158,24 @@ function Content() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-6 text-sm flex-wrap">
           <div>
-            <span className="text-slate-500">Broken questions:</span>{" "}
+            <span className="text-slate-500">Broken (un-scanned):</span>{" "}
             <span className="text-2xl font-bold text-slate-900">{totalBroken ?? "…"}</span>
             {papersCount !== null && (
               <span className="ml-2 text-slate-500">across {papersCount} paper(s)</span>
             )}
           </div>
+          {skippedNoChange !== null && skippedNoChange > 0 && (
+            <div className="text-xs text-slate-500">
+              + <strong>{skippedNoChange}</strong> already scanned (no-change) — silenced
+              <button
+                onClick={resetSkipped}
+                className="ml-2 text-amber-700 hover:text-amber-900 hover:underline"
+                title="Clear the 'no-change' flags so these questions re-appear for re-scan. Use after editing answer keys."
+              >Reset</button>
+            </div>
+          )}
           <button
             onClick={fetchCounts}
             className="text-xs text-slate-500 hover:text-slate-700 hover:underline"

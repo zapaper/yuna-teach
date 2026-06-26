@@ -80,7 +80,11 @@ async function findBroken() {
     select: {
       id: true, title: true,
       questions: {
-        select: { id: true, questionNum: true, transcribedSubparts: true, transcribedStem: true, answer: true, imageData: true },
+        select: {
+          id: true, questionNum: true, transcribedSubparts: true, transcribedStem: true,
+          answer: true, imageData: true,
+          alignmentFixCheckedAt: true,
+        },
       },
     },
   });
@@ -90,6 +94,13 @@ async function findBroken() {
       const subs = q.transcribedSubparts as Subpart[] | null;
       if (!Array.isArray(subs)) continue;
       if (!hasAlignmentBug(subs, q.answer)) continue;
+      // Exclude questions that have already been dry-run-scanned with
+      // a "no-change" verdict. The cost of running Gemini was already
+      // paid; surfacing the same row on every subsequent dry-run is
+      // pure waste. ExamQuestion has no updatedAt, so this exclusion
+      // is sticky — admin can clear via the UI button to force a re-
+      // scan after editing subparts / answer in transcribe-edit.
+      if (q.alignmentFixCheckedAt) continue;
       out.push({
         paperId: p.id,
         paperTitle: p.title,
@@ -109,14 +120,41 @@ export async function GET(req: NextRequest) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const countOnly = req.nextUrl.searchParams.get("count-only") === "1";
   const broken = await findBroken();
-  if (countOnly) {
-    return NextResponse.json({ totalBroken: broken.length });
+  // Also count questions that are "broken" structurally but already
+  // dry-run-scanned with no-change — surface separately so the admin
+  // knows how many are silenced.
+  const allBroken = await prisma.examPaper.findMany({
+    where: { subject: { contains: "Science", mode: "insensitive" }, assignedToId: null },
+    select: { questions: { select: { alignmentFixCheckedAt: true, transcribedSubparts: true, answer: true } } },
+  });
+  let skippedCount = 0;
+  for (const p of allBroken) {
+    for (const q of p.questions) {
+      const subs = q.transcribedSubparts as Subpart[] | null;
+      if (!Array.isArray(subs)) continue;
+      if (!hasAlignmentBug(subs, q.answer)) continue;
+      if (q.alignmentFixCheckedAt) skippedCount++;
+    }
   }
-  // For dashboard preview: just return shape + counts without firing Gemini.
+  if (countOnly) {
+    return NextResponse.json({ totalBroken: broken.length, skippedNoChange: skippedCount });
+  }
   return NextResponse.json({
     totalBroken: broken.length,
+    skippedNoChange: skippedCount,
     papers: [...new Set(broken.map(b => b.paperId))].length,
   });
+}
+
+// DELETE — clear all "no-change" flags so questions re-appear for re-scan.
+// Use after editing answer keys / subparts via transcribe-edit.
+export async function DELETE() {
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const r = await prisma.examQuestion.updateMany({
+    where: { alignmentFixCheckedAt: { not: null } },
+    data: { alignmentFixCheckedAt: null },
+  });
+  return NextResponse.json({ ok: true, cleared: r.count });
 }
 
 export async function POST(req: NextRequest) {
@@ -224,6 +262,16 @@ export async function POST(req: NextRequest) {
         data: { transcribedSubparts: newSubs as never },
       });
       applied = true;
+    } else if (verdict === "no-change") {
+      // Stamp the question as scanned so it doesn't re-appear in future
+      // findBroken() calls. Invalidated automatically the next time
+      // anyone edits subparts / answer (examQuestion.updatedAt bumps).
+      // We do this even in dry-run mode — the cost of running Gemini
+      // on this question was already paid; surfacing it again is waste.
+      await prisma.examQuestion.update({
+        where: { id: b.questionId },
+        data: { alignmentFixCheckedAt: new Date() },
+      });
     }
     return {
       paperId: b.paperId, paperTitle: b.paperTitle, questionId: b.questionId,
