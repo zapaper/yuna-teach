@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     const linkedParent = stu.parentLinks[0]?.parent ?? null;
     const ctaParentId = linkedParent?.id ?? stu.id;
-    const ctaUrl = `${BASE_URL}/tutor/${ctaParentId}?student=${stu.id}`;
+    const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
     const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
     const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
     const html = `<!doctype html>

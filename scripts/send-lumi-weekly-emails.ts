@@ -157,7 +157,10 @@ export async function sendLumiWeeklyForStudent(args: {
 
   const linkedParent = stu.parentLinks[0]?.parent ?? null;
   const ctaParentId = linkedParent?.id ?? stu.id;
-  const ctaUrl = `${BASE_URL}/tutor/${ctaParentId}?student=${stu.id}`;
+  // Match the intro email's CTA: land on the parent homepage with the
+  // Lumi view active. The bare /tutor/<parentId> route renders Lumi
+  // without the dashboard shell + has a confusing "Tutor" header.
+  const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
   const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
   const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
   const html = `<!doctype html>
