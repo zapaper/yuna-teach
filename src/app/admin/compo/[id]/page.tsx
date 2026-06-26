@@ -836,7 +836,7 @@ function ElevatedDraftView({
                 setOpenKey(isOpen ? null : key);
               }
             }}
-            title={`${bucket}: click to see alternatives`}
+            title="Click to see alternatives"
             style={{
               color: "#047857",
               fontWeight: 700,
@@ -883,13 +883,13 @@ function PhrasePopup({
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
-      if (!t.closest?.("[data-phrase-popup]") && !t.closest?.("button[title^=" + JSON.stringify(swap.bucket) + "]")) {
+      if (!t.closest?.("[data-phrase-popup]") && !t.closest?.("[role=button][title='Click to see alternatives']")) {
         onClose();
       }
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [onClose, swap.bucket]);
+  }, [onClose]);
   return (
     <div
       data-phrase-popup
@@ -913,14 +913,6 @@ function PhrasePopup({
         textAlign: "left",
       }}
     >
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: 4 }}>
-        {swap.bucket}
-        {swap.subType && (
-          <span style={{ marginLeft: 6, textTransform: "none", letterSpacing: 0, color: "#94a3b8" }}>
-            · {swap.subType}
-          </span>
-        )}
-      </div>
       <div style={{ fontWeight: 600, color: "#047857" }}>{swap.originalText}</div>
       {swap.originalEn && <div style={{ fontStyle: "italic", color: "#475569", fontSize: 12, marginTop: 2 }}>{swap.originalEn}</div>}
       <div style={{ borderTop: "1px solid #e2e8f0", margin: "10px 0 6px" }} />
@@ -1375,10 +1367,9 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
                 <div className="font-medium text-emerald-900">{l.phraseCn}</div>
                 {l.phraseEn && <div className="text-xs text-slate-500">{l.phraseEn}</div>}
                 <div className="text-xs text-slate-700 mt-1">{l.whyItHelps}</div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  {l.bucket}
-                  {l.fromYear && l.fromYear.trim() && /^\d{4}$/.test(l.fromYear.trim()) ? ` · PSLE ${l.fromYear}` : ""}
-                </div>
+                {l.fromYear && l.fromYear.trim() && /^\d{4}$/.test(l.fromYear.trim()) && (
+                  <div className="text-[10px] text-slate-400 mt-1">PSLE {l.fromYear}</div>
+                )}
               </li>
             ))}
           </ul>
