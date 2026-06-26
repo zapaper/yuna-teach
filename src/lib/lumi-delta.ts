@@ -353,16 +353,21 @@ export async function computeWeeklyDelta(
       const lost = q.marksAvailable - q.marksAwarded;
       if (lost > bestLost) { bestLost = lost; bestWrong = q; }
     }
+    // No concrete this-week example → skip. Showing "new" patterns
+    // without evidence reads as filler and risks falsely flagging the
+    // kid when the matcher just couldn't find a hit. We only surface
+    // a "new mistake" when we can point at the actual question.
+    if (!bestWrong) continue;
     newMistakes.push({
       patternName: cand.name,
       patternWhat: cand.what,
       patternAdvice: cand.strategic_advice,
-      exampleWrong: bestWrong ? {
+      exampleWrong: {
         paperTitle: bestWrong.paperTitle, questionNum: bestWrong.questionNum,
         topic: bestWrong.syllabusTopic, aw: bestWrong.marksAwarded, av: bestWrong.marksAvailable,
         stem: bestWrong.stem, studentAnswer: bestWrong.studentAnswer,
         markingNotes: bestWrong.markingNotes,
-      } : undefined,
+      },
     });
   }
 

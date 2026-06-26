@@ -941,12 +941,6 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                     </div>
                   </details>
                 )}
-                {!m.exampleWrong && m.patternAdvice && (
-                  <details className="mt-1">
-                    <summary className="text-xs text-orange-700 cursor-pointer font-semibold">What to look out for</summary>
-                    <div className="mt-1 text-xs text-slate-700 whitespace-pre-wrap">{m.patternAdvice}</div>
-                  </details>
-                )}
               </li>
             ))}
           </ul>
