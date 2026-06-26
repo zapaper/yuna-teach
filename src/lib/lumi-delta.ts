@@ -223,13 +223,14 @@ async function topicStatsUpTo(kidId: string, subject: string, cutoff: Date): Pro
   };
   const papers = await prisma.examPaper.findMany({
     where,
-    select: { metadata: true, questions: { select: { id: true, marksAwarded: true, marksAvailable: true, syllabusTopic: true, sourceQuestionId: true } } },
+    select: { metadata: true, questions: { select: { id: true, marksAwarded: true, marksAvailable: true, syllabusTopic: true, sourceQuestionId: true, studentAnswer: true } } },
   });
   const nonRev = papers.filter(p => !(p.metadata as { revisionMode?: unknown } | null)?.revisionMode);
   const m = new Map<string, { awarded: number; available: number; attempts: number }>();
   const seen = new Set<string>();
   for (const p of nonRev) {
     for (const q of p.questions) {
+      if (q.studentAnswer === "__SKIPPED__") continue;
       const av = q.marksAvailable ?? 0; if (av === 0) continue;
       const t = (q.syllabusTopic ?? "").trim(); if (!t) continue;
       // Dedup by source — a clone shares its master's content, so
@@ -289,10 +290,16 @@ export async function computeWeeklyDelta(
   // questions; counting both would double-count for evidence-of-
   // retest and topic-progress aggregates. The FIRST occurrence wins
   // (papers are sorted ascending, so we keep the earliest attempt).
+  // Also drop __SKIPPED__ rows — those are kid-marked "I didn't try
+  // this" sentinels, not real wrong answers. Including them lets the
+  // delta pick a skipped question as a "new mistake" example
+  // ("Kaiyang lost 2 marks on Q5") which is misleading: he didn't
+  // attempt it, so Lumi has nothing to diagnose.
   const weekQuestions: WeekQuestion[] = [];
   const seenWeek = new Set<string>();
   for (const p of newPapers) {
     for (const q of p.questions) {
+      if (q.studentAnswer === "__SKIPPED__") continue;
       const key = q.sourceQuestionId ?? q.id;
       if (seenWeek.has(key)) continue;
       seenWeek.add(key);

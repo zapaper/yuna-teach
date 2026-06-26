@@ -1,18 +1,18 @@
 {
   "patterns": [
     {
-      "name": "Reported Speech Mix-Up",
-      "what": "Kaiyangnggg sometimes forgets to shift tenses backwards, change pronouns, or update time words when changing direct speech into reported speech.",
+      "name": "Reported Speech Tenses",
+      "what": "Kaiyangnggg sometimes forgets to shift the tense backwards or change the pronouns when changing direct speech into reported speech.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg missed changing the pronoun and the word order for the reported question."
+          "whatWentWrong": "Kaiyangnggg kept the original word order and pronouns instead of shifting them to match the reported speech."
         },
         {
           "questionRef": "[31]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg forgot to shift the past tense 'saw' back to the past perfect 'had seen' and missed the time word change."
+          "whatWentWrong": "Kaiyangnggg forgot to shift the past tense 'saw' back to the past perfect 'had seen'."
         },
         {
           "questionRef": "[32]",
@@ -20,38 +20,42 @@
           "whatWentWrong": "Kaiyangnggg missed changing the time word 'now' to 'then' and used the wrong pronoun."
         }
       ],
-      "strategic_advice": "When you see quotes being removed, treat it as a checklist:\n- **Tense**: Shift it one step back in time (e.g., present to past).\n- **Pronouns**: Change 'I' or 'you' to match the speaker.\n- **Time words**: Change words like 'now' to 'then', or 'yesterday' to 'the previous day'.",
+      "strategic_advice": "When you see reporting verbs like **'asked'** or **'wanted to know'**, treat them as a signal to step back in time. Remember to change the present tense to the past tense, and swap the pronouns to match the speaker.",
       "trigger_keywords": [
         "asked",
-        "wanted to know",
-        "said"
+        "wanted to know"
       ]
     },
     {
-      "name": "Subject-Verb Agreement Mix-Up",
-      "what": "Kaiyangnggg occasionally gets tricked by extra phrases like 'as well as' or 'together with' and matches the verb to the wrong noun.",
+      "name": "Subject-Verb Agreement",
+      "what": "Kaiyangnggg occasionally matches the verb to the noun closest to it, especially when extra phrases separate the main subject from the verb.",
       "specific_examples": [
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg matched the verb to the plural 'cousins' instead of the singular main subject 'My sister'."
-        },
         {
           "questionRef": "[25]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg was tricked by the phrase 'together with his friends' and chose a plural verb for a singular subject."
+          "whatWentWrong": "Kaiyangnggg matched the verb to 'friends' instead of the main singular subject 'Ahmad'."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "Kaiyangnggg was tricked by 'as well as my cousins' and chose a plural verb instead of a singular one."
+        },
+        {
+          "questionRef": "[54]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg used the plural verb 'are' instead of the singular 'is' for the subject 'Each of them'."
         }
       ],
-      "strategic_advice": "When you see phrases like **'together with'** or **'as well as'**, try crossing them out lightly with your pencil. This helps you spot the true main subject so you can pick the correct singular or plural verb.",
+      "strategic_advice": "When you see phrases like **'together with'** or **'as well as'**, ignore them! They are just extra information. Match your verb to the main subject at the very start of the sentence.",
       "trigger_keywords": [
-        "as well as",
         "together with",
-        "along with"
+        "as well as",
+        "Each of"
       ]
     },
     {
-      "name": "Leaving Out Small Details",
-      "what": "Kaiyangnggg tends to drop descriptive words or short phrases from the original sentence during Synthesis, which slightly changes the meaning of the final answer.",
+      "name": "Leaving Out Details",
+      "what": "Kaiyangnggg tends to drop descriptive words in Synthesis questions or provide answers that are a bit too general in Comprehension, which slightly changes the original meaning.",
       "specific_examples": [
         {
           "questionRef": "[45]",
@@ -61,45 +65,46 @@
         {
           "questionRef": "[50]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg missed out the word 'quickly', leaving the final answer incomplete."
+          "whatWentWrong": "Kaiyangnggg missed out the word 'quickly', leaving the transformed sentence incomplete."
         },
         {
-          "questionRef": "[52]",
+          "questionRef": "[92]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg forgot to include the word 'can', which changed the capability described in the sentence."
+          "whatWentWrong": "Kaiyangnggg gave a general answer about the narrator's physical appearance but missed specific details like weight and shoe size."
         }
       ],
-      "strategic_advice": "After writing your new sentence, do a quick **word-matching check**. Make sure every key detail from the original sentence—like **'sudden'**, **'quickly'**, or **'can'**—has made its way into your final answer.",
+      "strategic_advice": "When rewriting sentences or answering comprehension questions, double-check that you haven't left out any descriptive words (like **'sudden'** or **'quickly'**) or specific details from the passage. Every word counts!",
       "trigger_keywords": [
-        "Rewrite the sentence",
-        "Synthesis"
+        "Due to",
+        "Hearing a",
+        "explain clearly"
       ]
     },
     {
-      "name": "One Step Short",
-      "what": "Kaiyangnggg often finds the right part of the passage but occasionally stops one step short of giving the complete explanation required for full marks.",
+      "name": "Capitalisation Slips",
+      "what": "Kaiyangnggg occasionally forgets to use a capital letter at the beginning of a sentence, for proper nouns, or when filling in blanks that start a sentence.",
       "specific_examples": [
         {
-          "questionRef": "[5]",
+          "questionRef": "[34]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg correctly noted that someone had to stay home, but stopped short of explaining the financial burden involved."
+          "whatWentWrong": "Kaiyangnggg capitalised 'If' in the middle of the sentence where a lowercase letter was needed."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[55]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg identified the qualities gained, but missed explaining how they specifically helped in the job as a counsellor."
+          "whatWentWrong": "Kaiyangnggg wrote 'for' with a lowercase letter, even though it was the first word of a new sentence."
         },
         {
-          "questionRef": "[96]",
+          "questionRef": "[70]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg gave a general reason about being worried, but missed the specific fear of not being chosen as a partner."
+          "whatWentWrong": "Kaiyangnggg forgot to capitalise 'Occasionally' at the start of the sentence."
         }
       ],
-      "strategic_advice": "When you see prompts like **'explain clearly why'**, always ask yourself if there is a **'so that...'** or **'because...'** consequence you can add. Make sure to include both the action and the final result.",
+      "strategic_advice": "Always check the start of your sentences, proper names, and the first word inside quotation marks. If a blank is at the beginning of a sentence, it must start with a **capital letter**!",
       "trigger_keywords": [
-        "Explain clearly why",
-        "In what ways",
-        "Fill in the table"
+        "or",
+        "Fill in each blank",
+        "Editing"
       ]
     }
   ],
@@ -114,19 +119,19 @@
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 7,
@@ -138,7 +143,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -150,7 +155,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 13,
@@ -238,7 +243,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 35,
@@ -246,7 +251,7 @@
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 37,
@@ -278,7 +283,7 @@
     },
     {
       "idx": 44,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 45,
@@ -322,7 +327,7 @@
     },
     {
       "idx": 55,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 56,
@@ -370,7 +375,7 @@
     },
     {
       "idx": 67,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 68,
@@ -382,7 +387,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 71,
@@ -390,7 +395,7 @@
     },
     {
       "idx": 72,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 73,
@@ -470,7 +475,7 @@
     },
     {
       "idx": 92,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 93,
@@ -478,19 +483,19 @@
     },
     {
       "idx": 94,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 95,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 96,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 97,
-      "patternIndex": 3
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -592,7 +597,7 @@
     "96": "cmok07at9006md4vnhst1ikn4",
     "97": "cmok07at9006od4vnksk4v1te"
   },
-  "generatedAt": "2026-06-26T09:00:30.330Z",
+  "generatedAt": "2026-06-26T09:12:54.936Z",
   "wrongCounts": {
     "total": 97,
     "oeq": 60,
@@ -605,23 +610,23 @@
     "paperCount": 27
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T09:15:33.747Z",
+    "generatedAt": "2026-06-26T09:00:30.330Z",
     "patternNames": [
-      "Subject-Verb Mix-Up",
-      "Reported Speech Shifts",
-      "Missing Key Details",
-      "Capital Letter Slips"
+      "Reported Speech Mix-Up",
+      "Subject-Verb Agreement Mix-Up",
+      "Leaving Out Small Details",
+      "One Step Short"
     ],
     "wrongCounts": {
-      "total": 86,
-      "oeq": 53,
-      "mcq": 33
+      "total": 97,
+      "oeq": 60,
+      "mcq": 37
     },
     "toplineSnapshot": {
-      "avgPct": 69,
-      "totalAwarded": 262.5,
-      "totalAvailable": 379,
-      "paperCount": 22
+      "avgPct": 71,
+      "totalAwarded": 309,
+      "totalAvailable": 438,
+      "paperCount": 27
     }
   }
 }

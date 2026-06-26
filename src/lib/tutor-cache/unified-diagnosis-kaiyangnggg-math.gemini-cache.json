@@ -2,100 +2,78 @@
   "patterns": [
     {
       "name": "One Step Short",
-      "what": "Kaiyangnggg sometimes does the hard work to find an intermediate value, but occasionally stops before answering the final question asked.",
+      "what": "Sometimes stops one step short of the final answer, even after doing the hard work to find the correct intermediate value.",
       "specific_examples": [
         {
-          "questionRef": "[34]",
+          "questionRef": "[82]",
           "type": "mcq",
-          "whatWentWrong": "He correctly calculated the fraction of paint used (1/12) but forgot to subtract it from the total to find the amount left."
+          "whatWentWrong": "Kaiyangnggg correctly calculated the fraction of paint used, but forgot to subtract it from the total to find the paint left."
         },
         {
           "questionRef": "[51]",
           "type": "oeq",
-          "whatWentWrong": "He successfully found the total difference in stickers (42) but stopped one step short of dividing by 2 to find the amount given."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final step:\n- **'left with'** or **'in the end'** → check if you need to subtract your answer from the total.\n- **'how many did [Name] give'** → remember that giving items changes both people's amounts, so you often need to divide the difference by 2.",
-      "trigger_keywords": [
-        "left with",
-        "in the end",
-        "give to"
-      ]
-    },
-    {
-      "name": "Division Order Mix-Up",
-      "what": "Kaiyangnggg occasionally mixes up which number should be divided by which, especially when dealing with fractions or rates.",
-      "specific_examples": [
-        {
-          "questionRef": "[47]",
-          "type": "oeq",
-          "whatWentWrong": "He calculated 3/7 ÷ 8 instead of the requested 8 ÷ 3/7."
-        },
-        {
-          "questionRef": "[78]",
-          "type": "mcq",
-          "whatWentWrong": "He divided the number of planes by the time, instead of dividing the time by the number of planes to find the time per plane."
-        },
-        {
-          "questionRef": "[75]",
-          "type": "mcq",
-          "whatWentWrong": "He mixed up the division order when trying to find the printing rate per minute."
-        }
-      ],
-      "strategic_advice": "When setting up a division problem, always ask yourself **'What is being shared or split up?'** The item being split up always comes **first** in the equation. For rates (like time per plane), put the word that comes after 'per' or 'each' at the end of your division.",
-      "trigger_keywords": [
-        "how long does he take",
-        "in 1 minute",
-        "find the value of"
-      ]
-    },
-    {
-      "name": "Base Value Mix-Up",
-      "what": "Kaiyangnggg tends to use the wrong starting number (or 'whole') when calculating percentages or fractions of a group.",
-      "specific_examples": [
-        {
-          "questionRef": "[92]",
-          "type": "mcq",
-          "whatWentWrong": "He calculated the percentage decrease using the final number of marbles (280) instead of the starting number (350)."
+          "whatWentWrong": "He successfully found the total difference in stickers, but stopped before dividing by two to find the number given."
         },
         {
           "questionRef": "[84]",
           "type": "mcq",
-          "whatWentWrong": "He likely calculated 60% of the total stamps instead of 60% of the 'remainder'."
+          "whatWentWrong": "He calculated a partial percentage but didn't take the final step to find the percentage of stamps left."
         }
       ],
-      "strategic_advice": "When you see percentage or fraction questions, always highlight the **reference word**:\n- **'percentage decrease/increase'** → always divide by the **original** starting amount.\n- **'of the remainder'** → calculate the leftover first, and use that as your new total.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'left'** or **'remaining'** → check if you need to subtract your answer from the total\n- **'how many did [Name] give'** → remember to divide the total difference by two",
       "trigger_keywords": [
-        "percentage decrease",
-        "percentage increase",
-        "of the remainder"
+        "left with",
+        "remaining",
+        "gave to"
       ]
     },
     {
-      "name": "Forgotten Units",
-      "what": "Kaiyangnggg sometimes forgets to include the final units in his answers, or misses a step to convert them.",
+      "name": "Wrong Total Used",
+      "what": "Occasionally mixes up which number should be the base or 'whole' when calculating a fraction or percentage.",
       "specific_examples": [
         {
-          "questionRef": "[43]",
+          "questionRef": "[92]",
           "type": "mcq",
-          "whatWentWrong": "He found the correct algebra expression in cents, but forgot to divide by 100 to convert it to dollars as requested."
+          "whatWentWrong": "Kaiyangnggg calculated the percentage decrease using the leftover marbles instead of the starting total."
         },
         {
-          "questionRef": "[40]",
-          "type": "oeq",
-          "whatWentWrong": "He calculated the correct angle but forgot to write the degree symbol (°), which cost him a mark."
-        },
-        {
-          "questionRef": "[54]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'cm' instead of 'cm²' for an area question."
+          "questionRef": "[94]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for spending as a fraction of savings, he likely compared savings to the total amount instead."
         }
       ],
-      "strategic_advice": "Make it a habit to circle the **requested unit** in the question before you start calculating. When you write your final answer, look back at your circle to make sure your units match perfectly.",
+      "strategic_advice": "When a question asks for a percentage or fraction, always double-check the **reference whole**:\n- For **percentage decrease/increase**, always divide by the **starting amount**, not the final amount.\n- Read the 'fraction of' carefully: the word immediately after **'of'** is your denominator (the bottom number).",
       "trigger_keywords": [
-        "in terms of $",
-        "find the area",
-        "find ∠"
+        "percentage decrease",
+        "fraction of"
+      ]
+    },
+    {
+      "name": "Missing Small Clues",
+      "what": "Tends to read quickly and occasionally overlooks specific condition words or units hidden in the question text.",
+      "specific_examples": [
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "Kaiyangnggg found three consecutive numbers that average to 12, but missed the word 'even' in the instructions."
+        },
+        {
+          "questionRef": "[46]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote a great 4-digit number but missed the rule that certain digits were not allowed."
+        },
+        {
+          "questionRef": "[100]",
+          "type": "mcq",
+          "whatWentWrong": "He wrote the correct algebra expression for the stamps in cents, but missed that the answer needed to be in dollars."
+        }
+      ],
+      "strategic_advice": "Before writing down your final answer, do a quick scan of the question for **hidden conditions**:\n- Look out for specific words like **'even'**, **'odd'**, or **'semi-circle'**.\n- Check if the **units** in the question (like cents) match the units in the answer options (like dollars).",
+      "trigger_keywords": [
+        "even",
+        "without using",
+        "in terms of",
+        "semi-circle"
       ]
     }
   ],
@@ -206,7 +184,7 @@
     },
     {
       "idx": 27,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 28,
@@ -254,15 +232,15 @@
     },
     {
       "idx": 39,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 40,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 41,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 42,
@@ -270,7 +248,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 44,
@@ -282,11 +260,11 @@
     },
     {
       "idx": 46,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 47,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -314,7 +292,7 @@
     },
     {
       "idx": 54,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 55,
@@ -398,7 +376,7 @@
     },
     {
       "idx": 75,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 76,
@@ -410,7 +388,7 @@
     },
     {
       "idx": 78,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 79,
@@ -422,7 +400,7 @@
     },
     {
       "idx": 81,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 82,
@@ -434,7 +412,7 @@
     },
     {
       "idx": 84,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 85,
@@ -458,15 +436,15 @@
     },
     {
       "idx": 90,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 91,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 92,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 93,
@@ -474,7 +452,7 @@
     },
     {
       "idx": 94,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 95,
@@ -498,7 +476,7 @@
     },
     {
       "idx": 100,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 101,
@@ -506,7 +484,7 @@
     },
     {
       "idx": 102,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 103,
@@ -628,7 +606,7 @@
     "104": "cmol7maxa000k13njmslatwze",
     "105": "cmok0rznd00b4d4vnu5lv3kze"
   },
-  "generatedAt": "2026-06-26T08:59:47.721Z",
+  "generatedAt": "2026-06-26T09:12:53.093Z",
   "wrongCounts": {
     "total": 105,
     "oeq": 31,
@@ -641,23 +619,23 @@
     "paperCount": 44
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T09:17:41.152Z",
+    "generatedAt": "2026-06-26T08:59:47.721Z",
     "patternNames": [
-      "Stopping One Step Short",
-      "Leaving Questions Blank",
-      "Missing Units or Conversions",
-      "Wrong Total Mix-Up"
+      "One Step Short",
+      "Division Order Mix-Up",
+      "Base Value Mix-Up",
+      "Forgotten Units"
     ],
     "wrongCounts": {
-      "total": 72,
+      "total": 105,
       "oeq": 31,
-      "mcq": 41
+      "mcq": 74
     },
     "toplineSnapshot": {
-      "avgPct": 70,
-      "totalAwarded": 335.5,
-      "totalAvailable": 477,
-      "paperCount": 36
+      "avgPct": 69,
+      "totalAwarded": 455.5,
+      "totalAvailable": 663,
+      "paperCount": 44
     }
   }
 }
