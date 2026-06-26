@@ -11,12 +11,16 @@
 //      markFocusedTest) on the clone.
 //   4. Compare per-question marksAwarded vs the snapshot. Notes text is
 //      ignored — only the numbers matter.
-//   5. By default, leave clones in place for inspection. Pass --cleanup
-//      to delete them after the run.
+//   5. By default, DELETE clones after the run. Pass --keep-clones to
+//      retain them for post-mortem inspection (e.g. when comparing
+//      marker output side-by-side in the admin UI). Leaving clones on
+//      by default poisoned Lumi + progress queries for any kid the
+//      eval touched — 218 [EVAL] rows accumulated across 12 (kid,
+//      subject) pairs before the cleanup flip landed.
 //
 // Usage:
-//   npx tsx scripts/run-marking-eval.ts                  (run full eval)
-//   npx tsx scripts/run-marking-eval.ts --cleanup        (delete clones after)
+//   npx tsx scripts/run-marking-eval.ts                  (run full eval, auto-clean clones)
+//   npx tsx scripts/run-marking-eval.ts --keep-clones    (retain clones for inspection)
 //   npx tsx scripts/run-marking-eval.ts --tolerance=0    (strict equality)
 //   npx tsx scripts/run-marking-eval.ts --paper=cmpj...  (run one paper)
 
@@ -65,7 +69,12 @@ type PaperResult = {
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const cleanup = args.includes("--cleanup");
+  // Default is now cleanup=true. Pass --keep-clones to retain the
+  // synthetic [EVAL] paper rows after the run (rare — usually only
+  // when you want to inspect a clone's marking output in the admin UI).
+  // --cleanup is still accepted for backward compatibility but is a
+  // no-op now (cleanup is the default).
+  const cleanup = !args.includes("--keep-clones");
   const verbose = args.includes("--verbose");
   const paper = args.find(a => a.startsWith("--paper="))?.split("=")[1];
   const subject = args.find(a => a.startsWith("--subject="))?.split("=")[1]?.toLowerCase();
