@@ -55,6 +55,21 @@ export type WeeklyDelta = {
     patternName: string;
     patternWhat?: string;
     patternAdvice?: string;
+    // A specific question from THIS WEEK where the kid hit this
+    // mistake. Picked by matching the pattern's trigger keywords /
+    // topic against this week's wrong-record questions, then taking
+    // the highest-marksLost match. Lets the email show "here's the
+    // exact place it surfaced" instead of an abstract description.
+    exampleWrong?: {
+      paperTitle: string;
+      questionNum: string;
+      topic: string | null;
+      aw: number;
+      av: number;
+      stem: string;
+      studentAnswer: string | null;
+      markingNotes: string | null;
+    };
   }>;
   notRetested: Array<{ patternName: string }>;
   // For the LumiQuizCombosCard deprioritisation: pattern names the kid
@@ -318,7 +333,37 @@ export async function computeWeeklyDelta(
       const tokOverlap = [...candTok].filter(t => pTok.has(t)).length;
       if (kwOverlap >= 2 || tokOverlap >= 2) { overlapsPrev = true; break; }
     }
-    if (!overlapsPrev) newMistakes.push({ patternName: cand.name, patternWhat: cand.what, patternAdvice: cand.strategic_advice });
+    if (overlapsPrev) continue;
+    // Find a specific WRONG question this week that matches this new
+    // pattern. Reuse the same topic/skill/keyword matchers as the
+    // win-evidence path, but pick the highest-marksLost match where
+    // the kid got it WRONG (so the parent sees the actual mistake).
+    const matchers = subjectTopicMatchers(subj, cand);
+    const kwRe = patternKeywordRegex(cand);
+    let bestWrong: WeekQuestion | null = null;
+    let bestLost = 0;
+    for (const q of weekQuestions) {
+      if (q.marksAvailable === 0 || q.marksAwarded >= q.marksAvailable) continue;
+      const haystack = [q.stem, q.markingNotes, q.studentAnswer].filter(Boolean).join(" ");
+      const topicHit = matchers.topic.some(r => r.test(q.syllabusTopic ?? ""));
+      const subHit   = matchers.sub.some(r => r.test(q.subTopic ?? ""));
+      const skillHit = matchers.skill.length > 0 && (q.skillTags ?? []).some(s => matchers.skill.some(r => r.test(s)));
+      const kwHit    = kwRe ? kwRe.test(haystack) : false;
+      if (!topicHit && !subHit && !skillHit && !kwHit) continue;
+      const lost = q.marksAvailable - q.marksAwarded;
+      if (lost > bestLost) { bestLost = lost; bestWrong = q; }
+    }
+    newMistakes.push({
+      patternName: cand.name,
+      patternWhat: cand.what,
+      patternAdvice: cand.strategic_advice,
+      exampleWrong: bestWrong ? {
+        paperTitle: bestWrong.paperTitle, questionNum: bestWrong.questionNum,
+        topic: bestWrong.syllabusTopic, aw: bestWrong.marksAwarded, av: bestWrong.marksAvailable,
+        stem: bestWrong.stem, studentAnswer: bestWrong.studentAnswer,
+        markingNotes: bestWrong.markingNotes,
+      } : undefined,
+    });
   }
 
   // Topic progress: ≥5 questions on a topic this week, ≥5pp delta over

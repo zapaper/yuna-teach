@@ -149,6 +149,16 @@ type WeeklyDelta = {
     patternName: string;
     patternWhat?: string;
     patternAdvice?: string;
+    exampleWrong?: {
+      paperTitle: string;
+      questionNum: string;
+      topic: string | null;
+      aw: number;
+      av: number;
+      stem: string;
+      studentAnswer: string | null;
+      markingNotes: string | null;
+    };
   }>;
   notRetested: Array<{ patternName: string }>;
   patternsRetested: string[];
@@ -693,23 +703,20 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
   }, [view]);
   return (
     <>
-      {/* "Lumi's update this week" — only renders when loadTutorData
-          attached a weeklyDelta (i.e. a last-week snapshot existed for
-          this kid × subject). Sits ABOVE the standard summary so the
-          parent's weekly visit leads with wins / progress / new flags. */}
-      {data.weeklyDelta && (
-        <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} />
-      )}
-      {/* Lumi greeting — always visible above the swipe stage. On
-          mobile we stack the avatar on its own row (centred) above a
-          full-width summary; on md+ we revert to the side-by-side
-          layout. */}
+      {/* Lumi greeting — one continuous card. When a weeklyDelta is
+          attached (last-week snapshot exists for this kid × subject),
+          we render "Lumi's update this week" INLINE after the greeting
+          and before the standing LumiSummary so the parent reads one
+          long narrative instead of switching between cards. */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-8 py-6 mb-6 flex flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
         <LumiAvatar />
         <div className="flex-1 w-full">
           <p className="text-[#001e40] text-base leading-relaxed">
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
+          {data.weeklyDelta && (
+            <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} />
+          )}
           <LumiSummary data={data} studentId={studentId} parentId={parentId} />
           {/* Share — inline directly under the summary so it's where
               the parent expects after reading the topline briefing. */}
@@ -841,8 +848,8 @@ function scrollToSection(id: string) {
 // (populated by loadTutorData when a lastweek snapshot exists).
 function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string }) {
   return (
-    <section className="bg-gradient-to-br from-violet-50 to-white rounded-2xl border border-violet-200 shadow-sm px-6 sm:px-8 py-6 mb-6">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="mt-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <span className="text-[10px] uppercase tracking-wider font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">Lumi&apos;s update this week</span>
       </div>
       <p className="text-[#001e40] text-sm leading-relaxed mb-4">{delta.prefaceText}</p>
@@ -897,14 +904,44 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
       )}
 
       {delta.newMistakes.length > 0 && (
-        <div className="mb-5">
+        <div className="mb-3">
           <h3 className="text-sm font-bold text-orange-700 mb-2">Something new to keep an eye on</h3>
           <ul className="space-y-2">
             {delta.newMistakes.map((m, i) => (
               <li key={i} className="bg-orange-50 border-l-4 border-orange-400 rounded-r px-3 py-2">
                 <div className="font-bold text-orange-900 text-sm">{m.patternName}</div>
                 {m.patternWhat && <div className="text-xs text-slate-700 mt-1">{m.patternWhat}</div>}
-                {m.patternAdvice && (
+                {m.exampleWrong && (
+                  <div className="text-xs text-slate-700 mt-1">
+                    Example: {childFirst} lost {m.exampleWrong.av - m.exampleWrong.aw}/{m.exampleWrong.av} marks on Q{m.exampleWrong.questionNum} of {m.exampleWrong.paperTitle}.
+                  </div>
+                )}
+                {m.exampleWrong && (
+                  <details className="mt-1">
+                    <summary className="text-xs text-orange-700 cursor-pointer font-semibold">See details</summary>
+                    <div className="mt-2 bg-white rounded p-3 text-xs leading-relaxed">
+                      <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        {m.exampleWrong.paperTitle} · Q{m.exampleWrong.questionNum}
+                        {m.exampleWrong.topic ? ` · ${m.exampleWrong.topic}` : ""}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {m.exampleWrong.stem.slice(0, 600)}{m.exampleWrong.stem.length > 600 ? "…" : ""}</p>
+                      {m.exampleWrong.studentAnswer && (
+                        <p className="mt-2 text-rose-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {m.exampleWrong.studentAnswer.slice(0, 400)}{m.exampleWrong.studentAnswer.length > 400 ? "…" : ""}</p>
+                      )}
+                      {m.exampleWrong.markingNotes && (
+                        <p className="mt-2 text-slate-600 whitespace-pre-wrap"><strong>Marker:</strong> {m.exampleWrong.markingNotes.slice(0, 300)}{m.exampleWrong.markingNotes.length > 300 ? "…" : ""}</p>
+                      )}
+                      <p className="mt-2 text-rose-700 font-bold">✗ {m.exampleWrong.aw}/{m.exampleWrong.av} marks</p>
+                      {m.patternAdvice && (
+                        <div className="mt-3 pt-3 border-t border-slate-200">
+                          <div className="text-[10px] uppercase tracking-wider text-orange-700 font-bold mb-1">What to look out for</div>
+                          <div className="whitespace-pre-wrap text-slate-700">{m.patternAdvice}</div>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                )}
+                {!m.exampleWrong && m.patternAdvice && (
                   <details className="mt-1">
                     <summary className="text-xs text-orange-700 cursor-pointer font-semibold">What to look out for</summary>
                     <div className="mt-1 text-xs text-slate-700 whitespace-pre-wrap">{m.patternAdvice}</div>
@@ -915,19 +952,11 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
           </ul>
         </div>
       )}
-
-      {delta.notRetested.length > 0 && (
-        <div>
-          <h3 className="text-sm font-bold text-indigo-700 mb-2">Last week&apos;s focus — keeping an eye on these</h3>
-          <p className="text-xs text-indigo-800 mb-2">
-            {childFirst} didn&apos;t run into these in this week&apos;s papers. Lumi will keep watching.
-          </p>
-          <ul className="list-disc pl-5 text-xs text-indigo-900 space-y-1">
-            {delta.notRetested.map((n, i) => <li key={i}>{n.patternName}</li>)}
-          </ul>
-        </div>
-      )}
-    </section>
+      {/* Divider between this week's delta and the standing summary
+          below. Keeps the whole greeting card visually contiguous —
+          the parent reads one continuous Lumi narrative. */}
+      <div className="mt-4 border-t border-violet-200"></div>
+    </div>
   );
 }
 
