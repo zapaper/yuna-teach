@@ -710,3 +710,29 @@ model CompoAttempt {
   @@index([status])
   @@map("compo_attempts")
 }
+
+// Queue of outbound emails that couldn't be sent at trigger time —
+// usually because of an upstream transport failure (e.g. SendGrid
+// returning 401 while the trial / paid plan is suspended). The send
+// site calls tryOrQueue() which either delivers immediately OR rows
+// the intent here. A replay sweeper drains the queue once transport
+// is back. The payload field stores enough metadata to fully reconstruct
+// the email — keep it minimal (id/event refs) and re-render at replay
+// time so the content reflects the kid's latest data.
+model PendingEmail {
+  id           String   @id @default(cuid())
+  eventType    String   // "signup_welcome" | "subject_3_quizzes_done" | "lumi_intro" | "lumi_weekly"
+  payload      Json     // event-specific args (studentId, subject, parentId, etc.)
+  toEmail      String
+  toName       String?
+  status       String   @default("pending")  // pending | sent | abandoned
+  attemptCount Int      @default(0)
+  lastError    String?
+  createdAt    DateTime @default(now())
+  attemptedAt  DateTime?
+  sentAt       DateTime?
+
+  @@index([status, createdAt])
+  @@index([eventType])
+  @@map("pending_emails")
+}

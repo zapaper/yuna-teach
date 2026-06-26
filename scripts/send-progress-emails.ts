@@ -25,6 +25,7 @@ import { fetchActivitySummary, type ActivityStudent } from "../src/lib/yuna-acti
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
 import path from "path";
 import { createCanvas } from "@napi-rs/canvas";
+import { tryOrQueue } from "../src/lib/mail-queue";
 import sharp from "sharp";
 import sgMail from "@sendgrid/mail";
 
@@ -952,38 +953,57 @@ export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[numb
   if (!apiKey) { console.warn(`  SENDGRID_API_KEY not set — skipping ${c.parentEmail}`); return; }
   sgMail.setApiKey(apiKey);
   try {
-    const [resp] = await sgMail.send({
-      to: c.parentEmail,
-      bcc: TEAM_BCC,
-      from: { email: FROM_ADDRESS, name: "MarkForYou" },
-      replyTo: TEAM_BCC,
-      subject,
-      html,
-      text,
-      attachments: [
-        {
-          content: png.toString("base64"),
-          filename: `${safeStu}-${c.subjectKey}.png`,
-          type: "image/png",
-          disposition: "inline",
-          content_id: chartCid,
-        },
-        {
-          content: lumiPng.toString("base64"),
-          filename: "lumi.png",
-          type: "image/png",
-          disposition: "inline",
-          content_id: lumiCid,
-        },
-        ...trendAttachments,
-      ],
-      trackingSettings: {
-        clickTracking: { enable: false, enableText: false },
-        openTracking: { enable: false },
-        subscriptionTracking: { enable: false },
+    const queueArgs = {
+      eventType: "subject_3_quizzes_done" as const,
+      toEmail: c.parentEmail,
+      toName: c.parentName,
+      payload: { studentId: c.studentId, subject: c.subjectKey, parentId: c.parentId },
+    };
+    const queueResult = await tryOrQueue({
+      ...queueArgs,
+      send: async () => {
+        const [resp] = await sgMail.send({
+          to: c.parentEmail,
+          bcc: TEAM_BCC,
+          from: { email: FROM_ADDRESS, name: "MarkForYou" },
+          replyTo: TEAM_BCC,
+          subject,
+          html,
+          text,
+          attachments: [
+            {
+              content: png.toString("base64"),
+              filename: `${safeStu}-${c.subjectKey}.png`,
+              type: "image/png",
+              disposition: "inline",
+              content_id: chartCid,
+            },
+            {
+              content: lumiPng.toString("base64"),
+              filename: "lumi.png",
+              type: "image/png",
+              disposition: "inline",
+              content_id: lumiCid,
+            },
+            ...trendAttachments,
+          ],
+          trackingSettings: {
+            clickTracking: { enable: false, enableText: false },
+            openTracking: { enable: false },
+            subscriptionTracking: { enable: false },
+          },
+        });
+        console.log(`  sent to=${c.parentEmail} parent=${c.parentName} child=${c.studentName} subject=${c.subject} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
       },
     });
-    console.log(`  sent to=${c.parentEmail} parent=${c.parentName} child=${c.studentName} subject=${c.subject} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
+    if (queueResult.queued) {
+      console.warn(`  queued ${queueResult.queueId} for ${c.parentEmail} (${queueResult.reason})`);
+      return;
+    }
+    if (!queueResult.sent) {
+      console.error(`  permanent failure: ${queueResult.reason}`);
+      return;
+    }
     // Report this send back to the markforyou-mailer so it shows up in
     // the Users tab's history + Daily Emails dashboard alongside the
     // cron-sent nurture emails. Fire-and-forget — never block on this.

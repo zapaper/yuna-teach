@@ -17,6 +17,7 @@ import sgMail from "@sendgrid/mail";
 import { promises as fs } from "fs";
 import path from "path";
 import { renderWelcomeEmail } from "./welcome-email";
+import { tryOrQueue } from "./mail-queue";
 
 const FROM_ADDRESS = process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.markforyou.com";
@@ -100,24 +101,42 @@ export async function sendWelcomeEmail(p: WelcomeEmailParams): Promise<void> {
     // the hello@ inbound-parse webhook (which only knows how to
     // process scanned-paper attachments and drops everything else).
     const TEAM_ADDRESS = "jessica@markforyou.com";
-    const [resp] = await sgMail.send({
-      to: p.parentEmail,
-      bcc: TEAM_ADDRESS,
-      from: { email: FROM_ADDRESS, name: "MarkForYou" },
-      replyTo: TEAM_ADDRESS,
-      subject: rendered.subject,
-      html,
-      text: rendered.text,
-      attachments,
-      trackingSettings: {
-        clickTracking: { enable: false, enableText: false },
-        openTracking: { enable: false },
-        subscriptionTracking: { enable: false },
+    const queueResult = await tryOrQueue({
+      eventType: "signup_welcome",
+      toEmail: p.parentEmail,
+      toName: p.parentDisplayName,
+      // Minimal payload — re-render at replay time so the welcome
+      // reflects whatever the kid's account looks like by then.
+      payload: { parentId: p.parentId, childId: p.childId },
+      send: async () => {
+        const [resp] = await sgMail.send({
+          to: p.parentEmail,
+          bcc: TEAM_ADDRESS,
+          from: { email: FROM_ADDRESS, name: "MarkForYou" },
+          replyTo: TEAM_ADDRESS,
+          subject: rendered.subject,
+          html,
+          text: rendered.text,
+          attachments,
+          trackingSettings: {
+            clickTracking: { enable: false, enableText: false },
+            openTracking: { enable: false },
+            subscriptionTracking: { enable: false },
+          },
+        });
+        console.log(
+          `[welcome-email] sent to=${p.parentEmail} parentId=${p.parentId} childId=${p.childId} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`,
+        );
       },
     });
-    console.log(
-      `[welcome-email] sent to=${p.parentEmail} parentId=${p.parentId} childId=${p.childId} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`,
-    );
+    if (queueResult.queued) {
+      console.warn(`[welcome-email] transport down (${queueResult.reason}) — queued as ${queueResult.queueId} for ${p.parentEmail}`);
+      return;
+    }
+    if (!queueResult.sent) {
+      console.error(`[welcome-email] permanent failure: ${queueResult.reason}`);
+      return;
+    }
     // Report this send back to the markforyou-mailer so it shows up in
     // the Users tab's history alongside the cron-sent nurture emails.
     // Fire-and-forget — never block signup on this.

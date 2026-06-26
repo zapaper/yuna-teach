@@ -182,8 +182,18 @@ function renderDelta(data: ReadyData, childFirst: string): string {
 </body></html>`;
 
     if (dryRun) {
+      // For the preview file we replace the cid: references with inline
+      // base64 data URIs so the chart actually renders when the file is
+      // opened in a browser. The transport HTML still uses cid: for the
+      // SendGrid attachment path. Both versions are functionally
+      // identical from the parent's inbox perspective.
+      let previewHtml = html;
+      for (const s of sections) {
+        const dataUri = `data:image/png;base64,${s.chartBuf.toString("base64")}`;
+        previewHtml = previewHtml.replace(new RegExp(`cid:${s.chartCid}`, "g"), dataUri);
+      }
       const out = path.join(__dirname, "..", "eval", `lumi-weekly-email-${safeSlug(stu.name)}.html`);
-      await writeFile(out, html, "utf8");
+      await writeFile(out, previewHtml, "utf8");
       console.log(`  wrote ${out}`);
       continue;
     }

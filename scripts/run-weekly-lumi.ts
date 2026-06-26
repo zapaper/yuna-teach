@@ -108,10 +108,26 @@ async function resolveSlugs(pairs: Pair[]): Promise<{ resolved: Resolved[]; unre
   return { resolved, unresolved };
 }
 
-async function snapshot(slug: string, subject: string) {
+// Skip the snapshot if the existing .lastweek file was written within
+// the last 5 days. Catches the intra-day double-snapshot bug where
+// running the master script twice in a week would replace last week's
+// genuine baseline with today's already-current data, leaving no delta
+// to compute. 5d picks Monday-to-Friday safely (cron is Friday weekly);
+// adjust SNAPSHOT_MIN_AGE_HOURS if cadence ever changes.
+const SNAPSHOT_MIN_AGE_HOURS = 5 * 24;
+
+async function snapshot(slug: string, subject: string): Promise<{ done: boolean; reason: string }> {
   const src = path.join(CACHE_DIR, `unified-diagnosis-${slug}-${subject}.gemini-cache.json`);
   const dst = path.join(CACHE_DIR, `unified-diagnosis-${slug}-${subject}.lastweek.gemini-cache.json`);
+  try {
+    const st = await fs.stat(dst);
+    const ageHours = (Date.now() - st.mtimeMs) / (1000 * 60 * 60);
+    if (ageHours < SNAPSHOT_MIN_AGE_HOURS) {
+      return { done: false, reason: `lastweek snapshot is ${ageHours.toFixed(1)}h old (< ${SNAPSHOT_MIN_AGE_HOURS}h floor) — keeping it` };
+    }
+  } catch { /* no existing snapshot — fall through and copy */ }
   await fs.copyFile(src, dst);
+  return { done: true, reason: "snapshot updated" };
 }
 
 async function promote(slug: string, subject: string): Promise<boolean> {
@@ -187,7 +203,8 @@ async function processBatch(batch: Resolved[]): Promise<Array<{ pair: Resolved; 
   const results: Array<{ pair: Resolved; ok: boolean; elapsed: number; note?: string }> = [];
   await Promise.all(batch.map(async pair => {
     try {
-      await snapshot(pair.slug, pair.subject);
+      const snap = await snapshot(pair.slug, pair.subject);
+      if (!snap.done) console.log(`  [snapshot-skip] ${pair.slug} × ${pair.subject}: ${snap.reason}`);
     } catch (err) {
       results.push({ pair, ok: false, elapsed: 0, note: `snapshot failed: ${(err as Error).message}` });
       return;
