@@ -1063,7 +1063,7 @@ function AlternativesPopup({
       <div className="text-sm font-semibold text-slate-800 mb-2 border-b border-slate-100 pb-2">
         「{selectedText}」
       </div>
-      {loading && <div className="text-xs text-slate-500 italic py-3 text-center">Generating with gemini-2.5-flash…</div>}
+      {loading && <div className="text-xs text-slate-500 italic py-3 text-center">Finding alternatives…</div>}
       {error && <div className="text-xs text-rose-600 py-3">{error}</div>}
       {alternatives && alternatives.length === 0 && (
         <div className="text-xs text-slate-500 italic py-3">No alternatives returned.</div>
