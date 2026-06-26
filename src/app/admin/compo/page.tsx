@@ -227,10 +227,10 @@ export default function CompoIndexPage() {
             className="mt-0.5 accent-amber-700"
           />
           <span className="text-xs text-amber-900">
-            <span className="font-semibold">Remove red/green markings (admin benchmark)</span>
+            <span className="font-semibold">Remove red/green markings</span>
             <br />
             <span className="text-amber-700">
-              Use when uploading a teacher-marked paper to test if our AI picks up the same edits. Runs OCR twice — once stripping the corrections so the AI analyses the kid&apos;s original text, once preserving them so you can compare what the teacher wrote.
+              This will remove any red/green marking on script. Enhancer will enhance the base script without the markings. It will also OCR-ed the marked version as a comparison.
             </span>
           </span>
         </label>
