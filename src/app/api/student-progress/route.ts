@@ -56,6 +56,13 @@ export async function GET(request: NextRequest) {
     where: {
       assignedToId: dataStudentId,
       markingStatus: { in: ["complete", "released"] },
+      // Exclude synthetic marking-pipeline regression clones — they
+      // live against the student's userId but aren't real practice
+      // and pad the timeline / weak-topic chart with phantom points.
+      // 218 such rows across 12 (student, subject) pairs as of
+      // 2026-06-26; affected David Lim's Human Respiratory count to
+      // pad from 30 → 240 questions.
+      NOT: { paperType: "eval" },
     },
     orderBy: { completedAt: "asc" },
     select: {

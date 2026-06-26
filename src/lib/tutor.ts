@@ -1106,6 +1106,11 @@ export async function loadTutorData(studentId: string, subject: string): Promise
       where: {
         assignedToId: dataStudentId,
         markingStatus: { in: ["complete", "released"] },
+        // Exclude synthetic marking-pipeline regression clones — they
+        // live against the student's userId but aren't real practice
+        // and pad weak-topic counts (David Lim's Human Respiratory
+        // showed 240 questions when his real count is ~30).
+        NOT: { paperType: "eval" },
         ...subjectWhere(subject),
       },
       select: {
@@ -1234,6 +1239,8 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     where: {
       assignedToId: dataStudentId,
       markingStatus: { in: ["complete", "released"] },
+      // Same eval-clone exclusion as the papersLight path above.
+      NOT: { paperType: "eval" },
       ...subjectWhere(subject),
     },
     select: {

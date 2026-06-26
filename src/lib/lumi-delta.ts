@@ -206,6 +206,12 @@ function evidenceForCleared(pattern: Pattern, weekQuestions: WeekQuestion[], sub
 
 // Topics-stats helper. Computes per-topic awarded/available/attempts
 // either UP TO cutoff (last week's average) or FROM cutoff (this week's).
+// Dedupes by sourceQuestionId — focused-practice clones reuse the same
+// source questions, and counting both source + clone (or multiple clones
+// of the same master) was inflating David's Human Respiratory count
+// from 30 unique questions to 231. Also drops paperType="eval" rows —
+// those are synthetic eval clones from marking-pipeline regressions,
+// not real student practice.
 async function topicStatsUpTo(kidId: string, subject: string, cutoff: Date): Promise<Map<string, { awarded: number; available: number; attempts: number }>> {
   const subj = subjectKey(subject);
   const where = {
@@ -213,17 +219,24 @@ async function topicStatsUpTo(kidId: string, subject: string, cutoff: Date): Pro
     markingStatus: { in: ["complete", "released"] },
     subject: { contains: subj === "math" ? "math" : (subj ?? subject), mode: "insensitive" as const },
     completedAt: { lt: cutoff },
+    NOT: { paperType: "eval" },
   };
   const papers = await prisma.examPaper.findMany({
     where,
-    select: { metadata: true, questions: { select: { marksAwarded: true, marksAvailable: true, syllabusTopic: true } } },
+    select: { metadata: true, questions: { select: { id: true, marksAwarded: true, marksAvailable: true, syllabusTopic: true, sourceQuestionId: true } } },
   });
   const nonRev = papers.filter(p => !(p.metadata as { revisionMode?: unknown } | null)?.revisionMode);
   const m = new Map<string, { awarded: number; available: number; attempts: number }>();
+  const seen = new Set<string>();
   for (const p of nonRev) {
     for (const q of p.questions) {
       const av = q.marksAvailable ?? 0; if (av === 0) continue;
       const t = (q.syllabusTopic ?? "").trim(); if (!t) continue;
+      // Dedup by source — a clone shares its master's content, so
+      // counting both pads the denominator without adding new signal.
+      const key = q.sourceQuestionId ?? q.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
       const cur = m.get(t) ?? { awarded: 0, available: 0, attempts: 0 };
       cur.awarded += q.marksAwarded ?? 0; cur.available += av; cur.attempts += 1;
       m.set(t, cur);
@@ -248,17 +261,22 @@ export async function computeWeeklyDelta(
   const { carryOver, cleared, newOnes } = diffPatterns(prevPatterns, currPatterns);
   const cutoff = new Date(prev.generatedAt);
 
-  // Pull papers + questions completed since the prior cache.
+  // Pull papers + questions completed since the prior cache. Excludes
+  // paperType="eval" — those are synthetic clones used by the marking
+  // pipeline regression eval, not real student practice. They live
+  // against the student's userId but mustn't appear in their progress.
   const newPapers = await prisma.examPaper.findMany({
     where: {
       assignedToId: studentId,
       completedAt: { gt: cutoff },
       subject: { contains: subj === "math" ? "math" : subj, mode: "insensitive" },
+      NOT: { paperType: "eval" },
     },
     select: {
       id: true, title: true, completedAt: true, score: true, paperType: true,
       questions: {
         select: {
+          id: true, sourceQuestionId: true,
           questionNum: true, transcribedStem: true, studentAnswer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
           syllabusTopic: true, subTopic: true, skillTags: true,
@@ -267,9 +285,17 @@ export async function computeWeeklyDelta(
     },
     orderBy: { completedAt: "asc" },
   });
+  // Dedup by source — focused-practice clones share their master's
+  // questions; counting both would double-count for evidence-of-
+  // retest and topic-progress aggregates. The FIRST occurrence wins
+  // (papers are sorted ascending, so we keep the earliest attempt).
   const weekQuestions: WeekQuestion[] = [];
+  const seenWeek = new Set<string>();
   for (const p of newPapers) {
     for (const q of p.questions) {
+      const key = q.sourceQuestionId ?? q.id;
+      if (seenWeek.has(key)) continue;
+      seenWeek.add(key);
       weekQuestions.push({
         paperTitle: p.title,
         questionNum: q.questionNum,
