@@ -209,6 +209,18 @@ export default function CompoDetailPage() {
             >
               Export to PDF
             </button>
+            <button
+              onClick={() => {
+                // Download the current view as a Word doc — essay text
+                // only, no rubric / annotations / swap markers.
+                const url = `/api/admin/compo/${id}/export-docx?view=${view}`;
+                window.location.href = url;
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+              title={`Download the ${view === "marked" ? "original" : view === "clean" ? "clean" : "enhanced"} essay text as a .docx (no rubric, no markers)`}
+            >
+              Export to Word
+            </button>
             {(() => {
               // Status is 'analysing' but the row hasn't been touched
               // in 5+ minutes? Likely the orchestrator died mid-run
