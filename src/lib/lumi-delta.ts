@@ -70,6 +70,15 @@ export type WeeklyDelta = {
       stem: string;
       studentAnswer: string | null;
       markingNotes: string | null;
+      // Added so the email can summarise the mistake meaningfully —
+      // marker notes alone are useless for MCQs (canonical shape is
+      // "Student: (X), Correct: (Y)" with no rationale) and often
+      // null for "answer skipped" rows. The summary helper falls
+      // back to these fields when notes don't give a concrete miss.
+      correctAnswer: string | null;
+      elaboration: string | null;
+      isMcq: boolean;
+      options: string[];
     };
   }>;
   notRetested: Array<{ patternName: string }>;
@@ -164,6 +173,10 @@ type WeekQuestion = {
   syllabusTopic: string | null;
   subTopic: string | null;
   skillTags: string[];
+  correctAnswer: string | null;
+  elaboration: string | null;
+  isMcq: boolean;
+  options: string[];
 };
 
 type Evidence = {
@@ -282,11 +295,13 @@ export async function computeWeeklyDelta(
           questionNum: true, transcribedStem: true, studentAnswer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
           syllabusTopic: true, subTopic: true, skillTags: true,
+          answer: true, elaboration: true, transcribedOptions: true,
         },
       },
     },
     orderBy: { completedAt: "asc" },
   });
+  const mcqShape = /Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i;
   // Dedup by source — focused-practice clones share their master's
   // questions; counting both would double-count for evidence-of-
   // retest and topic-progress aggregates. The FIRST occurrence wins
@@ -304,6 +319,22 @@ export async function computeWeeklyDelta(
       const key = q.sourceQuestionId ?? q.id;
       if (seenWeek.has(key)) continue;
       seenWeek.add(key);
+      // MCQ detection mirrors the workshop / marker logic — options
+      // array populated OR notes match the canonical MCQ shape.
+      const optsRaw = q.transcribedOptions as unknown;
+      const options: string[] = Array.isArray(optsRaw)
+        ? (optsRaw as Array<unknown>).map(o => typeof o === "string" ? o : (o as { text?: string })?.text ?? "").filter(Boolean)
+        : [];
+      const isMcq = options.length >= 2 || mcqShape.test(q.markingNotes ?? "");
+      // elaboration is sometimes JSON ({ explanation, body, text, ... })
+      // and sometimes a bare string. Pull the most useful surface form.
+      let elaboration: string | null = null;
+      const eRaw = q.elaboration as unknown;
+      if (typeof eRaw === "string") elaboration = eRaw;
+      else if (eRaw && typeof eRaw === "object") {
+        const e = eRaw as Record<string, unknown>;
+        elaboration = (e.explanation as string) ?? (e.body as string) ?? (e.text as string) ?? null;
+      }
       weekQuestions.push({
         paperTitle: p.title,
         questionNum: q.questionNum,
@@ -315,6 +346,10 @@ export async function computeWeeklyDelta(
         syllabusTopic: q.syllabusTopic,
         subTopic: q.subTopic,
         skillTags: q.skillTags ?? [],
+        correctAnswer: q.answer,
+        elaboration,
+        isMcq,
+        options,
       });
     }
   }
@@ -405,6 +440,10 @@ export async function computeWeeklyDelta(
         topic: bestWrong.syllabusTopic, aw: bestWrong.marksAwarded, av: bestWrong.marksAvailable,
         stem: bestWrong.stem, studentAnswer: bestWrong.studentAnswer,
         markingNotes: bestWrong.markingNotes,
+        correctAnswer: bestWrong.correctAnswer,
+        elaboration: bestWrong.elaboration,
+        isMcq: bestWrong.isMcq,
+        options: bestWrong.options,
       },
     });
   }

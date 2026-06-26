@@ -159,6 +159,10 @@ type WeeklyDelta = {
       stem: string;
       studentAnswer: string | null;
       markingNotes: string | null;
+      correctAnswer: string | null;
+      elaboration: string | null;
+      isMcq: boolean;
+      options: string[];
     };
   }>;
   notRetested: Array<{ patternName: string }>;

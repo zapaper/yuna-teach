@@ -51,10 +51,42 @@ const STYLES = {
 
 type ReadyData = Extract<TutorData, { kind: "ready" }>;
 
-function summarizeMistake(notes: string | null | undefined): string {
-  if (!notes) return "see the full question below";
-  const first = (notes.split(/[.!?]\s/)[0] ?? notes).trim();
-  return first.length > 180 ? first.slice(0, 177) + "…" : first;
+function summarizeMistake(ex: {
+  markingNotes: string | null;
+  studentAnswer: string | null;
+  correctAnswer: string | null;
+  elaboration: string | null;
+  isMcq: boolean;
+  options: string[];
+}): string | null {
+  const trim = (s: string) => {
+    const first = (s.split(/[.!?]\s/)[0] ?? s).trim();
+    return first.length > 180 ? first.slice(0, 177) + "…" : first;
+  };
+  const optionAt = (raw: string | null): string | null => {
+    if (!raw) return null;
+    const m = raw.match(/\d+/);
+    if (!m) return null;
+    const idx = parseInt(m[0], 10) - 1;
+    return ex.options[idx] ?? null;
+  };
+  if (ex.isMcq) {
+    const studentOpt = optionAt(ex.studentAnswer);
+    const correctOpt = optionAt(ex.correctAnswer);
+    if (studentOpt && correctOpt) {
+      const pick = `picked “${studentOpt}” instead of “${correctOpt}”`;
+      if (ex.elaboration && ex.elaboration.length > 10) return `${pick} — ${trim(ex.elaboration)}`;
+      return pick;
+    }
+    if (ex.elaboration) return trim(ex.elaboration);
+  }
+  const notes = ex.markingNotes ?? "";
+  const isCanonicalMcq = /^Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i.test(notes);
+  if (notes && notes.length > 20 && !isCanonicalMcq) return trim(notes);
+  if (ex.studentAnswer && ex.correctAnswer) {
+    return `wrote “${trim(ex.studentAnswer)}” — answer was “${trim(ex.correctAnswer)}”`;
+  }
+  return null;
 }
 
 function renderDelta(data: ReadyData, childFirst: string): string {
@@ -87,10 +119,11 @@ function renderDelta(data: ReadyData, childFirst: string): string {
     parts.push(`<div style="${STYLES.sectionH} color: #9a3412;">Something new to keep an eye on</div>`);
     for (const m of delta.newMistakes) {
       const ex = m.exampleWrong;
+      const summary = ex ? summarizeMistake(ex) : null;
       parts.push(`<div style="${STYLES.newCard}">
         <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
         ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
-        ${ex ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summarizeMistake(ex.markingNotes))}</em></div>` : ""}
+        ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
       </div>`);
     }
   }

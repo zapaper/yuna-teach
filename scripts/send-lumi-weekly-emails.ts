@@ -73,16 +73,62 @@ const STYLES = {
 
 type ReadyData = Extract<TutorData, { kind: "ready" }>;
 
-// Pull a short, parent-readable mistake summary out of the marker's
-// notes. Marker notes already explain the wrong-vs-right in 1-2
-// sentences ("Misspelled 'sufficent' (should be 'sufficient').", "The
-// word 'mess' is too informal — correct answer is 'interfere'."), so
-// keeping just the first sentence is usually exactly what we want.
-// Falls back to a "see details" stub when notes are missing.
-function summarizeMistake(notes: string | null | undefined): string {
-  if (!notes) return "see the full question below";
-  const first = (notes.split(/[.!?]\s/)[0] ?? notes).trim();
-  return first.length > 180 ? first.slice(0, 177) + "…" : first;
+// Short, parent-readable mistake summary. The marker's notes alone are
+// often useless (MCQ canonical shape is just "Student: (X), Correct:
+// (Y)"; OEQ notes can be empty), so this dispatches by source:
+//   · MCQ → option text dereference + first sentence of elaboration
+//   · OEQ → first sentence of markingNotes if it's substantive
+//   · Fallback → student-wrote-X-correct-was-Y
+// Returns null when there's genuinely nothing useful to surface (the
+// caller drops the example line entirely rather than print "see below").
+function summarizeMistake(ex: {
+  markingNotes: string | null;
+  studentAnswer: string | null;
+  correctAnswer: string | null;
+  elaboration: string | null;
+  isMcq: boolean;
+  options: string[];
+}): string | null {
+  const trim = (s: string) => {
+    const first = (s.split(/[.!?]\s/)[0] ?? s).trim();
+    return first.length > 180 ? first.slice(0, 177) + "…" : first;
+  };
+  const optionAt = (raw: string | null): string | null => {
+    if (!raw) return null;
+    const m = raw.match(/\d+/);
+    if (!m) return null;
+    const idx = parseInt(m[0], 10) - 1;
+    return ex.options[idx] ?? null;
+  };
+
+  if (ex.isMcq) {
+    const studentOpt = optionAt(ex.studentAnswer);
+    const correctOpt = optionAt(ex.correctAnswer);
+    if (studentOpt && correctOpt) {
+      const pick = `picked “${studentOpt}” instead of “${correctOpt}”`;
+      // Tack on a short why if elaboration is available — usually a
+      // single-sentence rationale ("Cell B has the most charge because
+      // …").
+      if (ex.elaboration && ex.elaboration.length > 10) {
+        return `${pick} — ${trim(ex.elaboration)}`;
+      }
+      return pick;
+    }
+    // MCQ but options didn't transcribe — fall back to elaboration alone.
+    if (ex.elaboration) return trim(ex.elaboration);
+  }
+
+  // OEQ path — marking notes usually have the real explanation.
+  // Canonical MCQ shape can leak here if isMcq was false-negative; drop it.
+  const notes = ex.markingNotes ?? "";
+  const isCanonicalMcq = /^Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i.test(notes);
+  if (notes && notes.length > 20 && !isCanonicalMcq) return trim(notes);
+
+  // Last-resort: show what student wrote vs the expected answer.
+  if (ex.studentAnswer && ex.correctAnswer) {
+    return `wrote “${trim(ex.studentAnswer)}” — answer was “${trim(ex.correctAnswer)}”`;
+  }
+  return null;
 }
 
 function renderDelta(data: ReadyData, childFirst: string): string {
@@ -122,11 +168,12 @@ function renderDelta(data: ReadyData, childFirst: string): string {
     parts.push(`<div style="${STYLES.sectionH} color: #9a3412;">Something new to keep an eye on</div>`);
     for (const m of delta.newMistakes) {
       const ex = m.exampleWrong;
+      const summary = ex ? summarizeMistake(ex) : null;
       parts.push(`
         <div style="${STYLES.newCard}">
           <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
           ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
-          ${ex ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summarizeMistake(ex.markingNotes))}</em></div>` : ""}
+          ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
         </div>`);
     }
   }
