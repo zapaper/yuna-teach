@@ -1,79 +1,101 @@
 {
   "patterns": [
     {
-      "name": "One Step Short",
-      "what": "Sometimes stops one step short of the final answer, even after doing the hard work to find the correct intermediate value.",
+      "name": "Stopping Too Early",
+      "what": "Kaiyangnggg often does the hard work to find an intermediate value, but occasionally forgets to complete the final step requested by the question.",
       "specific_examples": [
         {
-          "questionRef": "[82]",
+          "questionRef": "[34]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg correctly calculated the fraction of paint used, but forgot to subtract it from the total to find the paint left."
+          "whatWentWrong": "He correctly calculated the fraction of paint used (1/12), but the question asked for the fraction of paint left (1/6)."
         },
         {
           "questionRef": "[51]",
           "type": "oeq",
-          "whatWentWrong": "He successfully found the total difference in stickers, but stopped before dividing by two to find the number given."
-        },
-        {
-          "questionRef": "[84]",
-          "type": "mcq",
-          "whatWentWrong": "He calculated a partial percentage but didn't take the final step to find the percentage of stamps left."
+          "whatWentWrong": "He correctly found the total number of stickers needed to balance the amounts (42), but stopped before dividing by 2 to find how many Jamie actually gave."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'left'** or **'remaining'** → check if you need to subtract your answer from the total\n- **'how many did [Name] give'** → remember to divide the total difference by two",
+      "strategic_advice": "When you finish your calculation, make it a habit to re-read the last sentence of the question. Ask yourself: **'Did I answer what they are asking for?'**\n- If the question asks for **'left with'** or **'remaining'**, subtract your used amount from the total.\n- If the question asks for a **'difference'**, make sure you have done the final subtraction step.",
       "trigger_keywords": [
         "left with",
         "remaining",
-        "gave to"
+        "difference",
+        "in the end"
       ]
     },
     {
-      "name": "Wrong Total Used",
-      "what": "Occasionally mixes up which number should be the base or 'whole' when calculating a fraction or percentage.",
+      "name": "Order of Operations",
+      "what": "Kaiyangnggg sometimes calculates number sentences from left to right instead of following the correct order of operations (multiplication and division before addition and subtraction).",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He added 30 and 60 first, then multiplied by 10, instead of doing the multiplication (60 × 10) before the addition."
+        },
+        {
+          "questionRef": "[101]",
+          "type": "mcq",
+          "whatWentWrong": "He likely added numbers out of order instead of strictly following the rule to multiply and divide before adding."
+        }
+      ],
+      "strategic_advice": "Always remember the **BODMAS** rule when you see a mix of plus, minus, times, and divide signs.\n- **Bracket** first, then **Multiply/Divide**, and finally **Add/Subtract**.\n- Use your pencil to **underline the multiplication or division parts** first so you remember to do them before adding or subtracting.",
+      "trigger_keywords": [
+        "estimate the value of",
+        "find the value of",
+        "+",
+        "×",
+        "÷"
+      ]
+    },
+    {
+      "name": "Percentage Base Mix-Up",
+      "what": "Kaiyangnggg occasionally calculates percentage changes using the leftover amount as the base, rather than the original starting amount.",
       "specific_examples": [
         {
           "questionRef": "[92]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg calculated the percentage decrease using the leftover marbles instead of the starting total."
+          "whatWentWrong": "He calculated the percentage decrease using the leftover marbles (280) instead of the original total (350), resulting in 25% instead of 20%."
         },
         {
-          "questionRef": "[94]",
+          "questionRef": "[102]",
           "type": "mcq",
-          "whatWentWrong": "When asked for spending as a fraction of savings, he likely compared savings to the total amount instead."
+          "whatWentWrong": "He made the same slip here, dividing the decrease by the final amount rather than the starting amount."
         }
       ],
-      "strategic_advice": "When a question asks for a percentage or fraction, always double-check the **reference whole**:\n- For **percentage decrease/increase**, always divide by the **starting amount**, not the final amount.\n- Read the 'fraction of' carefully: the word immediately after **'of'** is your denominator (the bottom number).",
+      "strategic_advice": "When finding a percentage increase or decrease, the bottom number of your fraction must always be the **original amount** (what you started with).\n- Formula to remember: **(Change ÷ Original) × 100**.\n- Look for the words **'at first'** or the starting number in the story, and circle it so you know what to divide by.",
       "trigger_keywords": [
         "percentage decrease",
-        "fraction of"
+        "percentage increase",
+        "at first",
+        "left"
       ]
     },
     {
-      "name": "Missing Small Clues",
-      "what": "Tends to read quickly and occasionally overlooks specific condition words or units hidden in the question text.",
+      "name": "Place Value Slips",
+      "what": "Kaiyangnggg tends to misalign digits when converting fractions to decimals or when reading and writing large numbers.",
       "specific_examples": [
         {
-          "questionRef": "[39]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg found three consecutive numbers that average to 12, but missed the word 'even' in the instructions."
-        },
-        {
-          "questionRef": "[46]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote a great 4-digit number but missed the rule that certain digits were not allowed."
-        },
-        {
-          "questionRef": "[100]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "He wrote the correct algebra expression for the stamps in cents, but missed that the answer needed to be in dollars."
+          "whatWentWrong": "He added 3/100 and 30/1000 incorrectly, missing that 30/1000 is the same as 3/100, which should add up to 0.06."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 4086 for 'Forty thousand and eighty-six', missing the zero in the hundreds place (40 086)."
+        },
+        {
+          "questionRef": "[97]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 40 160 for 502 × 800, missing a zero at the end of the large number."
         }
       ],
-      "strategic_advice": "Before writing down your final answer, do a quick scan of the question for **hidden conditions**:\n- Look out for specific words like **'even'**, **'odd'**, or **'semi-circle'**.\n- Check if the **units** in the question (like cents) match the units in the answer options (like dollars).",
+      "strategic_advice": "When dealing with large numbers or decimals, draw out **place value blanks** (___ ___ , ___ ___ ___) before filling in the digits.\n- For decimals, write them out vertically and **line up the decimal points** before adding.\n- For words to numbers, write the thousands first, put a comma, and then make sure you have three digits after the comma.",
       "trigger_keywords": [
-        "even",
-        "without using",
-        "in terms of",
-        "semi-circle"
+        "in numerals",
+        "find the value",
+        "100",
+        "1000"
       ]
     }
   ],
@@ -88,7 +110,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 4,
@@ -124,7 +146,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 13,
@@ -144,7 +166,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -164,7 +186,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 23,
@@ -184,7 +206,7 @@
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 28,
@@ -216,7 +238,7 @@
     },
     {
       "idx": 35,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 36,
@@ -232,15 +254,15 @@
     },
     {
       "idx": 39,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 40,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 42,
@@ -248,7 +270,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 44,
@@ -260,7 +282,7 @@
     },
     {
       "idx": 46,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 47,
@@ -292,7 +314,7 @@
     },
     {
       "idx": 54,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 55,
@@ -412,7 +434,7 @@
     },
     {
       "idx": 84,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 85,
@@ -444,7 +466,7 @@
     },
     {
       "idx": 92,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 93,
@@ -452,7 +474,7 @@
     },
     {
       "idx": 94,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 95,
@@ -464,7 +486,7 @@
     },
     {
       "idx": 97,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 98,
@@ -476,15 +498,15 @@
     },
     {
       "idx": 100,
-      "patternIndex": 2
-    },
-    {
-      "idx": 101,
       "patternIndex": -1
     },
     {
-      "idx": 102,
+      "idx": 101,
       "patternIndex": 1
+    },
+    {
+      "idx": 102,
+      "patternIndex": 2
     },
     {
       "idx": 103,
@@ -606,7 +628,7 @@
     "104": "cmol7maxa000k13njmslatwze",
     "105": "cmok0rznd00b4d4vnu5lv3kze"
   },
-  "generatedAt": "2026-06-26T09:12:53.093Z",
+  "generatedAt": "2026-06-26T09:38:09.727Z",
   "wrongCounts": {
     "total": 105,
     "oeq": 31,
@@ -619,12 +641,11 @@
     "paperCount": 44
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-26T08:59:47.721Z",
+    "generatedAt": "2026-06-26T09:12:53.093Z",
     "patternNames": [
       "One Step Short",
-      "Division Order Mix-Up",
-      "Base Value Mix-Up",
-      "Forgotten Units"
+      "Wrong Total Used",
+      "Missing Small Clues"
     ],
     "wrongCounts": {
       "total": 105,

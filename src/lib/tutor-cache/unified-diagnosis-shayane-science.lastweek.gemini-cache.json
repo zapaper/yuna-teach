@@ -1,0 +1,231 @@
+{
+  "patterns": [
+    {
+      "name": "Plant Grouping Mix-Up",
+      "what": "Occasionally forgets that all plants make their own food, and tends to use this trait to separate ferns from other plants instead of looking at how they reproduce.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane chose 'Can it make its own food?' to separate a fern from flowering plants, forgetting that ferns also make their own food."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "She incorrectly classified a mushroom, perhaps forgetting that fungi cannot make their own food and break down dead matter instead."
+        }
+      ],
+      "strategic_advice": "- When classifying plants, remember that **all plants make their own food**.\n- To separate ferns from plants like coconut trees or sunflowers, ask **\"Does it reproduce by seeds or spores?\"**\n- Remember that **mushrooms are fungi, not plants**, so they cannot make their own food!",
+      "trigger_keywords": [
+        "classify",
+        "groups",
+        "fern",
+        "mushroom",
+        "make its own food"
+      ]
+    },
+    {
+      "name": "Digestion Steps Mix-Up",
+      "what": "Sometimes mixes up the specific jobs and order of the digestive organs, such as forgetting where digestion starts or swapping the roles of the intestines.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane chose an option that placed the large intestine before the small intestine in the path of food."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "She selected the statement that the mouth does not digest food, forgetting that saliva starts digesting simple sugars."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed that digestion happens in the mouth, stomach, and small intestine, but not in the large intestine."
+        }
+      ],
+      "strategic_advice": "- Remember the correct path: **Mouth → Gullet → Stomach → Small Intestine → Large Intestine**.\n- Digestion starts in the **mouth** (saliva) and ends in the **small intestine**.\n- The **large intestine** does not digest food; its only job is to **absorb water** from undigested waste.",
+      "trigger_keywords": [
+        "digestive system",
+        "digestion takes place",
+        "direction of food",
+        "absorb"
+      ]
+    },
+    {
+      "name": "Plant Tubes Mix-Up",
+      "what": "Occasionally confuses how food and water travel in a plant, especially when predicting what happens if certain tubes are cut or removed.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane concluded that white flower parts had no water tubes at all, rather than realising the tubes were just not placed in the coloured water."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "She missed that when food-carrying tubes are cut, food made by the leaves accumulates above the cut, causing fruits there to grow bigger."
+        }
+      ],
+      "strategic_advice": "- **Water-carrying tubes** move water UP from the roots to the rest of the plant.\n- **Food-carrying tubes** move food from the leaves to all other parts.\n- If a food tube is cut, look at where the leaves are! Food will **bulge and accumulate** above the cut, making fruits there grow bigger, while parts below the cut may starve.",
+      "trigger_keywords": [
+        "food-carrying tubes",
+        "water-carrying tubes",
+        "removed",
+        "cut",
+        "stem"
+      ]
+    },
+    {
+      "name": "Missed Key Words",
+      "what": "Sometimes understands the experiment but misses a specific word in the question that changes what is being asked, occasionally leading to the opposite answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed the word 'after' and found the total time on the graph instead of the time from when the ice finished melting."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She confused the variables that must be kept the same for a fair test with the variable that is being changed."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed that soil which 'holds' a lot of water will let the least amount of water drip into the measuring cylinder, picking the highest amount instead."
+        }
+      ],
+      "strategic_advice": "- When you see **\"after\"** in a graph question, find the new starting point on the graph and count forward from there.\n- When an experiment asks for a material that **\"holds\"** or **\"absorbs\"** water, look for the result with the **least** water left over or collected in the beaker.\n- Always double-check if the question is asking for the **constant variables** (kept the same) or the **changed variable** (tested).",
+      "trigger_keywords": [
+        "after",
+        "holds",
+        "collected",
+        "constant",
+        "fair test"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq3sh4dr000oy4pbsobm7epl",
+    "2": "cmq3sh4ds000qy4pbtqlsznns",
+    "3": "cmq3sh4ds000ry4pbfaf5d3b1",
+    "4": "cmq3sh4ds000sy4pbwyz28btp",
+    "5": "cmq3sh4ds000wy4pbo08shewl",
+    "6": "cmq3sh4ds000xy4pbwqqgeo9m",
+    "7": "cmq3sh4dt0010y4pba264h5a9",
+    "8": "cmq3sh4dt0016y4pb5ei5f3wm",
+    "9": "cmpupu6s30080105b6jj1br2v",
+    "10": "cmpupu6s30081105by3lbpbci",
+    "11": "cmpupu6s30083105bgrxzpgio",
+    "12": "cmpupulm40087105bp3lifbm9",
+    "13": "cmpupuqrb008d105bzpim8y8y",
+    "14": "cmpupuwsd008g105bvh2410ne",
+    "15": "cmpupuwse008i105bvve70g81",
+    "16": "cmpupuwse008j105bum647002",
+    "17": "cmpupuwse008m105bkjqd2ufd",
+    "18": "cmpupuwse008o105b1ryc0lia",
+    "19": "cmpupv54p008s105beimw9aeh",
+    "20": "cmpupv54p008t105br9evzmwm",
+    "21": "cmpupv54p008u105b8a8906fi"
+  },
+  "generatedAt": "2026-06-19T02:39:56.476Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 0,
+    "mcq": 21
+  },
+  "toplineSnapshot": {
+    "avgPct": 45,
+    "totalAwarded": 26,
+    "totalAvailable": 58,
+    "paperCount": 6
+  },
+  "previousAssessment": null
+}

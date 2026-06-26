@@ -1,26 +1,26 @@
 {
   "patterns": [
     {
-      "name": "Phrasal Verb Mix-Up",
-      "what": "Sometimes confuses phrasal verbs that look similar but have very different meanings.",
+      "name": "Phrasal Verbs Mix-Up",
+      "what": "Sometimes confuses phrasal verbs that share the same starting verb but end with different prepositions.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Audrey picked 'put down' instead of 'put off' for cancelling a birthday party."
+          "whatWentWrong": "Audrey chose 'put down' instead of 'put off' for delaying a birthday party."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "She chose 'taken up' rather than 'taken in' to describe being tricked by a magician."
+          "whatWentWrong": "She picked 'taken up' instead of 'taken in' when describing being tricked by a magician."
         },
         {
-          "questionRef": "[15]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "She selected 'brought off' instead of 'brought down' for trees falling in strong winds."
+          "whatWentWrong": "Audrey selected 'brought off' instead of 'brought down' for trees falling due to strong winds."
         }
       ],
-      "strategic_advice": "When you see a verb with a preposition (like **'put off'** or **'taken in'**), read the whole sentence to guess the meaning first. If you're unsure, try replacing the phrasal verb with a single word (e.g., **'cancel'** or **'tricked'**) to see which option matches best.",
+      "strategic_advice": "When you see a phrasal verb question, try replacing the blank with the meaning of each option to see which one fits best.\n- **'put off'** means to postpone, while **'put down'** means to insult or place something on a surface.\n- **'taken in'** means to be tricked, while **'taken up'** means to start a new hobby.",
       "trigger_keywords": [
         "put",
         "taken",
@@ -29,80 +29,55 @@
       ]
     },
     {
-      "name": "Possibility Word Mix-Up",
-      "what": "Occasionally mixes up words that show absolute certainty with words that show a guess or possibility.",
+      "name": "Certainty Words Mix-Up",
+      "what": "Occasionally mixes up words that show how certain we are about an event, choosing strong words like 'must' or 'should' when the sentence shows doubt.",
       "specific_examples": [
         {
-          "questionRef": "[19]",
+          "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "Audrey chose 'must' (which shows certainty) even though the worker explicitly said 'I'm not sure'."
+          "whatWentWrong": "Audrey chose 'must' instead of 'could' even though the speaker explicitly said 'I'm not sure'."
         },
         {
-          "questionRef": "[29]",
+          "questionRef": "[31]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'should' instead of 'could' when guessing what to do for the weekend, missing the 'not sure' clue again."
+          "whatWentWrong": "She picked 'should' instead of 'could' when deciding on weekend plans that were still undecided."
         }
       ],
-      "strategic_advice": "When the sentence has clues like **'not sure'**, it means we are guessing. Use **'could'** or **'might'** for guesses. Save **'must'** for when you are 100% certain, and **'should'** for giving advice.",
+      "strategic_advice": "When you see phrases like **'not sure'** or **'might'**, treat them as stop signs:\n- Use **'could'** or **'might'** for possibilities and guesses.\n- Save **'must'** for when you are absolutely certain, and **'should'** for giving advice or showing expectations.",
       "trigger_keywords": [
         "not sure",
+        "might",
         "must",
         "could",
         "should"
       ]
     },
     {
-      "name": "Skipping Sentence Clues",
-      "what": "Tends to pick a word that sounds okay on its own, but misses the extra clue in the sentence that points to the exact right answer.",
+      "name": "Ignoring Sentence Clues",
+      "what": "Tends to pick a vocabulary word that seems related to the topic, but misses the specific clue in the sentence that points to the exact answer.",
       "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "Audrey picked 'impolite' instead of 'impulsive', missing the clue that the act was done 'without checking the truth'."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "She chose 'anything' instead of 'everything', missing the context that Rina still wanted to speak but 'wanted others to have a chance' too."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "mcq",
-          "whatWentWrong": "She selected 'desired' instead of 'inevitable' for a concert cancellation, overlooking the clue about the 'sudden heavy downpour'."
-        }
-      ],
-      "strategic_advice": "Before picking an answer, look for the **'because'**, **'given that'**, or **'without'** part of the sentence. These phrases are clues! For example, if someone acts **'without checking the truth'**, they are being **'impulsive'**, not just **'impolite'**.",
-      "trigger_keywords": [
-        "because",
-        "given the",
-        "without",
-        "due to"
-      ]
-    },
-    {
-      "name": "Synonym Mix-Up",
-      "what": "Sometimes chooses a word that is related to the situation but isn't an exact match for the original word's meaning.",
-      "specific_examples": [
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "Audrey picked 'curiously' instead of 'suspiciously' to replace 'skeptically'."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "She chose 'cringed' (feeling awkward) instead of 'quivered' (shaking) to replace 'shuddered'."
-        },
         {
           "questionRef": "[24]",
           "type": "mcq",
-          "whatWentWrong": "She selected 'bottom' instead of 'groundwork' to replace 'foundation' in the context of building an economy."
+          "whatWentWrong": "Audrey chose 'desired' instead of 'inevitable' for a concert cancellation caused by a sudden heavy downpour."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'curiously' instead of 'suspiciously' to match the meaning of 'skeptically'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey chose 'anything' instead of 'everything', missing the clue that Rina stayed quiet specifically to let others have a chance to speak."
         }
       ],
-      "strategic_advice": "For vocabulary cloze questions, try to think of your own simple replacement word before looking at the options. If the original word is **'shuddered'** (shaking from fear or cold), look for a word like **'quivered'** rather than **'cringed'** (which means feeling awkward).",
+      "strategic_advice": "When choosing a vocabulary word, look for the **'context clues'** hidden in the rest of the sentence.\n- Highlight the reason or action happening around the blank.\n- Ask yourself: 'Does my choice make sense with the rest of the story?'",
       "trigger_keywords": [
         "closest in meaning",
-        "replace the underlined word"
+        "fill in the blank",
+        "because",
+        "due to"
       ]
     }
   ],
@@ -113,27 +88,27 @@
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 0
-    },
-    {
-      "idx": 4,
-      "patternIndex": 3
-    },
-    {
-      "idx": 5,
-      "patternIndex": 3
-    },
-    {
-      "idx": 6,
       "patternIndex": -1
     },
     {
-      "idx": 7,
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
       "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
     },
     {
       "idx": 8,
@@ -141,11 +116,11 @@
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -157,7 +132,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -165,117 +140,146 @@
     },
     {
       "idx": 15,
-      "patternIndex": 0
-    },
-    {
-      "idx": 16,
-      "patternIndex": 3
-    },
-    {
-      "idx": 17,
-      "patternIndex": 3
-    },
-    {
-      "idx": 18,
-      "patternIndex": 3
-    },
-    {
-      "idx": 19,
-      "patternIndex": 1
-    },
-    {
-      "idx": 20,
-      "patternIndex": -1
-    },
-    {
-      "idx": 21,
-      "patternIndex": 0
-    },
-    {
-      "idx": 22,
       "patternIndex": 2
     },
     {
-      "idx": 23,
-      "patternIndex": 3
+      "idx": 16,
+      "patternIndex": 2
     },
     {
-      "idx": 24,
-      "patternIndex": 3
+      "idx": 17,
+      "patternIndex": 0
     },
     {
-      "idx": 25,
-      "patternIndex": 3
+      "idx": 18,
+      "patternIndex": 2
     },
     {
-      "idx": 26,
-      "patternIndex": 3
+      "idx": 19,
+      "patternIndex": 2
     },
     {
-      "idx": 27,
-      "patternIndex": 3
+      "idx": 20,
+      "patternIndex": 2
     },
     {
-      "idx": 28,
-      "patternIndex": 3
-    },
-    {
-      "idx": 29,
+      "idx": 21,
       "patternIndex": 1
     },
     {
-      "idx": 30,
+      "idx": 22,
       "patternIndex": -1
     },
     {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 2
+    },
+    {
+      "idx": 29,
+      "patternIndex": 2
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
       "idx": 31,
-      "patternIndex": 3
+      "patternIndex": 1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
-    "1": "cmq3it9da0010xhylk7lp7t9s",
-    "2": "cmq3it9da0017xhylljmu0umz",
-    "3": "cmq3it9da0019xhyl35tclpy3",
-    "4": "cmq3it9da001bxhylmsfvkuei",
-    "5": "cmq3it9da001dxhyljvrxjfyq",
-    "6": "cmq3p3f0m000o3a7l9ucbaeo3",
-    "7": "cmq3p3f0n000q3a7l7zhveovc",
-    "8": "cmq3p3f0n000r3a7lat8h2nzr",
-    "9": "cmq3p3f0n000s3a7lv3jz0msg",
-    "10": "cmq3p3f0n000v3a7lsw0qx04g",
-    "11": "cmq3iszc4000lxhylhjsdonlx",
-    "12": "cmq3iszc4000nxhylh4xhdroj",
-    "13": "cmq3iszc4000qxhylpxjd33u3",
-    "14": "cmq3iszc4000rxhylx6gvuw2x",
-    "15": "cmq3iszc4000sxhyljqyotorz",
-    "16": "cmq3iszc4000txhyllgpt719w",
-    "17": "cmq3iszc5000vxhylwzojqepf",
-    "18": "cmq3iszc5000xxhyl7nkm0dnk",
-    "19": "cmq3oxroy00043a7l1pt42qze",
-    "20": "cmq3oxroy00053a7l1ub13j7m",
-    "21": "cmq3oxroy00073a7lqv7b3a2i",
-    "22": "cmq3oxroy00093a7l7tft6qob",
-    "23": "cmq3oxroy000d3a7lyy1h62i2",
-    "24": "cmq3oxroy000e3a7lhsnc5z2z",
-    "25": "cmq3oxroy000f3a7l816qczpn",
-    "26": "cmq3oxroy000g3a7lqkyew1ph",
-    "27": "cmq3j0ytf000cjlisff738a66",
-    "28": "cmq3j0ytf000gjlisicp1ayz6",
-    "29": "cmq3ic34r0006xhyl0631ecvv",
-    "30": "cmq3ic34r0007xhyl5mdp8vu5",
-    "31": "cmq3ic34s000gxhylhbfxrknn"
+    "1": "cmqi1p2ed00368l26gxznvx78",
+    "2": "cmqi1p2ee003h8l261yqrou5b",
+    "3": "cmq3it9da0010xhylk7lp7t9s",
+    "4": "cmq3it9da0017xhylljmu0umz",
+    "5": "cmq3it9da0019xhyl35tclpy3",
+    "6": "cmq3it9da001bxhylmsfvkuei",
+    "7": "cmq3it9da001dxhyljvrxjfyq",
+    "8": "cmq3p3f0m000o3a7l9ucbaeo3",
+    "9": "cmq3p3f0n000q3a7l7zhveovc",
+    "10": "cmq3p3f0n000r3a7lat8h2nzr",
+    "11": "cmq3p3f0n000s3a7lv3jz0msg",
+    "12": "cmq3p3f0n000v3a7lsw0qx04g",
+    "13": "cmq3iszc4000lxhylhjsdonlx",
+    "14": "cmq3iszc4000nxhylh4xhdroj",
+    "15": "cmq3iszc4000qxhylpxjd33u3",
+    "16": "cmq3iszc4000rxhylx6gvuw2x",
+    "17": "cmq3iszc4000sxhyljqyotorz",
+    "18": "cmq3iszc4000txhyllgpt719w",
+    "19": "cmq3iszc5000vxhylwzojqepf",
+    "20": "cmq3iszc5000xxhyl7nkm0dnk",
+    "21": "cmq3oxroy00043a7l1pt42qze",
+    "22": "cmq3oxroy00053a7l1ub13j7m",
+    "23": "cmq3oxroy00073a7lqv7b3a2i",
+    "24": "cmq3oxroy00093a7l7tft6qob",
+    "25": "cmq3oxroy000d3a7lyy1h62i2",
+    "26": "cmq3oxroy000e3a7lhsnc5z2z",
+    "27": "cmq3oxroy000f3a7l816qczpn",
+    "28": "cmq3oxroy000g3a7lqkyew1ph",
+    "29": "cmq3j0ytf000cjlisff738a66",
+    "30": "cmq3j0ytf000gjlisicp1ayz6",
+    "31": "cmq3ic34r0006xhyl0631ecvv",
+    "32": "cmq3ic34r0007xhyl5mdp8vu5",
+    "33": "cmq3ic34s000gxhylhbfxrknn"
   },
-  "generatedAt": "2026-06-17T09:08:04.238Z",
+  "generatedAt": "2026-06-26T09:25:54.043Z",
   "wrongCounts": {
-    "total": 31,
+    "total": 33,
     "oeq": 0,
-    "mcq": 31
+    "mcq": 33
   },
   "toplineSnapshot": {
-    "avgPct": 67,
-    "totalAwarded": 68,
-    "totalAvailable": 102,
-    "paperCount": 6
+    "avgPct": 72,
+    "totalAwarded": 92,
+    "totalAvailable": 128,
+    "paperCount": 8
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:08:04.238Z",
+    "patternNames": [
+      "Phrasal Verb Mix-Up",
+      "Possibility Word Mix-Up",
+      "Skipping Sentence Clues",
+      "Synonym Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 31,
+      "oeq": 0,
+      "mcq": 31
+    },
+    "toplineSnapshot": {
+      "avgPct": 67,
+      "totalAwarded": 68,
+      "totalAvailable": 102,
+      "paperCount": 6
+    }
+  }
 }

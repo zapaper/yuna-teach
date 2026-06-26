@@ -1,92 +1,88 @@
 {
   "patterns": [
     {
-      "name": "Turning Direction Mix-Up",
-      "what": "Sometimes calculates the turn in the opposite direction, mixing up clockwise and anti-clockwise.",
+      "name": "Unit Mix-Up",
+      "what": "Emily sometimes forgets to include the correct unit symbol, like degrees for angles, or mixes up units like volume and area.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "oeq",
+          "whatWentWrong": "Emily found the correct angle but forgot to include the degree symbol in her final answer."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Emily calculated the area perfectly but wrote the unit for volume (cm³) instead of area (cm²)."
+        }
+      ],
+      "strategic_advice": "When you finish a calculation, always check what you are measuring:\n- **Angles** → always need a degree symbol (°)\n- **Area** → always needs a square unit (like cm²)\n- **Volume** → always needs a cubic unit (like cm³)",
+      "trigger_keywords": [
+        "Find ∠",
+        "area",
+        "perimeter"
+      ]
+    },
+    {
+      "name": "Place Value Mix-Up",
+      "what": "Emily occasionally confuses the value of a digit based on its position, such as mixing up the thousands and ten-thousands place.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Emily needed to find the anti-clockwise turn from south-west to east, but she picked the clockwise angle instead."
+          "whatWentWrong": "Emily picked a number where the digit 3 is in the thousands place, missing the option where it is in the ten-thousands place."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "She faced a similar compass question and again picked 225°, showing a small mix-up with the turning direction."
+          "whatWentWrong": "Emily made the same slip here, choosing 3,000 over 30,000."
         }
       ],
-      "strategic_advice": "When you see **'anti-clockwise'** or **'clockwise'**, draw a quick clock face on the page.\n- **'clockwise'** → draw an arrow the way the hands move\n- **'anti-clockwise'** → draw an arrow backwards\nAlways trace the path with your pencil before counting the angles.",
+      "strategic_advice": "When asked for the **'greatest value'** of a specific digit, look at its position from the right. A digit in the ten-thousands place (like the 3 in 30,275) is worth more than the same digit in the thousands place (like the 3 in 53,980).",
       "trigger_keywords": [
-        "anti-clockwise",
-        "clockwise",
-        "turns through an angle",
-        "facing"
+        "greatest value",
+        "digit"
       ]
     },
     {
-      "name": "Line Naming Slips",
-      "what": "Tends to add an extra letter like 'L' when naming lines, which makes the final answer incorrect.",
+      "name": "Skipping Key Words",
+      "what": "Emily tends to read past important instruction words, which leads to answering a slightly different question than what was asked.",
       "specific_examples": [
         {
-          "questionRef": "[23]",
+          "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "Emily correctly spotted the perpendicular lines but wrote 'LWX' instead of just 'WX', which cost her the mark."
+          "whatWentWrong": "Emily counted the lines instead of writing down their names as requested."
         },
         {
-          "questionRef": "[65]",
+          "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'ABLAE' instead of clearly naming the two lines, which made it hard for the marker to see her great thinking."
+          "whatWentWrong": "Emily found the total number of squares needed, but forgot to subtract the ones that were already shaded."
         }
       ],
-      "strategic_advice": "When you see **'name a pair'** of lines, remember that a straight line is named using exactly two letters.\n- Double-check that you haven't accidentally added an extra letter or symbol.\n- For example, write **'WX'** instead of **'LWX'**.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'Name a pair'** → write the letters of the lines, don't just count them\n- **'must be shaded'** → check what is already there and subtract it from your total",
       "trigger_keywords": [
-        "perpendicular lines",
-        "parallel lines",
-        "name a pair"
+        "Name a pair",
+        "must be shaded"
       ]
     },
     {
-      "name": "Copying Numbers Wrong",
-      "what": "Tends to accidentally drop a digit when copying numbers from the question text into the working steps.",
+      "name": "Copying Errors",
+      "what": "Emily occasionally makes a small slip when transferring numbers from the question to her working, or from her working to the final answer box.",
       "specific_examples": [
         {
-          "questionRef": "[21]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Emily set up the time addition perfectly, but accidentally wrote down '2 h 4 min' instead of the '2 h 24 min' given in the question."
+          "whatWentWrong": "Emily calculated the time perfectly but accidentally wrote '2h 4min' instead of '2h 24min' in her working."
         },
         {
-          "questionRef": "[36]",
+          "questionRef": "[26]",
           "type": "oeq",
-          "whatWentWrong": "She knew exactly how to solve the problem, but a small slip in copying the movie's duration led to the wrong final time."
+          "whatWentWrong": "Emily found the correct remainder of 1 in her working, but accidentally wrote 5 in the final answer box."
         }
       ],
-      "strategic_advice": "When a question gives you several numbers, treat them as precious cargo.\n- **Underline or circle** the numbers in the question first.\n- After writing down your first step, look back at the question to **double-check** you copied the exact same numbers.",
+      "strategic_advice": "Before moving on to the next question, do a quick **'copy check'**. Point at the number in your working, then point at the number in the answer box to make sure they match exactly.",
       "trigger_keywords": [
-        "started at",
-        "watched the movie for",
-        "arrived at"
-      ]
-    },
-    {
-      "name": "Unit Mix-Up",
-      "what": "Occasionally leaves out the degree symbol for angles or confuses the units for area and volume.",
-      "specific_examples": [
-        {
-          "questionRef": "[61]",
-          "type": "oeq",
-          "whatWentWrong": "Emily did all the angle calculations beautifully but forgot to add the little degree symbol at the end."
-        },
-        {
-          "questionRef": "[62]",
-          "type": "oeq",
-          "whatWentWrong": "She correctly found the area of the square but accidentally wrote 'cm³' (which is for volume) instead of 'cm²'."
-        }
-      ],
-      "strategic_advice": "When you reach your final answer, always do a quick 'unit check'.\n- If you found an angle, make sure you include the **degree symbol (°)**.\n- If you found an area, remember to use **square units (like cm²)** instead of volume units (like cm³).",
-      "trigger_keywords": [
-        "find ∠",
-        "area of the square",
-        "perimeter"
+        "Find the remainder",
+        "What time"
       ]
     }
   ],
@@ -97,11 +93,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 4,
@@ -125,23 +121,23 @@
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -157,226 +153,46 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 26,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 27,
-      "patternIndex": 2
-    },
-    {
-      "idx": 28,
-      "patternIndex": 0
-    },
-    {
-      "idx": 29,
-      "patternIndex": 1
-    },
-    {
-      "idx": 30,
-      "patternIndex": 2
-    },
-    {
-      "idx": 31,
-      "patternIndex": 0
-    },
-    {
-      "idx": 32,
-      "patternIndex": 1
-    },
-    {
-      "idx": 33,
-      "patternIndex": 2
-    },
-    {
-      "idx": 34,
-      "patternIndex": 0
-    },
-    {
-      "idx": 35,
-      "patternIndex": 1
-    },
-    {
-      "idx": 36,
-      "patternIndex": 2
-    },
-    {
-      "idx": 37,
-      "patternIndex": 0
-    },
-    {
-      "idx": 38,
-      "patternIndex": 1
-    },
-    {
-      "idx": 39,
-      "patternIndex": 2
-    },
-    {
-      "idx": 40,
-      "patternIndex": 0
-    },
-    {
-      "idx": 41,
-      "patternIndex": 1
-    },
-    {
-      "idx": 42,
-      "patternIndex": 2
-    },
-    {
-      "idx": 43,
-      "patternIndex": 0
-    },
-    {
-      "idx": 44,
-      "patternIndex": 1
-    },
-    {
-      "idx": 45,
-      "patternIndex": 2
-    },
-    {
-      "idx": 46,
-      "patternIndex": 0
-    },
-    {
-      "idx": 47,
-      "patternIndex": 1
-    },
-    {
-      "idx": 48,
-      "patternIndex": 2
-    },
-    {
-      "idx": 49,
-      "patternIndex": 0
-    },
-    {
-      "idx": 50,
-      "patternIndex": 1
-    },
-    {
-      "idx": 51,
-      "patternIndex": 2
-    },
-    {
-      "idx": 52,
-      "patternIndex": 0
-    },
-    {
-      "idx": 53,
-      "patternIndex": 1
-    },
-    {
-      "idx": 54,
-      "patternIndex": 2
-    },
-    {
-      "idx": 55,
-      "patternIndex": 0
-    },
-    {
-      "idx": 56,
-      "patternIndex": 1
-    },
-    {
-      "idx": 57,
-      "patternIndex": 2
-    },
-    {
-      "idx": 58,
-      "patternIndex": -1
-    },
-    {
-      "idx": 59,
-      "patternIndex": -1
-    },
-    {
-      "idx": 60,
-      "patternIndex": -1
-    },
-    {
-      "idx": 61,
-      "patternIndex": 3
-    },
-    {
-      "idx": 62,
-      "patternIndex": 3
-    },
-    {
-      "idx": 63,
-      "patternIndex": -1
-    },
-    {
-      "idx": 64,
-      "patternIndex": -1
-    },
-    {
-      "idx": 65,
-      "patternIndex": 1
-    },
-    {
-      "idx": 66,
-      "patternIndex": -1
-    },
-    {
-      "idx": 67,
-      "patternIndex": -1
-    },
-    {
-      "idx": 68,
-      "patternIndex": -1
-    },
-    {
-      "idx": 69,
-      "patternIndex": -1
-    },
-    {
-      "idx": 70,
-      "patternIndex": -1
-    },
-    {
-      "idx": 71,
-      "patternIndex": -1
-    },
-    {
-      "idx": 72,
       "patternIndex": -1
     }
   ],
@@ -390,88 +206,44 @@
     "7": "cmonttv4300668eodarttrisp",
     "8": "cmoazp5jh001xw4dzx9zk1bgu",
     "9": "cmoazp5ji0021w4dz32kcu7eq",
-    "10": "cmpuiru3b0007btcz265kr8pw",
-    "11": "cmpuiru3a0002btczaz8bvhjs",
-    "12": "cmpuiru3b000abtcznhozfw4z",
-    "13": "cmpuiru3b0009btczhq9t85bc",
-    "14": "cmpuiru3b000bbtcz4ju86cyy",
-    "15": "cmpuiru3a0003btcznrpewwvf",
-    "16": "cmq257wye000je8x4iwl0sa49",
-    "17": "cmq257wye000le8x4i7446kh2",
-    "18": "cmq257wye000ne8x401pikku9",
-    "19": "cmoc9clzi0003gb2thp4pga5s",
-    "20": "cmoc9clzj0009gb2ton9vup3b",
-    "21": "cmoc9clzj000agb2towlqdrek",
-    "22": "cmq1uxxdl000jfbd538mcqfry",
-    "23": "cmq1uxxdl000lfbd5ci0od2fs",
-    "24": "cmq1uxxdl000nfbd5c1qwvx2z",
-    "25": "cmq12wsyl000jgqr9bbsae82y",
-    "26": "cmq12wsyl000lgqr9ct44rgi6",
-    "27": "cmq12wsyl000ngqr911mi5xoy",
-    "28": "cmq1lrvyj000ji806zay00zos",
-    "29": "cmq1lrvyj000li806k7czmm21",
-    "30": "cmq1lrvyj000ni806hmm2zfm6",
-    "31": "cmq0mtnmg000j9ahmh3n7kb6l",
-    "32": "cmq0mtnmg000l9ahmjznr6ai8",
-    "33": "cmq0mtnmg000n9ahmruvm6bdx",
-    "34": "cmq0txtpy000j6ipxse43enb8",
-    "35": "cmq0txtpy000l6ipxvt1w74yl",
-    "36": "cmq0txtpy000n6ipxfg37ri4n",
-    "37": "cmpzn00k2000jbd1amoi1x6z6",
-    "38": "cmpzn00k2000lbd1anqh39iuy",
-    "39": "cmpzn00k3000nbd1a0b5nmwxt",
-    "40": "cmq0unh87000jy88mlmwlrwjj",
-    "41": "cmq0unh87000ly88m3t2x11er",
-    "42": "cmq0unh87000ny88mtpdha26v",
-    "43": "cmq0o59sk000jc8ksaelj4az2",
-    "44": "cmq0o59sk000lc8ks710c6i0s",
-    "45": "cmq0o59sk000nc8ksxb0taufu",
-    "46": "cmq1vmwp2000jrupkp18mg5rt",
-    "47": "cmq1vmwp2000lrupkwau85suq",
-    "48": "cmq1vmwp2000nrupk7vmvjbah",
-    "49": "cmq09t3mq000jd3mf6r2mqytn",
-    "50": "cmq09t3mq000ld3mfuzpodwg7",
-    "51": "cmq09t3mq000nd3mfg9q4ow89",
-    "52": "cmq1xfxan000jjek6bys2iv6v",
-    "53": "cmq1xfxao000ljek6v6ki8yan",
-    "54": "cmq1xfxao000njek650xoc5uz",
-    "55": "cmq601nyn000fpovehbljeotv",
-    "56": "cmq601nyn000hpovedx93g2j3",
-    "57": "cmq601nyn000jpovetp3yk5wr",
-    "58": "cmo7usj1r0013j4n7qx74zkfg",
-    "59": "cmo7usj1r0014j4n7yxiv4b58",
-    "60": "cmo7usj1r0015j4n76w2dj69c",
-    "61": "cmo7usj1r0018j4n7fs7u0ji8",
-    "62": "cmo7usj1r001bj4n7y5m0d8b0",
-    "63": "cmnx0jvsc00025elxsmnvnlb2",
-    "64": "cmnx0jvsc000a5elxoadqzzlu",
-    "65": "cmnx0jvsc000g5elxeis3hij0",
-    "66": "cmnwtdxvf007bc1mtvyia7629",
-    "67": "cmnx2aaax000wbjj1u3hivqlf",
-    "68": "cmnx2aaay0012bjj1vf83h8pm",
-    "69": "cmnx2aaay0014bjj1kf1uv70e",
-    "70": "cmnwtcz50005yc1mtzi1pf0uy",
-    "71": "cmmfrnfcq0063e0huejlpbiyk",
-    "72": "cmmfrnfcq0069e0huofudzzao"
+    "10": "cmoc9clzi0003gb2thp4pga5s",
+    "11": "cmoc9clzj0009gb2ton9vup3b",
+    "12": "cmoc9clzj000agb2towlqdrek",
+    "13": "cmo7usj1r0013j4n7qx74zkfg",
+    "14": "cmo7usj1r0014j4n7yxiv4b58",
+    "15": "cmo7usj1r0015j4n76w2dj69c",
+    "16": "cmo7usj1r0018j4n7fs7u0ji8",
+    "17": "cmo7usj1r001bj4n7y5m0d8b0",
+    "18": "cmnx0jvsc00025elxsmnvnlb2",
+    "19": "cmnx0jvsc000a5elxoadqzzlu",
+    "20": "cmnx0jvsc000g5elxeis3hij0",
+    "21": "cmnwtdxvf007bc1mtvyia7629",
+    "22": "cmnx2aaax000wbjj1u3hivqlf",
+    "23": "cmnx2aaay0012bjj1vf83h8pm",
+    "24": "cmnx2aaay0014bjj1kf1uv70e",
+    "25": "cmnwtcz50005yc1mtzi1pf0uy",
+    "26": "cmmfrnfcq0063e0huejlpbiyk",
+    "27": "cmmfrnfcq0069e0huofudzzao"
   },
-  "generatedAt": "2026-06-17T08:08:28.685Z",
+  "generatedAt": "2026-06-26T09:31:28.485Z",
   "wrongCounts": {
-    "total": 72,
-    "oeq": 43,
-    "mcq": 29
+    "total": 27,
+    "oeq": 12,
+    "mcq": 15
   },
   "toplineSnapshot": {
-    "avgPct": 81,
-    "totalAwarded": 509.5,
-    "totalAvailable": 632,
-    "paperCount": 27
+    "avgPct": 87,
+    "totalAwarded": 306.5,
+    "totalAvailable": 352,
+    "paperCount": 13
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T07:59:47.402Z",
+    "generatedAt": "2026-06-17T08:08:28.685Z",
     "patternNames": [
+      "Turning Direction Mix-Up",
       "Line Naming Slips",
-      "Compass Direction Mix-Up",
-      "Copying Numbers Wrong"
+      "Copying Numbers Wrong",
+      "Unit Mix-Up"
     ],
     "wrongCounts": {
       "total": 72,

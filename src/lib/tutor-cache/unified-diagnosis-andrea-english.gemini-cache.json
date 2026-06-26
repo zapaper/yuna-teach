@@ -1,101 +1,108 @@
 {
   "patterns": [
     {
-      "name": "Singular and Plural Mix-Up",
-      "what": "Sometimes confuses whether a subject is singular or plural, which leads to picking the wrong verb form.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Andrea sometimes confuses whether to use a singular or plural verb when the subject is separated by extra words or in a cloze passage.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Andrea picked the plural verb 'were' instead of the singular 'was' for the main subject 'Jane'."
+          "whatWentWrong": "Andrea picked the plural 'were' instead of the singular 'was' for the singular subject 'Jane'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She used the singular 'has' instead of the plural 'have' for the plural subject 'stalls'."
         },
         {
           "questionRef": "[26]",
           "type": "oeq",
-          "whatWentWrong": "She wrote the singular verb 'has' instead of 'have' for the plural subject 'hawker centres'."
+          "whatWentWrong": "She wrote 'has' instead of 'have' for the plural subject 'hawker centres'."
         }
       ],
-      "strategic_advice": "When you see a blank for a verb, always ask yourself: **'Who or what is doing this action?'**\n- Trace it back to the main subject and check if it is one (singular) or more than one (plural).\n- Ignore extra information like **'together with'** or **'as well as'** that tries to trick you into thinking the subject is plural!",
+      "strategic_advice": "When checking your verbs, always find the main **'who' or 'what'** doing the action. If there are extra phrases like 'together with', ignore them. For plural subjects like 'stalls' or 'centres', use **'have'** instead of 'has'.",
       "trigger_keywords": [
-        "is / are",
-        "has / have",
-        "was / were"
+        "together with",
+        "as well as",
+        "stalls that",
+        "centres"
       ]
     },
     {
-      "name": "Spelling by Sound",
-      "what": "Occasionally spells tricky words exactly how they sound, which leads to missing silent letters or using the wrong vowels.",
+      "name": "Sentence Combining Rules",
+      "what": "Andrea occasionally misses the specific grammar changes needed when rewriting sentences, such as changing a verb to a noun or using the correct word pairs.",
       "specific_examples": [
         {
-          "questionRef": "[14]",
+          "questionRef": "[30]",
           "type": "oeq",
-          "whatWentWrong": "Andrea spelled 'extinct' as 'extint', missing the silent 'c'."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "She spelled 'inspiration' as 'insperation', using an 'e' instead of an 'i'."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "She spelled 'sense' as 'sence', mixing up the 's' and 'c' sounds."
-        }
-      ],
-      "strategic_advice": "When checking your work, look out for words with tricky vowel sounds or silent letters.\n- Break longer words into smaller chunks (syllables) to make sure no letters are left out.\n- If a word looks a bit strange after you write it, try writing it another way on rough paper to see which one **looks right**.",
-      "trigger_keywords": [
-        "ekstint",
-        "inspireshion",
-        "poppiullur"
-      ]
-    },
-    {
-      "name": "Vague Story Answers",
-      "what": "Tends to give general answers to comprehension questions instead of pointing to the specific event or action from the passage.",
-      "specific_examples": [
-        {
-          "questionRef": "[36]",
-          "type": "oeq",
-          "whatWentWrong": "Andrea answered that the teacher 'thinks it is important' instead of giving the specific reason that Ah Huat had no time at home."
-        },
-        {
-          "questionRef": "[39]",
-          "type": "oeq",
-          "whatWentWrong": "She referred generally to 'the boy's act' instead of stating exactly what the act was (getting stabbed by a pencil)."
-        },
-        {
-          "questionRef": "[42]",
-          "type": "oeq",
-          "whatWentWrong": "She wrote that the author 'learnt that he should not have done what he had done' instead of explaining that he experienced the same pain."
-        }
-      ],
-      "strategic_advice": "When you see prompts asking **'what made'** or **'explain why'**, always look for the exact action or event in the text.\n- Avoid using vague words like **'it'**, **'the act'**, or **'what he did'**. Name the exact thing!\n- Ask yourself: **'If someone hasn't read the story, would they understand my answer?'** If not, add more specific details.",
-      "trigger_keywords": [
-        "what made",
-        "explain clearly why",
-        "what was the"
-      ]
-    },
-    {
-      "name": "Word Form Mix-Up",
-      "what": "Sometimes uses a verb when the sentence needs a noun, or an adjective when it needs a noun.",
-      "specific_examples": [
-        {
-          "questionRef": "[29]",
-          "type": "oeq",
-          "whatWentWrong": "Andrea wrote the verb 'is' instead of a noun like 'significance' or 'value' to describe the cultural importance of hawker centres."
+          "whatWentWrong": "Andrea used 'over' instead of the required 'than' when pairing with 'would rather'."
         },
         {
           "questionRef": "[32]",
           "type": "oeq",
-          "whatWentWrong": "She wrote the verb 'relieve' instead of the noun 'relief' in the phrase 'Much to Mr Fandi's relief'."
+          "whatWentWrong": "She kept the verb form 'relieve' instead of changing it to the noun 'relief' after 'Much to'."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "She created a double negative by writing 'Unless I don't water' instead of 'Unless you water'."
         }
       ],
-      "strategic_advice": "Look at the words right before the blank to figure out what type of word is needed.\n- If you see words like **'the'**, **'a'**, or an apostrophe **'s'** (like **'Mr Fandi's'**), you almost always need a **noun** (a naming word).\n- Read the whole sentence softly to yourself to hear if the word form fits smoothly.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'Much to'** → change the feeling word into a noun (like 'relieved' to **'relief'**)\n- **'would rather'** → always pair it with **'than'**, not 'over'\n- **'Unless'** → this already means 'if not', so avoid adding another 'not' in the same clause",
       "trigger_keywords": [
+        "would rather",
         "Much to",
-        "cultural",
-        "relieved"
+        "Due to",
+        "Unless"
+      ]
+    },
+    {
+      "name": "Missing Specific Details",
+      "what": "In comprehension questions, Andrea tends to give general answers instead of extracting the exact event or reason from the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[35]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea mentioned that memories came rushing back, but missed the specific event (the reunion) that triggered them."
+        },
+        {
+          "questionRef": "[36]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote that Miss Lim thought it was important, but missed the specific reason from the text (Ah Huat had no time at home)."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "She referred generally to 'the boy's act', missing the specific detail of getting stabbed by a pencil."
+        }
+      ],
+      "strategic_advice": "When a question asks **'What made'** or **'Explain why'**, look for the exact action or event in the text. Don't just write a general statement—explain **what** exactly happened based on the story.",
+      "trigger_keywords": [
+        "What made",
+        "Explain clearly why",
+        "What was the",
+        "Reason"
+      ]
+    },
+    {
+      "name": "Spelling by Sound",
+      "what": "Andrea sometimes spells tricky words exactly how they sound, which leads to small spelling slips in the editing section.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea spelled 'extinct' as 'extint', missing the 'c'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "She spelled 'inspiration' as 'insperation', using an 'e' based on how it sounds."
+        }
+      ],
+      "strategic_advice": "When editing words, try breaking them down into syllables. If you're unsure, think of related words (like 'inspire' for **'inspiration'**) to help you remember the correct vowels and consonants.",
+      "trigger_keywords": [
+        "spelling",
+        "editing"
       ]
     }
   ],
@@ -154,7 +161,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -162,19 +169,19 @@
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -182,7 +189,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -210,31 +217,31 @@
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 29,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 32,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 33,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 35,
@@ -250,7 +257,7 @@
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 39,
@@ -258,7 +265,7 @@
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 41,
@@ -313,7 +320,7 @@
     "41": "cmqbyju05002d4eho16b0c3qi",
     "42": "cmqbyju05002e4ehovdwc7h47"
   },
-  "generatedAt": "2026-06-17T09:06:55.178Z",
+  "generatedAt": "2026-06-26T09:25:02.456Z",
   "wrongCounts": {
     "total": 42,
     "oeq": 33,
@@ -325,5 +332,24 @@
     "totalAvailable": 93,
     "paperCount": 1
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:06:55.178Z",
+    "patternNames": [
+      "Singular and Plural Mix-Up",
+      "Spelling by Sound",
+      "Vague Story Answers",
+      "Word Form Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 42,
+      "oeq": 33,
+      "mcq": 9
+    },
+    "toplineSnapshot": {
+      "avgPct": 39,
+      "totalAwarded": 36.5,
+      "totalAvailable": 93,
+      "paperCount": 1
+    }
+  }
 }

@@ -1,116 +1,108 @@
 {
   "patterns": [
     {
-      "name": "Mass vs Volume Mix-Up",
-      "what": "Occasionally confuses mass (how heavy something is) with volume (how much space it takes up), especially when looking at weighing scales.",
+      "name": "Gas Volume Mix-Up",
+      "what": "LohZR-P4 sometimes forgets that a gas does not have a fixed volume and will simply squeeze to fill whatever empty space is left in a closed container.",
       "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He/she added the pumped air to the tank's capacity, forgetting that the air will just compress to fit the 500 cm³ tank."
+        },
         {
           "questionRef": "[25]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 saw that the lever balance was level, but concluded the objects had the same volume instead of the same mass."
+          "whatWentWrong": "He/she added the extra air from the syringe to the total, instead of realizing the air just squeezes into the remaining 150 cm³ of empty space."
         },
         {
-          "questionRef": "[32]",
+          "questionRef": "[51]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 looked at a balanced weighing scale and thought it meant the objects had the same volume, rather than the same mass."
-        },
-        {
-          "questionRef": "[44]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 knew the pans were balanced, but picked 'definite shape' instead of recognizing that the balance proves they have equal mass."
+          "whatWentWrong": "He/she did not subtract the new water volume from the total box capacity to find the remaining space for the air."
         }
       ],
-      "strategic_advice": "When you see a **weighing scale or lever balance**, remember it only measures **mass** (heaviness), not volume.\n- If two objects balance perfectly, they have the **same mass**, even if one looks much bigger!\n- To measure **volume**, look for tools that measure space, like a **measuring cylinder** or a beaker of water.",
+      "strategic_advice": "When you see questions about pumping **'air'** into a **'sealed'** container or tank:\n- Remember that air is a gas, so its volume is just the **empty space** available.\n- First, subtract any liquids or solids from the total container size.\n- The leftover space is your final air volume, no matter how much extra air is pumped in!",
+      "trigger_keywords": [
+        "pumped in",
+        "syringe",
+        "air",
+        "sealed",
+        "capacity"
+      ]
+    },
+    {
+      "name": "Mass vs Volume Mix-Up",
+      "what": "LohZR-P4 occasionally confuses mass (how heavy an object is) with volume (how much space it takes up), especially when looking at balance scales.",
+      "specific_examples": [
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "He/she thought the balls had the same volume, even though the picture showed they were different sizes, and missed that the flat scale meant they had the same mass."
+        },
+        {
+          "questionRef": "[57]",
+          "type": "mcq",
+          "whatWentWrong": "He/she concluded the objects had a definite shape, missing that a balanced lever scale specifically proves they have an equal mass."
+        }
+      ],
+      "strategic_advice": "When you see a **'lever balance'** or **'weighing scale'**:\n- Look at the tilt! If the scale is flat and balanced, the objects have the **same mass**.\n- To check for volume, look at the **size** of the objects in the picture. A big plastic ball and a small wooden ball have a **different volume** even if they weigh the same.",
       "trigger_keywords": [
         "lever balance",
         "weighing balance",
         "mass",
-        "volume"
+        "volume",
+        "balanced"
       ]
     },
     {
-      "name": "Body Parts Mix-Up",
-      "what": "Sometimes mixes up the specific jobs of different organs, particularly within the digestive system.",
+      "name": "Spotting the Changed Variable",
+      "what": "LohZR-P4 sometimes misses which specific condition is being tested in an experiment, or forgets that a fair test must keep all other conditions exactly the same.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 confused the stomach with the small intestine, forgetting that the small intestine is the main organ for absorbing digested food."
+          "whatWentWrong": "He/she picked 'air' instead of 'warmth', missing that the only difference between the fridge and the table was the temperature."
         },
         {
-          "questionRef": "[11]",
+          "questionRef": "[53]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 mixed up where absorption happens, missing that the small intestine absorbs food while the large intestine absorbs water."
-        },
-        {
-          "questionRef": "[42]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 did not recall that the large intestine's main job is to remove water from undigested food."
+          "whatWentWrong": "He/she chose set-ups that did not keep the other variables (like the number of leaves) exactly the same for a fair test."
         }
       ],
-      "strategic_advice": "When answering questions about the digestive system, keep these superstar organs straight:\n- **Small intestine**: Finishes **digestion** AND **absorbs digested food** into the blood.\n- **Large intestine**: Its main job is to **absorb water** from the leftover waste.\n- **Mouth**: Remember that **saliva** starts digesting food here, while teeth only chew.",
+      "strategic_advice": "When a question asks about a **'fair test'** or comparing two set-ups:\n- Find the ONE thing the experiment wants to test (like the 'amount of roots' or 'temperature'). This is your **changed variable**.\n- Check that **every other detail** (like water, light, or number of leaves) is exactly the same in both set-ups.",
       "trigger_keywords": [
-        "absorbed",
+        "fair test",
+        "ensure that the experiment is fair",
+        "find out if",
+        "two set-ups"
+      ]
+    },
+    {
+      "name": "Digestive Organ Mix-Up",
+      "what": "LohZR-P4 tends to mix up the specific jobs of different digestive organs, such as confusing where digestion happens with where water or food is absorbed.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He/she missed that the small intestine is the superstar organ responsible for both digesting food AND absorbing it."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "He/she mixed up the intestines, forgetting that the small intestine absorbs digested food while the large intestine absorbs water."
+        },
+        {
+          "questionRef": "[56]",
+          "type": "mcq",
+          "whatWentWrong": "He/she thought teeth digest food, forgetting that teeth only chew while saliva does the actual digesting in the mouth."
+        }
+      ],
+      "strategic_advice": "When answering questions about the **digestive system**, keep these key jobs in mind:\n- **Mouth**: Digestion starts here with saliva (teeth only chew, they don't digest!).\n- **Small Intestine**: Finishes digestion AND absorbs the digested food into the blood.\n- **Large Intestine**: Does not digest! It only absorbs **water** from the leftover waste.",
+      "trigger_keywords": [
         "digested food",
+        "absorbed",
         "water is removed",
-        "digestive system"
-      ]
-    },
-    {
-      "name": "States of Matter Mix-Up",
-      "what": "Tends to forget that gases can be compressed to fit their container, while liquids have a fixed volume but change their shape.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 thought the volume of air would increase when more was pumped in, forgetting that gas compresses to fit the available space."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 forgot that when a liquid like tea is poured into a new cup, its shape changes but its volume stays exactly the same."
-        },
-        {
-          "questionRef": "[38]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 added the extra pumped-in air to the total volume, missing that the air just squeezes into the remaining empty space in the sealed box."
-        }
-      ],
-      "strategic_advice": "When you see questions about containers, air, and water, use these rules:\n- **Air (Gas)**: Can be **compressed**. Pumping more air into a sealed box will NOT change the total volume of the air; it just squeezes into the same space!\n- **Water (Liquid)**: Its **volume stays the same** when poured into a new cup, but its **shape changes** to fit the container.\n- **Ice (Solid)**: Keeps both its shape and volume, even if you tilt the container.",
-      "trigger_keywords": [
-        "pumped in",
-        "plunger",
-        "volume of air",
-        "sealed",
-        "shape and the volume"
-      ]
-    },
-    {
-      "name": "Light Path and Shadows",
-      "what": "Occasionally mixes up the correct path of light, or forgets how shadow lengths change when moving closer to or further from a light source.",
-      "specific_examples": [
-        {
-          "questionRef": "[35]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 did not realize that a shadow gets shorter as you walk towards a light source, and longer as you walk away."
-        },
-        {
-          "questionRef": "[36]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 traced the path of light incorrectly, forgetting that light must bounce off the object and enter the eyes for us to see it."
-        },
-        {
-          "questionRef": "[37]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 thought the paper tube absorbed light, rather than recognizing that light from the torch travels in a straight line directly into the eye."
-        }
-      ],
-      "strategic_advice": "When dealing with light and shadows, remember these two golden rules:\n- To see an object, light must travel **from the light source**, bounce off the object, and go **into your eyes**. Always draw arrows to check the path!\n- When walking **towards** a streetlamp, your shadow gets **shorter**. When walking **away**, your shadow gets **longer**.",
-      "trigger_keywords": [
-        "path of light",
-        "length of her shadow",
-        "able to see",
-        "torch"
+        "large intestine",
+        "small intestine"
       ]
     }
   ],
@@ -121,11 +113,11 @@
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -133,11 +125,11 @@
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -145,27 +137,27 @@
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 14,
@@ -173,11 +165,11 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 17,
@@ -185,15 +177,15 @@
     },
     {
       "idx": 18,
-      "patternIndex": 2
-    },
-    {
-      "idx": 19,
       "patternIndex": -1
     },
     {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 21,
@@ -205,11 +197,11 @@
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 25,
@@ -217,31 +209,31 @@
     },
     {
       "idx": 26,
-      "patternIndex": 1
-    },
-    {
-      "idx": 27,
-      "patternIndex": 1
-    },
-    {
-      "idx": 28,
       "patternIndex": -1
     },
     {
-      "idx": 29,
-      "patternIndex": 2
+      "idx": 27,
+      "patternIndex": -1
     },
     {
-      "idx": 30,
+      "idx": 28,
       "patternIndex": 3
     },
     {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 33,
@@ -249,23 +241,23 @@
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 36,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 38,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 39,
@@ -277,23 +269,23 @@
     },
     {
       "idx": 41,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 44,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 46,
@@ -309,76 +301,160 @@
     },
     {
       "idx": 49,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 50,
       "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 0
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 2
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 3
+    },
+    {
+      "idx": 56,
+      "patternIndex": 3
+    },
+    {
+      "idx": 57,
+      "patternIndex": 1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": -1
+    },
+    {
+      "idx": 60,
+      "patternIndex": -1
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqgnvy8f009e11718inmkz85",
-    "2": "cmqgnvy8f009k1171vvdwpmw9",
-    "3": "cmqgnvy8f009l1171r55v1l0d",
-    "4": "cmqgnvy8f009m1171pce4qqn5",
-    "5": "cmqgnvy8f009n11717gz1xojm",
-    "6": "cmqf7482i004fqs2g87jf0dnd",
-    "7": "cmqf7482j004hqs2g6196gi7d",
-    "8": "cmqf7482j004kqs2g8g6iaboq",
-    "9": "cmqf7482k004oqs2gjme6p2wn",
-    "10": "cmqf7482k004pqs2gbtfjab1s",
-    "11": "cmqf7482k004sqs2g1h8lshmj",
-    "12": "cmqaccto30023l19rb9n2gweu",
-    "13": "cmqaccto30025l19rs7p17pt9",
-    "14": "cmqaccto30027l19ryf3lt2em",
-    "15": "cmqaccto30029l19rf57g7xrc",
-    "16": "cmqaccto3002al19r17psle72",
-    "17": "cmqaccto4002cl19rioqniikk",
-    "18": "cmqaccto4002dl19ryemphx54",
-    "19": "cmqaccto4002il19rcehud1ft",
-    "20": "cmqaccto4002jl19r1ehu5ahd",
-    "21": "cmqaccto5002ll19rq6pdng84",
-    "22": "cmq694t03003boedefad492oq",
-    "23": "cmq694t03003coede9ao2ro2f",
-    "24": "cmq694t03003doedewwyqmvm2",
-    "25": "cmq694t03003foedeqdsui833",
-    "26": "cmq694t03003goede9h55qz3a",
-    "27": "cmq694t04003joedetvcsmb8y",
-    "28": "cmq694t04003loedex37vb49f",
-    "29": "cmq694t04003moedebrm7gn83",
-    "30": "cmq694t04003ooede1k2oe0cj",
-    "31": "cmq694t04003qoedegtngpwh2",
-    "32": "cmq694t04003roede29zt0qpr",
-    "33": "cmq63onih006teykwgc7yhwlk",
-    "34": "cmq63onih006ueykwdywqwe6z",
-    "35": "cmq63onih006veykwebls18o0",
-    "36": "cmq63onii006xeykwn0ggaqq8",
-    "37": "cmq63onii006yeykwgol66vdp",
-    "38": "cmq63onik0073eykwrw8fjek5",
-    "39": "cmq63onik0075eykwa145f98s",
-    "40": "cmq63onik0076eykwdyekxn2m",
-    "41": "cmq63onik0077eykwr9v4cg7m",
-    "42": "cmq63onik0078eykw5m9cjlo3",
-    "43": "cmq63onil0079eykwmmax2iz4",
-    "44": "cmq63onil007aeykwmcjw90m5",
-    "45": "cmq63onil007beykw1ej3er28",
-    "46": "cmq4xhrnv001uapq2r8kby4yf",
-    "47": "cmq4xhrnv001wapq2q79iibh3",
-    "48": "cmq4xhrnv001yapq2wbijh9yi",
-    "49": "cmq4xhrnv001zapq26ahhg4qb",
-    "50": "cmq4xhrnw0024apq27muk2jzx"
+    "1": "cmqth9qpx005s8lhm129dufmx",
+    "2": "cmqth9qpx005w8lhm2do6sz7q",
+    "3": "cmqth9qpx005y8lhm7xe5hrl6",
+    "4": "cmqth9qpy00618lhmhan6fd1h",
+    "5": "cmqth9qpy00628lhmjx8ke28h",
+    "6": "cmqq1ext600ay13p0crvf3xxw",
+    "7": "cmqq1ext600b013p0zrgozypk",
+    "8": "cmqq1ext700b513p0hedq1oki",
+    "9": "cmqnq4z7e0011y0atgcehzmys",
+    "10": "cmqnq4z7e0013y0at3ddn3y3n",
+    "11": "cmqnq4z7f0017y0atvxi9r6ii",
+    "12": "cmqnq4z7f001by0at1btjlckd",
+    "13": "cmqnq4z7g001ey0at77xf3n16",
+    "14": "cmqgnvy8f009e11718inmkz85",
+    "15": "cmqgnvy8f009k1171vvdwpmw9",
+    "16": "cmqgnvy8f009l1171r55v1l0d",
+    "17": "cmqgnvy8f009m1171pce4qqn5",
+    "18": "cmqgnvy8f009n11717gz1xojm",
+    "19": "cmqf7482i004fqs2g87jf0dnd",
+    "20": "cmqf7482j004hqs2g6196gi7d",
+    "21": "cmqf7482j004kqs2g8g6iaboq",
+    "22": "cmqf7482k004oqs2gjme6p2wn",
+    "23": "cmqf7482k004pqs2gbtfjab1s",
+    "24": "cmqf7482k004sqs2g1h8lshmj",
+    "25": "cmqaccto30023l19rb9n2gweu",
+    "26": "cmqaccto30025l19rs7p17pt9",
+    "27": "cmqaccto30027l19ryf3lt2em",
+    "28": "cmqaccto30029l19rf57g7xrc",
+    "29": "cmqaccto3002al19r17psle72",
+    "30": "cmqaccto4002cl19rioqniikk",
+    "31": "cmqaccto4002dl19ryemphx54",
+    "32": "cmqaccto4002il19rcehud1ft",
+    "33": "cmqaccto4002jl19r1ehu5ahd",
+    "34": "cmqaccto5002ll19rq6pdng84",
+    "35": "cmq694t03003boedefad492oq",
+    "36": "cmq694t03003coede9ao2ro2f",
+    "37": "cmq694t03003doedewwyqmvm2",
+    "38": "cmq694t03003foedeqdsui833",
+    "39": "cmq694t03003goede9h55qz3a",
+    "40": "cmq694t04003joedetvcsmb8y",
+    "41": "cmq694t04003loedex37vb49f",
+    "42": "cmq694t04003moedebrm7gn83",
+    "43": "cmq694t04003ooede1k2oe0cj",
+    "44": "cmq694t04003qoedegtngpwh2",
+    "45": "cmq694t04003roede29zt0qpr",
+    "46": "cmq63onih006teykwgc7yhwlk",
+    "47": "cmq63onih006ueykwdywqwe6z",
+    "48": "cmq63onih006veykwebls18o0",
+    "49": "cmq63onii006xeykwn0ggaqq8",
+    "50": "cmq63onii006yeykwgol66vdp",
+    "51": "cmq63onik0073eykwrw8fjek5",
+    "52": "cmq63onik0075eykwa145f98s",
+    "53": "cmq63onik0076eykwdyekxn2m",
+    "54": "cmq63onik0077eykwr9v4cg7m",
+    "55": "cmq63onik0078eykw5m9cjlo3",
+    "56": "cmq63onil0079eykwmmax2iz4",
+    "57": "cmq63onil007aeykwmcjw90m5",
+    "58": "cmq63onil007beykw1ej3er28",
+    "59": "cmq4xhrnv001uapq2r8kby4yf",
+    "60": "cmq4xhrnv001wapq2q79iibh3",
+    "61": "cmq4xhrnv001yapq2wbijh9yi",
+    "62": "cmq4xhrnv001zapq26ahhg4qb",
+    "63": "cmq4xhrnw0024apq27muk2jzx"
   },
-  "generatedAt": "2026-06-19T02:38:34.328Z",
+  "generatedAt": "2026-06-26T09:41:14.563Z",
   "wrongCounts": {
-    "total": 50,
+    "total": 63,
     "oeq": 0,
-    "mcq": 50
+    "mcq": 63
   },
   "toplineSnapshot": {
-    "avgPct": 55,
-    "totalAwarded": 114,
-    "totalAvailable": 208,
-    "paperCount": 6
+    "avgPct": 59,
+    "totalAwarded": 174,
+    "totalAvailable": 294,
+    "paperCount": 9
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:38:34.328Z",
+    "patternNames": [
+      "Mass vs Volume Mix-Up",
+      "Body Parts Mix-Up",
+      "States of Matter Mix-Up",
+      "Light Path and Shadows"
+    ],
+    "wrongCounts": {
+      "total": 50,
+      "oeq": 0,
+      "mcq": 50
+    },
+    "toplineSnapshot": {
+      "avgPct": 55,
+      "totalAwarded": 114,
+      "totalAvailable": 208,
+      "paperCount": 6
+    }
+  }
 }

@@ -1,0 +1,199 @@
+{
+  "patterns": [
+    {
+      "name": "Leaving Questions Blank",
+      "what": "Leaves open-ended questions completely blank sometimes, especially when they have multiple parts or require longer explanations.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "hongjun23 left the entire question about the butterfly life cycle and pollination blank."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "He left the explanation about conditions for hatching and survival blank."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "He left the questions about identifying the pupa stage and its duration blank."
+        }
+      ],
+      "strategic_advice": "When you see a tough question, treat it as a chance to show what you know:\n- **Write down keywords**: Even if you can't form a full sentence, write down science words related to the topic.\n- **Draw if you can**: If it asks for a life cycle, draw the stages you remember.\n- **Guess if unsure**: An educated guess might earn you partial marks, but a blank space always gets zero!",
+      "trigger_keywords": [
+        "explain how",
+        "suggest a factor",
+        "name the stage"
+      ]
+    },
+    {
+      "name": "Plant Classification Mix-Up",
+      "what": "Mixes up general traits shared by all plants with the specific traits used to divide them into different groups.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "hongjun23 chose 'Can it make its own food?' to group plants, forgetting that all plants make their own food."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He made a similar slip when trying to classify a fern, coconut tree, sunflower, and lime plant."
+        }
+      ],
+      "strategic_advice": "When you see questions asking you to classify plants into two groups:\n- **Skip the 'food' question**: Remember that **all plants make their own food**, so this can never be used to split them into groups.\n- **Look for differences**: Ask yourself, **'Does it reproduce by seeds or spores?'** or **'Is it a flowering or non-flowering plant?'**",
+      "trigger_keywords": [
+        "classify the plants",
+        "used to classify",
+        "into two groups"
+      ]
+    },
+    {
+      "name": "Force Types Confusion",
+      "what": "Confuses how different forces work occasionally, such as thinking a spring force continues after contact ends, or misunderstanding air friction.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "hongjun23 thought the elastic spring force was still acting on a block even after it had slid away from the spring."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He was a bit unsure about how gravity and air friction act on a falling parachutist at different stages."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He got slightly tangled up when identifying which daily activities involve only a pulling force."
+        }
+      ],
+      "strategic_advice": "When identifying which forces are acting on an object:\n- **Check for contact**: **Elastic spring force** and **friction** only happen when objects are touching. If they move apart, the force stops!\n- **Remember gravity**: **Gravitational force** is special because it acts on everything all the time, pulling downwards, even from a distance.",
+      "trigger_keywords": [
+        "forces are acting",
+        "statement(s) is / are correct",
+        "involve(s) a pull"
+      ]
+    },
+    {
+      "name": "Friction and Time Mix-Up",
+      "what": "Gets tangled up sometimes when linking the amount of friction on a surface to the time taken for an object to slide down it.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "hongjun23 had trouble predicting how the time taken would change when a block slides down aluminium foil versus rough sandpaper."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He found it tricky to rank different ramp surfaces from least to most friction based on the time recorded in a table."
+        }
+      ],
+      "strategic_advice": "When comparing how objects move over different surfaces, use this step-by-step rule:\n- **Rougher surfaces** create **more friction**.\n- **More friction** slows the object down.\n- A slower object takes **more time** to reach the bottom!",
+      "trigger_keywords": [
+        "time taken",
+        "slide down",
+        "different surfaces"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqc4p4mq004lly3huesyywwz",
+    "2": "cmqc4p4mr004qly3hljee6vvi",
+    "3": "cmqc4p4mr004sly3hdo0q1rin",
+    "4": "cmqc4p4mr004tly3hc0h0q6y9",
+    "5": "cmqc4p4mr004uly3hto82lv87",
+    "6": "cmqbq8dnv002nsl9aveulnxy6",
+    "7": "cmqbp1w550018sl9a3pm375ul",
+    "8": "cmqbp1w55001csl9a3okvd8p3",
+    "9": "cmqbo5ry0000esl9aqae1pxw2",
+    "10": "cmqbo5ry0000jsl9ag70v52u7",
+    "11": "cmqbo5ry1000ksl9ak3cwv2ty",
+    "12": "cmqbo5ry1000lsl9ad47xdmpd",
+    "13": "cmqbo5ry1000msl9ak34bbkf3",
+    "14": "cmqbnwvsm0007sl9a0p5iuniu",
+    "15": "cmqbnwvsm0008sl9amcwnpzrx",
+    "16": "cmqbnwvsm0009sl9as7bmrpf8"
+  },
+  "generatedAt": "2026-06-19T02:41:33.832Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 4,
+    "mcq": 12
+  },
+  "toplineSnapshot": {
+    "avgPct": 54,
+    "totalAwarded": 46,
+    "totalAvailable": 85,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}

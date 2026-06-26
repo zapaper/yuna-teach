@@ -1,0 +1,281 @@
+{
+  "patterns": [
+    {
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes confuses phrasal verbs that look similar but have very different meanings.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey picked 'put down' instead of 'put off' for cancelling a birthday party."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'taken up' rather than 'taken in' to describe being tricked by a magician."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'brought off' instead of 'brought down' for trees falling in strong winds."
+        }
+      ],
+      "strategic_advice": "When you see a verb with a preposition (like **'put off'** or **'taken in'**), read the whole sentence to guess the meaning first. If you're unsure, try replacing the phrasal verb with a single word (e.g., **'cancel'** or **'tricked'**) to see which option matches best.",
+      "trigger_keywords": [
+        "put",
+        "taken",
+        "brought",
+        "set"
+      ]
+    },
+    {
+      "name": "Possibility Word Mix-Up",
+      "what": "Occasionally mixes up words that show absolute certainty with words that show a guess or possibility.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey chose 'must' (which shows certainty) even though the worker explicitly said 'I'm not sure'."
+        },
+        {
+          "questionRef": "[29]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'should' instead of 'could' when guessing what to do for the weekend, missing the 'not sure' clue again."
+        }
+      ],
+      "strategic_advice": "When the sentence has clues like **'not sure'**, it means we are guessing. Use **'could'** or **'might'** for guesses. Save **'must'** for when you are 100% certain, and **'should'** for giving advice.",
+      "trigger_keywords": [
+        "not sure",
+        "must",
+        "could",
+        "should"
+      ]
+    },
+    {
+      "name": "Skipping Sentence Clues",
+      "what": "Tends to pick a word that sounds okay on its own, but misses the extra clue in the sentence that points to the exact right answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey picked 'impolite' instead of 'impulsive', missing the clue that the act was done 'without checking the truth'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'anything' instead of 'everything', missing the context that Rina still wanted to speak but 'wanted others to have a chance' too."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'desired' instead of 'inevitable' for a concert cancellation, overlooking the clue about the 'sudden heavy downpour'."
+        }
+      ],
+      "strategic_advice": "Before picking an answer, look for the **'because'**, **'given that'**, or **'without'** part of the sentence. These phrases are clues! For example, if someone acts **'without checking the truth'**, they are being **'impulsive'**, not just **'impolite'**.",
+      "trigger_keywords": [
+        "because",
+        "given the",
+        "without",
+        "due to"
+      ]
+    },
+    {
+      "name": "Synonym Mix-Up",
+      "what": "Sometimes chooses a word that is related to the situation but isn't an exact match for the original word's meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Audrey picked 'curiously' instead of 'suspiciously' to replace 'skeptically'."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'cringed' (feeling awkward) instead of 'quivered' (shaking) to replace 'shuddered'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'bottom' instead of 'groundwork' to replace 'foundation' in the context of building an economy."
+        }
+      ],
+      "strategic_advice": "For vocabulary cloze questions, try to think of your own simple replacement word before looking at the options. If the original word is **'shuddered'** (shaking from fear or cold), look for a word like **'quivered'** rather than **'cringed'** (which means feeling awkward).",
+      "trigger_keywords": [
+        "closest in meaning",
+        "replace the underlined word"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq3it9da0010xhylk7lp7t9s",
+    "2": "cmq3it9da0017xhylljmu0umz",
+    "3": "cmq3it9da0019xhyl35tclpy3",
+    "4": "cmq3it9da001bxhylmsfvkuei",
+    "5": "cmq3it9da001dxhyljvrxjfyq",
+    "6": "cmq3p3f0m000o3a7l9ucbaeo3",
+    "7": "cmq3p3f0n000q3a7l7zhveovc",
+    "8": "cmq3p3f0n000r3a7lat8h2nzr",
+    "9": "cmq3p3f0n000s3a7lv3jz0msg",
+    "10": "cmq3p3f0n000v3a7lsw0qx04g",
+    "11": "cmq3iszc4000lxhylhjsdonlx",
+    "12": "cmq3iszc4000nxhylh4xhdroj",
+    "13": "cmq3iszc4000qxhylpxjd33u3",
+    "14": "cmq3iszc4000rxhylx6gvuw2x",
+    "15": "cmq3iszc4000sxhyljqyotorz",
+    "16": "cmq3iszc4000txhyllgpt719w",
+    "17": "cmq3iszc5000vxhylwzojqepf",
+    "18": "cmq3iszc5000xxhyl7nkm0dnk",
+    "19": "cmq3oxroy00043a7l1pt42qze",
+    "20": "cmq3oxroy00053a7l1ub13j7m",
+    "21": "cmq3oxroy00073a7lqv7b3a2i",
+    "22": "cmq3oxroy00093a7l7tft6qob",
+    "23": "cmq3oxroy000d3a7lyy1h62i2",
+    "24": "cmq3oxroy000e3a7lhsnc5z2z",
+    "25": "cmq3oxroy000f3a7l816qczpn",
+    "26": "cmq3oxroy000g3a7lqkyew1ph",
+    "27": "cmq3j0ytf000cjlisff738a66",
+    "28": "cmq3j0ytf000gjlisicp1ayz6",
+    "29": "cmq3ic34r0006xhyl0631ecvv",
+    "30": "cmq3ic34r0007xhyl5mdp8vu5",
+    "31": "cmq3ic34s000gxhylhbfxrknn"
+  },
+  "generatedAt": "2026-06-17T09:08:04.238Z",
+  "wrongCounts": {
+    "total": 31,
+    "oeq": 0,
+    "mcq": 31
+  },
+  "toplineSnapshot": {
+    "avgPct": 67,
+    "totalAwarded": 68,
+    "totalAvailable": 102,
+    "paperCount": 6
+  },
+  "previousAssessment": null
+}

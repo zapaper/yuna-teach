@@ -1,110 +1,97 @@
 {
   "patterns": [
     {
-      "name": "Reported Speech Tenses",
-      "what": "Kaiyangnggg sometimes forgets to shift the tense backwards or change the pronouns when changing direct speech into reported speech.",
+      "name": "Reported Speech Mix-Up",
+      "what": "Sometimes forgets to shift the tense backwards or change the pronouns to match the new speaker when changing direct speech into reported speech.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg kept the original word order and pronouns instead of shifting them to match the reported speech."
+          "whatWentWrong": "Kaiyangnggg kept the word order as a question and used 'my' instead of 'their'."
         },
         {
           "questionRef": "[31]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg forgot to shift the past tense 'saw' back to the past perfect 'had seen'."
-        },
-        {
-          "questionRef": "[32]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg missed changing the time word 'now' to 'then' and used the wrong pronoun."
+          "whatWentWrong": "He used the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
         }
       ],
-      "strategic_advice": "When you see reporting verbs like **'asked'** or **'wanted to know'**, treat them as a signal to step back in time. Remember to change the present tense to the past tense, and swap the pronouns to match the speaker.",
+      "strategic_advice": "When you see speech marks **\" \"**, remember the three steps for reported speech:\n- **Change the pronouns** so they make sense from the reporter's point of view.\n- **Shift the tense backwards** (e.g., present becomes past, past becomes past perfect).\n- **Change time words** (e.g., 'today' becomes 'that day', 'now' becomes 'then').",
       "trigger_keywords": [
         "asked",
-        "wanted to know"
+        "wanted to know",
+        "\""
       ]
     },
     {
-      "name": "Subject-Verb Agreement",
-      "what": "Kaiyangnggg occasionally matches the verb to the noun closest to it, especially when extra phrases separate the main subject from the verb.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Tends to get tricked by extra phrases like 'together with' or 'as well as', choosing a plural verb when the main subject is actually singular.",
       "specific_examples": [
         {
           "questionRef": "[25]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg matched the verb to 'friends' instead of the main singular subject 'Ahmad'."
-        },
-        {
-          "questionRef": "[26]",
-          "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg was tricked by 'as well as my cousins' and chose a plural verb instead of a singular one."
+          "whatWentWrong": "Kaiyangnggg saw 'his friends' and chose the plural verb 'are', but the main subject 'Ahmad' is singular."
         },
         {
           "questionRef": "[54]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg used the plural verb 'are' instead of the singular 'is' for the subject 'Each of them'."
+          "whatWentWrong": "He used 'are' for 'Each of them', but 'Each' is a singular subject and needs the singular verb 'is'."
         }
       ],
-      "strategic_advice": "When you see phrases like **'together with'** or **'as well as'**, ignore them! They are just extra information. Match your verb to the main subject at the very start of the sentence.",
+      "strategic_advice": "When you see phrases like **'together with'**, **'as well as'**, or **'along with'**, treat them as extra information.\n- **Cross out** the extra phrase lightly with your pencil.\n- Look only at the **first noun** to decide if the verb should be singular or plural.",
       "trigger_keywords": [
         "together with",
         "as well as",
-        "Each of"
+        "along with",
+        "Each"
       ]
     },
     {
       "name": "Leaving Out Details",
-      "what": "Kaiyangnggg tends to drop descriptive words in Synthesis questions or provide answers that are a bit too general in Comprehension, which slightly changes the original meaning.",
+      "what": "Occasionally drops important descriptive words in sentence transformations or misses the second half of the required answer in comprehension questions.",
       "specific_examples": [
         {
           "questionRef": "[45]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg dropped the word 'sudden', which slightly changed the meaning of the original sentence."
+          "whatWentWrong": "Kaiyangnggg successfully combined the sentences but accidentally left out the word 'sudden'."
         },
         {
           "questionRef": "[50]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg missed out the word 'quickly', leaving the transformed sentence incomplete."
+          "whatWentWrong": "He missed out the word 'quickly' from the original sentence, which slightly changes the meaning."
         },
         {
-          "questionRef": "[92]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg gave a general answer about the narrator's physical appearance but missed specific details like weight and shoe size."
+          "whatWentWrong": "He mentioned the writer became patient and resilient, but stopped one step short of explaining how that helped her connect with teens."
         }
       ],
-      "strategic_advice": "When rewriting sentences or answering comprehension questions, double-check that you haven't left out any descriptive words (like **'sudden'** or **'quickly'**) or specific details from the passage. Every word counts!",
+      "strategic_advice": "When rewriting sentences or answering comprehension questions, treat every word as a clue:\n- For synthesis, **tick off** the words from the original sentence as you write them in your new sentence to ensure nothing is left behind.\n- For comprehension, always ask yourself **'so what?'** to make sure you have explained the final consequence or result.",
       "trigger_keywords": [
+        "Explain clearly",
         "Due to",
-        "Hearing a",
-        "explain clearly"
+        "Hearing a"
       ]
     },
     {
-      "name": "Capitalisation Slips",
-      "what": "Kaiyangnggg occasionally forgets to use a capital letter at the beginning of a sentence, for proper nouns, or when filling in blanks that start a sentence.",
+      "name": "Preference Words Mix-Up",
+      "what": "Sometimes uses the wrong connecting words when expressing choices, like writing 'prefer... than' instead of 'prefer... to'.",
       "specific_examples": [
         {
-          "questionRef": "[34]",
+          "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg capitalised 'If' in the middle of the sentence where a lowercase letter was needed."
+          "whatWentWrong": "Kaiyangnggg wrote 'to eat sushi than pizza' instead of the correct structure 'eating sushi to pizza'."
         },
         {
-          "questionRef": "[55]",
+          "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg wrote 'for' with a lowercase letter, even though it was the first word of a new sentence."
-        },
-        {
-          "questionRef": "[70]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg forgot to capitalise 'Occasionally' at the start of the sentence."
+          "whatWentWrong": "He used 'preference of... than' instead of the correct phrase 'preference for... over'."
         }
       ],
-      "strategic_advice": "Always check the start of your sentences, proper names, and the first word inside quotation marks. If a blank is at the beginning of a sentence, it must start with a **capital letter**!",
+      "strategic_advice": "When you see questions about choices, remember these fixed pairs:\n- Use **'prefer [something] to [something else]'**.\n- Use **'have a preference for [something] over [something else]'**.\n- Use **'would rather [do something] than [do something else]'**.",
       "trigger_keywords": [
-        "or",
-        "Fill in each blank",
-        "Editing"
+        "prefers",
+        "preference",
+        "would rather"
       ]
     }
   ],
@@ -131,7 +118,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -155,7 +142,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -171,7 +158,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 17,
@@ -179,7 +166,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 19,
@@ -187,7 +174,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 21,
@@ -243,7 +230,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 35,
@@ -251,7 +238,7 @@
     },
     {
       "idx": 36,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 37,
@@ -283,7 +270,7 @@
     },
     {
       "idx": 44,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 45,
@@ -327,7 +314,7 @@
     },
     {
       "idx": 55,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 56,
@@ -371,11 +358,11 @@
     },
     {
       "idx": 66,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 67,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 68,
@@ -387,7 +374,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 71,
@@ -395,7 +382,7 @@
     },
     {
       "idx": 72,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 73,
@@ -463,7 +450,7 @@
     },
     {
       "idx": 89,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 90,
@@ -483,7 +470,7 @@
     },
     {
       "idx": 94,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 95,
@@ -597,7 +584,7 @@
     "96": "cmok07at9006md4vnhst1ikn4",
     "97": "cmok07at9006od4vnksk4v1te"
   },
-  "generatedAt": "2026-06-26T09:12:54.936Z",
+  "generatedAt": "2026-06-26T09:38:18.491Z",
   "wrongCounts": {
     "total": 97,
     "oeq": 60,
@@ -610,12 +597,12 @@
     "paperCount": 27
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-26T09:00:30.330Z",
+    "generatedAt": "2026-06-26T09:12:54.936Z",
     "patternNames": [
-      "Reported Speech Mix-Up",
-      "Subject-Verb Agreement Mix-Up",
-      "Leaving Out Small Details",
-      "One Step Short"
+      "Reported Speech Tenses",
+      "Subject-Verb Agreement",
+      "Leaving Out Details",
+      "Capitalisation Slips"
     ],
     "wrongCounts": {
       "total": 97,

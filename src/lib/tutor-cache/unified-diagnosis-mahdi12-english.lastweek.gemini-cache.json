@@ -1,0 +1,300 @@
+{
+  "patterns": [
+    {
+      "name": "Close Meaning Mix-Up",
+      "what": "Tends to choose a vocabulary word that has a similar general meaning but doesn't quite fit the specific situation or sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'prevented' instead of 'impeded' for a lack of confidence slowing down an ability."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'intensive' instead of 'overwhelming' to describe a very strong, sickening smell."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'bustle' instead of 'flurry' for a sudden, short burst of panicked activity."
+        }
+      ],
+      "strategic_advice": "When you see words with similar meanings, look for context clues in the sentence to help you decide:\n- **Check the degree**: Is the feeling or action mild or extreme? (e.g., a smell that makes someone vomit is 'overwhelming', not just 'intensive').\n- **Check the exact fit**: Does the word describe a physical action, a feeling, or a specific situation? (e.g., 'impeded' means slowed down, while 'prevented' means stopped completely).\n- **Try substituting**: Put your chosen word into the sentence and see if it sounds natural in everyday speech.",
+      "trigger_keywords": [
+        "most suitable word",
+        "closest in meaning",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Partner Words",
+      "what": "Occasionally mixes up which preposition or small word naturally pairs with a specific verb to create the right meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'fell apart' instead of 'fell out' to describe friends having a disagreement."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'confided with' instead of 'confided in' when talking about sharing a secret with a friend."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'similar from' instead of 'similar to' when comparing two pencil cases."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after a verb or adjective, treat it as a 'partner word' question:\n- **Read the phrase aloud**: Often, your ears will catch the right pairing (like 'similar to' instead of 'similar from').\n- **Memorise common pairs**: Keep a small list of tricky phrasal verbs (like 'fall out' for arguing, or 'give off' for smells).\n- **Check the meaning**: Phrasal verbs change meaning completely based on the small word (e.g., 'look to' means rely on, while 'look over' means examine).",
+      "trigger_keywords": [
+        "fell ___",
+        "similar ___",
+        "confided ___",
+        "give ___"
+      ]
+    },
+    {
+      "name": "Hidden Grammar Clues",
+      "what": "Sometimes misses small clues in the sentence that decide the grammar rule, like whether a noun is singular, who is receiving the action, or if a statement is positive.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 missed that 'Ahmad's' meant 'Ahmad has', choosing 'didn't he' instead of 'hasn't he'."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'I' instead of 'me', missing that the speaker is receiving the action from the teacher."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "Mahdi12 chose 'those' instead of 'that' for a 'stack of books', missing that 'stack' is a singular noun."
+        }
+      ],
+      "strategic_advice": "When you see grammar questions, look for the hidden clues before choosing your answer:\n- **For 'I' vs 'me'**: Take away the other person's name (e.g., 'asked Sally and ___' becomes 'asked ___'). Your ears will tell you the right answer!\n- **For question tags**: Check if the main sentence is positive or negative, and make sure the tag is the **opposite**. Also, check the tense (e.g., 'Ahmad's' = 'Ahmad has').\n- **For group nouns**: Look at the main word. A 'stack of books' is one stack, so it needs a singular word like 'that' or 'is'.",
+      "trigger_keywords": [
+        "and I",
+        "and me",
+        "isn't he",
+        "didn't she",
+        "stack of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 0
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 0
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuk7rv2005fep4ecdjthhto",
+    "2": "cmpuk7rv2005gep4ep2it0pwb",
+    "3": "cmpuk7rv2005jep4eqipjn87p",
+    "4": "cmpuk3nsn001sep4ekzt51wun",
+    "5": "cmpuk3nsn001tep4ezrebtrd4",
+    "6": "cmpuk3nso001vep4en17emwvh",
+    "7": "cmpuk3nso001xep4ezilddhly",
+    "8": "cmpuk3nso001yep4eh8qi55lm",
+    "9": "cmpuk3nso001zep4ek2vxwc3v",
+    "10": "cmpujt2ww0003ep4eyf0qhnry",
+    "11": "cmpujt2ww0004ep4ew4we29i8",
+    "12": "cmpujt2wx0007ep4e9b6v0zmg",
+    "13": "cmpujt2wx0008ep4es725pdgo",
+    "14": "cmpujt2wx0009ep4ekmw6i9ut",
+    "15": "cmpujt2wx000aep4e1k9mbehi",
+    "16": "cmpujt2wx000bep4ev1f15ob5",
+    "17": "cmpujp8x0001z14eogqlbyver",
+    "18": "cmpujp8x1002314eobnevckax",
+    "19": "cmpujp8x1002414eotbkxgyjh",
+    "20": "cmpujp8x1002514eollsxlo4w",
+    "21": "cmpujp8x1002614eoq4g7pkwb",
+    "22": "cmpujk6hx001514eoo4k8iap8",
+    "23": "cmpujk6hx001614eojp763qbl",
+    "24": "cmpujk6hx001814eor3wbcv48",
+    "25": "cmpujk6hx001914eofdujpz17",
+    "26": "cmpujk6hx001a14eo5nx2o9wl",
+    "27": "cmpujk6hx001b14eons9siajc",
+    "28": "cmpujk6hx001c14eoi2fhz9lq",
+    "29": "cmpujk6hx001e14eo4uxm3d7u",
+    "30": "cmpujk6hx001g14eo694grk9o",
+    "31": "cmpuji76e000r14eotviraoaj",
+    "32": "cmpuji76e000s14eojmtjsn1h",
+    "33": "cmpuji76e000t14eov5qxkrsg",
+    "34": "cmpuji76e000u14eo75nqhhd4",
+    "35": "cmpuji76e000v14eoas5vfkm0",
+    "36": "cmpuji76e000w14eo5raserv9",
+    "37": "cmpuji76e000x14eoksdt7liy",
+    "38": "cmpuji76e000y14eovr4sqfll",
+    "39": "cmpuji76e000z14eoydag3q51"
+  },
+  "generatedAt": "2026-06-17T09:27:28.870Z",
+  "wrongCounts": {
+    "total": 39,
+    "oeq": 0,
+    "mcq": 39
+  },
+  "toplineSnapshot": {
+    "avgPct": 40,
+    "totalAwarded": 26,
+    "totalAvailable": 65,
+    "paperCount": 6
+  },
+  "previousAssessment": null
+}

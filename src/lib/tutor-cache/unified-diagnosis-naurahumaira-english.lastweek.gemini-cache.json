@@ -1,0 +1,358 @@
+{
+  "patterns": [
+    {
+      "name": "Reported Speech Tenses",
+      "what": "Sometimes forgets to shift the tense one step back into the past when changing direct speech into reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "She kept the verb in the present tense ('visit') instead of shifting it back to the past perfect ('had visited')."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "She used the present perfect ('have been') instead of shifting it back to the past perfect ('had visited')."
+        },
+        {
+          "questionRef": "[37]",
+          "type": "oeq",
+          "whatWentWrong": "She used the simple past ('did') instead of shifting it back to the past perfect ('had done')."
+        }
+      ],
+      "strategic_advice": "When you see speech marks **\" \"** changing into reported speech, treat it as a signal to step back in time:\n- **Present tense** changes to **past tense** (e.g., 'is' → 'was').\n- **Past tense** changes to **past perfect** (e.g., 'did' → 'had done').\n- Always double-check if time words like **'yesterday'** need to change to **'the previous day'**.",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "wanted to know",
+        "said"
+      ]
+    },
+    {
+      "name": "Capital Letter Slips",
+      "what": "Tends to forget capital letters for proper names, the pronoun 'I', or the very beginning of her sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She forgot to capitalise the pronoun 'I' and the proper name 'Mrs Lim'."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'mr phua' with lowercase letters instead of capitalising his name."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "She forgot to capitalise 'Jack' when referring to his safety."
+        }
+      ],
+      "strategic_advice": "Before moving on to the next question, do a quick **'capital check'**:\n- Did you start the sentence with a **capital letter**?\n- Are all names of people and places **capitalised**?\n- Is the word **'I'** always a capital letter, even in the middle of a sentence?",
+      "trigger_keywords": [
+        "I",
+        "Mr",
+        "Mrs",
+        "Dr"
+      ]
+    },
+    {
+      "name": "Singular and Plural Mix-Up",
+      "what": "Occasionally mixes up singular and plural verbs, especially when the subject is separated from the verb by other words.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "She saw the plural 'cousins' and chose 'were', forgetting that the main subject 'Jane' is singular."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "She used the plural verb 'were' for 'project', which is a singular subject."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "mcq",
+          "whatWentWrong": "She chose the singular 'remembers', but the rule for 'neither/nor' is to match the verb to the closest subject, which is the plural 'classmates'."
+        }
+      ],
+      "strategic_advice": "When choosing between singular and plural verbs, find the **true subject**:\n- For phrases like **'together with'** or **'as well as'**, ignore the extra people and match the verb to the **first person mentioned**.\n- For **'neither... nor'**, match the verb to the subject **closest to the blank**.",
+      "trigger_keywords": [
+        "together with",
+        "neither",
+        "nor",
+        "as well as"
+      ]
+    },
+    {
+      "name": "Noun Form Mix-Up",
+      "what": "Often struggles to change an action word or describing word into a noun when the new sentence structure requires it.",
+      "specific_examples": [
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She used the verb 'angered' right after 'The decision's', instead of changing 'unfair' into the noun 'unfairness'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote a full clause ('the train was delayed') after 'owing to', instead of using the noun phrase 'the train's delay'."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'amy forgot' after 'Much to', instead of using the noun form 'her embarrassment'."
+        }
+      ],
+      "strategic_advice": "When you see starters like **'Much to'**, **'Because of'**, or **'owing to'**, you usually need a **noun**, not a full sentence:\n- Ask yourself: 'What is the thing or feeling we are talking about?'\n- Change describing words into their noun forms (e.g., **'unfair'** becomes **'unfairness'**, **'embarrassed'** becomes **'embarrassment'**).",
+      "trigger_keywords": [
+        "The decision's",
+        "owing to",
+        "Much to",
+        "Because of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 0
+    },
+    {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
+      "idx": 39,
+      "patternIndex": 1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 2
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq4mpvu1004b3z8jkjsklryc",
+    "2": "cmq4mpvu1004c3z8j0yc9kz7p",
+    "3": "cmq4mpvu1004d3z8j9rd5vpe2",
+    "4": "cmq4mpvu1004f3z8jk2cq14wc",
+    "5": "cmq4mpvu1004h3z8jjzddcac8",
+    "6": "cmq4mpvu1004j3z8jbl47td9j",
+    "7": "cmq4mpvu1004k3z8jrd8jfx90",
+    "8": "cmpvt8fk000141k55a0bwc17i",
+    "9": "cmpvt8fk000151k55bxscq2pb",
+    "10": "cmpvt8fk000161k556j85em48",
+    "11": "cmpvt8fk100181k55ru1yrs3a",
+    "12": "cmpvt8fk1001a1k559l2moa6o",
+    "13": "cmpvt8fk1001b1k55b69kuvif",
+    "14": "cmpvt8fk1001c1k55263oo0wj",
+    "15": "cmpvt8fk1001d1k55kkddga0x",
+    "16": "cmpvt8fk1001e1k55wdqw5pak",
+    "17": "cmpvt8fk1001f1k555wrftqgp",
+    "18": "cmpvt8fk1001g1k55pu53wxgk",
+    "19": "cmpvt8fk1001h1k55fwkl9tha",
+    "20": "cmpvt8fk1001i1k551fiuqfsk",
+    "21": "cmptz5rs5000o14gmtucucnas",
+    "22": "cmptz5rs5000q14gmgkf8867y",
+    "23": "cmptz5rs5000r14gmjat7rqeg",
+    "24": "cmptz5rs5000s14gmxg97qik2",
+    "25": "cmptz5rs5000u14gmhnetrcgh",
+    "26": "cmptz5rs5000v14gmah8yrlvm",
+    "27": "cmptz5rs5000w14gmhun363tr",
+    "28": "cmptz5rs5000x14gmxunnk40r",
+    "29": "cmpuqhqpp000u12ltydjdc95g",
+    "30": "cmpuqhqpp000v12ltkj0dbqze",
+    "31": "cmpuqhqpp000z12lt5yu3xyp2",
+    "32": "cmpuqhqpp001012ltnbpww691",
+    "33": "cmpuqhqpp001212ltiyna6qmc",
+    "34": "cmpuqhqpp001312ltxjft0tsn",
+    "35": "cmpuqhqpp001712ltm07s36cc",
+    "36": "cmpuqhqpp001812ltdxfnryav",
+    "37": "cmpuqhqpp001912ltpzc1xz2f",
+    "38": "cmpuqhqpp001a12ltsmk72lya",
+    "39": "cmpuqhqpp001b12lth1vm0bpy",
+    "40": "cmptyj5lr000814gm40qt729r",
+    "41": "cmptyj5lr000914gmd1vbrh45",
+    "42": "cmptyj5ls000b14gm4e22im6i",
+    "43": "cmptyj5ls000c14gmn5uhudua",
+    "44": "cmptyj5ls000d14gmwnky2bvr",
+    "45": "cmptyj5ls000g14gmaw3hrnsf"
+  },
+  "generatedAt": "2026-06-17T09:22:14.074Z",
+  "wrongCounts": {
+    "total": 45,
+    "oeq": 20,
+    "mcq": 25
+  },
+  "toplineSnapshot": {
+    "avgPct": 28,
+    "totalAwarded": 25,
+    "totalAvailable": 90,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}

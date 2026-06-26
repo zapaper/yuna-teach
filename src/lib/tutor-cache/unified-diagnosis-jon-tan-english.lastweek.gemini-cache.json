@@ -1,0 +1,184 @@
+{
+  "patterns": [
+    {
+      "name": "Guessing in Order",
+      "what": "Tends to fill in answers using a simple alphabetical pattern like A, B, C, D instead of reading the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Jon wrote 'A' for the first blank, starting an A-to-J pattern instead of choosing the correct word 'has'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Jon wrote 'B' for the second blank, continuing the pattern instead of finding the word 'in'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Jon wrote 'C' for the third blank, rather than selecting 'than' to complete the sentence."
+        }
+      ],
+      "strategic_advice": "When you see a long passage, take a deep breath! Read the whole paragraph once without filling in any blanks to get the story. Then, go back and try each option. **Never just guess in alphabetical order**—you can definitely find the right clues if you read carefully!",
+      "trigger_keywords": [
+        "passage",
+        "blanks",
+        "A to Q"
+      ]
+    },
+    {
+      "name": "Close Meaning Mix-Up",
+      "what": "Sometimes chooses a word that has a similar general meaning but doesn't quite fit the specific situation or common phrasing.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked 'advice' instead of 'recommendation', which is the specific word we use for a chef's suggested dish."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Jon chose 'assigning' instead of 'designating' to describe how the animal rights groups labelled the event."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Jon selected 'primary' instead of 'opening' to match the meaning of 'inaugural' for the first race."
+        }
+      ],
+      "strategic_advice": "When two words mean almost the same thing, think about their **common word partners**. For example, we say 'chef's recommendation', not 'chef's advice'. Try saying both options out loud in the sentence to hear which one sounds like natural English.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "fill in the blank",
+        "chef's",
+        "inaugural"
+      ]
+    },
+    {
+      "name": "Tricky Options Trap",
+      "what": "Occasionally gets caught by options that look similar, or picks a familiar word when a more precise one is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked 'overprotective' instead of 'overwhelmed', likely because both words start with 'over-'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Jon chose 'demonstrators' instead of 'onlookers', possibly getting tricked by the earlier mention of animal rights groups."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked the common word 'seriously' instead of the more precise 'menacingly' to describe a bully's glare."
+        }
+      ],
+      "strategic_advice": "When you see these tricky options, treat them as stop signs:\n- **Words that look similar** → double-check the ending of the word, not just the start.\n- **Words from other parts of the story** → make sure the word fits the **exact sentence** you are reading, not just the general topic.",
+      "trigger_keywords": [
+        "choose the correct word",
+        "spectators",
+        "felt",
+        "glared"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpwpzi2j0012fjchbtijheg8",
+    "2": "cmpwpzi2j0015fjchgqjwprke",
+    "3": "cmpwpzi2j0016fjch5qgqibe1",
+    "4": "cmpwpzi2j0018fjch11kelh99",
+    "5": "cmpwpzi2j001afjch0wtfcjpq",
+    "6": "cmpwpzi2k001bfjch0jpip83l",
+    "7": "cmpwpzi2k001cfjchhj4hur2a",
+    "8": "cmpwpzi2k001dfjchj3awwjj6",
+    "9": "cmpwpzi2k001efjch8cstt5nz",
+    "10": "cmpwpzi2k001ffjchd1ldmoov",
+    "11": "cmpwpzi2k001gfjchfmgwswzm",
+    "12": "cmpwpzi2k001hfjchr3ze51v3",
+    "13": "cmpwpzi2k001ifjchjrualua6",
+    "14": "cmpwpzi2k001jfjchv7xb6s65",
+    "15": "cmpwpzi2k001kfjchqvdm5w9g",
+    "16": "cmpwpzi2k001lfjchtn9xrjfm"
+  },
+  "generatedAt": "2026-06-17T09:14:42.292Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 10,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 20,
+    "totalAwarded": 4,
+    "totalAvailable": 20,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

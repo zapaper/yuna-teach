@@ -1,102 +1,93 @@
 {
   "patterns": [
     {
-      "name": "Forgotten Units",
-      "what": "Sometimes forgets to write the final unit of measurement, like dollars or kilograms, even after doing the math perfectly.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "She found the correct numerical answers of 360 and 72, but forgot to include the dollar sign ($)."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "She calculated the correct fraction of 3/40, but missed out the 'kg' unit at the end."
-        }
-      ],
-      "strategic_advice": "- Always check the question's final sentence to see what **unit is expected**.\n- **Write the unit down** in your final answer space before you even start calculating, so you don't forget it!",
-      "trigger_keywords": [
-        "How much",
-        "How many kilograms",
-        "Find the value"
-      ]
-    },
-    {
-      "name": "Leaving Blanks",
-      "what": "Occasionally leaves multi-step word problems completely blank, missing out on partial marks for early steps.",
+      "name": "Skipping Questions",
+      "what": "Amberamberteo sometimes leaves longer word problems completely blank, missing out on partial marks for working.",
       "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "She left the question blank instead of trying to find the first step, like the fraction of money left."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "She skipped this guess-and-check question entirely."
+          "whatWentWrong": "She left both parts of this fraction word problem blank instead of trying to find the first step."
         },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "She left the working and answer blank for this book fair problem."
+          "whatWentWrong": "She skipped this question entirely, missing the chance to earn marks for finding the fraction of unsold books."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "She left the working blank, which means she couldn't get any partial marks even if she knew how to start."
         }
       ],
-      "strategic_advice": "- Even if you aren't sure how to finish a problem, always **write down the first step** you do know.\n- **Drawing a model** or writing out the first calculation can often earn you method marks!",
+      "strategic_advice": "When you see a long word problem, don't panic! Treat it like a puzzle and try these steps:\n- **Draw a model** or write down the numbers you know.\n- **Solve the first step** even if you don't know how to finish. You can get marks just for showing your working!",
       "trigger_keywords": [
-        "How many",
-        "What fraction",
-        "At first"
+        "remainder",
+        "at first",
+        "total number"
       ]
     },
     {
       "name": "Place Value Slips",
-      "what": "Occasionally gets mixed up with zeroes when dividing large numbers, writing numbers from words, or rounding decimals.",
+      "what": "Amberamberteo occasionally misses a zero when dividing large numbers or writing out numbers from words.",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "oeq",
-          "whatWentWrong": "She divided correctly to get 5.245, but rounded to 5.20 instead of 5.25."
-        },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "She picked 80 instead of 800 when dividing 560 000 by 700."
+          "whatWentWrong": "She picked 80 instead of 800 when dividing 560 000 by 700, likely losing track of the zeros."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "She missed a zero when writing 'five hundred and eight thousand' as a number."
+          "whatWentWrong": "She missed a zero when writing 'five hundred and eight thousand', choosing 58 032 instead of 508 032."
         }
       ],
-      "strategic_advice": "- When dividing numbers with zeroes, **cross out the same number of zeroes** on both sides first.\n- When writing out big numbers from words, **draw blank lines** for each place value before filling them in.",
+      "strategic_advice": "When working with big numbers, be careful with your zeros:\n- **Cross out zeros** in pairs when dividing (e.g., cross out two zeros from both 560 000 and 700).\n- **Draw blanks** for each place value when writing numbers from words to make sure no spots are left empty.",
       "trigger_keywords": [
-        "Find the value",
-        "in numerals",
-        "Round your answer"
+        "value of",
+        "in numerals"
       ]
     },
     {
       "name": "Wrong Total Used",
-      "what": "Sometimes uses the original total or the wrong number of people when calculating a fraction or sharing an amount.",
+      "what": "Amberamberteo tends to use the wrong starting number when a question asks for a fraction of a specific group or includes hidden people.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "She missed counting Ahmad in 'Ahmad and his 3 cousins', dividing by 3 instead of 4."
+          "whatWentWrong": "She divided the wire by 3 instead of 4, forgetting to include Ahmad along with his 3 cousins."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "She calculated 3/10 of all the books instead of just the fiction books."
+          "whatWentWrong": "She calculated 3/10 of the total books instead of 3/10 of just the fiction books."
         }
       ],
-      "strategic_advice": "- When you see **'of the'** or **'shared among'**, pause and double-check who or what is being shared.\n- **Underline the exact group** the question is asking about (like 'fiction books' instead of 'books').",
+      "strategic_advice": "Always double-check **who or what** the fraction or number belongs to:\n- **'Ahmad and his 3 cousins'** → means you must divide by 4 people in total.\n- **'of the fiction books'** → means you must use the number of fiction books, not the total library.",
       "trigger_keywords": [
-        "of the",
-        "shared",
-        "remaining",
-        "rest"
+        "and his",
+        "of the"
+      ]
+    },
+    {
+      "name": "Forgotten Units",
+      "what": "Amberamberteo often does the math perfectly but occasionally forgets to write the final unit of measurement in her answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She found the correct numbers (360 and 72) but forgot to include the dollar sign ($)."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "She calculated the correct fraction of flour but forgot to write 'kg' at the end."
+        }
+      ],
+      "strategic_advice": "Before moving to the next question, do a quick check:\n- **Look at the question word** (e.g., 'How much money', 'How many kilograms').\n- **Write the unit** (like $ or kg) next to your final number so you don't lose easy marks.",
+      "trigger_keywords": [
+        "How much money",
+        "How many kilograms"
       ]
     }
   ],
@@ -111,23 +102,23 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 8,
@@ -135,7 +126,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -147,11 +138,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 14,
@@ -159,7 +150,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 16,
@@ -167,15 +158,15 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -199,7 +190,7 @@
     "18": "cmojzrjgk004td4vnvqxdfyf9",
     "19": "cmojzrjgl004ud4vn5yizuaqi"
   },
-  "generatedAt": "2026-06-17T09:06:50.104Z",
+  "generatedAt": "2026-06-26T09:23:51.290Z",
   "wrongCounts": {
     "total": 19,
     "oeq": 11,
@@ -211,5 +202,24 @@
     "totalAvailable": 152,
     "paperCount": 7
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:06:50.104Z",
+    "patternNames": [
+      "Forgotten Units",
+      "Leaving Blanks",
+      "Place Value Slips",
+      "Wrong Total Used"
+    ],
+    "wrongCounts": {
+      "total": 19,
+      "oeq": 11,
+      "mcq": 8
+    },
+    "toplineSnapshot": {
+      "avgPct": 75,
+      "totalAwarded": 114.5,
+      "totalAvailable": 152,
+      "paperCount": 7
+    }
+  }
 }

@@ -1,0 +1,243 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Context Clues",
+      "what": "Sometimes picks a vocabulary word without fully using the surrounding clues in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "UmarM chose 'poet' instead of 'journalist', missing the clues about 'interviewing people' and writing a 'news article'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'victorious' instead of 'tenacious', overlooking the clue that the opponent was 'never giving up'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'extensively' instead of 'momentarily', even though the sentence mentions the student 'hesitated' before answering."
+        }
+      ],
+      "strategic_advice": "Treat vocabulary questions like a detective game.\n- **Highlight the clues** in the sentence before looking at the options.\n- Ask yourself, **'What is the sentence trying to tell me?'** and match the word to those specific clues.",
+      "trigger_keywords": [
+        "because",
+        "before",
+        "when"
+      ]
+    },
+    {
+      "name": "Phrasal Verb Mix-Ups",
+      "what": "Occasionally confuses phrasal verbs that look similar but have different meanings.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "UmarM chose 'put down' instead of 'put off' for postponing a birthday party."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'looked into' instead of 'looked to' for seeking support from an older brother."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'on' instead of 'out' for the phrase 'break out in a cold sweat'."
+        }
+      ],
+      "strategic_advice": "When learning new verbs, pay attention to the prepositions attached to them.\n- Try to memorise them as a **complete phrase** (e.g., 'break out', 'put off').\n- Create your own sentences to remember their **specific meanings**.",
+      "trigger_keywords": [
+        "put",
+        "creep",
+        "looked",
+        "break",
+        "get"
+      ]
+    },
+    {
+      "name": "Word Form Mix-Up",
+      "what": "Tends to use the wrong form of a word, such as writing a verb when a noun or adverb is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "UmarM wrote the verb 'encourage' instead of the noun 'encouragement' after the possessive 'friends''."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the verb 'included' instead of the noun 'inclusion' after the article 'an'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the base verb 'test' instead of the '-ing' form 'testing' after the preposition 'of'."
+        }
+      ],
+      "strategic_advice": "Look closely at the words immediately before the blank to decide what type of word fits.\n- **'an' or 'the'** → you usually need a noun (e.g., 'an inclusion').\n- **'of' or 'for'** → you often need an '-ing' word (e.g., 'process of testing').\n- **Describing an adjective** → you need an adverb ending in '-ly' (e.g., 'highly anticipated').",
+      "trigger_keywords": [
+        "an",
+        "the",
+        "of",
+        "process of",
+        "friends'"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Occasionally mixes up singular and plural verb forms depending on the main subject of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "UmarM chose the singular 'enjoys' instead of the plural 'enjoy' for the plural subject 'All the boys'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the plural 'expect' instead of the singular 'expects' for the singular subject 'Nintendo'."
+        }
+      ],
+      "strategic_advice": "When checking verbs, always trace back to the **main subject**.\n- If the subject is **singular** (like 'Nintendo'), the verb needs an 's' (expects).\n- If the subject is **plural** (like 'All the boys'), the verb does not need an 's' (enjoy).\n- Ignore extra phrases like **'except Raj'** that try to trick you.",
+      "trigger_keywords": [
+        "All the",
+        "company",
+        "except"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuhvfhw0006818s61537ufb",
+    "2": "cmpuhvfhw0008818s5eje9nhs",
+    "3": "cmpuhvfhw0009818s35c4pq1f",
+    "4": "cmpuhvfhw000a818ss46uw9s8",
+    "5": "cmpuhvfhx000d818s5j3uhieb",
+    "6": "cmpuhvfhx000e818sg9lyu1ip",
+    "7": "cmpuhvfhx000f818sxxr0nrzz",
+    "8": "cmpuhvmrl000l818sbd8sr43v",
+    "9": "cmpuhvmrl000o818sdzt5j3rr",
+    "10": "cmpuhvmrl000q818ssd8us0ec",
+    "11": "cmpuhvmrl000r818selogzykk",
+    "12": "cmpuhw35l000v818skrfxx3eu",
+    "13": "cmpuhw35l000x818s8ftoy8c5",
+    "14": "cmpuhw35l000y818sni7shzpz",
+    "15": "cmpuhw35l0010818svrbirlo8",
+    "16": "cmpuhw35l0012818sb5sm9z4l",
+    "17": "cmpuhw35l0014818swigcyj4l",
+    "18": "cmpuhw35l0016818sjjxlw16q",
+    "19": "cmpuhw35l0017818s0fgxf7lj",
+    "20": "cmpuhw35l0018818sx0jeo8mj",
+    "21": "cmpuhw35l001a818scctjpna2",
+    "22": "cmpuhw35m001c818su2utsmmw",
+    "23": "cmpuhw35m001d818snk0jvztj"
+  },
+  "generatedAt": "2026-06-17T09:27:19.315Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 12,
+    "mcq": 11
+  },
+  "toplineSnapshot": {
+    "avgPct": 45,
+    "totalAwarded": 21,
+    "totalAvailable": 47,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

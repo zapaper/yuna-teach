@@ -1,21 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Reported Speech Mix-Up",
-      "what": "Sometimes forgets to shift the tense backwards when changing direct speech into reported speech.",
+      "name": "Reported Speech Tenses",
+      "what": "Tends to keep the original verb tense instead of shifting it one step back into the past when changing direct speech to reported speech.",
       "specific_examples": [
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "Kayden kept the simple past tense 'went' instead of shifting it back to the past perfect 'had gone'."
+          "whatWentWrong": "Kayden kept the simple past 'went' instead of shifting it to the past perfect 'had gone'."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "He used 'were surprised' instead of taking a step back in time to 'had been surprised'."
+          "whatWentWrong": "He used 'were surprised' instead of shifting back to 'had been surprised'."
         }
       ],
-      "strategic_advice": "When you see speech marks being removed, treat it as a signal to take one step back in time.\n- Simple past tense words (like **'went'** or **'took'**) must change to past perfect (**'had gone'** or **'had taken'**).\n- Words like **'were'** change to **'had been'**.",
+      "strategic_advice": "When you see speech marks changing to reported speech, remember to **shift the tense back one step**.\n- **Simple Past** becomes **Past Perfect** (e.g., 'went' → 'had gone').\n- Always check if time words like 'yesterday' need to change to **'the previous day'**.",
       "trigger_keywords": [
         "asked",
         "said that",
@@ -23,41 +23,46 @@
       ]
     },
     {
-      "name": "Subject-Verb Mix-Up",
-      "what": "Occasionally mixes up singular and plural verbs, especially when the main subject is separated from the blank.",
+      "name": "Subject-Verb Agreement",
+      "what": "Sometimes mixes up singular and plural verbs, especially when the subject has multiple parts or is separated from the verb.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Kayden chose the singular verb 'was' even though the subject 'actions' is plural."
+          "whatWentWrong": "Kayden chose the singular 'was' for the plural subject 'actions'."
         },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'has taken' for the plural subject 'group members' instead of 'have taken'."
+          "whatWentWrong": "He picked a singular verb for 'group members' when using the 'either... or' rule."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the past tense 'stated' instead of the present tense 'states' for a general fact about the law."
         }
       ],
-      "strategic_advice": "Always find the true subject of the sentence before picking your verb.\n- If the subject is plural (like **'actions'**), use a plural verb (like **'were'**).\n- When you see **'either... or'**, look at the noun closest to the blank to decide if you need a singular or plural verb!",
+      "strategic_advice": "When choosing a verb, always trace it back to its **true subject**.\n- For **'either... or'**, the verb must match the subject **closest to the blank**.\n- Cross out extra descriptive words between the subject and the blank so you can see the pairing clearly.",
       "trigger_keywords": [
-        "is / are",
-        "was / were",
-        "has / have",
-        "either... or"
+        "either",
+        "or",
+        "neither",
+        "nor"
       ]
     },
     {
-      "name": "Spelling and Capitals",
-      "what": "Tends to lose marks on small spelling slips or by forgetting to use capital letters for the word 'I' and proper nouns.",
+      "name": "Capital Letters and Spelling",
+      "what": "Occasionally forgets to capitalise the letter 'I' or proper nouns, and makes small spelling slips in written answers.",
       "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden missed the 'r' in 'opportunity'."
-        },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "He forgot to capitalise the word 'I' and the month 'December'."
+          "whatWentWrong": "Kayden forgot to capitalise the letter 'I' and the month 'December'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the letter 'r' when spelling 'opportunity'."
         },
         {
           "questionRef": "[19]",
@@ -65,38 +70,11 @@
           "whatWentWrong": "He had a few tricky spelling slips like 'exitement' instead of 'excitement'."
         }
       ],
-      "strategic_advice": "Treat editing and rewriting questions as a final proofreading check.\n- Always capitalise the word **'I'**, months like **'December'**, and people's names.\n- For tricky words, try breaking them down into syllables (like **op-por-tu-ni-ty** or **ex-cite-ment**) to check if any letters are missing.",
+      "strategic_advice": "Before moving to the next question, do a quick **proofreading scan**.\n- Check that the standalone letter **'I'** and all **names, months, and places** start with a capital letter.\n- Sound out longer words syllable by syllable to catch missing letters.",
       "trigger_keywords": [
-        "Editing",
         "Rewrite",
-        "I"
-      ]
-    },
-    {
-      "name": "One Step Short",
-      "what": "Sometimes gives a general answer or leaves out a key part of the question when writing comprehension responses.",
-      "specific_examples": [
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "Kayden correctly identified that 'this' referred to climbing the tree, but missed the specific detail that it was climbing down."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "He successfully ticked the correct feeling box but forgot to write down the explanation."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "He found the correct reason but accidentally wrote it in the wrong row of the table."
-        }
-      ],
-      "strategic_advice": "When answering comprehension questions, double-check that you have captured the exact details.\n- For reference words like **'it'** or **'this'**, read the sentence before it and include the specific action (e.g., **'climbing down'** instead of just **'climbing'**).\n- If a question has two parts (like ticking a box **and** explaining), make sure both halves are completed before moving on.",
-      "trigger_keywords": [
-        "Explain clearly why",
-        "What the word(s) refers to",
-        "fill in the blanks"
+        "Fill in the blanks",
+        "Reason"
       ]
     }
   ],
@@ -183,15 +161,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -199,7 +177,7 @@
     },
     {
       "idx": 25,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 26,
@@ -249,7 +227,7 @@
     "28": "cmpul5kn6001fgrmmup3c94un",
     "29": "cmpul5kn6001qgrmmafs0p1ze"
   },
-  "generatedAt": "2026-06-17T09:16:45.994Z",
+  "generatedAt": "2026-06-26T09:38:58.748Z",
   "wrongCounts": {
     "total": 29,
     "oeq": 15,
@@ -261,5 +239,24 @@
     "totalAvailable": 131,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:16:45.994Z",
+    "patternNames": [
+      "Reported Speech Mix-Up",
+      "Subject-Verb Mix-Up",
+      "Spelling and Capitals",
+      "One Step Short"
+    ],
+    "wrongCounts": {
+      "total": 29,
+      "oeq": 15,
+      "mcq": 14
+    },
+    "toplineSnapshot": {
+      "avgPct": 71,
+      "totalAwarded": 93,
+      "totalAvailable": 131,
+      "paperCount": 3
+    }
+  }
 }

@@ -1,0 +1,450 @@
+{
+  "patterns": [
+    {
+      "name": "Hidden Subject Mix-Up",
+      "what": "Sometimes mixes up the rules for subject-verb agreement, getting confused by extra phrases like 'together with' or 'either/or'.",
+      "specific_examples": [
+        {
+          "questionRef": "[32]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng chose the plural verb 'are' because of 'her brothers', missing that the main subject is the singular 'Emily'."
+        },
+        {
+          "questionRef": "[46]",
+          "type": "mcq",
+          "whatWentWrong": "He matched the verb to 'my cousin' instead of the main subject 'I', choosing 'is' instead of 'am'."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'has' for 'Either Daisy or her cousins', forgetting that for 'either/or', the verb matches the noun closest to it."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- For phrases like **'together with'**, **'as well as'**, or **'along with'**, cross them out lightly with your pencil. Match the verb to the very **first noun**.\n- For **'either... or'** and **'neither... nor'**, it's the opposite! Draw an arrow from the verb to the noun **right next to it**, and match them.",
+      "trigger_keywords": [
+        "together with",
+        "as well as",
+        "along with",
+        "either",
+        "neither"
+      ]
+    },
+    {
+      "name": "Negative Tag Mix-Up",
+      "what": "Occasionally forgets that words like 'seldom' or 'rarely' are already negative, mistakenly choosing a negative question tag instead of a positive one.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng chose 'doesn't he' for a sentence with 'seldom', not realising that 'seldom' already makes the sentence negative."
+        },
+        {
+          "questionRef": "[33]",
+          "type": "mcq",
+          "whatWentWrong": "He made the exact same slip in another practice, choosing a negative tag when the sentence required the positive tag 'does he'."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- Treat words like **'seldom'**, **'rarely'**, **'hardly'**, and **'never'** as if they are the word 'not'.\n- If the sentence has one of these hidden negative words, the question tag at the end must be **positive**.",
+      "trigger_keywords": [
+        "seldom",
+        "rarely",
+        "hardly",
+        "never",
+        "scarcely"
+      ]
+    },
+    {
+      "name": "Skipping Surrounding Clues",
+      "what": "Tends to fill in cloze blanks by looking only at the exact spot, occasionally missing important grammar hints or contrast words nearby.",
+      "specific_examples": [
+        {
+          "questionRef": "[61]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng wrote 'many' instead of 'permanent', missing the word 'Unlike' and the contrast with 'temporary living nests' later in the sentence."
+        },
+        {
+          "questionRef": "[63]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'variety' instead of 'queen', missing the big clue in the very next sentence which starts with 'The queen's primary role'."
+        },
+        {
+          "questionRef": "[64]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'line' after the word 'an', forgetting that 'an' must be followed by a word starting with a vowel sound."
+        }
+      ],
+      "strategic_advice": "When you see a cloze blank, treat it as a stop sign:\n- Always read the sentence **before and after** the blank to look for context clues.\n- Watch out for contrast words like **'Unlike'** or **'However'**—they tell you the answer will be the opposite of another word in the sentence.\n- Check the word right before the blank! If it is **'an'**, your answer must start with a vowel sound.",
+      "trigger_keywords": [
+        "Unlike",
+        "However",
+        "an",
+        "blank"
+      ]
+    },
+    {
+      "name": "Whose vs Whom Mix-Up",
+      "what": "Occasionally mixes up relative pronouns, getting stuck when needing to use 'whose' to show that something belongs to someone.",
+      "specific_examples": [
+        {
+          "questionRef": "[51]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng chose 'whom' instead of 'whose', missing that the sentence is talking about the man's mother."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He left this blank, not realising that 'whose' is needed to show that the wallet belongs to the owner."
+        }
+      ],
+      "strategic_advice": "When you see a blank before a noun (like 'mother' or 'owner'), test the word **'whose'**.\n- Read it as **'his/her/its'** to see if it makes sense. For example, 'his mother is a lawyer' makes perfect sense, so **'whose'** is the right choice!",
+      "trigger_keywords": [
+        "who",
+        "whom",
+        "whose",
+        "which"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 3
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": 2
+    },
+    {
+      "idx": 58,
+      "patternIndex": 2
+    },
+    {
+      "idx": 59,
+      "patternIndex": 2
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": 2
+    },
+    {
+      "idx": 62,
+      "patternIndex": 2
+    },
+    {
+      "idx": 63,
+      "patternIndex": 2
+    },
+    {
+      "idx": 64,
+      "patternIndex": 2
+    },
+    {
+      "idx": 65,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmolaq23h00ddqlmb216yxb8g",
+    "2": "cmolaq23h00dgqlmb7109yeei",
+    "3": "cmolapg9m00buqlmb81nth701",
+    "4": "cmolapg9m00bvqlmb8prnsamq",
+    "5": "cmolapg9m00bwqlmbfc74cffe",
+    "6": "cmolapg9n00bxqlmbwkrjazc7",
+    "7": "cmolapg9n00byqlmbuauxd38u",
+    "8": "cmolapg9n00bzqlmb1fpx7zqc",
+    "9": "cmolapg9n00c0qlmbfevhlwjc",
+    "10": "cmolapg9n00c1qlmb0kzkzo81",
+    "11": "cmolapg9n00c2qlmbhd9zfswn",
+    "12": "cmolapg9n00c3qlmbh7n4wops",
+    "13": "cmolapg9n00c4qlmbdz9y027m",
+    "14": "cmolapg9n00c5qlmbt9288395",
+    "15": "cmolapg9n00c6qlmbbed4gaaz",
+    "16": "cmolapg9n00c7qlmbnxqhqo1a",
+    "17": "cmolapg9n00c8qlmb2p9ecmcc",
+    "18": "cmolao0g600b4qlmb7ko25l9w",
+    "19": "cmolamypr00avqlmbhhwco4i2",
+    "20": "cmolal0e700a7qlmbv2aeaqaj",
+    "21": "cmolal0e700a8qlmbn1imfmod",
+    "22": "cmolal0e700a9qlmb98v13ijn",
+    "23": "cmolal0e700aaqlmbl2a9gk64",
+    "24": "cmolal0e700abqlmb0b0jmxl8",
+    "25": "cmolal0e700acqlmb4mymh24n",
+    "26": "cmolal0e700adqlmbrinhnmnm",
+    "27": "cmolal0e700aeqlmbcv9cudmm",
+    "28": "cmolal0e700afqlmblszhlnfi",
+    "29": "cmolal0e700agqlmb5tvbbw4e",
+    "30": "cmolal0e700ahqlmb9014l943",
+    "31": "cmolaj76q00a0qlmb3muzyf57",
+    "32": "cmolaj76q00a2qlmbki2bfa47",
+    "33": "cmoladneq0091qlmbbkygjdtq",
+    "34": "cmoladneq0092qlmbgb75lb1z",
+    "35": "cmoladneq0095qlmb7o1x65bo",
+    "36": "cmoladneq0096qlmbf7tgrcet",
+    "37": "cmolafq04009sqlmbqohb08or",
+    "38": "cmolafq04009vqlmbh1ekmleb",
+    "39": "cmoladok4009bqlmbzv0bjzv7",
+    "40": "cmoladok4009dqlmb1hvve4j9",
+    "41": "cmoladok4009eqlmbtvawgysm",
+    "42": "cmoladok4009hqlmb9e24qpwm",
+    "43": "cmoladok4009iqlmbi44m85pz",
+    "44": "cmolaaq4a008tqlmbgeu25z0y",
+    "45": "cmolaaq4a008vqlmbcai3s4r4",
+    "46": "cmola589h0085qlmbarqxz1u4",
+    "47": "cmola73rl008hqlmb2pkipp2q",
+    "48": "cmola73rl008iqlmbdrfxz8dd",
+    "49": "cmola75ae008oqlmbqda2mtsu",
+    "50": "cmola75ae008pqlmb7amb87hd",
+    "51": "cmola5cds008bqlmbklkpg2r3",
+    "52": "cmola5cds008dqlmbfk7hmu49",
+    "53": "cmol9raji0075qlmbgw2ti7ua",
+    "54": "cmol9raji0077qlmbuogukzxe",
+    "55": "cmol9rajj007dqlmb80qxqlip",
+    "56": "cmol9rajj007fqlmb0ehm3rjh",
+    "57": "cmol9rajj007gqlmbzqbqa3z3",
+    "58": "cmol9rajj007iqlmbpngc3s2e",
+    "59": "cmol9rajj007jqlmbovnrxvfm",
+    "60": "cmol9rajj007kqlmbjsqszrw1",
+    "61": "cmol9rajj007rqlmb14l1fovr",
+    "62": "cmol9rajj007tqlmbamaa16ee",
+    "63": "cmol9rajj007uqlmbvbrf1dlj",
+    "64": "cmol9rajj007zqlmbntcoxpc7",
+    "65": "cmol9rajj0080qlmbki6cmdf1"
+  },
+  "generatedAt": "2026-06-17T09:23:59.399Z",
+  "wrongCounts": {
+    "total": 65,
+    "oeq": 10,
+    "mcq": 55
+  },
+  "toplineSnapshot": {
+    "avgPct": 51,
+    "totalAwarded": 68,
+    "totalAvailable": 133,
+    "paperCount": 15
+  },
+  "previousAssessment": null
+}

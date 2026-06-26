@@ -1,111 +1,109 @@
 {
   "patterns": [
     {
-      "name": "Missed Story Clues",
-      "what": "Sometimes misses hint words like 'Although' or the overall positive or negative tone of a passage, which leads to picking a word with the wrong meaning.",
+      "name": "Missing Clue Words",
+      "what": "Student66666 sometimes misses contrast words like 'although', which changes the tone of the sentence, leading to answers that mean the opposite of what is needed.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 missed the contrast word 'Although' and chose 'useful' instead of a word that means difficult."
+          "whatWentWrong": "He missed the contrast word 'Although' and wrote 'useful' instead of a word like 'hard' or 'difficult'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 chose the neutral word 'affect' instead of a positive word like 'enhance' for health benefits."
+          "whatWentWrong": "He chose 'affect', which is neutral, instead of a positive word like 'enhance' to match the benefits described in the passage."
         },
         {
-          "questionRef": "[16]",
+          "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 switched to 'your' instead of keeping the 'our' perspective used throughout the passage."
+          "whatWentWrong": "He wrote 'first' instead of a connector like 'Hence' that shows a consequence or reason."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'Although'** or **'However'** → expect a shift in meaning; if the first part sounds easy, the second part will be hard.\n- Look at the sentences before and after the blank to check if the overall feeling is **positive or negative**.\n- Check if the passage uses **'we/our'** or **'they/their'** and stick to the same point of view.",
+      "strategic_advice": "When you see words like **'Although'** or **'However'**, treat them as a U-turn sign—the sentence is going to shift from positive to negative, or easy to hard. Always read the sentence before and after the blank to check if the overall tone is positive or negative.",
       "trigger_keywords": [
         "Although",
         "However",
-        "benefits",
-        "our/we"
+        "Thus",
+        "Hence"
       ]
     },
     {
-      "name": "Picking the First Option",
-      "what": "Tends to select the very first option for multiple-choice questions, especially in the Visual Text section, which suggests rushing or guessing.",
+      "name": "Pronoun Mix-Up",
+      "what": "Student66666 occasionally loses track of who the passage is talking about, switching perspectives or repeating a name instead of using a pronoun.",
       "specific_examples": [
         {
-          "questionRef": "[38]",
-          "type": "mcq",
-          "whatWentWrong": "Student66666 selected the first option instead of checking the poster for the registration requirement."
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'your', which changes the perspective from the collective 'our' used throughout the rest of the passage."
         },
         {
-          "questionRef": "[39]",
-          "type": "mcq",
-          "whatWentWrong": "Student66666 picked option 1 without matching the activity timings to Pamela's schedule."
-        },
-        {
-          "questionRef": "[43]",
-          "type": "mcq",
-          "whatWentWrong": "Student66666 chose the first option rather than reading all choices to find the main purpose of the article."
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "He repeated 'Sam' in the second half of the sentence instead of replacing it with the pronoun 'he'."
         }
       ],
-      "strategic_advice": "Treat every multiple-choice question like a mini-investigation:\n- Read **all four options** before making a choice.\n- For Visual Text questions, use your finger to **trace the details** on the poster or brochure to confirm your answer.\n- If you are unsure, try to **eliminate two wrong options** first to give yourself a better chance.",
+      "strategic_advice": "When filling in pronouns, check the rest of the paragraph to see who is speaking. If the passage uses **'we'** and **'our'**, stick to those instead of switching to **'your'**. In synthesis questions, remember to replace a person's name with **'he'** or **'she'** in the second half of the sentence.",
       "trigger_keywords": [
-        "According to the poster",
-        "Which of the following",
-        "true of"
+        "our",
+        "we",
+        "he",
+        "she",
+        "your"
       ]
     },
     {
       "name": "Spelling and Capital Letters",
-      "what": "Occasionally loses marks due to small spelling mistakes, typos, or forgetting to start a sentence with a capital letter.",
+      "what": "Student66666 tends to make small typing or spelling slips, and occasionally forgets to use a capital letter when a word starts a new sentence.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 wrote 'wheb' instead of 'when' and forgot the capital letter at the start of the sentence."
+          "whatWentWrong": "He wrote 'when' with a lowercase letter, even though it was the first word of a new sentence."
         },
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 spelled 'their' as 'thdir', which is a small typo."
+          "whatWentWrong": "He accidentally misspelled 'their' as 'thdir'."
         },
         {
           "questionRef": "[27]",
           "type": "oeq",
-          "whatWentWrong": "Student66666 wrote 'dramed' instead of 'framed' when combining the sentences."
+          "whatWentWrong": "He made a quick copying slip, writing 'dramed' instead of 'framed'."
         }
       ],
-      "strategic_advice": "Always do a quick **proofread** of your written answers to catch accidental typos.\n- Check the word right before your blank—if it ends with a **full stop**, your answer must start with a **capital letter**.\n- If a word looks strange after you write it, try sounding it out to see if you missed or swapped a letter.",
+      "strategic_advice": "After writing your answer, do a quick check: does the word start a new sentence? If so, it needs a **capital letter**. Also, read your written word backwards letter by letter to catch small spelling slips.",
       "trigger_keywords": [
-        "Fill in each blank",
-        "Rewrite the sentence"
+        "fill in each blank",
+        "rewrite the sentence",
+        "correct the spelling"
       ]
     },
     {
-      "name": "Skipping Questions or Steps",
-      "what": "Sometimes leaves questions blank or stops after finding just one piece of the answer when two are needed.",
+      "name": "Rushing Through MCQs",
+      "what": "Student66666 sometimes rushes through the multiple-choice sections, picking the first option repeatedly without checking the text carefully.",
       "specific_examples": [
         {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Student66666 found one action showing Robert disagreed, but missed the second action."
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "He picked option 1 without checking the poster, missing that participants will have a chance to make new friends."
         },
         {
-          "questionRef": "[25]",
-          "type": "oeq",
-          "whatWentWrong": "Student66666 mentioned that Mike bit the string, but missed the second step of cutting through the twine."
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "He chose option 1 again, missing the detail in the text that registration is needed online."
         },
         {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "Student66666 left the table blank instead of filling in the phrases and reasons from the passage."
+          "questionRef": "[42]",
+          "type": "mcq",
+          "whatWentWrong": "He selected option 1, overlooking the fact stated in the article that head lice will not cause a fever."
         }
       ],
-      "strategic_advice": "When a question asks for **'two actions'** or **'two separate phrases'**, draw two bullet points on your paper so you remember to find both.\n- For 'Explain clearly' questions, look for a **step-by-step process** in the passage rather than just the final action.\n- Never leave a question blank—always write down your **best guess** from the passage.",
+      "strategic_advice": "If you find yourself picking option 1 for many questions in a row, take a deep breath and pause. Always underline the **key words** in the question, then hunt for those exact words in the text before choosing your answer.",
       "trigger_keywords": [
-        "two actions",
-        "two separate phrases",
-        "Explain clearly"
+        "According to the poster",
+        "Which of the following",
+        "Based on the section"
       ]
     }
   ],
@@ -116,7 +114,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 3,
@@ -148,7 +146,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 11,
@@ -172,7 +170,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 17,
@@ -192,7 +190,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -200,15 +198,15 @@
     },
     {
       "idx": 23,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -224,7 +222,7 @@
     },
     {
       "idx": 29,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 30,
@@ -240,47 +238,47 @@
     },
     {
       "idx": 33,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 35,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 44,
@@ -358,7 +356,7 @@
     "48": "cmnzy7ol0000tsh11ens4z7v4",
     "49": "cmnzy7ol0000wsh11f1pnt32l"
   },
-  "generatedAt": "2026-06-17T09:23:52.024Z",
+  "generatedAt": "2026-06-26T09:47:13.669Z",
   "wrongCounts": {
     "total": 49,
     "oeq": 33,
@@ -370,5 +368,24 @@
     "totalAvailable": 330,
     "paperCount": 18
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:23:52.024Z",
+    "patternNames": [
+      "Missed Story Clues",
+      "Picking the First Option",
+      "Spelling and Capital Letters",
+      "Skipping Questions or Steps"
+    ],
+    "wrongCounts": {
+      "total": 49,
+      "oeq": 33,
+      "mcq": 16
+    },
+    "toplineSnapshot": {
+      "avgPct": 85,
+      "totalAwarded": 279.5,
+      "totalAvailable": 330,
+      "paperCount": 18
+    }
+  }
 }

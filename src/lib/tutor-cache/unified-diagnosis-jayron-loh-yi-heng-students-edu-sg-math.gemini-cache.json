@@ -1,158 +1,120 @@
 {
   "patterns": [
     {
-      "name": "Hesitation with Dense Word Problems",
-      "what": "Jayron tends to leave questions blank when they involve longer text or multiple conditions, which can feel a bit overwhelming at first glance.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Left the question blank instead of breaking down the steps for the paint mixture."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Skipped this fraction word problem, missing the chance to draw a simple model."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "mcq",
-          "whatWentWrong": "Did not attempt this pattern question about toys and sweets."
-        }
-      ],
-      "strategic_advice": "When you see a long word problem, **read it one sentence at a time**. Use the **CUBES method** (Circle numbers, Underline the question, Box math action words). Even if you aren't sure of the final answer, **draw a simple model or write down the first calculation** to get started and earn partial marks.",
-      "trigger_keywords": [
-        "how much",
-        "how many",
-        "every",
-        "the rest",
-        "at first"
-      ]
-    },
-    {
-      "name": "Skipping Foundational Number Rules",
-      "what": "Jayron occasionally skips straightforward questions about place values, rounding, and factors, missing out on easy marks.",
-      "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "Left this place value question blank instead of writing out the digits."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "Skipped this rounding question, which could have been solved by testing the options."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "Did not attempt to find the common multiple, which just requires listing the times tables."
-        }
-      ],
-      "strategic_advice": "When asked to write numerals or find place values, **draw a quick place value chart** (Ones, Tens, Hundreds, etc.) and fill it in. For factors and multiples, **list them out systematically** on the side of your paper. Don't leave these blank—your first instinct is often right!",
-      "trigger_keywords": [
-        "numeral",
-        "rounded to",
-        "common multiple",
-        "factors",
-        "stands for"
-      ]
-    },
-    {
-      "name": "Uncertainty with Geometric Diagrams",
-      "what": "Jayron sometimes finds it tricky to interpret geometric figures, such as confusing slanted sides with perpendicular heights, or leaves spatial drawing tasks unattempted.",
+      "name": "Triangle Height Mix-Up",
+      "what": "Sometimes confuses the slanted side of a triangle with its straight up-and-down height when looking at a diagram.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Selected the slanted side AC instead of the perpendicular height AD."
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg picked the slanted side AC instead of the straight height AD."
         },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Left the question blank instead of looking for the right-angle symbol to identify the base."
-        },
-        {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "Did not attempt to draw the 2D views of the 3D stacked cubes."
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg left this blank, likely unsure how to match the height BE to its correct base."
         }
       ],
-      "strategic_advice": "When looking for a height or base in a triangle, always hunt for the **right-angle square symbol**—heights must be straight up and down, never slanted! For 3D drawing tasks, **count the blocks layer by layer** and sketch lightly in pencil first.",
+      "strategic_advice": "When you need to find the height for a base, look for the right-angle square symbol. The height must meet the base at exactly 90 degrees, like a straight wall meeting the floor.",
       "trigger_keywords": [
-        "figure shown",
         "base",
         "height",
-        "draw",
-        "angle marked"
+        "triangle"
       ]
     },
     {
-      "name": "Leaving Measurement Formulas Unapplied",
-      "what": "Jayron frequently leaves volume and measurement questions blank, even when all the necessary dimensions are provided in the question.",
+      "name": "Skipping Volume Questions",
+      "what": "Occasionally leaves questions about boxes, tanks, and volume blank, even when the first step is just a simple multiplication.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Skipped calculating the volume despite being given the height and base dimensions."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "Left the volume calculation blank instead of applying the formula."
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg left this blank instead of multiplying the base area by the height."
         },
         {
           "questionRef": "[24]",
           "type": "oeq",
-          "whatWentWrong": "Did not attempt to find the missing water volume, missing a chance to multiply the given numbers."
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg skipped this question, missing the chance to find the empty height first."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg left this blank instead of using the given sides to find the total capacity."
         }
       ],
-      "strategic_advice": "Whenever you see words like 'volume' or 'capacity', immediately write down the formula **Length × Width × Height**. Even if the question has extra steps, **multiply the given dimensions** to show your understanding and secure method marks.",
+      "strategic_advice": "Even if a volume question looks big, you can often get marks just by multiplying the numbers you see!\n- **'volume'** or **'capacity'** → multiply length × width × height.\n- **'how much more'** → find the total volume, find the water inside, and subtract them.",
       "trigger_keywords": [
         "volume",
         "capacity",
-        "filled with",
-        "cm³",
-        "express"
+        "how much more",
+        "cuboid"
+      ]
+    },
+    {
+      "name": "Leaving Questions Blank",
+      "what": "Sometimes leaves questions blank when unsure, which means missing out on marks for steps that might actually be known.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg left this fraction word problem blank instead of trying to draw a simple model."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg skipped this rounding question, missing an easy chance to apply the rounding rules."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "jayron_loh_yi_heng@students.edu.sg left this blank instead of listing out the times tables for 4 and 7."
+        }
+      ],
+      "strategic_advice": "Never leave a question completely blank! Even if you aren't sure of the final answer, write down your first step.\n- For **'rounding'** questions, underline the place value.\n- For **'multiples'** or **'factors'**, list out the times tables.\n- For word problems, draw a simple model or write down the numbers given. Teachers give marks for your working!",
+      "trigger_keywords": [
+        "nearest hundred",
+        "multiple",
+        "fraction",
+        "ratio"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 0
-    },
-    {
-      "idx": 3,
       "patternIndex": 2
     },
     {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -160,71 +122,71 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
-    },
-    {
-      "idx": 12,
-      "patternIndex": 1
-    },
-    {
-      "idx": 13,
-      "patternIndex": 1
-    },
-    {
-      "idx": 14,
-      "patternIndex": 1
-    },
-    {
-      "idx": 15,
-      "patternIndex": 1
-    },
-    {
-      "idx": 16,
-      "patternIndex": 1
-    },
-    {
-      "idx": 17,
-      "patternIndex": 1
-    },
-    {
-      "idx": 18,
-      "patternIndex": 0
-    },
-    {
-      "idx": 19,
-      "patternIndex": 3
-    },
-    {
-      "idx": 20,
-      "patternIndex": 3
-    },
-    {
-      "idx": 21,
-      "patternIndex": 3
-    },
-    {
-      "idx": 22,
-      "patternIndex": 3
-    },
-    {
-      "idx": 23,
-      "patternIndex": 3
-    },
-    {
-      "idx": 24,
-      "patternIndex": 3
-    },
-    {
-      "idx": 25,
-      "patternIndex": 3
-    },
-    {
-      "idx": 26,
       "patternIndex": 2
     },
     {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
       "idx": 27,
-      "patternIndex": 3
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -256,7 +218,7 @@
     "26": "cmptm1qhx009azgzx9ixedqj1",
     "27": "cmptm1qhx009bzgzxj4ahrr5s"
   },
-  "generatedAt": "2026-06-15T04:46:06.086Z",
+  "generatedAt": "2026-06-26T09:35:07.810Z",
   "wrongCounts": {
     "total": 27,
     "oeq": 7,
@@ -268,5 +230,24 @@
     "totalAvailable": 52,
     "paperCount": 2
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-15T04:46:06.086Z",
+    "patternNames": [
+      "Hesitation with Dense Word Problems",
+      "Skipping Foundational Number Rules",
+      "Uncertainty with Geometric Diagrams",
+      "Leaving Measurement Formulas Unapplied"
+    ],
+    "wrongCounts": {
+      "total": 27,
+      "oeq": 7,
+      "mcq": 20
+    },
+    "toplineSnapshot": {
+      "avgPct": 8,
+      "totalAwarded": 4,
+      "totalAvailable": 52,
+      "paperCount": 2
+    }
+  }
 }

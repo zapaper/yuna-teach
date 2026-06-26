@@ -1,0 +1,227 @@
+{
+  "patterns": [
+    {
+      "name": "Small Writing Slips",
+      "what": "Occasionally misses small details like capitalising the letter 'I', proper names, or double-checking the spelling of everyday words.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "EG forgot to capitalise the letter 'I' in the middle of the sentence."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "EG added an extra 'd' when spelling 'sadness'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "EG forgot to capitalise Henry's name."
+        }
+      ],
+      "strategic_advice": "- When you finish writing a sentence, do a quick scan just for **capital letters** (especially 'I' and names) and **punctuation**.\n- Sound out longer words in your head to catch extra or missing letters.",
+      "trigger_keywords": [
+        "rewrite the sentence",
+        "synthesis"
+      ]
+    },
+    {
+      "name": "Who vs Whom Mix-Up",
+      "what": "Sometimes confuses when to use 'who' for the person doing the action and 'whom' for the person receiving the action.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "EG chose 'whom' instead of 'who' for the man that was doing the helping."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "EG chose 'who' instead of 'whom' right after the preposition 'to'."
+        }
+      ],
+      "strategic_advice": "- Try the **'he/him' trick**: if you can replace the word with 'he', use **'who'**. If you can replace it with 'him', use **'whom'**.\n- Always use **'whom'** immediately after a preposition like 'to', 'for', or 'with' (e.g., 'to whom').",
+      "trigger_keywords": [
+        "who",
+        "whom",
+        "whose"
+      ]
+    },
+    {
+      "name": "Reported Speech Confusion",
+      "what": "Tends to get tripped up when changing direct quotes into reported speech, either by forgetting to shift the tense backwards or leaving out parts of the original sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "EG kept the present tense 'has completed' instead of shifting it back to the past tense 'had completed'."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "EG left out the reported version of 'Don't worry' in the final answer."
+        }
+      ],
+      "strategic_advice": "- When you see reporting words like **'wanted to know'** or **'asked'**, remember to take one step back in time (e.g., change 'has' to 'had').\n- Check off each part of the original quote to make sure no meaning is left behind.",
+      "trigger_keywords": [
+        "wanted to know",
+        "asked",
+        "told me"
+      ]
+    },
+    {
+      "name": "Missed Context Clues",
+      "what": "Sometimes picks a cloze word that makes sense on its own but doesn't quite fit the grammar rules or exact meaning of the surrounding words.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "EG chose 'through' instead of 'because', missing that it needs to pair with 'of' in the phrase 'because of'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "EG chose 'number' instead of 'risk', which sounds a bit unnatural when talking about the danger of food poisoning."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "EG chose 'satisfy' instead of 'provide' to go with the phrase 'everyone with a place'."
+        }
+      ],
+      "strategic_advice": "- Look closely at the **little words** right before and after the blank (like 'of', 'to', or 'with') to see if your word forms a familiar pair.\n- Read the whole sentence quietly to yourself to check if it sounds like natural English.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "passage"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 3
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqc4hzn5003lly3hsb1z4hks",
+    "2": "cmqc4hzn5003qly3h4ew8f74k",
+    "3": "cmqc4hzn6003sly3ht8m18n9b",
+    "4": "cmqc4a8cd003ely3hpuyq4nrl",
+    "5": "cmqc4a8cd003fly3ht2io1tph",
+    "6": "cmqc4a8cd003gly3h1ngq1kj8",
+    "7": "cmqc4a8cd003ily3hlyp6o7bk",
+    "8": "cmqbz5ffl004u4eho7yym3znz",
+    "9": "cmqbz5ffl004v4eho20766yhv",
+    "10": "cmqbz5ffm004z4ehopvaazbnk",
+    "11": "cmqbz5ffm00514ehogu76bwka",
+    "12": "cmqbz5ffm005d4ehor3cytvil",
+    "13": "cmqbz5ffm005e4ehopxtp6d72",
+    "14": "cmqbspuvc00e1mxygkpo6rlbh",
+    "15": "cmqbspuvc00e3mxygmdnyz6gx",
+    "16": "cmqbz4qkb004a4ehoyvc50147",
+    "17": "cmqbz4qkb004c4ehoixugp3tq",
+    "18": "cmqbz4qkb004d4ehov6bgo7rv",
+    "19": "cmqbz4qkb004e4ehouxeq8jfz",
+    "20": "cmqbz4qkb004f4eho6pg2kp66",
+    "21": "cmqbz4qkb004g4eho2o5n4v38",
+    "22": "cmqbz4qkb004i4eholsdsawbd"
+  },
+  "generatedAt": "2026-06-17T09:10:05.581Z",
+  "wrongCounts": {
+    "total": 22,
+    "oeq": 19,
+    "mcq": 3
+  },
+  "toplineSnapshot": {
+    "avgPct": 69,
+    "totalAwarded": 78,
+    "totalAvailable": 113,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

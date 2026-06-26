@@ -1,100 +1,101 @@
 {
   "patterns": [
     {
-      "name": "Stopping One Step Short",
-      "what": "Sometimes writes down the immediate cause or the first half of an answer, but occasionally stops before stating the final consequence or the specific science keywords needed for full marks.",
+      "name": "Stopping Too Early",
+      "what": "Tends to write down the first correct thought but occasionally stops one step short of explaining the final result.",
       "specific_examples": [
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "He correctly noted that 'there are less grasshoppers,' but stopped short of explaining that this means less food for the birds, causing them to decrease."
+          "whatWentWrong": "Benjamin correctly noted there are fewer grasshoppers, but stopped before explaining that this means less food for the birds."
         },
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "He correctly identified the water and food carrying tubes, but missed specific details like the water being 'red-coloured' or the food being 'made in the leaves.'"
+          "whatWentWrong": "He correctly identified the food-carrying tubes, but forgot to mention that the food is made in the leaves."
         },
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "He correctly noticed that the leaf size increased at first, but missed mentioning that it eventually decreased, and forgot to compare the different types of soil used."
+          "whatWentWrong": "He noticed the leaf size increased at first, but missed the second part of the pattern where the size decreases later."
         }
       ],
-      "strategic_advice": "When you see **'explain why'** or **'explain how'**, always ask yourself **'And then what happens?'** to push your answer one step further.\n- Use the **'Cause → Effect → Final Consequence'** method. Don't stop at the effect; make sure you link it all the way to what the question is asking about.\n- Always include specific details from the question, like colours or locations.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'explain why'** → always add a **'so that...'** or **'which means...'** to show the final result.\n- **'describe'** → double-check if you need to mention **where** something comes from (like food made in the leaves).",
       "trigger_keywords": [
         "explain why",
-        "explain how",
-        "describe how",
-        "give a reason"
+        "describe",
+        "what can you conclude"
       ]
     },
     {
-      "name": "Opposite Result Traps",
-      "what": "Occasionally gets caught out by experiments where a smaller measurement actually means a bigger result, such as less water dripping through meaning the soil holds more water.",
+      "name": "Graph and Table Traps",
+      "what": "Sometimes misreads what the numbers in a graph or table actually mean, especially when a smaller number means a faster speed or more water trapped.",
       "specific_examples": [
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "When looking for soil that 'holds a lot of water,' he picked the one where the most water dripped through, instead of the one that trapped the most water inside."
-        },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "He saw a shorter bar on the graph and thought it meant less water was lost, but the graph measured 'time taken', so a shorter time actually means water was lost more quickly."
-        }
-      ],
-      "strategic_advice": "When reading a graph or table, always check the **axis labels** or **column headings** carefully.\n- If the table measures **'time taken'**, remember that a smaller number means it happened **faster**.\n- If the experiment measures water dripping out, remember that less water out means **more water kept inside**.",
-      "trigger_keywords": [
-        "time taken",
-        "holds a lot of water",
-        "collected in the measuring cylinder"
-      ]
-    },
-    {
-      "name": "Plant Tubes Mix-Up",
-      "what": "Sometimes confuses how water and food travel in a plant, such as thinking food moves up from the roots or that cutting food tubes stops water from reaching the flowers.",
-      "specific_examples": [
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "He drew arrows showing food moving up from the roots to the leaves, but food is actually made in the leaves and travels downwards to the rest of the plant."
+          "whatWentWrong": "Benjamin saw a shorter bar for time and might have thought it meant less water lost, instead of water being lost more quickly."
         },
         {
-          "questionRef": "[16]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "When the food-carrying tubes were removed, he thought the flowers above the cut couldn't get water, but the water-carrying tubes were still working perfectly."
+          "whatWentWrong": "He picked the soil that let the most water drip through, instead of the one that trapped and held the most water inside."
         }
       ],
-      "strategic_advice": "Remember the golden rules of plant transport:\n- **Water goes UP** (from the roots to the leaves).\n- **Food goes DOWN and AROUND** (from the leaves to all other parts).\n- If a question mentions a cut stem, check carefully whether the **food tubes** or **water tubes** (or both) were removed. If only food tubes are cut, water can still travel up!",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'time taken'** → remember that a **shorter time** means the action happened **faster**.\n- **'holds a lot of water'** → look for the soil that lets the **least** amount drip out into the measuring cylinder!",
       "trigger_keywords": [
-        "food-carrying tubes",
-        "water-carrying tubes",
-        "stem",
-        "transported",
-        "cut"
+        "time taken",
+        "amount of water collected",
+        "holds a lot of water"
       ]
     },
     {
-      "name": "Energy Words Mix-Up",
-      "what": "Tends to use general words like 'potential' instead of specific ones, and occasionally misses how one type of energy changes into another.",
+      "name": "Energy Type Mix-Up",
+      "what": "Occasionally mixes up or forgets the exact names of energy types, like leaving out 'elastic' or forgetting about heat and sound.",
       "specific_examples": [
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'Potential' energy for a stretched plunger, but Science requires the specific term 'Elastic potential' energy."
+          "whatWentWrong": "Benjamin wrote potential energy but missed the specific word 'elastic' for the stretched plunger."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "When explaining why a moving balloon eventually stopped, he missed mentioning that its kinetic energy was converted into heat and sound energy due to friction."
+          "whatWentWrong": "He knew friction stopped the balloon, but forgot to explain that the kinetic energy was converted into heat and sound energy."
         }
       ],
-      "strategic_advice": "Always add a descriptive word before 'potential energy'. Ask yourself: is it **Elastic** (stretched/compressed) or **Gravitational** (raised above the ground)?\n- When a moving object stops, its energy doesn't just disappear. Always explain that **kinetic energy** is converted into **heat energy** (and sometimes sound) due to friction.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'plunger'** or **'spring'** → always write **'elastic potential energy'**, not just potential energy.\n- **'came to a stop'** → remember to write that **kinetic energy** is converted into **heat and sound energy** due to friction.",
       "trigger_keywords": [
         "energy conversion",
-        "explain in terms of energy",
-        "fill in the boxes",
-        "potential"
+        "came to a stop",
+        "fill in the boxes"
+      ]
+    },
+    {
+      "name": "Plant Tubes Confusion",
+      "what": "Sometimes confuses how water and food travel in a plant, especially when figuring out what happens if one type of tube is cut.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Benjamin forgot that if only the food tubes are cut, the water tubes are still working, so the leaves will stay green."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "He thought the white parts of the flower had no water tubes, instead of realising they just didn't get the coloured water yet."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He drew the arrows for food transport going the wrong way, and missed explaining that the food tubes were removed."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'food-carrying tubes are removed'** → remind yourself: 'Water can still go up! The leaves will survive, but the roots will starve.'\n- **'transported'** → remember that **water goes UP** from the roots, and **food goes DOWN** (and around) from the leaves.",
+      "trigger_keywords": [
+        "food-carrying tubes",
+        "water-carrying tubes",
+        "cut the stem"
       ]
     }
   ],
@@ -133,7 +134,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
@@ -149,7 +150,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 14,
@@ -161,11 +162,11 @@
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -173,7 +174,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 20,
@@ -181,15 +182,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -201,7 +202,7 @@
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 27,
@@ -242,7 +243,7 @@
     "27": "cmoxyv4w4002zoeuruotgidx6",
     "28": "cmoxyv4w50032oeur3ydh2ige"
   },
-  "generatedAt": "2026-06-17T09:08:42.069Z",
+  "generatedAt": "2026-06-26T09:26:15.716Z",
   "wrongCounts": {
     "total": 28,
     "oeq": 10,
@@ -254,5 +255,24 @@
     "totalAvailable": 198,
     "paperCount": 7
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:08:42.069Z",
+    "patternNames": [
+      "Stopping One Step Short",
+      "Opposite Result Traps",
+      "Plant Tubes Mix-Up",
+      "Energy Words Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 28,
+      "oeq": 10,
+      "mcq": 18
+    },
+    "toplineSnapshot": {
+      "avgPct": 72,
+      "totalAwarded": 142,
+      "totalAvailable": 198,
+      "paperCount": 7
+    }
+  }
 }

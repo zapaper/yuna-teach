@@ -1,0 +1,249 @@
+{
+  "patterns": [
+    {
+      "name": "Forgotten Science Words",
+      "what": "Shows good understanding of the science but occasionally forgets to include the exact scientific terms or link the answer back to the experiment's aim.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Ruthie correctly noted that the plant gives out oxygen, but forgot to mention the fish needs it for 'respiration'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She knew the rubber band made the car move, but missed using the specific term 'elastic potential energy'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She understood the experiment was about rough surfaces, but forgot to state how the surface affects the 'distance travelled'."
+        }
+      ],
+      "strategic_advice": "When you see **'explain'** or **'state the aim'**, use your science vocabulary checklist:\n- **Name the process**: Is it respiration, photosynthesis, or evaporation?\n- **Name the energy/force**: Use full names like 'elastic potential energy' or 'frictional force'.\n- **Link to the result**: Always mention how the changed variable affects the final measurement (like distance or time).",
+      "trigger_keywords": [
+        "explain",
+        "state the aim",
+        "what is the source"
+      ]
+    },
+    {
+      "name": "Energy Type Mix-Up",
+      "what": "Mixes up energy concepts occasionally, such as confusing the potential energy stored in a battery with electrical energy, or forgetting how kinetic energy changes.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Ruthie mixed up how kinetic energy changes as a ball rolls up and down a ramp."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "She thought a phone battery starts with electrical energy, rather than storing 'potential energy'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "She missed that a bouncing ball eventually stops because its energy is converted into sound and heat."
+        }
+      ],
+      "strategic_advice": "When you see questions about **'energy conversion'**, remember these rules:\n- **Batteries and food** store **potential energy** (chemical), not electrical energy.\n- **Moving objects** have **kinetic energy**, which changes to potential energy as they go higher.\n- **Nothing is destroyed**: Energy always changes into something else, often **heat and sound** when things stop.",
+      "trigger_keywords": [
+        "energy conversion",
+        "source of energy",
+        "kinetic energy"
+      ]
+    },
+    {
+      "name": "Fair Test Mix-Up",
+      "what": "Confuses the rules of a fair test sometimes, such as changing too many variables for a control set-up or mixing up repeating an experiment with keeping it fair.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "When asked how to make results more accurate, Ruthie suggested repeating the experiment instead of controlling a variable like the release height."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "She picked a control set-up that changed two things (removing the glass cover and the chemical) instead of just one."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She concluded that seeds need water, even though the experiment was specifically testing the effect of different temperatures."
+        }
+      ],
+      "strategic_advice": "When you see **'control'**, **'accurate'**, or **'conclude'**, treat them as stop signs:\n- **Control set-up** → Keep everything exactly the same, but change ONLY the one thing you are testing.\n- **Accurate/Fair test** → Look for variables that need to be kept the same (like starting height or amount of water).\n- **Conclusion** → Always answer based on the variable that was changed in the experiment, not just general science facts.",
+      "trigger_keywords": [
+        "control for his experiment",
+        "make his results more accurate",
+        "effect of"
+      ]
+    },
+    {
+      "name": "Data Reading Slips",
+      "what": "Misses small details when reading graphs or diagrams, such as overlooking a flat line on a graph or confusing the types of items with the total number.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Ruthie misread the options about populations versus individual organisms in the habitat diagram."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "She saw 5 bars on the graph and thought there were 5 organisms total, instead of 5 types of organisms."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "She mixed up the melting and boiling points when figuring out the state of a substance at different temperatures."
+        }
+      ],
+      "strategic_advice": "When you see **'Based on the graph'** or **'Which statement is correct'**, take a moment to double-check the labels:\n- **Read the axes** → Check if the numbers mean 'total organisms' or 'types of organisms'.\n- **Trace the lines** → Use your pencil to follow the data points, especially looking for where a line goes flat.\n- **Check every option** → Cross out the ones that are definitely wrong before picking your final answer.",
+      "trigger_keywords": [
+        "Based on the results",
+        "Based on the graph",
+        "Which of the following statements"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 3
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq5abzo20005r29w6ihwu4wc",
+    "2": "cmq5abzo30009r29wbajy5276",
+    "3": "cmq5abzo4000ir29w1q44i9hz",
+    "4": "cmq5abzo5000lr29wl5mdql5y",
+    "5": "cmp2ldext0005gnabf8tene22",
+    "6": "cmp2ldklp000ignaber8u2qnp",
+    "7": "cmozn9end0008gf4go8pnvbmq",
+    "8": "cmozn9end000agf4g5wgqhy7v",
+    "9": "cmozn9end000bgf4gbh2b9na4",
+    "10": "cmowtq1ts001kexaiti764dg1",
+    "11": "cmowtq1ts001lexaii5jz0tgi",
+    "12": "cmowtq1tu001mexaibu1203a7",
+    "13": "cmowtq1tw001pexaigidddyrj",
+    "14": "cmowtnrao000vexai58djz6l8",
+    "15": "cmowtnrap000zexai6gag3xhm",
+    "16": "cmowtnrap0012exai4yo1ltiy",
+    "17": "cmowtnrap0013exai04ex9la2",
+    "18": "cmos5pzvx000714n1sqiv9w5u",
+    "19": "cmos5pzvy000c14n15ep4t99f",
+    "20": "cmos5pzvy000g14n1gukcma9n",
+    "21": "cmos5pzvz000i14n1ksnxufkz",
+    "22": "cmos5pzvz000j14n1elan2op0",
+    "23": "cmou110da002r954y6ri0hi34",
+    "24": "cmou110dc0036954yhxbdcwtn"
+  },
+  "generatedAt": "2026-06-17T09:21:11.474Z",
+  "wrongCounts": {
+    "total": 24,
+    "oeq": 9,
+    "mcq": 15
+  },
+  "toplineSnapshot": {
+    "avgPct": 80,
+    "totalAwarded": 191.5,
+    "totalAvailable": 238,
+    "paperCount": 8
+  },
+  "previousAssessment": null
+}

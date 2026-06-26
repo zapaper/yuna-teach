@@ -1,0 +1,331 @@
+{
+  "patterns": [
+    {
+      "name": "One Step Short",
+      "what": "Often writes down a good starting thought but occasionally stops before explaining the final scientific reason or consequence.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "IJ noted that the seeds would travel a shorter distance, but missed the final consequence that this causes overcrowding."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "IJ mentioned that having many entrances makes the burrow accessible, but missed the survival reason of escaping if one entrance is blocked by a predator."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly stated that air has no definite volume, but forgot to mention the other half of the concept: water has a definite volume."
+        }
+      ],
+      "strategic_advice": "When you see prompts asking you to explain, treat them as a two-step journey:\n- **'Explain how'** or **'Explain why'** → state your observation, then add a **'so that...'** or **'which causes...'** clause to show the final result.\n- **'Advantage / Disadvantage'** → always link the feature back to survival, overcrowding, or energy.",
+      "trigger_keywords": [
+        "Explain why",
+        "Explain how",
+        "Describe how",
+        "Advantage",
+        "Disadvantage"
+      ]
+    },
+    {
+      "name": "Skipping Questions",
+      "what": "Occasionally leaves questions completely blank, especially when they look long or ask for an explanation or experiment steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the explanation for the advantage of a high hydro-electric turbine completely blank."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the explanation about which spring produces the loudest sound blank."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "IJ left the steps for conducting the seed dispersal experiment blank."
+        }
+      ],
+      "strategic_advice": "When you see a long question or one asking for steps, don't leave it blank! Try these tricks:\n- **'List down the steps'** → imagine you are telling a friend how to do the activity, and write down the first thing you would do.\n- **'Explain your answer'** → even if you aren't sure of the whole answer, write down the science keywords you know about the topic to grab partial marks.",
+      "trigger_keywords": [
+        "Explain your answer",
+        "List down the steps",
+        "Give one advantage"
+      ]
+    },
+    {
+      "name": "Chewing vs Digesting Mix-Up",
+      "what": "Sometimes confuses the physical chewing of food into smaller pieces (which happens in the mouth) with the chemical digestion of food into simpler substances (which happens in the stomach and small intestine).",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "IJ labelled the mouth, stomach, and small intestine as places where food is 'broken into smaller pieces', instead of just the mouth."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "IJ again selected the mouth, stomach, and small intestine for 'breaks food into smaller pieces', when only the mouth was expected."
+        }
+      ],
+      "strategic_advice": "When you see questions about the digestive system, remember the difference between physical and chemical changes:\n- **'Breaks food into smaller pieces'** → this is physical chewing, which only happens in the **mouth**.\n- **'Breaks down into simpler substances'** → this is chemical digestion, which happens in the **mouth, stomach, and small intestine**.",
+      "trigger_keywords": [
+        "breaks food into smaller pieces",
+        "digestion",
+        "digestive system"
+      ]
+    },
+    {
+      "name": "Series vs Parallel Mix-Up",
+      "what": "Sometimes mixes up how to draw series and parallel circuits, especially when trying to keep one part of the circuit working while another part is broken.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "IJ needed to draw a parallel arrangement for the bulb and sound box but missed the correct connections."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "IJ drew a series circuit instead of a parallel one, even though IJ correctly wrote that the bulbs should have separate pathways."
+        }
+      ],
+      "strategic_advice": "When you see questions asking you to draw a circuit, look for clues about how the components behave:\n- **'Remained lit'** or **'still play music'** → this is a huge clue that you must draw a **parallel circuit** with separate loops.\n- **'Draw wires'** → always double-check that your wires connect to both the **metal tip** and the **metal casing** of the bulb.",
+      "trigger_keywords": [
+        "draw wires to complete the circuit",
+        "remained lit",
+        "parallel"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqg1asts0002fp5qhe7mcq3j",
+    "2": "cmqeqp4k600264ny12ip0yasp",
+    "3": "cmqdjbthw0010149yy0uff1th",
+    "4": "cmqdjbthw0011149yeszswa4u",
+    "5": "cmqdjbthw0012149yvb6vjgk4",
+    "6": "cmqc95mqq006ily3ht4z5n0km",
+    "7": "cmqc95mqr006qly3hpcmacizt",
+    "8": "cmqc95mqr006rly3hxf036m1x",
+    "9": "cmqc80kjg0068ly3hyupnefdv",
+    "10": "cmqc80kjh006ely3h4mv55y2r",
+    "11": "cmq819nbf0006bxufaes0uj5y",
+    "12": "cmq819nbf000abxufqjx700ky",
+    "13": "cmq819nbf000bbxufh8cb9cii",
+    "14": "cmq819nbg000obxufaoiwdebp",
+    "15": "cmq819nbg000qbxufu3buz8lm",
+    "16": "cmq819nbh000vbxufy5wo8i41",
+    "17": "cmq819nbh000wbxuf72kmq4n8",
+    "18": "cmq819nbh000ybxufuabmtf3q",
+    "19": "cmq819nbh000zbxuftkj7c6dk",
+    "20": "cmq819nbh0010bxufgc5xmw8z",
+    "21": "cmq819nbi0011bxuf582jfeih",
+    "22": "cmq819nbi0013bxufh7tf84ga",
+    "23": "cmq819nbi0015bxufc8851zc4",
+    "24": "cmq819nbi0017bxuf7bi6fa2g",
+    "25": "cmq819nbi0018bxufk1ub4lbp",
+    "26": "cmq819nbj0019bxuf2ybkob8s",
+    "27": "cmq819nbj001abxufnazwy7hb",
+    "28": "cmq6rj8da0004o0vaidkii359",
+    "29": "cmq6rj8da0006o0vazdru1dcv",
+    "30": "cmq6rj8db0008o0va657cqm3y",
+    "31": "cmq6rj8db0009o0valj9q4gxa",
+    "32": "cmq4st4rb0078ualapj66rgok",
+    "33": "cmq4st4rc007duala5x2sfz5z",
+    "34": "cmq4st4rd007kuala1acd0cu7",
+    "35": "cmq3jqwp1000413292lqvwc4c",
+    "36": "cmq3jqwp2000c1329ttlguu10",
+    "37": "cmq3jqwp4000j13291dale7ym",
+    "38": "cmq3jqwp4000l13296kp8nr9o",
+    "39": "cmq3jr5pr000q1329ylk4x3on",
+    "40": "cmq3jr5ps000x1329t48sr1ug",
+    "41": "cmq3jr5pt00161329tdur5gky",
+    "42": "cmq3jr5pt00171329t54i1vn3"
+  },
+  "generatedAt": "2026-06-17T09:11:51.347Z",
+  "wrongCounts": {
+    "total": 42,
+    "oeq": 18,
+    "mcq": 24
+  },
+  "toplineSnapshot": {
+    "avgPct": 79,
+    "totalAwarded": 298.5,
+    "totalAvailable": 376,
+    "paperCount": 12
+  },
+  "previousAssessment": null
+}

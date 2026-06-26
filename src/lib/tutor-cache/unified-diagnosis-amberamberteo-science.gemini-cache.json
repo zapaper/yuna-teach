@@ -1,103 +1,112 @@
 {
   "patterns": [
     {
-      "name": "Leaving Questions Blank",
-      "what": "Tends to leave several questions completely blank, especially towards the end of a practice paper or when a question has multiple parts.",
+      "name": "Skipping Questions",
+      "what": "Sometimes leaves entire questions or parts of questions completely blank when she might actually know some of the keywords.",
       "specific_examples": [
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "Left the questions about the variables and the relationship between wing length and distance completely blank."
-        },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "Did not write an answer for naming the flower part or comparing insect and wind-pollinated flowers."
+          "whatWentWrong": "Amberamberteo left both parts of the question completely blank instead of trying to name the flower part or guess a difference."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "Skipped both parts of the question explaining how golf balls and ping pong balls affect the water level."
-        }
-      ],
-      "strategic_advice": "When you feel stuck or tired, try these steps:\n- **Write down any science keywords** you know about the topic, even if you can't form a full sentence.\n- **Look at the marks** for the question. If it's worth 2 marks, try to write down two facts.\n- **Never leave a blank!** A partial answer can often earn you half a mark.",
-      "trigger_keywords": [
-        "(a)",
-        "(b)",
-        "(i)",
-        "(ii)"
-      ]
-    },
-    {
-      "name": "Stopping Too Early",
-      "what": "Occasionally stops one step short of writing down the specific science keywords or final consequences needed for full marks, even when the main idea is grasped.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Correctly named the ovule, but forgot to mention the key science phrase that it 'contains the egg cell'."
+          "whatWentWrong": "She skipped the explanation for how golf balls save water, missing a chance to write about them taking up space."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[24]",
           "type": "oeq",
-          "whatWentWrong": "Described the flower well, but stopped short of explaining that the pollen was transferred before the male parts were removed."
-        },
-        {
-          "questionRef": "[15]",
-          "type": "oeq",
-          "whatWentWrong": "Noted that the magnet was strong, but missed stating the crucial fact that the paper clip is a 'magnetic material'."
+          "whatWentWrong": "Amberamberteo left the classification table empty, missing easy marks for sorting everyday items into matter and non-matter."
         }
       ],
-      "strategic_advice": "When you see prompts like **'explain why'** or **'describe'**, treat them as a checklist:\n- **Use the right names:** Always use specific science words like 'magnetic material' or 'egg cell' instead of general words.\n- **Show the final step:** Add a **'so that...'** or **'which causes...'** clause to show the final result of what happens.",
+      "strategic_advice": "When you see a tough question, don't leave it empty! Try to write down at least two science keywords related to the topic.\n- **'Explain why'** → write down the science concept (like 'takes up space' or 'magnetic').\n- **'State two'** → even if you only know one, write it down! Every keyword is a chance for partial marks.",
       "trigger_keywords": [
         "Explain why",
-        "State why",
-        "Describe"
+        "State two",
+        "Classify"
       ]
     },
     {
-      "name": "Air and Space Mix-Up",
-      "what": "Sometimes forgets that air is matter that takes up space and can be compressed, which is key to explaining how liquids flow and balloons inflate.",
+      "name": "Air Properties Mix-Up",
+      "what": "Occasionally forgets that air is invisible matter that takes up space and can be compressed.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "Identified that air was trapped, but missed explaining that the air needs to escape so the soy sauce can take its space."
+          "whatWentWrong": "Amberamberteo missed explaining that trapped air needs to escape the bottle so the soy sauce can take its space."
         },
         {
           "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "Incorrectly stated that air cannot be compressed when pushed by a plunger."
+          "whatWentWrong": "She stated that air cannot be compressed when pushed by a plunger, forgetting that gases have no definite volume."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo missed mentioning that water entering the bottle pushes the air to occupy the balloon's space."
         }
       ],
-      "strategic_advice": "When a question involves empty bottles, plungers, or funnels, remember the invisible matter:\n- **Air takes up space:** If water or liquid wants to go in, the air must have a way to **escape**.\n- **Air can be compressed:** Unlike liquids and solids, gases can be squeezed into a smaller space.",
+      "strategic_advice": "When you see questions about **bottles, plungers, or pumps**, remember the invisible matter!\n- **'trapped air'** → it takes up space and must escape for liquid to enter.\n- **'plunger'** → air has no definite volume and **can be compressed**.",
       "trigger_keywords": [
-        "Explain why",
-        "property of matter",
-        "trapped air"
+        "plunger",
+        "empty bottle",
+        "pushed into water"
       ]
     },
     {
-      "name": "Magnetic Rules Mix-Up",
-      "what": "Occasionally confuses which materials are magnetic and forgets the special rule that only two magnets can push each other away.",
+      "name": "Magnetic Metals Mix-Up",
+      "what": "Tends to assume all metals are magnetic and occasionally forgets the special rule that only two magnets can repel.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "Forgot the golden rule that only two magnets can repel each other, while any magnetic metal can be attracted."
+          "whatWentWrong": "Amberamberteo missed the clue that only two magnets can repel each other, while a magnet and a magnetic metal will only attract."
         },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Thought that 'any metal' can be made into a magnet, instead of just magnetic ones like iron and steel."
+          "whatWentWrong": "She chose 'any metal' instead of remembering that only specific metals like iron and steel can be made into magnets."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo forgot to state the crucial fact that the paper clip is attracted because it is made of a magnetic material."
         }
       ],
-      "strategic_advice": "When solving magnet puzzles, keep these rules in mind:\n- **Repulsion is the true test:** If two objects push each other away, they **must both be magnets**.\n- **Not all metals are magnetic:** Only specific metals like **iron and steel** can be attracted to or made into magnets.",
+      "strategic_advice": "When you see questions about **magnets and metals**, keep these rules in mind:\n- **'any metal'** → trap! Only iron, steel, nickel, and cobalt are magnetic.\n- **'repel'** or **'push away'** → this is the ultimate test! Only two magnets can repel. If they only attract, one might just be a magnetic metal.",
       "trigger_keywords": [
         "magnets",
         "attract",
         "repel",
-        "magnetic strength"
+        "metal bars"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Often identifies the correct topic but stops one step short of explaining the full scientific process.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo correctly named the ovule but forgot to mention it contains the egg cell for fertilisation."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "She described the flower's parts well but missed the step-by-step process of pollen transfer, fertilisation, and the ovary becoming a fruit."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Amberamberteo stated it was a wind-pollinated flower but didn't explain the steps of how it still grows into a fruit."
+        }
+      ],
+      "strategic_advice": "When you see **'explain why'** or **'describe how'**, treat it like a story that needs a clear ending.\n- Use linking words like **'which allows'** or **'so that'**.\n- For plant reproduction, always complete the story: **pollination → fertilisation → ovary becomes fruit**.",
+      "trigger_keywords": [
+        "explain why",
+        "describe how",
+        "what happens when"
       ]
     }
   ],
@@ -108,19 +117,19 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 4,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -128,39 +137,39 @@
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 10,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 16,
@@ -168,7 +177,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -230,7 +239,7 @@
     "24": "cmozjaknt000a8hc8fg4hvie8",
     "25": "cmozjaknu000b8hc8mt6eq6bj"
   },
-  "generatedAt": "2026-06-19T02:39:53.861Z",
+  "generatedAt": "2026-06-26T09:25:13.441Z",
   "wrongCounts": {
     "total": 25,
     "oeq": 17,
@@ -242,5 +251,24 @@
     "totalAvailable": 132,
     "paperCount": 7
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:39:53.861Z",
+    "patternNames": [
+      "Leaving Questions Blank",
+      "Stopping Too Early",
+      "Air and Space Mix-Up",
+      "Magnetic Rules Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 25,
+      "oeq": 17,
+      "mcq": 8
+    },
+    "toplineSnapshot": {
+      "avgPct": 59,
+      "totalAwarded": 78.5,
+      "totalAvailable": 132,
+      "paperCount": 7
+    }
+  }
 }

@@ -1,0 +1,391 @@
+{
+  "patterns": [
+    {
+      "name": "Spelling Slips",
+      "what": "Occasionally loses half a mark due to minor spelling mistakes in words she likely knows, both in editing passages and comprehension answers.",
+      "specific_examples": [
+        {
+          "questionRef": "[49]",
+          "type": "oeq",
+          "whatWentWrong": "Spelled 'disappointed' as 'disappinted' in the editing passage."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote 'eariler' instead of 'earlier' in a comprehension answer."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Accidentally wrote 'witn' instead of 'with' when copying from the text."
+        }
+      ],
+      "strategic_advice": "When checking your work, try reading your written answers backwards word by word. This forces your brain to look at the spelling of each word rather than just reading the sentence.",
+      "trigger_keywords": [
+        "editing",
+        "comprehension",
+        "spelling"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Sometimes gets tricked by sentences where the subject is a special word like 'Neither' or an action word, mistakenly choosing a plural verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[31]",
+          "type": "mcq",
+          "whatWentWrong": "Chose the plural verb 'attend' for the singular subject 'Neither'."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "Picked the plural verb 'help' instead of 'helps' for the singular subject 'reading'."
+        }
+      ],
+      "strategic_advice": "When you see words like **'Neither'**, **'Each'**, or an action ending in **'-ing'** acting as the subject, treat them as singular. Try crossing out the extra descriptive words (like 'of the siblings') to find the true subject.",
+      "trigger_keywords": [
+        "neither",
+        "each",
+        "reading",
+        "verb"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "Tends to capture the main idea in comprehension answers but occasionally misses the second required point or the specific format requested.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Identified that the writer felt she didn't guide Timmy well, but missed the second point about feeling burdened by expectations."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote full sentences instead of picking exactly two words as requested by the question."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Stated that the writer is reminded of the advice, but stopped short of explaining how she actually applied it to her job."
+        }
+      ],
+      "strategic_advice": "When a question is worth 2 marks or asks you to **'explain fully'**, always look for two distinct points in the passage. If the prompt says **'pick out two words'**, double-check that your final answer is exactly two words.",
+      "trigger_keywords": [
+        "explain fully",
+        "explain clearly",
+        "in what ways",
+        "pick out"
+      ]
+    },
+    {
+      "name": "Missing Clue Words",
+      "what": "Occasionally selects a vocabulary word that seems related but doesn't quite fit the surrounding words or the exact meaning of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[43]",
+          "type": "mcq",
+          "whatWentWrong": "Chose 'frolic' instead of 'revel', missing the clue word 'in' that follows the blank."
+        },
+        {
+          "questionRef": "[54]",
+          "type": "mcq",
+          "whatWentWrong": "Picked 'aggravate' (which means to make worse) instead of 'alleviate' (to make better) when the sentence talked about easing a problem."
+        }
+      ],
+      "strategic_advice": "Look closely at the words immediately before and after the blank, especially prepositions like **'in'** or **'to'**. Try plugging your chosen word into the sentence to see if it makes logical sense with the overall message.",
+      "trigger_keywords": [
+        "blank",
+        "closest in meaning",
+        "vocabulary"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    },
+    {
+      "idx": 31,
+      "patternIndex": 1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": 3
+    },
+    {
+      "idx": 44,
+      "patternIndex": 3
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 3
+    },
+    {
+      "idx": 47,
+      "patternIndex": 3
+    },
+    {
+      "idx": 48,
+      "patternIndex": 3
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": 0
+    },
+    {
+      "idx": 51,
+      "patternIndex": 0
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqf9pec7000rm5kygjzi3ehb",
+    "2": "cmqf9pec7000sm5ky72xajj6s",
+    "3": "cmqf9pec7000tm5ky62j29nki",
+    "4": "cmqf9pec7000um5kyput14dmj",
+    "5": "cmqf9pec7000vm5kyrs7vhacx",
+    "6": "cmqf9pec7000wm5ky0x90ymid",
+    "7": "cmqf9pec7000ym5kyvd68jnxl",
+    "8": "cmq9lv8uk0004u41ea9mhvmbs",
+    "9": "cmq9lv8uk0005u41e87pyjx19",
+    "10": "cmq9lv8uk0006u41eao7gt56g",
+    "11": "cmq9lv8uk0007u41esm5f6khc",
+    "12": "cmq9lv8uk0008u41en00jpuqx",
+    "13": "cmq9lv8uk000bu41e0aj5vh7w",
+    "14": "cmq9lvl2p000eu41etgg93wyn",
+    "15": "cmq9lvl2p000gu41e125tbsjj",
+    "16": "cmq9lvl2p000hu41eq946ikvh",
+    "17": "cmq9lvl2p000iu41eofc58bb9",
+    "18": "cmq9lvl2p000ku41erk6wnowx",
+    "19": "cmq9lvl2p000lu41e55m8yhnl",
+    "20": "cmq9lvl2p000pu41e82qg0mj3",
+    "21": "cmq85s9cs001gbxufuxlify99",
+    "22": "cmq85s9cs001hbxuf0t5lxqhh",
+    "23": "cmq85s9cs001ibxufb7y4etxw",
+    "24": "cmq85s9cs001kbxufqy53t860",
+    "25": "cmq85s9cs001lbxuf82bj5srm",
+    "26": "cmq85s9cs001mbxuf3amhyu9s",
+    "27": "cmq85s9cs001nbxufvckt8e6i",
+    "28": "cmq3sot7o007gy4pbg64ckx8a",
+    "29": "cmq3sot7o007iy4pbetxmo37d",
+    "30": "cmq3sot7o007ly4pb08xtlx65",
+    "31": "cmq107er50005akoe4q0ksfd5",
+    "32": "cmq107er5000aakoenhzljxy5",
+    "33": "cmq107er5000eakoexlq1ghay",
+    "34": "cmq107er6000fakoefwkf0nmv",
+    "35": "cmq107er6000gakoeds9j7oa8",
+    "36": "cmq107er6000kakoeyozw0kf2",
+    "37": "cmq107er6000wakoeprhlm0c0",
+    "38": "cmq107er70010akoe1p79te17",
+    "39": "cmq107er70011akoewir87jaj",
+    "40": "cmq107er70012akoe3jh3brbd",
+    "41": "cmpzm589p001je3tvzu2t1zcl",
+    "42": "cmpzm589q001me3tv5v1t0lr7",
+    "43": "cmpzm589q001re3tvy8nhzbx0",
+    "44": "cmpzm589q001ve3tv4i8f72qm",
+    "45": "cmpy4e09c000nar0poxdwd0e0",
+    "46": "cmpy4e09c000uar0phn35fdal",
+    "47": "cmpy4e09c0010ar0pi28ri5ad",
+    "48": "cmpy4e09c0011ar0pjt1a070v",
+    "49": "cmpy4e09d0013ar0p537s3vq9",
+    "50": "cmpy4e09d0017ar0p05il8bjx",
+    "51": "cmpy4e09d0019ar0puudis7rk",
+    "52": "cmpwiea45000qpwrhdynsl3tw",
+    "53": "cmpwiea46000rpwrh5zqriegh",
+    "54": "cmpwiea460011pwrhnmrtyg8m"
+  },
+  "generatedAt": "2026-06-17T09:06:54.334Z",
+  "wrongCounts": {
+    "total": 54,
+    "oeq": 38,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 62,
+    "totalAwarded": 112.5,
+    "totalAvailable": 182,
+    "paperCount": 9
+  },
+  "previousAssessment": null
+}

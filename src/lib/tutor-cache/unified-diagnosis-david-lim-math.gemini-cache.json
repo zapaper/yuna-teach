@@ -1,74 +1,79 @@
 {
   "patterns": [
     {
-      "name": "Ratio Order Mix-Up",
-      "what": "Often finds the correct numbers for a ratio but writes them in the reverse order of what the question asked for.",
+      "name": "Small Number Slips",
+      "what": "Occasionally makes a small addition or subtraction mistake along the way, even when the overall method is set up perfectly.",
       "specific_examples": [
         {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "David correctly found the number of men and women but picked the option that showed the ratio of women to men instead."
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Added the decimals incorrectly before dividing to find the mass of each bag."
         },
         {
-          "questionRef": "[15]",
+          "questionRef": "[33]",
           "type": "oeq",
-          "whatWentWrong": "He successfully found the correct number of units for blue and white ribbons but wrote the final answer backwards."
+          "whatWentWrong": "Made a small subtraction error when finding the final angle, even though the first step was correct."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Set up the units perfectly, but made a calculation error when finding the value of one unit."
         }
       ],
-      "strategic_advice": "When you see a question asking for a ratio, treat the word **'to'** as a strict order marker.\n- Highlight or underline the specific items in the question (e.g., **'blue to white'**).\n- Write the letters above your final numbers (e.g., **B : W**) before writing the final answer to ensure they match the requested order.",
+      "strategic_advice": "When you see prompts that require multiple steps, treat them as a signal to double-check your working:\n- **'total mass'** or **'altogether'** → quickly re-add your numbers to be sure.\n- **'find angle'** → check your subtraction from 180 or 360 one more time.",
       "trigger_keywords": [
-        "ratio of",
-        "to the number of",
-        "ratio of the number of"
+        "altogether",
+        "total",
+        "find angle"
       ]
     },
     {
-      "name": "Overlapping Area Mix-Up",
-      "what": "Tends to add the overlapping part instead of subtracting it when finding the total area of overlapping shapes.",
+      "name": "Combined Shapes Trap",
+      "what": "Tends to include hidden inside edges or overlapping parts when finding the perimeter or area of joined figures.",
       "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Counted 14 sides instead of 13, accidentally including an inside edge of the combined squares."
+        },
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "David correctly found the value of one unit but added the overlapping shaded area to the total instead of subtracting it."
+          "whatWentWrong": "Added the overlapping area instead of subtracting it to find the total area of the figure."
         },
         {
-          "questionRef": "[28]",
+          "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "He did a great job making the units the same but missed that the overlapping part shouldn't be counted twice."
+          "whatWentWrong": "Used the wrong multiplier for the perimeter, likely counting sides hidden inside the shape."
         }
       ],
-      "strategic_advice": "When you see overlapping shapes, remember that the overlap is shared by both shapes.\n- If you add the area of both shapes together, you have counted the overlap **twice**.\n- Always **subtract the overlap once** to find the true total area of the whole figure.",
+      "strategic_advice": "When you see questions about joined or overlapping shapes, use your pencil to trace the outside:\n- **'perimeter of the figure'** → highlight only the outside lines you can touch.\n- **'overlapping'** or **'shaded area'** → remember to subtract the shared part so you don't count it twice.",
       "trigger_keywords": [
+        "perimeter of the figure",
         "overlapping",
-        "area of the whole figure",
         "shaded area"
       ]
     },
     {
-      "name": "Leaving Questions Blank",
-      "what": "Occasionally leaves questions completely blank, missing out on the chance to earn partial marks for his working.",
+      "name": "Ratio Order Mix-Up",
+      "what": "Sometimes reverses the order of items in a ratio or misreads which fraction belongs to which person.",
       "specific_examples": [
         {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "David left this angles question blank instead of writing down the steps or angles he already knew."
-        },
-        {
-          "questionRef": "[73]",
+          "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "He skipped this fraction question entirely without selecting an option."
+          "whatWentWrong": "Picked the ratio of women to men instead of men to women."
         },
         {
-          "questionRef": "[83]",
+          "questionRef": "[35]",
           "type": "oeq",
-          "whatWentWrong": "He left this fraction calculation blank instead of trying to work it out step by step."
+          "whatWentWrong": "Misinterpreted the starting fraction, mixing up how many units belonged to Sam and Paul."
         }
       ],
-      "strategic_advice": "When you feel stuck on a question, don't leave it completely empty.\n- For open-ended questions, write down **any steps or values** you can figure out (like finding one unit or one angle) to earn partial marks.\n- For multiple-choice questions, always **make your best guess** by eliminating the options you know are wrong.",
+      "strategic_advice": "When you see ratio or fraction questions, always label your numbers:\n- **'ratio of [A] to [B]'** → write A : B above your numbers to keep them in the right order.\n- **'[A] had 2/5 as much as [B]'** → draw a quick box model to show who gets 2 units and who gets 5.",
       "trigger_keywords": [
-        "Find",
-        "What is",
-        "How much"
+        "ratio of",
+        "as much as",
+        "to the number of"
       ]
     }
   ],
@@ -103,7 +108,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 9,
@@ -115,15 +120,15 @@
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 14,
@@ -131,27 +136,27 @@
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 21,
@@ -159,7 +164,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 23,
@@ -167,11 +172,11 @@
     },
     {
       "idx": 24,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -183,19 +188,19 @@
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 29,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 30,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 32,
@@ -207,227 +212,11 @@
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 35,
-      "patternIndex": 0
-    },
-    {
-      "idx": 36,
-      "patternIndex": 0
-    },
-    {
-      "idx": 37,
-      "patternIndex": 1
-    },
-    {
-      "idx": 38,
-      "patternIndex": 0
-    },
-    {
-      "idx": 39,
-      "patternIndex": 0
-    },
-    {
-      "idx": 40,
-      "patternIndex": 1
-    },
-    {
-      "idx": 41,
-      "patternIndex": 0
-    },
-    {
-      "idx": 42,
-      "patternIndex": 0
-    },
-    {
-      "idx": 43,
-      "patternIndex": 1
-    },
-    {
-      "idx": 44,
-      "patternIndex": 0
-    },
-    {
-      "idx": 45,
-      "patternIndex": 0
-    },
-    {
-      "idx": 46,
-      "patternIndex": 1
-    },
-    {
-      "idx": 47,
-      "patternIndex": 0
-    },
-    {
-      "idx": 48,
-      "patternIndex": 0
-    },
-    {
-      "idx": 49,
-      "patternIndex": 1
-    },
-    {
-      "idx": 50,
-      "patternIndex": 0
-    },
-    {
-      "idx": 51,
-      "patternIndex": 0
-    },
-    {
-      "idx": 52,
-      "patternIndex": 1
-    },
-    {
-      "idx": 53,
-      "patternIndex": 0
-    },
-    {
-      "idx": 54,
-      "patternIndex": 0
-    },
-    {
-      "idx": 55,
-      "patternIndex": 1
-    },
-    {
-      "idx": 56,
-      "patternIndex": 0
-    },
-    {
-      "idx": 57,
-      "patternIndex": 0
-    },
-    {
-      "idx": 58,
-      "patternIndex": 1
-    },
-    {
-      "idx": 59,
-      "patternIndex": 0
-    },
-    {
-      "idx": 60,
-      "patternIndex": 0
-    },
-    {
-      "idx": 61,
-      "patternIndex": 1
-    },
-    {
-      "idx": 62,
-      "patternIndex": 0
-    },
-    {
-      "idx": 63,
-      "patternIndex": 0
-    },
-    {
-      "idx": 64,
-      "patternIndex": 1
-    },
-    {
-      "idx": 65,
-      "patternIndex": 0
-    },
-    {
-      "idx": 66,
-      "patternIndex": 0
-    },
-    {
-      "idx": 67,
-      "patternIndex": 1
-    },
-    {
-      "idx": 68,
-      "patternIndex": 0
-    },
-    {
-      "idx": 69,
-      "patternIndex": -1
-    },
-    {
-      "idx": 70,
-      "patternIndex": -1
-    },
-    {
-      "idx": 71,
-      "patternIndex": -1
-    },
-    {
-      "idx": 72,
-      "patternIndex": -1
-    },
-    {
-      "idx": 73,
       "patternIndex": 2
-    },
-    {
-      "idx": 74,
-      "patternIndex": 2
-    },
-    {
-      "idx": 75,
-      "patternIndex": -1
-    },
-    {
-      "idx": 76,
-      "patternIndex": -1
-    },
-    {
-      "idx": 77,
-      "patternIndex": -1
-    },
-    {
-      "idx": 78,
-      "patternIndex": 2
-    },
-    {
-      "idx": 79,
-      "patternIndex": 2
-    },
-    {
-      "idx": 80,
-      "patternIndex": -1
-    },
-    {
-      "idx": 81,
-      "patternIndex": -1
-    },
-    {
-      "idx": 82,
-      "patternIndex": -1
-    },
-    {
-      "idx": 83,
-      "patternIndex": 2
-    },
-    {
-      "idx": 84,
-      "patternIndex": 2
-    },
-    {
-      "idx": 85,
-      "patternIndex": 2
-    },
-    {
-      "idx": 86,
-      "patternIndex": -1
-    },
-    {
-      "idx": 87,
-      "patternIndex": -1
-    },
-    {
-      "idx": 88,
-      "patternIndex": -1
-    },
-    {
-      "idx": 89,
-      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -443,113 +232,59 @@
     "10": "cmotxybqf002ad15sn9fhcrcf",
     "11": "cmotxybqf002bd15sd5t0kxh6",
     "12": "cmotxybqf002dd15s1vyxhfv0",
-    "13": "cmq0odb1q003kc8ksayjejgr3",
-    "14": "cmq0odb1q003rc8ksuajecvga",
-    "15": "cmq0odb1q003qc8ks1sanv4km",
-    "16": "cmotr5qp0000jh6io5zqs9mo1",
-    "17": "cmotr5qp0000rh6ioh0pnf0qt",
-    "18": "cmq131ifh003kgqr9ns9vjiyg",
-    "19": "cmq131ifi003rgqr92xgvkl71",
-    "20": "cmq131ifi003qgqr9ineguy6g",
-    "21": "cmq1lzk3m003ki806azfkdagn",
-    "22": "cmq1lzk3n003ri806b4l8igbs",
-    "23": "cmq1lzk3n003qi8063hfidghh",
-    "24": "cmq1vv3ya003krupkcgwtb7ia",
-    "25": "cmq1vv3yb003rrupk3ujhhfiv",
-    "26": "cmq1vv3yb003qrupkrb82zlgg",
-    "27": "cmq1xnfq1003kjek6icmsybuu",
-    "28": "cmq1xnfq1003rjek6gd5gg9an",
-    "29": "cmq1xnfq1003qjek61stwrse0",
-    "30": "cmq0n21ay003k9ahmvjdz88u7",
-    "31": "cmq0n21ay003r9ahmsg92d81p",
-    "32": "cmq0n21ay003q9ahm1e422zq2",
-    "33": "cmq0u5hxz003k6ipxbeu72507",
-    "34": "cmq0u5hxz003r6ipx6mixy0n8",
-    "35": "cmq0u5hxz003q6ipxbawxzsxo",
-    "36": "cmpzn55jf003kbd1auvp31jt0",
-    "37": "cmpzn55jf003rbd1a223e276s",
-    "38": "cmpzn55jf003qbd1alvubteqm",
-    "39": "cmq1v52b2003kfbd52aiqhsi5",
-    "40": "cmq1v52b3003rfbd5a4h5j2dg",
-    "41": "cmq1v52b3003qfbd5m19d30tz",
-    "42": "cmq0uum64003ky88md1dsji79",
-    "43": "cmq0uum65003ry88mz9os2793",
-    "44": "cmq0uum65003qy88mc4ts3r0a",
-    "45": "cmq0a0ocw003kd3mf7ojkuys2",
-    "46": "cmq0a0ocx003rd3mfl6hgt7n1",
-    "47": "cmq0a0ocx003qd3mfim4sh3d9",
-    "48": "cmqf5qfu10038wkiaf3s1q7s3",
-    "49": "cmqf5qfu2003ewkia1zmzfh8i",
-    "50": "cmqf5qfu2003dwkiayn5dyn3n",
-    "51": "cmq25fl98003ke8x4wccf5yvo",
-    "52": "cmq25fl99003re8x407q16rhp",
-    "53": "cmq25fl98003qe8x4s6zycxub",
-    "54": "cmqf7jbbr0038hufkl06tbsg0",
-    "55": "cmqf7jbbr003ehufkrypdnxyx",
-    "56": "cmqf7jbbr003dhufkf7vakwve",
-    "57": "cmq60djr8003ipovepp6e0ove",
-    "58": "cmq60djr9003ppoveua7rz1jq",
-    "59": "cmq60djr9003opovexhjc3wdb",
-    "60": "cmqt7x0jz0038a6dwe95ylcpn",
-    "61": "cmqt7x0jz003ea6dwjxqpjdy6",
-    "62": "cmqt7x0jz003da6dwbslhmbhy",
-    "63": "cmql2ve280038ojbv9egtekrc",
-    "64": "cmql2ve28003eojbvqial2hyf",
-    "65": "cmql2ve28003dojbvmx0b1znl",
-    "66": "cmql4zyhl0038a7m0cejllomf",
-    "67": "cmql4zyhl003ea7m08ggqm8g0",
-    "68": "cmql4zyhl003da7m0w69t43br",
-    "69": "cmoqknuql001hwu99c3t83dtk",
-    "70": "cmoqknuql001iwu99eqtf843h",
-    "71": "cmoqknuql001jwu99t8ab4tc8",
-    "72": "cmoqknuql001lwu99ti9buaej",
-    "73": "cmngstiuq000fvhyoua2c6fnb",
-    "74": "cmngstiuq000gvhyowx0uzcks",
-    "75": "cmngstiur000nvhyorardiztb",
-    "76": "cmngstiur000vvhyogt3v7g0g",
-    "77": "cmngstius0017vhyoo4d2llla",
-    "78": "cmngsn3ix002be4t9qyrnlflt",
-    "79": "cmngsn3hj0019e4t9kx58hmjf",
-    "80": "cmngsn3i10025e4t9lv0zgs65",
-    "81": "cmngsn3hz0023e4t9un6y6nr2",
-    "82": "cmngsn3fv000ne4t9ff130fgm",
-    "83": "cmn9z37hz000bdp27abmo12tr",
-    "84": "cmmh5nd2o000fp5e8f1wx0bhg",
-    "85": "cmmh5nd2o000gp5e8taf0e57m",
-    "86": "cmmh5nd2o000np5e8rb825wg5",
-    "87": "cmmh5nd2p000vp5e881ceswpb",
-    "88": "cmmh5nd2p0010p5e8qzt5d084",
-    "89": "cmmh5nd2q0017p5e8s8ujl2nu"
+    "13": "cmotr5qp0000jh6io5zqs9mo1",
+    "14": "cmotr5qp0000rh6ioh0pnf0qt",
+    "15": "cmoqknuql001hwu99c3t83dtk",
+    "16": "cmoqknuql001iwu99eqtf843h",
+    "17": "cmoqknuql001jwu99t8ab4tc8",
+    "18": "cmoqknuql001lwu99ti9buaej",
+    "19": "cmngstiuq000fvhyoua2c6fnb",
+    "20": "cmngstiuq000gvhyowx0uzcks",
+    "21": "cmngstiur000nvhyorardiztb",
+    "22": "cmngstiur000vvhyogt3v7g0g",
+    "23": "cmngstius0017vhyoo4d2llla",
+    "24": "cmngsn3ix002be4t9qyrnlflt",
+    "25": "cmngsn3hj0019e4t9kx58hmjf",
+    "26": "cmngsn3i10025e4t9lv0zgs65",
+    "27": "cmngsn3hz0023e4t9un6y6nr2",
+    "28": "cmngsn3fv000ne4t9ff130fgm",
+    "29": "cmn9z37hz000bdp27abmo12tr",
+    "30": "cmmh5nd2o000fp5e8f1wx0bhg",
+    "31": "cmmh5nd2o000gp5e8taf0e57m",
+    "32": "cmmh5nd2o000np5e8rb825wg5",
+    "33": "cmmh5nd2p000vp5e881ceswpb",
+    "34": "cmmh5nd2p0010p5e8qzt5d084",
+    "35": "cmmh5nd2q0017p5e8s8ujl2nu"
   },
-  "generatedAt": "2026-06-26T06:45:18.713Z",
+  "generatedAt": "2026-06-26T09:29:08.171Z",
   "wrongCounts": {
-    "total": 89,
-    "oeq": 60,
-    "mcq": 29
+    "total": 35,
+    "oeq": 24,
+    "mcq": 11
   },
   "toplineSnapshot": {
-    "avgPct": 83,
-    "totalAwarded": 749.5,
-    "totalAvailable": 900,
-    "paperCount": 30
+    "avgPct": 87,
+    "totalAwarded": 423.5,
+    "totalAvailable": 486,
+    "paperCount": 12
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T08:08:08.019Z",
+    "generatedAt": "2026-06-26T06:45:18.713Z",
     "patternNames": [
       "Ratio Order Mix-Up",
-      "Double Counting Overlaps",
-      "Small Calculation Slips"
+      "Overlapping Area Mix-Up",
+      "Leaving Questions Blank"
     ],
     "wrongCounts": {
-      "total": 80,
-      "oeq": 54,
-      "mcq": 26
+      "total": 89,
+      "oeq": 60,
+      "mcq": 29
     },
     "toplineSnapshot": {
-      "avgPct": 84,
-      "totalAwarded": 695.5,
-      "totalAvailable": 831,
-      "paperCount": 27
+      "avgPct": 83,
+      "totalAwarded": 749.5,
+      "totalAvailable": 900,
+      "paperCount": 30
     }
   }
 }

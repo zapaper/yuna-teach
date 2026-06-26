@@ -1,93 +1,91 @@
 {
   "patterns": [
     {
-      "name": "Similar Word Mix-Up",
-      "what": "Sometimes chooses a vocabulary word that has a similar general idea but doesn't perfectly fit the specific sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane picked 'reaps' instead of 'yields' for a garden producing crops, missing that a farmer reaps but a garden yields."
-        },
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "She picked 'pandering to' instead of 'tailoring to', not realising that 'pandering' has a negative feeling."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "She chose 'retreated' instead of 'yanked' to describe quickly pulling a hand back."
-        }
-      ],
-      "strategic_advice": "- When stuck between two similar words, look at the surrounding words (like **\"garden\"** vs **\"farmer\"**) to see which fits better.\n- Think about whether the word has a **positive or negative feeling**.\n- Try plugging both words into the sentence and **reading it aloud** to see which sounds more natural.",
-      "trigger_keywords": [
-        "closest in meaning",
-        "fill in the blank"
-      ]
-    },
-    {
-      "name": "Skimming Over Details",
-      "what": "Tends to spot familiar words from the text in the options, but occasionally misses the exact detail that answers the specific question asked.",
-      "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "Shayane picked the early bird date instead of the group discount when asked how to get the 'biggest savings'."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "She chose 'competition' instead of 'pulling in the sails' for what Amanda enjoyed most."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "She selected 'cook in front of many people' instead of 'make a video' for the steps to become a finalist."
-        }
-      ],
-      "strategic_advice": "- When you see **\"Which of the following\"** or **\"true\"**, treat it like a matching game. Find the exact sentence in the text and compare it word-for-word with the option.\n- Highlight the key question words like **\"biggest savings\"** or **\"enjoy most\"** so you know exactly what clue to hunt for in the passage.",
-      "trigger_keywords": [
-        "Which of the following",
-        "true",
-        "most",
-        "biggest"
-      ]
-    },
-    {
       "name": "Preposition Mix-Up",
-      "what": "Occasionally confuses which small connecting word to use to show time, direction, or what something is about.",
+      "what": "Sometimes mixes up which preposition naturally pairs with certain action words or time phrases.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Shayane picked 'of' instead of 'on' for congratulating someone on their performance."
+          "whatWentWrong": "Shayane chose 'of' instead of 'on' for the phrase 'congratulated on'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "She chose 'since' instead of 'about' when talking about reaching a conclusion."
+          "whatWentWrong": "Shayane used 'since' instead of 'about' when describing a conclusion."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "She selected 'by' instead of 'since' for something happening from ancient times until now."
+          "whatWentWrong": "Shayane picked 'by' instead of 'since' to show something happening from ancient times until now."
         }
       ],
-      "strategic_advice": "- When talking about a starting point in time that continues to now, use **\"since\"** (e.g., **\"since ancient times\"**).\n- Pay attention to common word pairs that always go together, like **\"congratulate on\"** or **\"conclusion about\"**.\n- Read the whole phrase together to check if it sounds right.",
+      "strategic_advice": "When learning new verbs or nouns, try to memorize the preposition that goes with them as a pair (e.g., **'congratulate on'**, **'conclusion about'**). For time phrases, remember that **'since'** is used for a starting point in the past.",
       "trigger_keywords": [
-        "since",
-        "by",
-        "about",
-        "on",
-        "of"
+        "congratulated",
+        "conclusion",
+        "ancient times"
+      ]
+    },
+    {
+      "name": "Choosing the Exact Word",
+      "what": "Occasionally picks a vocabulary word that is related to the topic but doesn't perfectly match the exact context.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane picked 'defeated' instead of 'stumped' to describe being confused by a clue."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane chose 'reaps' instead of 'yields' for what a garden produces."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane selected 'retreated' instead of 'yanked' for quickly pulling a hand back."
+        }
+      ],
+      "strategic_advice": "When two words seem similar, look at the clues around the blank. For example, a garden **'yields'** (produces) crops, while a farmer **'reaps'** (harvests) them. Try plugging your choice back into the sentence to see if it sounds natural.",
+      "trigger_keywords": [
+        "obscure clue",
+        "bountiful crop",
+        "quickly drew"
+      ]
+    },
+    {
+      "name": "Hunting for Details",
+      "what": "Tends to overlook key condition words in the question when scanning posters or flyers for specific information.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane missed the word 'not' in the question and picked an option that was actually in the text."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane overlooked the condition for the 'biggest savings' when checking the poster details."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane picked a general action instead of the exact step required to become a finalist."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'does not'** or **'except'** → highlight the negative word so you don't look for the opposite\n- **'biggest'** or **'most'** → compare all the options in the text before settling on the first one you see\n- **'steps required'** → trace the exact instructions in the text step-by-step",
+      "trigger_keywords": [
+        "does not tell",
+        "biggest savings",
+        "steps required"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 2,
@@ -99,23 +97,23 @@
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 9,
@@ -123,11 +121,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -139,23 +137,23 @@
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -163,11 +161,11 @@
     },
     {
       "idx": 20,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -193,7 +191,7 @@
     "20": "cmpurkl31000s13h3iuhgud73",
     "21": "cmpurkl31000x13h3qm5i29bu"
   },
-  "generatedAt": "2026-06-17T09:27:06.042Z",
+  "generatedAt": "2026-06-26T09:46:17.555Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 3,
@@ -205,5 +203,23 @@
     "totalAvailable": 66,
     "paperCount": 2
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:27:06.042Z",
+    "patternNames": [
+      "Similar Word Mix-Up",
+      "Skimming Over Details",
+      "Preposition Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 21,
+      "oeq": 3,
+      "mcq": 18
+    },
+    "toplineSnapshot": {
+      "avgPct": 68,
+      "totalAwarded": 45,
+      "totalAvailable": 66,
+      "paperCount": 2
+    }
+  }
 }

@@ -1,0 +1,225 @@
+{
+  "patterns": [
+    {
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes mixes up the small prepositions attached to verbs, which changes the meaning of the action.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"kick off\" instead of \"kick in\" for medication starting to work."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He picked \"taken up\" instead of \"taken in\" when describing being tricked by a magician."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"look after\" (to care for) instead of \"look to\" (to seek support from)."
+        }
+      ],
+      "strategic_advice": "When you see a verb with a preposition (like **\"kick\"**, **\"set\"**, or **\"take\"**), read the whole sentence and try replacing the phrase with its meaning.\n- **\"Kick in\"** means to start working, while **\"kick off\"** means to start an event.\n- **\"Taken in\"** means to be fooled, while **\"taken up\"** means to start a hobby.",
+      "trigger_keywords": [
+        "kick",
+        "set",
+        "taken",
+        "look"
+      ]
+    },
+    {
+      "name": "Missing Sentence Clues",
+      "what": "Tends to pick a vocabulary word that sounds right on its own, but occasionally misses the hidden clues in the sentence that point to a different answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"humble\" for the feast, missing the clue \"lots of leftovers and wastage\" which points to a \"lavish\" meal."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He picked \"immature\" instead of \"impulsive\" for the act of spreading rumours without checking the truth first."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"proposed\" instead of \"anticipated\" for a delay caused by a flashflood."
+        }
+      ],
+      "strategic_advice": "Treat vocabulary questions like a detective game. Look for **clue words** in the sentence before looking at the options.\n- If the sentence mentions **\"leftovers and wastage\"**, the feast must be **\"lavish\"** (plentiful), not humble.\n- If someone acts **\"without checking the truth first\"**, they are being **\"impulsive\"** (acting without thinking).",
+      "trigger_keywords": [
+        "leftovers",
+        "without checking",
+        "due to"
+      ]
+    },
+    {
+      "name": "Special Verb Rules",
+      "what": "Occasionally forgets that special action words like \"make\" or \"see\" require the next verb to be in its base form, even if the story happened in the past.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose the past tense \"felt\" after the word \"made\", but the correct form is the base word \"feel\"."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He picked \"struck\" after the word \"saw\", but sensory verbs require the base form \"strike\"."
+        }
+      ],
+      "strategic_advice": "When you see these special verbs, treat them as stop signs for verb tenses:\n- **\"Made\"**, **\"let\"**, or **\"helped\"** → the next verb must always be in its base form (e.g., \"made her **feel**\").\n- **\"Saw\"**, **\"heard\"**, or **\"watched\"** → use the base form for a completed action (e.g., \"saw it **strike**\").",
+      "trigger_keywords": [
+        "made",
+        "saw",
+        "let",
+        "heard"
+      ]
+    },
+    {
+      "name": "Whose vs Who's Confusion",
+      "what": "Occasionally mixes up \"whose\" (which shows ownership) with \"who's\" (which is short for \"who is\").",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Rizqi chose \"who's\" instead of \"whose\" when talking about who owned the lost phone."
+        }
+      ],
+      "strategic_advice": "When you are stuck between these two words, try expanding **\"who's\"** to **\"who is\"** in the sentence.\n- If **\"who is\"** doesn't make sense (e.g., \"had no idea **who is** it was\"), then the correct answer must be **\"whose\"** to show ownership.",
+      "trigger_keywords": [
+        "whose",
+        "who's"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmptzguuk001o14gmiwl0q097",
+    "2": "cmptzguuk001p14gmhqw8x7el",
+    "3": "cmptzguuk001r14gm2iitbu2k",
+    "4": "cmptzguuk001t14gm7umr9g9x",
+    "5": "cmptzguuk001u14gmsdb41e0s",
+    "6": "cmptzguuk001v14gm162fw0sd",
+    "7": "cmptzguuk001w14gm6yau22aw",
+    "8": "cmptzguuk001x14gmrhnuwyb5",
+    "9": "cmptzh9ya002114gmxts4wwzp",
+    "10": "cmptzh9ya002414gm5cts0ykz",
+    "11": "cmptzh9ya002714gmzet0zfnb",
+    "12": "cmptzh9ya002814gmztvr4qb5",
+    "13": "cmptzh9ya002b14gmgucni0xm",
+    "14": "cmptzh9ya002d14gm9q38yvym",
+    "15": "cmptzh9ya002e14gm9ow8awpg",
+    "16": "cmptzh9ya002f14gmmwmbhdv8",
+    "17": "cmptzgi1v001d14gm7s75il2l",
+    "18": "cmptzgi1v001e14gmmbyojtll",
+    "19": "cmptzgi1v001f14gm6sgo2wpx",
+    "20": "cmptzgi1v001g14gmov96p33e",
+    "21": "cmptzgi1v001h14gmxffs6oqr",
+    "22": "cmptzgi1v001i14gm0grnay7i"
+  },
+  "generatedAt": "2026-06-17T09:20:56.972Z",
+  "wrongCounts": {
+    "total": 22,
+    "oeq": 8,
+    "mcq": 14
+  },
+  "toplineSnapshot": {
+    "avgPct": 46,
+    "totalAwarded": 21,
+    "totalAvailable": 46,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

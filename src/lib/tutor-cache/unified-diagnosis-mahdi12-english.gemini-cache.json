@@ -1,94 +1,105 @@
 {
   "patterns": [
     {
-      "name": "Close Meaning Mix-Up",
-      "what": "Tends to choose a vocabulary word that has a similar general meaning but doesn't quite fit the specific situation or sentence.",
+      "name": "Similar Word Mix-Up",
+      "what": "Tends to pick a vocabulary word that has the right general idea but doesn't quite fit the specific situation.",
       "specific_examples": [
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'prevented' instead of 'impeded' for a lack of confidence slowing down an ability."
+          "whatWentWrong": "Chose 'prevented' instead of 'impeded' when describing how a lack of confidence slows down an ability."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'intensive' instead of 'overwhelming' to describe a very strong, sickening smell."
+          "whatWentWrong": "Picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'bustle' instead of 'flurry' for a sudden, short burst of panicked activity."
+          "whatWentWrong": "Selected 'bustle' instead of 'flurry' when describing a sudden burst of activity."
         }
       ],
-      "strategic_advice": "When you see words with similar meanings, look for context clues in the sentence to help you decide:\n- **Check the degree**: Is the feeling or action mild or extreme? (e.g., a smell that makes someone vomit is 'overwhelming', not just 'intensive').\n- **Check the exact fit**: Does the word describe a physical action, a feeling, or a specific situation? (e.g., 'impeded' means slowed down, while 'prevented' means stopped completely).\n- **Try substituting**: Put your chosen word into the sentence and see if it sounds natural in everyday speech.",
+      "strategic_advice": "When two words seem to mean the same thing, look closely at the words around the blank.\n- **Read the whole sentence** to see if the word needs to fit a specific tone or pair with a specific preposition.\n- **Try plugging in both options** to see which one sounds more natural in that exact context.",
       "trigger_keywords": [
-        "most suitable word",
-        "closest in meaning",
-        "fill in the blank"
+        "impeded",
+        "prevented",
+        "overwhelming",
+        "intensive",
+        "flurry",
+        "bustle"
       ]
     },
     {
-      "name": "Partner Words",
-      "what": "Occasionally mixes up which preposition or small word naturally pairs with a specific verb to create the right meaning.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Sometimes chooses the wrong ending word for a phrasal verb, which completely changes the meaning of the action.",
       "specific_examples": [
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'fell apart' instead of 'fell out' to describe friends having a disagreement."
+          "whatWentWrong": "Picked 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
         },
         {
-          "questionRef": "[22]",
+          "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'confided with' instead of 'confided in' when talking about sharing a secret with a friend."
+          "whatWentWrong": "Chose 'give away' instead of 'give off' for flowers producing a sweet fragrance."
+        }
+      ],
+      "strategic_advice": "Phrasal verbs are tricky because changing one small word changes the whole meaning!\n- **Memorise common pairs** like 'fall out' (argue) vs 'fall apart' (break into pieces).\n- **Use context clues** in the sentence to figure out what action is actually happening before picking the ending word.",
+      "trigger_keywords": [
+        "fell",
+        "give",
+        "looks"
+      ]
+    },
+    {
+      "name": "Preposition Mix-Up",
+      "what": "Occasionally selects the wrong preposition to follow a specific verb or adjective.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Chose 'over' instead of 'on' after the word 'congratulated'."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'similar from' instead of 'similar to' when comparing two pencil cases."
+          "whatWentWrong": "Picked 'from' instead of 'to' when using the word 'similar'."
         }
       ],
-      "strategic_advice": "When you see a blank right after a verb or adjective, treat it as a 'partner word' question:\n- **Read the phrase aloud**: Often, your ears will catch the right pairing (like 'similar to' instead of 'similar from').\n- **Memorise common pairs**: Keep a small list of tricky phrasal verbs (like 'fall out' for arguing, or 'give off' for smells).\n- **Check the meaning**: Phrasal verbs change meaning completely based on the small word (e.g., 'look to' means rely on, while 'look over' means examine).",
+      "strategic_advice": "Certain words are best friends and always stick together with specific prepositions.\n- **Learn them as a pair**: When you learn a new word, learn its preposition partner too (e.g., 'similar to', 'confide in').\n- **Read aloud**: Sometimes your ears can catch the right pair if you read the sentence softly to yourself.",
       "trigger_keywords": [
-        "fell ___",
-        "similar ___",
-        "confided ___",
-        "give ___"
+        "congratulated",
+        "similar",
+        "confided"
       ]
     },
     {
-      "name": "Hidden Grammar Clues",
-      "what": "Sometimes misses small clues in the sentence that decide the grammar rule, like whether a noun is singular, who is receiving the action, or if a statement is positive.",
+      "name": "I vs Me Mix-Up",
+      "what": "Sometimes confuses when to use 'I' and when to use 'me' when there are two people mentioned in the sentence.",
       "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "Mahdi12 missed that 'Ahmad's' meant 'Ahmad has', choosing 'didn't he' instead of 'hasn't he'."
-        },
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'I' instead of 'me', missing that the speaker is receiving the action from the teacher."
+          "whatWentWrong": "Chose 'I' instead of 'me' when the teacher was asking Sally and Mahdi12 to help."
         },
         {
-          "questionRef": "[23]",
+          "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "Mahdi12 chose 'those' instead of 'that' for a 'stack of books', missing that 'stack' is a singular noun."
+          "whatWentWrong": "Made the same slip again on a similar question, picking 'I' instead of 'me' as the receiver of the action."
         }
       ],
-      "strategic_advice": "When you see grammar questions, look for the hidden clues before choosing your answer:\n- **For 'I' vs 'me'**: Take away the other person's name (e.g., 'asked Sally and ___' becomes 'asked ___'). Your ears will tell you the right answer!\n- **For question tags**: Check if the main sentence is positive or negative, and make sure the tag is the **opposite**. Also, check the tense (e.g., 'Ahmad's' = 'Ahmad has').\n- **For group nouns**: Look at the main word. A 'stack of books' is one stack, so it needs a singular word like 'that' or 'is'.",
+      "strategic_advice": "There is a very simple trick to always get this right!\n- **Hide the other person**: Cover up 'Sally and' with your finger and read the sentence again.\n- **Listen to how it sounds**: 'My teacher has asked I' sounds wrong, but 'My teacher has asked **me**' sounds perfect!",
       "trigger_keywords": [
         "and I",
-        "and me",
-        "isn't he",
-        "didn't she",
-        "stack of"
+        "and me"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 2,
@@ -100,15 +111,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 6,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -124,11 +135,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -144,7 +155,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -152,7 +163,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 18,
@@ -172,11 +183,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -208,19 +219,19 @@
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 33,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 35,
@@ -284,7 +295,7 @@
     "38": "cmpuji76e000y14eovr4sqfll",
     "39": "cmpuji76e000z14eoydag3q51"
   },
-  "generatedAt": "2026-06-17T09:27:28.870Z",
+  "generatedAt": "2026-06-26T09:42:18.062Z",
   "wrongCounts": {
     "total": 39,
     "oeq": 0,
@@ -296,5 +307,23 @@
     "totalAvailable": 65,
     "paperCount": 6
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:27:28.870Z",
+    "patternNames": [
+      "Close Meaning Mix-Up",
+      "Partner Words",
+      "Hidden Grammar Clues"
+    ],
+    "wrongCounts": {
+      "total": 39,
+      "oeq": 0,
+      "mcq": 39
+    },
+    "toplineSnapshot": {
+      "avgPct": 40,
+      "totalAwarded": 26,
+      "totalAvailable": 65,
+      "paperCount": 6
+    }
+  }
 }

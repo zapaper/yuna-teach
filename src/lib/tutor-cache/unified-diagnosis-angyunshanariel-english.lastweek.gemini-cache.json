@@ -1,0 +1,243 @@
+{
+  "patterns": [
+    {
+      "name": "Phrasal Verbs Mix-Up",
+      "what": "Tends to confuse phrasal verbs that look very similar but have completely different meanings.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'taken off' instead of 'taken in' for being tricked by a magician."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'set off' instead of 'set in' when describing fatigue starting to happen."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by a small word like **'in'**, **'off'**, or **'up'**, treat it as a single new word.\n- Try replacing the phrase with a simple action word (like 'tricked' for 'taken in') to see if it fits the story.",
+      "trigger_keywords": [
+        "taken",
+        "set",
+        "up",
+        "in",
+        "off"
+      ]
+    },
+    {
+      "name": "Missing Sentence Clues",
+      "what": "Sometimes picks a vocabulary word that contradicts the helpful hints given in the rest of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'meager' (small) even though the sentence warned about 'lots of leftovers and wastage'."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'proposed' instead of 'anticipated' for a delay caused by a sudden flashflood."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'indignant' instead of 'tenacious' despite the clear clue that the opponent was 'never giving up'."
+        }
+      ],
+      "strategic_advice": "When you see a blank, look for the **'because'** or **'due to'** part of the sentence.\n- Highlight the clue words (like 'leftovers' or 'never giving up') before choosing your answer.\n- Check if your chosen word matches the feeling of those clues!",
+      "trigger_keywords": [
+        "because",
+        "due to",
+        "after",
+        "since"
+      ]
+    },
+    {
+      "name": "Which vs Whose Confusion",
+      "what": "Occasionally mixes up 'which' and 'whose' when describing a part that belongs to an object.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'which' instead of 'whose' when talking about the windows that belonged to the old house."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel made the same slip with the old house's broken windows."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after a noun (like 'house'), check the very next word.\n- If it's something that belongs to the noun (like 'windows'), use **'whose'**.\n- If it's an action or a description, use **'which'**.",
+      "trigger_keywords": [
+        ", which",
+        ", whose",
+        ", who",
+        ", whom"
+      ]
+    },
+    {
+      "name": "Word Partnership Slips",
+      "what": "Sometimes chooses a word that makes logical sense but isn't the natural pairing usually used in English.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel picked 'waived' instead of the correct English phrase 'stripped of' for losing a medal."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "angyunshanariel chose 'promoted' instead of 'raised' when talking about boosting the class's morale."
+        }
+      ],
+      "strategic_advice": "When two words seem to fit the meaning perfectly, read the sentence aloud with each option.\n- Often, your ears will catch the **natural pairing** (like 'raised morale' or 'stripped of').\n- Pay special attention to the little prepositions (like **'of'**) that come right after the blank!",
+      "trigger_keywords": [
+        "of",
+        "morale",
+        "medal"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmppaajbx003sty7nan9hnr9o",
+    "2": "cmppaajbx003tty7nwq4oxz0d",
+    "3": "cmppa90ml003jty7ncflw6wx9",
+    "4": "cmppa90ml003lty7nkvrsrx6y",
+    "5": "cmppa7xoy003cty7nv3qaberb",
+    "6": "cmppa6sqh0036ty7nljw1dumo",
+    "7": "cmppa5oc20031ty7n82me8oj2",
+    "8": "cmppa4atq002rty7n69lof8zg",
+    "9": "cmppa4atr002vty7nx05yrlzl",
+    "10": "cmppa2ufi002oty7nns5f077z",
+    "11": "cmppa0eu1002hty7n6npvb8j9",
+    "12": "cmpp9wama001vty7nq7c9r23d",
+    "13": "cmpp9wama001yty7naxiza6y4",
+    "14": "cmpp9wamb0020ty7n4c2hm7af",
+    "15": "cmpp9wamb0021ty7njea7bvd6",
+    "16": "cmpp9rfzf0013ty7nm6i32o56",
+    "17": "cmpp9rfzf0018ty7np9zuh1st",
+    "18": "cmpp9rfzf001bty7ntamaesfs",
+    "19": "cmpnvcxm1003uu9v1hleedz97",
+    "20": "cmpnvcxm1003wu9v1yguz7myn",
+    "21": "cmpnvb7cu003lu9v1sjtt0bb1",
+    "22": "cmpnvb7cu003pu9v1v9wk49j8",
+    "23": "cmpnv0sie001hu9v1dykap3ue",
+    "24": "cmpnv0sie001mu9v1sg5isrw5",
+    "25": "cmpnv0sie001pu9v1g4ewles8"
+  },
+  "generatedAt": "2026-06-17T09:08:13.310Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 0,
+    "mcq": 25
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 69,
+    "totalAvailable": 102,
+    "paperCount": 14
+  },
+  "previousAssessment": null
+}

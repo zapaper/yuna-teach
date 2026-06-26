@@ -1,26 +1,26 @@
 {
   "patterns": [
     {
-      "name": "Skipping Written Questions",
-      "what": "Tends to leave open-ended explanation questions completely blank instead of writing down the science facts she knows.",
+      "name": "Leaving Blanks",
+      "what": "Alexa tends to leave open-ended questions completely blank, missing out on partial marks she could easily earn by writing down key science words.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "oeq",
-          "whatWentWrong": "Alexa left this multi-part question about evaporation and surface area completely blank."
+          "whatWentWrong": "Alexa left the entire question blank instead of trying to explain how the water droplets gained heat and evaporated."
         },
         {
-          "questionRef": "[16]",
+          "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "She skipped this question about air occupying space and being able to escape."
+          "whatWentWrong": "She skipped explaining how the mirror became foggy, missing a chance to mention 'condensation' for partial credit."
         },
         {
-          "questionRef": "[19]",
+          "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "She left this question about the properties of air completely empty."
+          "whatWentWrong": "She left the explanation blank rather than mentioning that water entered the bottle and pushed the air into the balloon."
         }
       ],
-      "strategic_advice": "When you see a written question, treat it as a chance to show what you know!\n- **Write down key science words** related to the topic (like 'evaporate', 'occupies space', or 'gains heat').\n- **Attempt every part**, even if you are unsure of the final answer. A partial explanation can often earn you marks!",
+      "strategic_advice": "When you see an open-ended question, never leave it empty! Treat it as a chance to collect points:\n- **Write down the science keywords** you know belong to the topic (like 'evaporation', 'condensation', or 'gains heat').\n- **Describe what you see** happening in the picture, even if you aren't sure of the full scientific reason.\n- Every correct keyword or step can earn you a half or full mark!",
       "trigger_keywords": [
         "Explain why",
         "Give a reason",
@@ -28,76 +28,54 @@
       ]
     },
     {
-      "name": "Air Volume Confusion",
-      "what": "Sometimes forgets that a gas (like air) does not have a fixed volume and will always expand or compress to fill the available empty space in a container.",
+      "name": "Gas Volume Mix-Up",
+      "what": "Alexa sometimes forgets that a gas does not have a fixed volume and will always expand or compress to fill the available space in a container.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "Alexa thought the volume of air would be the total capacity of the container, forgetting to subtract the space taken up by the water."
+          "whatWentWrong": "She added the volumes together instead of realising the extra air would just compress into the existing 150 cm³ of empty space."
         },
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "She chose the total capacity of the container for the air's volume, missing that the water already takes up some of that space."
+          "whatWentWrong": "She thought the final volume of air would be the total capacity of the container, forgetting to subtract the space taken up by the water."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "She thought drawing air out would change its volume, but the remaining air simply expands to fill the whole container again."
+          "whatWentWrong": "She didn't realise that even when air is drawn out, the remaining air immediately spreads out to fill the entire 500 cm³ container."
         }
       ],
-      "strategic_advice": "When a question involves air in a sealed container, remember these rules:\n- **Air fills the empty space:** The volume of air is always the container's total capacity minus any liquids or solids inside.\n- **Pumping air in or out:** This changes the **mass** of the air, but the **volume** stays exactly the same because the container size hasn't changed!",
+      "strategic_advice": "When a question involves pumping air in or out of a rigid container, remember these rules:\n- **Water cannot be compressed**, so it always takes up its fixed amount of space.\n- **Air can be compressed**, so its volume is always exactly equal to the **empty space left in the container**.\n- Pumping more air in changes the **mass**, but the **volume** stays the same!",
       "trigger_keywords": [
-        "volume of air",
         "pumped into",
         "drawn out",
-        "capacity"
+        "capacity",
+        "plunger"
       ]
     },
     {
-      "name": "Heat Flow Mix-Up",
-      "what": "Occasionally mixes up the direction that heat travels, confusing whether an object is gaining heat or losing heat.",
+      "name": "Heat Flow Confusion",
+      "what": "Alexa occasionally mixes up the direction that heat travels, or confuses gaining heat with a change in temperature during melting.",
       "specific_examples": [
         {
-          "questionRef": "[10]",
+          "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "Alexa thought a sweater keeps us warm by making us lose heat to it, rather than by slowing down heat loss to the surroundings."
+          "whatWentWrong": "She thought the temperature of the melting ice cube was increasing, forgetting that temperature stays constant at 0°C until it fully melts."
         },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "She thought the cold spoon lost heat to the fingers, instead of realizing the warmer fingers lost heat to the spoon."
+          "whatWentWrong": "She thought the cold spoon lost heat to the warmer fingers, rather than the spoon gaining heat from the fingers."
         }
       ],
-      "strategic_advice": "When you see questions about things feeling hot or cold, always ask yourself: **'Which object is warmer?'**\n- Heat always flows from the **warmer object** to the **cooler object**.\n- If your hand feels cold when touching something, it means your hand is **losing heat** to that object!",
+      "strategic_advice": "When answering heat questions, use these checkpoints:\n- **Heat always flows from hot to cold.** If an object feels cold to touch, it is because your hand is **losing heat** to it.\n- **Melting and boiling are special.** When ice is melting at 0°C or water is boiling at 100°C, it is gaining heat, but its **temperature stays exactly the same** until the change of state is complete.",
       "trigger_keywords": [
-        "felt cold",
-        "keep warm",
         "gained heat",
-        "lost heat"
-      ]
-    },
-    {
-      "name": "Melting Temperature Mix-Up",
-      "what": "Sometimes thinks that the temperature of ice goes up while it is melting, instead of staying exactly at 0°C until it has completely melted.",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "Alexa chose a graph where the temperature changes during melting, rather than the one where it stays flat at 0°C."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "mcq",
-          "whatWentWrong": "She thought the temperature of the melting ice cube was increasing as it gained heat, instead of remaining constant."
-        }
-      ],
-      "strategic_advice": "When you see questions about ice melting or water boiling, remember that during a change of state, the temperature **remains constant**.\n- The heat being gained is used entirely to **change the state** (from solid to liquid), not to make it hotter!\n- Look for the **flat line** on temperature graphs.",
-      "trigger_keywords": [
-        "melting ice cube",
-        "temperature over time",
-        "remains constant"
+        "lost heat",
+        "feels cold",
+        "melting"
       ]
     }
   ],
@@ -112,7 +90,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -136,7 +114,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -144,7 +122,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -220,7 +198,7 @@
     "22": "cmp40waxe0071jqc1gy9hwdqq",
     "23": "cmp40waxe0073jqc1y6nmx19i"
   },
-  "generatedAt": "2026-06-19T02:39:55.471Z",
+  "generatedAt": "2026-06-26T09:23:49.962Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 10,
@@ -232,5 +210,24 @@
     "totalAvailable": 92,
     "paperCount": 4
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:39:55.471Z",
+    "patternNames": [
+      "Skipping Written Questions",
+      "Air Volume Confusion",
+      "Heat Flow Mix-Up",
+      "Melting Temperature Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 23,
+      "oeq": 10,
+      "mcq": 13
+    },
+    "toplineSnapshot": {
+      "avgPct": 37,
+      "totalAwarded": 34,
+      "totalAvailable": 92,
+      "paperCount": 4
+    }
+  }
 }

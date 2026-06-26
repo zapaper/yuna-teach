@@ -2,25 +2,20 @@
   "patterns": [
     {
       "name": "Reported Speech Mix-Up",
-      "what": "Occasionally forgets to shift pronouns or time words when changing direct speech into reported speech.",
+      "what": "Sometimes forgets to shift pronouns, time words, or tenses correctly when changing direct speech into reported speech.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[65]",
           "type": "oeq",
-          "whatWentWrong": "David kept the pronouns 'I' and 'my' instead of changing them to refer to Tom."
+          "whatWentWrong": "David forgot to change the pronoun to match the speaker, writing 'he' instead of 'she'."
         },
         {
           "questionRef": "[118]",
           "type": "oeq",
           "whatWentWrong": "He changed 'last weekend' to 'the previous week' instead of 'the previous weekend'."
-        },
-        {
-          "questionRef": "[201]",
-          "type": "oeq",
-          "whatWentWrong": "He forgot to change the time word 'now' to 'then' at the end of the sentence."
         }
       ],
-      "strategic_advice": "When you see a reported speech question, remember the 3 Ts: Tense, Time, and Talker.\n- **Talker**: Change pronouns to match the speaker (e.g., **'I'** becomes **'he'** or **'she'**).\n- **Tense**: Shift the verb one step back into the past (e.g., **'is'** becomes **'was'**).\n- **Time**: Change time words to fit the past (e.g., **'now'** becomes **'then'**, **'yesterday'** becomes **'the previous day'**).",
+      "strategic_advice": "When you see prompts like **'asked'** or **'wanted to know'**, treat them as a checklist:\n- **Pronouns** → check who is talking to whom (e.g., change 'I' to 'he' or 'she')\n- **Time words** → shift words like 'yesterday' to **'the previous day'**\n- **Tense** → take one step back in time (e.g., 'is' becomes 'was')",
       "trigger_keywords": [
         "asked",
         "wanted to know",
@@ -29,91 +24,91 @@
     },
     {
       "name": "Question Tag Confusion",
-      "what": "Tends to mix up question tags, sometimes using a positive tag for a positive sentence or picking the wrong helping verb.",
+      "what": "Occasionally uses the wrong helping verb or forgets to swap positive for negative when forming question tags.",
       "specific_examples": [
         {
           "questionRef": "[119]",
           "type": "mcq",
-          "whatWentWrong": "David chose 'doesn't she' instead of 'hasn't she' to match the helping verb 'has' in 'She's set'."
-        },
-        {
-          "questionRef": "[158]",
-          "type": "mcq",
-          "whatWentWrong": "He picked the negative tag 'doesn't' even though the sentence already had the negative word 'never'."
+          "whatWentWrong": "David used 'doesn't she' instead of matching the helping verb 'has' to make 'hasn't she'."
         },
         {
           "questionRef": "[124]",
           "type": "mcq",
-          "whatWentWrong": "David left this blank, likely unsure how to handle the negative word 'never' which requires a positive tag."
+          "whatWentWrong": "He missed the hidden negative word 'never', which means the question tag should be positive ('does she')."
         }
       ],
-      "strategic_advice": "When you see a question tag problem, follow the opposites rule:\n- If the sentence is **positive**, the tag must be **negative** (e.g., **'is'** -> **'isn't'**).\n- If the sentence has a **negative** word like **'never'** or **'not'**, the tag must be **positive**.\n- Always reuse the **same helping verb** from the main sentence!",
+      "strategic_advice": "When you need to add a question tag at the end of a sentence, follow these two steps:\n- **Find the helping verb** → if the sentence uses 'has', the tag must use 'has'\n- **Flip the positive/negative** → if the sentence is positive, the tag must be negative (and vice versa)\n- Watch out for hidden negative words like **'never'** or **'rarely'** — they make the sentence negative!",
       "trigger_keywords": [
         "isn't it",
         "hasn't she",
-        "does she",
-        "did he"
+        "does he",
+        "didn't they"
       ]
     },
     {
-      "name": "Subject-Verb Agreement",
-      "what": "Sometimes gets tricked by tricky subjects like 'Neither', 'Both', or 'one of the', leading to a mix-up between singular and plural verbs.",
+      "name": "Changing the Meaning",
+      "what": "Tends to accidentally change the original meaning of a sentence by leaving out small details, swapping words, or reversing preferences.",
       "specific_examples": [
         {
-          "questionRef": "[85]",
+          "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "David used the singular verb 'likes' for the plural subject 'Both Ali and Lily'."
+          "whatWentWrong": "David accidentally reversed the preference, saying Mr Tan preferred teh over kopi instead of the other way around."
         },
         {
-          "questionRef": "[164]",
-          "type": "mcq",
-          "whatWentWrong": "He chose the singular verb 'signs' instead of the plural 'sign' for 'the numerous students'."
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He left out the phrase 'in the class', which slightly changed the meaning of the original sentence."
         },
         {
-          "questionRef": "[120]",
-          "type": "mcq",
-          "whatWentWrong": "He picked the singular verb 'is' for the plural noun 'scissors'."
+          "questionRef": "[214]",
+          "type": "oeq",
+          "whatWentWrong": "He accidentally wrote 'father' instead of 'farmer', which changed who grew the corn."
         }
       ],
-      "strategic_advice": "When you see tricky subject words, pause and check if they represent one thing or many:\n- **'Both'** and **'and'** always make a plural subject, so use a plural verb.\n- **'Neither/nor'** follows the noun closest to the verb.\n- **'One of the...'** refers to a single person out of a group, so it usually takes a **singular verb**.",
-      "trigger_keywords": [
-        "Neither",
-        "Both",
-        "one of the",
-        "as well as"
-      ]
-    },
-    {
-      "name": "Preference Mix-Up",
-      "what": "Occasionally confuses how to express preferences, either by using the wrong preposition or by accidentally reversing which item is preferred.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "oeq",
-          "whatWentWrong": "David wrote 'preference of' instead of the correct phrase 'preference for'."
-        },
-        {
-          "questionRef": "[82]",
-          "type": "oeq",
-          "whatWentWrong": "He accidentally reversed the sentence, saying his mother prefers taking public transport when she actually prefers driving."
-        }
-      ],
-      "strategic_advice": "When rewriting sentences about what someone likes more, keep these rules in mind:\n- Always use the preposition **'for'** after the word 'preference' (e.g., **'a preference for'**).\n- Double-check the original sentence to make sure you put the **most liked item first**.",
+      "strategic_advice": "When rewriting a sentence, your goal is to keep the exact same message as the original.\n- **Double-check preferences** → make sure you don't accidentally swap what the person likes more\n- **Keep all the details** → don't drop small phrases like 'in the class' or 'daily'\n- **Read both sentences back-to-back** to make sure they tell the exact same story.",
       "trigger_keywords": [
         "preference",
-        "prefers",
-        "likes better"
+        "except",
+        "due to",
+        "both"
+      ]
+    },
+    {
+      "name": "Spelling by Ear",
+      "what": "Sometimes spells tricky words exactly how they sound, which leads to creative but incorrect spellings.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "David spelled 'required' as 'rekwired', writing it exactly as it sounds."
+        },
+        {
+          "questionRef": "[189]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'enthusiasts' as 'enthoosyasts', sounding out each syllable."
+        },
+        {
+          "questionRef": "[240]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'restaurant' as 'restrawnt', matching the way it is spoken."
+        }
+      ],
+      "strategic_advice": "Sounding out words is a great first step, but English spelling can be tricky!\n- When you learn a new word, try to **break it into syllables** and memorise the tricky parts.\n- If a word looks a bit strange after you write it, try writing it a few different ways on scrap paper to see which one looks right.\n- Read widely to help your brain take a 'mental photograph' of how words are spelled.",
+      "trigger_keywords": [
+        "spelling",
+        "editing",
+        "passage"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -129,7 +124,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 7,
@@ -141,7 +136,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 10,
@@ -161,7 +156,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -185,11 +180,11 @@
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 22,
@@ -197,7 +192,7 @@
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -209,11 +204,11 @@
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 27,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 28,
@@ -249,7 +244,7 @@
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 37,
@@ -293,7 +288,7 @@
     },
     {
       "idx": 47,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 48,
@@ -301,7 +296,7 @@
     },
     {
       "idx": 49,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 50,
@@ -309,15 +304,15 @@
     },
     {
       "idx": 51,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 52,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 53,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 54,
@@ -341,15 +336,15 @@
     },
     {
       "idx": 59,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 60,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 61,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 62,
@@ -357,7 +352,7 @@
     },
     {
       "idx": 63,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 64,
@@ -373,11 +368,11 @@
     },
     {
       "idx": 67,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 68,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 69,
@@ -385,7 +380,7 @@
     },
     {
       "idx": 70,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 71,
@@ -401,7 +396,7 @@
     },
     {
       "idx": 74,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 75,
@@ -409,7 +404,7 @@
     },
     {
       "idx": 76,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 77,
@@ -417,7 +412,7 @@
     },
     {
       "idx": 78,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 79,
@@ -429,31 +424,31 @@
     },
     {
       "idx": 81,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 82,
-      "patternIndex": 3
-    },
-    {
-      "idx": 83,
-      "patternIndex": 3
-    },
-    {
-      "idx": 84,
-      "patternIndex": -1
-    },
-    {
-      "idx": 85,
       "patternIndex": 2
     },
     {
-      "idx": 86,
+      "idx": 83,
+      "patternIndex": 2
+    },
+    {
+      "idx": 84,
+      "patternIndex": 2
+    },
+    {
+      "idx": 85,
       "patternIndex": -1
     },
     {
+      "idx": 86,
+      "patternIndex": 2
+    },
+    {
       "idx": 87,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 88,
@@ -465,7 +460,7 @@
     },
     {
       "idx": 90,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 91,
@@ -573,7 +568,7 @@
     },
     {
       "idx": 117,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 118,
@@ -585,7 +580,7 @@
     },
     {
       "idx": 120,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 121,
@@ -617,7 +612,7 @@
     },
     {
       "idx": 128,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 129,
@@ -625,7 +620,7 @@
     },
     {
       "idx": 130,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 131,
@@ -681,7 +676,7 @@
     },
     {
       "idx": 144,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 145,
@@ -697,15 +692,15 @@
     },
     {
       "idx": 148,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 149,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 150,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 151,
@@ -721,11 +716,11 @@
     },
     {
       "idx": 154,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 155,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 156,
@@ -733,7 +728,7 @@
     },
     {
       "idx": 157,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 158,
@@ -761,7 +756,7 @@
     },
     {
       "idx": 164,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 165,
@@ -781,7 +776,7 @@
     },
     {
       "idx": 169,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 170,
@@ -841,7 +836,7 @@
     },
     {
       "idx": 184,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 185,
@@ -849,15 +844,15 @@
     },
     {
       "idx": 186,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 187,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 188,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 189,
@@ -869,7 +864,7 @@
     },
     {
       "idx": 191,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 192,
@@ -893,7 +888,7 @@
     },
     {
       "idx": 197,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 198,
@@ -901,7 +896,7 @@
     },
     {
       "idx": 199,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 200,
@@ -913,19 +908,19 @@
     },
     {
       "idx": 202,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 203,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 204,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 205,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 206,
@@ -941,7 +936,7 @@
     },
     {
       "idx": 209,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 210,
@@ -957,11 +952,11 @@
     },
     {
       "idx": 213,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 214,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 215,
@@ -977,7 +972,7 @@
     },
     {
       "idx": 218,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 219,
@@ -1133,7 +1128,7 @@
     },
     {
       "idx": 257,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 258,
@@ -1420,7 +1415,7 @@
     "261": "cmnphh4xw0011nsjpi6iydkc3",
     "262": "cmnphh4xw0017nsjpjoqrqvji"
   },
-  "generatedAt": "2026-06-26T06:54:35.586Z",
+  "generatedAt": "2026-06-26T09:29:47.549Z",
   "wrongCounts": {
     "total": 262,
     "oeq": 164,
@@ -1433,23 +1428,23 @@
     "paperCount": 183
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T08:08:50.000Z",
+    "generatedAt": "2026-06-26T06:54:35.586Z",
     "patternNames": [
       "Reported Speech Mix-Up",
-      "Question Tag Mix-Up",
-      "Subject-Verb Agreement Confusion",
-      "Spelling and Copying Slips"
+      "Question Tag Confusion",
+      "Subject-Verb Agreement",
+      "Preference Mix-Up"
     ],
     "wrongCounts": {
-      "total": 233,
-      "oeq": 135,
+      "total": 262,
+      "oeq": 164,
       "mcq": 98
     },
     "toplineSnapshot": {
-      "avgPct": 88,
-      "totalAwarded": 2174,
-      "totalAvailable": 2473,
-      "paperCount": 177
+      "avgPct": 87,
+      "totalAwarded": 2314,
+      "totalAvailable": 2649,
+      "paperCount": 183
     }
   }
 }

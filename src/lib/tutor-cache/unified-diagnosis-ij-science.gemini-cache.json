@@ -1,103 +1,102 @@
 {
   "patterns": [
     {
+      "name": "Population Mix-Up",
+      "what": "Sometimes confuses counting individual animals or plants with counting populations.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "IJ counted 24 individual plants as 24 populations, forgetting that a population is a group of the same kind of living thing."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "IJ counted 9 populations instead of 4, missing that different life stages like tadpoles and frogs count as one single population."
+        }
+      ],
+      "strategic_advice": "When you see **'populations'**, group the same plants or animals together first. Remember that different life stages (like caterpillars and butterflies) count as **one population**.",
+      "trigger_keywords": [
+        "populations",
+        "community",
+        "how many populations"
+      ]
+    },
+    {
       "name": "One Step Short",
-      "what": "Often writes down a good starting thought but occasionally stops before explaining the final scientific reason or consequence.",
+      "what": "Often has the right scientific idea but tends to stop explaining just before stating the final consequence.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "IJ noted that the seeds would travel a shorter distance, but missed the final consequence that this causes overcrowding."
+          "whatWentWrong": "IJ correctly noted the shorter dispersal distance but stopped before mentioning that this leads to overcrowding."
         },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "IJ mentioned that having many entrances makes the burrow accessible, but missed the survival reason of escaping if one entrance is blocked by a predator."
+          "whatWentWrong": "IJ explained that multiple entrances make the burrow accessible, but missed the final point that it allows them to escape if a predator blocks one path."
         },
         {
-          "questionRef": "[21]",
+          "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "IJ correctly stated that air has no definite volume, but forgot to mention the other half of the concept: water has a definite volume."
+          "whatWentWrong": "IJ knew the polar bears would lack a resting platform, but stopped short of explaining that melting ice forces them to swim longer distances."
         }
       ],
-      "strategic_advice": "When you see prompts asking you to explain, treat them as a two-step journey:\n- **'Explain how'** or **'Explain why'** → state your observation, then add a **'so that...'** or **'which causes...'** clause to show the final result.\n- **'Advantage / Disadvantage'** → always link the feature back to survival, overcrowding, or energy.",
+      "strategic_advice": "When you see **'explain'** or **'describe how'**, always ask yourself 'so what?' at the end of your answer. Use a **'so that...'** or **'which leads to...'** phrase to link your thought to the final result.",
       "trigger_keywords": [
-        "Explain why",
-        "Explain how",
-        "Describe how",
-        "Advantage",
-        "Disadvantage"
-      ]
-    },
-    {
-      "name": "Skipping Questions",
-      "what": "Occasionally leaves questions completely blank, especially when they look long or ask for an explanation or experiment steps.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "IJ left the explanation for the advantage of a high hydro-electric turbine completely blank."
-        },
-        {
-          "questionRef": "[24]",
-          "type": "oeq",
-          "whatWentWrong": "IJ left the explanation about which spring produces the loudest sound blank."
-        },
-        {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "IJ left the steps for conducting the seed dispersal experiment blank."
-        }
-      ],
-      "strategic_advice": "When you see a long question or one asking for steps, don't leave it blank! Try these tricks:\n- **'List down the steps'** → imagine you are telling a friend how to do the activity, and write down the first thing you would do.\n- **'Explain your answer'** → even if you aren't sure of the whole answer, write down the science keywords you know about the topic to grab partial marks.",
-      "trigger_keywords": [
-        "Explain your answer",
-        "List down the steps",
-        "Give one advantage"
-      ]
-    },
-    {
-      "name": "Chewing vs Digesting Mix-Up",
-      "what": "Sometimes confuses the physical chewing of food into smaller pieces (which happens in the mouth) with the chemical digestion of food into simpler substances (which happens in the stomach and small intestine).",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "oeq",
-          "whatWentWrong": "IJ labelled the mouth, stomach, and small intestine as places where food is 'broken into smaller pieces', instead of just the mouth."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "IJ again selected the mouth, stomach, and small intestine for 'breaks food into smaller pieces', when only the mouth was expected."
-        }
-      ],
-      "strategic_advice": "When you see questions about the digestive system, remember the difference between physical and chemical changes:\n- **'Breaks food into smaller pieces'** → this is physical chewing, which only happens in the **mouth**.\n- **'Breaks down into simpler substances'** → this is chemical digestion, which happens in the **mouth, stomach, and small intestine**.",
-      "trigger_keywords": [
-        "breaks food into smaller pieces",
-        "digestion",
-        "digestive system"
+        "explain",
+        "describe how",
+        "advantage",
+        "disadvantage"
       ]
     },
     {
       "name": "Series vs Parallel Mix-Up",
-      "what": "Sometimes mixes up how to draw series and parallel circuits, especially when trying to keep one part of the circuit working while another part is broken.",
+      "what": "Occasionally mixes up the rules for drawing and explaining series and parallel circuits.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "oeq",
-          "whatWentWrong": "IJ needed to draw a parallel arrangement for the bulb and sound box but missed the correct connections."
+          "whatWentWrong": "IJ missed drawing the series connection for the batteries and the parallel arrangement for the bulb and sound box."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "IJ drew a series circuit instead of a parallel one, even though IJ correctly wrote that the bulbs should have separate pathways."
+          "whatWentWrong": "IJ correctly identified it as a parallel circuit in his writing, but accidentally drew a series circuit instead."
         }
       ],
-      "strategic_advice": "When you see questions asking you to draw a circuit, look for clues about how the components behave:\n- **'Remained lit'** or **'still play music'** → this is a huge clue that you must draw a **parallel circuit** with separate loops.\n- **'Draw wires'** → always double-check that your wires connect to both the **metal tip** and the **metal casing** of the bulb.",
+      "strategic_advice": "When drawing circuits, remember that **parallel** means separate branches for each bulb, and **series** means one single loop. Always trace the path with your finger to check that electricity has a **closed circuit** to flow through.",
       "trigger_keywords": [
-        "draw wires to complete the circuit",
-        "remained lit",
-        "parallel"
+        "draw the wires",
+        "circuit",
+        "bulb fused"
+      ]
+    },
+    {
+      "name": "Ignoring Given Rules",
+      "what": "Sometimes overlooks specific instructions or limits set by the question prompt.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "IJ labeled extra boxes with 'N' instead of just the one part where food is broken down."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "IJ included extra parts L and M in his answer when only part J was needed."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "IJ suggested adding a lubricant, even though the question specifically said 'without adding or removing any materials'."
+        }
+      ],
+      "strategic_advice": "Treat these phrases as stop signs:\n- **'without adding'** → only use what is already in the picture\n- **'write the letter'** → only label the exact boxes asked for, no extras",
+      "trigger_keywords": [
+        "without adding",
+        "write the letter",
+        "state the part"
       ]
     }
   ],
@@ -112,19 +111,19 @@
     },
     {
       "idx": 3,
-      "patternIndex": 2
-    },
-    {
-      "idx": 4,
-      "patternIndex": 1
-    },
-    {
-      "idx": 5,
       "patternIndex": 3
     },
     {
-      "idx": 6,
+      "idx": 4,
       "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
     },
     {
       "idx": 7,
@@ -140,7 +139,7 @@
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 11,
@@ -148,11 +147,11 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -164,39 +163,39 @@
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": 2
-    },
-    {
-      "idx": 18,
-      "patternIndex": 0
-    },
-    {
-      "idx": 19,
-      "patternIndex": 0
-    },
-    {
-      "idx": 20,
-      "patternIndex": 0
-    },
-    {
-      "idx": 21,
-      "patternIndex": 0
-    },
-    {
-      "idx": 22,
       "patternIndex": 3
     },
     {
-      "idx": 23,
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
       "patternIndex": -1
     },
     {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 25,
@@ -224,7 +223,7 @@
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 32,
@@ -236,7 +235,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 35,
@@ -315,17 +314,36 @@
     "41": "cmq3jr5pt00161329tdur5gky",
     "42": "cmq3jr5pt00171329t54i1vn3"
   },
-  "generatedAt": "2026-06-17T09:11:51.347Z",
+  "generatedAt": "2026-06-26T09:35:22.368Z",
   "wrongCounts": {
     "total": 42,
     "oeq": 18,
     "mcq": 24
   },
   "toplineSnapshot": {
-    "avgPct": 79,
-    "totalAwarded": 298.5,
-    "totalAvailable": 376,
-    "paperCount": 12
+    "avgPct": 80,
+    "totalAwarded": 312.5,
+    "totalAvailable": 390,
+    "paperCount": 13
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:11:51.347Z",
+    "patternNames": [
+      "One Step Short",
+      "Skipping Questions",
+      "Chewing vs Digesting Mix-Up",
+      "Series vs Parallel Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 42,
+      "oeq": 18,
+      "mcq": 24
+    },
+    "toplineSnapshot": {
+      "avgPct": 79,
+      "totalAwarded": 298.5,
+      "totalAvailable": 376,
+      "paperCount": 12
+    }
+  }
 }

@@ -1,91 +1,99 @@
 {
   "patterns": [
     {
-      "name": "Living Things Mix-Up",
-      "what": "Tends to mix up the special traits that define different groups of living things, such as confusing what makes an insect unique or mixing up plants and fungi.",
+      "name": "Animal Family Mix-Up",
+      "what": "Sometimes chooses a general trait (like laying eggs) instead of the special feature that actually defines an animal group (like having six legs or gills).",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "UmarH chose 'lays eggs' as the trait for an insect, but the true defining trait is having exactly six legs."
+          "whatWentWrong": "When asked how to identify an insect, UmarH chose 'lays eggs' instead of the defining feature 'has six legs'."
         },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'reproduces by laying eggs' to identify a fish, rather than its unique feature of breathing through gills."
+        }
+      ],
+      "strategic_advice": "When a question asks how to **identify** an animal group, look for its unique 'VIP' trait:\n- **Insects** → 6 legs, 3 body parts\n- **Fish** → gills, scales, fins\n- **Mammals** → hair/fur, produce milk\nMany animals lay eggs, so that is rarely the deciding clue!",
+      "trigger_keywords": [
+        "identify",
+        "characteristic",
+        "true for both"
+      ]
+    },
+    {
+      "name": "Fungi vs Plants Mix-Up",
+      "what": "Occasionally confuses the traits of fungi (like mushrooms) with those of plants (like ferns), especially regarding how they get their food and light.",
+      "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "He thought that ferns and mushrooms can both survive without light, mixing up fungi with ferns, which are plants and need light."
+          "whatWentWrong": "He thought both ferns and mushrooms can survive without light, forgetting that ferns are plants and need light to make food."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He mixed up the headings for a chart separating fungi (yeast, mushrooms) from non-flowering plants (moss, ferns)."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'identify'** → remember that many animals lay eggs, so look for a **special trait** like **six legs** for insects or **gills** for fish.\n- **'ferns and mushrooms'** → remember the golden rule: **Plants make their own food** (so they need light), while **fungi do not**.",
+      "strategic_advice": "Remember this golden rule for these two groups:\n- **Plants (Ferns/Moss)** → Make their own food, so they **need light**.\n- **Fungi (Mushrooms/Yeast)** → Feed on other things, so they **do not need light**.\nHowever, they do share one big similarity: both reproduce by **spores**!",
       "trigger_keywords": [
-        "characteristic",
-        "identify",
-        "both"
+        "ferns",
+        "mushrooms",
+        "fungi",
+        "spores"
       ]
     },
     {
       "name": "Missing the Cue Word",
-      "what": "Misses important instruction words occasionally, such as giving a difference when asked for a similarity, or skipping the word 'not'.",
+      "what": "Tends to read past important instruction words like 'not', 'only', or 'similarity', which leads to answering a slightly different question than the one asked.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "The question asked for a similarity between two groups, but UmarH wrote down a difference instead."
+          "whatWentWrong": "When asked for a similarity between two animal groups, he wrote down a difference instead."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "The question stated the magnet only picked up object C, but he chose an option where both objects were magnetic."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "He missed the word 'not' in the question and picked a characteristic that all living things actually do need."
+          "whatWentWrong": "He missed the word 'not' and picked a true statement about living things instead of the false one."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'not'** or **'false'** → circle it immediately so your brain remembers to look for the odd one out.\n- **'similarity'** → make sure your answer uses the word **'Both'** and describes something they share.",
+      "strategic_advice": "Treat these tricky words as stop signs. When you see them, circle or highlight them immediately:\n- **'not'** or **'false'** → you are looking for the odd one out\n- **'similarity'** → how are they the same? (Don't write a difference!)\n- **'only'** → pay close attention to what is left out",
       "trigger_keywords": [
         "not",
         "similarity",
-        "false"
+        "only",
+        "false",
+        "difference"
       ]
     },
     {
-      "name": "Stopping Too Early",
-      "what": "Stops one step short occasionally, finding one correct piece of the puzzle but moving on before writing down the complete answer.",
+      "name": "Missing Half the Answer",
+      "what": "Sometimes stops one step short, providing only one part of the answer when the question asks for two.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "UmarH correctly noticed that the food would decrease, but forgot to mention that the water would decrease too."
+          "whatWentWrong": "The question asked about the amount of 'water and food', but he only mentioned that there would be 'less food'."
         },
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "He successfully identified animal B as an insect, but missed that animal D was also an insect."
+          "whatWentWrong": "He correctly spotted animal B as an insect from the flowchart, but missed that animal D was also an insect."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'what would you observe'** → check if there is more than one thing changing in the picture (like both food AND water).\n- **'which of these'** → double-check if there might be **more than one** correct answer before moving on.",
+      "strategic_advice": "Always do a quick 'double-check' before moving to the next question:\n- Did the question mention **two items** (like food AND water)? Make sure both are in your answer.\n- Are there **multiple paths** in a flowchart that lead to the same result? Check all branches before deciding.",
       "trigger_keywords": [
-        "what would",
+        "and",
         "which of these",
-        "observe"
-      ]
-    },
-    {
-      "name": "Magnet Rules Mix-Up",
-      "what": "Confuses which materials are magnetic and how magnets behave when they are free to move.",
-      "specific_examples": [
-        {
-          "questionRef": "[15]",
-          "type": "mcq",
-          "whatWentWrong": "The magnet only picked up object C, but UmarH picked an option where both objects were made of magnetic metals."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "mcq",
-          "whatWentWrong": "He guessed that a floating magnet would point North-West, rather than settling in a North-South direction."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'only picked up'** → memorise the magnetic metals (**Iron, Steel, Nickel, Cobalt**). Make sure the object left behind is *not* on this list!\n- **'comes to rest'** → a freely hanging or floating magnet acts like a compass and will always settle in a **North-South** direction.",
-      "trigger_keywords": [
-        "magnet",
-        "made of",
-        "comes to rest"
+        "amount of"
       ]
     }
   ],
@@ -100,7 +108,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 4,
@@ -112,23 +120,23 @@
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -140,23 +148,23 @@
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -178,7 +186,7 @@
     "16": "cmpu1nzju00a714gm7wm504rx",
     "17": "cmpu1nzju00a814gmpri3b3f1"
   },
-  "generatedAt": "2026-06-19T02:41:28.887Z",
+  "generatedAt": "2026-06-26T09:48:16.021Z",
   "wrongCounts": {
     "total": 17,
     "oeq": 3,
@@ -190,5 +198,24 @@
     "totalAvailable": 83,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:41:28.887Z",
+    "patternNames": [
+      "Living Things Mix-Up",
+      "Missing the Cue Word",
+      "Stopping Too Early",
+      "Magnet Rules Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 17,
+      "oeq": 3,
+      "mcq": 14
+    },
+    "toplineSnapshot": {
+      "avgPct": 61,
+      "totalAwarded": 51,
+      "totalAvailable": 83,
+      "paperCount": 3
+    }
+  }
 }

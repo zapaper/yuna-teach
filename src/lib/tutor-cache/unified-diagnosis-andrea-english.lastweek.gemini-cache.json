@@ -1,0 +1,329 @@
+{
+  "patterns": [
+    {
+      "name": "Singular and Plural Mix-Up",
+      "what": "Sometimes confuses whether a subject is singular or plural, which leads to picking the wrong verb form.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Andrea picked the plural verb 'were' instead of the singular 'was' for the main subject 'Jane'."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote the singular verb 'has' instead of 'have' for the plural subject 'hawker centres'."
+        }
+      ],
+      "strategic_advice": "When you see a blank for a verb, always ask yourself: **'Who or what is doing this action?'**\n- Trace it back to the main subject and check if it is one (singular) or more than one (plural).\n- Ignore extra information like **'together with'** or **'as well as'** that tries to trick you into thinking the subject is plural!",
+      "trigger_keywords": [
+        "is / are",
+        "has / have",
+        "was / were"
+      ]
+    },
+    {
+      "name": "Spelling by Sound",
+      "what": "Occasionally spells tricky words exactly how they sound, which leads to missing silent letters or using the wrong vowels.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea spelled 'extinct' as 'extint', missing the silent 'c'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "She spelled 'inspiration' as 'insperation', using an 'e' instead of an 'i'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She spelled 'sense' as 'sence', mixing up the 's' and 'c' sounds."
+        }
+      ],
+      "strategic_advice": "When checking your work, look out for words with tricky vowel sounds or silent letters.\n- Break longer words into smaller chunks (syllables) to make sure no letters are left out.\n- If a word looks a bit strange after you write it, try writing it another way on rough paper to see which one **looks right**.",
+      "trigger_keywords": [
+        "ekstint",
+        "inspireshion",
+        "poppiullur"
+      ]
+    },
+    {
+      "name": "Vague Story Answers",
+      "what": "Tends to give general answers to comprehension questions instead of pointing to the specific event or action from the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[36]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea answered that the teacher 'thinks it is important' instead of giving the specific reason that Ah Huat had no time at home."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "She referred generally to 'the boy's act' instead of stating exactly what the act was (getting stabbed by a pencil)."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote that the author 'learnt that he should not have done what he had done' instead of explaining that he experienced the same pain."
+        }
+      ],
+      "strategic_advice": "When you see prompts asking **'what made'** or **'explain why'**, always look for the exact action or event in the text.\n- Avoid using vague words like **'it'**, **'the act'**, or **'what he did'**. Name the exact thing!\n- Ask yourself: **'If someone hasn't read the story, would they understand my answer?'** If not, add more specific details.",
+      "trigger_keywords": [
+        "what made",
+        "explain clearly why",
+        "what was the"
+      ]
+    },
+    {
+      "name": "Word Form Mix-Up",
+      "what": "Sometimes uses a verb when the sentence needs a noun, or an adjective when it needs a noun.",
+      "specific_examples": [
+        {
+          "questionRef": "[29]",
+          "type": "oeq",
+          "whatWentWrong": "Andrea wrote the verb 'is' instead of a noun like 'significance' or 'value' to describe the cultural importance of hawker centres."
+        },
+        {
+          "questionRef": "[32]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote the verb 'relieve' instead of the noun 'relief' in the phrase 'Much to Mr Fandi's relief'."
+        }
+      ],
+      "strategic_advice": "Look at the words right before the blank to figure out what type of word is needed.\n- If you see words like **'the'**, **'a'**, or an apostrophe **'s'** (like **'Mr Fandi's'**), you almost always need a **noun** (a naming word).\n- Read the whole sentence softly to yourself to hear if the word form fits smoothly.",
+      "trigger_keywords": [
+        "Much to",
+        "cultural",
+        "relieved"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    },
+    {
+      "idx": 33,
+      "patternIndex": 3
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 2
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 2
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqbyju01000i4ehomtpcw7ew",
+    "2": "cmqbyju01000j4ehoujwc6dmm",
+    "3": "cmqbyju01000k4ehoi0tmxs2o",
+    "4": "cmqbyju01000m4eho85pkzie4",
+    "5": "cmqbyju01000s4ehot5pp3avz",
+    "6": "cmqbyju01000t4ehoq9bldzf2",
+    "7": "cmqbyju01000v4ehopbdaxcdd",
+    "8": "cmqbyju01000w4ehon6hlcel1",
+    "9": "cmqbyju02000x4ehovmlq5git",
+    "10": "cmqbyju0200124ehotyb079f0",
+    "11": "cmqbyju0200164ehovuve7udb",
+    "12": "cmqbyju0200184ehoc9dblzel",
+    "13": "cmqbyju0200194ehoit3d7l04",
+    "14": "cmqbyju02001b4eho6rwt77m9",
+    "15": "cmqbyju03001d4ehonf1x3nil",
+    "16": "cmqbyju03001e4ehok46mw5tu",
+    "17": "cmqbyju03001f4ehooa1cgi5g",
+    "18": "cmqbyju03001i4ehoz698155u",
+    "19": "cmqbyju03001j4ehoiw66iba1",
+    "20": "cmqbyju03001l4ehowfclzuf9",
+    "21": "cmqbyju03001m4eho0fsvydsa",
+    "22": "cmqbyju03001n4eholi7idg9w",
+    "23": "cmqbyju03001o4ehokqspvquw",
+    "24": "cmqbyju03001r4eho4ht059yd",
+    "25": "cmqbyju04001s4ehoqx5scvgv",
+    "26": "cmqbyju04001t4eho8a2tjela",
+    "27": "cmqbyju04001w4ehojyjnlsgs",
+    "28": "cmqbyju04001y4eho0yyxbsz6",
+    "29": "cmqbyju04001z4ehog5djjymd",
+    "30": "cmqbyju0400204eho6v8w8dkd",
+    "31": "cmqbyju0400214eho69rt6oix",
+    "32": "cmqbyju0400224ehotunoyxf3",
+    "33": "cmqbyju0400234eho8tntgkqo",
+    "34": "cmqbyju0400244ehoshiv8dcl",
+    "35": "cmqbyju0400254ehog7wzfz9g",
+    "36": "cmqbyju0500274ehofo482rys",
+    "37": "cmqbyju0500284eholyly4mkk",
+    "38": "cmqbyju0500294ehopaf1nckw",
+    "39": "cmqbyju05002b4ehooxq0jh4a",
+    "40": "cmqbyju05002c4ehortb2o897",
+    "41": "cmqbyju05002d4eho16b0c3qi",
+    "42": "cmqbyju05002e4ehovdwc7h47"
+  },
+  "generatedAt": "2026-06-17T09:06:55.178Z",
+  "wrongCounts": {
+    "total": 42,
+    "oeq": 33,
+    "mcq": 9
+  },
+  "toplineSnapshot": {
+    "avgPct": 39,
+    "totalAwarded": 36.5,
+    "totalAvailable": 93,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

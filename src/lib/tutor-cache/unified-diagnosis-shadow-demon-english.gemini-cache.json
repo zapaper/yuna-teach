@@ -1,114 +1,114 @@
 {
   "patterns": [
     {
-      "name": "Spelling Slips",
-      "what": "Tends to spell tricky words exactly how they sound, which leads to small spelling mistakes.",
+      "name": "Missing Context Clues",
+      "what": "Sometimes picks a word that makes sense on its own but misses the specific hint hidden in the rest of the sentence.",
       "specific_examples": [
-        {
-          "questionRef": "[6]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow spelled 'squeal' as 'squeel', relying on how the word sounds."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow added an extra 'r' to 'apparently', which is a common slip with double letters."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow wrote 'vurtue' instead of 'virtue', mixing up the vowel sounds."
-        }
-      ],
-      "strategic_advice": "When checking your spelling, try these steps:\n- Look out for words with **double letters** (like the 'p' and 'r' in apparently).\n- Break longer words into **smaller parts** or syllables to help remember the correct vowels.\n- If a word sounds like it has an 'ee' sound, double-check if it should be spelled with **'ea'** instead.",
-      "trigger_keywords": [
-        "passage",
-        "spelling"
-      ]
-    },
-    {
-      "name": "Cloze Passage Clues",
-      "what": "Tends to fill in blanks with words that sound okay on their own but misses the clues hidden in the surrounding sentences.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "Shadow used 'were' instead of 'become', missing the clue 'therefore' which shows a change in the guides' role."
-        },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "Shadow chose 'While' instead of 'Besides', missing the word 'also' later in the sentence that shows an addition."
+          "whatWentWrong": "Shadow wrote 'While' instead of 'Besides', missing the clue word 'also' later in the sentence which shows information is being added."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "Shadow wrote 'no problem as challenging' instead of the common phrase 'no longer as challenging'."
+          "whatWentWrong": "Shadow wrote 'held' instead of 'placed', missing the logical clue that the guide has to put the model into the blind person's hands so they can feel it."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Shadow chose 'released' instead of 'deported', missing the clue that the pirates were being sent back to their 'home country'."
         }
       ],
-      "strategic_advice": "When you see a blank in a passage, treat it like a puzzle:\n- Read the sentence **before and after** the blank to look for clue words like 'therefore', 'also', or 'but'.\n- Check if the word you chose forms a **common phrase** (like 'all it takes' or 'no longer').\n- Read the whole sentence quietly to yourself to see if the **meaning flows well**.",
+      "strategic_advice": "When you see a blank, look for the **hidden clues** in the same sentence or the sentence before it.\n- Highlight connector words like **'also'**, **'therefore'**, or **'so that'**—they tell you if the sentence is adding information, showing a result, or giving a reason.\n- Ask yourself: 'Does my word fit perfectly with the clues around it?'",
       "trigger_keywords": [
-        "passage",
-        "cloze"
+        "therefore",
+        "also",
+        "so that",
+        "blank"
       ]
     },
     {
-      "name": "Poster Reading Traps",
-      "what": "Tends to pick answers in visual text questions that look familiar but misses the poster's fine print.",
+      "name": "Common Phrase Mix-Up",
+      "what": "Occasionally fills in blanks with words that mean the right thing but don't quite fit the standard English expression.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow wrote 'no problem as challenging' instead of the standard phrase 'no longer as challenging'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow wrote 'first it takes' instead of the common expression 'all it takes'."
+        }
+      ],
+      "strategic_advice": "When you see a short phrase with a blank, try reading it aloud in your head to see if it sounds like a natural English expression.\n- If you are stuck, try substituting common small words like **'all'**, **'longer'**, or **'more'**.\n- Read the whole phrase together (e.g., **'all it takes'**) to check its rhythm.",
+      "trigger_keywords": [
+        "no ___ as",
+        "___ it takes",
+        "take for ___"
+      ]
+    },
+    {
+      "name": "Reading Poster Details",
+      "what": "Tends to overlook small but important details in visual texts, such as absolute words or specific conditions.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Shadow picked an option about registration being needed for all activities, missing the detail that they are held in the afternoon."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow chose an option about being a member, missing the specific benefit of paying less."
+          "whatWentWrong": "Shadow chose an option saying registration is needed for 'all' activities, missing that the poster likely had exceptions."
         },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Shadow selected an option about learning survival skills with electronic devices instead of making new friends."
+          "whatWentWrong": "Shadow chose an option about using 'electronic devices' for survival skills, which wasn't supported by the poster."
         }
       ],
-      "strategic_advice": "When you see prompts like **'According to the poster'** or **'true of'**, treat it like a spot-the-difference game:\n- **Underline key words** in the options.\n- Check them one by one against the poster to make sure every part is correct.\n- Watch out for **absolute words** like 'all' or 'must', as they often make an option false.",
+      "strategic_advice": "When answering questions about posters or flyers, treat absolute words as warning signs.\n- Circle words like **'all'**, **'must'**, **'only'**, or **'every'** in the options.\n- Always double-check the poster to see if the rule truly applies to **everyone** or just some people.",
       "trigger_keywords": [
         "According to the poster",
         "true of",
-        "Which of the following"
+        "all",
+        "must"
       ]
     },
     {
-      "name": "Word Meaning Mix-Up",
-      "what": "Occasionally mixes up words that have similar meanings or relate to similar situations.",
+      "name": "Tricky Word Spellings",
+      "what": "Sometimes trips up on spelling words that have double letters or tricky vowel sounds.",
       "specific_examples": [
         {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow picked 'released' instead of 'deported' for pirates who entered illegally."
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow added an extra 'r' when spelling 'apparently'."
         },
         {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Shadow chose 'squinted' instead of 'scrutinised' for someone peering intently at a garden."
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow mixed up the vowel team, spelling 'squeal' as 'squeel'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Shadow spelled 'virtue' as 'vurtue', mixing up the 'ir' and 'ur' sounds."
         }
       ],
-      "strategic_advice": "When you are choosing between similar words, look for **context clues** in the sentence:\n- Words like 'entered illegally' or 'intently' give strong hints about which word fits best.\n- If you are unsure, try **plugging each option** into the sentence to see which one matches the exact situation.\n- Build your vocabulary by noting down new words and their **exact meanings**.",
+      "strategic_advice": "When editing spelling mistakes, break the word down into its sounds and syllables.\n- Watch out for **double letters** (like the 'p' in apparently).\n- Pay attention to **vowel teams** (like 'ea' in squeal or 'ir' in virtue). If it looks a bit strange, try writing it out a few different ways on rough paper to see which one looks right.",
       "trigger_keywords": [
-        "Vocabulary",
-        "meaning"
+        "spelling",
+        "editing",
+        "correct the word"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 2,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 3,
@@ -124,15 +124,15 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 9,
@@ -148,19 +148,19 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
-    },
-    {
-      "idx": 13,
-      "patternIndex": 1
-    },
-    {
-      "idx": 14,
       "patternIndex": 0
     },
     {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -185,7 +185,7 @@
     "15": "cmpnxkhf6003it6qwwm37s2py",
     "16": "cmpnxkhf6003kt6qwh4ri3mvv"
   },
-  "generatedAt": "2026-06-17T09:23:36.868Z",
+  "generatedAt": "2026-06-26T09:46:17.486Z",
   "wrongCounts": {
     "total": 16,
     "oeq": 11,
@@ -197,5 +197,24 @@
     "totalAvailable": 73,
     "paperCount": 1
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:23:36.868Z",
+    "patternNames": [
+      "Spelling Slips",
+      "Cloze Passage Clues",
+      "Poster Reading Traps",
+      "Word Meaning Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 16,
+      "oeq": 11,
+      "mcq": 5
+    },
+    "toplineSnapshot": {
+      "avgPct": 77,
+      "totalAwarded": 56,
+      "totalAvailable": 73,
+      "paperCount": 1
+    }
+  }
 }

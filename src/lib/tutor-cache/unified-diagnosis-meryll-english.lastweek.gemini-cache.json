@@ -1,0 +1,229 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Questions",
+      "what": "Sometimes leaves a whole block of questions blank, which might happen if a page is accidentally turned too fast or time runs out.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Meryll left this question blank, missing out on a chance to score by finding the true statement in the poster."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "She skipped this question about the writer's slogan, which could have been answered by looking closely at the text."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "This question about the main selling point was also left unanswered, possibly because she missed the page."
+        }
+      ],
+      "strategic_advice": "When you finish a paper, always do a quick **page-by-page check** to make sure every single question has an answer shaded or written down. Even if you are unsure, **never leave a multiple-choice question blank** because a smart guess still gives you a chance to score!",
+      "trigger_keywords": [
+        "According to",
+        "Based on",
+        "true of"
+      ]
+    },
+    {
+      "name": "Pronoun Mix-Up",
+      "what": "Occasionally mixes up singular and plural ownership words, or confuses contractions with ownership words.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Meryll picked 'who's' (which means 'who is') instead of 'whose', confusing a contraction with the word that shows ownership."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "She used the singular 'its' for the majestic tigers, forgetting that plural animals need the word 'their'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "Meryll used the plural 'their' for the park, but since there is only one park, it should be 'its'."
+        }
+      ],
+      "strategic_advice": "When you need to choose a pronoun, always trace it back to the **owner** in the sentence.\n- If the owner is plural (like 'tigers'), use **'their'**.\n- If the owner is singular (like 'the park'), use **'its'**.\n- Remember that **'who's'** always means 'who is', while **'whose'** shows ownership.",
+      "trigger_keywords": [
+        "its",
+        "their",
+        "who's",
+        "whose"
+      ]
+    },
+    {
+      "name": "Phrasal Verb Mix-Up",
+      "what": "Tends to mix up two-part verbs that start with the same word but end differently, changing the whole meaning of the action.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Meryll chose 'told on' (which means to tattle) instead of 'told off' (which means to scold) for the rowdy boys."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'set in' (which means to begin and stay) rather than 'set off' (which means to trigger an action)."
+        }
+      ],
+      "strategic_advice": "When you see a verb followed by a preposition, read the **whole sentence context** to figure out the exact action.\n- Ask yourself: **'What is really happening here?'**\n- Try replacing the phrase with a **single word** (like 'scolded' or 'triggered') to see which option matches best.",
+      "trigger_keywords": [
+        "told",
+        "set",
+        "off",
+        "on",
+        "in"
+      ]
+    },
+    {
+      "name": "Synonym Mix-Up",
+      "what": "Sometimes chooses a word that feels related to the sentence but misses the exact meaning of the original highlighted word.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Meryll picked 'Supposedly' instead of 'Mistakenly', which is the exact match for the word 'Erroneously'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'traditional' instead of 'native' to describe an animal that naturally belongs to Singapore."
+        }
+      ],
+      "strategic_advice": "When replacing a word in a passage, look for the **exact match** in meaning, not just a word that sounds related.\n- **Cover the options** and think of your own simple word first.\n- Plug your chosen word back into the sentence to check if the **original meaning** stays exactly the same.",
+      "trigger_keywords": [
+        "Erroneously",
+        "typically",
+        "indigenous",
+        "instinct",
+        "worthwhile"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 3
+    },
+    {
+      "idx": 6,
+      "patternIndex": 3
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpwow896000411fmgp4zym4p",
+    "2": "cmpwow896000911fmts1u8udd",
+    "3": "cmpwow896000b11fmgoeaj54w",
+    "4": "cmpwow896000c11fmx69jfmkc",
+    "5": "cmpwow896000e11fmbmrzvwbc",
+    "6": "cmpwow896000g11fmarg31rso",
+    "7": "cmpuus5y5009jqm74c27bgond",
+    "8": "cmpuus5y5009kqm74exj2vxjn",
+    "9": "cmpuus5y5009rqm74umv07bpv",
+    "10": "cmpuus5y5009sqm74225qyz3t",
+    "11": "cmpuus5y5009vqm7422ytehua",
+    "12": "cmpuus5y5009wqm746ttoz80h",
+    "13": "cmpuus5y5009xqm74w7dpil4h",
+    "14": "cmpuus5y5009yqm74cy5s7lqt",
+    "15": "cmpuus5y6009zqm749aaezkc7",
+    "16": "cmpuus5y600a0qm743jdfiavy",
+    "17": "cmpuus5y600a2qm74shoji6nx",
+    "18": "cmpuus5y600a4qm74in333g3i",
+    "19": "cmpuus5y600a8qm744pv642iz",
+    "20": "cmpuus5y600a9qm74rdty1w4v",
+    "21": "cmpuus5y600aaqm745ek5bt0l"
+  },
+  "generatedAt": "2026-06-17T09:19:04.999Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 5,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 53,
+    "totalAwarded": 24,
+    "totalAvailable": 45,
+    "paperCount": 2
+  },
+  "previousAssessment": null
+}

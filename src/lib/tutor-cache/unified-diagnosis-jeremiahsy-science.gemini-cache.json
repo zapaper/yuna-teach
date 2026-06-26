@@ -1,75 +1,97 @@
 {
   "patterns": [
     {
-      "name": "Reproductive Parts Mix-Up",
-      "what": "JeremiahSy sometimes mixes up the specific jobs of reproductive parts, like confusing where a baby grows with where eggs are made, or matching plant parts to the wrong human parts.",
+      "name": "Plant and Human Parts Mix-Up",
+      "what": "Sometimes mixes up which reproductive parts in a flower do the same job as the parts in a human.",
       "specific_examples": [
         {
-          "questionRef": "[14]",
+          "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He incorrectly thought the fertilised egg develops in the ovary instead of the womb."
+          "whatWentWrong": "He had trouble matching the parts where fertilisation happens in a flower and a human."
         },
         {
-          "questionRef": "[5]",
+          "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "He mixed up which plant and human parts share the same function when comparing male reproductive systems."
+          "whatWentWrong": "He mixed up the female reproductive parts of a plant with those of a human."
         }
       ],
-      "strategic_advice": "When you see questions comparing plant and human parts, or asking about fertilisation:\n- **Draw a quick match-up** in the margins (e.g., Ovary = Ovary, Testis = Anther).\n- Remember that the **ovary produces eggs**, but the **womb is where the baby grows**.",
+      "strategic_advice": "When comparing plants and humans, draw a quick table matching the male parts (**anther = testis**) and female parts (**ovary = ovary**).",
       "trigger_keywords": [
-        "reproductive parts",
-        "fertilisation",
-        "develops in",
-        "produced in",
-        "same function"
+        "same function",
+        "similar function",
+        "reproductive parts"
       ]
     },
     {
-      "name": "Heat Gain and Loss Confusion",
-      "what": "JeremiahSy occasionally gets tricked by the direction of heat travel, mixing up which item is gaining heat and which is losing heat.",
+      "name": "Heat Transfer Direction Mix-Up",
+      "what": "Occasionally gets tricked by which object is gaining heat and which is losing heat when things cool down, melt, or evaporate.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He thought the air gained heat from the sweat, instead of realising the sweat gains heat from the body to cool it down."
+          "whatWentWrong": "He thought the air gained heat from sweat, instead of the sweat gaining heat from the body to evaporate."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He missed identifying the correct statements about heat loss when ice melts on different plates."
+          "whatWentWrong": "He incorrectly thought that an ice cube loses heat to the surrounding air when it is actually gaining heat to melt."
         }
       ],
-      "strategic_advice": "When you see keywords about temperature changes:\n- Always ask yourself: **'Which object is hotter?'**\n- Draw an arrow from the **hotter object to the colder object** to show the direction heat is moving.\n- Remember that **melting or evaporating** means the object is **gaining heat**.",
+      "strategic_advice": "Always ask yourself: 'Is this object getting hotter or colder?'\n- If it is getting hotter (like melting ice or evaporating sweat), it is **gaining heat**.\n- If it is getting colder (like water freezing), it is **losing heat**.",
       "trigger_keywords": [
-        "gains heat",
-        "loses heat",
+        "gained heat",
+        "lost heat",
         "melted",
-        "keep cool",
-        "temperature"
+        "keep cool"
       ]
     },
     {
-      "name": "Light and Shadows Mix-Up",
-      "what": "JeremiahSy sometimes finds it tricky to trace the exact path light takes to bounce into our eyes, or how different materials change a shadow.",
+      "name": "Where Things Grow Mix-Up",
+      "what": "Tends to confuse where specific reproduction steps happen, like thinking an unfertilised egg develops in the womb or mixing up what the ovary and ovule become.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "He chose the wrong arrows for how light travels from a lamp, bounces off a door, and enters a person's eyes."
+          "whatWentWrong": "He mixed up the roles of the ovary and ovules when deciding how a fruit and its seeds are formed."
         },
         {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "He chose an opaque material instead of a translucent one for a shadow puppet screen, forgetting that some light needs to pass through to see the shadow clearly."
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He thought an unfertilised egg develops in the womb, but only a fertilised egg develops into a baby there."
         }
       ],
-      "strategic_advice": "When dealing with light and shadows:\n- For seeing objects, always draw the light path starting from the **light source**, bouncing off the **object**, and ending at the **eyes**.\n- For shadows, remember that **opaque** blocks all light (dark shadow), while **translucent** lets some light through (lighter shadow).",
+      "strategic_advice": "Remember that the **ovary** swells to become the **fruit**, and the **ovules** inside become the **seeds**.\n- In humans, the **womb** is only for a **fertilised egg** to grow into a baby; unfertilised eggs do not develop there.",
       "trigger_keywords": [
-        "shadow",
-        "light rays",
-        "see the door",
-        "material",
-        "screen"
+        "develops in the womb",
+        "ovary of the flower",
+        "unfertilised egg",
+        "seeds are formed"
+      ]
+    },
+    {
+      "name": "Skipping the Explanation",
+      "what": "Sometimes leaves the explanation part of open-ended questions blank or stops after just stating the final choice.",
+      "specific_examples": [
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly chose the right material but forgot to write down the explanation for why it was the best choice."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "He left the explanation for how a flower could still grow into a fruit completely blank."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He left the entire question blank, missing out on marks for arranging materials and explaining his choice."
+        }
+      ],
+      "strategic_advice": "When you see **'Explain your answer'**, always use the **CER method**: State your **Choice**, provide the **Evidence** from the question, and give the science **Reason**.\n- Never leave a question blank! Even writing down one science keyword you know about the topic can earn you partial marks.",
+      "trigger_keywords": [
+        "Explain your answer",
+        "Explain why"
       ]
     }
   ],
@@ -80,7 +102,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -96,23 +118,23 @@
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 3
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -120,19 +142,19 @@
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 16,
@@ -148,11 +170,11 @@
     },
     {
       "idx": 19,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 21,
@@ -160,11 +182,11 @@
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": 3
     }
   ],
   "questionIdByIdx": {
@@ -192,7 +214,7 @@
     "22": "cmnk7iz3x007s14p628zh1vnf",
     "23": "cmnk7iz3x007t14p6i78r2ryz"
   },
-  "generatedAt": "2026-06-26T08:59:08.449Z",
+  "generatedAt": "2026-06-26T09:36:21.107Z",
   "wrongCounts": {
     "total": 23,
     "oeq": 5,
@@ -205,12 +227,11 @@
     "paperCount": 10
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T09:13:31.656Z",
+    "generatedAt": "2026-06-26T08:59:08.449Z",
     "patternNames": [
       "Reproductive Parts Mix-Up",
-      "Heat Transfer Mix-Up",
-      "Light Path and Shadows",
-      "Incomplete Answers"
+      "Heat Gain and Loss Confusion",
+      "Light and Shadows Mix-Up"
     ],
     "wrongCounts": {
       "total": 23,
@@ -218,10 +239,10 @@
       "mcq": 18
     },
     "toplineSnapshot": {
-      "avgPct": 66,
-      "totalAwarded": 120,
-      "totalAvailable": 183,
-      "paperCount": 9
+      "avgPct": 67,
+      "totalAwarded": 128,
+      "totalAvailable": 191,
+      "paperCount": 10
     }
   }
 }

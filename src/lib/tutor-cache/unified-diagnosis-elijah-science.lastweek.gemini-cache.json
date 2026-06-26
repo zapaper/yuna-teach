@@ -1,0 +1,223 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Questions",
+      "what": "Sometimes leaves multiple-choice questions completely blank instead of taking a best guess.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He left the question about what mould needs to grow completely blank."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He skipped the question asking for the most important property of a table."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "He left the question about fish characteristics blank instead of taking a guess."
+        }
+      ],
+      "strategic_advice": "When you are unsure, treat it as a puzzle:\n- **Cross out** the options you know are definitely wrong.\n- **Take your best guess** from the remaining choices—never leave a question blank!",
+      "trigger_keywords": [
+        "Which of the following",
+        "Based on"
+      ]
+    },
+    {
+      "name": "Answering the Wrong Question",
+      "what": "Tends to write down a related fact or reason instead of answering the specific question asked.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "When asked what happens to the amount of food and water, Elijah answered why the hamsters need it ('so they will not die')."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "When asked what happens to the size of the balloon, he answered about its weight ('it weighs more')."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "When asked for a reason based on material properties, Elijah gave the purpose of the object ('user needs to see')."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, use them as a checklist:\n- **'What happens to'** → describe the change (like size or amount), not why it happens.\n- **'Give a reason'** → state the exact property of the material, not just what the object is used for.\n- Always read the question one more time after writing your answer to make sure they match.",
+      "trigger_keywords": [
+        "What would",
+        "What happens to",
+        "Give a reason"
+      ]
+    },
+    {
+      "name": "Living Things Mix-Up",
+      "what": "Sometimes confuses the special characteristics that define different groups of living things, such as insects, birds, and fungi.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'lays eggs' as the characteristic for an insect, instead of the defining trait of having 'six legs'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Elijah identified a bird as an animal with six legs and no wings, missing the key traits of a bird."
+        }
+      ],
+      "strategic_advice": "When you see questions about animal groups, remember:\n- **'characteristic'** → look for the special feature that *only* that group has (like feathers for birds or six legs for insects).\n- Traits like **'lays eggs'** are shared by many different animals, so they are usually not the best clue.",
+      "trigger_keywords": [
+        "characteristic",
+        "identify",
+        "true for both"
+      ]
+    },
+    {
+      "name": "Material Properties Mix-Up",
+      "what": "Occasionally mixes up which material property is most important for an object to do its job.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He chose metal for a car windshield because it doesn't break easily, forgetting that it must allow light to pass through."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "When asked why a boat must be strong, Elijah answered that sea animals might bite instead of mentioning it needs to support the user's weight."
+        }
+      ],
+      "strategic_advice": "When you see questions about choosing materials, imagine using the object in real life:\n- **'suitable material'** → ask yourself what would happen if it lacked a certain property (e.g., a windshield must **allow light to pass through**).\n- **'strong'** → usually means it can support heavy weight without breaking, rather than just being hard.",
+      "trigger_keywords": [
+        "suitable material",
+        "property",
+        "reason"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 3
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq0dt76f00872qesmrcmr0yy",
+    "2": "cmq0dl40g007s2qeskgmpyckt",
+    "3": "cmq0dc9s700642qes6ng7eb74",
+    "4": "cmpyx849g0052289ud0uk9e4x",
+    "5": "cmpywyr7q003y289u1gelyfw3",
+    "6": "cmpywr224002k289uq41rfeyo",
+    "7": "cmpywr225002n289uw70juoxd",
+    "8": "cmpy2mxyp003p12ohs8zejm46",
+    "9": "cmpy2mxyq003u12ohgp7zuoxw",
+    "10": "cmpy1o3el003i4spivzfvd2il",
+    "11": "cmpy0r00q00094spi0jscss8x",
+    "12": "cmpy0r00r000l4spiappb7m6g",
+    "13": "cmpwa4jsa000856zwkriadxya",
+    "14": "cmpwa4jsb000g56zwsyu1atfg",
+    "15": "cmpwa4jsb000h56zwsuods074",
+    "16": "cmpwa4jsb000i56zw5mql20sb",
+    "17": "cmpv1uwzv0008kej70fi0t8n4",
+    "18": "cmpv1uwzv0009kej7iloht3qs",
+    "19": "cmpv1uwzw000ckej7td1bqreo",
+    "20": "cmpv1uwzw000fkej7ppk7ja6u",
+    "21": "cmpv1uwzw000gkej7kyju7qf8"
+  },
+  "generatedAt": "2026-06-19T02:40:06.727Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 4,
+    "mcq": 17
+  },
+  "toplineSnapshot": {
+    "avgPct": 96,
+    "totalAwarded": 923.5,
+    "totalAvailable": 965,
+    "paperCount": 26
+  },
+  "previousAssessment": null
+}

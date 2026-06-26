@@ -2,114 +2,98 @@
   "patterns": [
     {
       "name": "Reported Speech Tenses",
-      "what": "Sometimes forgets to shift the tense one step back into the past when changing direct speech into reported speech.",
+      "what": "Tends to keep the original verb tense instead of shifting it backwards into the past when changing direct speech into reported speech.",
       "specific_examples": [
         {
-          "questionRef": "[4]",
+          "questionRef": "[24]",
           "type": "oeq",
-          "whatWentWrong": "She kept the verb in the present tense ('visit') instead of shifting it back to the past perfect ('had visited')."
-        },
-        {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "She used the present perfect ('have been') instead of shifting it back to the past perfect ('had visited')."
+          "whatWentWrong": "NauraHumaira kept the present tense 'is feeling' instead of shifting it back to the past tense 'was feeling'."
         },
         {
           "questionRef": "[37]",
           "type": "oeq",
-          "whatWentWrong": "She used the simple past ('did') instead of shifting it back to the past perfect ('had done')."
+          "whatWentWrong": "She used the simple past 'did' instead of taking a step back to the past perfect 'had done'."
         }
       ],
-      "strategic_advice": "When you see speech marks **\" \"** changing into reported speech, treat it as a signal to step back in time:\n- **Present tense** changes to **past tense** (e.g., 'is' → 'was').\n- **Past tense** changes to **past perfect** (e.g., 'did' → 'had done').\n- Always double-check if time words like **'yesterday'** need to change to **'the previous day'**.",
+      "strategic_advice": "When you see speech marks being removed, treat it as a signal to take one step back in time:\n- Change present tense to past tense (e.g., **is** becomes **was**).\n- Change past tense to past perfect (e.g., **did** becomes **had done**).\n- Watch out for time words too, like changing **now** to **then**.",
       "trigger_keywords": [
         "asked",
-        "told",
         "wanted to know",
-        "said"
+        "told"
       ]
     },
     {
-      "name": "Capital Letter Slips",
-      "what": "Tends to forget capital letters for proper names, the pronoun 'I', or the very beginning of her sentences.",
+      "name": "Missing Capital Letters",
+      "what": "Sometimes forgets to use a capital letter for the first word of a new sentence, the pronoun 'I', or proper names.",
       "specific_examples": [
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "She forgot to capitalise the pronoun 'I' and the proper name 'Mrs Lim'."
+          "whatWentWrong": "NauraHumaira forgot to capitalize the pronoun 'I' and the proper name 'Mrs Lim'."
         },
         {
           "questionRef": "[35]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'mr phua' with lowercase letters instead of capitalising his name."
+          "whatWentWrong": "She missed the capital letters for the name 'Mr Phua'."
         },
         {
-          "questionRef": "[39]",
+          "questionRef": "[38]",
           "type": "oeq",
-          "whatWentWrong": "She forgot to capitalise 'Jack' when referring to his safety."
+          "whatWentWrong": "NauraHumaira forgot to start the proper name 'Amy' with a capital letter."
         }
       ],
-      "strategic_advice": "Before moving on to the next question, do a quick **'capital check'**:\n- Did you start the sentence with a **capital letter**?\n- Are all names of people and places **capitalised**?\n- Is the word **'I'** always a capital letter, even in the middle of a sentence?",
+      "strategic_advice": "Before moving on to the next question, do a quick 5-second scan of your written answer. Check that the **very first letter** is a capital, any standalone **'I'** is capitalized, and people's names start with big letters.",
       "trigger_keywords": [
-        "I",
-        "Mr",
-        "Mrs",
-        "Dr"
+        "Rewrite",
+        "Combine"
       ]
     },
     {
-      "name": "Singular and Plural Mix-Up",
-      "what": "Occasionally mixes up singular and plural verbs, especially when the subject is separated from the verb by other words.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Occasionally confuses whether to use a singular or plural verb, especially when tricky phrases separate the main subject from the action.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "She saw the plural 'cousins' and chose 'were', forgetting that the main subject 'Jane' is singular."
+          "whatWentWrong": "NauraHumaira matched the verb to the plural 'cousins' instead of the singular main subject 'Jane'."
         },
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "She used the plural verb 'were' for 'project', which is a singular subject."
+          "whatWentWrong": "She used the plural verb 'were' for the singular subject 'The difficult project'."
         },
         {
           "questionRef": "[42]",
           "type": "mcq",
-          "whatWentWrong": "She chose the singular 'remembers', but the rule for 'neither/nor' is to match the verb to the closest subject, which is the plural 'classmates'."
+          "whatWentWrong": "NauraHumaira used the singular verb 'remembers' instead of matching it to the plural 'classmates' closest to the blank."
         }
       ],
-      "strategic_advice": "When choosing between singular and plural verbs, find the **true subject**:\n- For phrases like **'together with'** or **'as well as'**, ignore the extra people and match the verb to the **first person mentioned**.\n- For **'neither... nor'**, match the verb to the subject **closest to the blank**.",
+      "strategic_advice": "When you see phrases like **'together with'** or **'as well as'**, ignore the extra people and match the verb only to the **first person mentioned**. For **'Neither... nor'**, match the verb to the person **closest to the blank**.",
       "trigger_keywords": [
         "together with",
-        "neither",
+        "Neither",
         "nor",
         "as well as"
       ]
     },
     {
-      "name": "Noun Form Mix-Up",
-      "what": "Often struggles to change an action word or describing word into a noun when the new sentence structure requires it.",
+      "name": "Event Order Mix-Up",
+      "what": "Sometimes reverses the order of events when combining sentences with words that show a sequence.",
       "specific_examples": [
         {
-          "questionRef": "[22]",
+          "questionRef": "[3]",
           "type": "oeq",
-          "whatWentWrong": "She used the verb 'angered' right after 'The decision's', instead of changing 'unfair' into the noun 'unfairness'."
+          "whatWentWrong": "NauraHumaira put the second action (waiting for the bus) right after 'Having', reversing the actual story order."
         },
         {
-          "questionRef": "[28]",
+          "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "She wrote a full clause ('the train was delayed') after 'owing to', instead of using the noun phrase 'the train's delay'."
-        },
-        {
-          "questionRef": "[38]",
-          "type": "oeq",
-          "whatWentWrong": "She wrote 'amy forgot' after 'Much to', instead of using the noun form 'her embarrassment'."
+          "whatWentWrong": "She placed the second event (running out to play) first, which changed the meaning of what the boy did."
         }
       ],
-      "strategic_advice": "When you see starters like **'Much to'**, **'Because of'**, or **'owing to'**, you usually need a **noun**, not a full sentence:\n- Ask yourself: 'What is the thing or feeling we are talking about?'\n- Change describing words into their noun forms (e.g., **'unfair'** becomes **'unfairness'**, **'embarrassed'** becomes **'embarrassment'**).",
+      "strategic_advice": "When a question starts with **'Having'**, it means the action that was **completed first** must come right after it. Ask yourself, 'Which action happened first?' and put that one next to **'Having'**.",
       "trigger_keywords": [
-        "The decision's",
-        "owing to",
-        "Much to",
-        "Because of"
+        "Having"
       ]
     }
   ],
@@ -124,7 +108,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 4,
@@ -136,11 +120,11 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 8,
@@ -200,7 +184,7 @@
     },
     {
       "idx": 22,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 23,
@@ -224,7 +208,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 29,
@@ -264,7 +248,7 @@
     },
     {
       "idx": 38,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 39,
@@ -342,7 +326,7 @@
     "44": "cmptyj5ls000d14gmwnky2bvr",
     "45": "cmptyj5ls000g14gmaw3hrnsf"
   },
-  "generatedAt": "2026-06-17T09:22:14.074Z",
+  "generatedAt": "2026-06-26T09:45:28.779Z",
   "wrongCounts": {
     "total": 45,
     "oeq": 20,
@@ -354,5 +338,24 @@
     "totalAvailable": 90,
     "paperCount": 5
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:22:14.074Z",
+    "patternNames": [
+      "Reported Speech Tenses",
+      "Capital Letter Slips",
+      "Singular and Plural Mix-Up",
+      "Noun Form Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 45,
+      "oeq": 20,
+      "mcq": 25
+    },
+    "toplineSnapshot": {
+      "avgPct": 28,
+      "totalAwarded": 25,
+      "totalAvailable": 90,
+      "paperCount": 5
+    }
+  }
 }

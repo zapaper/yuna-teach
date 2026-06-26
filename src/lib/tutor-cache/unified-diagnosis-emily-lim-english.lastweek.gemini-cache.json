@@ -1,0 +1,262 @@
+{
+  "patterns": [
+    {
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Sometimes gets confused between singular and plural verb forms, especially when the subject is a tricky word like 'Everyone' or is separated from the verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Emily chose the plural verb 'share', but words like 'Everyone' actually count as a single group and need the singular verb 'shares'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "She missed that the protein 'builds' and 'repairs' muscles, matching the singular subject 'protein'."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "She used the singular verb 'makes' for 'special toppings', which is a plural subject and needs 'make'."
+        }
+      ],
+      "strategic_advice": "When choosing a verb, always trace it back to its **true subject**.\n- If the subject is a word like **'Everyone' or 'Everybody'**, treat it as a single group and add an 's' to the verb.\n- If there are extra words between the subject and the verb, **cross them out lightly** in your mind to see the match clearly.",
+      "trigger_keywords": [
+        "Everyone",
+        "protein that",
+        "toppings"
+      ]
+    },
+    {
+      "name": "Small Copying Slips",
+      "what": "Occasionally misspells words that are already provided in the question or accidentally leaves out small words when rewriting sentences.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Emily accidentally wrote 'alram' instead of copying 'alarm' exactly as it appeared in the original sentence."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "She combined the sentences beautifully but accidentally left out the word 'the' before 'lesson'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "She missed the first 'r' when copying the word 'library' into her new sentence."
+        }
+      ],
+      "strategic_advice": "When you finish writing a combined sentence, do a quick **word-for-word check** against the original sentences.\n- **Point with your pencil** at each word in the question as you read your answer to make sure no small words are left behind.\n- Pay special attention to **longer words** to ensure they are copied exactly.",
+      "trigger_keywords": [
+        "Although",
+        "After",
+        "If",
+        "either"
+      ]
+    },
+    {
+      "name": "Tricky Spellings",
+      "what": "Tends to miss a letter or mix up vowels when spelling longer words in the editing section.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "She missed the first 'e' in 'interesting', spelling it as 'intresting'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She missed the 'a' in 'beautiful', spelling it as 'beutiful'."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'stories' (like reading a book) instead of 'storeys' (the floors of a building)."
+        }
+      ],
+      "strategic_advice": "For long words in the editing section, try breaking them down into **smaller syllables** in your head.\n- Sound it out slowly: **in-ter-est-ing** or **beau-ti-ful**.\n- For words that sound the same but have different meanings (like **storeys vs stories**), double-check the context of the sentence.",
+      "trigger_keywords": [
+        "storees",
+        "eentresting",
+        "buiteefull"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq1v1dqz001e4unj69gef7d7",
+    "2": "cmq1v1dqz001g4unjonxkgrd2",
+    "3": "cmq1v1dr0001i4unj5a846ezz",
+    "4": "cmq1trm2b001kzc79mccao9mb",
+    "5": "cmq1trm2b001szc79v9thowr9",
+    "6": "cmnx0k9rq000l5elxgxkort0g",
+    "7": "cmnx0k9rq000u5elxe8ide27n",
+    "8": "cmo57i1nc000ye506gqd5sdgu",
+    "9": "cmo57i1nc0014e5067ilwus0z",
+    "10": "cmo57i1nd0017e506zumfv409",
+    "11": "cmnx2rp6r00033l3di7b9leis",
+    "12": "cmnx2rp6s000b3l3dw43jlt8j",
+    "13": "cmnx2rp6s000g3l3dxrkp36tt",
+    "14": "cmnx2rp6s000m3l3dlnfguuis",
+    "15": "cmnx2rp6s000u3l3dpi33mth0",
+    "16": "cmnx2rp6s000w3l3d6upyv8re",
+    "17": "cmnx2rp6s000x3l3d85db3xh6",
+    "18": "cmnx2rp6s000y3l3ddgcfoig4",
+    "19": "cmnwtde0b006dc1mtyq71jk1s",
+    "20": "cmnwtde0b006fc1mtho86ctqa",
+    "21": "cmnwtde0c006hc1mt7t4k68cs",
+    "22": "cmnwtde0c006oc1mtplc9fvv6",
+    "23": "cmnwtd7c00068c1mt5yvnqqzn",
+    "24": "cmnwtd7c0006ac1mtt3ra0gek",
+    "25": "cmnv8rf7a0009m4y9zrra03qq",
+    "26": "cmnv8rf7a000hm4y99hks4jr8",
+    "27": "cmnu7br5u0008253a00q8yh62",
+    "28": "cmnu7br5u000a253ag6cxaje0"
+  },
+  "generatedAt": "2026-06-17T08:07:57.725Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 25,
+    "mcq": 3
+  },
+  "toplineSnapshot": {
+    "avgPct": 90,
+    "totalAwarded": 244,
+    "totalAvailable": 271,
+    "paperCount": 15
+  },
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T04:47:14.862Z",
+    "patternNames": [
+      "Subject and Verb Pairs",
+      "Spelling Slips",
+      "Copying Errors",
+      "Tricky Word Choices"
+    ],
+    "wrongCounts": {
+      "total": 28,
+      "oeq": 25,
+      "mcq": 3
+    },
+    "toplineSnapshot": {
+      "avgPct": 90,
+      "totalAwarded": 244,
+      "totalAvailable": 271,
+      "paperCount": 15
+    }
+  }
+}

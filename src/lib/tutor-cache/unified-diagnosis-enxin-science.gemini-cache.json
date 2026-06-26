@@ -1,111 +1,126 @@
 {
   "patterns": [
     {
-      "name": "Missing Condensation Steps",
-      "what": "Sometimes identifies that water evaporates, but forgets to explain the next crucial steps: warm water vapour touching a cooler surface, losing heat, and condensing into droplets.",
+      "name": "Condensation Mix-Up",
+      "what": "Enxin sometimes confuses evaporation with condensation, or forgets to mention that warm water vapour must lose heat to a cooler surface to form droplets.",
       "specific_examples": [
-        {
-          "questionRef": "[54]",
-          "type": "oeq",
-          "whatWentWrong": "Enxin correctly identified that water evaporates, but stopped one step short of explaining how the warm vapour touches the cooler surface and condenses."
-        },
         {
           "questionRef": "[55]",
           "type": "oeq",
-          "whatWentWrong": "Enxin explained that the boiling water would evaporate, but missed the key step where the steam loses heat to the cooler metal tray to form droplets."
+          "whatWentWrong": "Enxin correctly identifies that the water will evaporate, but forgets to explain that the warm water vapour must touch the cooler metal tray and lose heat to condense into droplets."
+        },
+        {
+          "questionRef": "[58]",
+          "type": "oeq",
+          "whatWentWrong": "Enxin mentions that the ice gains heat, but misses the crucial step where warmer water vapour from the surrounding air touches the cooler beaker and condenses."
         },
         {
           "questionRef": "[53]",
           "type": "mcq",
-          "whatWentWrong": "Enxin missed that a colder surface takes away heat more quickly, which speeds up the rate of condensation."
+          "whatWentWrong": "Enxin thinks the cooler surface causes evaporation to happen faster, mixing it up with the process of condensation."
         }
       ],
-      "strategic_advice": "When you see questions about **water droplets**, **mist**, or **clouds**, always write down the full 'condensation story':\n- **Who:** Warm water vapour\n- **Does what:** Touches a cooler surface and **loses heat**\n- **Result:** Condenses into tiny water droplets",
+      "strategic_advice": "When you see questions about **water droplets**, **mist**, or a **white cloud** forming, treat it as a signal to write out the full 'condensation story':\n- Start with **'warmer water vapour'** from the surroundings or the hot liquid.\n- Mention that it **'touches a cooler surface'**.\n- End with **'loses heat and condenses'** into water droplets.",
       "trigger_keywords": [
-        "explain how",
         "water droplets",
         "mist",
         "white cloud",
-        "condense"
+        "explain how"
       ]
     },
     {
       "name": "Air Volume Mix-Up",
-      "what": "Occasionally forgets that air can be compressed and will always take up the remaining space in a container, unlike water which has a fixed volume.",
+      "what": "Enxin sometimes calculates the final volume of air by adding or subtracting the amounts pumped, forgetting that air always expands or compresses to fill the available space.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Enxin added the pumped air to the tank's capacity, forgetting that air can be compressed to fit the original 500 cm³ space."
+          "whatWentWrong": "Enxin adds the 200 cm³ of pumped air to the 500 cm³ tank, forgetting that air simply compresses to fit the container's original volume."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "Enxin didn't account for the fact that water has a fixed volume and takes up space, forcing the air to compress into whatever room is left."
+          "whatWentWrong": "Enxin correctly adds the volume of the pumped water, but also adds the volume of the pumped air, missing that the air will just squeeze into whatever space is left."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin subtracts the drawn-out air from the total volume, forgetting that the remaining air will just expand to fill the empty space."
         }
       ],
-      "strategic_advice": "When a question involves pumping air into a sealed container, remember the golden rule of gases:\n- **Air has no fixed volume.** It can be squashed (compressed) to fit whatever space is available.\n- **Water has a fixed volume.** It cannot be compressed. Always subtract the volume of water from the container's total capacity to find the volume of the air!",
+      "strategic_advice": "When you see a **pump** attached to a **sealed container**, remember this golden rule:\n- **Water has a fixed volume**, so it takes up space and cannot be squished.\n- **Air has no fixed volume**, so it will always stretch or compress to fill whatever empty space is left in the container. Never just add or subtract the air volume!",
       "trigger_keywords": [
         "pumped in",
+        "drawn out",
         "capacity",
-        "air",
         "sealed",
-        "plunger"
+        "volume of air"
       ]
     },
     {
-      "name": "Blood Flow Mix-Up",
-      "what": "Tends to mix up how the amounts of oxygen, carbon dioxide, and digested food change as blood travels through different organs like the lungs and small intestine.",
+      "name": "Digestion Journey Mix-Up",
+      "what": "Enxin occasionally mixes up what happens at each stage of digestion, such as forgetting that digestion begins in the mouth or that only undigested food reaches the large intestine.",
       "specific_examples": [
         {
-          "questionRef": "[18]",
+          "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "Enxin was unsure how the levels of digested food and oxygen change after blood passes through the small intestine."
+          "whatWentWrong": "Enxin selects an option stating that digestion starts in the stomach, forgetting that the process actually begins in the mouth with saliva."
         },
         {
-          "questionRef": "[47]",
+          "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "Enxin mixed up the gases, forgetting that blood picks up oxygen from the lungs and drops off carbon dioxide."
+          "whatWentWrong": "Enxin thinks that digested food is passed to the large intestine, when in fact only undigested food and water end up there."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin chooses a graph showing incorrect amounts of digested food, mixing up how much digestion happens in the mouth, stomach, and small intestine."
         }
       ],
-      "strategic_advice": "Think of the blood as a delivery truck travelling around the body:\n- At the **lungs**, it drops off **carbon dioxide** and picks up **oxygen**.\n- At the **small intestine**, it picks up **digested food** to deliver to the rest of the body, while using up oxygen.\n- At **other body parts**, it drops off oxygen and food, and picks up carbon dioxide waste.",
+      "strategic_advice": "When you see questions about the **digestive system**, trace the food's journey step-by-step:\n- **Mouth**: Digestion starts here (saliva).\n- **Small Intestine**: Digestion ends here, and the good stuff (digested food) enters the blood.\n- **Large Intestine**: Only the leftovers (**undigested food** and water) go here. No digestion happens here!",
       "trigger_keywords": [
-        "blood flow",
-        "carbon dioxide",
-        "oxygen",
-        "small intestine",
-        "lungs"
+        "digestive system",
+        "digested food",
+        "undigested food",
+        "mouth",
+        "stomach",
+        "intestine"
       ]
     },
     {
-      "name": "Evaporation Rules Mix-Up",
-      "what": "Sometimes thinks evaporation only happens when it is very hot or when there is sunlight, forgetting that water can evaporate at any temperature.",
+      "name": "Plant Tubes Mix-Up",
+      "what": "Enxin tends to confuse the roles of food-carrying and water-carrying tubes, or forgets that water must be transported to every single part of the plant to keep it alive.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[45]",
           "type": "mcq",
-          "whatWentWrong": "Enxin concluded that both liquids need sunlight to evaporate, but evaporation can happen even in the dark."
+          "whatWentWrong": "Enxin struggles to predict what happens to the leaves when the outer rings of the stem are removed, confusing the roles of the food-carrying and water-carrying tubes."
         },
         {
-          "questionRef": "[5]",
+          "questionRef": "[40]",
           "type": "mcq",
-          "whatWentWrong": "Enxin incorrectly guessed that evaporation only takes place when the temperature is above 30°C."
+          "whatWentWrong": "Enxin mixes up the inner and outer layers of the stem when asked to identify what remains after the food-carrying tubes are removed."
+        },
+        {
+          "questionRef": "[43]",
+          "type": "mcq",
+          "whatWentWrong": "Enxin thinks water-carrying tubes are only found in the roots and stems, forgetting that they must reach the leaves and flowers too."
         }
       ],
-      "strategic_advice": "Remember that **evaporation happens all the time, at any temperature** between 0°C and 100°C!\n- It does not need sunlight or boiling heat to occur.\n- However, factors like **wind**, **higher temperatures**, and a **larger exposed surface area** will make evaporation happen *faster*.",
+      "strategic_advice": "When you see a question about a plant's **stem** being cut or having its **outer rings removed**, use this quick check:\n- **Water-carrying tubes** are on the inside and must go to **every single part** of the plant (roots, stems, leaves, flowers).\n- **Food-carrying tubes** are on the outside (the bark) and carry food from the leaves to the rest of the plant.",
       "trigger_keywords": [
-        "evaporate",
-        "sunlight",
-        "temperature",
-        "water cycle",
-        "faster"
+        "outer rings",
+        "removed",
+        "water-carrying",
+        "food-carrying",
+        "stem"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 2,
@@ -113,7 +128,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -121,7 +136,7 @@
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -129,15 +144,15 @@
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -149,7 +164,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -157,7 +172,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 15,
@@ -185,7 +200,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -213,7 +228,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 29,
@@ -245,7 +260,7 @@
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 37,
@@ -261,7 +276,7 @@
     },
     {
       "idx": 40,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 41,
@@ -273,15 +288,15 @@
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 45,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 46,
@@ -289,7 +304,7 @@
     },
     {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 48,
@@ -305,7 +320,7 @@
     },
     {
       "idx": 51,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 52,
@@ -396,7 +411,7 @@
     "57": "cmpl7jgir003jo3vp32be7v99",
     "58": "cmpl7jgir003ko3vpdsa14akk"
   },
-  "generatedAt": "2026-06-19T02:38:37.369Z",
+  "generatedAt": "2026-06-26T09:33:18.494Z",
   "wrongCounts": {
     "total": 58,
     "oeq": 5,
@@ -408,5 +423,24 @@
     "totalAvailable": 423,
     "paperCount": 13
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:38:37.369Z",
+    "patternNames": [
+      "Missing Condensation Steps",
+      "Air Volume Mix-Up",
+      "Blood Flow Mix-Up",
+      "Evaporation Rules Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 58,
+      "oeq": 5,
+      "mcq": 53
+    },
+    "toplineSnapshot": {
+      "avgPct": 73,
+      "totalAwarded": 309,
+      "totalAvailable": 423,
+      "paperCount": 13
+    }
+  }
 }

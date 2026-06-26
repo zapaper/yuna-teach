@@ -1,75 +1,48 @@
 {
   "patterns": [
     {
-      "name": "Small Number Slips",
-      "what": "JeremiahSy sometimes makes small slips in basic addition, multiplication, or division, even when he understands the math methods well.",
+      "name": "Small Calculation Slips",
+      "what": "JeremiahSy often sets up the math steps perfectly but occasionally makes a small addition, multiplication, or division slip along the way.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "oeq",
-          "whatWentWrong": "He correctly set up the fractions but made a small division slip when calculating 196 ÷ 4."
+          "whatWentWrong": "He correctly figured out the fractions for all the groups, but made a small division slip when calculating 196 ÷ 4."
         },
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "He correctly figured out that 7 units equal 210, but made a small slip dividing 210 by 7."
+          "whatWentWrong": "He correctly found that 7 units equalled 210, but accidentally calculated 210 ÷ 7 as 70 instead of 30."
         },
         {
           "questionRef": "[19]",
           "type": "oeq",
-          "whatWentWrong": "He found the correct values for the desk and chair, but made a tiny addition slip in the final step."
+          "whatWentWrong": "He did the hard work to find the cost of a desk and a chair, but made a tiny addition slip at the very end (283 + 566)."
         }
       ],
-      "strategic_advice": "When doing long division or multiplication, take a quick second to **work backwards** to check the result.\n- For example, if you calculate 210 ÷ 7 = 70, quickly check if 70 × 7 gives 210.\n- Write down your working clearly so you can easily spot if a number was copied wrongly.",
+      "strategic_advice": "When doing long calculations, try to work backwards to check your answer. For example, if you divide 210 by 7, multiply your answer by 7 to see if you get 210 again.",
       "trigger_keywords": [
-        "how many",
-        "find the total",
+        "Find the total",
+        "How many",
         "altogether"
       ]
     },
     {
-      "name": "One Step Short",
-      "what": "JeremiahSy occasionally stops before answering the specific final question, even after doing the hard work to find a useful intermediate number.",
-      "specific_examples": [
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "He successfully found the total money collected for Ticket C, but stopped before dividing by the price to find the number of tickets."
-        },
-        {
-          "questionRef": "[23]",
-          "type": "oeq",
-          "whatWentWrong": "He found the correct fraction of flour per packet, but forgot the final step to change it into a mixed number."
-        },
-        {
-          "questionRef": "[25]",
-          "type": "oeq",
-          "whatWentWrong": "He correctly found the value of one unit, but multiplied it by the wrong number for the final cake amount."
-        }
-      ],
-      "strategic_advice": "When you find a key number, treat it as a **checkpoint, not the finish line**.\n- Always **re-read the last sentence** of the question before writing your final answer to make sure you are giving exactly what is asked.\n- Highlight or underline the specific item you need to find (like 'how many tickets' or 'mixed number').",
-      "trigger_keywords": [
-        "how many tickets",
-        "express your answer as",
-        "how much"
-      ]
-    },
-    {
-      "name": "Leftover Amount Mix-Up",
-      "what": "JeremiahSy sometimes calculates the next fraction or percentage using the original total instead of the leftover amount.",
+      "name": "Leftover Mix-Up",
+      "what": "JeremiahSy sometimes confuses the original total with the remaining amount when a question mentions fractions or percentages of a remainder.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "When asked for the percentage left after selling 60% of the remainder, he missed using the leftover amount as the new base."
+          "whatWentWrong": "He missed that the 60% sold was out of the remainder, not out of the original total amount of stamps."
         },
         {
           "questionRef": "[24]",
           "type": "oeq",
-          "whatWentWrong": "He needed to find 1/4 of the remaining flour, but the working shows a mix-up in finding that leftover amount first."
+          "whatWentWrong": "He needed to find the leftover flour first before calculating the 1/4 used for the cake, but the steps got a bit mixed up."
         }
       ],
-      "strategic_advice": "When you see the word **'remaining'** or **'remainder'**, treat it as a stop sign.\n- Draw a **branching model** to clearly separate the 'given away' part from the 'leftover' part before calculating the next step.\n- Always ask yourself: 'Am I taking a fraction of the whole, or a fraction of what is left?'",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'of the remaining'** or **'of the remainder'** → draw a quick model to separate the part given away from the leftover part before finding the next fraction.",
       "trigger_keywords": [
         "of the remaining",
         "of the remainder",
@@ -77,24 +50,45 @@
       ]
     },
     {
-      "name": "Forgotten Units",
-      "what": "JeremiahSy sometimes writes down the correct final number but forgets to include the unit of measurement.",
+      "name": "One Step Short",
+      "what": "JeremiahSy occasionally does the heavy lifting to find an important middle number, but stops before answering the final question asked.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He correctly calculated the fraction given to the neighbour (1/10), but the question asked for the fraction that was left over."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully found the total money collected for Ticket C, but stopped before dividing by the price to find the number of tickets sold."
+        }
+      ],
+      "strategic_advice": "Always re-read the last sentence of the question after you find a number. Ask yourself: **'Did I answer what they are asking for?'**",
+      "trigger_keywords": [
+        "What fraction",
+        "How many more",
+        "How much"
+      ]
+    },
+    {
+      "name": "Missing Units",
+      "what": "JeremiahSy tends to write down the correct final number but occasionally forgets to include the unit of measurement.",
       "specific_examples": [
         {
           "questionRef": "[6]",
           "type": "oeq",
-          "whatWentWrong": "He calculated the average height perfectly but forgot to write 'm' for metres at the end."
+          "whatWentWrong": "He found the correct average height of 1.37, but forgot to write 'm' for metres at the end."
         },
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "He read the graph correctly to find the amount of rice, but left out the 'kg' in his final answer."
+          "whatWentWrong": "He correctly read the graph to find 10, but missed out the 'kg' unit in the final answer."
         }
       ],
-      "strategic_advice": "Every time you write a final answer, ask yourself: **'What is this number measuring?'**\n- Look back at the question to spot the unit (like **kg, m, or $**) and make sure it is written next to your final number.",
+      "strategic_advice": "When you write your final answer, always check the question for units like **kg**, **m**, or **$** and include them.",
       "trigger_keywords": [
-        "in metres",
-        "in kg",
+        "Give your answer in",
         "amount of"
       ]
     }
@@ -110,7 +104,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 4,
@@ -154,7 +148,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 15,
@@ -162,7 +156,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 17,
@@ -186,19 +180,19 @@
     },
     {
       "idx": 22,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -228,7 +222,7 @@
     "24": "cmnpseah30019hi1vx7kvqvi8",
     "25": "cmnpseah3001chi1vwx6n3pdu"
   },
-  "generatedAt": "2026-06-26T08:58:52.490Z",
+  "generatedAt": "2026-06-26T09:36:10.778Z",
   "wrongCounts": {
     "total": 25,
     "oeq": 13,
@@ -241,12 +235,12 @@
     "paperCount": 15
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T09:13:36.471Z",
+    "generatedAt": "2026-06-26T08:58:52.490Z",
     "patternNames": [
-      "Forgotten Units and Formats",
-      "Of The Remaining Trap",
-      "Order of Operations Mix-Up",
-      "Small Calculation Slips"
+      "Small Number Slips",
+      "One Step Short",
+      "Leftover Amount Mix-Up",
+      "Forgotten Units"
     ],
     "wrongCounts": {
       "total": 25,

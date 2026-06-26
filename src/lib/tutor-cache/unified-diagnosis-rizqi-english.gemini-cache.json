@@ -2,53 +2,48 @@
   "patterns": [
     {
       "name": "Phrasal Verb Mix-Up",
-      "what": "Sometimes mixes up the small prepositions attached to verbs, which changes the meaning of the action.",
+      "what": "Rizqi sometimes mixes up phrasal verbs that start with the same word but end with different prepositions.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose \"kick off\" instead of \"kick in\" for medication starting to work."
+          "whatWentWrong": "He chose 'kick off' instead of 'kick in' for medication starting to work."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "He picked \"taken up\" instead of \"taken in\" when describing being tricked by a magician."
+          "whatWentWrong": "He picked 'set up' rather than 'set in' to describe fatigue taking hold."
         },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose \"look after\" (to care for) instead of \"look to\" (to seek support from)."
+          "whatWentWrong": "He selected 'looked after' instead of 'looked to' for seeking support from a brother."
         }
       ],
-      "strategic_advice": "When you see a verb with a preposition (like **\"kick\"**, **\"set\"**, or **\"take\"**), read the whole sentence and try replacing the phrase with its meaning.\n- **\"Kick in\"** means to start working, while **\"kick off\"** means to start an event.\n- **\"Taken in\"** means to be fooled, while **\"taken up\"** means to start a hobby.",
+      "strategic_advice": "Phrasal verbs can be tricky because changing one small word changes the whole meaning. Try to learn them as a complete set. When you see a starting verb like **kick**, **set**, or **look**, pause and read the whole sentence to see which preposition gives the exact meaning you need.",
       "trigger_keywords": [
         "kick",
         "set",
-        "taken",
-        "look"
+        "look",
+        "take"
       ]
     },
     {
-      "name": "Missing Sentence Clues",
-      "what": "Tends to pick a vocabulary word that sounds right on its own, but occasionally misses the hidden clues in the sentence that point to a different answer.",
+      "name": "Missing Context Clues",
+      "what": "Rizqi occasionally picks a vocabulary word that sounds good on its own but misses the specific hints hidden in the sentence.",
       "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "Rizqi chose \"humble\" for the feast, missing the clue \"lots of leftovers and wastage\" which points to a \"lavish\" meal."
-        },
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "He picked \"immature\" instead of \"impulsive\" for the act of spreading rumours without checking the truth first."
+          "whatWentWrong": "He chose 'immature' instead of 'impulsive' for an act done without checking the truth first."
         },
         {
-          "questionRef": "[2]",
+          "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose \"proposed\" instead of \"anticipated\" for a delay caused by a flashflood."
+          "whatWentWrong": "He picked 'humble' for the feast, missing the clues about 'leftovers and wastage' which point to a 'lavish' meal."
         }
       ],
-      "strategic_advice": "Treat vocabulary questions like a detective game. Look for **clue words** in the sentence before looking at the options.\n- If the sentence mentions **\"leftovers and wastage\"**, the feast must be **\"lavish\"** (plentiful), not humble.\n- If someone acts **\"without checking the truth first\"**, they are being **\"impulsive\"** (acting without thinking).",
+      "strategic_advice": "Treat vocabulary questions like a detective game. Always look for **clue words** in the sentence before making a choice. For example, if a sentence mentions 'leftovers and wastage', that is a big hint that the meal was huge or **lavish**.",
       "trigger_keywords": [
         "leftovers",
         "without checking",
@@ -57,20 +52,20 @@
     },
     {
       "name": "Special Verb Rules",
-      "what": "Occasionally forgets that special action words like \"make\" or \"see\" require the next verb to be in its base form, even if the story happened in the past.",
+      "what": "Rizqi tends to use the past tense instead of the original base verb after special action words like 'made' or 'saw'.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose the past tense \"felt\" after the word \"made\", but the correct form is the base word \"feel\"."
+          "whatWentWrong": "He chose the past tense 'felt' instead of the base form 'feel' after the word 'made'."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "He picked \"struck\" after the word \"saw\", but sensory verbs require the base form \"strike\"."
+          "whatWentWrong": "He picked 'struck' instead of 'strike' after the perception verb 'saw'."
         }
       ],
-      "strategic_advice": "When you see these special verbs, treat them as stop signs for verb tenses:\n- **\"Made\"**, **\"let\"**, or **\"helped\"** → the next verb must always be in its base form (e.g., \"made her **feel**\").\n- **\"Saw\"**, **\"heard\"**, or **\"watched\"** → use the base form for a completed action (e.g., \"saw it **strike**\").",
+      "strategic_advice": "Remember the special rule for verbs of perception and causation. When you see words like **made, let, saw, or heard**, the very next action verb should be in its **base form** (no -s, -ed, or -ing).",
       "trigger_keywords": [
         "made",
         "saw",
@@ -79,19 +74,21 @@
       ]
     },
     {
-      "name": "Whose vs Who's Confusion",
-      "what": "Occasionally mixes up \"whose\" (which shows ownership) with \"who's\" (which is short for \"who is\").",
+      "name": "Countable vs Uncountable Mix-Up",
+      "what": "Rizqi occasionally confuses words used for things we can count with things we cannot count, like time.",
       "specific_examples": [
         {
-          "questionRef": "[21]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "Rizqi chose \"who's\" instead of \"whose\" when talking about who owned the lost phone."
+          "whatWentWrong": "He used 'a few' (for countable things) instead of 'much' for the word 'time'."
         }
       ],
-      "strategic_advice": "When you are stuck between these two words, try expanding **\"who's\"** to **\"who is\"** in the sentence.\n- If **\"who is\"** doesn't make sense (e.g., \"had no idea **who is** it was\"), then the correct answer must be **\"whose\"** to show ownership.",
+      "strategic_advice": "When you see words like **time, water, or sand**, remember they are uncountable. You cannot have 'one time' or 'two times' in this context. Always use **much** or **a little** for these, instead of 'many' or 'a few'.",
       "trigger_keywords": [
-        "whose",
-        "who's"
+        "time",
+        "water",
+        "sand",
+        "money"
       ]
     }
   ],
@@ -162,7 +159,7 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -178,7 +175,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -209,7 +206,7 @@
     "21": "cmptzgi1v001h14gmxffs6oqr",
     "22": "cmptzgi1v001i14gm0grnay7i"
   },
-  "generatedAt": "2026-06-17T09:20:56.972Z",
+  "generatedAt": "2026-06-26T09:45:05.326Z",
   "wrongCounts": {
     "total": 22,
     "oeq": 8,
@@ -221,5 +218,24 @@
     "totalAvailable": 46,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:20:56.972Z",
+    "patternNames": [
+      "Phrasal Verb Mix-Up",
+      "Missing Sentence Clues",
+      "Special Verb Rules",
+      "Whose vs Who's Confusion"
+    ],
+    "wrongCounts": {
+      "total": 22,
+      "oeq": 8,
+      "mcq": 14
+    },
+    "toplineSnapshot": {
+      "avgPct": 46,
+      "totalAwarded": 21,
+      "totalAvailable": 46,
+      "paperCount": 3
+    }
+  }
 }

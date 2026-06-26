@@ -1,76 +1,105 @@
 {
   "patterns": [
     {
-      "name": "Skipping Small Words",
-      "what": "Sometimes reads a question or option a bit too quickly and misses small but important words that change the answer.",
-      "specific_examples": [
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "Caleb missed the word 'only' in the option, which was the clue that made the statement false."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "He left out the word 'new' when rewriting the sentence, which changed the meaning of the museum."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "Caleb missed the word 'again' in the question, which was the clue to look for the 'returning customer' discount."
-        }
-      ],
-      "strategic_advice": "- When you see words like **'only'**, **'not true'**, or **'again'**, treat them as stop signs and **underline** them.\n- Always double-check your final answer against the specific details mentioned in the text to make sure nothing was left out.",
-      "trigger_keywords": [
-        "only",
-        "not true",
-        "again",
-        "new"
-      ]
-    },
-    {
-      "name": "Word Meaning Mix-Up",
-      "what": "Occasionally picks a vocabulary word that is related to the topic but doesn't perfectly match the exact meaning needed in the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "He used 'equip' instead of 'provide', but we usually 'provide' a place rather than 'equip' people with a place."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'dedication' instead of 'resolution' to match the meaning of making a firm 'commitment'."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "oeq",
-          "whatWentWrong": "Caleb chose 'introduce' instead of 'expose', which missed the negative feeling of facing cyberbullying."
-        }
-      ],
-      "strategic_advice": "- When filling in blanks, **read the whole sentence silently** with your chosen word to check if it sounds natural.\n- Look at the words immediately before and after the blank to see which word fits the phrase perfectly.",
-      "trigger_keywords": [
-        "commitment",
-        "somewhat",
-        "equip",
-        "expose"
-      ]
-    },
-    {
-      "name": "Between vs Among Mix-Up",
-      "what": "Confuses when to use 'between' and 'among' when talking about groups of people or things.",
+      "name": "Spelling Slips",
+      "what": "Caleb occasionally makes small spelling mistakes when writing out his answers, which costs him marks even when his ideas are perfectly correct.",
       "specific_examples": [
         {
           "questionRef": "[23]",
           "type": "oeq",
-          "whatWentWrong": "Caleb used 'between' for students, but since there are more than two students, 'among' or 'amongst' is the correct word."
+          "whatWentWrong": "He correctly explained why Jared was puzzled, but misspelled 'truly' as 'truely'."
+        },
+        {
+          "questionRef": "[54]",
+          "type": "oeq",
+          "whatWentWrong": "He captured all the key points about how the author's life changed, but misspelled 'extracurricular' and 'neighbourhood'."
+        },
+        {
+          "questionRef": "[56]",
+          "type": "oeq",
+          "whatWentWrong": "He knew the correct root word but added an extra 'r', spelling it as 'perservering' instead of 'persevering'."
         }
       ],
-      "strategic_advice": "- Use **'between'** when you are talking about exactly **two** people or things.\n- Use **'among'** when you are talking about **three or more** people or things.",
+      "strategic_advice": "When you finish writing a long answer, take a moment to read it backwards word by word. This helps your brain spot spelling mistakes instead of just reading what you meant to write.",
       "trigger_keywords": [
-        "students",
-        "between",
-        "among"
+        "Explain clearly",
+        "Rewrite",
+        "Editing"
+      ]
+    },
+    {
+      "name": "Reported Speech Mix-Up",
+      "what": "Caleb sometimes forgets to change time words or accidentally leaves out describing words when changing direct speech into reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly changed the sentence structure but forgot to change 'later' to 'later that day'."
+        },
+        {
+          "questionRef": "[65]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully transformed the speech but accidentally left out the word 'new' when describing the museum."
+        }
+      ],
+      "strategic_advice": "When you see a reported speech question, use your pencil to circle all the time words (like 'yesterday' or 'later') and describing words in the original quote.\n- **Check off each circled word** as you write your final answer to make sure nothing is left behind.",
+      "trigger_keywords": [
+        "wanted to know",
+        "asked",
+        "told"
+      ]
+    },
+    {
+      "name": "Cloze Passage Clues",
+      "what": "Caleb sometimes picks a word that makes sense for the immediate blank, but doesn't quite fit the surrounding idiom or the overall meaning of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He picked 'One' instead of 'Each' for the common phrase 'Each and every one of us'."
+        },
+        {
+          "questionRef": "[33]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'from' instead of 'back' for the phrase 'dating as far back as'."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'eaten on the streets' instead of the correct idiom 'eaten on the spot'."
+        }
+      ],
+      "strategic_advice": "When you fill in a blank, always read the whole sentence from start to finish with your word in it.\n- **Look out for common idioms** or phrases that usually go together.\n- **Check the sentences before and after** to make sure your word matches the overall story.",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "suitable word"
+      ]
+    },
+    {
+      "name": "Visual Text Fine Print",
+      "what": "Caleb occasionally misses small but important details in flyers or posters, such as special conditions or tricky words like 'not' and 'only'.",
+      "specific_examples": [
+        {
+          "questionRef": "[63]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that the first option claimed you will 'only' learn how to design pretty pancakes, making it the false statement."
+        },
+        {
+          "questionRef": "[66]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the word 'again' in the question, which meant Mindy was a returning customer entitled to a special discount."
+        },
+        {
+          "questionRef": "[67]",
+          "type": "mcq",
+          "whatWentWrong": "He chose an option that didn't match the specific instructions given in the flyer for the immersive dining experience."
+        }
+      ],
+      "strategic_advice": "When you read a visual text or its questions, treat it like a detective mission.\n- **Highlight tricky words** like 'not', 'only', 'always', or 'never'.\n- **Look for special conditions** like 'returning customer' or 'early bird' that might change the answer.",
+      "trigger_keywords": [
+        "not true",
+        "biggest savings",
+        "According to the website"
       ]
     }
   ],
@@ -81,7 +110,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -93,43 +122,43 @@
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -137,27 +166,27 @@
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 22,
@@ -165,45 +194,308 @@
     },
     {
       "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 2
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 2
+    },
+    {
+      "idx": 37,
+      "patternIndex": 2
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 2
+    },
+    {
+      "idx": 43,
+      "patternIndex": 2
+    },
+    {
+      "idx": 44,
+      "patternIndex": 2
+    },
+    {
+      "idx": 45,
+      "patternIndex": 1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": 0
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 0
+    },
+    {
+      "idx": 55,
+      "patternIndex": 3
+    },
+    {
+      "idx": 56,
+      "patternIndex": 0
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": 0
+    },
+    {
+      "idx": 59,
+      "patternIndex": 2
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
+      "idx": 63,
+      "patternIndex": 3
+    },
+    {
+      "idx": 64,
+      "patternIndex": -1
+    },
+    {
+      "idx": 65,
+      "patternIndex": 1
+    },
+    {
+      "idx": 66,
+      "patternIndex": 3
+    },
+    {
+      "idx": 67,
+      "patternIndex": 3
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": 0
+    },
+    {
+      "idx": 70,
+      "patternIndex": 2
+    },
+    {
+      "idx": 71,
+      "patternIndex": 2
+    },
+    {
+      "idx": 72,
       "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
-    "1": "cmq7rnedu00257yw2cd1v5uo5",
-    "2": "cmq7rnedu00287yw216bmz0lx",
-    "3": "cmq7rnedu002a7yw2j9socdrp",
-    "4": "cmq7rnedu002b7yw2udvj4ck5",
-    "5": "cmq7rnedu002c7yw2wqains5t",
-    "6": "cmq7rg183000l7yw2j1i702qs",
-    "7": "cmq7rg18300107yw2hs0plv13",
-    "8": "cmq7rg18300117yw22hl5ns16",
-    "9": "cmq7rg184001c7yw2f9xl9ux9",
-    "10": "cmq7rg184001f7yw2exazwk0s",
-    "11": "cmq7rg184001j7yw2ll3cdw0r",
-    "12": "cmq621oo10004eykwi0b078ku",
-    "13": "cmq621oo10006eykwjuojwn84",
-    "14": "cmq621oo1000eeykwe8paswgs",
-    "15": "cmq621oo1000leykwhnhqbxed",
-    "16": "cmq621oo3001jeykwqt8hwez8",
-    "17": "cmq4y9enk000l9dsbqi1a0uwe",
-    "18": "cmq4y9enl000n9dsbkws2uz2f",
-    "19": "cmq4y9enl00159dsbupunxy5w",
-    "20": "cmq4y9enl00169dsbb2misk31",
-    "21": "cmq4y9enm001k9dsbsoymafs6",
-    "22": "cmq4y9enm001m9dsbov2f3136",
-    "23": "cmq4y9enm001o9dsb0cxiceru"
+    "1": "cmqszg7jl001n1qnk55ui1h5z",
+    "2": "cmqszg7jm001v1qnky1o40us8",
+    "3": "cmqszg7jm00261qnk51dim068",
+    "4": "cmqszg7jn002g1qnk13b6kh9n",
+    "5": "cmqszg7jp00371qnkflwgeqiz",
+    "6": "cmqszg7jp003a1qnkos6ad3je",
+    "7": "cmqsyxaqb00041qnk2sl3wmd4",
+    "8": "cmqsyxaqd000n1qnkblwbzbsa",
+    "9": "cmqsyxaqd000p1qnkcqgy8ier",
+    "10": "cmqsyxaqd000s1qnkgf49df6z",
+    "11": "cmqoyym41009k8h72ecvp70g2",
+    "12": "cmqoyym41009l8h72wiy0ug91",
+    "13": "cmqoyym42009m8h72bvbsuc44",
+    "14": "cmqoyym42009z8h72sygz54p7",
+    "15": "cmqoyym4300ab8h72z8gx2bxi",
+    "16": "cmqoyym4300an8h72494q2l0q",
+    "17": "cmqoyym4300as8h72kcuyoiq1",
+    "18": "cmqoyym4300at8h72eg78bxt7",
+    "19": "cmqoyym4400au8h720enfvli5",
+    "20": "cmqoyym4400b28h72wctl6lcp",
+    "21": "cmqoyym4400b78h72dklmtgds",
+    "22": "cmqoyym4400b98h72drrbokp7",
+    "23": "cmqoyym4400bb8h72ig7c7mls",
+    "24": "cmqoyym4400be8h7274mi1nqx",
+    "25": "cmqqbw59l006nqrnvp9a4tpa9",
+    "26": "cmqqbw59m006rqrnva9wgc29y",
+    "27": "cmqkcfpd6000yo3ahumkjg8dz",
+    "28": "cmqkcfpd70014o3ahju6hmcyl",
+    "29": "cmqkcfpd70018o3ah84fukype",
+    "30": "cmqkcfpd8001ko3ahkv77w0ed",
+    "31": "cmqkcfpd8001lo3ahz2utfsur",
+    "32": "cmqkcfpd8001oo3ahtipkj0kh",
+    "33": "cmqkcfpd9001uo3ahnecosd9j",
+    "34": "cmqkcfpd9001wo3ah5qffvo8j",
+    "35": "cmqkcfpd9001xo3ahajammjyx",
+    "36": "cmqkcfpd9001yo3ah7b0fi4qs",
+    "37": "cmqkcfpd90020o3ahlsq5425h",
+    "38": "cmqkcfpd90024o3ahlhis4g10",
+    "39": "cmqkcfpd90025o3ahh4c45vjl",
+    "40": "cmqkcfpd90027o3ah8p3hkydo",
+    "41": "cmqjb6dq6009a6rbdslii21ze",
+    "42": "cmqjb6dq7009m6rbdl32a4wd8",
+    "43": "cmqjb6dq7009o6rbd6ugylrl5",
+    "44": "cmqjb6dq7009w6rbdlzd4ac4m",
+    "45": "cmqjb6dq700a16rbdnbrt3rid",
+    "46": "cmqjb6dq700a66rbd44fk0vqz",
+    "47": "cmqjb6dq800ad6rbd5xebnsvg",
+    "48": "cmqj9gabp006t6rbdfw4esuu9",
+    "49": "cmqj9gabp006u6rbdrl9vx9hq",
+    "50": "cmq7rnedu00257yw2cd1v5uo5",
+    "51": "cmq7rnedu00287yw216bmz0lx",
+    "52": "cmq7rnedu002a7yw2j9socdrp",
+    "53": "cmq7rnedu002b7yw2udvj4ck5",
+    "54": "cmq7rnedu002c7yw2wqains5t",
+    "55": "cmq7rg183000l7yw2j1i702qs",
+    "56": "cmq7rg18300107yw2hs0plv13",
+    "57": "cmq7rg18300117yw22hl5ns16",
+    "58": "cmq7rg184001c7yw2f9xl9ux9",
+    "59": "cmq7rg184001f7yw2exazwk0s",
+    "60": "cmq7rg184001j7yw2ll3cdw0r",
+    "61": "cmq621oo10004eykwi0b078ku",
+    "62": "cmq621oo10006eykwjuojwn84",
+    "63": "cmq621oo1000eeykwe8paswgs",
+    "64": "cmq621oo1000leykwhnhqbxed",
+    "65": "cmq621oo3001jeykwqt8hwez8",
+    "66": "cmq4y9enk000l9dsbqi1a0uwe",
+    "67": "cmq4y9enl000n9dsbkws2uz2f",
+    "68": "cmq4y9enl00159dsbupunxy5w",
+    "69": "cmq4y9enl00169dsbb2misk31",
+    "70": "cmq4y9enm001k9dsbsoymafs6",
+    "71": "cmq4y9enm001m9dsbov2f3136",
+    "72": "cmq4y9enm001o9dsb0cxiceru"
   },
-  "generatedAt": "2026-06-17T09:10:29.873Z",
+  "generatedAt": "2026-06-26T09:27:46.858Z",
   "wrongCounts": {
-    "total": 23,
-    "oeq": 17,
-    "mcq": 6
+    "total": 72,
+    "oeq": 54,
+    "mcq": 18
   },
   "toplineSnapshot": {
-    "avgPct": 88,
-    "totalAwarded": 176.5,
-    "totalAvailable": 200,
-    "paperCount": 4
+    "avgPct": 86,
+    "totalAwarded": 475,
+    "totalAvailable": 553,
+    "paperCount": 11
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:10:29.873Z",
+    "patternNames": [
+      "Skipping Small Words",
+      "Word Meaning Mix-Up",
+      "Between vs Among Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 23,
+      "oeq": 17,
+      "mcq": 6
+    },
+    "toplineSnapshot": {
+      "avgPct": 88,
+      "totalAwarded": 176.5,
+      "totalAvailable": 200,
+      "paperCount": 4
+    }
+  }
 }

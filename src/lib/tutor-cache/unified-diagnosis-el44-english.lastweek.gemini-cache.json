@@ -1,0 +1,201 @@
+{
+  "patterns": [
+    {
+      "name": "Tense Mix-Up",
+      "what": "Sometimes chooses the simple past tense even when time clues point to an action that is still ongoing or happened before another past event.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'lived' instead of 'have lived', missing the clue 'since 1960' which shows the action is still happening."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'damaged' instead of 'had damaged', missing the clue 'the previous day' which shows the car was damaged before the father yelled."
+        }
+      ],
+      "strategic_advice": "When you see time clues, treat them as stop signs:\n- **'since' or 'for'** → use 'has/have' + verb (Present Perfect) because the action is still going on.\n- **'the previous day' or 'before'** → use 'had' + verb (Past Perfect) to show which past action happened first.",
+      "trigger_keywords": [
+        "since",
+        "for",
+        "the previous day",
+        "before"
+      ]
+    },
+    {
+      "name": "Who vs Whom Mix-Up",
+      "what": "Occasionally swaps 'who' and 'whom' when connecting parts of a sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'who' instead of 'whom' when referring to Sunil, the person receiving the action from the committee."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'whom' instead of 'who' for the student performing the action of helping."
+        }
+      ],
+      "strategic_advice": "Try the **'he/him' trick**! Replace the missing word with 'he' or 'him' to see what fits:\n- If **'he'** makes sense (e.g., 'He always helps'), use **'who'**.\n- If **'him'** makes sense (e.g., 'The committee recognised him'), use **'whom'**.",
+      "trigger_keywords": [
+        "who",
+        "whom",
+        "whose",
+        "which"
+      ]
+    },
+    {
+      "name": "Word Choice Traps",
+      "what": "Tends to pick words that have a similar general meaning but do not quite fit the specific phrase or situation in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'celebrate', but we say 'celebrate success', not 'celebrate in success' — the correct pairing is 'revel in'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 chose 'obstructed', which usually means a physical object is blocking a path, rather than 'stumped', which is what a tricky clue does to a person."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 selected 'prevented' instead of 'disrupted', missing that an injury interrupts ongoing training rather than stopping it from starting at all."
+        }
+      ],
+      "strategic_advice": "When picking a vocabulary word, look closely at the words immediately before and after the blank:\n- **Check the prepositions:** Does the word sound right with the little words next to it (like 'in', 'by', or 'of')?\n- **Check the context:** Is the sentence talking about a physical object, a feeling, or an idea? Make sure the word matches the exact situation.",
+      "trigger_keywords": [
+        "in",
+        "by",
+        "of"
+      ]
+    },
+    {
+      "name": "Hidden Subject Mix-Up",
+      "what": "Occasionally matches the verb to the plural noun closest to the blank, rather than the actual singular subject of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "EL44 picked 'were' to match 'motorcycles', missing that the true subject is the singular 'lineup' of cars."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **'as well as'** or **'together with'**, treat them as extra information:\n- **Cross out the extra phrase** in your mind to find the real subject.\n- Match your verb to the main subject at the very beginning of the sentence (e.g., 'The lineup... was').",
+      "trigger_keywords": [
+        "as well as",
+        "together with",
+        "along with"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpyztmu00026x52fi6np971e",
+    "2": "cmpyztmu00027x52fw8kdhhsc",
+    "3": "cmpyztmu00029x52f8kj9zqoa",
+    "4": "cmpyzti1l001rx52fm44qz0ub",
+    "5": "cmpyzt4rm0013x52f18q1nlv5",
+    "6": "cmpyzuw5v0038x52fj6ha6iq3",
+    "7": "cmpyzuw5v003ax52fkbx8bhwo",
+    "8": "cmpyzuw5v003dx52f1ck18cl4",
+    "9": "cmpyztx10002mx52fbyfar0b3",
+    "10": "cmpyztx11002vx52fde0ui3m5",
+    "11": "cmpyzsqdq000mx52fpvmyfi23",
+    "12": "cmpyzsqdq000sx52f9y4er1ur",
+    "13": "cmpjrv5xj00s6eplmsz6rlpj1",
+    "14": "cmpjrv5xj00s7eplmxdx4tkpu",
+    "15": "cmpjrv5xk00sbeplmj6w4utbn",
+    "16": "cmpjrv5xk00seeplmhdoflmh0",
+    "17": "cmpjrki4800oweplm9kukkrh4",
+    "18": "cmpjrki4900ozeplms7uiexxo"
+  },
+  "generatedAt": "2026-06-17T09:10:11.140Z",
+  "wrongCounts": {
+    "total": 18,
+    "oeq": 2,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 79,
+    "totalAwarded": 89,
+    "totalAvailable": 113,
+    "paperCount": 8
+  },
+  "previousAssessment": null
+}

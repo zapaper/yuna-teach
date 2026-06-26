@@ -1,0 +1,245 @@
+{
+  "patterns": [
+    {
+      "name": "Singular and Plural Mix-Up",
+      "what": "Sometimes gets tricked by singular subjects that look plural, especially when there are extra words like 'together with' or uncountable nouns.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel chose the plural 'are organising' instead of 'is organising', missing that the main subject 'My sister' is singular despite the extra words."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'have been' for 'luggage', forgetting that 'luggage' is an uncountable noun and must be treated as singular."
+        }
+      ],
+      "strategic_advice": "- When you see phrases like **'together with'** or **'as well as'**, cross them out lightly with your pencil to find the real subject.\n- Remember that uncountable nouns (like luggage, furniture, information) and collective words (like 'pair') always take a **singular verb**.",
+      "trigger_keywords": [
+        "together with",
+        "as well as",
+        "luggage",
+        "pair"
+      ]
+    },
+    {
+      "name": "Fixed Phrase Mix-Up",
+      "what": "Occasionally uses the wrong preposition or word in common English pairings, such as phrasal verbs or paired conjunctions.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel picked 'congratulated over' instead of the correct English pairing 'congratulated on'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He paired 'No sooner' with 'when' instead of the correct matching word 'than'."
+        }
+      ],
+      "strategic_advice": "- When you learn a new verb, try to learn the **preposition that goes with it** (e.g., 'accustomed to', 'congratulate on').\n- For paired conjunctions like **'No sooner'**, always look for its partner **'than'** in the sentence.",
+      "trigger_keywords": [
+        "congratulated",
+        "accustomed",
+        "fell",
+        "No sooner"
+      ]
+    },
+    {
+      "name": "Missing the Context Clue",
+      "what": "Tends to pick a word that sounds okay on its own but misses the hints hidden in the surrounding sentences that change the meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Adriel chose 'restlessly' instead of 'laboriously', missing the clue 'limbs started aching' which shows hard physical work."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'reaps' instead of 'yields', missing the clue that the 'garden' is doing the growing, not a farmer."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'used' instead of 'hard', missing the contrast clue 'Although it sounds simple' from the start of the sentence."
+        }
+      ],
+      "strategic_advice": "- When you see a blank, read the **sentence before and the sentence after** to look for contrast words (like 'Although' or 'However') or cause-and-effect clues.\n- Ask yourself: 'Does this word make sense with the **specific person or thing** doing the action?'",
+      "trigger_keywords": [
+        "Although",
+        "until",
+        "However",
+        "As such"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpz0jmhl005wx52fa5r7jp34",
+    "2": "cmpz0jmhl0061x52fehgp3oma",
+    "3": "cmpyz7tk50008x52fvpghfax0",
+    "4": "cmpyz7tk5000ax52fxqeqcfz4",
+    "5": "cmpyz7tk6000fx52f88e30c7w",
+    "6": "cmpyz7tk6000gx52fp1pnh8r1",
+    "7": "cmpy2u8d9004s12ohsj161r91",
+    "8": "cmpy2rzf1004j12ohe47xk34z",
+    "9": "cmpy2kr8q003712ohx1gs812m",
+    "10": "cmpy2kr8q003812ohn81xr57c",
+    "11": "cmpwo7gx9000bmuphloblyiid",
+    "12": "cmpwnfrmn003o3u30qiwjdw8u",
+    "13": "cmpwnfrmn003q3u309hq727l0",
+    "14": "cmpwnenrz003j3u30lzmpstgz",
+    "15": "cmpwncc5j003c3u30msmodeit",
+    "16": "cmpwncc5j003d3u3067m5dqhi",
+    "17": "cmpwncc5j003e3u309njqhhhq",
+    "18": "cmpwnam63002z3u30unsyalmq",
+    "19": "cmpwn7g48002m3u302zucaltz",
+    "20": "cmpwn65z4002d3u30mwzvdmax",
+    "21": "cmpuxahg6000tn2qph8da5zls",
+    "22": "cmpuxahg6000wn2qppe1i6xx4",
+    "23": "cmpuxahg6000zn2qpfm096xfl",
+    "24": "cmpuxahg7001fn2qpxo6rgzy3",
+    "25": "cmpuxahg7001hn2qpz19325nf",
+    "26": "cmpuxahg7001ln2qp8hkrjk3b",
+    "27": "cmpuxahg7001nn2qpq0oq3y5m",
+    "28": "cmpuxahg7001on2qplpa8lbpk",
+    "29": "cmpuxahg7001pn2qpnj0axpwn"
+  },
+  "generatedAt": "2026-06-17T09:06:42.325Z",
+  "wrongCounts": {
+    "total": 29,
+    "oeq": 6,
+    "mcq": 23
+  },
+  "toplineSnapshot": {
+    "avgPct": 81,
+    "totalAwarded": 125,
+    "totalAvailable": 155,
+    "paperCount": 14
+  },
+  "previousAssessment": null
+}

@@ -2,25 +2,25 @@
   "patterns": [
     {
       "name": "Place Value Slips",
-      "what": "Sometimes mixes up the names and values of different digit positions, like confusing tens with hundreds or tenths with hundredths.",
+      "what": "Sometimes misidentifies the place value of a digit, often shifting it by one or two places like confusing hundreds with thousands.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "fightingseo picked 30 instead of 3 000 for the value of the digit 3 in 23 581."
+          "whatWentWrong": "When asked for the value of '3' in 23 581, fightingseo picked 30 instead of 3 000."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He thought the digit 1 in 91 234 stood for 1 hundred instead of 1 thousand."
+          "whatWentWrong": "He identified the '1' in 91 234 as 1 hundred instead of 1 thousand."
         },
         {
           "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "fightingseo chose a number where the 4 was in the tenths place rather than the hundredths place."
+          "whatWentWrong": "When looking for 4 hundredths, he chose a number where the 4 was in the tenths place."
         }
       ],
-      "strategic_advice": "When you see questions asking for the **value of a digit**, try this:\n- **Write the number out** and label each column (Ones, Tens, Hundreds, Thousands).\n- Pay close attention to the **'ths'** at the end of words like 'hundredths'—that means it's a decimal!",
+      "strategic_advice": "When you see questions asking for the **value** or **place** of a digit:\n- **Draw a quick place value chart** (Ones, Tens, Hundreds, Thousands) above the number.\n- Read the number out loud to yourself—hearing 'twenty-three thousand' helps you catch that the 3 is in the thousands place.",
       "trigger_keywords": [
         "value of the digit",
         "stands for",
@@ -28,80 +28,52 @@
       ]
     },
     {
-      "name": "Multiple vs Factor Mix-Up",
-      "what": "Occasionally confuses multiples (numbers you get by multiplying) with factors (numbers that divide evenly into another).",
+      "name": "Factor and Multiple Mix-Up",
+      "what": "Occasionally confuses factors with multiples, or only checks if a number works for one of the given values instead of both.",
       "specific_examples": [
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "fightingseo picked 16 as a common factor of 4 and 8, but 16 is actually a multiple."
+          "whatWentWrong": "When asked for a common factor of 4 and 8, fightingseo picked 16, which is a multiple, not a factor."
         },
         {
-          "questionRef": "[5]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "He chose 12 as a common multiple of 4 and 7, but 12 cannot be divided by 7."
+          "whatWentWrong": "When looking for a multiple of both 4 and 6, he picked 18, which only works for 6."
         }
       ],
-      "strategic_advice": "When you see these words, remember the difference:\n- **'Factor'** → Think 'Few'. These are the smaller numbers that fit perfectly inside the target number (like 1, 2, and 4 for the number 4).\n- **'Multiple'** → Think 'Many'. These are the bigger numbers you get when you skip-count (like 4, 8, 12, 16).",
+      "strategic_advice": "When you see these words, use them as clues:\n- **'Factor'** → Think 'Fits inside'. The answers must be smaller than or equal to your starting numbers.\n- **'Multiple'** → Think 'Multiply'. The answers will be in the times tables and will be bigger.\n- **'Common'** → Always check your final answer against **both** numbers in the question!",
       "trigger_keywords": [
-        "common multiple",
         "common factor",
-        "every"
+        "common multiple",
+        "multiple of both"
       ]
     },
     {
       "name": "Rounding Rules",
-      "what": "Tends to round to the wrong hundred or struggles to work backwards to find which numbers round to a specific target.",
+      "what": "Tends to get tripped up when rounding to the nearest hundred, especially when deciding whether a number rounds up or down.",
       "specific_examples": [
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "fightingseo picked 25 549, but since the tens digit is a 4, that would round down to 25 500 instead of up to 25 600."
+          "whatWentWrong": "When finding the smallest amount that rounds to $25 600, fightingseo picked $25 549, which actually rounds down to $25 500."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "He chose 84 092, which rounds up to 84 100 rather than staying at 84 000."
+          "whatWentWrong": "He chose 84 092 to round to 84 000, but the 9 in the tens place means it rounds up to 84 100."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "fightingseo selected 49 144, which rounds down to 49 100 instead of 49 000."
+          "whatWentWrong": "When looking for a number that rounds to 49 000, he picked 49 144, which rounds to 49 100."
         }
       ],
-      "strategic_advice": "When you see **'rounded to the nearest hundred'**, always circle the **tens digit**:\n- If the circled digit is **5 or more**, round up!\n- If the circled digit is **4 or less**, round down!\n- When asked for the **smallest possible amount**, look for a number that rounds *up* to your target.",
+      "strategic_advice": "When a question asks you to **round to the nearest hundred**:\n- **Circle the hundreds digit** and **underline the tens digit** right next to it.\n- If the underlined digit is **0, 1, 2, 3, or 4**, the circled number stays the same.\n- If the underlined digit is **5, 6, 7, 8, or 9**, the circled number goes up by one.",
       "trigger_keywords": [
         "rounded to the nearest",
         "smallest possible amount",
         "becomes"
-      ]
-    },
-    {
-      "name": "Unit Model Puzzles",
-      "what": "Occasionally gets stuck or stops halfway when a word problem requires drawing a model to compare different units or track changes.",
-      "specific_examples": [
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "fightingseo successfully found the value of 7 units (Tom's amount) but forgot the question was asking for Sarah's leftover amount (1 unit)."
-        },
-        {
-          "questionRef": "[24]",
-          "type": "oeq",
-          "whatWentWrong": "He left the question blank, likely because it was tricky to set up a model comparing Ahmad, John, and Tina all at once."
-        },
-        {
-          "questionRef": "[25]",
-          "type": "oeq",
-          "whatWentWrong": "fightingseo struggled to draw the 'before and after' model showing Ryan and Chloe selling different amounts of cookies."
-        }
-      ],
-      "strategic_advice": "When you see phrases comparing amounts, treat them as clues to draw a model:\n- **'times as many'** → Draw boxes to show the units (like 3 boxes for Ryan and 1 box for Chloe).\n- **'in the end'** or **'left'** → Draw a 'Before' model and an 'After' model to see what changed.\n- Always re-read the last sentence to make sure you are solving for the right person!",
-      "trigger_keywords": [
-        "times as many",
-        "in the end",
-        "left",
-        "more than"
       ]
     }
   ],
@@ -128,7 +100,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 7,
@@ -136,7 +108,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -160,7 +132,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
@@ -200,11 +172,11 @@
     },
     {
       "idx": 24,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 26,
@@ -244,7 +216,7 @@
     "26": "cmpou1stx000libursyklur0j",
     "27": "cmpou1sty000miburbcc28hzr"
   },
-  "generatedAt": "2026-06-19T02:38:12.880Z",
+  "generatedAt": "2026-06-26T09:34:08.936Z",
   "wrongCounts": {
     "total": 27,
     "oeq": 4,
@@ -256,5 +228,24 @@
     "totalAvailable": 113,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:38:12.880Z",
+    "patternNames": [
+      "Place Value Slips",
+      "Multiple vs Factor Mix-Up",
+      "Rounding Rules",
+      "Unit Model Puzzles"
+    ],
+    "wrongCounts": {
+      "total": 27,
+      "oeq": 4,
+      "mcq": 23
+    },
+    "toplineSnapshot": {
+      "avgPct": 50,
+      "totalAwarded": 56,
+      "totalAvailable": 113,
+      "paperCount": 3
+    }
+  }
 }

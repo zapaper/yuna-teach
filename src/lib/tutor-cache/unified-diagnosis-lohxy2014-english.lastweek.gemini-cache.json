@@ -1,0 +1,837 @@
+{
+  "patterns": [
+    {
+      "name": "Question Tag Mix-Up",
+      "what": "Sometimes misses hidden negative words like 'rarely' or 'seldom', or uses the wrong helping verb when forming question tags.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He missed that 'rarely' is a negative word, which means the question tag needs to be positive."
+        },
+        {
+          "questionRef": "[117]",
+          "type": "mcq",
+          "whatWentWrong": "He used 'didn't' instead of matching the helping verb 'have' from the contraction 'You've'."
+        }
+      ],
+      "strategic_advice": "When you see a comma followed by a blank at the end of a sentence, it is a question tag. Use these steps:\n- **Check for hidden negatives** like 'rarely', 'seldom', 'hardly', or 'never'. If you see one, the tag must be positive!\n- **Find the helping verb** in the main sentence (like 'is', 'has', 'have', 'does') and reuse it in your tag.",
+      "trigger_keywords": [
+        "___?",
+        ", ___ you?",
+        ", ___ she?"
+      ]
+    },
+    {
+      "name": "Idiom and Phrase Mix-Up",
+      "what": "Occasionally pieces together phrases word-by-word instead of using the exact English idiom or fixed expression expected.",
+      "specific_examples": [
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'stand on straight' instead of the correct English idiom 'stand on end' to describe hair standing up."
+        },
+        {
+          "questionRef": "[112]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'go down in the knees' instead of the common expression 'go weak in the knees'."
+        },
+        {
+          "questionRef": "[130]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'in great elaboration' instead of the fixed phrase 'in great detail'."
+        }
+      ],
+      "strategic_advice": "When a blank is part of a common saying or phrase, trust your ear for what sounds like natural English.\n- **Read the whole sentence aloud** in your head. Often, the right word will 'click' because you have heard it before.\n- **Watch out for prepositions** that pair with specific verbs, like 'congratulate on' or 'need for'.",
+      "trigger_keywords": [
+        "stand on ___",
+        "go ___ in the knees",
+        "in great ___",
+        "removing the need ___"
+      ]
+    },
+    {
+      "name": "Grammar Clue Slips",
+      "what": "Occasionally misses nearby grammar clues like 'a/an', plural verbs, or helping verbs that require a specific word form, even when he has the right general meaning in mind.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'essential', but missed that the blank comes after the article 'a', which requires a word starting with a consonant sound like 'big'."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'wonder', missing that the phrase 'have you ever' requires the past participle 'wondered'."
+        },
+        {
+          "questionRef": "[113]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the singular 'stall', missing that the plural verb 'were' right after the blank requires the plural 'stalls'."
+        }
+      ],
+      "strategic_advice": "Before writing your final answer in a cloze passage, look at the words immediately before and after the blank.\n- **Check the articles**: Does it say 'a' or 'an'?\n- **Check the verbs**: Is it a singular or plural action? Does it follow a helping verb like 'have' or 'has'?\n- **Check the time**: Are there clues that show the action happened in the past?",
+      "trigger_keywords": [
+        "a/an ___",
+        "have you ever ___",
+        "___ were",
+        "___ is"
+      ]
+    },
+    {
+      "name": "Visual Text Traps",
+      "what": "Sometimes reads posters and flyers quickly and misses small but important condition words like 'not', 'only', or rules for returning customers.",
+      "specific_examples": [
+        {
+          "questionRef": "[37]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the word 'only' in the first option, which made the statement false because the festival teaches many other things."
+        },
+        {
+          "questionRef": "[85]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the condition that Mindy was going 'again', which meant she qualified for the special returning customer discount."
+        },
+        {
+          "questionRef": "[104]",
+          "type": "mcq",
+          "whatWentWrong": "He overlooked the word 'not' in the question stem and picked a true statement instead of the false one."
+        }
+      ],
+      "strategic_advice": "Visual texts are designed to test how carefully you read the fine print. Treat these words as stop signs:\n- **'not true'** or **'false'** → highlight these so you don't accidentally pick a true fact.\n- **'only'**, **'always'**, or **'never'** → these extreme words often make an option false.\n- **Special conditions** → look out for words like 'first-time', 'returning', or 'minimum spend'.",
+      "trigger_keywords": [
+        "not true",
+        "only",
+        "again",
+        "first order"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 2
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 2
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": 2
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 0
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": 3
+    },
+    {
+      "idx": 60,
+      "patternIndex": 2
+    },
+    {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": 2
+    },
+    {
+      "idx": 63,
+      "patternIndex": -1
+    },
+    {
+      "idx": 64,
+      "patternIndex": 1
+    },
+    {
+      "idx": 65,
+      "patternIndex": -1
+    },
+    {
+      "idx": 66,
+      "patternIndex": 2
+    },
+    {
+      "idx": 67,
+      "patternIndex": 2
+    },
+    {
+      "idx": 68,
+      "patternIndex": -1
+    },
+    {
+      "idx": 69,
+      "patternIndex": -1
+    },
+    {
+      "idx": 70,
+      "patternIndex": -1
+    },
+    {
+      "idx": 71,
+      "patternIndex": -1
+    },
+    {
+      "idx": 72,
+      "patternIndex": -1
+    },
+    {
+      "idx": 73,
+      "patternIndex": -1
+    },
+    {
+      "idx": 74,
+      "patternIndex": 2
+    },
+    {
+      "idx": 75,
+      "patternIndex": 2
+    },
+    {
+      "idx": 76,
+      "patternIndex": -1
+    },
+    {
+      "idx": 77,
+      "patternIndex": -1
+    },
+    {
+      "idx": 78,
+      "patternIndex": -1
+    },
+    {
+      "idx": 79,
+      "patternIndex": -1
+    },
+    {
+      "idx": 80,
+      "patternIndex": -1
+    },
+    {
+      "idx": 81,
+      "patternIndex": -1
+    },
+    {
+      "idx": 82,
+      "patternIndex": -1
+    },
+    {
+      "idx": 83,
+      "patternIndex": -1
+    },
+    {
+      "idx": 84,
+      "patternIndex": 3
+    },
+    {
+      "idx": 85,
+      "patternIndex": 3
+    },
+    {
+      "idx": 86,
+      "patternIndex": 3
+    },
+    {
+      "idx": 87,
+      "patternIndex": -1
+    },
+    {
+      "idx": 88,
+      "patternIndex": -1
+    },
+    {
+      "idx": 89,
+      "patternIndex": -1
+    },
+    {
+      "idx": 90,
+      "patternIndex": 2
+    },
+    {
+      "idx": 91,
+      "patternIndex": -1
+    },
+    {
+      "idx": 92,
+      "patternIndex": -1
+    },
+    {
+      "idx": 93,
+      "patternIndex": 1
+    },
+    {
+      "idx": 94,
+      "patternIndex": -1
+    },
+    {
+      "idx": 95,
+      "patternIndex": -1
+    },
+    {
+      "idx": 96,
+      "patternIndex": -1
+    },
+    {
+      "idx": 97,
+      "patternIndex": 2
+    },
+    {
+      "idx": 98,
+      "patternIndex": 2
+    },
+    {
+      "idx": 99,
+      "patternIndex": 1
+    },
+    {
+      "idx": 100,
+      "patternIndex": -1
+    },
+    {
+      "idx": 101,
+      "patternIndex": -1
+    },
+    {
+      "idx": 102,
+      "patternIndex": -1
+    },
+    {
+      "idx": 103,
+      "patternIndex": 3
+    },
+    {
+      "idx": 104,
+      "patternIndex": 3
+    },
+    {
+      "idx": 105,
+      "patternIndex": 3
+    },
+    {
+      "idx": 106,
+      "patternIndex": 3
+    },
+    {
+      "idx": 107,
+      "patternIndex": -1
+    },
+    {
+      "idx": 108,
+      "patternIndex": 2
+    },
+    {
+      "idx": 109,
+      "patternIndex": 2
+    },
+    {
+      "idx": 110,
+      "patternIndex": 2
+    },
+    {
+      "idx": 111,
+      "patternIndex": -1
+    },
+    {
+      "idx": 112,
+      "patternIndex": 1
+    },
+    {
+      "idx": 113,
+      "patternIndex": 2
+    },
+    {
+      "idx": 114,
+      "patternIndex": 2
+    },
+    {
+      "idx": 115,
+      "patternIndex": -1
+    },
+    {
+      "idx": 116,
+      "patternIndex": -1
+    },
+    {
+      "idx": 117,
+      "patternIndex": 0
+    },
+    {
+      "idx": 118,
+      "patternIndex": 2
+    },
+    {
+      "idx": 119,
+      "patternIndex": -1
+    },
+    {
+      "idx": 120,
+      "patternIndex": -1
+    },
+    {
+      "idx": 121,
+      "patternIndex": -1
+    },
+    {
+      "idx": 122,
+      "patternIndex": -1
+    },
+    {
+      "idx": 123,
+      "patternIndex": -1
+    },
+    {
+      "idx": 124,
+      "patternIndex": -1
+    },
+    {
+      "idx": 125,
+      "patternIndex": -1
+    },
+    {
+      "idx": 126,
+      "patternIndex": -1
+    },
+    {
+      "idx": 127,
+      "patternIndex": 2
+    },
+    {
+      "idx": 128,
+      "patternIndex": 1
+    },
+    {
+      "idx": 129,
+      "patternIndex": 1
+    },
+    {
+      "idx": 130,
+      "patternIndex": 1
+    },
+    {
+      "idx": 131,
+      "patternIndex": 2
+    },
+    {
+      "idx": 132,
+      "patternIndex": -1
+    },
+    {
+      "idx": 133,
+      "patternIndex": 2
+    },
+    {
+      "idx": 134,
+      "patternIndex": -1
+    },
+    {
+      "idx": 135,
+      "patternIndex": -1
+    },
+    {
+      "idx": 136,
+      "patternIndex": 1
+    },
+    {
+      "idx": 137,
+      "patternIndex": -1
+    },
+    {
+      "idx": 138,
+      "patternIndex": -1
+    },
+    {
+      "idx": 139,
+      "patternIndex": -1
+    },
+    {
+      "idx": 140,
+      "patternIndex": -1
+    },
+    {
+      "idx": 141,
+      "patternIndex": -1
+    },
+    {
+      "idx": 142,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqf70a0k001iqs2gaq4u7yx7",
+    "2": "cmqf70a0k001uqs2gtpoh7y3p",
+    "3": "cmqf70a0l0026qs2gka1c0w2d",
+    "4": "cmqf70a0l002eqs2gqxshohn8",
+    "5": "cmqf70a0l002hqs2gjlvpwssc",
+    "6": "cmqf70a0l002mqs2g3bk8qsab",
+    "7": "cmqf70a0m002wqs2gfitdys5t",
+    "8": "cmqf70a0m002xqs2gte2rd9m5",
+    "9": "cmqf70a0m002yqs2g1stjz6uu",
+    "10": "cmqf70a0m0031qs2gz2sk18e9",
+    "11": "cmqf70a0m0033qs2gj80xura6",
+    "12": "cmq979lbj00t9bxufyf16wcuh",
+    "13": "cmq979lbk00tobxufvcpj8j4m",
+    "14": "cmq979lbl00ttbxufotas7ofk",
+    "15": "cmq979lbl00u0bxuf9q1wpsxe",
+    "16": "cmq979lbl00u1bxuf0v7ykq17",
+    "17": "cmq979lbl00u4bxuftc7yomep",
+    "18": "cmq979lbl00u5bxuf4906ovav",
+    "19": "cmq979lbl00u6bxufwq97vuj6",
+    "20": "cmq979lbl00u7bxuf1yoqmdmc",
+    "21": "cmq979lbl00u8bxuffk8so708",
+    "22": "cmq979lbl00u9bxuffljegqji",
+    "23": "cmq979lbm00ubbxuf6xjvu1yf",
+    "24": "cmq979lbm00ucbxufghuvvs3d",
+    "25": "cmq979lbm00uhbxufi2krbhnu",
+    "26": "cmq979lbm00uibxuf43xcoy6f",
+    "27": "cmq979lbm00ukbxufp1thow00",
+    "28": "cmq979lbm00ulbxuf3siw5htg",
+    "29": "cmq979lbm00uobxuflyffgu8d",
+    "30": "cmq979xem00usbxufpyz85qxc",
+    "31": "cmq979xem00uubxufrp0463k7",
+    "32": "cmq979xem00uwbxuf0kz42fh9",
+    "33": "cmq979xen00v0bxufeq1tdf7b",
+    "34": "cmq979xen00v2bxuf5rmvb9d2",
+    "35": "cmq979xen00v4bxuf1ahjzv8x",
+    "36": "cmq979xen00v9bxuf4gi74tqi",
+    "37": "cmq979xeo00vdbxufjbvg48i9",
+    "38": "cmq979xeo00vgbxuf0egzfqnk",
+    "39": "cmq979xeo00vmbxufttar4jf3",
+    "40": "cmq979xeo00vnbxufadg98iql",
+    "41": "cmq979xep00vubxufn9ty9z9c",
+    "42": "cmq979xep00vvbxufktj2sasf",
+    "43": "cmq979xep00vwbxufgx9znuiv",
+    "44": "cmq979xep00vxbxuf27uv4qsg",
+    "45": "cmq979xep00w0bxufyqcyzugj",
+    "46": "cmq979xep00w2bxufvjt7b8pu",
+    "47": "cmq979xep00w4bxufep9wcr3x",
+    "48": "cmq979xep00w5bxufdknek76f",
+    "49": "cmq979xep00w8bxufnymk2to5",
+    "50": "cmq979xep00w9bxufyyiq52gq",
+    "51": "cmq979xeq00wabxufsk059fv1",
+    "52": "cmq7tn524003dwe3ufaoayj05",
+    "53": "cmq7tn524003ewe3u7utuayby",
+    "54": "cmq7tn525003lwe3u0tzd5lcy",
+    "55": "cmq7tn525003mwe3ugng00ytc",
+    "56": "cmq7tn525003owe3ue4207hms",
+    "57": "cmq7tn525003pwe3u7dblesvw",
+    "58": "cmq7tn525003qwe3uyzhxiyqm",
+    "59": "cmq7tn525003vwe3uzsbpiqbu",
+    "60": "cmq7tn5260049we3ugl9w8rwd",
+    "61": "cmq7tn526004bwe3ujkcfc36z",
+    "62": "cmq7tn527004lwe3u8394kbxw",
+    "63": "cmq7tn527004mwe3ugcocj0q5",
+    "64": "cmq7tn527004pwe3uf0qwmzpb",
+    "65": "cmq7tn527004rwe3uf1nyfi2i",
+    "66": "cmq7tn527004wwe3uzqvlw83u",
+    "67": "cmq692ogq000poedealmm7ap4",
+    "68": "cmq692ogq000xoedeih408oli",
+    "69": "cmq692ogr0011oedeari0fw1w",
+    "70": "cmq692ogr0012oedevw5y2qzy",
+    "71": "cmq692ogs001loedeks16qpvm",
+    "72": "cmq692ogs001moedet78xeuoq",
+    "73": "cmq692ogs001qoede6lzdfzhw",
+    "74": "cmq692ogs001voedevgqnr30g",
+    "75": "cmq692ogs001yoede0ua2qpd5",
+    "76": "cmq692ogs0023oedeq3b59n63",
+    "77": "cmq692ogt0027oedenluzjg1j",
+    "78": "cmq692ogt0028oede77h52oqs",
+    "79": "cmq4vq02m000fg2owr4mh5uwx",
+    "80": "cmq4vq02m000hg2ow45brch56",
+    "81": "cmq4vq02n000kg2ow1c46t6k2",
+    "82": "cmq4vq02n000lg2owktb8uuvx",
+    "83": "cmq4vq02n000ng2owkshrn6ej",
+    "84": "cmq4vq02n000wg2ow05xjgquk",
+    "85": "cmq4vq02n000xg2owisdx889w",
+    "86": "cmq4vq02o000yg2ow1x3ya1ox",
+    "87": "cmq4vq02o0017g2owsyg8sa9s",
+    "88": "cmq4vq02o001cg2owyi80amsu",
+    "89": "cmq4vq02p001eg2owfouci2k6",
+    "90": "cmq4vq02p001gg2owtzkbbtkh",
+    "91": "cmq4vq02p001lg2ow04vbw3rc",
+    "92": "cmq4vq02p001mg2owstjp74cu",
+    "93": "cmq4vq02p001pg2owvzdwn0y5",
+    "94": "cmq4vq02p001qg2ow4ok43e7l",
+    "95": "cmq4vq02p001tg2owuvyrtwv8",
+    "96": "cmq4vq02q001xg2owisrwf92l",
+    "97": "cmq4vq02q0020g2ow6157waos",
+    "98": "cmq3eiamn002631spxe8yzh2w",
+    "99": "cmq3eiamn002731spvll90yl4",
+    "100": "cmq3eiamn002831spf5qszdvy",
+    "101": "cmq3eiamn002c31spvu8yyb47",
+    "102": "cmq3eiamn002g31sp57k1ij5g",
+    "103": "cmq3eiamo002h31sp0h0lgy46",
+    "104": "cmq3eiamo002k31spkvzymwdf",
+    "105": "cmq3eiamo002m31spqx2ev0hg",
+    "106": "cmq3eiamo002o31sp0yrxn4tc",
+    "107": "cmq3eiamo002t31sp222klv4y",
+    "108": "cmq3eiamo002z31spt49gkwpa",
+    "109": "cmq3eiamo003231spx54p60cb",
+    "110": "cmq3eiamp003431spcipaty04",
+    "111": "cmq3eiamp003731spxyc2e5ob",
+    "112": "cmq3eiamp003c31spsaleat0i",
+    "113": "cmq3eiamp003h31spnvg6ufce",
+    "114": "cmq3eiamp003j31splyrc7ddm",
+    "115": "cmq3eiamp003o31spcnsojgjz",
+    "116": "cmq3eiamp003p31sp8s2jyrns",
+    "117": "cmpw7rl48000olslk7km9nmc3",
+    "118": "cmpw7rl48000qlslkqarzk1o0",
+    "119": "cmpw7rl48000vlslkvfake9ru",
+    "120": "cmpw7rl480010lslk02xzkpi1",
+    "121": "cmpw7rl480011lslk7vgimjb6",
+    "122": "cmpw7rl480012lslk7r28d0k4",
+    "123": "cmpw7rl490017lslk0s0uza4g",
+    "124": "cmpw7rl49001dlslkrmhse4e8",
+    "125": "cmpw7rl49001flslkyhrmvahj",
+    "126": "cmpw7rl49001glslkhxclerph",
+    "127": "cmpw7rl4a001rlslkm1cfpxy5",
+    "128": "cmpw7rl4a001tlslk8cs92j78",
+    "129": "cmpw7rl4a001ulslk8k0r8jhj",
+    "130": "cmpw7rl4a001vlslkh5oh8c91",
+    "131": "cmpw7rl4a001ylslk78lfjcif",
+    "132": "cmpw7rl4a001zlslkwhmbiaqx",
+    "133": "cmpw7rl4a0020lslkpv99g4ga",
+    "134": "cmpw7rl4a0022lslkvic7yff4",
+    "135": "cmpw7rl4a0023lslkj7out760",
+    "136": "cmpvxnesk0003z9pkt00tkedv",
+    "137": "cmpvxnesk0007z9pkp6cmtgdy",
+    "138": "cmpvxnesk0009z9pkuklu25s3",
+    "139": "cmpvxnesl000bz9pkcs80x9fe",
+    "140": "cmpvxnesl000gz9pkidi3x5iq",
+    "141": "cmpvxnesl000nz9pkdgld6rom",
+    "142": "cmpvxnesl000qz9pkh9ifsl57"
+  },
+  "generatedAt": "2026-06-17T09:17:38.352Z",
+  "wrongCounts": {
+    "total": 142,
+    "oeq": 90,
+    "mcq": 52
+  },
+  "toplineSnapshot": {
+    "avgPct": 71,
+    "totalAwarded": 355,
+    "totalAvailable": 502,
+    "paperCount": 9
+  },
+  "previousAssessment": null
+}

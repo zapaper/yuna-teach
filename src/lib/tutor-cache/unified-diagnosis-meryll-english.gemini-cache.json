@@ -1,76 +1,49 @@
 {
   "patterns": [
     {
-      "name": "Skipping Questions",
-      "what": "Sometimes leaves a whole block of questions blank, which might happen if a page is accidentally turned too fast or time runs out.",
+      "name": "Singular vs Plural Mix-Up",
+      "what": "Meryll sometimes mixes up singular and plural pronouns or verbs when matching them back to the main subject.",
       "specific_examples": [
-        {
-          "questionRef": "[12]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll left this question blank, missing out on a chance to score by finding the true statement in the poster."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "mcq",
-          "whatWentWrong": "She skipped this question about the writer's slogan, which could have been answered by looking closely at the text."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "This question about the main selling point was also left unanswered, possibly because she missed the page."
-        }
-      ],
-      "strategic_advice": "When you finish a paper, always do a quick **page-by-page check** to make sure every single question has an answer shaded or written down. Even if you are unsure, **never leave a multiple-choice question blank** because a smart guess still gives you a chance to score!",
-      "trigger_keywords": [
-        "According to",
-        "Based on",
-        "true of"
-      ]
-    },
-    {
-      "name": "Pronoun Mix-Up",
-      "what": "Occasionally mixes up singular and plural ownership words, or confuses contractions with ownership words.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "Meryll picked 'who's' (which means 'who is') instead of 'whose', confusing a contraction with the word that shows ownership."
-        },
         {
           "questionRef": "[17]",
           "type": "oeq",
-          "whatWentWrong": "She used the singular 'its' for the majestic tigers, forgetting that plural animals need the word 'their'."
+          "whatWentWrong": "She used the singular 'its' for the plural 'tigers'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "Meryll used the plural 'their' for the park, but since there is only one park, it should be 'its'."
+          "whatWentWrong": "She used the plural 'their' for the singular 'park'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "She chose the singular 'has cleaned' instead of the plural 'clean' for 'his sisters'."
         }
       ],
-      "strategic_advice": "When you need to choose a pronoun, always trace it back to the **owner** in the sentence.\n- If the owner is plural (like 'tigers'), use **'their'**.\n- If the owner is singular (like 'the park'), use **'its'**.\n- Remember that **'who's'** always means 'who is', while **'whose'** shows ownership.",
+      "strategic_advice": "When you need to fill in a pronoun or verb, trace it back to the **main subject** it belongs to.\n- If the subject is plural (like 'tigers' or 'sisters'), use **plural** words like 'their' or 'clean'.\n- If the subject is singular (like 'park'), use **singular** words like 'its' or 'cleans'.",
       "trigger_keywords": [
         "its",
         "their",
-        "who's",
-        "whose"
+        "Either",
+        "or"
       ]
     },
     {
       "name": "Phrasal Verb Mix-Up",
-      "what": "Tends to mix up two-part verbs that start with the same word but end differently, changing the whole meaning of the action.",
+      "what": "Meryll occasionally confuses phrasal verbs, which are action words that completely change their meaning depending on the little word attached to them.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Meryll chose 'told on' (which means to tattle) instead of 'told off' (which means to scold) for the rowdy boys."
+          "whatWentWrong": "She chose 'told on' (which means to tattle) instead of 'told off' (which means to scold)."
         },
         {
           "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'set in' (which means to begin and stay) rather than 'set off' (which means to trigger an action)."
+          "whatWentWrong": "She chose 'set in' instead of 'set off' for starting an action."
         }
       ],
-      "strategic_advice": "When you see a verb followed by a preposition, read the **whole sentence context** to figure out the exact action.\n- Ask yourself: **'What is really happening here?'**\n- Try replacing the phrase with a **single word** (like 'scolded' or 'triggered') to see which option matches best.",
+      "strategic_advice": "When you see a verb followed by a preposition (like 'in', 'on', 'off'), read the whole sentence to figure out the exact action happening.\n- **'told off'** means to scold, while **'told on'** means to report someone.\n- **'set off'** means to trigger or start something.",
       "trigger_keywords": [
         "told",
         "set",
@@ -80,27 +53,53 @@
       ]
     },
     {
-      "name": "Synonym Mix-Up",
-      "what": "Sometimes chooses a word that feels related to the sentence but misses the exact meaning of the original highlighted word.",
+      "name": "Matching Words to Context",
+      "what": "Meryll tends to pick words that sound okay on their own but don't quite fit the specific meaning or clues hidden in the sentence.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "Meryll picked 'Supposedly' instead of 'Mistakenly', which is the exact match for the word 'Erroneously'."
+          "whatWentWrong": "She chose 'Supposedly' instead of 'Mistakenly' for something that is known in an erroneous (wrong) way."
         },
         {
           "questionRef": "[6]",
           "type": "mcq",
-          "whatWentWrong": "She chose 'traditional' instead of 'native' to describe an animal that naturally belongs to Singapore."
+          "whatWentWrong": "She chose 'traditional' instead of 'native' to describe where an animal naturally lives."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'productive' instead of 'rewarding' to describe a feeling of doing something worthwhile."
         }
       ],
-      "strategic_advice": "When replacing a word in a passage, look for the **exact match** in meaning, not just a word that sounds related.\n- **Cover the options** and think of your own simple word first.\n- Plug your chosen word back into the sentence to check if the **original meaning** stays exactly the same.",
+      "strategic_advice": "When choosing a vocabulary word, look for **context clues** hidden in the sentence.\n- If the sentence mentions 'Erroneously' (which means wrong), look for a word like **'Mistakenly'**.\n- For animals and plants, we use **'native'** to describe where they originally come from.",
       "trigger_keywords": [
         "Erroneously",
-        "typically",
         "indigenous",
-        "instinct",
-        "worthwhile"
+        "worthwhile",
+        "typically"
+      ]
+    },
+    {
+      "name": "Skipping Questions",
+      "what": "Meryll seems to have left an entire section of visual text questions completely blank.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She left the question about the poster's true statement blank."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "She skipped the question asking about the purpose of the slogan."
+        }
+      ],
+      "strategic_advice": "Even if a question looks tricky or you are running out of time, **always make a guess** for multiple-choice questions!\n- You have a 1 in 4 chance of getting it right just by trying.\n- Look for **keywords in the poster** that match the options.",
+      "trigger_keywords": [
+        "According to the poster",
+        "Based on the poster",
+        "slogan"
       ]
     }
   ],
@@ -111,67 +110,67 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 3
-    },
-    {
-      "idx": 4,
-      "patternIndex": 3
-    },
-    {
-      "idx": 5,
-      "patternIndex": 3
-    },
-    {
-      "idx": 6,
-      "patternIndex": 3
-    },
-    {
-      "idx": 7,
-      "patternIndex": 1
-    },
-    {
-      "idx": 8,
       "patternIndex": -1
     },
     {
-      "idx": 9,
-      "patternIndex": 3
-    },
-    {
-      "idx": 10,
+      "idx": 4,
       "patternIndex": 2
     },
     {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 16,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 18,
@@ -183,7 +182,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 21,
@@ -213,7 +212,7 @@
     "20": "cmpuus5y600a9qm74rdty1w4v",
     "21": "cmpuus5y600aaqm745ek5bt0l"
   },
-  "generatedAt": "2026-06-17T09:19:04.999Z",
+  "generatedAt": "2026-06-26T09:43:40.012Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 5,
@@ -225,5 +224,24 @@
     "totalAvailable": 45,
     "paperCount": 2
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:19:04.999Z",
+    "patternNames": [
+      "Skipping Questions",
+      "Pronoun Mix-Up",
+      "Phrasal Verb Mix-Up",
+      "Synonym Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 21,
+      "oeq": 5,
+      "mcq": 16
+    },
+    "toplineSnapshot": {
+      "avgPct": 53,
+      "totalAwarded": 24,
+      "totalAvailable": 45,
+      "paperCount": 2
+    }
+  }
 }

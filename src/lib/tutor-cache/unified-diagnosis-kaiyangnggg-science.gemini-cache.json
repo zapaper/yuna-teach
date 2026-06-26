@@ -1,99 +1,99 @@
 {
   "patterns": [
     {
-      "name": "Light Path and Shadows",
-      "what": "Sometimes draws or chooses light arrows starting from the eye instead of the light source, and occasionally forgets that objects closer to a light source cast bigger shadows.",
+      "name": "Kinetic vs Potential Energy Mix-Up",
+      "what": "Kaiyangnggg sometimes confuses kinetic energy (the energy of movement) with potential energy (stored energy, like in fuels, batteries, or stretched rubber bands).",
+      "specific_examples": [
+        {
+          "questionRef": "[99]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for a source that is NOT potential energy, he picked fuel (which stores chemical potential energy) instead of wind (which has kinetic energy)."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "He thought the stretched rubber band had kinetic energy, rather than recognizing it stores potential energy until it is released."
+        }
+      ],
+      "strategic_advice": "When you see questions about energy conversion, ask yourself: 'Is it moving right now?'\n- **Moving objects** (wind, falling water, a flying ball) have **kinetic energy**.\n- **Stored energy** (fuels, food, batteries, stretched springs) is **potential energy**.",
+      "trigger_keywords": [
+        "potential energy",
+        "kinetic energy",
+        "energy conversion",
+        "switched on"
+      ]
+    },
+    {
+      "name": "Light and Shadow Rules",
+      "what": "Kaiyangnggg occasionally reverses the direction of light rays or forgets that objects closer to a light source cast larger shadows.",
       "specific_examples": [
         {
           "questionRef": "[79]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg chose arrows showing light traveling from the eye to the door, rather than from the lamp to the door and then reflecting into the eye."
+          "whatWentWrong": "When identifying how Peter sees a door, he chose arrows pointing from the door to the lamp, forgetting that light must travel from the source, bounce off the object, and enter the eyes."
         },
         {
           "questionRef": "[68]",
           "type": "mcq",
-          "whatWentWrong": "He mixed up the order of shapes casting a shadow, forgetting that the shape closest to the torch will cast the largest shadow."
+          "whatWentWrong": "He struggled to match the shapes to their shadow sizes, missing the rule that the shape closest to the torch blocks the most light and casts the largest shadow."
         }
       ],
-      "strategic_advice": "When you see questions about seeing objects or shadows, remember these two rules:\n- **Light always starts from a source** (like a lamp or the sun). To see an object, light must bounce off it and travel **into your eyes**.\n- For shadow questions, remember: **Closer to the light = Bigger shadow**. Draw a quick line from the torch past the object to see how big the shadow will be!",
+      "strategic_advice": "When dealing with light and shadows, remember these two golden rules:\n- **Seeing objects:** Light always travels **from the light source**, bounces **off the object**, and goes **into your eyes**.\n- **Shadow sizes:** The **closer** an object is to the light source, the **larger** its shadow will be.",
       "trigger_keywords": [
         "direction of light rays",
-        "shadow",
-        "screen",
-        "torch"
+        "enable Peter to see",
+        "cut out some shapes",
+        "shadow"
       ]
     },
     {
-      "name": "Conductor and Insulator Mix-Up",
-      "what": "Occasionally confuses which materials are good conductors of heat (like metal) and which are poor conductors (like air, wood, or glass).",
+      "name": "Heat vs Temperature Mix-Up",
+      "what": "Kaiyangnggg sometimes muddles concepts related to heat energy, such as mixing up good and poor conductors, or forgetting that objects gain heat even when their temperature is rising.",
       "specific_examples": [
         {
           "questionRef": "[38]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg thought a glass container would cool down the fastest, instead of a metal container which is a much better conductor of heat."
+          "whatWentWrong": "He thought water in a glass container would cool down the fastest, forgetting that metal is a better conductor and allows heat to escape more quickly."
         },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "He missed mentioning that the trapped air in the corrugated cup sleeve is a poor conductor of heat, which is the key reason it slows down heat transfer to the fingers."
-        }
-      ],
-      "strategic_advice": "When a question compares materials like metal, plastic, wood, or glass, it is testing **heat conductivity**.\n- **Metals are good conductors**: they gain and lose heat very quickly.\n- **Air, wood, plastic, and glass are poor conductors**: they trap heat and slow down heat transfer. Always use the exact phrase **'poor conductor of heat'** in your written explanations!",
-      "trigger_keywords": [
-        "different materials",
-        "lowest temperature",
-        "keep cold",
-        "prevent scalding"
-      ]
-    },
-    {
-      "name": "Heat and State Mix-Up",
-      "what": "Tends to think heat is only gained during a change of state (like melting), and sometimes mixes up whether a process like condensation involves gaining or losing heat.",
-      "specific_examples": [
         {
           "questionRef": "[35]",
           "type": "mcq",
-          "whatWentWrong": "Kaiyangnggg looked at a heating graph and thought the ice/water only gained heat during the melting phase, missing that it also gains heat when the temperature rises."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He thought that water changing from a gas to a liquid at 100°C is boiling, rather than condensation which involves losing heat."
+          "whatWentWrong": "Looking at a heating graph for ice, he thought heat was only gained during melting, missing that the ice and water are also gaining heat when the temperature goes up."
         }
       ],
-      "strategic_advice": "When analyzing heat graphs or state changes, keep these facts in mind:\n- If a substance is over a heat source, it is **always gaining heat**, even if the temperature line on the graph is flat (changing state) or going up (getting hotter).\n- Remember your state changes: **Melting and Boiling = Gaining Heat**. **Condensation and Freezing = Losing Heat**.",
+      "strategic_advice": "When you see questions about heating or cooling, pause and think about the material and the state:\n- **Conductors:** Metals are **good conductors** (they gain and lose heat fast). Plastics, wood, and air are **poor conductors** (they trap heat).\n- **Heating graphs:** If the heat source is on, the substance is **always gaining heat**, whether the temperature is rising or staying flat during a state change.",
       "trigger_keywords": [
+        "lowest temperature",
         "gaining heat",
-        "loses heat",
-        "changes from gas to liquid",
-        "graph"
+        "poorer conductor",
+        "better conductor"
       ]
     },
     {
       "name": "One Step Short",
-      "what": "Often understands the science concept perfectly, but stops one step short of writing the exact keywords or full comparisons the markers are looking for.",
+      "what": "In open-ended questions, Kaiyangnggg tends to describe what happens but occasionally stops one step short of explaining the scientific reason why it happens.",
       "specific_examples": [
-        {
-          "questionRef": "[29]",
-          "type": "oeq",
-          "whatWentWrong": "Kaiyangnggg correctly stated that cooking two packets of fish balls takes longer, but forgot to mention the key reason: there is **more mass** to be heated up."
-        },
         {
           "questionRef": "[66]",
           "type": "oeq",
-          "whatWentWrong": "He explained that the chocolate filling burst out because it expanded, but missed stating that it **gained heat** and expanded **more than** the bun."
+          "whatWentWrong": "He correctly noted that cooking two packets of fishballs takes more time, but missed the key scientific reason: there is more mass to heat up."
         },
         {
-          "questionRef": "[30]",
+          "questionRef": "[64]",
           "type": "oeq",
-          "whatWentWrong": "He defined boiling as reaching a certain temperature, but missed the crucial science definition: a **change in state from liquid to gas**."
+          "whatWentWrong": "He knew the cup sleeve prevents scalding, but forgot to mention that the corrugated shape traps air, which is a poor conductor of heat."
+        },
+        {
+          "questionRef": "[46]",
+          "type": "oeq",
+          "whatWentWrong": "He explained that cacti spines mean they don't give out water often, but missed the exact science phrase: to reduce water loss."
         }
       ],
-      "strategic_advice": "When you see **'explain why'**, always check if you have included the **science keywords** (like 'gained heat', 'more mass', 'change in state'). If a question involves two things (like chocolate filling and a bun), make sure to use **comparison words** (like 'expanded **more than**'). Don't just talk about one!",
+      "strategic_advice": "When you see **'explain why'** or **'give a reason'**, make sure to include the specific science keywords.\n- Don't just state the observation (e.g., 'it takes longer').\n- Always add the hidden science cause (e.g., 'because there is **more mass**, so it needs **more heat energy**').",
       "trigger_keywords": [
         "explain why",
         "give a reason",
-        "state what"
+        "explain how"
       ]
     }
   ],
@@ -148,27 +148,27 @@
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -176,15 +176,15 @@
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 22,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 23,
@@ -192,7 +192,7 @@
     },
     {
       "idx": 24,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 25,
@@ -200,7 +200,7 @@
     },
     {
       "idx": 26,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 27,
@@ -208,7 +208,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 29,
@@ -220,19 +220,19 @@
     },
     {
       "idx": 31,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 32,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 33,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 35,
@@ -248,7 +248,7 @@
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 39,
@@ -268,7 +268,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 44,
@@ -276,7 +276,7 @@
     },
     {
       "idx": 45,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 46,
@@ -296,7 +296,7 @@
     },
     {
       "idx": 50,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 51,
@@ -304,11 +304,11 @@
     },
     {
       "idx": 52,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 53,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 54,
@@ -340,7 +340,7 @@
     },
     {
       "idx": 61,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 62,
@@ -348,11 +348,11 @@
     },
     {
       "idx": 63,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 64,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 65,
@@ -364,15 +364,15 @@
     },
     {
       "idx": 67,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 68,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 69,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 70,
@@ -388,7 +388,7 @@
     },
     {
       "idx": 73,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 74,
@@ -396,39 +396,39 @@
     },
     {
       "idx": 75,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 76,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 77,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 78,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 79,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 80,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 81,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 82,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 83,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 84,
@@ -452,11 +452,11 @@
     },
     {
       "idx": 89,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 90,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 91,
@@ -464,19 +464,19 @@
     },
     {
       "idx": 92,
-      "patternIndex": -1
-    },
-    {
-      "idx": 93,
       "patternIndex": 0
     },
     {
-      "idx": 94,
+      "idx": 93,
       "patternIndex": 1
     },
     {
+      "idx": 94,
+      "patternIndex": 2
+    },
+    {
       "idx": 95,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 96,
@@ -488,11 +488,11 @@
     },
     {
       "idx": 98,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 99,
-      "patternIndex": -1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -596,7 +596,7 @@
     "98": "cmol7mm2s001313njauqoh3xk",
     "99": "cmol7mm2s001713nj8vmcyi48"
   },
-  "generatedAt": "2026-06-26T09:13:05.677Z",
+  "generatedAt": "2026-06-26T09:39:50.106Z",
   "wrongCounts": {
     "total": 99,
     "oeq": 21,
@@ -609,11 +609,11 @@
     "paperCount": 36
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-26T09:00:42.189Z",
+    "generatedAt": "2026-06-26T09:13:05.677Z",
     "patternNames": [
-      "State Change Mix-Up",
-      "Path of Light Mix-Up",
-      "Shadow Size Confusion",
+      "Light Path and Shadows",
+      "Conductor and Insulator Mix-Up",
+      "Heat and State Mix-Up",
       "One Step Short"
     ],
     "wrongCounts": {

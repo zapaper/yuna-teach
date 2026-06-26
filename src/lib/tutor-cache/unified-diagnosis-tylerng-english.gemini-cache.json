@@ -1,26 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Hidden Subject Mix-Up",
-      "what": "Sometimes mixes up the rules for subject-verb agreement, getting confused by extra phrases like 'together with' or 'either/or'.",
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Tylerng occasionally matches the verb to the noun closest to it, rather than the main subject, especially when extra phrases are in the middle.",
       "specific_examples": [
         {
           "questionRef": "[32]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng chose the plural verb 'are' because of 'her brothers', missing that the main subject is the singular 'Emily'."
+          "whatWentWrong": "He saw 'brothers' right before the blank and chose the plural 'are', missing that the main subject is the singular 'Emily'."
         },
         {
-          "questionRef": "[46]",
+          "questionRef": "[40]",
           "type": "mcq",
-          "whatWentWrong": "He matched the verb to 'my cousin' instead of the main subject 'I', choosing 'is' instead of 'am'."
-        },
-        {
-          "questionRef": "[34]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'has' for 'Either Daisy or her cousins', forgetting that for 'either/or', the verb matches the noun closest to it."
+          "whatWentWrong": "He chose 'is' by looking at 'my cousin', forgetting that the main subject at the start of the sentence is 'I', which pairs with 'am'."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- For phrases like **'together with'**, **'as well as'**, or **'along with'**, cross them out lightly with your pencil. Match the verb to the very **first noun**.\n- For **'either... or'** and **'neither... nor'**, it's the opposite! Draw an arrow from the verb to the noun **right next to it**, and match them.",
+      "strategic_advice": "When you see phrases like **'together with'**, **'as well as'**, or **'along with'**, try crossing them out lightly with your pencil. This helps you spot the true main subject so you can choose the correct singular or plural verb.",
       "trigger_keywords": [
         "together with",
         "as well as",
@@ -30,73 +25,69 @@
       ]
     },
     {
-      "name": "Negative Tag Mix-Up",
-      "what": "Occasionally forgets that words like 'seldom' or 'rarely' are already negative, mistakenly choosing a negative question tag instead of a positive one.",
+      "name": "Hidden Negatives in Tags",
+      "what": "Tylerng sometimes misses words that make a sentence negative, leading him to choose a negative question tag instead of a positive one.",
       "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Tylerng chose 'doesn't he' for a sentence with 'seldom', not realising that 'seldom' already makes the sentence negative."
+          "whatWentWrong": "He chose 'doesn't he', missing that the word 'seldom' already makes the sentence negative."
         },
         {
           "questionRef": "[33]",
           "type": "mcq",
-          "whatWentWrong": "He made the exact same slip in another practice, choosing a negative tag when the sentence required the positive tag 'does he'."
+          "whatWentWrong": "He made the same slip here, forgetting that a negative sentence needs a positive question tag like 'does he'."
         }
       ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- Treat words like **'seldom'**, **'rarely'**, **'hardly'**, and **'never'** as if they are the word 'not'.\n- If the sentence has one of these hidden negative words, the question tag at the end must be **positive**.",
+      "strategic_advice": "When you see words like **'seldom'**, **'rarely'**, **'barely'**, or **'never'**, treat the sentence as negative. This means the question tag at the end must be positive!",
       "trigger_keywords": [
         "seldom",
         "rarely",
-        "hardly",
+        "barely",
         "never",
         "scarcely"
       ]
     },
     {
-      "name": "Skipping Surrounding Clues",
-      "what": "Tends to fill in cloze blanks by looking only at the exact spot, occasionally missing important grammar hints or contrast words nearby.",
+      "name": "Phrasal Verbs and Idioms",
+      "what": "Tylerng tends to mix up idioms or phrasal verbs that look similar, sometimes picking an option that doesn't quite fit the sentence's meaning.",
       "specific_examples": [
         {
-          "questionRef": "[61]",
-          "type": "oeq",
-          "whatWentWrong": "Tylerng wrote 'many' instead of 'permanent', missing the word 'Unlike' and the contrast with 'temporary living nests' later in the sentence."
+          "questionRef": "[37]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'taken up' instead of 'taken in', which is the correct phrase for being tricked or fooled."
         },
         {
-          "questionRef": "[63]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'variety' instead of 'queen', missing the big clue in the very next sentence which starts with 'The queen's primary role'."
-        },
-        {
-          "questionRef": "[64]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote 'line' after the word 'an', forgetting that 'an' must be followed by a word starting with a vowel sound."
+          "questionRef": "[45]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'the apple of my eye' (which refers to a cherished person) instead of 'the cherry on top' (which means a great finishing touch)."
         }
       ],
-      "strategic_advice": "When you see a cloze blank, treat it as a stop sign:\n- Always read the sentence **before and after** the blank to look for context clues.\n- Watch out for contrast words like **'Unlike'** or **'However'**—they tell you the answer will be the opposite of another word in the sentence.\n- Check the word right before the blank! If it is **'an'**, your answer must start with a vowel sound.",
+      "strategic_advice": "When tested on phrasal verbs or idioms, try to read the whole sentence and guess the meaning before looking at the options. If you're unsure, eliminate the ones that definitely don't make sense in context.",
       "trigger_keywords": [
-        "Unlike",
-        "However",
-        "an",
-        "blank"
+        "taken in",
+        "taken up",
+        "cherry on top",
+        "apple of my eye",
+        "pain in the neck"
       ]
     },
     {
-      "name": "Whose vs Whom Mix-Up",
-      "what": "Occasionally mixes up relative pronouns, getting stuck when needing to use 'whose' to show that something belongs to someone.",
+      "name": "Who vs Whose Mix-Up",
+      "what": "Tylerng occasionally confuses relative pronouns, sometimes missing when to use 'whose' to show that something belongs to someone.",
       "specific_examples": [
-        {
-          "questionRef": "[51]",
-          "type": "mcq",
-          "whatWentWrong": "Tylerng chose 'whom' instead of 'whose', missing that the sentence is talking about the man's mother."
-        },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "He left this blank, not realising that 'whose' is needed to show that the wallet belongs to the owner."
+          "whatWentWrong": "He missed that the wallet belongs to the owner, which requires the possessive pronoun 'whose'."
+        },
+        {
+          "questionRef": "[51]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'whom' instead of 'whose', not noticing that the mother belongs to the man being talked about."
         }
       ],
-      "strategic_advice": "When you see a blank before a noun (like 'mother' or 'owner'), test the word **'whose'**.\n- Read it as **'his/her/its'** to see if it makes sense. For example, 'his mother is a lawyer' makes perfect sense, so **'whose'** is the right choice!",
+      "strategic_advice": "When deciding between **'who'**, **'whom'**, and **'whose'**, check the word right after the blank. If it's a noun that belongs to the person (like 'mother' or 'owner'), **'whose'** is the right choice!",
       "trigger_keywords": [
         "who",
         "whom",
@@ -144,11 +135,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -160,7 +151,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 15,
@@ -248,11 +239,11 @@
     },
     {
       "idx": 36,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 37,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 38,
@@ -276,7 +267,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 44,
@@ -284,7 +275,7 @@
     },
     {
       "idx": 45,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 46,
@@ -328,43 +319,43 @@
     },
     {
       "idx": 56,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 57,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 58,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 59,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 60,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 61,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 62,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 63,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 64,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 65,
-      "patternIndex": 2
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
@@ -434,7 +425,7 @@
     "64": "cmol9rajj007zqlmbntcoxpc7",
     "65": "cmol9rajj0080qlmbki6cmdf1"
   },
-  "generatedAt": "2026-06-17T09:23:59.399Z",
+  "generatedAt": "2026-06-26T09:47:22.895Z",
   "wrongCounts": {
     "total": 65,
     "oeq": 10,
@@ -446,5 +437,24 @@
     "totalAvailable": 133,
     "paperCount": 15
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:23:59.399Z",
+    "patternNames": [
+      "Hidden Subject Mix-Up",
+      "Negative Tag Mix-Up",
+      "Skipping Surrounding Clues",
+      "Whose vs Whom Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 65,
+      "oeq": 10,
+      "mcq": 55
+    },
+    "toplineSnapshot": {
+      "avgPct": 51,
+      "totalAwarded": 68,
+      "totalAvailable": 133,
+      "paperCount": 15
+    }
+  }
 }

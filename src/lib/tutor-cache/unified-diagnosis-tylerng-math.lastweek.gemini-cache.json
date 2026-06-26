@@ -1,0 +1,168 @@
+{
+  "patterns": [
+    {
+      "name": "Triangle Rules Mix-Up",
+      "what": "Sometimes mixes up the rules for triangles, such as matching the wrong base to a height or forgetting the 'half' in the area formula.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng identified JF as the base for height EJ, instead of the correct base FD."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He used the rectangle formula (base × height) to find the area of the triangles, forgetting to multiply by a half."
+        }
+      ],
+      "strategic_advice": "When working with triangles, remember these two golden rules:\n- **Look for the right angle (L-shape)** to find the matching base and height.\n- Always write down **'½ × base × height'** before you start calculating the area so you don't forget the half!",
+      "trigger_keywords": [
+        "base",
+        "height",
+        "area of triangle",
+        "figure"
+      ]
+    },
+    {
+      "name": "Skipping Questions",
+      "what": "Tends to leave longer word problems completely blank instead of writing down the first few steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng left this multi-step bank loan question blank instead of calculating the first step, which was finding the interest."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "He skipped this question about Caili and Deepa's money, missing the chance to earn marks for drawing a model or finding the leftover fractions."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He left this volume question blank, even though he could have easily found the total volume of the container first."
+        }
+      ],
+      "strategic_advice": "Even if a question looks long or tricky, never leave it blank! Treat it like a puzzle:\n- **Highlight the numbers** and write down one simple math step you can do with them.\n- For example, if you see a total and a percentage, just **find that percentage** first. Every correct step earns you method marks!\n- **Never leave Multiple Choice Questions blank!** If you are running out of time, make your best guess.",
+      "trigger_keywords": [
+        "how much more",
+        "find the total",
+        "what was the amount"
+      ]
+    },
+    {
+      "name": "Decimal Slips",
+      "what": "Occasionally makes small slips when working with decimals, like leaving out the dot, adding an extra zero, or misreading the scale.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng correctly rounded the number but added an extra zero at the end, writing 5.790 instead of 5.79."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the decimal point (writing 158 instead of 1.58) and placed his 'X' in the wrong interval on the number line."
+        }
+      ],
+      "strategic_advice": "When writing your final answer for decimals, do a quick double-check:\n- **Read the question again** to see how many decimal places it asked for (like 'nearest hundredth').\n- **Check your dots** to make sure the decimal point is clearly written and in the right spot.",
+      "trigger_keywords": [
+        "nearest hundredth",
+        "number line",
+        "value represented"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmol93adh0002qlmbkog7jqsd",
+    "2": "cmol93adh0003qlmb463voo62",
+    "3": "cmol93adh0004qlmb7i68dn42",
+    "4": "cmol93adh0005qlmbdcm7mcri",
+    "5": "cmol93adh0006qlmbs3vop1dn",
+    "6": "cmol93vg2000bqlmbm048sqd8",
+    "7": "cmol93vg2000cqlmb1mkjlenv",
+    "8": "cmol93vg2000dqlmbd5xw4y0o",
+    "9": "cmol93vg2000eqlmbkjue9mql",
+    "10": "cmol93vg2000fqlmbxec8d6yz",
+    "11": "cmol93vg2000hqlmb2xvbmpv7",
+    "12": "cmol93vg2000iqlmbengfthb5",
+    "13": "cmol93vg2000jqlmb831fea9i",
+    "14": "cmol93vg3000lqlmbswwwf1h7",
+    "15": "cmol4i2yu000udm330hrqgzk6"
+  },
+  "generatedAt": "2026-06-17T09:25:11.776Z",
+  "wrongCounts": {
+    "total": 15,
+    "oeq": 9,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 43,
+    "totalAwarded": 21,
+    "totalAvailable": 49,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

@@ -1,0 +1,194 @@
+{
+  "patterns": [
+    {
+      "name": "Living Things Mix-Up",
+      "what": "Tends to mix up the special traits that define different groups of living things, such as confusing what makes an insect unique or mixing up plants and fungi.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "UmarH chose 'lays eggs' as the trait for an insect, but the true defining trait is having exactly six legs."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He thought that ferns and mushrooms can both survive without light, mixing up fungi with ferns, which are plants and need light."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'identify'** → remember that many animals lay eggs, so look for a **special trait** like **six legs** for insects or **gills** for fish.\n- **'ferns and mushrooms'** → remember the golden rule: **Plants make their own food** (so they need light), while **fungi do not**.",
+      "trigger_keywords": [
+        "characteristic",
+        "identify",
+        "both"
+      ]
+    },
+    {
+      "name": "Missing the Cue Word",
+      "what": "Misses important instruction words occasionally, such as giving a difference when asked for a similarity, or skipping the word 'not'.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "The question asked for a similarity between two groups, but UmarH wrote down a difference instead."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He missed the word 'not' in the question and picked a characteristic that all living things actually do need."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'not'** or **'false'** → circle it immediately so your brain remembers to look for the odd one out.\n- **'similarity'** → make sure your answer uses the word **'Both'** and describes something they share.",
+      "trigger_keywords": [
+        "not",
+        "similarity",
+        "false"
+      ]
+    },
+    {
+      "name": "Stopping Too Early",
+      "what": "Stops one step short occasionally, finding one correct piece of the puzzle but moving on before writing down the complete answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "UmarH correctly noticed that the food would decrease, but forgot to mention that the water would decrease too."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He successfully identified animal B as an insect, but missed that animal D was also an insect."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'what would you observe'** → check if there is more than one thing changing in the picture (like both food AND water).\n- **'which of these'** → double-check if there might be **more than one** correct answer before moving on.",
+      "trigger_keywords": [
+        "what would",
+        "which of these",
+        "observe"
+      ]
+    },
+    {
+      "name": "Magnet Rules Mix-Up",
+      "what": "Confuses which materials are magnetic and how magnets behave when they are free to move.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "The magnet only picked up object C, but UmarH picked an option where both objects were made of magnetic metals."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He guessed that a floating magnet would point North-West, rather than settling in a North-South direction."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'only picked up'** → memorise the magnetic metals (**Iron, Steel, Nickel, Cobalt**). Make sure the object left behind is *not* on this list!\n- **'comes to rest'** → a freely hanging or floating magnet acts like a compass and will always settle in a **North-South** direction.",
+      "trigger_keywords": [
+        "magnet",
+        "made of",
+        "comes to rest"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq4morkn003z3z8j3jma5inv",
+    "2": "cmq4morkn00423z8jwx6zgw6x",
+    "3": "cmq4morko00443z8jb5t6871t",
+    "4": "cmq4morko00463z8j5nijkk61",
+    "5": "cmpu1ne1i009f14gm35xnwn8r",
+    "6": "cmpu1ne1j009j14gmdait1ahq",
+    "7": "cmpu1ne1j009k14gmgfvzkfab",
+    "8": "cmpu1ne1j009m14gm54dxoiu9",
+    "9": "cmpu1ne1j009n14gm434g8cmf",
+    "10": "cmpu1ne1k009o14gm9a4yfood",
+    "11": "cmpu1nzjs009u14gmhvl60t8w",
+    "12": "cmpu1nzjt009w14gmwcfwpe94",
+    "13": "cmpu1nzjt009z14gmfideat63",
+    "14": "cmpu1nzjt00a014gmc0lbf2nb",
+    "15": "cmpu1nzju00a514gmmppsqww4",
+    "16": "cmpu1nzju00a714gm7wm504rx",
+    "17": "cmpu1nzju00a814gmpri3b3f1"
+  },
+  "generatedAt": "2026-06-19T02:41:28.887Z",
+  "wrongCounts": {
+    "total": 17,
+    "oeq": 3,
+    "mcq": 14
+  },
+  "toplineSnapshot": {
+    "avgPct": 61,
+    "totalAwarded": 51,
+    "totalAvailable": 83,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

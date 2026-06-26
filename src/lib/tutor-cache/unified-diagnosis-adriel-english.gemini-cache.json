@@ -1,21 +1,26 @@
 {
   "patterns": [
     {
-      "name": "Singular and Plural Mix-Up",
-      "what": "Sometimes gets tricked by singular subjects that look plural, especially when there are extra words like 'together with' or uncountable nouns.",
+      "name": "Singular vs Plural Mix-Up",
+      "what": "Adriel sometimes gets tricked by plural words hiding right next to a singular subject, or forgets that uncountable nouns are treated as singular.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "mcq",
-          "whatWentWrong": "Adriel chose the plural 'are organising' instead of 'is organising', missing that the main subject 'My sister' is singular despite the extra words."
+          "whatWentWrong": "He was tricked by the plural word 'cousins' and picked 'are organising', but the real subject 'sister' is singular."
         },
         {
-          "questionRef": "[21]",
+          "questionRef": "[20]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'have been' for 'luggage', forgetting that 'luggage' is an uncountable noun and must be treated as singular."
+          "whatWentWrong": "He treated 'luggage' as a plural noun, but it is uncountable and always takes a singular verb like 'has been'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He picked the plural word 'those', but the sentence was talking about a single 'pair' of shoes."
         }
       ],
-      "strategic_advice": "- When you see phrases like **'together with'** or **'as well as'**, cross them out lightly with your pencil to find the real subject.\n- Remember that uncountable nouns (like luggage, furniture, information) and collective words (like 'pair') always take a **singular verb**.",
+      "strategic_advice": "When you see tricky subjects, treat them as stop signs:\n- **Cross out the extra information** between commas (like 'as well as my cousins') to find the real subject.\n- Remember that **uncountable nouns** (like 'luggage') and group words (like 'pair') always take a **singular verb**.",
       "trigger_keywords": [
         "together with",
         "as well as",
@@ -24,59 +29,59 @@
       ]
     },
     {
-      "name": "Fixed Phrase Mix-Up",
-      "what": "Occasionally uses the wrong preposition or word in common English pairings, such as phrasal verbs or paired conjunctions.",
+      "name": "Preposition Mix-Up",
+      "what": "Adriel occasionally chooses a preposition or connecting word that sounds fine on its own but isn't the exact match required by the main verb.",
       "specific_examples": [
         {
-          "questionRef": "[7]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Adriel picked 'congratulated over' instead of the correct English pairing 'congratulated on'."
+          "whatWentWrong": "He picked 'over' instead of 'on', missing the specific preposition that always follows the verb 'congratulated'."
         },
         {
           "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "He chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
+          "whatWentWrong": "He chose 'fell apart' instead of 'fell out', which is the correct phrasal verb for friends having a misunderstanding."
         },
         {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "He paired 'No sooner' with 'when' instead of the correct matching word 'than'."
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'with' instead of 'during', which better describes staying strong throughout the whole time of the ordeal."
         }
       ],
-      "strategic_advice": "- When you learn a new verb, try to learn the **preposition that goes with it** (e.g., 'accustomed to', 'congratulate on').\n- For paired conjunctions like **'No sooner'**, always look for its partner **'than'** in the sentence.",
+      "strategic_advice": "When you learn new verbs or connectors, pay attention to their partners:\n- Always learn the **preposition that goes with a verb** (e.g., 'congratulate on', not just 'congratulate').\n- For paired connectors like **'No sooner'**, remember they always have a strict partner (like **'than'**).",
       "trigger_keywords": [
         "congratulated",
-        "accustomed",
         "fell",
-        "No sooner"
+        "No sooner",
+        "ordeal"
       ]
     },
     {
-      "name": "Missing the Context Clue",
-      "what": "Tends to pick a word that sounds okay on its own but misses the hints hidden in the surrounding sentences that change the meaning.",
+      "name": "Missing Context Clues",
+      "what": "Adriel tends to pick or write a word that relates to the general topic, but occasionally misses the specific clues in the sentence that point to a different word.",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "Adriel chose 'restlessly' instead of 'laboriously', missing the clue 'limbs started aching' which shows hard physical work."
-        },
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "He picked 'reaps' instead of 'yields', missing the clue that the 'garden' is doing the growing, not a farmer."
+          "whatWentWrong": "He picked 'reaps', which a farmer does, instead of 'yields', which is what the garden itself does to produce a crop."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the adjective 'deep' to describe the breathing, but the sentence needed the pronoun 'our' to fit the grammar."
         },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'used' instead of 'hard', missing the contrast clue 'Although it sounds simple' from the start of the sentence."
+          "whatWentWrong": "He wrote 'used', which changed the meaning of the sentence and contradicted the clue that the exercise was 'simple in theory'."
         }
       ],
-      "strategic_advice": "- When you see a blank, read the **sentence before and the sentence after** to look for contrast words (like 'Although' or 'However') or cause-and-effect clues.\n- Ask yourself: 'Does this word make sense with the **specific person or thing** doing the action?'",
+      "strategic_advice": "When filling in blanks or choosing vocabulary words:\n- Look for **collocations** (words that naturally go together, like 'poor visibility' instead of 'vague visibility').\n- In cloze passages, check if your word fits the **grammar of the sentence**, not just the general topic (e.g., needing a pronoun like 'our' instead of an adjective like 'deep').",
       "trigger_keywords": [
-        "Although",
-        "until",
-        "However",
-        "As such"
+        "visibility",
+        "crop",
+        "breathing",
+        "switch off"
       ]
     }
   ],
@@ -87,7 +92,7 @@
     },
     {
       "idx": 2,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 3,
@@ -95,15 +100,15 @@
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 7,
@@ -123,7 +128,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 12,
@@ -143,15 +148,15 @@
     },
     {
       "idx": 16,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 19,
@@ -171,7 +176,7 @@
     },
     {
       "idx": 23,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 24,
@@ -183,7 +188,7 @@
     },
     {
       "idx": 26,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 27,
@@ -229,7 +234,7 @@
     "28": "cmpuxahg7001on2qplpa8lbpk",
     "29": "cmpuxahg7001pn2qpnj0axpwn"
   },
-  "generatedAt": "2026-06-17T09:06:42.325Z",
+  "generatedAt": "2026-06-26T09:23:01.429Z",
   "wrongCounts": {
     "total": 29,
     "oeq": 6,
@@ -241,5 +246,23 @@
     "totalAvailable": 155,
     "paperCount": 14
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:06:42.325Z",
+    "patternNames": [
+      "Singular and Plural Mix-Up",
+      "Fixed Phrase Mix-Up",
+      "Missing the Context Clue"
+    ],
+    "wrongCounts": {
+      "total": 29,
+      "oeq": 6,
+      "mcq": 23
+    },
+    "toplineSnapshot": {
+      "avgPct": 81,
+      "totalAwarded": 125,
+      "totalAvailable": 155,
+      "paperCount": 14
+    }
+  }
 }

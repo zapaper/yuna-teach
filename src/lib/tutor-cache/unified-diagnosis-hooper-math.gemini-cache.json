@@ -1,81 +1,80 @@
 {
   "patterns": [
     {
-      "name": "Stopping Too Early",
-      "what": "Sometimes stops one step short of the final answer, even after calculating the middle steps perfectly.",
+      "name": "One Step Short",
+      "what": "Often does the hard work to find a middle answer, but occasionally stops before answering the final question asked.",
       "specific_examples": [
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "hooper calculated the exact amount of paint used, but stopped before subtracting to find the amount left over."
+          "whatWentWrong": "hooper correctly calculated the amount of paint used, but the question actually asked for the amount left."
         },
         {
-          "questionRef": "[9]",
-          "type": "mcq",
-          "whatWentWrong": "hooper found the total cost in cents perfectly, but stopped before converting it into dollars for the final answer."
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "hooper correctly calculated the 32% change, but forgot to state whether it was an 'increase' or 'decrease'."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "hooper successfully found the inside angles of the triangle, but stopped before using them to find the final angle y."
+          "whatWentWrong": "hooper found some correct intermediate angles in part (b) but stopped before finding the final angle y."
         }
       ],
-      "strategic_advice": "When you think you are done, re-read the last sentence of the question.\n- If it asks for **'amount left'**, make sure you didn't just find the amount used.\n- Check the units! If the options have a **'$'** sign, make sure you converted your cents into dollars.",
+      "strategic_advice": "When you finish a calculation, always re-read the last sentence of the question. Look out for words like **'left'**, **'remaining'**, or specific labels like **'increase/decrease'**. It helps to draw a small box at the bottom of your working space to remind yourself what the final answer needs to be.",
       "trigger_keywords": [
         "left",
-        "remainder",
-        "in terms of",
-        "find angle y"
+        "remaining",
+        "increase/decrease",
+        "find angle"
       ]
     },
     {
-      "name": "Fraction Base Mix-Up",
-      "what": "Occasionally mixes up whether a fraction should be based on the total amount, or just a specific part like the remainder.",
+      "name": "Wrong Total Used",
+      "what": "Sometimes uses the overall total when the question asks to compare against a different specific part or the leftover amount.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "The question asked for savings as a fraction of expenditure, but hooper used the total money as the base instead."
+          "whatWentWrong": "The question asked for savings as a fraction of expenditure, but hooper found savings as a fraction of the total money."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "When asked for a fraction of the 'remaining' cake, hooper's answer suggests a mix-up with taking a fraction of the whole cake."
+          "whatWentWrong": "When dealing with 'of the remaining', hooper likely used the original whole instead of the leftover amount."
         }
       ],
-      "strategic_advice": "Always circle the words that come right after 'fraction of'. That tells you what your denominator (the bottom number) should be.\n- **'fraction of his expenditure'** → put expenditure on the bottom.\n- **'fraction of the remaining'** → use the leftover amount, not the original total.",
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'of the remaining'** → calculate the leftover first before moving on.\n- **'fraction of'** a specific thing (like 'his expenditure') → make sure that specific number goes at the bottom of your fraction.\nDrawing a quick model can help you see which part is the new 'whole'.",
       "trigger_keywords": [
-        "fraction of",
         "of the remaining",
-        "of his expenditure"
+        "fraction of",
+        "ratio of"
       ]
     },
     {
       "name": "Missed Cue Words",
-      "what": "Tends to read past important condition words in the problem, which changes how the math should be done.",
+      "what": "Occasionally reads past small but important instruction words that change how the problem should be solved.",
       "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "hooper missed the cue that the discount only applies 'starting from the 3rd slice', treating all slices as full price."
-        },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "hooper missed the word 'greatest' and arranged the fractions in the exact opposite order, from smallest to greatest."
+          "whatWentWrong": "hooper arranged the fractions from smallest to greatest, missing the instruction to start with the 'greatest'."
         },
         {
-          "questionRef": "[8]",
+          "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "hooper treated GST like a discount by subtracting it, missing that a tax is an extra cost that must be added."
+          "whatWentWrong": "hooper calculated the cost of 4 slices at full price, missing the rule that the discount only starts from the 3rd slice."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "hooper wrote the algebra expression in cents, missing that the final answer needed to be in dollars."
         }
       ],
-      "strategic_advice": "Treat special condition words like stop signs. Highlight or underline them before you start calculating.\n- **'starting from'** → the rule doesn't apply to everything!\n- **'greatest to smallest'** → draw a quick arrow pointing down to remind yourself of the order.\n- **'GST'** or **'interest'** → always add these to the cost, never subtract.",
+      "strategic_advice": "Use your pencil to **circle or underline** key instruction words before you start calculating. Watch out for ordering words like **'greatest to smallest'** or special conditions like **'in terms of $'** and rules that only apply to part of the items.",
       "trigger_keywords": [
-        "starting from",
         "greatest to smallest",
-        "GST",
-        "discount"
+        "from the 3rd",
+        "in terms of $"
       ]
     }
   ],
@@ -106,15 +105,15 @@
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 8,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -173,7 +172,7 @@
     "17": "cmpky1gwy005a4u6ftv2rx3j4",
     "18": "cmpky1gwy005c4u6fwvkqsmcj"
   },
-  "generatedAt": "2026-06-17T09:12:20.130Z",
+  "generatedAt": "2026-06-26T09:34:14.513Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 5,
@@ -185,5 +184,23 @@
     "totalAvailable": 96,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:12:20.130Z",
+    "patternNames": [
+      "Stopping Too Early",
+      "Fraction Base Mix-Up",
+      "Missed Cue Words"
+    ],
+    "wrongCounts": {
+      "total": 18,
+      "oeq": 5,
+      "mcq": 13
+    },
+    "toplineSnapshot": {
+      "avgPct": 65,
+      "totalAwarded": 62.5,
+      "totalAvailable": 96,
+      "paperCount": 3
+    }
+  }
 }

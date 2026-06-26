@@ -1,0 +1,215 @@
+{
+  "patterns": [
+    {
+      "name": "Forgotten Units",
+      "what": "Sometimes forgets to write the final unit of measurement, like dollars or kilograms, even after doing the math perfectly.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She found the correct numerical answers of 360 and 72, but forgot to include the dollar sign ($)."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "She calculated the correct fraction of 3/40, but missed out the 'kg' unit at the end."
+        }
+      ],
+      "strategic_advice": "- Always check the question's final sentence to see what **unit is expected**.\n- **Write the unit down** in your final answer space before you even start calculating, so you don't forget it!",
+      "trigger_keywords": [
+        "How much",
+        "How many kilograms",
+        "Find the value"
+      ]
+    },
+    {
+      "name": "Leaving Blanks",
+      "what": "Occasionally leaves multi-step word problems completely blank, missing out on partial marks for early steps.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "She left the question blank instead of trying to find the first step, like the fraction of money left."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "She skipped this guess-and-check question entirely."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "She left the working and answer blank for this book fair problem."
+        }
+      ],
+      "strategic_advice": "- Even if you aren't sure how to finish a problem, always **write down the first step** you do know.\n- **Drawing a model** or writing out the first calculation can often earn you method marks!",
+      "trigger_keywords": [
+        "How many",
+        "What fraction",
+        "At first"
+      ]
+    },
+    {
+      "name": "Place Value Slips",
+      "what": "Occasionally gets mixed up with zeroes when dividing large numbers, writing numbers from words, or rounding decimals.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "She divided correctly to get 5.245, but rounded to 5.20 instead of 5.25."
+        },
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 80 instead of 800 when dividing 560 000 by 700."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "She missed a zero when writing 'five hundred and eight thousand' as a number."
+        }
+      ],
+      "strategic_advice": "- When dividing numbers with zeroes, **cross out the same number of zeroes** on both sides first.\n- When writing out big numbers from words, **draw blank lines** for each place value before filling them in.",
+      "trigger_keywords": [
+        "Find the value",
+        "in numerals",
+        "Round your answer"
+      ]
+    },
+    {
+      "name": "Wrong Total Used",
+      "what": "Sometimes uses the original total or the wrong number of people when calculating a fraction or sharing an amount.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "oeq",
+          "whatWentWrong": "She missed counting Ahmad in 'Ahmad and his 3 cousins', dividing by 3 instead of 4."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "She calculated 3/10 of all the books instead of just the fiction books."
+        }
+      ],
+      "strategic_advice": "- When you see **'of the'** or **'shared among'**, pause and double-check who or what is being shared.\n- **Underline the exact group** the question is asking about (like 'fiction books' instead of 'books').",
+      "trigger_keywords": [
+        "of the",
+        "shared",
+        "remaining",
+        "rest"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq22kq6c00b14os1ofad0mzd",
+    "2": "cmq22kgsf00as4os19wh1qpf9",
+    "3": "cmq0avvvg000p2qesqds2ub5v",
+    "4": "cmq0avvvh000r2qes2lie9b7r",
+    "5": "cmpqdtx7q0044coxsz914qdho",
+    "6": "cmpqdtx7q0045coxsnsumv0yj",
+    "7": "cmotuimp10012d15sh4gyk3e0",
+    "8": "cmotuimp10015d15sn48llcts",
+    "9": "cmotuimp10016d15syuclj0l4",
+    "10": "cmomejk5z0028ehxqqso02yfu",
+    "11": "cmomejk60002hehxqva7z6a9q",
+    "12": "cmomejk60002iehxq43cc0hdi",
+    "13": "cmojzrjgk004md4vnao0rek7k",
+    "14": "cmojzrjgk004pd4vncln2p2n8",
+    "15": "cmojzrjgk004qd4vns7v6ze37",
+    "16": "cmojzrjgk004rd4vnb6wk9z5s",
+    "17": "cmojzrjgk004sd4vnvn9q8sp7",
+    "18": "cmojzrjgk004td4vnvqxdfyf9",
+    "19": "cmojzrjgl004ud4vn5yizuaqi"
+  },
+  "generatedAt": "2026-06-17T09:06:50.104Z",
+  "wrongCounts": {
+    "total": 19,
+    "oeq": 11,
+    "mcq": 8
+  },
+  "toplineSnapshot": {
+    "avgPct": 75,
+    "totalAwarded": 114.5,
+    "totalAvailable": 152,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

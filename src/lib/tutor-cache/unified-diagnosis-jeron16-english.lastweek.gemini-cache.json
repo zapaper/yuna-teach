@@ -1,0 +1,184 @@
+{
+  "patterns": [
+    {
+      "name": "Word Family Mix-Up",
+      "what": "Tends to understand the general meaning needed but occasionally writes down the wrong form of the word, like using an adjective instead of a noun or verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 knew the word related to 'enthusiasm' but wrote the adjective 'enthusiastic' instead of the noun 'enthusiasts' for the people in the queue."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly guessed the sentence was comparing bumps to chicken skin, but used the describing word 'alike' instead of the action word 'resemble'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 used the describing word 'closely' instead of the necessary linking verb 'is' to complete the sentence structure."
+        }
+      ],
+      "strategic_advice": "When filling in a blank, always check the **job of the word** needed.\n- Ask yourself: 'Do I need an **action word** (verb), a **naming word** (noun), or a **describing word** (adjective)?'\n- Read the completed sentence aloud to see if the grammar sounds right.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "passage",
+        "editing"
+      ]
+    },
+    {
+      "name": "Tricky Word Partners",
+      "what": "Sometimes mixes up fixed phrases, idioms, or phrasal verbs where specific words must always be paired together.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 wrote 'stand on straight' instead of the fixed idiom 'stand on end' when describing hair standing up."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'in spite to' instead of the correct connector 'in addition to', mixing up two different phrases."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Jeron16 chose 'get through' instead of 'get ahead', which is the specific phrasal verb for becoming successful in life."
+        }
+      ],
+      "strategic_advice": "When you see a preposition (like **to**, **in**, **on**, **with**) next to a blank, treat it as a major clue.\n- Look at the words immediately before and after the blank to spot **fixed pairs** (like 'results **in**' or 'within **reach**').\n- If you are unsure, try substituting the whole phrase with a single word to see if the meaning still fits the sentence.",
+      "trigger_keywords": [
+        "in ___ to",
+        "stand on ___",
+        "so as to",
+        "results ___"
+      ]
+    },
+    {
+      "name": "Missing Sentence Clues",
+      "what": "Occasionally overlooks small clue words earlier or later in the sentence that signal the correct tense, pronoun, or exact vocabulary word to use.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Jeron16 missed the time clue 'at first', which signals that the action happened in the past, and picked the present tense 'has' instead of 'had'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'experience' instead of 'wondered', missing the clue 'what exactly makes...' which shows the author is asking a question."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Jeron16 chose 'preventing' instead of 'protecting', missing the subtle clue that insulation guards against the wind rather than stopping the wind from existing."
+        }
+      ],
+      "strategic_advice": "Before answering, scan the whole sentence for **time markers** (like 'at first', 'yesterday', 'since') that tell you which tense to use.\n- Look for **question words** or **logical connectors** that hint at the meaning of the missing word.\n- Always read the sentence **one line before and one line after** the blank to get the full context.",
+      "trigger_keywords": [
+        "at first",
+        "what exactly",
+        "after",
+        "if"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpsi4op4000yji8484eb057d",
+    "2": "cmpsi4op4000zji84s4qritmr",
+    "3": "cmpsi4op40014ji847ulphiwc",
+    "4": "cmpsi4op40016ji84lklc3qzs",
+    "5": "cmpsi4op40018ji84honqtm92",
+    "6": "cmpsi4op4001cji84rx56irsr",
+    "7": "cmpsi4op4001dji84mhzmoovu",
+    "8": "cmpsi4op4001eji84qzvo7vr8",
+    "9": "cmpsi4op4001iji84u85gaja2",
+    "10": "cmpsi4op4001jji84wz7m8lil",
+    "11": "cmpsi4op4001kji84uezy123w",
+    "12": "cmpsi4op5001lji8430xhrcod",
+    "13": "cmpsi4op5001pji84dy9g93y9",
+    "14": "cmpsi4op5001qji846xaulble",
+    "15": "cmpsi4op5001rji84u4ocvfd7",
+    "16": "cmpsi4op5001vji84qaujvcsi"
+  },
+  "generatedAt": "2026-06-17T09:13:23.872Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 13,
+    "mcq": 3
+  },
+  "toplineSnapshot": {
+    "avgPct": 57,
+    "totalAwarded": 21,
+    "totalAvailable": 37,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

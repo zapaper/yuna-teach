@@ -1,82 +1,100 @@
 {
   "patterns": [
     {
-      "name": "Triangle Rules Mix-Up",
-      "what": "Sometimes mixes up the rules for triangles, such as matching the wrong base to a height or forgetting the 'half' in the area formula.",
+      "name": "Base and Height Mix-Up",
+      "what": "Confuses the base and height of a triangle, sometimes picking the outside imaginary line instead of the actual base.",
       "specific_examples": [
         {
           "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng identified JF as the base for height EJ, instead of the correct base FD."
+          "whatWentWrong": "Tylerng picked the outside dotted line as the base instead of the actual side of the triangle."
         },
         {
-          "questionRef": "[14]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "He used the rectangle formula (base × height) to find the area of the triangles, forgetting to multiply by a half."
+          "whatWentWrong": "He incorrectly marked a statement true that mixed up the base and the height of the triangle."
         }
       ],
-      "strategic_advice": "When working with triangles, remember these two golden rules:\n- **Look for the right angle (L-shape)** to find the matching base and height.\n- Always write down **'½ × base × height'** before you start calculating the area so you don't forget the half!",
+      "strategic_advice": "When you need to find the base and height, look for the **right angle (90 degrees)**. The base must be an **actual side of the triangle**, not the dotted imaginary line outside it.",
       "trigger_keywords": [
         "base",
         "height",
-        "area of triangle",
-        "figure"
+        "triangle"
       ]
     },
     {
-      "name": "Skipping Questions",
-      "what": "Tends to leave longer word problems completely blank instead of writing down the first few steps.",
-      "specific_examples": [
-        {
-          "questionRef": "[4]",
-          "type": "oeq",
-          "whatWentWrong": "Tylerng left this multi-step bank loan question blank instead of calculating the first step, which was finding the interest."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "oeq",
-          "whatWentWrong": "He skipped this question about Caili and Deepa's money, missing the chance to earn marks for drawing a model or finding the leftover fractions."
-        },
-        {
-          "questionRef": "[7]",
-          "type": "mcq",
-          "whatWentWrong": "He left this volume question blank, even though he could have easily found the total volume of the container first."
-        }
-      ],
-      "strategic_advice": "Even if a question looks long or tricky, never leave it blank! Treat it like a puzzle:\n- **Highlight the numbers** and write down one simple math step you can do with them.\n- For example, if you see a total and a percentage, just **find that percentage** first. Every correct step earns you method marks!\n- **Never leave Multiple Choice Questions blank!** If you are running out of time, make your best guess.",
-      "trigger_keywords": [
-        "how much more",
-        "find the total",
-        "what was the amount"
-      ]
-    },
-    {
-      "name": "Decimal Slips",
-      "what": "Occasionally makes small slips when working with decimals, like leaving out the dot, adding an extra zero, or misreading the scale.",
+      "name": "Decimal Point Slips",
+      "what": "Forgets to write the decimal point or adds extra zeros at the end when writing out decimal answers.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Tylerng correctly rounded the number but added an extra zero at the end, writing 5.790 instead of 5.79."
+          "whatWentWrong": "Tylerng added an extra zero at the end, rounding to the thousandths place instead of the hundredths."
         },
         {
           "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "He missed the decimal point (writing 158 instead of 1.58) and placed his 'X' in the wrong interval on the number line."
+          "whatWentWrong": "He missed the decimal point entirely for part (a) and placed the 'X' in the wrong gap on the number line for part (b)."
         }
       ],
-      "strategic_advice": "When writing your final answer for decimals, do a quick double-check:\n- **Read the question again** to see how many decimal places it asked for (like 'nearest hundredth').\n- **Check your dots** to make sure the decimal point is clearly written and in the right spot.",
+      "strategic_advice": "When writing your final answer, double-check the **place value** requested.\n- If it asks for **hundredths**, stop at two decimal places.\n- Always check that your written number makes sense on the **number line** (e.g., 1.58 instead of 158).",
       "trigger_keywords": [
-        "nearest hundredth",
         "number line",
+        "round to",
+        "nearest hundredth",
         "value represented"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Finds an important middle number but sometimes forgets to do the final subtraction to find the leftover or missing amount.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Tylerng likely calculated a middle step but didn't find the final percentage of stamps left over."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "He may have found the current volume but missed the final step to find how much more is needed to fill the container."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng calculated a volume but forgot to subtract the 16 cubes already in the tank to find how many more were needed."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs to check your final step:\n- **'remainder'** or **'left'** → use the leftover fraction, not the original total.\n- **'how much more'** → remember to subtract what you already have from the total.",
+      "trigger_keywords": [
+        "remainder",
+        "how much more",
+        "left",
+        "needed to fill"
+      ]
+    },
+    {
+      "name": "Area Formula Mix-Up",
+      "what": "Confuses the area formula for a rectangle with the area formula for a triangle by forgetting to multiply by a half.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "Tylerng beautifully found the missing lengths but used the rectangle formula (base × height) instead of the triangle formula (½ × base × height)."
+        }
+      ],
+      "strategic_advice": "When finding the area of a triangle, always remember the **half**. A triangle is exactly half of a rectangle, so the formula is **½ × base × height**.",
+      "trigger_keywords": [
+        "area of figure",
+        "triangle",
+        "right-angled"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 2,
@@ -84,27 +102,27 @@
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -112,11 +130,11 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 12,
@@ -124,11 +142,11 @@
     },
     {
       "idx": 13,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 14,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -152,7 +170,7 @@
     "14": "cmol93vg3000lqlmbswwwf1h7",
     "15": "cmol4i2yu000udm330hrqgzk6"
   },
-  "generatedAt": "2026-06-17T09:25:11.776Z",
+  "generatedAt": "2026-06-26T09:48:32.386Z",
   "wrongCounts": {
     "total": 15,
     "oeq": 9,
@@ -164,5 +182,23 @@
     "totalAvailable": 49,
     "paperCount": 3
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:25:11.776Z",
+    "patternNames": [
+      "Triangle Rules Mix-Up",
+      "Skipping Questions",
+      "Decimal Slips"
+    ],
+    "wrongCounts": {
+      "total": 15,
+      "oeq": 9,
+      "mcq": 6
+    },
+    "toplineSnapshot": {
+      "avgPct": 43,
+      "totalAwarded": 21,
+      "totalAvailable": 49,
+      "paperCount": 3
+    }
+  }
 }

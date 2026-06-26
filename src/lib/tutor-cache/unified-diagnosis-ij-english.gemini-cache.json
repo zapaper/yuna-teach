@@ -1,44 +1,73 @@
 {
   "patterns": [
     {
-      "name": "Vocabulary Meaning Mix-Up",
-      "what": "Sometimes picks a word that sounds related to the topic but has a slightly different meaning or doesn't fit the action described.",
+      "name": "Tricky Word Matches",
+      "what": "IJ tends to pick vocabulary words that are related to the topic but do not perfectly fit the specific action or clues in the sentence.",
       "specific_examples": [
-        {
-          "questionRef": "[23]",
-          "type": "mcq",
-          "whatWentWrong": "IJ picked 'reaps' instead of 'yields' for a garden producing crops."
-        },
-        {
-          "questionRef": "[29]",
-          "type": "mcq",
-          "whatWentWrong": "IJ confused 'exported' (which is used for goods) with 'deported' (which is used for people)."
-        },
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "IJ chose 'bustle' instead of 'flurry' to describe a sudden, panicked movement."
+          "whatWentWrong": "IJ chose 'bustle' (which means normal busy movement) instead of 'flurry' to describe a sudden, chaotic panic."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "IJ picked 'reaps' (which is what a farmer does) instead of 'yields' to describe what the garden itself produces."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "IJ selected 'discouraged' (which is used for people) rather than 'impeded', which perfectly fits hindering an 'ability'."
         }
       ],
-      "strategic_advice": "When you see vocabulary questions, try plugging the word into the sentence and ask:\n- **Who or what is doing the action?** (e.g., a garden **yields**, a farmer **reaps**)\n- **Is the feeling positive or negative?**\n- **Is it about people or things?** (e.g., goods are **exported**, people are **deported**)",
+      "strategic_advice": "When choosing a vocabulary word, look closely at the **surrounding clues** and ask 'who or what is doing the action?':\n- **Check the actor:** Is it a person, an object, or a place? (e.g., a person 'reaps', but a garden 'yields').\n- **Check the tone:** Is the situation normal or sudden? (e.g., 'bustle' vs 'flurry').\n- **Try it in a simple sentence:** Substitute the word into a basic sentence to see if it sounds right with the surrounding words.",
       "trigger_keywords": [
-        "choose the most suitable word",
-        "fill in the blank"
+        "Vocabulary",
+        "Cloze",
+        "meaning"
       ]
     },
     {
-      "name": "Spelling Slips",
-      "what": "Occasionally misses a letter or swaps letters when writing out answers in the open-ended sections.",
+      "name": "Missing Key Details",
+      "what": "IJ sometimes writes down a good partial answer but stops one step short of including all the necessary details or the final consequence.",
+      "specific_examples": [
+        {
+          "questionRef": "[44]",
+          "type": "oeq",
+          "whatWentWrong": "IJ successfully combined the sentences but missed the detail 'on television' from the original text."
+        },
+        {
+          "questionRef": "[47]",
+          "type": "oeq",
+          "whatWentWrong": "IJ correctly identified that the writer felt she didn't guide Timmy well, but missed the second key point about feeling burdened by expectations."
+        },
+        {
+          "questionRef": "[48]",
+          "type": "oeq",
+          "whatWentWrong": "IJ explained the qualities the writer developed, but missed the crucial link explaining *how* her childhood experiences led to those traits."
+        }
+      ],
+      "strategic_advice": "When answering open-ended questions, treat them like a checklist:\n- **'Explain clearly' or 'How'** → Always include the **cause and effect** (e.g., 'Because of X, she learned Y, which helped her do Z').\n- **Check the marks:** If a question is worth 2 marks, ensure you have provided **two distinct points** or a fully developed explanation.\n- **Re-read the original sentence:** Before moving on, quickly scan the passage to ensure no small details (like 'on television') were left behind.",
+      "trigger_keywords": [
+        "explain clearly",
+        "in what ways",
+        "how",
+        "Instead of"
+      ]
+    },
+    {
+      "name": "Quick Spelling Errors",
+      "what": "IJ occasionally makes small spelling slips when writing out answers, which can cost marks even when the idea is completely right.",
       "specific_examples": [
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "IJ spelled 'Occasionally' as 'ocassionally', missing one 'c' and adding an extra 's'."
+          "whatWentWrong": "IJ knew the word was 'Occasionally' but spelled it with one 'c' and two 's's."
         },
         {
           "questionRef": "[45]",
           "type": "oeq",
-          "whatWentWrong": "IJ accidentally wrote 'write' instead of 'writer'."
+          "whatWentWrong": "IJ accidentally wrote 'write' instead of 'writer' while copying from the passage."
         },
         {
           "questionRef": "[46]",
@@ -46,63 +75,32 @@
           "whatWentWrong": "IJ missed the letter 'o', writing 't' instead of 'to'."
         }
       ],
-      "strategic_advice": "When you finish writing a sentence, do a quick **spelling check**:\n- **Read your answer backwards** word by word to catch missing letters.\n- **Double-check words with double letters** like 'occasionally' or 'successfully'.",
+      "strategic_advice": "When writing out answers, especially in the Comprehension Open-Ended section, take a brief moment to **proofread your final sentence**.\n- **Point and read:** Use your pencil to point at each word as you read it back to yourself to catch missing letters.\n- **Copy carefully:** When lifting words directly from the passage, double-check the spelling against the text.",
       "trigger_keywords": [
-        "correct the spelling",
-        "comprehension open-ended"
-      ]
-    },
-    {
-      "name": "Missing Key Details",
-      "what": "Often understands the main idea but sometimes stops one step short, leaving out a small detail or the second half of the answer.",
-      "specific_examples": [
-        {
-          "questionRef": "[44]",
-          "type": "oeq",
-          "whatWentWrong": "IJ combined the sentences well but forgot to include the phrase 'on television' at the end."
-        },
-        {
-          "questionRef": "[47]",
-          "type": "oeq",
-          "whatWentWrong": "IJ correctly identified the first reason, but missed the second point about feeling burdened by expectations."
-        },
-        {
-          "questionRef": "[48]",
-          "type": "oeq",
-          "whatWentWrong": "IJ explained the writer's good qualities but missed the link showing how her childhood experiences caused them."
-        }
-      ],
-      "strategic_advice": "When you see prompts like **'explain clearly'** or **'in what ways'**:\n- **Check the marks:** If it's a 2-mark question, look for **two distinct points**.\n- **Re-read the question** after writing your answer to make sure you didn't leave any part behind.",
-      "trigger_keywords": [
-        "explain clearly",
-        "in what ways",
-        "rewrite the sentence"
+        "Editing",
+        "Comprehension Open Ended",
+        "spelling"
       ]
     },
     {
       "name": "Grammar Word Mix-Up",
-      "what": "Occasionally mixes up small grammar words like connectors, pronouns, or prepositions that change the exact meaning of the sentence.",
+      "what": "IJ sometimes mixes up grammar words that describe specific groups or connections, such as confusing 'between' with 'among' or missing the pair 'some' and 'others'.",
       "specific_examples": [
         {
           "questionRef": "[42]",
           "type": "oeq",
-          "whatWentWrong": "IJ used 'between' (which is for two things) instead of 'among' (which is for three or more students)."
+          "whatWentWrong": "IJ used 'between' (which is for two things) instead of 'amongst' (which is for a larger group of students)."
         },
         {
           "questionRef": "[43]",
           "type": "oeq",
-          "whatWentWrong": "IJ used 'some' instead of 'others' to contrast with the first group of students."
-        },
-        {
-          "questionRef": "[34]",
-          "type": "mcq",
-          "whatWentWrong": "IJ confused 'Owing to' (which means because of) with 'Despite' (which shows a contrast)."
+          "whatWentWrong": "IJ used 'some' instead of 'others' to complete the contrasting pair 'some... while others...'."
         }
       ],
-      "strategic_advice": "When filling in blanks with small grammar words:\n- **Look for pairs:** If the sentence starts with 'some', the contrasting group is usually **'others'**.\n- **Count the items:** Use **'between'** for two things, and **'among'** for three or more.\n- **Check the logic:** Does the sentence show a reason (**owing to**) or a contrast (**despite**)?",
+      "strategic_advice": "When filling in blanks with grammar words, look for **hidden pairs and group sizes**:\n- **Two vs Many:** Use **'between'** for exactly two things, and **'among'** or **'amongst'** for three or more.\n- **Contrasting groups:** When a sentence starts by talking about 'some' people, the contrasting group is almost always **'others'**.",
       "trigger_keywords": [
-        "fill in the blank",
-        "comprehension cloze"
+        "Comprehension Cloze",
+        "blank"
       ]
     }
   ],
@@ -129,7 +127,7 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": 0
     },
     {
       "idx": 7,
@@ -265,7 +263,7 @@
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 41,
@@ -281,23 +279,23 @@
     },
     {
       "idx": 44,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 45,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 46,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 47,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 48,
-      "patternIndex": 2
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -350,7 +348,7 @@
     "47": "cmq3745ps002drnvdj14hlymy",
     "48": "cmq3745pt002irnvdvqlqqx1o"
   },
-  "generatedAt": "2026-06-17T09:12:07.797Z",
+  "generatedAt": "2026-06-26T09:35:03.663Z",
   "wrongCounts": {
     "total": 48,
     "oeq": 10,
@@ -362,5 +360,24 @@
     "totalAvailable": 259,
     "paperCount": 18
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:12:07.797Z",
+    "patternNames": [
+      "Vocabulary Meaning Mix-Up",
+      "Spelling Slips",
+      "Missing Key Details",
+      "Grammar Word Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 48,
+      "oeq": 10,
+      "mcq": 38
+    },
+    "toplineSnapshot": {
+      "avgPct": 81,
+      "totalAwarded": 208.5,
+      "totalAvailable": 259,
+      "paperCount": 18
+    }
+  }
 }

@@ -1,101 +1,102 @@
 {
   "patterns": [
     {
-      "name": "Leaving Blank Answers",
-      "what": "Sometimes leaves open-ended questions completely blank, missing out on partial marks that could be earned by writing down basic facts.",
+      "name": "Leaving Questions Blank",
+      "what": "Sometimes leaves the written parts of questions completely blank, especially when asked to explain or state an aim.",
       "specific_examples": [
         {
-          "questionRef": "[3]",
+          "questionRef": "[35]",
           "type": "oeq",
-          "whatWentWrong": "He left the aim of the experiment and the explanation completely blank."
+          "whatWentWrong": "Caleb left the parts asking for the aim of the experiment and the explanation completely blank."
         },
         {
-          "questionRef": "[6]",
+          "questionRef": "[38]",
           "type": "oeq",
-          "whatWentWrong": "He provided no answer for identifying the plant parts and describing how substances move."
+          "whatWentWrong": "He skipped identifying the plant parts and describing how the substances move."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[39]",
           "type": "oeq",
-          "whatWentWrong": "He left all three parts of the experiment question blank instead of writing down the steps."
+          "whatWentWrong": "He left all three parts of this experimental design question blank."
         }
       ],
-      "strategic_advice": "When you see a written question, treat it as a chance to show what you know!\n- **Write down key science words** related to the topic.\n- **State the aim** or the basic facts, even if you aren't sure of the final conclusion.\n- **Never leave it blank**—every little bit helps earn partial marks!",
+      "strategic_advice": "When you see a written question, always write down your best guess. \n- **'State the aim'** → look at what is changing and what is being measured.\n- **'Explain why'** → write down the science keywords you know about the topic, even if you aren't sure of the full answer.",
       "trigger_keywords": [
-        "Explain why",
-        "State the aim",
-        "Describe how"
+        "explain",
+        "state the aim",
+        "describe",
+        "list down"
       ]
     },
     {
-      "name": "Kinetic vs Potential Energy Mix-Up",
-      "what": "Occasionally confuses stored energy (potential energy) with movement energy (kinetic energy) or heat.",
+      "name": "Kinetic vs Potential Energy",
+      "what": "Occasionally mixes up kinetic energy (energy of movement) with potential energy (stored energy).",
       "specific_examples": [
         {
-          "questionRef": "[8]",
+          "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "He thought the toy truck stopped because its kinetic energy turned into sound and heat, missing that it converted into gravitational potential energy."
+          "whatWentWrong": "Caleb thought the moving plastic tube had potential energy instead of kinetic energy."
         },
         {
-          "questionRef": "[15]",
+          "questionRef": "[47]",
           "type": "mcq",
-          "whatWentWrong": "He chose water stored behind a dam (which is potential energy) instead of wind (which is kinetic energy) as the non-potential source."
+          "whatWentWrong": "He picked water stored behind a dam as not having potential energy, but stored water is a classic example of potential energy."
         },
         {
-          "questionRef": "[20]",
+          "questionRef": "[52]",
           "type": "mcq",
-          "whatWentWrong": "He thought a phone battery converts heat to electrical energy, forgetting that batteries store potential energy."
+          "whatWentWrong": "He missed that a fully charged battery holds potential energy, choosing heat energy instead."
         }
       ],
-      "strategic_advice": "When you see questions about energy types, use these checks:\n- **'Potential energy'** means stored energy. Look for things that are high up, stretched, or batteries.\n- **'Kinetic energy'** means movement. Look for things that are actively moving, like wind or a rolling object.",
+      "strategic_advice": "When you see energy questions, ask yourself if the object is moving or storing energy for later.\n- **'moving'**, **'rolling'**, or **'falling'** → kinetic energy\n- **'stretched'**, **'battery'**, or **'high up'** → potential energy",
       "trigger_keywords": [
+        "energy conversion",
         "potential energy",
-        "kinetic energy",
-        "energy conversion"
+        "kinetic energy"
       ]
     },
     {
-      "name": "How We See Things",
-      "what": "Tends to pick the wrong arrows when showing how light travels from a source to an object and into our eyes.",
+      "name": "Finding the Experiment Aim",
+      "what": "Sometimes picks the wrong aim for an experiment by focusing on things that were kept the same instead of what was changed.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "He selected the wrong light path arrows, forgetting that light must bounce off the door and into Peter's eyes."
+          "whatWentWrong": "Caleb thought the aim was about the number of ice cubes, but the number of ice cubes was kept the same in all setups."
         },
         {
-          "questionRef": "[12]",
+          "questionRef": "[54]",
           "type": "mcq",
-          "whatWentWrong": "He picked arrows that didn't correctly show light travelling from the lamp, to the painting, and then to the eyes."
+          "whatWentWrong": "He picked the rate of evaporation, but the experiment was measuring temperature changes to find the rate of heat transfer."
         }
       ],
-      "strategic_advice": "When you need to show how a person sees an object, always follow this exact order:\n- Start at the **light source** (like a lamp or the sun).\n- Draw an arrow to the **object** (like a door or painting).\n- Draw the final arrow bouncing off the object and into the **person's eyes**.",
+      "strategic_advice": "When you see **'aim of the experiment'**, look for the one thing the person changed on purpose.\n- The aim is always to find out how the **changed thing** affects the **measured thing**.\n- Ignore the things that were kept the same to make it a fair test!",
       "trigger_keywords": [
-        "direction of light rays",
-        "enable Peter to see",
-        "see the painting"
+        "aim of the experiment",
+        "to find out"
       ]
     },
     {
       "name": "Food Web Chain Reactions",
-      "what": "Occasionally finds it tricky to figure out how a change in one animal's population affects the other plants and animals in the habitat.",
+      "what": "Occasionally misses how a change in one animal's population affects the other plants and animals in a food web.",
       "specific_examples": [
         {
-          "questionRef": "[5]",
-          "type": "oeq",
-          "whatWentWrong": "He left the question blank when asked to explain how a decrease in one organism would affect the populations of others."
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "Caleb didn't correctly trace how getting rid of the caterpillars would affect the chicken population."
         },
         {
-          "questionRef": "[21]",
+          "questionRef": "[53]",
           "type": "mcq",
-          "whatWentWrong": "He chose the wrong graph to show what happens to plants and prey when a new bird-eating predator is introduced."
+          "whatWentWrong": "He picked a graph that didn't correctly show how fewer birds would lead to more prey and fewer plants."
         }
       ],
-      "strategic_advice": "When a question changes the number of one animal, use the arrow trick:\n- Draw an **up arrow** if a population grows, and a **down arrow** if it shrinks.\n- If a predator increases, its prey goes **down**.\n- If the prey goes down, the plants they eat will go **up**!",
+      "strategic_advice": "When you see a food web and one animal increases or decreases, draw up and down arrows next to the other organisms to show what happens next.\n- **'more predators'** → the prey population goes down\n- **'less predators'** → the prey population goes up",
       "trigger_keywords": [
         "population",
-        "introduced to this habitat",
-        "food relationships"
+        "food web",
+        "introduced",
+        "food chain"
       ]
     }
   ],
@@ -106,31 +107,31 @@
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -146,7 +147,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -158,7 +159,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 16,
@@ -166,69 +167,248 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
-    },
-    {
-      "idx": 19,
-      "patternIndex": -1
-    },
-    {
-      "idx": 20,
-      "patternIndex": 1
-    },
-    {
-      "idx": 21,
       "patternIndex": 3
     },
     {
-      "idx": 22,
+      "idx": 19,
+      "patternIndex": 3
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
       "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
     },
     {
       "idx": 23,
       "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
+      "patternIndex": 0
+    },
+    {
+      "idx": 37,
+      "patternIndex": 3
+    },
+    {
+      "idx": 38,
+      "patternIndex": 0
+    },
+    {
+      "idx": 39,
+      "patternIndex": 0
+    },
+    {
+      "idx": 40,
+      "patternIndex": 1
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": 1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 3
+    },
+    {
+      "idx": 54,
+      "patternIndex": 2
+    },
+    {
+      "idx": 55,
+      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmq69gift003woedesnvlpqwg",
-    "2": "cmq69gifu003yoede7wfbywud",
-    "3": "cmq69gifv0044oedeny6izo3e",
-    "4": "cmq69gifv0045oedecrf1v6kb",
-    "5": "cmq69gifv0046oedeigao3kf3",
-    "6": "cmq69gifv0047oede5k1ethl5",
-    "7": "cmq69gifv0048oede9h0ollrc",
-    "8": "cmqj6w1ly002r6rbdwjxw80yw",
-    "9": "cmqj6w1ly002s6rbdczpmapaa",
-    "10": "cmqj6w1lz002t6rbdmsjbh131",
-    "11": "cmq7rejlm00047yw25m76m505",
-    "12": "cmq7rgqw6001u7yw2q12928a8",
-    "13": "cmq69hvm1004hoedevcx7y2l5",
-    "14": "cmq69hvm2004ooedeqsft7q0a",
-    "15": "cmq69hvm2004soede26k3a87z",
-    "16": "cmq6tux01001do0vafhxvcwot",
-    "17": "cmq6tux01001io0vaqnm70xza",
-    "18": "cmq6tvosi001qo0vafvpu77k9",
-    "19": "cmq69i75x004yoede75rjdlr1",
-    "20": "cmq69i75x0050oede6be6pavu",
-    "21": "cmq69i75x0053oede9nhlp4me",
-    "22": "cmq6a4n25005xoedelb3gdt78",
-    "23": "cmq4xjn2e002hapq2ec9kok2u"
+    "1": "cmqt4a0c800am1qnk6iqgj7ir",
+    "2": "cmqt1vvt600731qnk8xjc8y68",
+    "3": "cmqt1vvt700761qnklwjmoa2j",
+    "4": "cmqt1vvt700781qnk76u2apls",
+    "5": "cmqssr7r3000a13b3xrvwzqo8",
+    "6": "cmqssr7r4000h13b307gtprl4",
+    "7": "cmqqdx7h600bnqrnv0dlyqnzc",
+    "8": "cmqqdx7h700buqrnvqhcgxh02",
+    "9": "cmqqawpuo001pqrnvck0lc7iz",
+    "10": "cmqqaxzoz002bqrnvgc2opfk7",
+    "11": "cmqoyz92b00bj8h72scx681j0",
+    "12": "cmqoyz92b00bm8h72n1v7phki",
+    "13": "cmqoyz92c00bo8h72x8h7nvkq",
+    "14": "cmqoyzngl00by8h72ci2l2r2k",
+    "15": "cmqoyzngm00c38h728qab2b0p",
+    "16": "cmqopdlj5002l8h72c89gwhvr",
+    "17": "cmqopdlj6002w8h72h0zy8z4p",
+    "18": "cmqnlzc2e00nzwgpgg2nfvu90",
+    "19": "cmqnlzc2f00o7wgpgj0kps448",
+    "20": "cmqnlzc2f00o8wgpgshy923y2",
+    "21": "cmqnlcc9g00mpwgpgjtogkdjp",
+    "22": "cmqnlcc9h00mwwgpglvktxajp",
+    "23": "cmqnlcc9h00n0wgpg70xz5nsh",
+    "24": "cmqji4r7z003q12dkp38tuca0",
+    "25": "cmqji4r80003s12dkoarehj3p",
+    "26": "cmqji4r80003v12dkdaw3vala",
+    "27": "cmqji4r81004012dk00xs0be2",
+    "28": "cmqji4r81004212dk9g8eopa6",
+    "29": "cmqkby96x0006o3ahz5min0k5",
+    "30": "cmqkby96y000bo3ahf6pxwkt8",
+    "31": "cmqkby96y000fo3ahwgfk282d",
+    "32": "cmqjd3fn8000712dk4mqz89r6",
+    "33": "cmq69gift003woedesnvlpqwg",
+    "34": "cmq69gifu003yoede7wfbywud",
+    "35": "cmq69gifv0044oedeny6izo3e",
+    "36": "cmq69gifv0045oedecrf1v6kb",
+    "37": "cmq69gifv0046oedeigao3kf3",
+    "38": "cmq69gifv0047oede5k1ethl5",
+    "39": "cmq69gifv0048oede9h0ollrc",
+    "40": "cmqj6w1ly002r6rbdwjxw80yw",
+    "41": "cmqj6w1ly002s6rbdczpmapaa",
+    "42": "cmqj6w1lz002t6rbdmsjbh131",
+    "43": "cmq7rejlm00047yw25m76m505",
+    "44": "cmq7rgqw6001u7yw2q12928a8",
+    "45": "cmq69hvm1004hoedevcx7y2l5",
+    "46": "cmq69hvm2004ooedeqsft7q0a",
+    "47": "cmq69hvm2004soede26k3a87z",
+    "48": "cmq6tux01001do0vafhxvcwot",
+    "49": "cmq6tux01001io0vaqnm70xza",
+    "50": "cmq6tvosi001qo0vafvpu77k9",
+    "51": "cmq69i75x004yoede75rjdlr1",
+    "52": "cmq69i75x0050oede6be6pavu",
+    "53": "cmq69i75x0053oede9nhlp4me",
+    "54": "cmq6a4n25005xoedelb3gdt78",
+    "55": "cmq4xjn2e002hapq2ec9kok2u"
   },
-  "generatedAt": "2026-06-18T10:12:59.055Z",
+  "generatedAt": "2026-06-26T09:27:38.276Z",
   "wrongCounts": {
-    "total": 23,
+    "total": 55,
     "oeq": 5,
-    "mcq": 18
+    "mcq": 50
   },
   "toplineSnapshot": {
-    "avgPct": 81,
-    "totalAwarded": 210,
-    "totalAvailable": 260,
-    "paperCount": 11
+    "avgPct": 82,
+    "totalAwarded": 514,
+    "totalAvailable": 628,
+    "paperCount": 26
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-18T10:12:59.055Z",
+    "patternNames": [
+      "Leaving Blank Answers",
+      "Kinetic vs Potential Energy Mix-Up",
+      "How We See Things",
+      "Food Web Chain Reactions"
+    ],
+    "wrongCounts": {
+      "total": 23,
+      "oeq": 5,
+      "mcq": 18
+    },
+    "toplineSnapshot": {
+      "avgPct": 81,
+      "totalAwarded": 210,
+      "totalAvailable": 260,
+      "paperCount": 11
+    }
+  }
 }

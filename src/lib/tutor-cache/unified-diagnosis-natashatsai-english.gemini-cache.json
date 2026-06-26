@@ -1,113 +1,107 @@
 {
   "patterns": [
     {
-      "name": "Subject-Verb Mix-Up",
-      "what": "Sometimes gets tricked by extra phrases like 'together with' or 'as well as' when deciding if a verb should be singular or plural.",
+      "name": "Cut-Off Answers",
+      "what": "Occasionally submits answers before finishing the word or sentence, leaving trailing letters or incomplete thoughts.",
       "specific_examples": [
         {
-          "questionRef": "[17]",
-          "type": "mcq",
-          "whatWentWrong": "natashatsai picked 'is' instead of 'am' because she missed that the main subject is 'I', not 'my cousin'."
+          "questionRef": "[42]",
+          "type": "oeq",
+          "whatWentWrong": "Stopped typing right before finishing the sentence about the woman shouting."
         },
-        {
-          "questionRef": "[18]",
-          "type": "mcq",
-          "whatWentWrong": "She chose the plural 'are' for 'Emily, together with her brothers', forgetting that the verb must match the first person, Emily."
-        }
-      ],
-      "strategic_advice": "When you see tricky subjects in a sentence, use the **cross-out trick**:\n- If you see **'as well as'** or **'together with'**, imagine crossing out that whole phrase with a pencil.\n- Match your verb only to the very first person or thing mentioned! For example, 'The teacher (along with the students) **is** going'.",
-      "trigger_keywords": [
-        "as well as",
-        "together with",
-        "The price of"
-      ]
-    },
-    {
-      "name": "Unfinished Sentences",
-      "what": "Tends to submit open-ended answers that are cut off mid-sentence or missing the second half of the required points.",
-      "specific_examples": [
         {
           "questionRef": "[40]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai wrote 'the pa' instead of finishing the phrase 'the paramedics and firefighters'."
-        },
-        {
-          "questionRef": "[41]",
-          "type": "oeq",
-          "whatWentWrong": "She stopped typing mid-sentence with 'it is because the o' and left the rest of the table blank."
-        },
-        {
-          "questionRef": "[44]",
-          "type": "oeq",
-          "whatWentWrong": "She cut off her explanation mid-word with 'even when t'."
-        }
-      ],
-      "strategic_advice": "When you see prompts like **'State two'** or **'Explain'**, treat them as a reminder to pace yourself.\n- **Use a scratchpad** to jot down bullet points (1. and 2.) so you don't forget the second part of your answer.\n- **Read your final answer out loud** before hitting submit to catch any sentences that stop halfway!",
-      "trigger_keywords": [
-        "Why",
-        "State two",
-        "Explain",
-        "refer to"
-      ]
-    },
-    {
-      "name": "Rushed Typing Slips",
-      "what": "Occasionally submits cloze passage answers with missing letters or random keystrokes, losing marks on words she likely knows.",
-      "specific_examples": [
-        {
-          "questionRef": "[31]",
-          "type": "oeq",
-          "whatWentWrong": "natashatsai typed 'df\\' instead of 'food' when figuring out what the ants were looking for."
+          "whatWentWrong": "Cut off the word 'paramedics' halfway through, leaving just 'the pa'."
         },
         {
           "questionRef": "[34]",
           "type": "oeq",
-          "whatWentWrong": "She left off the last letter of 'only', typing 'onl'."
-        },
-        {
-          "questionRef": "[36]",
-          "type": "oeq",
-          "whatWentWrong": "She typed 'eg' instead of 'eggs' for what a queen ant lays."
+          "whatWentWrong": "Submitted 'onl' instead of finishing the word 'only'."
         }
       ],
-      "strategic_advice": "When you see **'Fill in each blank'**, remember to treat the keyboard like a test paper!\n- Do a quick **spelling sweep** after typing your answers.\n- Read each word you typed one by one to make sure no letters were left behind or accidentally cut off.",
+      "strategic_advice": "When you are working on a digital device, it is easy to accidentally hit submit or move on too quickly.\n- **Read your final sentence** out loud to yourself before moving to the next question.\n- If you are running out of time, write **shorter, direct answers** rather than long sentences that might get cut off.",
       "trigger_keywords": [
-        "Fill in each blank",
-        "suitable word"
+        "why",
+        "explain",
+        "state",
+        "fill in each blank"
+      ]
+    },
+    {
+      "name": "Subject-Verb Agreement Mix-Up",
+      "what": "Sometimes confuses whether to use a singular or plural verb, especially when extra phrases are added between the subject and the verb.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Chose 'is' instead of 'am' for the subject 'I', getting distracted by the phrase 'as well as my cousin'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Chose the plural 'are' instead of 'is' for 'Emily', because of the extra phrase 'together with her brothers'."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **'as well as'** or **'together with'**, treat them as extra information.\n- **Cross out** the extra phrase in your mind.\n- Match your verb to the **very first subject** (e.g., 'Emily... is').",
+      "trigger_keywords": [
+        "as well as",
+        "together with",
+        "along with"
+      ]
+    },
+    {
+      "name": "Slightly Off Cloze Words",
+      "what": "Often thinks of a word that fits the general idea of the passage, but occasionally misses the exact meaning or grammar needed for that specific blank.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote 'sleeping' instead of 'living', which is a bit too specific for people residing in the open."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote 'floating' instead of 'swept', which doesn't quite fit the grammar of 'had been ___ away by'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Wrote 'floods' instead of 'waves', missing that the sentence describes a specific force that 'tore the roofs off'."
+        }
+      ],
+      "strategic_advice": "When filling in blanks, treat the surrounding words as puzzle pieces.\n- Check the **grammar**: Does your word fit with the words right before and after it (like 'had been... by')?\n- Look for **clue words** nearby to see if you need a general word or a specific action.",
+      "trigger_keywords": [
+        "fill in each blank",
+        "most suitable word"
       ]
     },
     {
       "name": "Preposition Mix-Up",
-      "what": "Sometimes chooses the wrong connecting word to follow a specific verb or noun phrase.",
+      "what": "Occasionally mixes up which small connecting word (preposition) belongs in common phrases.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "natashatsai wrote 'blend in on' instead of the correct phrase 'blend in with'."
+          "whatWentWrong": "Wrote 'blend in on' instead of the correct phrase 'blend in with'."
         },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'due over' instead of the correct phrase 'due to' conservation efforts."
-        },
-        {
-          "questionRef": "[26]",
-          "type": "oeq",
-          "whatWentWrong": "She wrote 'acts from kindness' instead of the common phrase 'acts of kindness'."
+          "whatWentWrong": "Wrote 'due over' instead of the correct phrase 'due to'."
         }
       ],
-      "strategic_advice": "When you need to fill in a connecting word, try the **whisper test**:\n- Whisper the whole sentence to yourself with a few different options (like **in**, **of**, **to**, **with**).\n- Your ears will often catch the one that sounds right, like knowing it's **'due to'** instead of **'due over'**!",
+      "strategic_advice": "When learning new vocabulary, try to remember the **small words that go with them** as a single chunk.\n- Read the phrase **out loud** in your head to see if it sounds like something you would naturally say.\n- Practice common pairs like 'due to', 'blend in with', and 'acts of'.",
       "trigger_keywords": [
-        "due",
-        "acts",
-        "blend in"
+        "choose the most suitable word",
+        "phrasal verb"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
@@ -127,31 +121,31 @@
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 7,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 13,
@@ -171,11 +165,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 18,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 19,
@@ -183,7 +177,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 21,
@@ -215,7 +209,7 @@
     },
     {
       "idx": 28,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 29,
@@ -223,15 +217,15 @@
     },
     {
       "idx": 30,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 31,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 32,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 33,
@@ -239,7 +233,7 @@
     },
     {
       "idx": 34,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 35,
@@ -247,39 +241,39 @@
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": 0
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 44,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -328,7 +322,7 @@
     "43": "cmq3eeaym001x31sp9l34my3i",
     "44": "cmq3eeaym001z31spxia4qb6w"
   },
-  "generatedAt": "2026-06-17T09:19:15.437Z",
+  "generatedAt": "2026-06-26T09:44:03.573Z",
   "wrongCounts": {
     "total": 44,
     "oeq": 33,
@@ -340,5 +334,24 @@
     "totalAvailable": 170,
     "paperCount": 2
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:19:15.437Z",
+    "patternNames": [
+      "Subject-Verb Mix-Up",
+      "Unfinished Sentences",
+      "Rushed Typing Slips",
+      "Preposition Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 44,
+      "oeq": 33,
+      "mcq": 11
+    },
+    "toplineSnapshot": {
+      "avgPct": 70,
+      "totalAwarded": 119,
+      "totalAvailable": 170,
+      "paperCount": 2
+    }
+  }
 }

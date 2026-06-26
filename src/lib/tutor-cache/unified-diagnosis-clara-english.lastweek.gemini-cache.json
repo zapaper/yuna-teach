@@ -1,0 +1,281 @@
+{
+  "patterns": [
+    {
+      "name": "Subject-Verb Mix-Up",
+      "what": "Sometimes gets tricked by sentences where the main subject is hidden among other words, mixing up singular and plural verbs.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Clara picked the singular 'signs', but the action is done by the plural 'students', so it should be 'sign'."
+        }
+      ],
+      "strategic_advice": "When you see phrases like **'one of the'**, find the actual noun doing the action. Here, 'students' is plural, so the verb should be 'sign', not 'signs'.",
+      "trigger_keywords": [
+        "one of the",
+        "who",
+        "is"
+      ]
+    },
+    {
+      "name": "Skipping Multiple Choice",
+      "what": "Tends to leave multiple-choice questions blank instead of using clues to make a smart guess.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Clara left this vocabulary question blank instead of guessing from the context clues."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Clara skipped this visual text question, which could be answered by looking closely at the poster."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Clara left this blank, but she could have found the answer by checking the activity timings in the text."
+        }
+      ],
+      "strategic_advice": "Never leave a multiple-choice question blank! Even if you are unsure, use the **process of elimination**:\n- Cross out the options you know are definitely wrong.\n- Pick your best guess from the remaining choices. You might just get it right!",
+      "trigger_keywords": [
+        "choose the correct",
+        "which of the following",
+        "according to"
+      ]
+    },
+    {
+      "name": "Skipping Sentence Rewriting",
+      "what": "Occasionally leaves sentence transformation questions blank when the new starting words look tricky.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank instead of trying to use the 'would rather... than' structure."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this reported speech question, missing a chance to earn partial marks for shifting the tense."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank, but she could have tried starting with 'No matter how hard'."
+        }
+      ],
+      "strategic_advice": "When you see a rewriting question, don't skip it! Try to spot the grammar rule being tested:\n- **'would rather'** → pair it with **'than'**\n- **'asked me'** → change to reported speech and shift the tense back\n- **'No matter'** → usually pairs with **'how'** or **'what'**\nWrite down your best attempt, as you can often get partial marks!",
+      "trigger_keywords": [
+        "would rather",
+        "asked me",
+        "No matter",
+        "whom"
+      ]
+    },
+    {
+      "name": "Skipping Comprehension Answers",
+      "what": "Sometimes leaves open-ended comprehension questions blank instead of hunting for clues in the passage.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this question, but she just needed to copy the exact sentence from the first paragraph."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "oeq",
+          "whatWentWrong": "Clara left this blank instead of searching lines 15 to 23 for phrases that show the characters' feelings."
+        },
+        {
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "Clara skipped this explanation question, missing the chance to describe the steps Mike took to free the chicken."
+        }
+      ],
+      "strategic_advice": "For comprehension questions, the answer is always hiding in the text! Treat it like a treasure hunt:\n- **'Pick out a sentence'** → copy exactly from capital letter to full stop.\n- **'Explain clearly'** → use your own words to describe the steps or reasons.\nAlways write down your best guess—partial marks are often given for finding the right section!",
+      "trigger_keywords": [
+        "Pick out",
+        "Explain clearly",
+        "What two actions",
+        "With reference to"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 3
+    },
+    {
+      "idx": 26,
+      "patternIndex": 3
+    },
+    {
+      "idx": 27,
+      "patternIndex": 3
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": 3
+    },
+    {
+      "idx": 31,
+      "patternIndex": 3
+    },
+    {
+      "idx": 32,
+      "patternIndex": 3
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmo3sgcrr001f114hkutrmaia",
+    "2": "cmo3sgcrr001k114hgz3u021l",
+    "3": "cmo3sgcrr001l114hnkxl7qf1",
+    "4": "cmo3sgcrs001m114ht0igq59p",
+    "5": "cmo3sgcrs001n114hj90jzxd0",
+    "6": "cmo3sgcrs001o114hvpbutyg5",
+    "7": "cmo3sgcrs001p114h34bvq3u3",
+    "8": "cmo3sgcrs001q114hrluhrpym",
+    "9": "cmo3sgcrs001r114h6uhody65",
+    "10": "cmo3sgcrs001s114hhkktd4f5",
+    "11": "cmo3sgcrs001t114harqhjqgh",
+    "12": "cmo3sgcrs001u114hm0uu87ii",
+    "13": "cmo3sgcrs001v114hkx3qg9x6",
+    "14": "cmo3sgcrs001w114hdhf1xnp2",
+    "15": "cmo3sgcrs001x114hv2q3kv3u",
+    "16": "cmo3sgcrs001y114h6wt14rjh",
+    "17": "cmo3sgcrs001z114hyn5i8r61",
+    "18": "cmo3sgcrt002z114he3rhsza9",
+    "19": "cmo3sgcrt0030114hjwihyns1",
+    "20": "cmo3sgcrt0031114hqtwocb92",
+    "21": "cmo3sgcrt0032114ham7mxlim",
+    "22": "cmo3sgcrt0033114hb4p8koo3",
+    "23": "cmo3sgcrt0034114h2b9scjl4",
+    "24": "cmo3sgcrt0035114hl873x4av",
+    "25": "cmo3sgcrt0036114h4ywr67lc",
+    "26": "cmo3sgcrt0037114hpnrmgu64",
+    "27": "cmo3sgcrt0038114h1ph4mmkq",
+    "28": "cmo3sgcru0039114hw3oi22ar",
+    "29": "cmo3sgcru003a114hl99p8nwh",
+    "30": "cmo3sgcru003b114h8yqsyapp",
+    "31": "cmo3sgcru003c114hxmarenrw",
+    "32": "cmo3sgcru003d114hoskhf3so"
+  },
+  "generatedAt": "2026-06-17T09:09:45.883Z",
+  "wrongCounts": {
+    "total": 32,
+    "oeq": 15,
+    "mcq": 17
+  },
+  "toplineSnapshot": {
+    "avgPct": 7,
+    "totalAwarded": 6,
+    "totalAvailable": 88,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

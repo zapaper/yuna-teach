@@ -1,103 +1,117 @@
 {
   "patterns": [
     {
-      "name": "Tricky Word Choices",
-      "what": "JeremiahSy tends to pick words or phrasal verbs that look familiar but do not perfectly match the specific context of the sentence.",
+      "name": "Spelling and Punctuation Slips",
+      "what": "JeremiahSy sometimes misses small details like capital letters at the start of a sentence or the exact spelling of tricky words.",
       "specific_examples": [
         {
-          "questionRef": "[26]",
-          "type": "mcq",
-          "whatWentWrong": "He chose 'set in' instead of 'set off' to describe starting a sudden rescue mission."
-        },
-        {
-          "questionRef": "[27]",
-          "type": "mcq",
-          "whatWentWrong": "He confused 'appeasing' with 'appealing' when describing a likable and charming personality."
-        },
-        {
-          "questionRef": "[19]",
+          "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "He wrote 'viewers' which only applies to movies, instead of 'audience' which covers both books and movies."
-        }
-      ],
-      "strategic_advice": "When you see phrasal verbs or similar-looking words, read the whole sentence to find the context clues. Try plugging each option into the sentence to see which one makes the most sense with the surrounding actions.",
-      "trigger_keywords": [
-        "fill in each blank",
-        "choose the most suitable word",
-        "phrasal verb"
-      ]
-    },
-    {
-      "name": "Spelling and Word Forms",
-      "what": "JeremiahSy occasionally misspells tricky words or writes the wrong form of a word, such as using a verb when a noun is needed.",
-      "specific_examples": [
+          "whatWentWrong": "He wrote 'despite' with a lowercase letter, forgetting that it was the first word of the sentence."
+        },
         {
           "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "He misspelled 'received' as 'recieved'."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "He wrote the verb 'included' instead of the noun 'inclusion'."
+          "whatWentWrong": "He spelled 'received' as 'recieved', mixing up the 'e' and 'i'."
         },
         {
           "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "He misspelled 'insincerity' as 'incinscerity'."
+          "whatWentWrong": "He spelled 'insincerity' as 'incinscerity'."
         }
       ],
-      "strategic_advice": "When editing a passage, check if the blank needs a noun, verb, or adjective. For spelling, remember the classic rule **'i before e except after c'** for words like 'received'.",
+      "strategic_advice": "When checking your work, look out for these common traps:\n- **'i before e except after c'** → double-check words like 'received'.\n- **Start of a sentence** → always ensure the first letter is capitalised, even if it's a fill-in-the-blank question.",
       "trigger_keywords": [
-        "correct the spelling",
-        "editing",
-        "rewrite"
+        "Editing",
+        "Spelling",
+        "Punctuation",
+        "Capitalisation"
       ]
     },
     {
-      "name": "Reading the Fine Print",
-      "what": "JeremiahSy sometimes chooses an answer in visual texts that sounds believable but is not directly supported by the poster's specific details.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "JeremiahSy occasionally confuses phrasal verbs that share the same first word but end differently.",
       "specific_examples": [
         {
-          "questionRef": "[11]",
+          "questionRef": "[26]",
           "type": "mcq",
-          "whatWentWrong": "He chose an option about electricity use instead of matching the customer reviews to the fact that the company served customers well."
+          "whatWentWrong": "He chose 'set in' instead of 'set off' to describe starting a sudden action."
         },
         {
-          "questionRef": "[12]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "He missed the detail in Text 2 that the impact on carbon footprint is actually limited."
-        },
-        {
-          "questionRef": "[24]",
-          "type": "mcq",
-          "whatWentWrong": "He chose an option that didn't match the text's realistic fact that 'many' (not all) children find chocolate irresistible."
+          "whatWentWrong": "He picked 'creep along' instead of 'creep in' to describe a feeling slowly developing."
         }
       ],
-      "strategic_advice": "When you see questions about posters or advertisements, treat them like a matching game. Find the exact words in the text that prove your answer. Watch out for absolute words like **'all'** or **'every'** compared to **'many'** or **'some'**.",
+      "strategic_advice": "When you see a verb followed by different prepositions (like 'set in' vs 'set off'):\n- **Read the whole sentence** to understand the exact action happening.\n- **Substitute** each option into the sentence and ask yourself if it matches the context (e.g., starting a journey vs weather continuing).",
       "trigger_keywords": [
-        "according to the poster",
-        "not supported",
-        "best describes"
+        "set in",
+        "set off",
+        "creep in",
+        "creep along"
+      ]
+    },
+    {
+      "name": "Link Word Mix-Up",
+      "what": "JeremiahSy tends to mix up conjunctions and pronouns that connect two parts of a sentence together.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'It' instead of 'which' to link a descriptive clause to the main sentence."
+        },
+        {
+          "questionRef": "[37]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'if' instead of 'or' to show the consequence of not doing something."
+        }
+      ],
+      "strategic_advice": "When you need to connect two ideas:\n- **Check for commas** → if there's a comma joining two clauses, you often need a relative pronoun like **'which'** or **'who'**, not 'It'.\n- **Look at the relationship** → ask yourself if the second part is an addition, a contrast, or a consequence, and pick the matching word.",
+      "trigger_keywords": [
+        "In ________",
+        "________ has had",
+        "form ________ you cannot"
+      ]
+    },
+    {
+      "name": "Similar Word Mix-Up",
+      "what": "JeremiahSy sometimes chooses a vocabulary word that is related to the topic but doesn't perfectly fit the specific context.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'viewers' (which usually means watching TV/movies) instead of 'audience' (which covers both books and movies)."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "mcq",
+          "whatWentWrong": "He confused 'appeasing' (calming someone down) with 'appealing' (attractive and likable)."
+        }
+      ],
+      "strategic_advice": "When choosing between words with similar meanings:\n- **Look for specific clues** in the sentence (e.g., 'books and movies' points to 'audience' rather than just 'viewers').\n- **Check the exact definition** in your head to see if it fits the tone and context perfectly.",
+      "trigger_keywords": [
+        "Fill in each blank",
+        "Choose the most suitable word",
+        "Vocabulary"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 5,
@@ -109,7 +123,7 @@
     },
     {
       "idx": 7,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 8,
@@ -117,23 +131,23 @@
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 11,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
@@ -149,99 +163,99 @@
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 20,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 22,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 26,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 27,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 30,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 32,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 33,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 34,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 35,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 36,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 37,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 38,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 39,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 40,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 41,
@@ -336,7 +350,7 @@
     "49": "cmnwwq19n000pat85b5nn3p6h",
     "50": "cmnwwq19n000qat85uy0im11o"
   },
-  "generatedAt": "2026-06-26T08:59:18.179Z",
+  "generatedAt": "2026-06-26T09:36:22.929Z",
   "wrongCounts": {
     "total": 50,
     "oeq": 31,
@@ -349,22 +363,22 @@
     "paperCount": 20
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T09:13:44.922Z",
+    "generatedAt": "2026-06-26T08:59:18.179Z",
     "patternNames": [
-      "Vocabulary Mix-Up",
-      "Pronoun Mix-Up",
-      "Matching Exact Clues"
+      "Tricky Word Choices",
+      "Spelling and Word Forms",
+      "Reading the Fine Print"
     ],
     "wrongCounts": {
-      "total": 49,
+      "total": 50,
       "oeq": 31,
-      "mcq": 18
+      "mcq": 19
     },
     "toplineSnapshot": {
-      "avgPct": 78,
-      "totalAwarded": 201,
-      "totalAvailable": 259,
-      "paperCount": 16
+      "avgPct": 82,
+      "totalAwarded": 266,
+      "totalAvailable": 326,
+      "paperCount": 20
     }
   }
 }

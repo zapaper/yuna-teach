@@ -1,0 +1,209 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Small Words",
+      "what": "Sometimes reads a question or option a bit too quickly and misses small but important words that change the answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Caleb missed the word 'only' in the option, which was the clue that made the statement false."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He left out the word 'new' when rewriting the sentence, which changed the meaning of the museum."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "Caleb missed the word 'again' in the question, which was the clue to look for the 'returning customer' discount."
+        }
+      ],
+      "strategic_advice": "- When you see words like **'only'**, **'not true'**, or **'again'**, treat them as stop signs and **underline** them.\n- Always double-check your final answer against the specific details mentioned in the text to make sure nothing was left out.",
+      "trigger_keywords": [
+        "only",
+        "not true",
+        "again",
+        "new"
+      ]
+    },
+    {
+      "name": "Word Meaning Mix-Up",
+      "what": "Occasionally picks a vocabulary word that is related to the topic but doesn't perfectly match the exact meaning needed in the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "He used 'equip' instead of 'provide', but we usually 'provide' a place rather than 'equip' people with a place."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'dedication' instead of 'resolution' to match the meaning of making a firm 'commitment'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "Caleb chose 'introduce' instead of 'expose', which missed the negative feeling of facing cyberbullying."
+        }
+      ],
+      "strategic_advice": "- When filling in blanks, **read the whole sentence silently** with your chosen word to check if it sounds natural.\n- Look at the words immediately before and after the blank to see which word fits the phrase perfectly.",
+      "trigger_keywords": [
+        "commitment",
+        "somewhat",
+        "equip",
+        "expose"
+      ]
+    },
+    {
+      "name": "Between vs Among Mix-Up",
+      "what": "Confuses when to use 'between' and 'among' when talking about groups of people or things.",
+      "specific_examples": [
+        {
+          "questionRef": "[23]",
+          "type": "oeq",
+          "whatWentWrong": "Caleb used 'between' for students, but since there are more than two students, 'among' or 'amongst' is the correct word."
+        }
+      ],
+      "strategic_advice": "- Use **'between'** when you are talking about exactly **two** people or things.\n- Use **'among'** when you are talking about **three or more** people or things.",
+      "trigger_keywords": [
+        "students",
+        "between",
+        "among"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq7rnedu00257yw2cd1v5uo5",
+    "2": "cmq7rnedu00287yw216bmz0lx",
+    "3": "cmq7rnedu002a7yw2j9socdrp",
+    "4": "cmq7rnedu002b7yw2udvj4ck5",
+    "5": "cmq7rnedu002c7yw2wqains5t",
+    "6": "cmq7rg183000l7yw2j1i702qs",
+    "7": "cmq7rg18300107yw2hs0plv13",
+    "8": "cmq7rg18300117yw22hl5ns16",
+    "9": "cmq7rg184001c7yw2f9xl9ux9",
+    "10": "cmq7rg184001f7yw2exazwk0s",
+    "11": "cmq7rg184001j7yw2ll3cdw0r",
+    "12": "cmq621oo10004eykwi0b078ku",
+    "13": "cmq621oo10006eykwjuojwn84",
+    "14": "cmq621oo1000eeykwe8paswgs",
+    "15": "cmq621oo1000leykwhnhqbxed",
+    "16": "cmq621oo3001jeykwqt8hwez8",
+    "17": "cmq4y9enk000l9dsbqi1a0uwe",
+    "18": "cmq4y9enl000n9dsbkws2uz2f",
+    "19": "cmq4y9enl00159dsbupunxy5w",
+    "20": "cmq4y9enl00169dsbb2misk31",
+    "21": "cmq4y9enm001k9dsbsoymafs6",
+    "22": "cmq4y9enm001m9dsbov2f3136",
+    "23": "cmq4y9enm001o9dsb0cxiceru"
+  },
+  "generatedAt": "2026-06-17T09:10:29.873Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 17,
+    "mcq": 6
+  },
+  "toplineSnapshot": {
+    "avgPct": 88,
+    "totalAwarded": 176.5,
+    "totalAvailable": 200,
+    "paperCount": 4
+  },
+  "previousAssessment": null
+}

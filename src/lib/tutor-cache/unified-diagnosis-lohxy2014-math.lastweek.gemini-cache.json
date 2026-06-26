@@ -1,0 +1,198 @@
+{
+  "patterns": [
+    {
+      "name": "Hidden 3D Blocks",
+      "what": "Sometimes misses the hidden blocks or faces that cannot be seen directly from the front when counting parts of a 3D shape.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Counted the visible painted faces but missed some of the identical faces hidden on the back and bottom."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "Counted the visible cubes but missed the hidden cube supporting the structure in the corner."
+        }
+      ],
+      "strategic_advice": "When working with stacked blocks, remember that every block must be supported.\n- **For volume:** Count layer by layer (top to bottom) to make sure you include the hidden blocks underneath.\n- **For surface area:** Match opposite sides. The number of faces you see from the front is exactly the same as the hidden back!",
+      "trigger_keywords": [
+        "solid",
+        "surface area",
+        "1-cm cubes",
+        "volume"
+      ]
+    },
+    {
+      "name": "Wrong Total Mix-Up",
+      "what": "Occasionally mixes up which number to use as the bottom of a fraction or percentage, often using the grand total instead of the specific group asked for.",
+      "specific_examples": [
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "Found the savings correctly, but compared it to his total money instead of his expenditure."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Found the decrease correctly, but divided by the leftover marbles instead of the starting amount to find the percentage."
+        }
+      ],
+      "strategic_advice": "When you see prompts asking for a fraction or percentage, treat them as stop signs:\n- **'fraction of his expenditure'** → the word after 'of' is your bottom number (denominator).\n- **'percentage decrease'** → always divide by the **original starting amount**, never the leftover.",
+      "trigger_keywords": [
+        "fraction of",
+        "percentage decrease",
+        "ratio of"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Sometimes does the hard work to find a middle step, but stops just before answering the final question asked.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Successfully calculated the amount of paint used, but forgot to subtract it to find the amount left."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "Found the carpeted area for the bedroom, but forgot to add the living room's carpet before making the final ratio."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Found the total cost of the stamps in cents, but forgot the final step of dividing by 100 to convert it to dollars."
+        }
+      ],
+      "strategic_advice": "You are doing the math correctly! To catch that final step, try the **'Double Read'** trick:\n- Read the question once to make your plan.\n- Do your calculations.\n- **Read the last sentence one more time** before picking your answer to make sure you are answering exactly what was asked (like 'left with' instead of 'used').",
+      "trigger_keywords": [
+        "left with",
+        "total",
+        "in terms of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqgn1syq006p1171ln00rsqx",
+    "2": "cmqgn1syt006s11710htpwzm6",
+    "3": "cmqf70ysz0039qs2gz5fgg4ol",
+    "4": "cmqf70ysz003bqs2g52ev1se6",
+    "5": "cmqf70yt0003gqs2g83w207z0",
+    "6": "cmqf70yt0003iqs2g86prljur",
+    "7": "cmqf70yt0003jqs2gutj8gjj7",
+    "8": "cmqacb6q60003l19rs45rcnxa",
+    "9": "cmqacb6q7000al19riwgbqos5",
+    "10": "cmqacb6q7000cl19rbedhh966",
+    "11": "cmqacb6qa000il19rgwtaidgv",
+    "12": "cmqacb6qa000kl19r50lkbh8u",
+    "13": "cmq691km50008oedelbnyy9pk",
+    "14": "cmq691km5000eoedesmx3uhvc",
+    "15": "cmpuqfgdm000612lty8mktala",
+    "16": "cmpuqfgdm000712lt5a5flg5o",
+    "17": "cmpuqfgdm000812lt4g691qzs",
+    "18": "cmpuqfgdn000b12ltmtvabr0e",
+    "19": "cmpuqfgdn000f12ltuvtjworf",
+    "20": "cmpuqfgdn000h12ltq3yutj96",
+    "21": "cmpuqfgdn000i12lti80bc76g"
+  },
+  "generatedAt": "2026-06-17T09:27:15.002Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 0,
+    "mcq": 21
+  },
+  "toplineSnapshot": {
+    "avgPct": 75,
+    "totalAwarded": 124,
+    "totalAvailable": 166,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}

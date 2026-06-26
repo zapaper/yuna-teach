@@ -1,147 +1,121 @@
 {
   "patterns": [
     {
-      "name": "Phrasal Verbs Mix-Up",
-      "what": "Tends to confuse phrasal verbs that look very similar but have completely different meanings.",
-      "specific_examples": [
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'taken off' instead of 'taken in' for being tricked by a magician."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'set off' instead of 'set in' when describing fatigue starting to happen."
-        }
-      ],
-      "strategic_advice": "When you see a verb followed by a small word like **'in'**, **'off'**, or **'up'**, treat it as a single new word.\n- Try replacing the phrase with a simple action word (like 'tricked' for 'taken in') to see if it fits the story.",
-      "trigger_keywords": [
-        "taken",
-        "set",
-        "up",
-        "in",
-        "off"
-      ]
-    },
-    {
-      "name": "Missing Sentence Clues",
-      "what": "Sometimes picks a vocabulary word that contradicts the helpful hints given in the rest of the sentence.",
+      "name": "Missing the Clue Words",
+      "what": "angyunshanariel occasionally picks a vocabulary word that means the opposite of what the sentence needs because she misses the surrounding hint words.",
       "specific_examples": [
         {
           "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'meager' (small) even though the sentence warned about 'lots of leftovers and wastage'."
+          "whatWentWrong": "She chose 'meager' (small) for a feast, but the clue 'lots of leftovers' tells us the feast was actually 'lavish' (huge)."
         },
         {
-          "questionRef": "[9]",
+          "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'proposed' instead of 'anticipated' for a delay caused by a sudden flashflood."
+          "whatWentWrong": "She picked 'negligible' (tiny) for spending, but the clue 'financial difficulties' means the spending was 'extravagant' (too much)."
         },
         {
-          "questionRef": "[3]",
+          "questionRef": "[25]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'indignant' instead of 'tenacious' despite the clear clue that the opponent was 'never giving up'."
+          "whatWentWrong": "She selected 'proposed' (suggested on purpose) for a delay, but the clue 'due to the flashflood' means the delay was 'expected' naturally."
         }
       ],
-      "strategic_advice": "When you see a blank, look for the **'because'** or **'due to'** part of the sentence.\n- Highlight the clue words (like 'leftovers' or 'never giving up') before choosing your answer.\n- Check if your chosen word matches the feeling of those clues!",
+      "strategic_advice": "When you see a blank in a vocabulary question, look for the **story clues** in the rest of the sentence. Treat it like a detective game:\n- If there are **'leftovers'**, the feast must be big!\n- If there are **'financial difficulties'**, the spending must be huge!\n- Always double-check if your chosen word matches the **cause and effect** in the sentence.",
       "trigger_keywords": [
-        "because",
         "due to",
-        "after",
-        "since"
+        "lots of leftovers",
+        "financial difficulties"
       ]
     },
     {
-      "name": "Which vs Whose Confusion",
-      "what": "Occasionally mixes up 'which' and 'whose' when describing a part that belongs to an object.",
+      "name": "Phrasal Verb Mix-Up",
+      "what": "angyunshanariel sometimes confuses phrasal verbs that share the same starting action word but end with different prepositions.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'taken off' instead of 'taken in' to describe being fooled by a magician's trick."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'set off' instead of 'set in' to describe fatigue starting to happen after a marathon."
+        }
+      ],
+      "strategic_advice": "Phrasal verbs can be tricky because changing one small word changes the whole meaning! When you see options starting with the same verb (like **'taken'** or **'set'**):\n- Read the whole sentence quietly to yourself with each option.\n- Think about whether the preposition (like 'in', 'off', or 'down') makes sense for the specific situation.",
+      "trigger_keywords": [
+        "taken",
+        "set"
+      ]
+    },
+    {
+      "name": "Relative Pronoun Confusion",
+      "what": "angyunshanariel sometimes mixes up 'which' and 'whose' when describing something that belongs to an object.",
       "specific_examples": [
         {
           "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'which' instead of 'whose' when talking about the windows that belonged to the old house."
+          "whatWentWrong": "She chose 'which' instead of 'whose' to connect the old house to its broken windows."
         },
         {
           "questionRef": "[22]",
           "type": "mcq",
-          "whatWentWrong": "angyunshanariel made the same slip with the old house's broken windows."
+          "whatWentWrong": "She made the same slip here, missing that 'whose' is needed to show the windows belong to the house."
         }
       ],
-      "strategic_advice": "When you see a blank right after a noun (like 'house'), check the very next word.\n- If it's something that belongs to the noun (like 'windows'), use **'whose'**.\n- If it's an action or a description, use **'which'**.",
+      "strategic_advice": "When you see a blank right after a noun (like 'house') and right before something that belongs to it (like 'windows'), use **'whose'** to show ownership. Remember, **'whose'** isn't just for people—it works for objects too!",
       "trigger_keywords": [
-        ", which",
-        ", whose",
-        ", who",
-        ", whom"
-      ]
-    },
-    {
-      "name": "Word Partnership Slips",
-      "what": "Sometimes chooses a word that makes logical sense but isn't the natural pairing usually used in English.",
-      "specific_examples": [
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel picked 'waived' instead of the correct English phrase 'stripped of' for losing a medal."
-        },
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "angyunshanariel chose 'promoted' instead of 'raised' when talking about boosting the class's morale."
-        }
-      ],
-      "strategic_advice": "When two words seem to fit the meaning perfectly, read the sentence aloud with each option.\n- Often, your ears will catch the **natural pairing** (like 'raised morale' or 'stripped of').\n- Pay special attention to the little prepositions (like **'of'**) that come right after the blank!",
-      "trigger_keywords": [
-        "of",
-        "morale",
-        "medal"
+        "house",
+        "windows",
+        "which",
+        "whose"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 8,
-      "patternIndex": 0
-    },
-    {
-      "idx": 9,
       "patternIndex": 1
     },
     {
-      "idx": 10,
+      "idx": 9,
       "patternIndex": 0
     },
     {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 12,
@@ -153,11 +127,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -165,19 +139,19 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 21,
@@ -193,11 +167,11 @@
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -227,7 +201,7 @@
     "24": "cmpnv0sie001mu9v1sg5isrw5",
     "25": "cmpnv0sie001pu9v1g4ewles8"
   },
-  "generatedAt": "2026-06-17T09:08:13.310Z",
+  "generatedAt": "2026-06-26T09:24:58.226Z",
   "wrongCounts": {
     "total": 25,
     "oeq": 0,
@@ -239,5 +213,24 @@
     "totalAvailable": 102,
     "paperCount": 14
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:08:13.310Z",
+    "patternNames": [
+      "Phrasal Verbs Mix-Up",
+      "Missing Sentence Clues",
+      "Which vs Whose Confusion",
+      "Word Partnership Slips"
+    ],
+    "wrongCounts": {
+      "total": 25,
+      "oeq": 0,
+      "mcq": 25
+    },
+    "toplineSnapshot": {
+      "avgPct": 68,
+      "totalAwarded": 69,
+      "totalAvailable": 102,
+      "paperCount": 14
+    }
+  }
 }

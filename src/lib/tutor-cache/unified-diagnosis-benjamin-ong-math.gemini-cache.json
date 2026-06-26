@@ -1,26 +1,54 @@
 {
   "patterns": [
     {
-      "name": "One Step Short",
-      "what": "Stops one step short occasionally after doing the hard work to find an important middle number, missing the final question asked.",
+      "name": "Forgotten Units",
+      "what": "Sometimes forgets to write the final unit (like $ or %), or misses a required conversion (like cents to dollars) before finishing the problem.",
       "specific_examples": [
         {
-          "questionRef": "[12]",
+          "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "Benjamin correctly calculated the amount of paint used, but the question asked for the amount of paint left."
+          "whatWentWrong": "He correctly set up the algebra but forgot to convert the cents into dollars to match the options."
         },
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "He did a great job finding the area but accidentally wrote the final unit as volume (cm³) instead of area (cm²)."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "oeq",
+          "whatWentWrong": "He calculated the correct number but forgot to write the percentage symbol at the end."
+        }
+      ],
+      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'Give your answer in terms of'** → check if you need to convert cents to dollars or cm to m.\n- **'How much'** or **'What percentage'** → always write the $ or % symbol on your final answer line.",
+      "trigger_keywords": [
+        "Give your answer in terms of",
+        "How much",
+        "What percentage",
+        "litres"
+      ]
+    },
+    {
+      "name": "One Step Short",
+      "what": "Often does the hard work to find an important middle value, but occasionally stops before answering the final question asked.",
+      "specific_examples": [
         {
           "questionRef": "[19]",
           "type": "mcq",
-          "whatWentWrong": "Benjamin successfully found the curved length of the semicircle, but forgot to add the straight diameter to find the total perimeter."
+          "whatWentWrong": "He correctly found the curved length of the semicircle but forgot to add the straight line to find the full perimeter."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He successfully calculated the amount of paint used, but the question asked for the amount of paint left."
         },
         {
           "questionRef": "[39]",
           "type": "oeq",
-          "whatWentWrong": "Benjamin brilliantly found the original savings, but stopped before adding the spending back to find the total allowance."
+          "whatWentWrong": "He did the heavy lifting to find the original savings, but stopped before adding the spending to find the total allowance."
         }
       ],
-      "strategic_advice": "Before writing down your final answer, re-read the last sentence of the question.\n- Ask yourself: **'Did I answer what they are asking for?'**\n- For perimeter questions, trace the outside of the shape with your pencil to make sure you haven't missed any straight lines.",
+      "strategic_advice": "When you reach your final number, re-read the last sentence of the question.\n- **'left with'** or **'remaining'** → subtract your answer from the total.\n- **'perimeter'** → check if you need to add any straight lines to your curved shape.\n- **'total'** → make sure you have added all the parts together.",
       "trigger_keywords": [
         "left with",
         "perimeter",
@@ -29,52 +57,25 @@
       ]
     },
     {
-      "name": "Unit Mix-Ups",
-      "what": "Leaves out final units like '$' or '%' occasionally, or misses a required conversion between units like cents and dollars.",
-      "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "Benjamin wrote the algebra expression using cents, but the options were all in dollars, which requires dividing by 100."
-        },
-        {
-          "questionRef": "[6]",
-          "type": "oeq",
-          "whatWentWrong": "Benjamin correctly found the volume in cubic centimetres, but the water flow rate was in litres, so a conversion was needed."
-        },
-        {
-          "questionRef": "[40]",
-          "type": "oeq",
-          "whatWentWrong": "Benjamin calculated the correct GST amount of 16, but forgot to include the dollar sign in the final answer."
-        }
-      ],
-      "strategic_advice": "Always check the units given in the question and the units required for the answer.\n- If a question mentions **'cents'** but asks for **'dollars'**, remember to divide by 100.\n- If a question mentions **'cm³'** and **'litres'**, convert your volume to litres before dividing.\n- Always write down your final units like **'$'** or **'%'** so you don't lose easy marks!",
-      "trigger_keywords": [
-        "in terms of",
-        "litres",
-        "how much",
-        "percentage"
-      ]
-    },
-    {
-      "name": "Fraction Total Mix-Up",
-      "what": "Mixes up which number to use as the bottom of a fraction sometimes, using the overall total or the leftover amount instead of the specific group asked for.",
+      "name": "Wrong Total Used",
+      "what": "Sometimes uses the wrong starting number when building a fraction, such as using the leftover amount instead of the original total as the bottom number.",
       "specific_examples": [
         {
           "questionRef": "[26]",
           "type": "mcq",
-          "whatWentWrong": "When asked for savings as a fraction of expenditure, Benjamin used the total money as the bottom number instead of the expenditure."
+          "whatWentWrong": "He was asked for the fraction of expenditure, but he used the total money as the bottom number instead of the money spent."
         },
         {
           "questionRef": "[36]",
           "type": "oeq",
-          "whatWentWrong": "When asked for the fraction of red pens sold, Benjamin used the remaining red pens as the bottom number instead of the original total."
+          "whatWentWrong": "He correctly found the number of red pens left, but used that as the bottom of his fraction instead of the original number of red pens."
         }
       ],
-      "strategic_advice": "When you see **'fraction of'** or **'percentage of'**, circle the words that come immediately after it.\n- If it says **'fraction of his expenditure'**, the expenditure must be your bottom number.\n- If it says **'fraction of the red pens'**, the original number of red pens is your bottom number.",
+      "strategic_advice": "When a question asks for a **'fraction of'** something, the word right after 'of' tells you what the bottom number (the whole) should be.\n- **'fraction of his expenditure'** → the bottom number must be the money spent.\n- **'fraction of the red pens'** → the bottom number must be the starting number of red pens.",
       "trigger_keywords": [
         "fraction of",
-        "percentage of"
+        "percentage of",
+        "of the remaining"
       ]
     }
   ],
@@ -97,15 +98,15 @@
     },
     {
       "idx": 5,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 6,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 7,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 8,
@@ -121,15 +122,15 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -137,7 +138,7 @@
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -153,7 +154,7 @@
     },
     {
       "idx": 19,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 20,
@@ -161,7 +162,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 22,
@@ -213,11 +214,11 @@
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 35,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 36,
@@ -225,7 +226,7 @@
     },
     {
       "idx": 37,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 38,
@@ -233,15 +234,15 @@
     },
     {
       "idx": 39,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 41,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 42,
@@ -249,7 +250,7 @@
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 44,
@@ -302,7 +303,7 @@
     "43": "cmopcaqx4008ovj1men7hidgb",
     "44": "cmopcaqx4008vvj1m9zym6f5x"
   },
-  "generatedAt": "2026-06-17T09:08:49.635Z",
+  "generatedAt": "2026-06-26T09:26:33.881Z",
   "wrongCounts": {
     "total": 44,
     "oeq": 28,
@@ -314,5 +315,23 @@
     "totalAvailable": 578,
     "paperCount": 22
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:08:49.635Z",
+    "patternNames": [
+      "One Step Short",
+      "Unit Mix-Ups",
+      "Fraction Total Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 44,
+      "oeq": 28,
+      "mcq": 16
+    },
+    "toplineSnapshot": {
+      "avgPct": 87,
+      "totalAwarded": 500.5,
+      "totalAvailable": 578,
+      "paperCount": 22
+    }
+  }
 }

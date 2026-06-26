@@ -1,74 +1,96 @@
 {
   "patterns": [
     {
-      "name": "Hidden 3D Blocks",
-      "what": "Sometimes misses the hidden blocks or faces that cannot be seen directly from the front when counting parts of a 3D shape.",
+      "name": "Wrong Total Mix-Up",
+      "what": "Sometimes divides by a smaller part of the group or the new leftover amount instead of the original total when finding fractions or percentages.",
       "specific_examples": [
         {
-          "questionRef": "[2]",
+          "questionRef": "[30]",
           "type": "mcq",
-          "whatWentWrong": "Counted the visible painted faces but missed some of the identical faces hidden on the back and bottom."
+          "whatWentWrong": "LohXY2014 calculated the fraction using the total money instead of just the expenditure as requested."
         },
         {
-          "questionRef": "[11]",
+          "questionRef": "[31]",
           "type": "mcq",
-          "whatWentWrong": "Counted the visible cubes but missed the hidden cube supporting the structure in the corner."
+          "whatWentWrong": "LohXY2014 found the percentage decrease using the leftover marbles instead of the starting amount."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 used the Saturday children count as the bottom number instead of the total Saturday participants."
         }
       ],
-      "strategic_advice": "When working with stacked blocks, remember that every block must be supported.\n- **For volume:** Count layer by layer (top to bottom) to make sure you include the hidden blocks underneath.\n- **For surface area:** Match opposite sides. The number of faces you see from the front is exactly the same as the hidden back!",
+      "strategic_advice": "When you see prompts asking for a fraction or percentage, treat them as stop signs:\n- **'fraction of his expenditure'** → the word after 'of' is your bottom number.\n- **'percentage decrease'** → always put the **original starting number** at the bottom, never the new leftover amount.",
       "trigger_keywords": [
-        "solid",
-        "surface area",
-        "1-cm cubes",
-        "volume"
+        "percentage increase",
+        "percentage decrease",
+        "fraction of",
+        "what percentage"
       ]
     },
     {
-      "name": "Wrong Total Mix-Up",
-      "what": "Occasionally mixes up which number to use as the bottom of a fraction or percentage, often using the grand total instead of the specific group asked for.",
+      "name": "Hidden 3D Blocks",
+      "what": "Occasionally forgets to count the cubes or faces that are tucked out of sight when looking at stacked 3D drawings.",
       "specific_examples": [
         {
-          "questionRef": "[20]",
+          "questionRef": "[12]",
           "type": "mcq",
-          "whatWentWrong": "Found the savings correctly, but compared it to his total money instead of his expenditure."
+          "whatWentWrong": "LohXY2014 missed the hidden back and bottom faces when finding the total painted surface area."
         },
         {
           "questionRef": "[21]",
           "type": "mcq",
-          "whatWentWrong": "Found the decrease correctly, but divided by the leftover marbles instead of the starting amount to find the percentage."
+          "whatWentWrong": "LohXY2014 counted the visible cubes but missed one hidden cube supporting the stack from behind."
         }
       ],
-      "strategic_advice": "When you see prompts asking for a fraction or percentage, treat them as stop signs:\n- **'fraction of his expenditure'** → the word after 'of' is your bottom number (denominator).\n- **'percentage decrease'** → always divide by the **original starting amount**, never the leftover.",
+      "strategic_advice": "When counting blocks in a 3D stack, write the number of blocks in each column directly on top of the drawing. For surface area, remember to count the **bottom faces** touching the ground and the **back faces** hidden from view—they usually match the top and front!",
       "trigger_keywords": [
-        "fraction of",
-        "percentage decrease",
-        "ratio of"
+        "volume of the solid",
+        "surface area",
+        "1-cm cubes glued together"
       ]
     },
     {
-      "name": "One Step Short",
-      "what": "Sometimes does the hard work to find a middle step, but stops just before answering the final question asked.",
+      "name": "Symmetry Lines",
+      "what": "Tends to find it tricky to picture whether a shape will match up perfectly when folded along a line.",
       "specific_examples": [
         {
-          "questionRef": "[18]",
+          "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Successfully calculated the amount of paint used, but forgot to subtract it to find the amount left."
+          "whatWentWrong": "LohXY2014 chose a zigzag shape that would overlap unevenly instead of matching perfectly when folded."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[15]",
           "type": "mcq",
-          "whatWentWrong": "Found the carpeted area for the bedroom, but forgot to add the living room's carpet before making the final ratio."
-        },
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "Found the total cost of the stamps in cents, but forgot the final step of dividing by 100 to convert it to dollars."
+          "whatWentWrong": "LohXY2014 picked an unbalanced shape instead of the 'L' shape that folds perfectly across the corner."
         }
       ],
-      "strategic_advice": "You are doing the math correctly! To catch that final step, try the **'Double Read'** trick:\n- Read the question once to make your plan.\n- Do your calculations.\n- **Read the last sentence one more time** before picking your answer to make sure you are answering exactly what was asked (like 'left with' instead of 'used').",
+      "strategic_advice": "When checking for symmetry, don't just look at the overall shape. Pick one specific corner or shaded block and draw a line straight across the fold to see exactly where it lands. If it lands on an empty space, the line is not a line of symmetry.",
       "trigger_keywords": [
-        "left with",
-        "total",
+        "line of symmetry",
+        "folded along the dotted line"
+      ]
+    },
+    {
+      "name": "Cents and Dollars Mix-Up",
+      "what": "Sometimes forgets to divide by 100 when changing an answer from cents back into dollars.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 calculated the cost correctly but mixed up 50 cents with 5 cents."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 found the correct total in cents but forgot to divide by 100 to match the dollar sign in the options."
+        }
+      ],
+      "strategic_advice": "When a question mixes dollars ($) and cents (¢), change everything to cents first so you don't have to work with decimals. But before you pick your final answer, check the **units in the options**—if they have a dollar sign, remember to **divide by 100**!",
+      "trigger_keywords": [
+        "twenty-cent",
+        "fifty-cent",
+        "cost of each",
         "in terms of"
       ]
     }
@@ -80,19 +102,19 @@
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 4,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 6,
@@ -108,31 +130,31 @@
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 16,
@@ -140,11 +162,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 19,
@@ -152,47 +174,115 @@
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 21,
       "patternIndex": 1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqgn1syq006p1171ln00rsqx",
-    "2": "cmqgn1syt006s11710htpwzm6",
-    "3": "cmqf70ysz0039qs2gz5fgg4ol",
-    "4": "cmqf70ysz003bqs2g52ev1se6",
-    "5": "cmqf70yt0003gqs2g83w207z0",
-    "6": "cmqf70yt0003iqs2g86prljur",
-    "7": "cmqf70yt0003jqs2gutj8gjj7",
-    "8": "cmqacb6q60003l19rs45rcnxa",
-    "9": "cmqacb6q7000al19riwgbqos5",
-    "10": "cmqacb6q7000cl19rbedhh966",
-    "11": "cmqacb6qa000il19rgwtaidgv",
-    "12": "cmqacb6qa000kl19r50lkbh8u",
-    "13": "cmq691km50008oedelbnyy9pk",
-    "14": "cmq691km5000eoedesmx3uhvc",
-    "15": "cmpuqfgdm000612lty8mktala",
-    "16": "cmpuqfgdm000712lt5a5flg5o",
-    "17": "cmpuqfgdm000812lt4g691qzs",
-    "18": "cmpuqfgdn000b12ltmtvabr0e",
-    "19": "cmpuqfgdn000f12ltuvtjworf",
-    "20": "cmpuqfgdn000h12ltq3yutj96",
-    "21": "cmpuqfgdn000i12lti80bc76g"
+    "1": "cmqq1kbws00eh13p0801cgbx6",
+    "2": "cmqq1kbwt00ej13p0f5z7obsq",
+    "3": "cmqq1kbwt00eo13p08ekdaetr",
+    "4": "cmqi16tle00acl16irawn3r0u",
+    "5": "cmqi16tle00adl16iplipyb2q",
+    "6": "cmqi16tle00ael16i2pgt24id",
+    "7": "cmqi16tle00ahl16ilrenx77q",
+    "8": "cmqi16tlf00akl16i6kuhsd4i",
+    "9": "cmqi16tlf00all16i527sib1a",
+    "10": "cmqi16tlf00anl16ivkoc12m3",
+    "11": "cmqgn1syq006p1171ln00rsqx",
+    "12": "cmqgn1syt006s11710htpwzm6",
+    "13": "cmqf70ysz0039qs2gz5fgg4ol",
+    "14": "cmqf70ysz003bqs2g52ev1se6",
+    "15": "cmqf70yt0003gqs2g83w207z0",
+    "16": "cmqf70yt0003iqs2g86prljur",
+    "17": "cmqf70yt0003jqs2gutj8gjj7",
+    "18": "cmqacb6q60003l19rs45rcnxa",
+    "19": "cmqacb6q7000al19riwgbqos5",
+    "20": "cmqacb6q7000cl19rbedhh966",
+    "21": "cmqacb6qa000il19rgwtaidgv",
+    "22": "cmqacb6qa000kl19r50lkbh8u",
+    "23": "cmq691km50008oedelbnyy9pk",
+    "24": "cmq691km5000eoedesmx3uhvc",
+    "25": "cmpuqfgdm000612lty8mktala",
+    "26": "cmpuqfgdm000712lt5a5flg5o",
+    "27": "cmpuqfgdm000812lt4g691qzs",
+    "28": "cmpuqfgdn000b12ltmtvabr0e",
+    "29": "cmpuqfgdn000f12ltuvtjworf",
+    "30": "cmpuqfgdn000h12ltq3yutj96",
+    "31": "cmpuqfgdn000i12lti80bc76g"
   },
-  "generatedAt": "2026-06-17T09:27:15.002Z",
+  "generatedAt": "2026-06-26T09:41:00.248Z",
   "wrongCounts": {
-    "total": 21,
+    "total": 31,
     "oeq": 0,
-    "mcq": 21
+    "mcq": 31
   },
   "toplineSnapshot": {
-    "avgPct": 75,
-    "totalAwarded": 124,
-    "totalAvailable": 166,
-    "paperCount": 5
+    "avgPct": 73,
+    "totalAwarded": 164,
+    "totalAvailable": 224,
+    "paperCount": 7
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:27:15.002Z",
+    "patternNames": [
+      "Hidden 3D Blocks",
+      "Wrong Total Mix-Up",
+      "One Step Short"
+    ],
+    "wrongCounts": {
+      "total": 21,
+      "oeq": 0,
+      "mcq": 21
+    },
+    "toplineSnapshot": {
+      "avgPct": 75,
+      "totalAwarded": 124,
+      "totalAvailable": 166,
+      "paperCount": 5
+    }
+  }
 }

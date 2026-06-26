@@ -1,92 +1,102 @@
 {
   "patterns": [
     {
-      "name": "Subject-Verb Agreement Mix-Up",
-      "what": "Sometimes confuses whether to use a singular or plural verb, especially when the subject is a group of people or things.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Sometimes mixes up singular and plural verbs, adding an 's' when it is not needed or leaving it out when it is.",
       "specific_examples": [
         {
-          "questionRef": "[40]",
+          "questionRef": "[30]",
+          "type": "oeq",
+          "whatWentWrong": "He chose 'read' instead of 'reads' for a singular subject like 'Mr Tan'."
+        },
+        {
+          "questionRef": "[67]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 picked 'was' instead of 'were' for the plural subject 'My cousins and I'."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "LohZR-P4 wrote 'MAKES' instead of 'make' for the plural subject 'His special toppings'."
-        },
-        {
-          "questionRef": "[18]",
-          "type": "oeq",
-          "whatWentWrong": "LohZR-P4 wrote 'creates' instead of 'create' for the plural subject 'Thousands of lights'."
+          "whatWentWrong": "He picked 'was' instead of 'were' for the plural subject 'My cousins and I'."
         }
       ],
-      "strategic_advice": "When you see a verb question, first find the **'doer'** (the subject) of the action.\n- Ask yourself: 'Is there **one** doer or **more than one**?'\n- Remember the rule: **Singular subjects** (he, she, it, Mr Tan) take verbs with an 's' (reads, makes). **Plural subjects** (they, we, toppings, lights) take verbs without an 's' (read, make).\n- Watch out for the pronoun **'you'** — it always takes a plural verb (e.g., 'you remove', not 'you removes').",
+      "strategic_advice": "When you see a verb choice in brackets, always find the **'doer'** of the action first.\n- If the doer is **one person or thing** (like 'Mr Tan' or 'the anglerfish'), the verb usually needs an **'s'**.\n- If the doer is **more than one** (like 'they' or 'my cousins and I'), the verb does **not** need an 's'.",
       "trigger_keywords": [
         "is / are",
         "was / were",
-        "do / does",
-        "creates / create"
+        "read / reads",
+        "repair / repairs"
       ]
     },
     {
-      "name": "Missing Context Clues",
-      "what": "Occasionally picks a vocabulary word that contradicts the physical actions or descriptions given in the sentence.",
+      "name": "Word Meaning Mix-Up",
+      "what": "Occasionally picks a word that is related to the topic but does not quite match the specific action or intensity described in the sentence.",
       "specific_examples": [
         {
-          "questionRef": "[43]",
+          "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 picked 'pouring' for a leaking tap, missing the clue that it was a 'slow stream' (which means 'trickling')."
+          "whatWentWrong": "He chose 'swell' instead of 'slosh' to describe the big, noisy splash of water when children jump into a pool."
         },
         {
-          "questionRef": "[37]",
+          "questionRef": "[69]",
           "type": "mcq",
-          "whatWentWrong": "LohZR-P4 picked 'stomped' for a hunting lion, missing the clue that it was 'ready to pounce' and needed to be quiet ('prowled')."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "mcq",
-          "whatWentWrong": "LohZR-P4 picked 'trickle' when children 'jumped into the pool', missing that a big jump causes water to 'splash'."
+          "whatWentWrong": "He picked 'manage' instead of 'handle' when talking about holding a delicate physical object like a vase."
         }
       ],
-      "strategic_advice": "Treat vocabulary questions like a detective game by looking for **descriptive clue words** in the sentence before looking at the options.\n- If the sentence describes something slow or small (like a **'slow stream'**), cross out words that mean fast or big (like 'pouring').\n- If the sentence describes a big, noisy action (like **'jumped into the pool'**), look for a word that matches that energy (like 'splash' or 'slosh').",
+      "strategic_advice": "When choosing a vocabulary word, look for **hidden clues** in the sentence that tell you exactly how an action happens.\n- For example, if the sentence mentions a 'leaking tap' and a 'slow stream', look for a gentle word like **'trickling'** rather than 'pouring'.\n- Try plugging your chosen word into the sentence and imagine the action in your head to see if it fits perfectly.",
       "trigger_keywords": [
-        "slow stream",
-        "jumped into",
-        "ready to pounce",
-        "well-built"
+        "Vocabulary MCQ",
+        "Fill each blank with a suitable word"
+      ]
+    },
+    {
+      "name": "Tricky Spelling Slips",
+      "what": "Tends to misspell longer words in the editing section, sometimes swapping letters or adding extra vowels.",
+      "specific_examples": [
+        {
+          "questionRef": "[33]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'interesting' as 'intresting', missing the 'e' in the middle."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled 'beautiful' as 'bueatyful', mixing up the order of the vowels."
+        },
+        {
+          "questionRef": "[32]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled the plural of 'storey' as 'storees' or 'storeyes' instead of 'storeys'."
+        }
+      ],
+      "strategic_advice": "When you spot a spelling mistake in the editing passage, break the word down into **smaller syllables** before writing it out.\n- For example, say 'in-ter-est-ing' or 'beau-ti-ful' quietly to yourself to make sure you don't miss any letters.\n- Double-check words that end in 'y' to see if you need to change the 'y' to 'i' or just add an 's'.",
+      "trigger_keywords": [
+        "Editing",
+        "spelling"
       ]
     },
     {
       "name": "Pronoun Mix-Up",
-      "what": "Tends to mix up which pronoun to use when referring back to a specific person, group, or object in the story.",
+      "what": "Sometimes confuses which pointing word or pronoun to use when referring back to an object, person, or group.",
       "specific_examples": [
         {
-          "questionRef": "[44]",
+          "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "LohZR-P4 wrote 'her' instead of 'it' when referring to the 'model of the solar system'."
+          "whatWentWrong": "He used 'his' instead of 'it' to refer to a football flying through the air."
         },
         {
-          "questionRef": "[45]",
-          "type": "oeq",
-          "whatWentWrong": "LohZR-P4 wrote 'he' instead of 'her' when referring to Emma's group members."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "LohZR-P4 wrote 'us' instead of 'me' when the sentence started with 'I found the trip fun... as it helped ___'."
+          "questionRef": "[48]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'Those' instead of 'That' when pointing to a single bird flying high in the sky."
         }
       ],
-      "strategic_advice": "When filling in a pronoun, draw a line back to the **exact person or thing** it is replacing.\n- Ask yourself: 'Is this a boy (he/him), a girl (she/her), a thing (it), or a group (they/them/us)?'\n- Pay attention to the **point of view** in the sentence. If the sentence says '**I** found the trip fun', the matching pronoun is '**me**'.",
+      "strategic_advice": "When you need to fill in a pronoun, draw a line back to the **exact noun** it is replacing.\n- Ask yourself: Is it a person or an object? Is it **singular** (one) or **plural** (more than one)?\n- If it is a single object like a ball, use **'it'**. If it is a single object far away, use **'that'**.",
       "trigger_keywords": [
-        "he / her / it / their / they",
-        "me / us / them"
+        "Grammar Cloze",
+        "this / that / these / those",
+        "he / she / it / they"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 2,
@@ -94,39 +104,39 @@
     },
     {
       "idx": 3,
-      "patternIndex": 0
-    },
-    {
-      "idx": 4,
-      "patternIndex": 0
-    },
-    {
-      "idx": 5,
-      "patternIndex": -1
-    },
-    {
-      "idx": 6,
-      "patternIndex": -1
-    },
-    {
-      "idx": 7,
-      "patternIndex": -1
-    },
-    {
-      "idx": 8,
       "patternIndex": 1
     },
     {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 10,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": 3
     },
     {
       "idx": 12,
@@ -138,7 +148,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 15,
@@ -146,19 +156,19 @@
     },
     {
       "idx": 16,
-      "patternIndex": -1
-    },
-    {
-      "idx": 17,
-      "patternIndex": -1
-    },
-    {
-      "idx": 18,
       "patternIndex": 0
     },
     {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
       "idx": 19,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 20,
@@ -166,15 +176,15 @@
     },
     {
       "idx": 21,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 22,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 23,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 24,
@@ -182,27 +192,27 @@
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 26,
-      "patternIndex": 1
-    },
-    {
-      "idx": 27,
-      "patternIndex": 2
-    },
-    {
-      "idx": 28,
       "patternIndex": 0
     },
     {
-      "idx": 29,
+      "idx": 27,
       "patternIndex": -1
     },
     {
+      "idx": 28,
+      "patternIndex": 2
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
       "idx": 30,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 31,
@@ -210,39 +220,39 @@
     },
     {
       "idx": 32,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 33,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 34,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 35,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 37,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 39,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 40,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 41,
@@ -250,11 +260,11 @@
     },
     {
       "idx": 42,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 43,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 44,
@@ -262,77 +272,230 @@
     },
     {
       "idx": 45,
-      "patternIndex": 2
-    },
-    {
-      "idx": 46,
       "patternIndex": 0
     },
     {
+      "idx": 46,
+      "patternIndex": 2
+    },
+    {
       "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 3
+    },
+    {
+      "idx": 49,
+      "patternIndex": 0
+    },
+    {
+      "idx": 50,
+      "patternIndex": 0
+    },
+    {
+      "idx": 51,
+      "patternIndex": -1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 3
+    },
+    {
+      "idx": 55,
+      "patternIndex": 0
+    },
+    {
+      "idx": 56,
+      "patternIndex": 2
+    },
+    {
+      "idx": 57,
+      "patternIndex": 2
+    },
+    {
+      "idx": 58,
+      "patternIndex": 0
+    },
+    {
+      "idx": 59,
+      "patternIndex": 2
+    },
+    {
+      "idx": 60,
+      "patternIndex": 1
+    },
+    {
+      "idx": 61,
+      "patternIndex": 1
+    },
+    {
+      "idx": 62,
+      "patternIndex": 0
+    },
+    {
+      "idx": 63,
+      "patternIndex": 1
+    },
+    {
+      "idx": 64,
+      "patternIndex": 1
+    },
+    {
+      "idx": 65,
+      "patternIndex": 1
+    },
+    {
+      "idx": 66,
+      "patternIndex": -1
+    },
+    {
+      "idx": 67,
+      "patternIndex": 0
+    },
+    {
+      "idx": 68,
+      "patternIndex": 1
+    },
+    {
+      "idx": 69,
+      "patternIndex": 1
+    },
+    {
+      "idx": 70,
+      "patternIndex": 1
+    },
+    {
+      "idx": 71,
+      "patternIndex": 3
+    },
+    {
+      "idx": 72,
+      "patternIndex": 3
+    },
+    {
+      "idx": 73,
+      "patternIndex": 0
+    },
+    {
+      "idx": 74,
       "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqi1vwn800038tbri28oilmq",
-    "2": "cmqi1vwn9000c8tbrb33omwao",
-    "3": "cmqi1vwn9000h8tbr15j40amg",
-    "4": "cmqi1vwn9000k8tbryvhqfgyx",
-    "5": "cmqi1vwn9000l8tbr4fkv9dyz",
-    "6": "cmqi1vwn9000n8tbr3dvqqs15",
-    "7": "cmqi1vwn9000p8tbrwgsat90s",
-    "8": "cmqgnv93t008l11712hw1sofr",
-    "9": "cmqgnv93u008t1171iccf3npd",
-    "10": "cmqgnv93u008u11712c1nk77t",
-    "11": "cmqgnv93u008v11716n98y9na",
-    "12": "cmqgnv93u008x1171clf0fd60",
-    "13": "cmqf72qsy003tqs2g5yqlsh9l",
-    "14": "cmqf72qsy003xqs2g5on2m3v9",
-    "15": "cmqf72qsy0042qs2gmv38cc8x",
-    "16": "cmqf72qsz0046qs2gicyhh4nu",
-    "17": "cmqf72qsz0048qs2glwa5gkqj",
-    "18": "cmqf72qsz0049qs2gefpaubql",
-    "19": "cmqf72qsz004aqs2gzr9pn69z",
-    "20": "cmq4vsu4c0002v1ra1tbmbz1n",
-    "21": "cmq4vsu4c0005v1ra8sohc5b3",
-    "22": "cmq4vsu4c000gv1rahv3itcqt",
-    "23": "cmq4vsu4c000jv1ra43d95iej",
-    "24": "cmq694htc002hoede9q6l8oz7",
-    "25": "cmq694htc002joede7gcttc8v",
-    "26": "cmq694htc002noedecyanrajr",
-    "27": "cmq694htc002roedebeusxt7t",
-    "28": "cmq694htc002voedex441issl",
-    "29": "cmq694htc002woedema47a8oy",
-    "30": "cmq694htc002yoedej5u2ppwm",
-    "31": "cmq694htc002zoedevpd6rz9r",
-    "32": "cmq694htc0030oedecnmq7gyn",
-    "33": "cmq694htd0032oedeg4u6s0fi",
-    "34": "cmq694htd0034oedeow66ypta",
-    "35": "cmq4xa86u000gapq2ivbkyihw",
-    "36": "cmq4xa86u000kapq2s5wlnpd4",
-    "37": "cmq63jk52006leykw5gt2vws1",
-    "38": "cmq63jk52006neykw91e94dtd",
-    "39": "cmq4xa15h0002apq28yg6laxc",
-    "40": "cmq4xa15h0003apq217xu8942",
-    "41": "cmq4xa15h0007apq219ov5bwj",
-    "42": "cmq4xa15h0009apq2qf9h7un5",
-    "43": "cmq4xa15i000bapq2tlckv853",
-    "44": "cmq09l1dw006xptoezwjjcp6y",
-    "45": "cmq09l1dw006yptoetlvwjgpi",
-    "46": "cmq09l1dw0072ptoec1825g65",
-    "47": "cmq09l1dw0074ptoezpn622jt"
+    "1": "cmqthagcn006d8lhmjq4l8ye8",
+    "2": "cmqthagcn006f8lhmg6bi45px",
+    "3": "cmqthagcn006g8lhmth2ccvgj",
+    "4": "cmqthagco006k8lhm8ne3sep2",
+    "5": "cmqthagco006p8lhmweq3rw11",
+    "6": "cmqthagcp006z8lhmwvicu1yk",
+    "7": "cmqthagcp00708lhmk6z3wb9a",
+    "8": "cmqthagcp00718lhmhbi02qr1",
+    "9": "cmqthagcp00728lhmb9qkjflx",
+    "10": "cmqthagcp00738lhmu2krbwz7",
+    "11": "cmqqmygpy001213rfyipr8jxg",
+    "12": "cmqqmygpy001313rf4owhlhhl",
+    "13": "cmqqmygpz001713rfbmo6c61p",
+    "14": "cmqqmygpz001f13rfxubtpwh7",
+    "15": "cmqqmygpz001k13rftlzwovd9",
+    "16": "cmqqmygpz001l13rfmiwdx5s3",
+    "17": "cmqqmygpz001n13rfaahlepfn",
+    "18": "cmqqmygq0001r13rft9g4xnrx",
+    "19": "cmqqmygq0001s13rfy3lfoxfl",
+    "20": "cmqq1fxs600bi13p007xbo8j4",
+    "21": "cmqq1fxs600bj13p06301z6mo",
+    "22": "cmqq1fxs600bo13p004zbtfmy",
+    "23": "cmqq1fxs600bp13p0svp338df",
+    "24": "cmqq1fxs600bq13p0wt3ebe6a",
+    "25": "cmqq1fxs600br13p02qeqpr59",
+    "26": "cmqq1fxs700bx13p0dpat40wu",
+    "27": "cmqq1fxs700c213p01xboy587",
+    "28": "cmqq1fxs700c313p088cj719b",
+    "29": "cmqi1vwn9000c8tbrb33omwao",
+    "30": "cmqi1vwn9000h8tbr15j40amg",
+    "31": "cmqi1vwn9000k8tbryvhqfgyx",
+    "32": "cmqi1vwn9000l8tbr4fkv9dyz",
+    "33": "cmqi1vwn9000n8tbr3dvqqs15",
+    "34": "cmqi1vwn9000p8tbrwgsat90s",
+    "35": "cmqgnv93t008l11712hw1sofr",
+    "36": "cmqgnv93u008t1171iccf3npd",
+    "37": "cmqgnv93u008u11712c1nk77t",
+    "38": "cmqgnv93u008v11716n98y9na",
+    "39": "cmqgnv93u008x1171clf0fd60",
+    "40": "cmqf72qsy003tqs2g5yqlsh9l",
+    "41": "cmqf72qsy003xqs2g5on2m3v9",
+    "42": "cmqf72qsy0042qs2gmv38cc8x",
+    "43": "cmqf72qsz0046qs2gicyhh4nu",
+    "44": "cmqf72qsz0048qs2glwa5gkqj",
+    "45": "cmqf72qsz0049qs2gefpaubql",
+    "46": "cmqf72qsz004aqs2gzr9pn69z",
+    "47": "cmq4vsu4c0002v1ra1tbmbz1n",
+    "48": "cmq4vsu4c0005v1ra8sohc5b3",
+    "49": "cmq4vsu4c000gv1rahv3itcqt",
+    "50": "cmq4vsu4c000jv1ra43d95iej",
+    "51": "cmq694htc002hoede9q6l8oz7",
+    "52": "cmq694htc002joede7gcttc8v",
+    "53": "cmq694htc002noedecyanrajr",
+    "54": "cmq694htc002roedebeusxt7t",
+    "55": "cmq694htc002voedex441issl",
+    "56": "cmq694htc002woedema47a8oy",
+    "57": "cmq694htc002yoedej5u2ppwm",
+    "58": "cmq694htc002zoedevpd6rz9r",
+    "59": "cmq694htc0030oedecnmq7gyn",
+    "60": "cmq694htd0032oedeg4u6s0fi",
+    "61": "cmq694htd0034oedeow66ypta",
+    "62": "cmq4xa86u000gapq2ivbkyihw",
+    "63": "cmq4xa86u000kapq2s5wlnpd4",
+    "64": "cmq63jk52006leykw5gt2vws1",
+    "65": "cmq63jk52006neykw91e94dtd",
+    "66": "cmq4xa15h0002apq28yg6laxc",
+    "67": "cmq4xa15h0003apq217xu8942",
+    "68": "cmq4xa15h0007apq219ov5bwj",
+    "69": "cmq4xa15h0009apq2qf9h7un5",
+    "70": "cmq4xa15i000bapq2tlckv853",
+    "71": "cmq09l1dw006xptoezwjjcp6y",
+    "72": "cmq09l1dw006yptoetlvwjgpi",
+    "73": "cmq09l1dw0072ptoec1825g65",
+    "74": "cmq09l1dw0074ptoezpn622jt"
   },
-  "generatedAt": "2026-06-19T02:36:28.157Z",
+  "generatedAt": "2026-06-26T09:41:04.552Z",
   "wrongCounts": {
-    "total": 47,
-    "oeq": 28,
-    "mcq": 19
+    "total": 74,
+    "oeq": 42,
+    "mcq": 32
   },
   "toplineSnapshot": {
-    "avgPct": 74,
-    "totalAwarded": 161,
-    "totalAvailable": 218,
-    "paperCount": 9
+    "avgPct": 72,
+    "totalAwarded": 238,
+    "totalAvailable": 330,
+    "paperCount": 12
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:36:28.157Z",
+    "patternNames": [
+      "Subject-Verb Agreement Mix-Up",
+      "Missing Context Clues",
+      "Pronoun Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 47,
+      "oeq": 28,
+      "mcq": 19
+    },
+    "toplineSnapshot": {
+      "avgPct": 74,
+      "totalAwarded": 161,
+      "totalAvailable": 218,
+      "paperCount": 9
+    }
+  }
 }

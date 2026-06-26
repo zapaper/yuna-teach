@@ -1,21 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Much vs Few Mix-Up",
-      "what": "Sometimes mixes up words used for things we can count (like 'few') with words for things we cannot count (like 'much').",
+      "name": "Much vs Many Mix-Up",
+      "what": "AL4 sometimes mixes up words used for things we can count (like apples) and things we cannot count (like juice).",
       "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "AL4 chose 'few' instead of 'much' for juice, which is a liquid we cannot count."
-        },
         {
           "questionRef": "[11]",
           "type": "mcq",
-          "whatWentWrong": "AL4 again picked 'few' for juice, showing a small mix-up with uncountable nouns."
+          "whatWentWrong": "He chose 'few' instead of 'much' for juice, which is an uncountable liquid."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He made the same slip with the word 'juice', forgetting that 'few' is only for things we can count."
         }
       ],
-      "strategic_advice": "When you see a quantity word, check if the noun can be counted.\n- If it's a liquid or a mass (like juice, sand, or time), use **much** or **a little**.\n- If you can count it (like apples or days), use **many** or **a few**.",
+      "strategic_advice": "When you see words describing amounts, check if the item can be counted:\n- **Can I count it?** (e.g., apples, friends) → use **'many'**, **'few'**, or **'several'**.\n- **Is it a liquid or powder?** (e.g., juice, sand) → use **'much'** or **'little'**.",
       "trigger_keywords": [
         "much",
         "many",
@@ -25,97 +25,95 @@
       ]
     },
     {
-      "name": "Small Spelling Slips",
-      "what": "Often finds the correct word or idea but occasionally loses marks due to small spelling mistakes or typos when writing it out.",
+      "name": "Tricky Word Choices",
+      "what": "AL4 occasionally chooses a word that has a similar meaning but doesn't quite fit the grammar or exact feeling of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'encouraged' instead of 'assured', missing that we say 'assured the class that' but 'encouraged the class to'."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'gleam' instead of 'glimmer', missing that 'glimmer' is better for a tiny, quick trace of emotion."
+        }
+      ],
+      "strategic_advice": "When two words seem to mean the same thing, look at the words right after the blank:\n- Check the **grammar**: does the word fit with **'that'** or **'to'**?\n- Check the **feeling**: is it a bright light (gleam) or a tiny feeling (glimmer)?",
+      "trigger_keywords": [
+        "encouraged",
+        "assured",
+        "gleam",
+        "glimmer",
+        "flash",
+        "burst"
+      ]
+    },
+    {
+      "name": "Quick Spelling Slips",
+      "what": "AL4 tends to make small spelling or typing mistakes when writing out answers, even when he knows the right word.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "AL4 knew the word was 'interesting' but accidentally spelled it as 'intersting'."
-        },
-        {
-          "questionRef": "[16]",
-          "type": "oeq",
-          "whatWentWrong": "AL4 had the right idea from the passage but wrote 'alway' instead of 'always'."
+          "whatWentWrong": "He missed an 'e' and wrote 'intersting' instead of 'interesting'."
         },
         {
           "questionRef": "[20]",
           "type": "oeq",
-          "whatWentWrong": "AL4 correctly identified the plural of 'storey' for buildings but spelled it as 'stories' like tales in a book."
+          "whatWentWrong": "He wrote 'stories' instead of 'storeys' for the floors of a building."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "He accidentally typed 'yaking' instead of 'taking'."
         }
       ],
-      "strategic_advice": "Always do a quick check of your written answers before moving on.\n- Read what you wrote backwards word-by-word to catch missing letters.\n- Watch out for tricky plurals like **'storeys'** (for buildings) versus **'stories'** (for books).",
+      "strategic_advice": "When writing out your answers, take a moment to double-check your spelling:\n- **Read it backwards** or sound it out syllable by syllable to catch missing letters.\n- Remember that floors of a building are spelled **'storeys'**, while tales in a book are **'stories'**.",
       "trigger_keywords": [
-        "correct the spelling",
+        "spelling",
         "editing",
         "write your answers"
       ]
     },
     {
-      "name": "Word Partner Mix-Up",
-      "what": "Sometimes chooses a vocabulary word that has a similar meaning but doesn't quite fit the grammar or the specific phrase being used.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "AL4 picked 'gleam' instead of 'glimmer', missing the specific phrase 'glimmer of excitement'."
-        },
-        {
-          "questionRef": "[21]",
-          "type": "mcq",
-          "whatWentWrong": "AL4 chose 'encouraged' instead of 'assured', but we say 'encouraged someone to do something', not 'encouraged someone that'."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "AL4 chose 'traced' instead of 'surveyed' to match the meaning of 'checked' in the passage."
-        }
-      ],
-      "strategic_advice": "When choosing a word, look at the words immediately before and after the blank.\n- For emotion phrases, remember specific pairs like a **'glimmer of excitement'** or a **'flash of fear'**.\n- Check the grammar clues: we say **'encouraged them to'** but **'assured them that'**.",
-      "trigger_keywords": [
-        "excitement",
-        "fear",
-        "that",
-        "same meaning as"
-      ]
-    },
-    {
-      "name": "Skipping Small Details",
-      "what": "Tends to read the passage a bit too quickly, which occasionally leads to missing a key word or leaving out the second half of an answer.",
+      "name": "Missing Small Clues",
+      "what": "AL4 sometimes reads the passage a bit too quickly and misses small but important clue words or extra details needed for the full answer.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "oeq",
-          "whatWentWrong": "AL4 marked the statement about repairing leaks as True, missing that the passage specifically said 'prevent leaks'."
+          "whatWentWrong": "He ticked True for 'repair leaks', missing that the passage actually said 'prevent leaks'."
         },
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "AL4 correctly noted that Ted asked questions, but stopped one step short and missed the second detail about doing extra practices."
+          "whatWentWrong": "He found one correct point about asking questions, but missed the second detail about doing extra practices daily."
         },
         {
-          "questionRef": "[7]",
+          "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "AL4 combined the sentences but missed including the word 'or' in the 'either... or' pair."
+          "whatWentWrong": "He missed that Mark's family only 'noticed' the leak, rather than 'reported' it."
         }
       ],
-      "strategic_advice": "Treat True/False and comprehension questions like a spot-the-difference game.\n- Compare the question's exact words with the passage (e.g., **'repair'** vs **'prevent'**).\n- If a question asks 'How', check if the character did more than one thing, and include **all the steps**.",
+      "strategic_advice": "When answering comprehension questions, treat the passage like a treasure map:\n- **Underline key words** in the question (like 'repair' or 'reported') and find their exact match in the passage.\n- For 2-mark questions, always look for a **second detail** or action connected by 'and' or 'also'.",
       "trigger_keywords": [
-        "True",
-        "False",
-        "How did",
-        "either"
+        "true",
+        "false",
+        "why",
+        "how",
+        "statement"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 2,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 3,
@@ -123,7 +121,7 @@
     },
     {
       "idx": 4,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 5,
@@ -135,7 +133,7 @@
     },
     {
       "idx": 7,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 8,
@@ -143,11 +141,11 @@
     },
     {
       "idx": 9,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 10,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 11,
@@ -163,7 +161,7 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 15,
@@ -171,7 +169,7 @@
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 17,
@@ -183,15 +181,15 @@
     },
     {
       "idx": 19,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 21,
-      "patternIndex": 2
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -217,7 +215,7 @@
     "20": "cmpjrugun00raeplm5ofo75ju",
     "21": "cmpjrthh300qveplmmha6pssm"
   },
-  "generatedAt": "2026-06-19T02:36:23.855Z",
+  "generatedAt": "2026-06-26T09:22:53.934Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 11,
@@ -229,5 +227,24 @@
     "totalAvailable": 495,
     "paperCount": 40
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:36:23.855Z",
+    "patternNames": [
+      "Much vs Few Mix-Up",
+      "Small Spelling Slips",
+      "Word Partner Mix-Up",
+      "Skipping Small Details"
+    ],
+    "wrongCounts": {
+      "total": 21,
+      "oeq": 11,
+      "mcq": 10
+    },
+    "toplineSnapshot": {
+      "avgPct": 94,
+      "totalAwarded": 464,
+      "totalAvailable": 495,
+      "paperCount": 40
+    }
+  }
 }

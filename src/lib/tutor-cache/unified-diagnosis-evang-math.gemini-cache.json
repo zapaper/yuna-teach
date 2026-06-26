@@ -1,83 +1,73 @@
 {
   "patterns": [
     {
-      "name": "Skipping Questions",
-      "what": "Tends to leave multi-step word problems completely blank instead of writing down the first few steps.",
+      "name": "Leaving Questions Blank",
+      "what": "Sometimes leaves longer word problems blank, which means missing out on partial marks for showing the first few steps.",
       "specific_examples": [
         {
           "questionRef": "[4]",
           "type": "oeq",
-          "whatWentWrong": "EVANG left this ratio question about adult and child tickets completely blank."
+          "whatWentWrong": "Left the question blank instead of finding the total units for the adult and child tickets."
         },
         {
           "questionRef": "[5]",
           "type": "oeq",
-          "whatWentWrong": "This before-and-after sticker problem was left blank, missing out on partial marks for finding the total."
+          "whatWentWrong": "Skipped the question rather than writing down the first step of subtracting the given stickers."
         },
         {
           "questionRef": "[7]",
           "type": "oeq",
-          "whatWentWrong": "EVANG skipped this question about John and Ken's money instead of writing down the starting ratio."
+          "whatWentWrong": "Left the answer blank instead of setting up the before and after ratios."
         }
       ],
-      "strategic_advice": "- Even if you aren't sure how to reach the final answer, **always write down the first step**.\n- For ratio questions, draw a quick **model** or write down the **units** you know. Every correct step can earn you partial marks!",
+      "strategic_advice": "When you see a long word problem, treat it as a puzzle to start, not finish immediately.\n- **'total'** or **'at first'** → write down the units you know, even if you can't see the final answer yet.\n- **'twice as much'** → draw a quick model to secure method marks.",
       "trigger_keywords": [
+        "total",
         "at first",
-        "in the end",
-        "total cost"
+        "twice as much"
       ]
     },
     {
-      "name": "Working Backwards Mix-Up",
-      "what": "Occasionally gets tricked by 'more than' or 'twice as many' when the question gives the larger amount and requires working backwards to find the smaller one.",
+      "name": "Stopping One Step Short",
+      "what": "Tends to find a useful middle number but occasionally forgets to do the final step to answer what the question actually asked.",
       "specific_examples": [
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "The table gave the number of sweets, which was twice the chocolates, but EVANG picked the sweets number instead of dividing by two."
+          "whatWentWrong": "Found the number of sweets (320) but forgot to divide by two to find the chocolates."
         },
         {
           "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "The flour was heavier than the sugar, so EVANG needed to subtract to find the sugar, but likely added instead."
-        },
-        {
-          "questionRef": "[17]",
-          "type": "oeq",
-          "whatWentWrong": "Ali drank more than Harry, which means Harry drank less, but EVANG got tangled up when working backwards to find Harry's amount."
+          "whatWentWrong": "Likely added the two fractions together instead of first finding the mass of the sugar."
         }
       ],
-      "strategic_advice": "- When you see **\"twice as many\"** or **\"heavier than\"**, pause and ask: \"Which one is bigger?\"\n- If you already have the bigger number, you need to **divide or subtract** to find the smaller one.\n- Always double-check your final answer to make sure the bigger item actually has the bigger number!",
+      "strategic_advice": "When you see these prompts, treat them as stop signs to double-check your final target:\n- **'twice the number'** → check if you need to multiply or divide your middle answer.\n- **'total mass'** → make sure you have found the mass of both items before adding them together.",
       "trigger_keywords": [
         "twice the number",
-        "heavier than",
-        "more than"
+        "total mass",
+        "how many"
       ]
     },
     {
-      "name": "Small Calculation Slips",
-      "what": "Sometimes sets up the math perfectly but makes a small arithmetic slip along the way.",
+      "name": "Fraction Subtraction Slips",
+      "what": "Occasionally makes small slips when subtracting fractions from whole numbers, or forgets to simplify the final fraction.",
       "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "oeq",
-          "whatWentWrong": "EVANG correctly found one-ninth of the money, but made a small multiplication slip when finding five-ninths."
-        },
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "EVANG knew to find the difference between March and April, but made a small slip when reading the graph or subtracting."
-        },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "EVANG knew to subtract the bag's weight from the total to find the laptop, but made a small fraction slip."
+          "whatWentWrong": "Made a small slip when subtracting the fraction from a whole number to find the laptop's mass."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Found the correct fraction but forgot to simplify it to its smallest form as requested."
         }
       ],
-      "strategic_advice": "- Write your working out clearly with plenty of space so you can read your own numbers.\n- When subtracting or multiplying, do a quick **reverse check** (e.g., if you subtract, add the numbers back together to see if they match).",
+      "strategic_advice": "When working with fractions, keep these checks in mind:\n- **'simplest form'** → always check if the top and bottom numbers can be divided by 2, 3, or 5.\n- **'total mass'** → when subtracting from a whole number, convert one whole into a fraction first (like changing 3 into 2 and 5/5).",
       "trigger_keywords": [
-        "difference between",
-        "how much had she left",
+        "simplest form",
+        "difference",
         "total mass"
       ]
     }
@@ -121,15 +111,15 @@
     },
     {
       "idx": 10,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 13,
@@ -137,11 +127,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 16,
@@ -149,11 +139,11 @@
     },
     {
       "idx": 17,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 18,
-      "patternIndex": -1
+      "patternIndex": 2
     }
   ],
   "questionIdByIdx": {
@@ -176,7 +166,7 @@
     "17": "cmqbyxy7i00454eho5yqvatoe",
     "18": "cmqbyxy7i00464ehoeauj3gbr"
   },
-  "generatedAt": "2026-06-19T02:38:00.753Z",
+  "generatedAt": "2026-06-26T09:32:53.304Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 12,
@@ -188,5 +178,23 @@
     "totalAvailable": 96,
     "paperCount": 4
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:38:00.753Z",
+    "patternNames": [
+      "Skipping Questions",
+      "Working Backwards Mix-Up",
+      "Small Calculation Slips"
+    ],
+    "wrongCounts": {
+      "total": 18,
+      "oeq": 12,
+      "mcq": 6
+    },
+    "toplineSnapshot": {
+      "avgPct": 61,
+      "totalAwarded": 59,
+      "totalAvailable": 96,
+      "paperCount": 4
+    }
+  }
 }

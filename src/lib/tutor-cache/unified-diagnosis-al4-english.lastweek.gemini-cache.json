@@ -1,0 +1,233 @@
+{
+  "patterns": [
+    {
+      "name": "Much vs Few Mix-Up",
+      "what": "Sometimes mixes up words used for things we can count (like 'few') with words for things we cannot count (like 'much').",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "AL4 chose 'few' instead of 'much' for juice, which is a liquid we cannot count."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "AL4 again picked 'few' for juice, showing a small mix-up with uncountable nouns."
+        }
+      ],
+      "strategic_advice": "When you see a quantity word, check if the noun can be counted.\n- If it's a liquid or a mass (like juice, sand, or time), use **much** or **a little**.\n- If you can count it (like apples or days), use **many** or **a few**.",
+      "trigger_keywords": [
+        "much",
+        "many",
+        "few",
+        "several",
+        "juice"
+      ]
+    },
+    {
+      "name": "Small Spelling Slips",
+      "what": "Often finds the correct word or idea but occasionally loses marks due to small spelling mistakes or typos when writing it out.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 knew the word was 'interesting' but accidentally spelled it as 'intersting'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 had the right idea from the passage but wrote 'alway' instead of 'always'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 correctly identified the plural of 'storey' for buildings but spelled it as 'stories' like tales in a book."
+        }
+      ],
+      "strategic_advice": "Always do a quick check of your written answers before moving on.\n- Read what you wrote backwards word-by-word to catch missing letters.\n- Watch out for tricky plurals like **'storeys'** (for buildings) versus **'stories'** (for books).",
+      "trigger_keywords": [
+        "correct the spelling",
+        "editing",
+        "write your answers"
+      ]
+    },
+    {
+      "name": "Word Partner Mix-Up",
+      "what": "Sometimes chooses a vocabulary word that has a similar meaning but doesn't quite fit the grammar or the specific phrase being used.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "AL4 picked 'gleam' instead of 'glimmer', missing the specific phrase 'glimmer of excitement'."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "AL4 chose 'encouraged' instead of 'assured', but we say 'encouraged someone to do something', not 'encouraged someone that'."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 chose 'traced' instead of 'surveyed' to match the meaning of 'checked' in the passage."
+        }
+      ],
+      "strategic_advice": "When choosing a word, look at the words immediately before and after the blank.\n- For emotion phrases, remember specific pairs like a **'glimmer of excitement'** or a **'flash of fear'**.\n- Check the grammar clues: we say **'encouraged them to'** but **'assured them that'**.",
+      "trigger_keywords": [
+        "excitement",
+        "fear",
+        "that",
+        "same meaning as"
+      ]
+    },
+    {
+      "name": "Skipping Small Details",
+      "what": "Tends to read the passage a bit too quickly, which occasionally leads to missing a key word or leaving out the second half of an answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 marked the statement about repairing leaks as True, missing that the passage specifically said 'prevent leaks'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 correctly noted that Ted asked questions, but stopped one step short and missed the second detail about doing extra practices."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "AL4 combined the sentences but missed including the word 'or' in the 'either... or' pair."
+        }
+      ],
+      "strategic_advice": "Treat True/False and comprehension questions like a spot-the-difference game.\n- Compare the question's exact words with the passage (e.g., **'repair'** vs **'prevent'**).\n- If a question asks 'How', check if the character did more than one thing, and include **all the steps**.",
+      "trigger_keywords": [
+        "True",
+        "False",
+        "How did",
+        "either"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 3
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 3
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": 3
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpw2moyn00138patdao2dofu",
+    "2": "cmpthpqp6005oa619aogzihhk",
+    "3": "cmpsc30p70014101k3b0a1dv5",
+    "4": "cmpsavvlw000j101kt3d99m0u",
+    "5": "cmprsfm87000ieaob0t1w6xop",
+    "6": "cmppf7ey700048jddvqr0cyk9",
+    "7": "cmpm8v44i0006c82kn8us52ni",
+    "8": "cmpm8bcyu000py5bipimxsee1",
+    "9": "cmpm7yvhc000gy5bixxj1e6bm",
+    "10": "cmpm7yvhc000jy5bih0x4jbae",
+    "11": "cmpkzv12i006l4u6fdwatq5ry",
+    "12": "cmpkzv12j006x4u6fqgqd0d7n",
+    "13": "cmpkzv12j006y4u6fdbxkff0j",
+    "14": "cmpkzv12j006z4u6fgxy2ztc0",
+    "15": "cmpkzv12j00704u6fyo6betkz",
+    "16": "cmpkzv12j00724u6f1eteggrx",
+    "17": "cmpkzv12j00734u6ffaxy9is1",
+    "18": "cmpkzv12j00744u6fadf8kdei",
+    "19": "cmpkzv12j00754u6fjdxi638f",
+    "20": "cmpjrugun00raeplm5ofo75ju",
+    "21": "cmpjrthh300qveplmmha6pssm"
+  },
+  "generatedAt": "2026-06-19T02:36:23.855Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 11,
+    "mcq": 10
+  },
+  "toplineSnapshot": {
+    "avgPct": 94,
+    "totalAwarded": 464,
+    "totalAvailable": 495,
+    "paperCount": 40
+  },
+  "previousAssessment": null
+}

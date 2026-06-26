@@ -1,0 +1,209 @@
+{
+  "patterns": [
+    {
+      "name": "Similar Word Mix-Up",
+      "what": "Sometimes chooses a vocabulary word that has a similar general idea but doesn't perfectly fit the specific sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane picked 'reaps' instead of 'yields' for a garden producing crops, missing that a farmer reaps but a garden yields."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'pandering to' instead of 'tailoring to', not realising that 'pandering' has a negative feeling."
+        },
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'retreated' instead of 'yanked' to describe quickly pulling a hand back."
+        }
+      ],
+      "strategic_advice": "- When stuck between two similar words, look at the surrounding words (like **\"garden\"** vs **\"farmer\"**) to see which fits better.\n- Think about whether the word has a **positive or negative feeling**.\n- Try plugging both words into the sentence and **reading it aloud** to see which sounds more natural.",
+      "trigger_keywords": [
+        "closest in meaning",
+        "fill in the blank"
+      ]
+    },
+    {
+      "name": "Skimming Over Details",
+      "what": "Tends to spot familiar words from the text in the options, but occasionally misses the exact detail that answers the specific question asked.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane picked the early bird date instead of the group discount when asked how to get the 'biggest savings'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'competition' instead of 'pulling in the sails' for what Amanda enjoyed most."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'cook in front of many people' instead of 'make a video' for the steps to become a finalist."
+        }
+      ],
+      "strategic_advice": "- When you see **\"Which of the following\"** or **\"true\"**, treat it like a matching game. Find the exact sentence in the text and compare it word-for-word with the option.\n- Highlight the key question words like **\"biggest savings\"** or **\"enjoy most\"** so you know exactly what clue to hunt for in the passage.",
+      "trigger_keywords": [
+        "Which of the following",
+        "true",
+        "most",
+        "biggest"
+      ]
+    },
+    {
+      "name": "Preposition Mix-Up",
+      "what": "Occasionally confuses which small connecting word to use to show time, direction, or what something is about.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Shayane picked 'of' instead of 'on' for congratulating someone on their performance."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "She chose 'since' instead of 'about' when talking about reaching a conclusion."
+        },
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "She selected 'by' instead of 'since' for something happening from ancient times until now."
+        }
+      ],
+      "strategic_advice": "- When talking about a starting point in time that continues to now, use **\"since\"** (e.g., **\"since ancient times\"**).\n- Pay attention to common word pairs that always go together, like **\"congratulate on\"** or **\"conclusion about\"**.\n- Read the whole phrase together to check if it sounds right.",
+      "trigger_keywords": [
+        "since",
+        "by",
+        "about",
+        "on",
+        "of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq3shx7u001ay4pbn63yvoer",
+    "2": "cmq3shx7u001dy4pbt26m7p5h",
+    "3": "cmq3shx7u001ey4pbz3xs8v3v",
+    "4": "cmq3shx7u001fy4pbi6c7uzcf",
+    "5": "cmq3shx7v001iy4pbo1p7t3ua",
+    "6": "cmq3shx7v001ny4pbqnw3z6nw",
+    "7": "cmq3shx7v001oy4pbsa2r3zf1",
+    "8": "cmq3shx7v001py4pbncjoj8zg",
+    "9": "cmq3shx7v001qy4pbqp5yxd6q",
+    "10": "cmq3shx7v001ry4pbuerqpf4y",
+    "11": "cmq3shx7v001ty4pbfjmmrtxc",
+    "12": "cmq3shx7v001wy4pbyu4jvj2u",
+    "13": "cmpurkl30000613h334nbijny",
+    "14": "cmpurkl30000d13h3iwcd7wcg",
+    "15": "cmpurkl30000e13h3b4u0i1sf",
+    "16": "cmpurkl31000f13h3xavaypa2",
+    "17": "cmpurkl31000k13h39yoldp6d",
+    "18": "cmpurkl31000m13h3pgrzn5rm",
+    "19": "cmpurkl31000p13h3238ucf4k",
+    "20": "cmpurkl31000s13h3iuhgud73",
+    "21": "cmpurkl31000x13h3qm5i29bu"
+  },
+  "generatedAt": "2026-06-17T09:27:06.042Z",
+  "wrongCounts": {
+    "total": 21,
+    "oeq": 3,
+    "mcq": 18
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 45,
+    "totalAvailable": 66,
+    "paperCount": 2
+  },
+  "previousAssessment": null
+}

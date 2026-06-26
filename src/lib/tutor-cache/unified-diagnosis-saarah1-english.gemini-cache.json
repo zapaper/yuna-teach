@@ -1,82 +1,77 @@
 {
   "patterns": [
     {
-      "name": "Skipping Questions",
-      "what": "Tends to leave open-ended comprehension questions completely unanswered.",
+      "name": "Skipping Long Questions",
+      "what": "Tends to leave open-ended comprehension questions completely blank, especially near the end of the paper.",
       "specific_examples": [
         {
           "questionRef": "[18]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 left the question blank instead of finding the two-word phrase in the text."
+          "whatWentWrong": "Saarah1 left this question blank instead of scanning the first paragraph for a phrase describing Sam's personality."
         },
         {
           "questionRef": "[22]",
           "type": "oeq",
-          "whatWentWrong": "She skipped the sequencing question, which could have been solved by finding the events in the passage."
+          "whatWentWrong": "She skipped this sequencing question, missing an easy opportunity to score by simply numbering the events."
         },
         {
-          "questionRef": "[25]",
+          "questionRef": "[28]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 left the True/False table blank, missing a chance to earn marks by checking the facts in the story."
+          "whatWentWrong": "Saarah1 left the final explanation blank, but she could have earned partial marks by writing down how Sam felt at the end."
         }
       ],
-      "strategic_advice": "When you reach the open-ended comprehension section, treat every question as a chance to score!\n- **'Which two-word phrase'** → scan the paragraph for exactly two words that fit.\n- **'True/False'** → always take a guess, then find the sentence in the text that proves it.\n- Never leave a blank—write down your best guess from the passage!",
+      "strategic_advice": "When you see open-ended comprehension questions, treat them as a treasure hunt rather than a giant writing task.\n- **Highlight the keywords** in the question first, then scan the passage for those exact words.\n- **Write down partial answers** or bullet points if you are unsure; getting some marks is always better than leaving it blank!",
       "trigger_keywords": [
-        "Which two-word phrase",
-        "Based on lines",
         "Explain clearly",
-        "True/False"
+        "Based on lines",
+        "Pick out",
+        "Write 1, 2 and 3"
       ]
     },
     {
-      "name": "Vocabulary Mix-Up",
-      "what": "Sometimes chooses words that are related to the topic but do not quite fit the specific context or common English phrases.",
+      "name": "Word Choice Mix-Up",
+      "what": "Sometimes chooses vocabulary words that seem related but do not perfectly fit the specific context or common phrasing.",
       "specific_examples": [
         {
           "questionRef": "[5]",
           "type": "mcq",
-          "whatWentWrong": "Saarah1 chose 'vague' instead of the common weather phrase 'poor visibility'."
+          "whatWentWrong": "Saarah1 picked 'vague' instead of 'poor' to describe bad visibility during a thunderstorm."
         },
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "She wrote 'put attention' instead of the correct English phrase 'give attention' or 'pay attention'."
-        },
-        {
-          "questionRef": "[2]",
-          "type": "mcq",
-          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields' to describe a garden producing crops."
+          "whatWentWrong": "She wrote 'put attention' instead of the common English phrase 'give attention' or 'pay attention'."
         }
       ],
-      "strategic_advice": "When you see a blank for a vocabulary word, look for clues in the words right next to it.\n- **'visibility'** → pairs with 'poor', not 'vague'.\n- **'attention'** → pairs with 'pay' or 'give', not 'put'.\n- Read the whole sentence quietly to yourself to see if the pairing sounds like a natural English phrase.",
+      "strategic_advice": "When you see vocabulary questions with words that look similar, test each option in the sentence to see which one sounds like natural English.\n- **Look for clue words** in the sentence (like 'emergency' or 'thunderstorm') that hint at the exact meaning needed.\n- **Read the whole sentence aloud** in your head with your chosen word to check if it forms a common phrase.",
       "trigger_keywords": [
+        "referred to as",
         "visibility",
-        "attention",
-        "crop",
-        "concern"
+        "paramount concern",
+        "indispensable step"
       ]
     },
     {
       "name": "Spelling Slips",
-      "what": "Occasionally misses a letter or mixes up vowels when writing out tricky words.",
+      "what": "Occasionally misses a letter or mixes up vowels when writing out familiar words.",
       "specific_examples": [
         {
           "questionRef": "[10]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 missed the double 'l' in 'accidentally'."
+          "whatWentWrong": "Saarah1 missed the double 'l', spelling it 'accidentaly' instead of 'accidentally'."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "She mixed up the vowels in 'restaurant'."
+          "whatWentWrong": "She mixed up the vowels in the middle, writing 'restraurent' instead of 'restaurant'."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 missed the first 'r' in 'farmer' when copying the word."
+          "whatWentWrong": "Saarah1 accidentally dropped the first 'r', writing 'famer' instead of 'farmer'."
         }
       ],
-      "strategic_advice": "When you write your final answers, take a moment to be a spelling detective.\n- Break long words into parts: **ac-ci-den-tal-ly**.\n- Watch out for words with double letters.\n- If the word is in the question (like 'farmer'), double-check that you copied every single letter correctly.",
+      "strategic_advice": "When you are writing out your final answers, take a quick moment to be a spelling detective.\n- **Break longer words into syllables** (like res-tau-rant) to make sure no letters are left behind.\n- **Double-check words with double letters** (like the 'll' in accidentally) to ensure they are complete before moving on.",
       "trigger_keywords": [
         "accidentally",
         "restaurant",
@@ -85,25 +80,26 @@
       ]
     },
     {
-      "name": "Time Word Confusion",
-      "what": "Sometimes uses the wrong word to describe when or how long an event happens.",
+      "name": "Past Tense Mix-Up",
+      "what": "Sometimes forgets to change verbs into the past tense when editing a story that already happened.",
       "specific_examples": [
         {
-          "questionRef": "[8]",
+          "questionRef": "[9]",
           "type": "oeq",
-          "whatWentWrong": "Saarah1 wrote 'than' instead of 'during' to describe something happening in the day."
+          "whatWentWrong": "Saarah1 wrote 'disappoint' instead of the past tense 'disappointed'."
         },
         {
-          "questionRef": "[13]",
+          "questionRef": "[11]",
           "type": "oeq",
-          "whatWentWrong": "She used 'in' instead of 'during' to show that the boys stayed strong throughout their whole ordeal."
+          "whatWentWrong": "She used the present tense 'is' instead of the past tense 'was' for a story set in the past."
         }
       ],
-      "strategic_advice": "When a sentence talks about a period of time, think about whether the action happens throughout that time.\n- Use **'during'** when something happens from the start to the end of an event (like 'during the day' or 'during their ordeal').",
+      "strategic_advice": "When you read an editing passage, check the very first sentence to find out **when** the story happened.\n- If the story is in the past, **make sure your verb answers are in the past tense** too (like 'was' instead of 'is').",
       "trigger_keywords": [
-        "the day",
-        "their ordeal",
-        "spending"
+        "Editing",
+        "yesterday",
+        "last week",
+        "ago"
       ]
     }
   ],
@@ -138,11 +134,11 @@
     },
     {
       "idx": 8,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 10,
@@ -150,7 +146,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 12,
@@ -158,7 +154,7 @@
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 14,
@@ -251,7 +247,7 @@
     "27": "cmpuvi058003exnerdxxjlqdw",
     "28": "cmpuvi058003fxner7u4ruj0a"
   },
-  "generatedAt": "2026-06-17T09:20:44.465Z",
+  "generatedAt": "2026-06-26T09:46:29.208Z",
   "wrongCounts": {
     "total": 28,
     "oeq": 21,
@@ -263,5 +259,24 @@
     "totalAvailable": 89,
     "paperCount": 1
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:20:44.465Z",
+    "patternNames": [
+      "Skipping Questions",
+      "Vocabulary Mix-Up",
+      "Spelling Slips",
+      "Time Word Confusion"
+    ],
+    "wrongCounts": {
+      "total": 28,
+      "oeq": 21,
+      "mcq": 7
+    },
+    "toplineSnapshot": {
+      "avgPct": 54,
+      "totalAwarded": 48,
+      "totalAvailable": 89,
+      "paperCount": 1
+    }
+  }
 }

@@ -1,93 +1,77 @@
 {
   "patterns": [
     {
-      "name": "Tense Mix-Up",
-      "what": "Sometimes chooses the simple past tense even when time clues point to an action that is still ongoing or happened before another past event.",
+      "name": "Perfect Tense Mix-Up",
+      "what": "EL44 sometimes uses the simple past tense when the sentence has time clues that require a perfect tense.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "EL44 picked 'lived' instead of 'have lived', missing the clue 'since 1960' which shows the action is still happening."
+          "whatWentWrong": "He chose the simple past 'lived' instead of 'have lived' for an action that started in 1960 and is still ongoing."
         },
         {
           "questionRef": "[17]",
           "type": "mcq",
-          "whatWentWrong": "EL44 chose 'damaged' instead of 'had damaged', missing the clue 'the previous day' which shows the car was damaged before the father yelled."
+          "whatWentWrong": "He picked 'damaged' instead of 'had damaged' for an action that happened before another past action."
         }
       ],
-      "strategic_advice": "When you see time clues, treat them as stop signs:\n- **'since' or 'for'** → use 'has/have' + verb (Present Perfect) because the action is still going on.\n- **'the previous day' or 'before'** → use 'had' + verb (Past Perfect) to show which past action happened first.",
+      "strategic_advice": "When you see time clues, pause and check the timeline of the sentence:\n- **'since'** or **'for'** → use **'have/has' + past participle** (e.g., have lived) because the action is still happening.\n- **'the previous day'** or **'already'** → use **'had' + past participle** (e.g., had damaged) to show which past action happened first.",
       "trigger_keywords": [
         "since",
         "for",
         "the previous day",
+        "already",
         "before"
       ]
     },
     {
       "name": "Who vs Whom Mix-Up",
-      "what": "Occasionally swaps 'who' and 'whom' when connecting parts of a sentence.",
+      "what": "EL44 occasionally confuses 'who' and 'whom' when linking parts of a sentence together.",
       "specific_examples": [
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "EL44 picked 'who' instead of 'whom' when referring to Sunil, the person receiving the action from the committee."
+          "whatWentWrong": "He selected 'who' instead of 'whom' when referring to Sunil as the person receiving the action."
         },
         {
           "questionRef": "[18]",
           "type": "mcq",
-          "whatWentWrong": "EL44 chose 'whom' instead of 'who' for the student performing the action of helping."
+          "whatWentWrong": "He chose 'whom' instead of 'who' for a student performing the action of helping."
         }
       ],
-      "strategic_advice": "Try the **'he/him' trick**! Replace the missing word with 'he' or 'him' to see what fits:\n- If **'he'** makes sense (e.g., 'He always helps'), use **'who'**.\n- If **'him'** makes sense (e.g., 'The committee recognised him'), use **'whom'**.",
+      "strategic_advice": "Try the **'he/him' trick** to decide which word fits best!\n- If you can replace the blank with **'he'**, use **'who'** (e.g., 'who always helps' → 'he always helps').\n- If you can replace the blank with **'him'**, use **'whom'** (e.g., 'whom the committee recognised' → 'recognised him').",
       "trigger_keywords": [
         "who",
         "whom",
-        "whose",
-        "which"
+        "whose"
       ]
     },
     {
-      "name": "Word Choice Traps",
-      "what": "Tends to pick words that have a similar general meaning but do not quite fit the specific phrase or situation in the sentence.",
+      "name": "Vocabulary Mix-Up",
+      "what": "EL44 tends to pick words that seem related to the topic but do not quite fit the exact meaning or common phrasing of the sentence.",
       "specific_examples": [
         {
-          "questionRef": "[11]",
+          "questionRef": "[8]",
           "type": "mcq",
-          "whatWentWrong": "EL44 picked 'celebrate', but we say 'celebrate success', not 'celebrate in success' — the correct pairing is 'revel in'."
+          "whatWentWrong": "He chose 'superficial' (meaning on the surface) instead of 'indispensable' (meaning absolutely necessary) for a crucial scientific step."
         },
         {
           "questionRef": "[13]",
           "type": "mcq",
-          "whatWentWrong": "EL44 chose 'obstructed', which usually means a physical object is blocking a path, rather than 'stumped', which is what a tricky clue does to a person."
+          "whatWentWrong": "He picked 'obstructed' (physically blocked) instead of 'stumped' (confused) when talking about a tricky clue."
         },
         {
-          "questionRef": "[4]",
+          "questionRef": "[16]",
           "type": "mcq",
-          "whatWentWrong": "EL44 selected 'prevented' instead of 'disrupted', missing that an injury interrupts ongoing training rather than stopping it from starting at all."
+          "whatWentWrong": "He selected 'get through' (survive) rather than 'get ahead' (succeed) for a sentence about doing well in life."
         }
       ],
-      "strategic_advice": "When picking a vocabulary word, look closely at the words immediately before and after the blank:\n- **Check the prepositions:** Does the word sound right with the little words next to it (like 'in', 'by', or 'of')?\n- **Check the context:** Is the sentence talking about a physical object, a feeling, or an idea? Make sure the word matches the exact situation.",
+      "strategic_advice": "When choosing a vocabulary word, look for context clues in the rest of the sentence to narrow down the exact meaning needed. Try plugging your choice into the sentence to see if it sounds like a natural, everyday phrase. If a word describes a physical action (like 'obstructed'), make sure it makes sense with the object (like a 'clue').",
       "trigger_keywords": [
-        "in",
-        "by",
-        "of"
-      ]
-    },
-    {
-      "name": "Hidden Subject Mix-Up",
-      "what": "Occasionally matches the verb to the plural noun closest to the blank, rather than the actual singular subject of the sentence.",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "EL44 picked 'were' to match 'motorcycles', missing that the true subject is the singular 'lineup' of cars."
-        }
-      ],
-      "strategic_advice": "When you see phrases like **'as well as'** or **'together with'**, treat them as extra information:\n- **Cross out the extra phrase** in your mind to find the real subject.\n- Match your verb to the main subject at the very beginning of the sentence (e.g., 'The lineup... was').",
-      "trigger_keywords": [
-        "as well as",
-        "together with",
-        "along with"
+        "obscure clue",
+        "life's journey",
+        "scientific experiment",
+        "activity erupted"
       ]
     }
   ],
@@ -102,7 +86,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 4,
@@ -185,7 +169,7 @@
     "17": "cmpjrki4800oweplm9kukkrh4",
     "18": "cmpjrki4900ozeplms7uiexxo"
   },
-  "generatedAt": "2026-06-17T09:10:11.140Z",
+  "generatedAt": "2026-06-26T09:30:18.212Z",
   "wrongCounts": {
     "total": 18,
     "oeq": 2,
@@ -197,5 +181,24 @@
     "totalAvailable": 113,
     "paperCount": 8
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:10:11.140Z",
+    "patternNames": [
+      "Tense Mix-Up",
+      "Who vs Whom Mix-Up",
+      "Word Choice Traps",
+      "Hidden Subject Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 18,
+      "oeq": 2,
+      "mcq": 16
+    },
+    "toplineSnapshot": {
+      "avgPct": 79,
+      "totalAwarded": 89,
+      "totalAvailable": 113,
+      "paperCount": 8
+    }
+  }
 }

@@ -1,0 +1,267 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Questions",
+      "what": "Tends to leave open-ended comprehension questions completely unanswered.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 left the question blank instead of finding the two-word phrase in the text."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "She skipped the sequencing question, which could have been solved by finding the events in the passage."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 left the True/False table blank, missing a chance to earn marks by checking the facts in the story."
+        }
+      ],
+      "strategic_advice": "When you reach the open-ended comprehension section, treat every question as a chance to score!\n- **'Which two-word phrase'** → scan the paragraph for exactly two words that fit.\n- **'True/False'** → always take a guess, then find the sentence in the text that proves it.\n- Never leave a blank—write down your best guess from the passage!",
+      "trigger_keywords": [
+        "Which two-word phrase",
+        "Based on lines",
+        "Explain clearly",
+        "True/False"
+      ]
+    },
+    {
+      "name": "Vocabulary Mix-Up",
+      "what": "Sometimes chooses words that are related to the topic but do not quite fit the specific context or common English phrases.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 chose 'vague' instead of the common weather phrase 'poor visibility'."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'put attention' instead of the correct English phrase 'give attention' or 'pay attention'."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Saarah1 picked 'achieves' instead of 'yields' to describe a garden producing crops."
+        }
+      ],
+      "strategic_advice": "When you see a blank for a vocabulary word, look for clues in the words right next to it.\n- **'visibility'** → pairs with 'poor', not 'vague'.\n- **'attention'** → pairs with 'pay' or 'give', not 'put'.\n- Read the whole sentence quietly to yourself to see if the pairing sounds like a natural English phrase.",
+      "trigger_keywords": [
+        "visibility",
+        "attention",
+        "crop",
+        "concern"
+      ]
+    },
+    {
+      "name": "Spelling Slips",
+      "what": "Occasionally misses a letter or mixes up vowels when writing out tricky words.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 missed the double 'l' in 'accidentally'."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "She mixed up the vowels in 'restaurant'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 missed the first 'r' in 'farmer' when copying the word."
+        }
+      ],
+      "strategic_advice": "When you write your final answers, take a moment to be a spelling detective.\n- Break long words into parts: **ac-ci-den-tal-ly**.\n- Watch out for words with double letters.\n- If the word is in the question (like 'farmer'), double-check that you copied every single letter correctly.",
+      "trigger_keywords": [
+        "accidentally",
+        "restaurant",
+        "farmer",
+        "Editing"
+      ]
+    },
+    {
+      "name": "Time Word Confusion",
+      "what": "Sometimes uses the wrong word to describe when or how long an event happens.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "Saarah1 wrote 'than' instead of 'during' to describe something happening in the day."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "She used 'in' instead of 'during' to show that the boys stayed strong throughout their whole ordeal."
+        }
+      ],
+      "strategic_advice": "When a sentence talks about a period of time, think about whether the action happens throughout that time.\n- Use **'during'** when something happens from the start to the end of an event (like 'during the day' or 'during their ordeal').",
+      "trigger_keywords": [
+        "the day",
+        "their ordeal",
+        "spending"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpuvi054001lxnergvyuj7w6",
+    "2": "cmpuvi054001mxneryg06q7lu",
+    "3": "cmpuvi055001nxnerykgt92tj",
+    "4": "cmpuvi055001oxner7stzpfvk",
+    "5": "cmpuvi055001qxner2i90rbd0",
+    "6": "cmpuvi055001sxner4eulyxog",
+    "7": "cmpuvi055001yxnerzo0cf5ug",
+    "8": "cmpuvi0550029xnermrqnelwy",
+    "9": "cmpuvi056002cxner6mluv39r",
+    "10": "cmpuvi056002exner4chrw1qu",
+    "11": "cmpuvi056002fxner6b8wplh0",
+    "12": "cmpuvi056002ixner5e5f23ml",
+    "13": "cmpuvi057002vxnerj8l7tecm",
+    "14": "cmpuvi057002wxner0k860uad",
+    "15": "cmpuvi057002zxnergxvj5jgy",
+    "16": "cmpuvi0570030xnerkpl3pk2i",
+    "17": "cmpuvi0570031xnert3po4trj",
+    "18": "cmpuvi0570035xnervznuxu6t",
+    "19": "cmpuvi0570036xner6gjiufb8",
+    "20": "cmpuvi0570037xnerhi3kxq9i",
+    "21": "cmpuvi0570038xner882q8ily",
+    "22": "cmpuvi0570039xner3c8kwbqu",
+    "23": "cmpuvi057003axnerom3gei6j",
+    "24": "cmpuvi057003bxnero8x91xxr",
+    "25": "cmpuvi057003cxneruk24wf5x",
+    "26": "cmpuvi057003dxnerqixq96ka",
+    "27": "cmpuvi058003exnerdxxjlqdw",
+    "28": "cmpuvi058003fxner7u4ruj0a"
+  },
+  "generatedAt": "2026-06-17T09:20:44.465Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 21,
+    "mcq": 7
+  },
+  "toplineSnapshot": {
+    "avgPct": 54,
+    "totalAwarded": 48,
+    "totalAvailable": 89,
+    "paperCount": 1
+  },
+  "previousAssessment": null
+}

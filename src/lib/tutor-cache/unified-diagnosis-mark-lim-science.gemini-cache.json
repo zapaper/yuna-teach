@@ -1,111 +1,102 @@
 {
   "patterns": [
     {
-      "name": "Pollination vs Seed Dispersal",
-      "what": "Mark sometimes mixes up the process of pollination (making seeds) with seed dispersal (spreading seeds to new places).",
-      "specific_examples": [
-        {
-          "questionRef": "[41]",
-          "type": "oeq",
-          "whatWentWrong": "He thought the plant spread because an animal pollinated it, rather than explaining that another animal ate the fruits and dropped the seeds elsewhere."
-        },
-        {
-          "questionRef": "[79]",
-          "type": "oeq",
-          "whatWentWrong": "He mentioned pollination helping the plant reproduce, missing that the animal eating the fruits is the one spreading the seeds to a wider area."
-        }
-      ],
-      "strategic_advice": "When you see questions about a plant **'covering a wider area'**, think about how its seeds travel.\n- **Pollination** (nectar, flowers) helps make the fruit.\n- **Seed dispersal** (eating fruits, wind, hooks) is what spreads the plant to new places.",
-      "trigger_keywords": [
-        "covered a wider area",
-        "reproduce",
-        "fruits",
-        "seeds",
-        "nectar"
-      ]
-    },
-    {
       "name": "One Step Short",
-      "what": "Mark often explains the science beautifully but occasionally stops one step short of stating the final consequence or outcome.",
+      "what": "Often correctly identifies the first part of a scientific process but occasionally stops before stating the final consequence or comparing the two objects involved.",
       "specific_examples": [
         {
-          "questionRef": "[43]",
+          "questionRef": "[28]",
           "type": "oeq",
-          "whatWentWrong": "He correctly noted that the plant couldn't make food and that bacteria respire, but missed the final steps: the plant dies, and the bacteria use up the oxygen."
+          "whatWentWrong": "He correctly noted there would be less food for the birds, but stopped before stating that the birds would then move away or die."
         },
         {
-          "questionRef": "[133]",
+          "questionRef": "[47]",
           "type": "oeq",
-          "whatWentWrong": "He perfectly explained how the electromagnet attracts the iron bolt, but stopped just short of saying this moves the bolt away from the catch to unlock the door."
+          "whatWentWrong": "He explained that the electromagnet attracts the iron bolt, but missed the final step that the bolt moves away from the catch to unlock the door."
         },
         {
           "questionRef": "[12]",
           "type": "oeq",
-          "whatWentWrong": "He knew the lid gained heat and expanded, but forgot to add the final detail that the plastic lid expanded more than the glass jar."
+          "whatWentWrong": "He mentioned that the lid expanded when heated, but forgot to compare it by stating it expanded more than the glass jar."
         }
       ],
-      "strategic_advice": "When you see **'explain why'** or **'give a reason'**, always ask yourself 'and then what happens?' at the end of your answer.\n- If a plant can't get light, don't just say it can't make food — add **'so it dies'**.\n- If bacteria respire, add **'so they use up oxygen'**.",
+      "strategic_advice": "When you see **'explain why'** or **'describe how'**, ask yourself 'And then what happens?' until you reach the final result. If there are two materials or animals, always **compare both** in your answer.",
       "trigger_keywords": [
         "explain why",
-        "give a reason how",
-        "caused a decrease",
+        "describe how",
         "explain how"
       ]
     },
     {
-      "name": "Vague Data Trends",
-      "what": "When asked to describe a pattern from a table or graph, Mark tends to give a general summary instead of stating exactly how the numbers change.",
+      "name": "Energy Conversion Mix-Up",
+      "what": "Sometimes confuses forces with energy, or misses the specific energy changes when explaining how things move or make a sound.",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "oeq",
+          "whatWentWrong": "He tried to explain the block dropping using forces and gravity, instead of describing how gravitational potential energy converts to kinetic energy."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly knew the marble would take a shorter time with less friction, but missed explaining it using the conversion of potential energy to kinetic energy."
+        }
+      ],
+      "strategic_advice": "When a question asks you to explain **'in terms of energy changes'** or involves objects dropping or rolling, always use the energy keywords:\n- **Gravitational potential energy** (for height)\n- **Kinetic energy** (for movement)\n- **Heat or sound energy** (for impact or friction)",
+      "trigger_keywords": [
+        "in terms of energy",
+        "energy changes",
+        "dropped",
+        "rolled down"
+      ]
+    },
+    {
+      "name": "Reading Data Trends",
+      "what": "Tends to describe only the first half of the pattern when looking at graphs or tables, or occasionally misreads the direction of the line.",
       "specific_examples": [
         {
           "questionRef": "[42]",
           "type": "oeq",
-          "whatWentWrong": "Instead of detailing how hatching increases up to 28°C and then decreases, he gave a general statement about temperature affecting hatching."
+          "whatWentWrong": "He gave a vague answer about temperature instead of clearly stating that hatching increases up to 28°C and then decreases."
         },
         {
-          "questionRef": "[145]",
+          "questionRef": "[59]",
           "type": "oeq",
-          "whatWentWrong": "He noticed the toy jumped higher with more rubber bands, but missed the second part of the trend where the height stayed the same after 4 bands."
+          "whatWentWrong": "He noticed that the jump height increased with more rubber bands, but missed the second part of the data where the height stayed the same from 4 to 6 bands."
         },
         {
-          "questionRef": "[143]",
+          "questionRef": "[33]",
           "type": "oeq",
-          "whatWentWrong": "He simply wrote 'It decreased' without using evidence from the graph or explaining the scientific reason behind the lower heart rate."
+          "whatWentWrong": "He incorrectly stated that the population decreases, when the graph line was actually going up."
         }
       ],
-      "strategic_advice": "When you see **'describe what [someone] could conclude'** or **'state the relationship'**, treat it like a map:\n- Mention the specific turning points (e.g., **'as temperature increases from 22°C to 28°C...'**).\n- State both halves of the pattern (e.g., **'it increases, but then it decreases'**).",
+      "strategic_advice": "When you see a graph or table, trace the line with your finger. If the line changes direction or goes flat, your answer must have **two parts** (e.g., 'It increases until X, and then it decreases or stays the same').",
       "trigger_keywords": [
-        "describe what",
-        "conclude about the effect",
-        "relationship between",
-        "changes in"
+        "based on the graph",
+        "describe the changes",
+        "relationship between"
       ]
     },
     {
-      "name": "Skipping Question Parts",
-      "what": "Mark occasionally misses a part of a question, especially when there are multiple questions grouped together under one letter.",
+      "name": "Circuit Cycle Confusion",
+      "what": "Occasionally misses the exact sequence of events in an electromagnet circuit, especially how the circuit opening and closing affects other components like bulbs.",
       "specific_examples": [
         {
-          "questionRef": "[44]",
+          "questionRef": "[25]",
           "type": "oeq",
-          "whatWentWrong": "He correctly identified the most polluted lake for part (ii), but accidentally left part (i) about how shadows are formed completely blank."
+          "whatWentWrong": "He described the electromagnet attracting the bar, but missed that this causes the circuit to open and the bulb to turn off."
         },
         {
-          "questionRef": "[136]",
+          "questionRef": "[39]",
           "type": "oeq",
-          "whatWentWrong": "He nailed the first part about the digestive organs, but skipped the second part asking to explain the changes in the amount of digested food."
-        },
-        {
-          "questionRef": "[139]",
-          "type": "oeq",
-          "whatWentWrong": "He accurately described the heart rate changes and explained the decrease, but missed answering part (b)(ii) entirely."
+          "whatWentWrong": "He explained the iron bar moving, but forgot to mention that the bulb stops lighting up when the bar touches the other contacts."
         }
       ],
-      "strategic_advice": "When you see a question with multiple parts like **'(a) (i)'** and **'(ii)'**, use your pencil to circle each roman numeral.\n- Before moving to the next page, do a quick check to ensure every circled part has an answer written down.",
+      "strategic_advice": "For electromagnet questions with moving parts, trace the path of electricity step-by-step:\n- Step 1: Switch closes → **closed circuit**\n- Step 2: Electromagnet turns on → **attracts iron**\n- Step 3: Iron moves → **opens circuit** (mention which bulbs turn off!)\n- Step 4: Electromagnet turns off → iron drops back.",
       "trigger_keywords": [
-        "(i)",
-        "(ii)",
-        "state how",
-        "explain"
+        "iron bar moves",
+        "turns on and off repeatedly",
+        "electromagnet"
       ]
     }
   ],
@@ -128,11 +119,11 @@
     },
     {
       "idx": 5,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 6,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 7,
@@ -140,15 +131,15 @@
     },
     {
       "idx": 8,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 9,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 10,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 11,
@@ -156,7 +147,7 @@
     },
     {
       "idx": 12,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 13,
@@ -164,11 +155,11 @@
     },
     {
       "idx": 14,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 15,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 16,
@@ -180,7 +171,7 @@
     },
     {
       "idx": 18,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 19,
@@ -188,27 +179,27 @@
     },
     {
       "idx": 20,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 22,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 23,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 24,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 25,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 26,
@@ -216,15 +207,15 @@
     },
     {
       "idx": 27,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 28,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 29,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 30,
@@ -232,15 +223,15 @@
     },
     {
       "idx": 31,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 32,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 33,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 34,
@@ -248,11 +239,11 @@
     },
     {
       "idx": 35,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 37,
@@ -260,19 +251,19 @@
     },
     {
       "idx": 38,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 39,
-      "patternIndex": 1
+      "patternIndex": 3
     },
     {
       "idx": 40,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 41,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 42,
@@ -280,23 +271,23 @@
     },
     {
       "idx": 43,
-      "patternIndex": 1
-    },
-    {
-      "idx": 44,
-      "patternIndex": 3
-    },
-    {
-      "idx": 45,
       "patternIndex": 0
     },
     {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
       "idx": 46,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 47,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 48,
@@ -304,15 +295,15 @@
     },
     {
       "idx": 49,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 50,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 51,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 52,
@@ -320,15 +311,15 @@
     },
     {
       "idx": 53,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 54,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 55,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 56,
@@ -340,27 +331,27 @@
     },
     {
       "idx": 58,
-      "patternIndex": 1
-    },
-    {
-      "idx": 59,
-      "patternIndex": 3
-    },
-    {
-      "idx": 60,
       "patternIndex": 0
     },
     {
-      "idx": 61,
+      "idx": 59,
       "patternIndex": 2
     },
     {
-      "idx": 62,
+      "idx": 60,
       "patternIndex": 1
     },
     {
+      "idx": 61,
+      "patternIndex": -1
+    },
+    {
+      "idx": 62,
+      "patternIndex": -1
+    },
+    {
       "idx": 63,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 64,
@@ -368,350 +359,6 @@
     },
     {
       "idx": 65,
-      "patternIndex": 2
-    },
-    {
-      "idx": 66,
-      "patternIndex": 1
-    },
-    {
-      "idx": 67,
-      "patternIndex": 3
-    },
-    {
-      "idx": 68,
-      "patternIndex": 0
-    },
-    {
-      "idx": 69,
-      "patternIndex": 2
-    },
-    {
-      "idx": 70,
-      "patternIndex": 1
-    },
-    {
-      "idx": 71,
-      "patternIndex": 3
-    },
-    {
-      "idx": 72,
-      "patternIndex": 0
-    },
-    {
-      "idx": 73,
-      "patternIndex": 2
-    },
-    {
-      "idx": 74,
-      "patternIndex": 1
-    },
-    {
-      "idx": 75,
-      "patternIndex": 3
-    },
-    {
-      "idx": 76,
-      "patternIndex": 0
-    },
-    {
-      "idx": 77,
-      "patternIndex": 2
-    },
-    {
-      "idx": 78,
-      "patternIndex": 3
-    },
-    {
-      "idx": 79,
-      "patternIndex": 0
-    },
-    {
-      "idx": 80,
-      "patternIndex": 2
-    },
-    {
-      "idx": 81,
-      "patternIndex": 1
-    },
-    {
-      "idx": 82,
-      "patternIndex": 3
-    },
-    {
-      "idx": 83,
-      "patternIndex": 0
-    },
-    {
-      "idx": 84,
-      "patternIndex": 2
-    },
-    {
-      "idx": 85,
-      "patternIndex": 1
-    },
-    {
-      "idx": 86,
-      "patternIndex": 3
-    },
-    {
-      "idx": 87,
-      "patternIndex": 0
-    },
-    {
-      "idx": 88,
-      "patternIndex": 2
-    },
-    {
-      "idx": 89,
-      "patternIndex": -1
-    },
-    {
-      "idx": 90,
-      "patternIndex": 3
-    },
-    {
-      "idx": 91,
-      "patternIndex": 1
-    },
-    {
-      "idx": 92,
-      "patternIndex": 0
-    },
-    {
-      "idx": 93,
-      "patternIndex": 2
-    },
-    {
-      "idx": 94,
-      "patternIndex": 1
-    },
-    {
-      "idx": 95,
-      "patternIndex": 3
-    },
-    {
-      "idx": 96,
-      "patternIndex": -1
-    },
-    {
-      "idx": 97,
-      "patternIndex": 0
-    },
-    {
-      "idx": 98,
-      "patternIndex": 2
-    },
-    {
-      "idx": 99,
-      "patternIndex": 1
-    },
-    {
-      "idx": 100,
-      "patternIndex": 3
-    },
-    {
-      "idx": 101,
-      "patternIndex": 1
-    },
-    {
-      "idx": 102,
-      "patternIndex": 0
-    },
-    {
-      "idx": 103,
-      "patternIndex": 2
-    },
-    {
-      "idx": 104,
-      "patternIndex": 1
-    },
-    {
-      "idx": 105,
-      "patternIndex": 3
-    },
-    {
-      "idx": 106,
-      "patternIndex": 0
-    },
-    {
-      "idx": 107,
-      "patternIndex": 2
-    },
-    {
-      "idx": 108,
-      "patternIndex": 1
-    },
-    {
-      "idx": 109,
-      "patternIndex": 3
-    },
-    {
-      "idx": 110,
-      "patternIndex": 0
-    },
-    {
-      "idx": 111,
-      "patternIndex": 2
-    },
-    {
-      "idx": 112,
-      "patternIndex": 1
-    },
-    {
-      "idx": 113,
-      "patternIndex": 3
-    },
-    {
-      "idx": 114,
-      "patternIndex": 0
-    },
-    {
-      "idx": 115,
-      "patternIndex": 2
-    },
-    {
-      "idx": 116,
-      "patternIndex": 1
-    },
-    {
-      "idx": 117,
-      "patternIndex": 3
-    },
-    {
-      "idx": 118,
-      "patternIndex": 0
-    },
-    {
-      "idx": 119,
-      "patternIndex": 2
-    },
-    {
-      "idx": 120,
-      "patternIndex": 1
-    },
-    {
-      "idx": 121,
-      "patternIndex": 3
-    },
-    {
-      "idx": 122,
-      "patternIndex": 1
-    },
-    {
-      "idx": 123,
-      "patternIndex": 0
-    },
-    {
-      "idx": 124,
-      "patternIndex": 2
-    },
-    {
-      "idx": 125,
-      "patternIndex": 1
-    },
-    {
-      "idx": 126,
-      "patternIndex": 3
-    },
-    {
-      "idx": 127,
-      "patternIndex": 0
-    },
-    {
-      "idx": 128,
-      "patternIndex": 2
-    },
-    {
-      "idx": 129,
-      "patternIndex": 1
-    },
-    {
-      "idx": 130,
-      "patternIndex": 3
-    },
-    {
-      "idx": 131,
-      "patternIndex": -1
-    },
-    {
-      "idx": 132,
-      "patternIndex": -1
-    },
-    {
-      "idx": 133,
-      "patternIndex": 1
-    },
-    {
-      "idx": 134,
-      "patternIndex": 1
-    },
-    {
-      "idx": 135,
-      "patternIndex": -1
-    },
-    {
-      "idx": 136,
-      "patternIndex": 3
-    },
-    {
-      "idx": 137,
-      "patternIndex": 1
-    },
-    {
-      "idx": 138,
-      "patternIndex": 1
-    },
-    {
-      "idx": 139,
-      "patternIndex": 3
-    },
-    {
-      "idx": 140,
-      "patternIndex": -1
-    },
-    {
-      "idx": 141,
-      "patternIndex": -1
-    },
-    {
-      "idx": 142,
-      "patternIndex": 1
-    },
-    {
-      "idx": 143,
-      "patternIndex": 2
-    },
-    {
-      "idx": 144,
-      "patternIndex": 1
-    },
-    {
-      "idx": 145,
-      "patternIndex": 2
-    },
-    {
-      "idx": 146,
-      "patternIndex": 2
-    },
-    {
-      "idx": 147,
-      "patternIndex": -1
-    },
-    {
-      "idx": 148,
-      "patternIndex": -1
-    },
-    {
-      "idx": 149,
-      "patternIndex": -1
-    },
-    {
-      "idx": 150,
-      "patternIndex": -1
-    },
-    {
-      "idx": 151,
       "patternIndex": -1
     }
   ],
@@ -756,148 +403,62 @@
     "38": "cmpgfmsh6000y2l2gief9uelb",
     "39": "cmpgfmsh6000z2l2g4uuicfxb",
     "40": "cmpgfmsh600102l2gcxkc4lcm",
-    "41": "cmq0o665y000xc8ksazrrhvyx",
-    "42": "cmq0o665x000rc8ksi3d11adp",
-    "43": "cmq0o665z0014c8ksf34rc1rd",
-    "44": "cmq0o665z0013c8ksgzfusu34",
-    "45": "cmq6030vo000xpovejfug733u",
-    "46": "cmq6030vo000rpoveh3x7rgpf",
-    "47": "cmq6030vq0014poveh96v1uzo",
-    "48": "cmq6030vp0013povepfgjikml",
-    "49": "cmqga9f7g000kvuz70k747yx7",
-    "50": "cmqga9f7g000fvuz7wes69m5q",
-    "51": "cmqga9f7h000ovuz72xyu7gdb",
-    "52": "cmqt7qgw5000ja6dw1smoafp6",
-    "53": "cmqt7qgw7000ra6dwnfon4j98",
-    "54": "cmqt7qgw7000ta6dwam12n8yb",
-    "55": "cmqt7qgw6000ma6dwe1isw3nr",
-    "56": "cmq258osx000xe8x4k5cotjme",
-    "57": "cmq258osw000re8x4gk6ol8xx",
-    "58": "cmq258osz0014e8x4c1jiu9bq",
-    "59": "cmq258osz0013e8x4maprc5a1",
-    "60": "cmq1xgm5t000xjek6hsilv7ua",
-    "61": "cmq1xgm5s000rjek6zvs8holp",
-    "62": "cmq1xgm5u0014jek602thxw5e",
-    "63": "cmq1xgm5u0013jek6u3uhgsx6",
-    "64": "cmq1vnlm4000xrupk1vvieioo",
-    "65": "cmq1vnlm4000rrupkpscrbgrj",
-    "66": "cmq1vnlm50014rupk0lj0tuzp",
-    "67": "cmq1vnlm50013rupkythiigu1",
-    "68": "cmq1uynzt000xfbd5ne8x2vff",
-    "69": "cmq1uynzs000rfbd5dw3a8t3b",
-    "70": "cmq1uynzu0014fbd55snwzcmi",
-    "71": "cmq1uynzu0013fbd5o1x1au2a",
-    "72": "cmpgb1zq4001q10h2cn9rxct1",
-    "73": "cmpgb1zq4001r10h2u4sh35ep",
-    "74": "cmpgb1zq5001s10h2hsia9e78",
-    "75": "cmpgb1zq5001t10h2r29hvfhg",
-    "76": "cmq0tyl66000x6ipxrn9gcnha",
-    "77": "cmq0tyl65000r6ipxtybjgfw4",
-    "78": "cmq0tyl6700136ipxcyszmjm3",
-    "79": "cmq12xq3i000xgqr923m3yqsb",
-    "80": "cmq12xq3h000rgqr9kc5ytcy1",
-    "81": "cmq12xq3l0014gqr9jl05ft9p",
-    "82": "cmq12xq3k0013gqr9hwnfucr4",
-    "83": "cmqga34sb000kxwxm703aqdcf",
-    "84": "cmqga34sa000fxwxmw5swoo89",
-    "85": "cmqga34sc000pxwxmcujnki3g",
-    "86": "cmqga34sc000oxwxmish7sp7v",
-    "87": "cmq0uo7ty000xy88mx14b4xq2",
-    "88": "cmq0uo7tx000ry88m0r2oddqm",
-    "89": "cmq0uo7tz0014y88mzzztfvuy",
-    "90": "cmq0uo7tz0013y88m6eks38s6",
-    "91": "cmq09u82w0012d3mf9j81vyz0",
-    "92": "cmq09u82v000xd3mf0cqt8nfd",
-    "93": "cmq09u82u000rd3mf1aalohbk",
-    "94": "cmq09u82w0014d3mflynux3zi",
-    "95": "cmq09u82w0013d3mfnlp0vtbr",
-    "96": "cmql2mqp0000lojbvk3w1sxf9",
-    "97": "cmql2mqp0000jojbvb6vdugqk",
-    "98": "cmql2mqp1000rojbvxf09he9r",
-    "99": "cmql2mqp2000tojbv120jfe9k",
-    "100": "cmql2mqp1000mojbvkqdp7nsw",
-    "101": "cmql4razn000sa7m06gyk52go",
-    "102": "cmql4razl000ja7m0lvmwy75d",
-    "103": "cmql4razm000ra7m05q5pid6k",
-    "104": "cmql4razn000ta7m0g1991yn4",
-    "105": "cmql4razm000ma7m0odp274y9",
-    "106": "cmqf7a13g000khufk29aqh9r4",
-    "107": "cmqf7a13g000fhufkhlgdc2kv",
-    "108": "cmqf7a13h000phufk64mdyprx",
-    "109": "cmqf7a13h000ohufk9hkhgpd4",
-    "110": "cmqf5krvq000kwkiakjwpusle",
-    "111": "cmqf5krvp000fwkiagsgwv1s1",
-    "112": "cmqf5krvr000pwkialj6lk42v",
-    "113": "cmqf5krvr000owkiag0p46u1i",
-    "114": "cmq0muz6m000x9ahmwq04rr77",
-    "115": "cmq0muz6l000r9ahmjicty5uj",
-    "116": "cmq0muz6n00149ahmuflno2bq",
-    "117": "cmq0muz6n00139ahm869ji12l",
-    "118": "cmq1lsm8j000xi80646yatqzr",
-    "119": "cmq1lsm8j000ri806vngy8yln",
-    "120": "cmq1lsm8k0014i806vq4lcocr",
-    "121": "cmq1lsm8k0013i806792bz9y5",
-    "122": "cmpuiset0000deh4d2unlic2z",
-    "123": "cmpuisesz0009eh4dprokxjt1",
-    "124": "cmpuisesy0003eh4dzite8pt4",
-    "125": "cmpuiset1000geh4dsfsh907e",
-    "126": "cmpuiset1000feh4dm3v5f8ka",
-    "127": "cmpzn0w72000xbd1ajd9vmqwg",
-    "128": "cmpzn0w71000rbd1a9zddy87z",
-    "129": "cmpzn0w720014bd1aj3f2ecbe",
-    "130": "cmpzn0w720013bd1aj7k63msr",
-    "131": "cmpg7eutr000810h2gnhfmbdc",
-    "132": "cmpg7eutr000a10h2to8vmyxk",
-    "133": "cmpg7eutr000c10h25sqkopbl",
-    "134": "cmpg7eutr000d10h2l4vuftpq",
-    "135": "cmpg7euts000e10h2dd83qgaa",
-    "136": "cmosfjr9k000v6r3vatj2k51s",
-    "137": "cmosfjr9k000w6r3vfw4qgyjy",
-    "138": "cmopfq1kd001e3oupn3naurcy",
-    "139": "cmopfq1kd001f3oupk915oyph",
-    "140": "cmomkb7yh000u9wmzr2m0vm3h",
-    "141": "cmomkb7yh000x9wmzwkmu6nhw",
-    "142": "cmonnfxag001p8eododwh86wp",
-    "143": "cmonnfxag001r8eod4932ryyf",
-    "144": "cmonnfxag001s8eodqj488w0y",
-    "145": "cmomk8o7y000j9wmz313acyg9",
-    "146": "cmomk8o7z000m9wmz0z4s3xrv",
-    "147": "cmomk8o7z000n9wmz1zk3a1iv",
-    "148": "cmojx3v1y000b1rd776r1tqa0",
-    "149": "cmojx3v1y000c1rd7fhfrllrs",
-    "150": "cmoh3h2pq000ho4sje25za14c",
-    "151": "cmnb9ft0z0038ysmr80zcplq4"
+    "41": "cmpgb1zq4001q10h2cn9rxct1",
+    "42": "cmpgb1zq4001r10h2u4sh35ep",
+    "43": "cmpgb1zq5001s10h2hsia9e78",
+    "44": "cmpgb1zq5001t10h2r29hvfhg",
+    "45": "cmpg7eutr000810h2gnhfmbdc",
+    "46": "cmpg7eutr000a10h2to8vmyxk",
+    "47": "cmpg7eutr000c10h25sqkopbl",
+    "48": "cmpg7eutr000d10h2l4vuftpq",
+    "49": "cmpg7euts000e10h2dd83qgaa",
+    "50": "cmosfjr9k000v6r3vatj2k51s",
+    "51": "cmosfjr9k000w6r3vfw4qgyjy",
+    "52": "cmopfq1kd001e3oupn3naurcy",
+    "53": "cmopfq1kd001f3oupk915oyph",
+    "54": "cmomkb7yh000u9wmzr2m0vm3h",
+    "55": "cmomkb7yh000x9wmzwkmu6nhw",
+    "56": "cmonnfxag001p8eododwh86wp",
+    "57": "cmonnfxag001r8eod4932ryyf",
+    "58": "cmonnfxag001s8eodqj488w0y",
+    "59": "cmomk8o7y000j9wmz313acyg9",
+    "60": "cmomk8o7z000m9wmz0z4s3xrv",
+    "61": "cmomk8o7z000n9wmz1zk3a1iv",
+    "62": "cmojx3v1y000b1rd776r1tqa0",
+    "63": "cmojx3v1y000c1rd7fhfrllrs",
+    "64": "cmoh3h2pq000ho4sje25za14c",
+    "65": "cmnb9ft0z0038ysmr80zcplq4"
   },
-  "generatedAt": "2026-06-26T06:58:53.869Z",
+  "generatedAt": "2026-06-26T09:44:22.896Z",
   "wrongCounts": {
-    "total": 151,
-    "oeq": 139,
+    "total": 65,
+    "oeq": 53,
     "mcq": 12
   },
   "toplineSnapshot": {
-    "avgPct": 87,
-    "totalAwarded": 1468.5,
-    "totalAvailable": 1683,
-    "paperCount": 44
+    "avgPct": 88,
+    "totalAwarded": 706.5,
+    "totalAvailable": 801,
+    "paperCount": 23
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T08:10:13.267Z",
+    "generatedAt": "2026-06-26T06:58:53.869Z",
     "patternNames": [
-      "Stopping Too Early",
-      "Pollination vs Seed Dispersal Mix-Up",
-      "Missing the Turning Point",
-      "Skipping Sub-Questions"
+      "Pollination vs Seed Dispersal",
+      "One Step Short",
+      "Vague Data Trends",
+      "Skipping Question Parts"
     ],
     "wrongCounts": {
-      "total": 134,
-      "oeq": 125,
-      "mcq": 9
+      "total": 151,
+      "oeq": 139,
+      "mcq": 12
     },
     "toplineSnapshot": {
-      "avgPct": 88,
-      "totalAwarded": 1341,
-      "totalAvailable": 1527,
-      "paperCount": 40
+      "avgPct": 87,
+      "totalAwarded": 1468.5,
+      "totalAvailable": 1683,
+      "paperCount": 44
     }
   }
 }

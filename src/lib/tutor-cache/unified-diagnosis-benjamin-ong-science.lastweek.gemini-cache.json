@@ -1,0 +1,258 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping One Step Short",
+      "what": "Sometimes writes down the immediate cause or the first half of an answer, but occasionally stops before stating the final consequence or the specific science keywords needed for full marks.",
+      "specific_examples": [
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly noted that 'there are less grasshoppers,' but stopped short of explaining that this means less food for the birds, causing them to decrease."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly identified the water and food carrying tubes, but missed specific details like the water being 'red-coloured' or the food being 'made in the leaves.'"
+        },
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "He correctly noticed that the leaf size increased at first, but missed mentioning that it eventually decreased, and forgot to compare the different types of soil used."
+        }
+      ],
+      "strategic_advice": "When you see **'explain why'** or **'explain how'**, always ask yourself **'And then what happens?'** to push your answer one step further.\n- Use the **'Cause → Effect → Final Consequence'** method. Don't stop at the effect; make sure you link it all the way to what the question is asking about.\n- Always include specific details from the question, like colours or locations.",
+      "trigger_keywords": [
+        "explain why",
+        "explain how",
+        "describe how",
+        "give a reason"
+      ]
+    },
+    {
+      "name": "Opposite Result Traps",
+      "what": "Occasionally gets caught out by experiments where a smaller measurement actually means a bigger result, such as less water dripping through meaning the soil holds more water.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "When looking for soil that 'holds a lot of water,' he picked the one where the most water dripped through, instead of the one that trapped the most water inside."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He saw a shorter bar on the graph and thought it meant less water was lost, but the graph measured 'time taken', so a shorter time actually means water was lost more quickly."
+        }
+      ],
+      "strategic_advice": "When reading a graph or table, always check the **axis labels** or **column headings** carefully.\n- If the table measures **'time taken'**, remember that a smaller number means it happened **faster**.\n- If the experiment measures water dripping out, remember that less water out means **more water kept inside**.",
+      "trigger_keywords": [
+        "time taken",
+        "holds a lot of water",
+        "collected in the measuring cylinder"
+      ]
+    },
+    {
+      "name": "Plant Tubes Mix-Up",
+      "what": "Sometimes confuses how water and food travel in a plant, such as thinking food moves up from the roots or that cutting food tubes stops water from reaching the flowers.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "oeq",
+          "whatWentWrong": "He drew arrows showing food moving up from the roots to the leaves, but food is actually made in the leaves and travels downwards to the rest of the plant."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "When the food-carrying tubes were removed, he thought the flowers above the cut couldn't get water, but the water-carrying tubes were still working perfectly."
+        }
+      ],
+      "strategic_advice": "Remember the golden rules of plant transport:\n- **Water goes UP** (from the roots to the leaves).\n- **Food goes DOWN and AROUND** (from the leaves to all other parts).\n- If a question mentions a cut stem, check carefully whether the **food tubes** or **water tubes** (or both) were removed. If only food tubes are cut, water can still travel up!",
+      "trigger_keywords": [
+        "food-carrying tubes",
+        "water-carrying tubes",
+        "stem",
+        "transported",
+        "cut"
+      ]
+    },
+    {
+      "name": "Energy Words Mix-Up",
+      "what": "Tends to use general words like 'potential' instead of specific ones, and occasionally misses how one type of energy changes into another.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote 'Potential' energy for a stretched plunger, but Science requires the specific term 'Elastic potential' energy."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "When explaining why a moving balloon eventually stopped, he missed mentioning that its kinetic energy was converted into heat and sound energy due to friction."
+        }
+      ],
+      "strategic_advice": "Always add a descriptive word before 'potential energy'. Ask yourself: is it **Elastic** (stretched/compressed) or **Gravitational** (raised above the ground)?\n- When a moving object stops, its energy doesn't just disappear. Always explain that **kinetic energy** is converted into **heat energy** (and sometimes sound) due to friction.",
+      "trigger_keywords": [
+        "energy conversion",
+        "explain in terms of energy",
+        "fill in the boxes",
+        "potential"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 2
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 3
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmp9ft2yj0018yrzr1cf5j8vi",
+    "2": "cmp9ft2ym001nyrzrmgavcts6",
+    "3": "cmp9ft2ym001oyrzrp2ijeggy",
+    "4": "cmp9ft2ym001ryrzr4jxv1wvf",
+    "5": "cmp9ftcjp0021yrzr46f387br",
+    "6": "cmp9ftcjp0022yrzr1dkp5w78",
+    "7": "cmp9caq1d000li9m6omfu5jgw",
+    "8": "cmp9caq1e000mi9m6scekksrk",
+    "9": "cmp9caq1e000ni9m6atbmyg4r",
+    "10": "cmp9djkcd0007tejjfluqhx8j",
+    "11": "cmp9djkcd0008tejj1rp7dqco",
+    "12": "cmoy16rbn0002lsp2fabqlvj6",
+    "13": "cmoy16rbn0003lsp285g4bin8",
+    "14": "cmoy16rbn0004lsp29yg24bv0",
+    "15": "cmoy16rbn0007lsp2t1ll070h",
+    "16": "cmoy16rbn0008lsp2586xrt9r",
+    "17": "cmoxyv0cl0029oeurya3100jf",
+    "18": "cmoxyv0cl002aoeurqab56k1f",
+    "19": "cmoxyv0cm002eoeur83f4cyuy",
+    "20": "cmoxyv0cm002foeurp38p525n",
+    "21": "cmoxyv0cm002goeurnbentt4z",
+    "22": "cmoxyv0cm002hoeur2htf2f2l",
+    "23": "cmoxyv0cm002ioeuri33e9llf",
+    "24": "cmoxyv4w3002moeurt9f4wes5",
+    "25": "cmoxyv4w3002roeur55hxyjol",
+    "26": "cmoxyv4w4002toeur8ok98pna",
+    "27": "cmoxyv4w4002zoeuruotgidx6",
+    "28": "cmoxyv4w50032oeur3ydh2ige"
+  },
+  "generatedAt": "2026-06-17T09:08:42.069Z",
+  "wrongCounts": {
+    "total": 28,
+    "oeq": 10,
+    "mcq": 18
+  },
+  "toplineSnapshot": {
+    "avgPct": 72,
+    "totalAwarded": 142,
+    "totalAvailable": 198,
+    "paperCount": 7
+  },
+  "previousAssessment": null
+}

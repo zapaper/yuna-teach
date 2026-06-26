@@ -1,0 +1,189 @@
+{
+  "patterns": [
+    {
+      "name": "Stopping Too Early",
+      "what": "Sometimes stops one step short of the final answer, even after calculating the middle steps perfectly.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "hooper calculated the exact amount of paint used, but stopped before subtracting to find the amount left over."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "hooper found the total cost in cents perfectly, but stopped before converting it into dollars for the final answer."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "hooper successfully found the inside angles of the triangle, but stopped before using them to find the final angle y."
+        }
+      ],
+      "strategic_advice": "When you think you are done, re-read the last sentence of the question.\n- If it asks for **'amount left'**, make sure you didn't just find the amount used.\n- Check the units! If the options have a **'$'** sign, make sure you converted your cents into dollars.",
+      "trigger_keywords": [
+        "left",
+        "remainder",
+        "in terms of",
+        "find angle y"
+      ]
+    },
+    {
+      "name": "Fraction Base Mix-Up",
+      "what": "Occasionally mixes up whether a fraction should be based on the total amount, or just a specific part like the remainder.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "The question asked for savings as a fraction of expenditure, but hooper used the total money as the base instead."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "When asked for a fraction of the 'remaining' cake, hooper's answer suggests a mix-up with taking a fraction of the whole cake."
+        }
+      ],
+      "strategic_advice": "Always circle the words that come right after 'fraction of'. That tells you what your denominator (the bottom number) should be.\n- **'fraction of his expenditure'** → put expenditure on the bottom.\n- **'fraction of the remaining'** → use the leftover amount, not the original total.",
+      "trigger_keywords": [
+        "fraction of",
+        "of the remaining",
+        "of his expenditure"
+      ]
+    },
+    {
+      "name": "Missed Cue Words",
+      "what": "Tends to read past important condition words in the problem, which changes how the math should be done.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "hooper missed the cue that the discount only applies 'starting from the 3rd slice', treating all slices as full price."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "hooper missed the word 'greatest' and arranged the fractions in the exact opposite order, from smallest to greatest."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "hooper treated GST like a discount by subtracting it, missing that a tax is an extra cost that must be added."
+        }
+      ],
+      "strategic_advice": "Treat special condition words like stop signs. Highlight or underline them before you start calculating.\n- **'starting from'** → the rule doesn't apply to everything!\n- **'greatest to smallest'** → draw a quick arrow pointing down to remind yourself of the order.\n- **'GST'** or **'interest'** → always add these to the cost, never subtract.",
+      "trigger_keywords": [
+        "starting from",
+        "greatest to smallest",
+        "GST",
+        "discount"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmpkxzysp003z4u6f2onb9p9m",
+    "2": "cmpkxzysp00414u6fcv9929lf",
+    "3": "cmpkxzysp00444u6fayct7ek0",
+    "4": "cmpkxzysq00484u6fayyv6l92",
+    "5": "cmpkxzysq00494u6fqp3o5mlr",
+    "6": "cmpkxzysq004b4u6feivuj8wr",
+    "7": "cmpky1b3p004e4u6fue0owxi0",
+    "8": "cmpky1b3p004i4u6fqe0jyqvv",
+    "9": "cmpky1b3p004k4u6f3czrzou5",
+    "10": "cmpky1b3p004l4u6f9fisixc3",
+    "11": "cmpky1b3p004o4u6fzfbutzae",
+    "12": "cmpky1b3p004q4u6fa1oz76y6",
+    "13": "cmpky1b3q004t4u6f5pwtsdy4",
+    "14": "cmpky1b3q004w4u6fw9y3mips",
+    "15": "cmpky1gwx00514u6fkfz9kcze",
+    "16": "cmpky1gwx00524u6f8zmvw2eu",
+    "17": "cmpky1gwy005a4u6ftv2rx3j4",
+    "18": "cmpky1gwy005c4u6fwvkqsmcj"
+  },
+  "generatedAt": "2026-06-17T09:12:20.130Z",
+  "wrongCounts": {
+    "total": 18,
+    "oeq": 5,
+    "mcq": 13
+  },
+  "toplineSnapshot": {
+    "avgPct": 65,
+    "totalAwarded": 62.5,
+    "totalAvailable": 96,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

@@ -1,184 +1,106 @@
 {
   "patterns": [
     {
-      "name": "Guessing in Order",
-      "what": "Tends to fill in answers using a simple alphabetical pattern like A, B, C, D instead of reading the passage.",
-      "specific_examples": [
-        {
-          "questionRef": "[7]",
-          "type": "oeq",
-          "whatWentWrong": "Jon wrote 'A' for the first blank, starting an A-to-J pattern instead of choosing the correct word 'has'."
-        },
-        {
-          "questionRef": "[8]",
-          "type": "oeq",
-          "whatWentWrong": "Jon wrote 'B' for the second blank, continuing the pattern instead of finding the word 'in'."
-        },
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Jon wrote 'C' for the third blank, rather than selecting 'than' to complete the sentence."
-        }
-      ],
-      "strategic_advice": "When you see a long passage, take a deep breath! Read the whole paragraph once without filling in any blanks to get the story. Then, go back and try each option. **Never just guess in alphabetical order**—you can definitely find the right clues if you read carefully!",
-      "trigger_keywords": [
-        "passage",
-        "blanks",
-        "A to Q"
-      ]
-    },
-    {
-      "name": "Close Meaning Mix-Up",
-      "what": "Sometimes chooses a word that has a similar general meaning but doesn't quite fit the specific situation or common phrasing.",
+      "name": "Subject-Verb Mix-Up",
+      "what": "Sometimes confuses singular and plural verbs when the main subject is separated from the verb by extra words.",
       "specific_examples": [
         {
           "questionRef": "[1]",
           "type": "mcq",
-          "whatWentWrong": "Jon picked 'advice' instead of 'recommendation', which is the specific word we use for a chef's suggested dish."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "Jon chose 'assigning' instead of 'designating' to describe how the animal rights groups labelled the event."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "Jon selected 'primary' instead of 'opening' to match the meaning of 'inaugural' for the first race."
-        }
-      ],
-      "strategic_advice": "When two words mean almost the same thing, think about their **common word partners**. For example, we say 'chef's recommendation', not 'chef's advice'. Try saying both options out loud in the sentence to hear which one sounds like natural English.",
-      "trigger_keywords": [
-        "closest in meaning",
-        "fill in the blank",
-        "chef's",
-        "inaugural"
-      ]
-    },
-    {
-      "name": "Tricky Options Trap",
-      "what": "Occasionally gets caught by options that look similar, or picks a familiar word when a more precise one is needed.",
-      "specific_examples": [
-        {
-          "questionRef": "[3]",
-          "type": "mcq",
-          "whatWentWrong": "Jon picked 'overprotective' instead of 'overwhelmed', likely because both words start with 'over-'."
-        },
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "Jon chose 'demonstrators' instead of 'onlookers', possibly getting tricked by the earlier mention of animal rights groups."
+          "whatWentWrong": "Jon chose the plural verb 'are' instead of 'is' for a singular subject hidden behind a comma phrase."
         },
         {
           "questionRef": "[2]",
           "type": "mcq",
-          "whatWentWrong": "Jon picked the common word 'seriously' instead of the more precise 'menacingly' to describe a bully's glare."
+          "whatWentWrong": "He occasionally matches the verb to the closest noun rather than the actual main subject of the sentence."
         }
       ],
-      "strategic_advice": "When you see these tricky options, treat them as stop signs:\n- **Words that look similar** → double-check the ending of the word, not just the start.\n- **Words from other parts of the story** → make sure the word fits the **exact sentence** you are reading, not just the general topic.",
+      "strategic_advice": "When you see a long sentence with phrases like **'as well as'** or **'together with'**, try to **cross out the extra phrases** between the commas. Ask yourself, 'Who or what is actually doing the action?' to find the real subject.",
       "trigger_keywords": [
-        "choose the correct word",
-        "spectators",
-        "felt",
-        "glared"
+        "as well as",
+        "together with",
+        "along with",
+        "neither"
+      ]
+    },
+    {
+      "name": "Reported Speech Tenses",
+      "what": "Occasionally forgets to shift the tense backwards when changing direct speech into reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "oeq",
+          "whatWentWrong": "Jon kept the present tense 'is' instead of shifting it to the past tense 'was' after the reporting verb."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "He missed changing the time word 'tomorrow' to 'the next day' in the reported sentence."
+        }
+      ],
+      "strategic_advice": "When you see reporting words like **'said that'** or **'told'**, treat them as a signal to take one step back in time. Always check if you need to change present to past, and look out for time words like **'today'** or **'tomorrow'** that also need to shift.",
+      "trigger_keywords": [
+        "said that",
+        "told",
+        "asked if",
+        "wondered"
+      ]
+    },
+    {
+      "name": "Missing the 'Not'",
+      "what": "Tends to read past negative words in the question stem, which can lead to picking the exact opposite answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Jon picked a true statement instead of the false one because the word 'except' slipped by unnoticed."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He chose the synonym when the question actually asked for the word that is 'not' similar in meaning."
+        }
+      ],
+      "strategic_advice": "When you see words like **'not'**, **'except'**, or **'false'**, treat them as stop signs. **Circle them immediately** with your pencil so they stand out while you are reading through the options.",
+      "trigger_keywords": [
+        "not",
+        "except",
+        "false",
+        "incorrect"
       ]
     }
   ],
-  "classification": [
-    {
-      "idx": 1,
-      "patternIndex": 1
-    },
-    {
-      "idx": 2,
-      "patternIndex": 2
-    },
-    {
-      "idx": 3,
-      "patternIndex": 2
-    },
-    {
-      "idx": 4,
-      "patternIndex": 1
-    },
-    {
-      "idx": 5,
-      "patternIndex": 1
-    },
-    {
-      "idx": 6,
-      "patternIndex": 2
-    },
-    {
-      "idx": 7,
-      "patternIndex": 0
-    },
-    {
-      "idx": 8,
-      "patternIndex": 0
-    },
-    {
-      "idx": 9,
-      "patternIndex": 0
-    },
-    {
-      "idx": 10,
-      "patternIndex": 0
-    },
-    {
-      "idx": 11,
-      "patternIndex": 0
-    },
-    {
-      "idx": 12,
-      "patternIndex": 0
-    },
-    {
-      "idx": 13,
-      "patternIndex": 0
-    },
-    {
-      "idx": 14,
-      "patternIndex": 0
-    },
-    {
-      "idx": 15,
-      "patternIndex": 0
-    },
-    {
-      "idx": 16,
-      "patternIndex": 0
-    }
-  ],
-  "questionIdByIdx": {
-    "1": "cmpwpzi2j0012fjchbtijheg8",
-    "2": "cmpwpzi2j0015fjchgqjwprke",
-    "3": "cmpwpzi2j0016fjch5qgqibe1",
-    "4": "cmpwpzi2j0018fjch11kelh99",
-    "5": "cmpwpzi2j001afjch0wtfcjpq",
-    "6": "cmpwpzi2k001bfjch0jpip83l",
-    "7": "cmpwpzi2k001cfjchhj4hur2a",
-    "8": "cmpwpzi2k001dfjchj3awwjj6",
-    "9": "cmpwpzi2k001efjch8cstt5nz",
-    "10": "cmpwpzi2k001ffjchd1ldmoov",
-    "11": "cmpwpzi2k001gfjchfmgwswzm",
-    "12": "cmpwpzi2k001hfjchr3ze51v3",
-    "13": "cmpwpzi2k001ifjchjrualua6",
-    "14": "cmpwpzi2k001jfjchv7xb6s65",
-    "15": "cmpwpzi2k001kfjchqvdm5w9g",
-    "16": "cmpwpzi2k001lfjchtn9xrjfm"
-  },
-  "generatedAt": "2026-06-17T09:14:42.292Z",
+  "classification": [],
+  "questionIdByIdx": {},
+  "generatedAt": "2026-06-26T09:36:53.445Z",
   "wrongCounts": {
-    "total": 16,
-    "oeq": 10,
-    "mcq": 6
+    "total": 0,
+    "oeq": 0,
+    "mcq": 0
   },
   "toplineSnapshot": {
-    "avgPct": 20,
-    "totalAwarded": 4,
-    "totalAvailable": 20,
-    "paperCount": 1
+    "avgPct": 0,
+    "totalAwarded": 0,
+    "totalAvailable": 0,
+    "paperCount": 0
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:14:42.292Z",
+    "patternNames": [
+      "Guessing in Order",
+      "Close Meaning Mix-Up",
+      "Tricky Options Trap"
+    ],
+    "wrongCounts": {
+      "total": 16,
+      "oeq": 10,
+      "mcq": 6
+    },
+    "toplineSnapshot": {
+      "avgPct": 20,
+      "totalAwarded": 4,
+      "totalAvailable": 20,
+      "paperCount": 1
+    }
+  }
 }

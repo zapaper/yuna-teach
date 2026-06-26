@@ -1,109 +1,102 @@
 {
   "patterns": [
     {
-      "name": "Volume vs Level Mix-Up",
-      "what": "Sometimes confuses the water level rising with the actual volume of the water increasing when an object is placed in it.",
-      "specific_examples": [
-        {
-          "questionRef": "[9]",
-          "type": "oeq",
-          "whatWentWrong": "Emily thought the volume of the water itself would increase when a cup was pushed in, confusing it with the water level rising."
-        },
-        {
-          "questionRef": "[22]",
-          "type": "oeq",
-          "whatWentWrong": "She stated the water level would increase, but the question specifically asked about the volume of the water, which remains the same."
-        },
-        {
-          "questionRef": "[49]",
-          "type": "oeq",
-          "whatWentWrong": "Emily explained that the plastic cup occupies space, but missed the key concept that water has a definite volume."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, treat them as stop signs:\n- **'volume of water'** → remember that the actual amount of water **remains the same** because water has a definite volume.\n- **'water level'** → this is what increases when an object is pushed in, because the object takes up space.",
-      "trigger_keywords": [
-        "volume of water",
-        "water level",
-        "pushed into a basin",
-        "decrease, increase or remain the same"
-      ]
-    },
-    {
-      "name": "Forgetting Hidden Air",
-      "what": "Tends to identify the obvious solid objects in a container but occasionally forgets that air (a gas) is also present in the empty spaces.",
+      "name": "One Step Short",
+      "what": "Emily sometimes identifies the correct science concept but stops one step short of stating the final result or giving all the required points.",
       "specific_examples": [
         {
           "questionRef": "[8]",
           "type": "oeq",
-          "whatWentWrong": "Emily correctly identified that the pebbles are solid, but forgot that air (a gas) fills the empty spaces between them."
-        },
-        {
-          "questionRef": "[28]",
-          "type": "oeq",
-          "whatWentWrong": "She spotted the solid state of matter but missed the invisible gas hiding in the gaps of the container."
-        },
-        {
-          "questionRef": "[51]",
-          "type": "oeq",
-          "whatWentWrong": "Emily named 'solid' for the pebbles but didn't mention the 'gas' that takes up the remaining space."
-        }
-      ],
-      "strategic_advice": "When you see a container filled with solid objects like pebbles, marbles, or coins, remember that they don't fit together perfectly! There are always gaps between them. Ask yourself: **'What is filling the empty spaces?'** The answer is usually **air (a gas)**.",
-      "trigger_keywords": [
-        "filled a container",
-        "pebbles",
-        "state(s) of matter",
-        "inside the container"
-      ]
-    },
-    {
-      "name": "Intestine Jobs Mix-Up",
-      "what": "Occasionally mixes up the jobs of the small and large intestines, such as thinking the small intestine absorbs water from undigested food.",
-      "specific_examples": [
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "Emily wrote that the small intestine absorbs water from undigested food, which is actually the large intestine's job."
+          "whatWentWrong": "She correctly noted that iron and steel are magnetic, but forgot to add the final consequence that both would fall into the same container."
         },
         {
           "questionRef": "[30]",
           "type": "oeq",
-          "whatWentWrong": "She mixed up the order of the intestines and assigned the large intestine's water-absorbing role to the small intestine."
-        }
-      ],
-      "strategic_advice": "When you see questions about the digestive system, remember the special jobs of these two organs:\n- **'small intestine'** → this is where digestion finishes and where **digested food is absorbed** into the blood.\n- **'large intestine'** → no digestion happens here! Its only job is to **absorb water** from the leftover waste.",
-      "trigger_keywords": [
-        "function of part",
-        "absorb water",
-        "undigested food",
-        "digestive system"
-      ]
-    },
-    {
-      "name": "Stopping Too Early",
-      "what": "Often starts explanations beautifully but sometimes stops one step short of stating the final result or giving the required number of examples.",
-      "specific_examples": [
-        {
-          "questionRef": "[6]",
-          "type": "oeq",
-          "whatWentWrong": "Emily correctly noted that iron and steel are magnetic, but stopped one step short of explaining that they would both be attracted and fall into the same container."
+          "whatWentWrong": "She explained that chewing increases surface area, but missed the final step of stating that this makes digestion faster."
         },
         {
-          "questionRef": "[57]",
+          "questionRef": "[34]",
           "type": "oeq",
-          "whatWentWrong": "She provided one great difference between the butterfly stages, but the question asked for two."
-        },
-        {
-          "questionRef": "[73]",
-          "type": "oeq",
-          "whatWentWrong": "Emily beautifully explained that chewing creates a greater surface area, but forgot to add the final result: that the food gets digested faster."
+          "whatWentWrong": "She provided one great difference between the larva and pupa stages, but the question asked for two."
         }
       ],
-      "strategic_advice": "When you see these prompts, make sure to complete the journey:\n- **'explain why'** or **'explain how'** → after writing your first thought, add a **'so that...'** or **'which means...'** to show the final result (like 'so digestion is faster').\n- **'state two differences'** → double-check your answer to ensure you have written both points!",
+      "strategic_advice": "When you see **'explain why'** or **'explain how'**, always try to include a **'so that...'** or **'which means...'** ending to show the final result.\n- If a question asks for **'two differences'** or **'two reasons'**, number them 1 and 2 on your paper so you don't forget the second one.",
       "trigger_keywords": [
         "explain why",
         "explain how",
-        "state two differences"
+        "state two",
+        "give two reasons"
+      ]
+    },
+    {
+      "name": "Organ Function Mix-Up",
+      "what": "Emily occasionally mixes up the specific jobs of different body parts, like confusing what happens in the small intestine with the large intestine.",
+      "specific_examples": [
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "She mixed up the roles of the small and large intestines, forgetting that the large intestine absorbs water and doesn't have digestive juices."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "She mentioned that teeth break food into simpler substances, but teeth only cut food into smaller pieces without chemically digesting it."
+        }
+      ],
+      "strategic_advice": "When you see questions about the **digestive system**, remember these key jobs:\n- **Mouth/Teeth**: Cuts food into smaller pieces (but doesn't finish digestion).\n- **Small Intestine**: Finishes digestion and absorbs the food into the blood.\n- **Large Intestine**: Absorbs water from the leftover waste.",
+      "trigger_keywords": [
+        "digestive system",
+        "function",
+        "absorb",
+        "digested food",
+        "undigested food"
+      ]
+    },
+    {
+      "name": "States of Matter Mix-Up",
+      "what": "Emily tends to confuse the special rules for solids, liquids, and gases, especially forgetting that air takes up space and can be squashed.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "She forgot that air can be compressed when more is pumped into a sealed box, while water cannot."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "She correctly identified the solid pebbles but missed that the empty spaces between them were filled with gas (air)."
+        }
+      ],
+      "strategic_advice": "When a question involves **air**, **water**, or **empty spaces**, remember:\n- **Air (Gas)** can be compressed (squashed) and will fill any empty space.\n- **Water (Liquid)** cannot be compressed, but it takes the shape of its container.\n- **Solids** have a fixed shape and volume, and will push water out of the way.",
+      "trigger_keywords": [
+        "occupies space",
+        "compressed",
+        "volume",
+        "pumped in",
+        "states of matter"
+      ]
+    },
+    {
+      "name": "Flowchart Path Slips",
+      "what": "Emily sometimes misreads flowcharts or classification charts by following the wrong arrow or comparing the wrong letters.",
+      "specific_examples": [
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "She followed the wrong path on the flowchart when trying to match the plant's traits to the correct letter."
+        },
+        {
+          "questionRef": "[45]",
+          "type": "oeq",
+          "whatWentWrong": "She accidentally wrote down a difference between animals A and B, even though the question asked to compare A and C."
+        }
+      ],
+      "strategic_advice": "When you see a **flowchart**, treat it like a treasure map:\n- Use your pencil to physically trace the path from the very top to the final letter.\n- If the question asks to compare **Animal A and C**, circle those two letters in the question so you don't accidentally look at the wrong one.",
+      "trigger_keywords": [
+        "flowchart",
+        "classification diagram",
+        "represents",
+        "difference between"
       ]
     }
   ],
@@ -114,15 +107,15 @@
     },
     {
       "idx": 2,
-      "patternIndex": -1
+      "patternIndex": 0
     },
     {
       "idx": 3,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 4,
-      "patternIndex": -1
+      "patternIndex": 2
     },
     {
       "idx": 5,
@@ -130,19 +123,19 @@
     },
     {
       "idx": 6,
-      "patternIndex": 3
-    },
-    {
-      "idx": 7,
       "patternIndex": -1
     },
     {
+      "idx": 7,
+      "patternIndex": 2
+    },
+    {
       "idx": 8,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 9,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 10,
@@ -150,35 +143,35 @@
     },
     {
       "idx": 11,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 12,
-      "patternIndex": 0
+      "patternIndex": 2
     },
     {
       "idx": 13,
-      "patternIndex": 2
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 16,
-      "patternIndex": 1
+      "patternIndex": -1
     },
     {
       "idx": 17,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 18,
-      "patternIndex": 2
+      "patternIndex": 1
     },
     {
       "idx": 19,
@@ -186,7 +179,7 @@
     },
     {
       "idx": 20,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 21,
@@ -194,43 +187,43 @@
     },
     {
       "idx": 22,
-      "patternIndex": 0
-    },
-    {
-      "idx": 23,
-      "patternIndex": 1
-    },
-    {
-      "idx": 24,
-      "patternIndex": 0
-    },
-    {
-      "idx": 25,
-      "patternIndex": 1
-    },
-    {
-      "idx": 26,
-      "patternIndex": 0
-    },
-    {
-      "idx": 27,
-      "patternIndex": -1
-    },
-    {
-      "idx": 28,
-      "patternIndex": 1
-    },
-    {
-      "idx": 29,
-      "patternIndex": 0
-    },
-    {
-      "idx": 30,
       "patternIndex": 2
     },
     {
-      "idx": 31,
+      "idx": 23,
+      "patternIndex": 3
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
       "patternIndex": 1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
     },
     {
       "idx": 32,
@@ -242,27 +235,27 @@
     },
     {
       "idx": 34,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 35,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 36,
-      "patternIndex": 1
+      "patternIndex": 2
     },
     {
       "idx": 37,
-      "patternIndex": 0
-    },
-    {
-      "idx": 38,
       "patternIndex": 1
     },
     {
+      "idx": 38,
+      "patternIndex": 3
+    },
+    {
       "idx": 39,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 40,
@@ -274,11 +267,11 @@
     },
     {
       "idx": 42,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 43,
-      "patternIndex": -1
+      "patternIndex": 1
     },
     {
       "idx": 44,
@@ -286,290 +279,75 @@
     },
     {
       "idx": 45,
-      "patternIndex": 0
-    },
-    {
-      "idx": 46,
-      "patternIndex": 1
-    },
-    {
-      "idx": 47,
-      "patternIndex": 0
-    },
-    {
-      "idx": 48,
-      "patternIndex": 1
-    },
-    {
-      "idx": 49,
-      "patternIndex": 0
-    },
-    {
-      "idx": 50,
-      "patternIndex": 2
-    },
-    {
-      "idx": 51,
-      "patternIndex": 1
-    },
-    {
-      "idx": 52,
-      "patternIndex": 0
-    },
-    {
-      "idx": 53,
-      "patternIndex": -1
-    },
-    {
-      "idx": 54,
-      "patternIndex": 1
-    },
-    {
-      "idx": 55,
-      "patternIndex": 0
-    },
-    {
-      "idx": 56,
-      "patternIndex": -1
-    },
-    {
-      "idx": 57,
       "patternIndex": 3
-    },
-    {
-      "idx": 58,
-      "patternIndex": -1
-    },
-    {
-      "idx": 59,
-      "patternIndex": -1
-    },
-    {
-      "idx": 60,
-      "patternIndex": -1
-    },
-    {
-      "idx": 61,
-      "patternIndex": -1
-    },
-    {
-      "idx": 62,
-      "patternIndex": -1
-    },
-    {
-      "idx": 63,
-      "patternIndex": -1
-    },
-    {
-      "idx": 64,
-      "patternIndex": -1
-    },
-    {
-      "idx": 65,
-      "patternIndex": -1
-    },
-    {
-      "idx": 66,
-      "patternIndex": -1
-    },
-    {
-      "idx": 67,
-      "patternIndex": -1
-    },
-    {
-      "idx": 68,
-      "patternIndex": -1
-    },
-    {
-      "idx": 69,
-      "patternIndex": -1
-    },
-    {
-      "idx": 70,
-      "patternIndex": -1
-    },
-    {
-      "idx": 71,
-      "patternIndex": -1
-    },
-    {
-      "idx": 72,
-      "patternIndex": -1
-    },
-    {
-      "idx": 73,
-      "patternIndex": 3
-    },
-    {
-      "idx": 74,
-      "patternIndex": 3
-    },
-    {
-      "idx": 75,
-      "patternIndex": 3
-    },
-    {
-      "idx": 76,
-      "patternIndex": -1
-    },
-    {
-      "idx": 77,
-      "patternIndex": 3
-    },
-    {
-      "idx": 78,
-      "patternIndex": -1
-    },
-    {
-      "idx": 79,
-      "patternIndex": -1
-    },
-    {
-      "idx": 80,
-      "patternIndex": -1
-    },
-    {
-      "idx": 81,
-      "patternIndex": -1
-    },
-    {
-      "idx": 82,
-      "patternIndex": -1
-    },
-    {
-      "idx": 83,
-      "patternIndex": -1
-    },
-    {
-      "idx": 84,
-      "patternIndex": -1
-    },
-    {
-      "idx": 85,
-      "patternIndex": -1
-    },
-    {
-      "idx": 86,
-      "patternIndex": -1
-    },
-    {
-      "idx": 87,
-      "patternIndex": -1
-    },
-    {
-      "idx": 88,
-      "patternIndex": -1
     }
   ],
   "questionIdByIdx": {
-    "1": "cmqezde8x001md08f32qneavd",
-    "2": "cmqezde8y001pd08fapviw5ik",
-    "3": "cmqezde8y001qd08fo6upnikn",
-    "4": "cmq1t5u1q0007sbkltv8tm3ho",
-    "5": "cmq1t5u1r000asbklywnnczao",
-    "6": "cmq1t5u1s000fsbklxd2vxv3w",
-    "7": "cmpnfcb8x000ln6wklt388vdn",
-    "8": "cmq1xezoo0008jek6jajgpfsw",
-    "9": "cmq1xezoo0009jek6cpt93bkj",
-    "10": "cmqga17tz0005xwxma1zx87hw",
-    "11": "cmqga17tz0006xwxmvqy2w929",
-    "12": "cmqga17tz000bxwxmt64efwcz",
-    "13": "cmqga17tz000axwxmmfnmnlaa",
-    "14": "cmq09rwwm0008d3mfsgpek7os",
-    "15": "cmq09rwwm0009d3mf6k87f61a",
-    "16": "cmq5zzfrn0002povefcg2oljs",
-    "17": "cmq5zzfrn0004poveu3cm6veh",
-    "18": "cmq5zzfro0005pove7iyyj194",
-    "19": "cmq1vlxxd0008rupkqpmculxj",
-    "20": "cmq1vlxxe0009rupkvypu7hs1",
-    "21": "cmq0o4fhw0008c8kss2uisdln",
-    "22": "cmq0o4fhw0009c8ksgo83dx41",
-    "23": "cmq0umieq0008y88mgg8pi0n6",
-    "24": "cmq0umieq0009y88m6gmw10qu",
-    "25": "cmpzmyvvv0008bd1ai2613ncx",
-    "26": "cmpzmyvvv0009bd1aoug9cj25",
-    "27": "cmqga795l0005vuz79r659yxr",
-    "28": "cmqga795l0006vuz71lmn7t48",
-    "29": "cmqga795m000bvuz7l1agt6uo",
-    "30": "cmqga795m000avuz7pn87t27z",
-    "31": "cmq0twms100086ipx87fxgjfv",
-    "32": "cmq0twms100096ipx7mahm3ye",
-    "33": "cmq0msm3c00059ahmw2vtt8se",
-    "34": "cmq0msm3c00089ahmh866skfx",
-    "35": "cmq0msm3c00099ahmn1ivjd3d",
-    "36": "cmq1lqtpk0008i8061gqp1z9y",
-    "37": "cmq1lqtpk0009i8067kp2iprh",
-    "38": "cmqf77yz90006hufk721zmmjl",
-    "39": "cmqf77yza000bhufkh1p7qvsx",
-    "40": "cmqf77yza000ahufkmf2rf0l5",
-    "41": "cmq256wet0008e8x4n2kqdxq9",
-    "42": "cmq256wet0009e8x43q0hbivu",
-    "43": "cmp1aebd30007ftstkjibmzid",
-    "44": "cmp1aebd30009ftst6v1151pk",
-    "45": "cmp1aebd3000aftstjq8662hd",
-    "46": "cmq1uwu3s0008fbd5vrtulcfx",
-    "47": "cmq1uwu3s0009fbd5d0d29t7t",
-    "48": "cmqf5ipuc0006wkiactckdyp2",
-    "49": "cmqf5ipud000bwkiao1cwv40x",
-    "50": "cmqf5ipud000awkiaty4t7oq8",
-    "51": "cmq12vquq0008gqr96lych61a",
-    "52": "cmq12vquq0009gqr9hbu7aceh",
-    "53": "cmpuipgpp000525feqn5av8t3",
-    "54": "cmpuipgpq000825feob5pm3kq",
-    "55": "cmpuipgpq000925fe5lo712qc",
-    "56": "cmo7utkec001xj4n7leg3f02x",
-    "57": "cmo7utked001yj4n79cc41kt7",
-    "58": "cmo9amy9o0002shfmzt0z9oda",
-    "59": "cmo9amy9p0008shfmqwtautbf",
-    "60": "cmnwtcq40005hc1mtg1f9apl9",
-    "61": "cmnwtcq40005ic1mt5uu0dp26",
-    "62": "cmnwtcq40005jc1mtpbclz98j",
-    "63": "cmntrzgwc005u14dc0otysim4",
-    "64": "cmntrzgwd005z14dcbhq13tvf",
-    "65": "cmnl8nr04000ja6nno3ki4jvj",
-    "66": "cmnk4o5be0008l1hd4x4xr8q4",
-    "67": "cmnk4o5be000cl1hdpw9a5g2o",
-    "68": "cmnk4o5be000dl1hdfgd7kp01",
-    "69": "cmnk4o5bf000kl1hd1z2fq54w",
-    "70": "cmnfyekjp0039alke4btlc3bb",
-    "71": "cmnfyekjp003balke7s9lqok7",
-    "72": "cmnffjexw00029w4gfj4jqj32",
-    "73": "cmnffjexw00079w4gpulsqlkp",
-    "74": "cmnffjexx00089w4gx4az2166",
-    "75": "cmnffjexx000a9w4gu1kno3q7",
-    "76": "cmnffjexx000b9w4gcyk8qwg3",
-    "77": "cmn2qy95g0062yly19npk5f36",
-    "78": "cmn2qy95g0063yly1midznoqc",
-    "79": "cmn2qy95g0065yly1iakrillr",
-    "80": "cmna30w67000shvlb23xnoxee",
-    "81": "cmn1pl5u2007i8mdiacjj0u8g",
-    "82": "cmn1pl5u2007j8mdir6g7j1he",
-    "83": "cmn1pl5u3007p8mdirqf322d0",
-    "84": "cmn01kc0t000710glvh0uhzt8",
-    "85": "cmn01kc0t000c10glbb1rj4fu",
-    "86": "cmn01kc0t000g10glwoirw7u6",
-    "87": "cmmfsr29k000iogya4cy9590s",
-    "88": "cmmfsr29k000mogya5m6tvh71"
+    "1": "cmqlppnfo005310cpliuvi4xy",
+    "2": "cmqlppnfp005610cpz8mb5h6p",
+    "3": "cmqezde8x001md08f32qneavd",
+    "4": "cmqezde8y001pd08fapviw5ik",
+    "5": "cmqezde8y001qd08fo6upnikn",
+    "6": "cmq1t5u1q0007sbkltv8tm3ho",
+    "7": "cmq1t5u1r000asbklywnnczao",
+    "8": "cmq1t5u1s000fsbklxd2vxv3w",
+    "9": "cmpnfcb8x000ln6wklt388vdn",
+    "10": "cmp1aebd30007ftstkjibmzid",
+    "11": "cmp1aebd30009ftst6v1151pk",
+    "12": "cmp1aebd3000aftstjq8662hd",
+    "13": "cmo7utkec001xj4n7leg3f02x",
+    "14": "cmo7utked001yj4n79cc41kt7",
+    "15": "cmo9amy9o0002shfmzt0z9oda",
+    "16": "cmo9amy9p0008shfmqwtautbf",
+    "17": "cmnwtcq40005hc1mtg1f9apl9",
+    "18": "cmnwtcq40005ic1mt5uu0dp26",
+    "19": "cmnwtcq40005jc1mtpbclz98j",
+    "20": "cmntrzgwc005u14dc0otysim4",
+    "21": "cmntrzgwd005z14dcbhq13tvf",
+    "22": "cmnl8nr04000ja6nno3ki4jvj",
+    "23": "cmnk4o5be0008l1hd4x4xr8q4",
+    "24": "cmnk4o5be000cl1hdpw9a5g2o",
+    "25": "cmnk4o5be000dl1hdfgd7kp01",
+    "26": "cmnk4o5bf000kl1hd1z2fq54w",
+    "27": "cmnfyekjp0039alke4btlc3bb",
+    "28": "cmnfyekjp003balke7s9lqok7",
+    "29": "cmnffjexw00029w4gfj4jqj32",
+    "30": "cmnffjexw00079w4gpulsqlkp",
+    "31": "cmnffjexx00089w4gx4az2166",
+    "32": "cmnffjexx000a9w4gu1kno3q7",
+    "33": "cmnffjexx000b9w4gcyk8qwg3",
+    "34": "cmn2qy95g0062yly19npk5f36",
+    "35": "cmn2qy95g0063yly1midznoqc",
+    "36": "cmn2qy95g0065yly1iakrillr",
+    "37": "cmna30w67000shvlb23xnoxee",
+    "38": "cmn1pl5u2007i8mdiacjj0u8g",
+    "39": "cmn1pl5u2007j8mdir6g7j1he",
+    "40": "cmn1pl5u3007p8mdirqf322d0",
+    "41": "cmn01kc0t000710glvh0uhzt8",
+    "42": "cmn01kc0t000c10glbb1rj4fu",
+    "43": "cmn01kc0t000g10glwoirw7u6",
+    "44": "cmmfsr29k000iogya4cy9590s",
+    "45": "cmmfsr29k000mogya5m6tvh71"
   },
-  "generatedAt": "2026-06-17T08:08:27.247Z",
+  "generatedAt": "2026-06-26T09:32:53.086Z",
   "wrongCounts": {
-    "total": 88,
-    "oeq": 71,
+    "total": 45,
+    "oeq": 28,
     "mcq": 17
   },
   "toplineSnapshot": {
     "avgPct": 87,
-    "totalAwarded": 833.5,
-    "totalAvailable": 963,
-    "paperCount": 37
+    "totalAwarded": 510,
+    "totalAvailable": 584,
+    "paperCount": 20
   },
   "previousAssessment": {
-    "generatedAt": "2026-06-17T08:00:20.670Z",
+    "generatedAt": "2026-06-17T08:08:27.247Z",
     "patternNames": [
-      "Hidden Air Trap",
-      "Water Level Mix-Up",
-      "Digestive Organ Mix-Up",
-      "One Step Short"
+      "Volume vs Level Mix-Up",
+      "Forgetting Hidden Air",
+      "Intestine Jobs Mix-Up",
+      "Stopping Too Early"
     ],
     "wrongCounts": {
       "total": 88,

@@ -1,49 +1,21 @@
 {
   "patterns": [
     {
-      "name": "Verb Tense Mix-Up",
-      "what": "Occasionally uses the past tense when the present is needed, or mixes up verb forms like writing 'had went' instead of 'had gone'.",
-      "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "oeq",
-          "whatWentWrong": "Joylynn used the past tense 'made' instead of the present tense 'makes' for an action that happens daily."
-        },
-        {
-          "questionRef": "[13]",
-          "type": "oeq",
-          "whatWentWrong": "She wrote 'had went' instead of the correct past participle 'had gone'."
-        },
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "Joylynn chose the past tense 'struck' instead of the base form 'strike' after the sensory verb 'saw'."
-        }
-      ],
-      "strategic_advice": "When you see time clues or special verbs, treat them as stop signs:\n- **'daily'** or **'regularly'** → use the present tense.\n- **'had'** or **'have'** → always follow with a past participle (like 'gone', not 'went').\n- **Sensory verbs** like **'saw'** or **'heard'** → follow with a base word (strike) or an '-ing' word (striking).",
-      "trigger_keywords": [
-        "daily",
-        "yesterday",
-        "saw",
-        "had"
-      ]
-    },
-    {
       "name": "Phrasal Verb Mix-Up",
-      "what": "Sometimes confuses two-part verbs that look similar but have very different meanings.",
+      "what": "Sometimes mixes up which small preposition to pair with a verb, which changes the whole meaning of the action.",
       "specific_examples": [
         {
           "questionRef": "[3]",
           "type": "mcq",
-          "whatWentWrong": "Joylynn chose 'looked into' (which means to investigate) instead of 'looked to' (which means to rely on someone)."
+          "whatWentWrong": "Joylynn picked 'looked into' (which means to investigate) instead of 'looked to' for seeking support from a brother."
         },
         {
           "questionRef": "[9]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'set for' instead of 'set off' to describe getting started on a journey."
+          "whatWentWrong": "She chose 'set for' instead of 'set off' to mean getting started on an action."
         }
       ],
-      "strategic_advice": "Phrasal verbs can be tricky because changing just one small word changes the whole meaning!\n- **Read the whole sentence** and guess the meaning before looking at the options.\n- **Try replacing the phrase** with a single word (like 'investigate' for 'look into') to see if it makes sense in the sentence.",
+      "strategic_advice": "When you see a verb followed by a blank, try reading the sentence silently with each option to see which paints the right picture.\n- **'look to'** means to rely on someone, while **'look into'** means to investigate.\n- **'set off'** means to start a journey or action, while **'set for'** usually means being ready for something.",
       "trigger_keywords": [
         "looked",
         "set",
@@ -51,59 +23,65 @@
       ]
     },
     {
-      "name": "Tricky Word Choices",
-      "what": "Tends to pick vocabulary words that might look familiar or similar, but don't quite fit the exact meaning of the sentence.",
+      "name": "Verb Tense Slips",
+      "what": "Occasionally writes or chooses the wrong time tense, like using past tense for a daily habit or mixing up verb forms.",
+      "specific_examples": [
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "Joylynn used the past tense 'made' for an action the chef does 'daily', which needs the present tense 'makes'."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "She wrote 'had went' instead of the correct past participle 'had gone' when reporting speech."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "She picked the past tense 'struck' after a seeing verb, where the base word 'strike' is needed."
+        }
+      ],
+      "strategic_advice": "When changing sentences, always hunt for time clues before you write the verb.\n- If you see **'daily'** or **'regularly'**, keep the verb in the present tense.\n- When using **'had'** in reported speech, always pair it with the past participle (like **'gone'**, not **'went'**).",
+      "trigger_keywords": [
+        "daily",
+        "regularly",
+        "yesterday",
+        "asked"
+      ]
+    },
+    {
+      "name": "Tricky Word Meanings",
+      "what": "Tends to pick words that look similar or feel related, but do not perfectly match the clues hidden in the sentence.",
       "specific_examples": [
         {
           "questionRef": "[7]",
           "type": "mcq",
-          "whatWentWrong": "Joylynn confused 'explore' (to discover) with 'exploit' (to take unfair advantage of)."
+          "whatWentWrong": "Joylynn confused 'explore' with 'exploit' when describing loggers cutting down too many trees."
         },
         {
           "questionRef": "[4]",
           "type": "mcq",
-          "whatWentWrong": "She picked 'indignant' (angry) instead of 'tenacious' (never giving up) to describe a tough opponent."
+          "whatWentWrong": "She chose 'indignant' (angry) instead of 'tenacious' (determined) for an opponent who never gives up."
         },
         {
-          "questionRef": "[6]",
+          "questionRef": "[10]",
           "type": "mcq",
-          "whatWentWrong": "Joylynn chose 'proposed' instead of 'expected' for a delay caused by a flood."
+          "whatWentWrong": "She picked 'constructive' instead of 'rewarding' to replace the word 'worthwhile'."
         }
       ],
-      "strategic_advice": "When faced with tough vocabulary choices, use the clues hidden in the sentence:\n- **Look for context clues** like 'never giving up' or 'without considering the environmental impact' to guide your choice.\n- **Eliminate words** you know definitely don't fit, and read the sentence quietly to yourself with the remaining options to see which sounds most natural.",
+      "strategic_advice": "When options look similar, look for context clues in the rest of the sentence to guide your choice.\n- If the sentence mentions **'never giving up'**, look for a word that means stubborn or determined.\n- If it talks about **'cutting down too many trees'**, look for a negative word about taking advantage.",
       "trigger_keywords": [
-        "spirit",
+        "because",
         "due to",
-        "loggers",
-        "instinct"
-      ]
-    },
-    {
-      "name": "New Sentence Starters",
-      "what": "Sometimes finds it tricky to adjust the grammar when a synthesis question provides a new starting phrase.",
-      "specific_examples": [
-        {
-          "questionRef": "[14]",
-          "type": "oeq",
-          "whatWentWrong": "Joylynn kept the original sentence structure instead of changing it to match the new starter 'Much to Mr Fandi's relief'."
-        },
-        {
-          "questionRef": "[12]",
-          "type": "oeq",
-          "whatWentWrong": "She missed adding 'are' to make 'are trimmed by', which is needed when starting the sentence with the object 'The trees'."
-        }
-      ],
-      "strategic_advice": "When a question gives you a new starting phrase, the whole sentence structure usually needs to shift:\n- **'Much to...'** → always follow this with a feeling noun, like 'Much to his relief' or 'Much to her surprise'.\n- **Starting with the object** (like 'The trees') → remember to use the passive voice by adding 'is' or 'are' before the action word.",
-      "trigger_keywords": [
-        "Much to",
-        "The trees"
+        "without considering"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 2,
@@ -111,7 +89,7 @@
     },
     {
       "idx": 3,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 4,
@@ -119,7 +97,7 @@
     },
     {
       "idx": 5,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 6,
@@ -135,7 +113,7 @@
     },
     {
       "idx": 9,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 10,
@@ -143,23 +121,23 @@
     },
     {
       "idx": 11,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 12,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 13,
-      "patternIndex": 0
+      "patternIndex": 1
     },
     {
       "idx": 14,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 15,
-      "patternIndex": 0
+      "patternIndex": 1
     }
   ],
   "questionIdByIdx": {
@@ -179,7 +157,7 @@
     "14": "cmpw9w065000u8k89ge5kbbsm",
     "15": "cmpw9w065000v8k8916tcym34"
   },
-  "generatedAt": "2026-06-17T09:14:49.925Z",
+  "generatedAt": "2026-06-26T09:37:50.923Z",
   "wrongCounts": {
     "total": 15,
     "oeq": 5,
@@ -191,5 +169,24 @@
     "totalAvailable": 35,
     "paperCount": 1
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-17T09:14:49.925Z",
+    "patternNames": [
+      "Verb Tense Mix-Up",
+      "Phrasal Verb Mix-Up",
+      "Tricky Word Choices",
+      "New Sentence Starters"
+    ],
+    "wrongCounts": {
+      "total": 15,
+      "oeq": 5,
+      "mcq": 10
+    },
+    "toplineSnapshot": {
+      "avgPct": 14,
+      "totalAwarded": 5,
+      "totalAvailable": 35,
+      "paperCount": 1
+    }
+  }
 }

@@ -1,111 +1,121 @@
 {
   "patterns": [
     {
-      "name": "Skipping Questions",
-      "what": "Sometimes leaves multiple-choice questions completely blank instead of taking a best guess.",
-      "specific_examples": [
-        {
-          "questionRef": "[1]",
-          "type": "mcq",
-          "whatWentWrong": "He left the question about what mould needs to grow completely blank."
-        },
-        {
-          "questionRef": "[4]",
-          "type": "mcq",
-          "whatWentWrong": "He skipped the question asking for the most important property of a table."
-        },
-        {
-          "questionRef": "[5]",
-          "type": "mcq",
-          "whatWentWrong": "He left the question about fish characteristics blank instead of taking a guess."
-        }
-      ],
-      "strategic_advice": "When you are unsure, treat it as a puzzle:\n- **Cross out** the options you know are definitely wrong.\n- **Take your best guess** from the remaining choices—never leave a question blank!",
-      "trigger_keywords": [
-        "Which of the following",
-        "Based on"
-      ]
-    },
-    {
-      "name": "Answering the Wrong Question",
-      "what": "Tends to write down a related fact or reason instead of answering the specific question asked.",
+      "name": "Answering the Exact Question",
+      "what": "Sometimes writes down a true statement, but it doesn't match the specific detail the question is asking for, such as answering 'why' when asked 'what happens to the size'.",
       "specific_examples": [
         {
           "questionRef": "[14]",
           "type": "oeq",
-          "whatWentWrong": "When asked what happens to the amount of food and water, Elijah answered why the hamsters need it ('so they will not die')."
+          "whatWentWrong": "When asked what happens to the amount of food and water, he explained why the hamsters need it instead of stating that the amount would decrease."
         },
         {
           "questionRef": "[21]",
           "type": "oeq",
-          "whatWentWrong": "When asked what happens to the size of the balloon, he answered about its weight ('it weighs more')."
-        },
+          "whatWentWrong": "When asked what happens to the size of the balloon, he mentioned its weight instead of saying it gets bigger."
+        }
+      ],
+      "strategic_advice": "When you read an open-ended question, circle the exact question word and the target detail.\n- **'What happens to the amount'** → your answer must say 'increases', 'decreases', or 'remains the same'.\n- **'What happens to the size'** → your answer must describe it getting bigger or smaller.\n- Always re-read the question after writing your answer to check if they match.",
+      "trigger_keywords": [
+        "what happens to",
+        "amount",
+        "size",
+        "observe"
+      ]
+    },
+    {
+      "name": "Missing Science Properties",
+      "what": "Tends to use everyday explanations for why a material is chosen, rather than naming the specific scientific property like 'waterproof' or 'allows light to pass through'.",
+      "specific_examples": [
         {
           "questionRef": "[15]",
           "type": "oeq",
-          "whatWentWrong": "When asked for a reason based on material properties, Elijah gave the purpose of the object ('user needs to see')."
-        }
-      ],
-      "strategic_advice": "When you see these prompts, use them as a checklist:\n- **'What happens to'** → describe the change (like size or amount), not why it happens.\n- **'Give a reason'** → state the exact property of the material, not just what the object is used for.\n- Always read the question one more time after writing your answer to make sure they match.",
-      "trigger_keywords": [
-        "What would",
-        "What happens to",
-        "Give a reason"
-      ]
-    },
-    {
-      "name": "Living Things Mix-Up",
-      "what": "Sometimes confuses the special characteristics that define different groups of living things, such as insects, birds, and fungi.",
-      "specific_examples": [
-        {
-          "questionRef": "[10]",
-          "type": "mcq",
-          "whatWentWrong": "He picked 'lays eggs' as the characteristic for an insect, instead of the defining trait of having 'six legs'."
-        },
-        {
-          "questionRef": "[6]",
-          "type": "mcq",
-          "whatWentWrong": "Elijah identified a bird as an animal with six legs and no wings, missing the key traits of a bird."
-        }
-      ],
-      "strategic_advice": "When you see questions about animal groups, remember:\n- **'characteristic'** → look for the special feature that *only* that group has (like feathers for birds or six legs for insects).\n- Traits like **'lays eggs'** are shared by many different animals, so they are usually not the best clue.",
-      "trigger_keywords": [
-        "characteristic",
-        "identify",
-        "true for both"
-      ]
-    },
-    {
-      "name": "Material Properties Mix-Up",
-      "what": "Occasionally mixes up which material property is most important for an object to do its job.",
-      "specific_examples": [
-        {
-          "questionRef": "[11]",
-          "type": "mcq",
-          "whatWentWrong": "He chose metal for a car windshield because it doesn't break easily, forgetting that it must allow light to pass through."
+          "whatWentWrong": "He correctly knew the glasses help the user see, but missed stating the science property that the material 'allows light to pass through'."
         },
         {
           "questionRef": "[16]",
           "type": "oeq",
-          "whatWentWrong": "When asked why a boat must be strong, Elijah answered that sea animals might bite instead of mentioning it needs to support the user's weight."
+          "whatWentWrong": "He gave a creative everyday reason about sea animals biting, rather than explaining that a boat must be strong to 'support the user's weight'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He picked metal for a car windshield because it doesn't break, forgetting that a windshield's most important property is allowing light to pass through so the driver can see."
         }
       ],
-      "strategic_advice": "When you see questions about choosing materials, imagine using the object in real life:\n- **'suitable material'** → ask yourself what would happen if it lacked a certain property (e.g., a windshield must **allow light to pass through**).\n- **'strong'** → usually means it can support heavy weight without breaking, rather than just being hard.",
+      "strategic_advice": "When a question asks why a material is suitable, always use your science vocabulary words.\n- Think of the **'Magic Science Words'**: strong, flexible, waterproof, floats, or allows light to pass through.\n- Instead of saying 'so they can see', write **'because it allows light to pass through'**.\n- Instead of saying 'so it doesn't break', write **'because it is strong enough to support weight'**.",
       "trigger_keywords": [
         "suitable material",
+        "give a reason",
         "property",
-        "reason"
+        "why"
+      ]
+    },
+    {
+      "name": "Animal Groups Mix-Up",
+      "what": "Occasionally confuses the special characteristics that define different living things, such as what makes an insect, a bird, or a fungi.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'lays eggs' for an insect, but many animals lay eggs; the special feature of an insect is having exactly six legs."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He thought ferns and mushrooms make their own food, but mushrooms are fungi and cannot make their own food; they both reproduce by spores."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "He guessed that both reptiles and mammals lay eggs, forgetting that most mammals give birth to live young, but both breathe through lungs."
+        }
+      ],
+      "strategic_advice": "When identifying animal groups, look for the **one special feature** that belongs ONLY to that group.\n- **Insects** → always look for **six legs** or three body parts.\n- **Birds** → always look for **feathers** (not just wings or laying eggs).\n- **Fungi (mushrooms)** → remember they are not plants, so they **cannot make their own food**.",
+      "trigger_keywords": [
+        "characteristic",
+        "identify",
+        "both",
+        "true for"
+      ]
+    },
+    {
+      "name": "Reading Tables and Graphs",
+      "what": "Sometimes misses the correct answer when information is hidden in a table, graph, or flowchart, often picking a choice without tracking all the clues.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "mcq",
+          "whatWentWrong": "On the bacteria graph, he picked 30°C instead of finding the highest point on the curve and reading down to 40°C."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "He picked a material from the flowchart that didn't match all the required steps for a shower curtain."
+        },
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "He picked a material for a swimming float that was strong and waterproof, but missed checking the box for 'flexible'."
+        }
+      ],
+      "strategic_advice": "Treat charts and tables like a treasure map where you have to follow every single clue.\n- Use your pencil to **trace the lines** on a graph to make sure you are reading the exact number.\n- For flowcharts, **trace the path with your finger** from the start all the way to the letter.\n- For tables, **circle every tick** you need before looking at the options.",
+      "trigger_keywords": [
+        "based on the graph",
+        "flowchart",
+        "table below",
+        "results"
       ]
     }
   ],
   "classification": [
     {
       "idx": 1,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 2,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 3,
@@ -113,11 +123,11 @@
     },
     {
       "idx": 4,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 5,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 6,
@@ -129,7 +139,7 @@
     },
     {
       "idx": 8,
-      "patternIndex": 0
+      "patternIndex": -1
     },
     {
       "idx": 9,
@@ -141,7 +151,7 @@
     },
     {
       "idx": 11,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 12,
@@ -149,11 +159,11 @@
     },
     {
       "idx": 13,
-      "patternIndex": 3
+      "patternIndex": -1
     },
     {
       "idx": 14,
-      "patternIndex": 1
+      "patternIndex": 0
     },
     {
       "idx": 15,
@@ -161,11 +171,11 @@
     },
     {
       "idx": 16,
-      "patternIndex": 3
+      "patternIndex": 1
     },
     {
       "idx": 17,
-      "patternIndex": -1
+      "patternIndex": 3
     },
     {
       "idx": 18,
@@ -181,7 +191,7 @@
     },
     {
       "idx": 21,
-      "patternIndex": 1
+      "patternIndex": 0
     }
   ],
   "questionIdByIdx": {
@@ -207,7 +217,7 @@
     "20": "cmpv1uwzw000fkej7ppk7ja6u",
     "21": "cmpv1uwzw000gkej7kyju7qf8"
   },
-  "generatedAt": "2026-06-19T02:40:06.727Z",
+  "generatedAt": "2026-06-26T09:31:55.951Z",
   "wrongCounts": {
     "total": 21,
     "oeq": 4,
@@ -219,5 +229,24 @@
     "totalAvailable": 965,
     "paperCount": 26
   },
-  "previousAssessment": null
+  "previousAssessment": {
+    "generatedAt": "2026-06-19T02:40:06.727Z",
+    "patternNames": [
+      "Skipping Questions",
+      "Answering the Wrong Question",
+      "Living Things Mix-Up",
+      "Material Properties Mix-Up"
+    ],
+    "wrongCounts": {
+      "total": 21,
+      "oeq": 4,
+      "mcq": 17
+    },
+    "toplineSnapshot": {
+      "avgPct": 96,
+      "totalAwarded": 923.5,
+      "totalAvailable": 965,
+      "paperCount": 26
+    }
+  }
 }
