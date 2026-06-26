@@ -21,6 +21,7 @@ import path from "path";
 import sgMail from "@sendgrid/mail";
 import { prisma } from "../src/lib/db";
 import { loadTutorData, type TutorData } from "../src/lib/tutor";
+import { tryOrQueue } from "../src/lib/mail-queue";
 import { drawTopicChart } from "./send-progress-emails";
 
 const BASE_URL = "https://www.markforyou.com";
@@ -114,6 +115,111 @@ function renderDelta(data: ReadyData, childFirst: string): string {
   return parts.join("\n");
 }
 
+// Per-kid send. Exported so the replay sweeper can re-render and send a
+// queued lumi_weekly row by ID. Caller is responsible for ensuring
+// sgMail.setApiKey() has been called. Returns:
+//   "sent"   — delivered (or queued by tryOrQueue when transport is down)
+//   "no-delta" — no subject had a weeklyDelta this week (intentional skip)
+//   "no-recipient" — kid has no linked parent email AND no override was passed
+export async function sendLumiWeeklyForStudent(args: {
+  studentId: string;
+  toOverride?: string | null;
+  /** When true, writes preview HTML to eval/ and skips transport. */
+  dryRun?: boolean;
+}): Promise<{ status: "sent" | "queued" | "no-delta" | "no-recipient"; queueId?: string; subjects?: Subject[]; reason?: string }> {
+  const stu = await prisma.user.findUnique({
+    where: { id: args.studentId },
+    select: { id: true, name: true, parentLinks: { select: { parent: { select: { id: true, name: true, email: true } } } } },
+  });
+  if (!stu) return { status: "no-recipient", reason: "student not found" };
+  const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
+
+  const sections: Array<{ subject: Subject; chartBuf: Buffer; chartCid: string; html: string }> = [];
+  for (const subj of SUBJECTS) {
+    const data = await loadTutorData(stu.id, subj);
+    if (data.kind !== "ready" || !data.weeklyDelta) continue;
+    const label = SUBJECT_LABEL[subj];
+    const chartBuf = drawTopicChart(data.topline.allTopics, data.topline.avgPct, label, childFirst);
+    const chartCid = `chart-${stu.id.slice(-6)}-${subj.toLowerCase()}`;
+    sections.push({
+      subject: subj,
+      chartBuf,
+      chartCid,
+      html: `
+        <h2 style="${STYLES.subjectH}">${SUBJECT_EMOJI[subj]} ${label}</h2>
+        ${renderDelta(data, childFirst)}
+        <div style="${STYLES.sectionH} color: #475569;">Progress so far</div>
+        <img src="cid:${chartCid}" alt="${esc(childFirst)} — ${label} per-topic accuracy" style="${STYLES.chart}" />
+      `,
+    });
+  }
+  if (sections.length === 0) return { status: "no-delta" };
+
+  const linkedParent = stu.parentLinks[0]?.parent ?? null;
+  const ctaParentId = linkedParent?.id ?? stu.id;
+  const ctaUrl = `${BASE_URL}/tutor/${ctaParentId}?student=${stu.id}`;
+  const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
+  const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
+  const html = `<!doctype html>
+<html><body style="${STYLES.body}">
+  <div style="${STYLES.container}">
+    <p style="${STYLES.intro}">Hi ${esc(parentFirst)},</p>
+    <p style="${STYLES.intro}">Here's Lumi's update on ${esc(childFirst)} for this week — wins, topic progress, and anything new worth keeping an eye on.</p>
+    ${sections.map(s => s.html).join("\n")}
+    <a href="${ctaUrl}" style="${STYLES.cta}">See Lumi's full report on ${esc(childFirst)} →</a>
+    <p style="margin: 20px 0 0 0; color: #001e40; font-size: 14px; line-height: 1.55;">
+      Cheering ${esc(childFirst)} on,<br/>
+      <strong>Lumi &amp; the MarkForYou team</strong>
+    </p>
+  </div>
+</body></html>`;
+
+  if (args.dryRun) {
+    let previewHtml = html;
+    for (const s of sections) {
+      const dataUri = `data:image/png;base64,${s.chartBuf.toString("base64")}`;
+      previewHtml = previewHtml.replace(new RegExp(`cid:${s.chartCid}`, "g"), dataUri);
+    }
+    const out = path.join(__dirname, "..", "eval", `lumi-weekly-email-${safeSlug(stu.name)}.html`);
+    await writeFile(out, previewHtml, "utf8");
+    return { status: "sent", subjects: sections.map(s => s.subject) };
+  }
+
+  const recipient = args.toOverride ?? linkedParent?.email ?? null;
+  if (!recipient) return { status: "no-recipient", reason: "no linked parent email + no override" };
+  const attachments = sections.map(s => ({
+    content: s.chartBuf.toString("base64"),
+    filename: `${s.chartCid}.png`,
+    type: "image/png",
+    disposition: "inline",
+    content_id: s.chartCid,
+  }));
+  const result = await tryOrQueue({
+    eventType: "lumi_weekly",
+    toEmail: recipient,
+    toName: linkedParent?.name ?? null,
+    payload: { studentId: stu.id, toOverride: args.toOverride ?? null },
+    send: async () => {
+      const [resp] = await sgMail.send({
+        to: recipient,
+        from: FROM,
+        subject,
+        html,
+        attachments,
+        trackingSettings: {
+          clickTracking: { enable: false, enableText: false },
+          openTracking: { enable: false },
+          subscriptionTracking: { enable: false },
+        },
+      });
+      console.log(`  ✓ sent to ${recipient} status=${resp.statusCode}`);
+    },
+  });
+  if (result.queued) return { status: "queued", queueId: result.queueId, reason: result.reason, subjects: sections.map(s => s.subject) };
+  if (!result.sent)  return { status: "no-recipient", reason: result.reason };
+  return { status: "sent", subjects: sections.map(s => s.subject) };
+}
+
 (async () => {
   const { dryRun, kids, toOverride } = parseArgs();
   console.log(`Lumi weekly email — kids=${kids.join(",")} to=${toOverride ?? "(linked parents)"} dry=${dryRun}\n`);
@@ -133,89 +239,16 @@ function renderDelta(data: ReadyData, childFirst: string): string {
   if (toProcess.length === 0) { console.error(`No matching students for slugs: ${kids.join(",")}`); process.exit(1); }
 
   for (const stu of toProcess) {
-    const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
     console.log(`──── ${stu.name} ────`);
-    // Load all 3 subjects, keep only those with a weeklyDelta
-    const sections: Array<{ subject: Subject; data: ReadyData; chartBuf: Buffer; chartCid: string; html: string }> = [];
-    for (const subj of SUBJECTS) {
-      const data = await loadTutorData(stu.id, subj);
-      if (data.kind !== "ready") { console.log(`  ${subj}: tutor data not ready (${data.kind}) — skip`); continue; }
-      if (!data.weeklyDelta)     { console.log(`  ${subj}: no weekly delta (0 new papers since cache) — skip`); continue; }
-      const label = SUBJECT_LABEL[subj];
-      const chartBuf = drawTopicChart(data.topline.allTopics, data.topline.avgPct, label, childFirst);
-      const chartCid = `chart-${stu.id.slice(-6)}-${subj.toLowerCase()}`;
-      const sectionHtml = `
-        <h2 style="${STYLES.subjectH}">${SUBJECT_EMOJI[subj]} ${label}</h2>
-        ${renderDelta(data, childFirst)}
-        <div style="${STYLES.sectionH} color: #475569;">Progress so far</div>
-        <img src="cid:${chartCid}" alt="${esc(childFirst)} — ${label} per-topic accuracy" style="${STYLES.chart}" />
-      `;
-      sections.push({ subject: subj, data, chartBuf, chartCid, html: sectionHtml });
-      console.log(`  ${subj}: ✓ delta block + chart attached`);
-    }
-    if (sections.length === 0) {
-      console.log(`  Skipping email — no subjects with new activity this week.`);
-      continue;
-    }
-
-    // Pick a parent (for CTA bootstrap). For the test send, recipients
-    // are forced via --to, but the CTA link still needs a real parent
-    // id so the dashboard loads as that parent.
-    const linkedParent = stu.parentLinks[0]?.parent ?? null;
-    const ctaParentId = linkedParent?.id ?? stu.id;
-    const ctaUrl = `${BASE_URL}/tutor/${ctaParentId}?student=${stu.id}`;
-    const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
-
-    const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
-    const html = `<!doctype html>
-<html><body style="${STYLES.body}">
-  <div style="${STYLES.container}">
-    <p style="${STYLES.intro}">Hi ${esc(parentFirst)},</p>
-    <p style="${STYLES.intro}">Here's Lumi's update on ${esc(childFirst)} for this week — wins, topic progress, and anything new worth keeping an eye on.</p>
-    ${sections.map(s => s.html).join("\n")}
-    <a href="${ctaUrl}" style="${STYLES.cta}">See Lumi's full report on ${esc(childFirst)} →</a>
-    <p style="margin: 20px 0 0 0; color: #001e40; font-size: 14px; line-height: 1.55;">
-      Cheering ${esc(childFirst)} on,<br/>
-      <strong>Lumi &amp; the MarkForYou team</strong>
-    </p>
-  </div>
-</body></html>`;
-
-    if (dryRun) {
-      // For the preview file we replace the cid: references with inline
-      // base64 data URIs so the chart actually renders when the file is
-      // opened in a browser. The transport HTML still uses cid: for the
-      // SendGrid attachment path. Both versions are functionally
-      // identical from the parent's inbox perspective.
-      let previewHtml = html;
-      for (const s of sections) {
-        const dataUri = `data:image/png;base64,${s.chartBuf.toString("base64")}`;
-        previewHtml = previewHtml.replace(new RegExp(`cid:${s.chartCid}`, "g"), dataUri);
-      }
-      const out = path.join(__dirname, "..", "eval", `lumi-weekly-email-${safeSlug(stu.name)}.html`);
-      await writeFile(out, previewHtml, "utf8");
-      console.log(`  wrote ${out}`);
-      continue;
-    }
-
-    const recipient = toOverride ?? linkedParent?.email ?? null;
-    if (!recipient) { console.log(`  No recipient (no linked parent email + no --to override) — skip`); continue; }
-    const attachments = sections.map(s => ({
-      content: s.chartBuf.toString("base64"),
-      filename: `${s.chartCid}.png`,
-      type: "image/png",
-      disposition: "inline",
-      content_id: s.chartCid,
-    }));
-    const [resp] = await sgMail.send({
-      to: recipient, from: FROM, subject, html, attachments,
-      trackingSettings: {
-        clickTracking: { enable: false, enableText: false },
-        openTracking: { enable: false },
-        subscriptionTracking: { enable: false },
-      },
+    const result = await sendLumiWeeklyForStudent({
+      studentId: stu.id,
+      toOverride,
+      dryRun,
     });
-    console.log(`  ✓ sent to ${recipient} status=${resp.statusCode}`);
+    if (result.status === "sent")          console.log(`  ${dryRun ? "wrote preview" : "delivered"} (${(result.subjects ?? []).join(", ")})`);
+    else if (result.status === "queued")   console.log(`  queued for replay (${result.queueId}) — ${result.reason}`);
+    else if (result.status === "no-delta") console.log(`  no subjects with new activity this week — skip`);
+    else                                   console.log(`  ${result.reason}`);
   }
 
   await prisma.$disconnect();

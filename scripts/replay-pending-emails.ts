@@ -19,10 +19,15 @@
 // are picked up by the next invocation.
 
 import "dotenv/config";
+import sgMail from "@sendgrid/mail";
 import { prisma } from "../src/lib/db";
 import { loadPending, markSent, markFailed, type EventType } from "../src/lib/mail-queue";
 import { sendWelcomeEmail } from "../src/lib/send-welcome-email";
 import { triggerForStudentSubject } from "./send-progress-emails";
+import { sendLumiIntroForReplay } from "./_do-55-send-intros";
+import { sendLumiWeeklyForStudent } from "./send-lumi-weekly-emails";
+
+if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const MAX_ATTEMPTS = 5;
 
@@ -80,12 +85,25 @@ async function sendByEvent(eventType: EventType, payload: unknown): Promise<void
       await triggerForStudentSubject(studentId, subject);
       return;
     }
-    case "lumi_intro":
-    case "lumi_weekly":
-      // Not yet wired automatically — when those paths come online,
-      // add renderers here. Leaving the case explicit so the dispatcher
-      // fails loudly on payloads we don't know how to handle.
-      throw new Error(`replay not implemented for eventType "${eventType}" yet`);
+    case "lumi_intro": {
+      const studentId = String(p.studentId ?? "");
+      const subject = String(p.subject ?? "") as "Math" | "Science" | "English";
+      const parentId = String(p.parentId ?? "");
+      if (!studentId || !subject || !parentId) throw new Error("missing studentId/subject/parentId");
+      if (!["Math", "Science", "English"].includes(subject)) throw new Error(`bad subject "${subject}"`);
+      await sendLumiIntroForReplay({ studentId, subject, parentId });
+      return;
+    }
+    case "lumi_weekly": {
+      const studentId = String(p.studentId ?? "");
+      const toOverride = (p.toOverride as string | null | undefined) ?? undefined;
+      if (!studentId) throw new Error("missing studentId");
+      const result = await sendLumiWeeklyForStudent({ studentId, toOverride });
+      if (result.status === "no-recipient") throw new Error(result.reason ?? "no recipient");
+      if (result.status === "no-delta")     return; // valid no-op
+      if (result.status === "queued")       throw new Error(`re-queued — ${result.reason ?? "transport still down"}`);
+      return;
+    }
     default:
       throw new Error(`unknown eventType "${eventType}"`);
   }
