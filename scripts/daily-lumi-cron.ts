@@ -84,6 +84,7 @@ function daysSince(iso: string | undefined | null): number | null {
 (async () => {
   const runId = new Date().toISOString();
   console.log(`──── daily-lumi-cron ${runId} ────`);
+  console.log(`  VERSION: nurture-v1 commit-marker-2026-06-27-X1Y2Z3`);
   console.log(`  mode: ${DRY ? "DRY-RUN" : "LIVE"}    deltas: ${SEND_DELTAS ? "ON" : "off (gated, --send-deltas to enable)"}`);
 
   // ============================================================
