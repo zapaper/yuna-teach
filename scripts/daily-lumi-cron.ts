@@ -56,6 +56,7 @@ const DELTA_COOLDOWN_DAYS = 6;
 // emails. Default 5 → 60/day max → ~3 days to clear the 187 backlog
 // of never-started kids. Trickle pattern keeps us out of Gmail's
 // Promotions tab. Override via env var to tune up or down.
+// (override via NURTURE_PER_TICK_CAP env var if you want to bump it for catchup)
 const NURTURE_PER_TICK_CAP = parseInt(process.env.NURTURE_PER_TICK_CAP ?? "5", 10);
 const NURTURE_MIN_DAYS = 3;
 const NURTURE_FROM = { email: process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com", name: "MarkForYou" };
