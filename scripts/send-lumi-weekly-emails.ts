@@ -137,14 +137,64 @@ function summarizeMistake(ex: {
   return null;
 }
 
-function renderDelta(data: ReadyData, childFirst: string): string {
+// Per-example detail block — only rendered for English where there's
+// usually no diagram and the wrong-answer / marker-notes context is
+// the whole point. Math + Science have diagrams that don't render
+// reliably in email, so we keep those bodies minimal and let the
+// Progress page show the visuals.
+function renderEnglishDetails(childFirst: string, ex: {
+  stem: string;
+  studentAnswer: string | null;
+  correctAnswer: string | null;
+  markingNotes?: string | null;
+  isMcq: boolean;
+  options: string[];
+}): string {
+  const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
+  let answerLine = "";
+  if (ex.studentAnswer) {
+    if (ex.isMcq && ex.options.length > 0) {
+      const m = ex.studentAnswer.match(/\d+/);
+      const idx = m ? parseInt(m[0], 10) - 1 : -1;
+      const opt = ex.options[idx];
+      answerLine = opt ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} picked:</em> “${esc(opt)}”</p>` : "";
+    } else {
+      answerLine = `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} wrote:</em> ${esc(ex.studentAnswer.slice(0, 200))}${ex.studentAnswer.length > 200 ? "…" : ""}</p>`;
+    }
+  }
+  let correctLine = "";
+  if (ex.correctAnswer) {
+    if (ex.isMcq && ex.options.length > 0) {
+      const m = ex.correctAnswer.match(/\d+/);
+      const idx = m ? parseInt(m[0], 10) - 1 : -1;
+      const opt = ex.options[idx];
+      correctLine = opt ? `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> “${esc(opt)}”</p>` : "";
+    } else {
+      correctLine = `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> ${esc(ex.correctAnswer.slice(0, 200))}${ex.correctAnswer.length > 200 ? "…" : ""}</p>`;
+    }
+  }
+  const notesLine = ex.markingNotes
+    ? `<p style="font-size: 12px; color: #4b5563; margin: 6px 0 0;"><em>Marker:</em> ${esc(ex.markingNotes.slice(0, 300))}${ex.markingNotes.length > 300 ? "…" : ""}</p>`
+    : "";
+  return `
+    <div style="margin-top: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
+      <p style="font-size: 12px; color: #1f2937; margin: 0; white-space: pre-wrap;"><em>Question:</em> ${esc(stemTrim)}</p>
+      ${answerLine}
+      ${correctLine}
+      ${notesLine}
+    </div>
+  `;
+}
+
+function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaUrl: string): string {
   const delta = data.weeklyDelta;
   if (!delta) return ""; // shouldn't happen (caller filters), but safety
+  const isEnglish = subject === "English";
   const parts: string[] = [];
   // One-line activity summary so the parent immediately sees the
   // volume of work: "David has done 2 papers (37 questions) this week."
   parts.push(`<p style="${STYLES.activity}">${esc(childFirst)} has done <strong>${delta.papersThisWeek}</strong> paper${delta.papersThisWeek === 1 ? "" : "s"} (<strong>${delta.questionsThisWeek}</strong> question${delta.questionsThisWeek === 1 ? "" : "s"}) this week.</p>`);
-  parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)}</p>`);
+  parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)} <a href="${ctaUrl}" style="color: #7c3aed; text-decoration: underline; font-weight: 600;">More details can be found on his Progress page.</a></p>`);
 
   if (delta.wins.length > 0) {
     parts.push(`<div style="${STYLES.sectionH} color: #065f46;">🎉 Wins this week</div>`);
@@ -155,6 +205,7 @@ function renderDelta(data: ReadyData, childFirst: string): string {
         <div style="${STYLES.winCard}">
           <div style="${STYLES.cardTitle} color: #065f46;">${esc(w.patternName)}</div>
           <div style="${STYLES.cardBody}">Example: ${esc(childFirst)} answered Q${esc(ex.questionNum)} of ${esc(ex.paperTitle)} correctly (${ex.aw}/${ex.av}).</div>
+          ${isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
         </div>`);
     }
   }
@@ -180,6 +231,7 @@ function renderDelta(data: ReadyData, childFirst: string): string {
           <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
           ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
           ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
+          ${ex && isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
         </div>`);
     }
   }
@@ -205,6 +257,15 @@ export async function sendLumiWeeklyForStudent(args: {
   if (!stu) return { status: "no-recipient", reason: "student not found" };
   const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
 
+  // CTA URL — used both by the bottom button AND inline in the preface
+  // line ("More details can be found on his Progress page"). Match the
+  // intro email's shape: land on the parent homepage with the Lumi
+  // view active. The bare /tutor/<parentId> route renders Lumi without
+  // the dashboard shell + has a confusing "Tutor" header.
+  const linkedParent = stu.parentLinks[0]?.parent ?? null;
+  const ctaParentId = linkedParent?.id ?? stu.id;
+  const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
+
   const sections: Array<{ subject: Subject; chartBuf: Buffer; chartCid: string; html: string }> = [];
   for (const subj of SUBJECTS) {
     const data = await loadTutorData(stu.id, subj);
@@ -218,20 +279,13 @@ export async function sendLumiWeeklyForStudent(args: {
       chartCid,
       html: `
         <h2 style="${STYLES.subjectH}">${SUBJECT_EMOJI[subj]} ${label}</h2>
-        ${renderDelta(data, childFirst)}
+        ${renderDelta(data, childFirst, subj, ctaUrl)}
         <div style="${STYLES.sectionH} color: #475569;">Progress so far</div>
         <img src="cid:${chartCid}" alt="${esc(childFirst)} — ${label} per-topic accuracy" style="${STYLES.chart}" />
       `,
     });
   }
   if (sections.length === 0) return { status: "no-delta" };
-
-  const linkedParent = stu.parentLinks[0]?.parent ?? null;
-  const ctaParentId = linkedParent?.id ?? stu.id;
-  // Match the intro email's CTA: land on the parent homepage with the
-  // Lumi view active. The bare /tutor/<parentId> route renders Lumi
-  // without the dashboard shell + has a confusing "Tutor" header.
-  const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
   const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
   const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
   const html = `<!doctype html>

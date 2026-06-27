@@ -95,12 +95,41 @@ function summarizeMistake(ex: {
   return null;
 }
 
-function renderDelta(data: ReadyData, childFirst: string): string {
+function renderEnglishDetails(childFirst: string, ex: {
+  stem: string; studentAnswer: string | null; correctAnswer: string | null;
+  markingNotes?: string | null; isMcq: boolean; options: string[];
+}): string {
+  const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
+  const derefOpt = (raw: string | null) => {
+    if (!raw) return null;
+    const m = raw.match(/\d+/); if (!m) return null;
+    const idx = parseInt(m[0], 10) - 1;
+    return ex.options[idx] ?? null;
+  };
+  const studentOpt = ex.isMcq ? derefOpt(ex.studentAnswer) : null;
+  const correctOpt = ex.isMcq ? derefOpt(ex.correctAnswer) : null;
+  const ansLine = ex.studentAnswer
+    ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} ${ex.isMcq ? "picked" : "wrote"}:</em> ${ex.isMcq && studentOpt ? `“${esc(studentOpt)}”` : esc(ex.studentAnswer.slice(0, 200))}${!ex.isMcq && ex.studentAnswer.length > 200 ? "…" : ""}</p>`
+    : "";
+  const correctLine = ex.correctAnswer
+    ? `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> ${ex.isMcq && correctOpt ? `“${esc(correctOpt)}”` : esc(ex.correctAnswer.slice(0, 200))}${!ex.isMcq && ex.correctAnswer.length > 200 ? "…" : ""}</p>`
+    : "";
+  const notesLine = ex.markingNotes
+    ? `<p style="font-size: 12px; color: #4b5563; margin: 6px 0 0;"><em>Marker:</em> ${esc(ex.markingNotes.slice(0, 300))}${ex.markingNotes.length > 300 ? "…" : ""}</p>`
+    : "";
+  return `<div style="margin-top: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
+    <p style="font-size: 12px; color: #1f2937; margin: 0; white-space: pre-wrap;"><em>Question:</em> ${esc(stemTrim)}</p>
+    ${ansLine}${correctLine}${notesLine}
+  </div>`;
+}
+
+function renderDelta(data: ReadyData, childFirst: string, subject: "Math" | "Science" | "English", ctaUrl: string): string {
   const delta = data.weeklyDelta;
   if (!delta) return "";
+  const isEnglish = subject === "English";
   const parts: string[] = [];
   parts.push(`<p style="${STYLES.activity}">${esc(childFirst)} has done <strong>${delta.papersThisWeek}</strong> paper${delta.papersThisWeek === 1 ? "" : "s"} (<strong>${delta.questionsThisWeek}</strong> question${delta.questionsThisWeek === 1 ? "" : "s"}) this week.</p>`);
-  parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)}</p>`);
+  parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)} <a href="${ctaUrl}" style="color: #7c3aed; text-decoration: underline; font-weight: 600;">More details can be found on his Progress page.</a></p>`);
   if (delta.wins.length > 0) {
     parts.push(`<div style="${STYLES.sectionH} color: #065f46;">🎉 Wins this week</div>`);
     parts.push(`<p style="${STYLES.cardBody}">${esc(childFirst)} made progress on ${delta.wins.length} common mistake${delta.wins.length === 1 ? "" : "s"} he used to make. Great job!</p>`);
@@ -109,6 +138,7 @@ function renderDelta(data: ReadyData, childFirst: string): string {
       parts.push(`<div style="${STYLES.winCard}">
         <div style="${STYLES.cardTitle} color: #065f46;">${esc(w.patternName)}</div>
         <div style="${STYLES.cardBody}">Example: ${esc(childFirst)} answered Q${esc(ex.questionNum)} of ${esc(ex.paperTitle)} correctly (${ex.aw}/${ex.av}).</div>
+        ${isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
       </div>`);
     }
   }
@@ -130,6 +160,7 @@ function renderDelta(data: ReadyData, childFirst: string): string {
         <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
         ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
         ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
+        ${ex && isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
       </div>`);
     }
   }
@@ -159,6 +190,12 @@ export async function POST(req: NextRequest) {
     if (!stu) { results.push({ slug, status: "skip", subjects: [], error: "not found" }); continue; }
     const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
 
+    // CTA URL computed BEFORE rendering sections so renderDelta can
+    // embed the "More details on Progress page" link in the preface.
+    const linkedParent = stu.parentLinks[0]?.parent ?? null;
+    const ctaParentId = linkedParent?.id ?? stu.id;
+    const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
+
     const sections: Array<{ subject: Subject; chartBuf: Buffer; chartCid: string; html: string }> = [];
     for (const subj of SUBJECTS) {
       const data = await loadTutorData(stu.id, subj);
@@ -172,7 +209,7 @@ export async function POST(req: NextRequest) {
       const chartCid = `chart-${stu.id.slice(-6)}-${subj.toLowerCase()}`;
       const sectionHtml = `
         <h2 style="${STYLES.subjectH}">${SUBJECT_EMOJI[subj]} ${label}</h2>
-        ${renderDelta(data, childFirst)}
+        ${renderDelta(data, childFirst, subj, ctaUrl)}
         <div style="${STYLES.sectionH} color: #475569;">Progress so far</div>
         <img src="cid:${chartCid}" alt="${esc(childFirst)} — ${label} per-topic accuracy" style="${STYLES.chart}" />
       `;
@@ -182,10 +219,6 @@ export async function POST(req: NextRequest) {
       results.push({ slug, status: "no-delta", subjects: [] });
       continue;
     }
-
-    const linkedParent = stu.parentLinks[0]?.parent ?? null;
-    const ctaParentId = linkedParent?.id ?? stu.id;
-    const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
     const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
     const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
     const html = `<!doctype html>

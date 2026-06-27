@@ -858,6 +858,85 @@ function scrollToSection(id: string) {
 // (populated by loadTutorData when a lastweek snapshot exists).
 type DeltaLazyImage = { diagramImageData: string | null; imageData: string | null; optionImages: string[] | null };
 
+// Reusable MCQ-options-or-text renderer for the delta details panel.
+// Mirrors the standing-report (commonMistakes) treatment so the parent
+// sees a consistent layout: clean text options as a vertical list with
+// picked/correct highlighting, image options as a 2×2 grid, OEQ falls
+// back to the bare "wrote X" line.
+function DeltaExampleBody({ ex, img, childFirst }: {
+  ex: {
+    isMcq: boolean;
+    options: string[];
+    studentAnswer: string | null;
+    correctAnswer?: string | null;
+  };
+  img: DeltaLazyImage | undefined;
+  childFirst: string;
+}) {
+  const studentNum = ex.studentAnswer ? (ex.studentAnswer.match(/\d+/)?.[0] ?? null) : null;
+  const correctNum = ex.correctAnswer ? (ex.correctAnswer.match(/\d+/)?.[0] ?? null) : null;
+
+  // Clean text-options MCQ — render full options list.
+  if (ex.isMcq && ex.options.length > 0) {
+    return (
+      <div className="mt-2">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Options</p>
+        <div className="space-y-1">
+          {ex.options.map((o, k) => {
+            const num = String(k + 1);
+            const isPicked = num === studentNum;
+            const isCorrect = num === correctNum;
+            const cls = isCorrect ? "bg-emerald-100 text-emerald-900" : isPicked ? "bg-rose-100 text-rose-900" : "bg-white text-slate-700";
+            return (
+              <div key={k} className={`px-2 py-1 rounded text-xs ${cls}`}>
+                <strong>({num})</strong> {o}
+                {isCorrect && <span className="text-[10px] font-bold ml-2">✓ correct</span>}
+                {isPicked && !isCorrect && <span className="text-[10px] font-bold ml-2">✗ {childFirst} picked</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Clean option-images MCQ — 2×2 grid with picked/correct rings.
+  if (ex.isMcq && img?.optionImages && img.optionImages.length > 0) {
+    return (
+      <div className="mt-2">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Options</p>
+        <div className="grid grid-cols-2 gap-2">
+          {img.optionImages.map((o, k) => {
+            if (!o) return null;
+            const num = String(k + 1);
+            const isPicked = num === studentNum;
+            const isCorrect = num === correctNum;
+            const ring = isCorrect ? "ring-2 ring-emerald-400 bg-emerald-50" : isPicked ? "ring-2 ring-rose-400 bg-rose-50" : "ring-1 ring-slate-200 bg-white";
+            const src = o.startsWith("data:") ? o : `data:image/png;base64,${o}`;
+            return (
+              <div key={k} className={`p-2 rounded ${ring}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-slate-700">({num})</span>
+                  {isCorrect && <span className="text-[10px] font-bold text-emerald-700">✓</span>}
+                  {isPicked && !isCorrect && <span className="text-[10px] font-bold text-rose-700">✗</span>}
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={`Option ${num}`} className="w-full rounded" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // OEQ — fall back to the bare student-answer line.
+  if (!ex.studentAnswer) return null;
+  return (
+    <p className="mt-2 whitespace-pre-wrap text-xs"><strong>{childFirst} wrote:</strong> {ex.studentAnswer.slice(0, 400)}{ex.studentAnswer.length > 400 ? "…" : ""}</p>
+  );
+}
+
 function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string; studentId: string }) {
   // Lazy-fetched diagram + option images keyed by questionId. The
   // initial Lumi payload omits these blobs (they're 50KB-500KB each);
@@ -910,48 +989,20 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
                     <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {w.exampleHit.stem.slice(0, 600)}{w.exampleHit.stem.length > 600 ? "…" : ""}</p>
                     {(() => {
                       const img = lazyImages[w.exampleHit.questionId];
-                      // Options must come from the CLEAN extract — the
-                      // raw imageData row dumps stem + diagram + options
-                      // into a confusing strip. Diagram is the exception:
-                      // prefer the clean diagram crop, but fall back to
-                      // the full-row imageData when the clean crop isn't
-                      // populated (always present, gives the parent some
-                      // visual context).
-                      const diagram = img?.diagramImageData ?? img?.imageData ?? null;
-                      const opts = img?.optionImages ?? null;
+                      const isCleanMcq = w.exampleHit.isMcq && (w.exampleHit.options.length > 0 || !!img?.optionImages?.length);
+                      // Clean-extract MCQ with no clean diagram → don't
+                      // fall back to imageData (the full row crop). The
+                      // clean question text + options list below already
+                      // conveys everything; the row image is noise.
+                      const diagram = img?.diagramImageData ?? (isCleanMcq ? null : img?.imageData ?? null);
                       return (
                         <>
                           {diagram && (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={diagram.startsWith("data:") ? diagram : `data:image/png;base64,${diagram}`} alt="Question diagram" className="mt-2 max-w-full rounded border border-slate-200" />
                           )}
-                          {opts && opts.length > 0 && (
-                            <div className="mt-2 grid grid-cols-2 gap-2">
-                              {opts.map((o, i) => o ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img key={i} src={o.startsWith("data:") ? o : `data:image/png;base64,${o}`} alt={`Option ${i + 1}`} className="rounded border border-slate-200" />
-                              ) : null)}
-                            </div>
-                          )}
+                          <DeltaExampleBody ex={w.exampleHit} img={img} childFirst={childFirst} />
                         </>
-                      );
-                    })()}
-                    {(() => {
-                      // MCQ: dereference option digit → option text so the
-                      // parent sees "picked 'Cell B has the most charge'"
-                      // rather than the meaningless "Caleb wrote: 3".
-                      const sa = w.exampleHit.studentAnswer;
-                      if (!sa) return null;
-                      if (w.exampleHit.isMcq && w.exampleHit.options.length > 0) {
-                        const m = sa.match(/\d+/);
-                        const idx = m ? parseInt(m[0], 10) - 1 : -1;
-                        const opt = w.exampleHit.options[idx];
-                        if (opt) return (
-                          <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} picked:</strong> “{opt}”</p>
-                        );
-                      }
-                      return (
-                        <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {sa.slice(0, 400)}{sa.length > 400 ? "…" : ""}</p>
                       );
                     })()}
                     <p className="mt-2 text-emerald-700 font-bold">✓ {w.exampleHit.aw}/{w.exampleHit.av} marks</p>
@@ -1003,31 +1054,18 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
                       <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {m.exampleWrong.stem.slice(0, 600)}{m.exampleWrong.stem.length > 600 ? "…" : ""}</p>
                       {(() => {
                         const img = lazyImages[m.exampleWrong!.questionId];
-                        // Same clean-extract policy as wins — options
-                        // from transcribedOptionImages only; diagram
-                        // falls back to imageData for visual context.
-                        const diagram = img?.diagramImageData ?? img?.imageData ?? null;
-                        const opts = img?.optionImages ?? null;
+                        const isCleanMcq = m.exampleWrong!.isMcq && (m.exampleWrong!.options.length > 0 || !!img?.optionImages?.length);
+                        const diagram = img?.diagramImageData ?? (isCleanMcq ? null : img?.imageData ?? null);
                         return (
                           <>
                             {diagram && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={diagram.startsWith("data:") ? diagram : `data:image/png;base64,${diagram}`} alt="Question diagram" className="mt-2 max-w-full rounded border border-slate-200" />
                             )}
-                            {opts && opts.length > 0 && (
-                              <div className="mt-2 grid grid-cols-2 gap-2">
-                                {opts.map((o, i) => o ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img key={i} src={o.startsWith("data:") ? o : `data:image/png;base64,${o}`} alt={`Option ${i + 1}`} className="rounded border border-slate-200" />
-                                ) : null)}
-                              </div>
-                            )}
+                            <DeltaExampleBody ex={m.exampleWrong!} img={img} childFirst={childFirst} />
                           </>
                         );
                       })()}
-                      {m.exampleWrong.studentAnswer && (
-                        <p className="mt-2 text-rose-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {m.exampleWrong.studentAnswer.slice(0, 400)}{m.exampleWrong.studentAnswer.length > 400 ? "…" : ""}</p>
-                      )}
                       {m.exampleWrong.markingNotes && (
                         <p className="mt-2 text-slate-600 whitespace-pre-wrap"><strong>Marker:</strong> {m.exampleWrong.markingNotes.slice(0, 300)}{m.exampleWrong.markingNotes.length > 300 ? "…" : ""}</p>
                       )}
