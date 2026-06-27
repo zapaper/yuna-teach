@@ -98,7 +98,9 @@ type ProgressData = {
   subjects: Record<string, { examCount: number; topics: ProgressTopics }>;
 };
 type TopicRow = { topic: string; subject: string; pct: number };
-type AdminNotif = { questionId: string; questionNum: string; adminReply: string; paperTitle: string };
+type QuestionNotif = { kind: "question"; questionId: string; questionNum: string; adminReply: string; paperTitle: string };
+type FeedbackNotif = { kind: "feedback"; feedbackId: string; originalMessage: string; adminReply: string; adminRepliedAt: string | null };
+type AdminNotif = QuestionNotif | FeedbackNotif;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1054,8 +1056,11 @@ export default function ParentDashboard({
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((data: AdminNotif[]) => { if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); } })
+      .then(r => r.ok ? r.json() : { questions: [], feedback: [] })
+      .then((data: { questions: QuestionNotif[]; feedback: FeedbackNotif[] }) => {
+        const merged: AdminNotif[] = [...(data.questions ?? []), ...(data.feedback ?? [])];
+        if (merged.length > 0) { setAdminNotifs(merged); setShowAdminNotifs(true); }
+      })
       .catch(() => {});
   }, [userId]);
 
@@ -2252,16 +2257,25 @@ export default function ParentDashboard({
           </div>
           <h3 className="font-headline font-extrabold text-[#001e40]">Message from Admin</h3>
         </div>
-        {adminNotifs.map(n => (
-          <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3">
+        {adminNotifs.map(n => n.kind === "question" ? (
+          <div key={`q-${n.questionId}`} className="bg-[#eff4ff] rounded-2xl px-4 py-3">
             <p className="text-xs text-[#43474f] font-medium mb-1">{n.paperTitle} · Q{n.questionNum}</p>
+            <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
+          </div>
+        ) : (
+          <div key={`f-${n.feedbackId}`} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-1.5">
+            <p className="text-xs text-[#43474f] font-medium">Reply to your feedback</p>
+            <p className="text-xs text-[#43474f] italic line-clamp-3 border-l-2 border-[#c3c6d1] pl-2">{n.originalMessage}</p>
             <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
           </div>
         ))}
         <button
           onClick={() => {
             setShowAdminNotifs(false);
-            fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }) }).catch(() => {});
+            const questionIds = adminNotifs.filter((n): n is QuestionNotif => n.kind === "question").map(n => n.questionId);
+            const feedbackIds = adminNotifs.filter((n): n is FeedbackNotif => n.kind === "feedback").map(n => n.feedbackId);
+            setAdminNotifs([]);
+            fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds, feedbackIds }) }).catch(() => {});
           }}
           className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">Got it</button>
       </div>

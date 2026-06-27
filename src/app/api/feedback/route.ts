@@ -8,6 +8,17 @@ export async function GET(_request: NextRequest) {
 
   const items = await prisma.feedback.findMany({
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      userId: true,
+      userName: true,
+      userEmail: true,
+      message: true,
+      createdAt: true,
+      adminReply: true,
+      adminRepliedAt: true,
+      adminReplyRead: true,
+    },
   });
   return NextResponse.json(items);
 }

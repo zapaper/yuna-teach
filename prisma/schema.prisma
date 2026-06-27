@@ -385,6 +385,13 @@ model Feedback {
   message   String
   createdAt DateTime @default(now())
 
+  // Admin reply — mirrors the ExamQuestion adminReply pattern so the
+  // notification surface logic in /api/notifications can fold both
+  // sources into one unread-replies list for the user.
+  adminReply      String?
+  adminRepliedAt  DateTime?
+  adminReplyRead  Boolean   @default(false)
+
   @@map("feedback")
 }
 

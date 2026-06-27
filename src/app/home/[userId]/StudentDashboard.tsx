@@ -381,7 +381,10 @@ export default function StudentDashboard({
   }, [showQuizSetup, assignMode, quizSubject, userId]);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
-  const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean }>>([]);
+  type QuestionNotif = { kind: "question"; questionId: string; questionNum: string; adminReply: string; paperTitle: string; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean };
+  type FeedbackNotif = { kind: "feedback"; feedbackId: string; originalMessage: string; adminReply: string; adminRepliedAt: string | null };
+  type AdminNotif = QuestionNotif | FeedbackNotif;
+  const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   // First-visit reminder: students often share an account with their
   // parent and don't realise theirs is separate. Show a one-time
@@ -564,12 +567,15 @@ export default function StudentDashboard({
       .catch(() => {});
   }, [hasArena, userId]);
 
-  // Fetch admin notifications
+  // Fetch admin notifications — flagged-question replies AND feedback
+  // replies are bundled in one response since 2026-06; merge both into
+  // the popup so a kid sees every admin response at once.
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((data: Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string; transcribedStem: string | null; flagText: string | null; crystalAwarded: boolean }>) => {
-        if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
+      .then(r => r.ok ? r.json() : { questions: [], feedback: [] })
+      .then((data: { questions: QuestionNotif[]; feedback: FeedbackNotif[] }) => {
+        const merged: AdminNotif[] = [...(data.questions ?? []), ...(data.feedback ?? [])];
+        if (merged.length > 0) { setAdminNotifs(merged); setShowAdminNotifs(true); }
       })
       .catch(() => {});
   }, [userId]);
@@ -1214,8 +1220,8 @@ export default function StudentDashboard({
               </div>
               <h3 className="font-headline font-extrabold text-[#001e40]">Message from Teacher</h3>
             </div>
-            {adminNotifs.map(n => (
-              <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-2">
+            {adminNotifs.map(n => n.kind === "question" ? (
+              <div key={`q-${n.questionId}`} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-2">
                 <p className="text-xs text-[#43474f] font-medium">{n.paperTitle} · Q{n.questionNum}</p>
                 {n.transcribedStem && (
                   <p className="text-xs text-[#43474f] italic line-clamp-3 border-l-2 border-[#c3c6d1] pl-2">{n.transcribedStem}</p>
@@ -1235,6 +1241,12 @@ export default function StudentDashboard({
                   </div>
                 )}
               </div>
+            ) : (
+              <div key={`f-${n.feedbackId}`} className="bg-[#eff4ff] rounded-2xl px-4 py-3 space-y-2">
+                <p className="text-xs text-[#43474f] font-medium">Reply to your feedback</p>
+                <p className="text-xs text-[#43474f] italic line-clamp-3 border-l-2 border-[#c3c6d1] pl-2">{n.originalMessage}</p>
+                <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
+              </div>
             ))}
             <button
               onClick={() => {
@@ -1244,9 +1256,10 @@ export default function StudentDashboard({
                 // nav, refresh to find it gone, and never realise they'd
                 // already dismissed the actual message popup.
                 setShowAdminNotifs(false);
-                const ids = adminNotifs.map(n => n.questionId);
+                const questionIds = adminNotifs.filter((n): n is QuestionNotif => n.kind === "question").map(n => n.questionId);
+                const feedbackIds = adminNotifs.filter((n): n is FeedbackNotif => n.kind === "feedback").map(n => n.feedbackId);
                 setAdminNotifs([]);
-                fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds: ids }) }).catch(() => {});
+                fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds, feedbackIds }) }).catch(() => {});
               }}
               className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">Got it</button>
           </div>
