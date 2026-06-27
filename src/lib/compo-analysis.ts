@@ -941,11 +941,20 @@ export async function critiqueComposition(
 ): Promise<Critique> {
   const modelEssays = await loadModelEssays(optionType);
   if (modelEssays.length === 0) throw new Error("No model essays available in DB");
-  console.log(`[compo:critique] loaded ${modelEssays.length} model essays (optionType=${optionType ?? "any"}, topic=${studentTopic ?? "(none)"}, onPointCheck=${detectedQuestionText ? "yes" : "no"}). Calling ${ANALYSIS_MODEL}...`);
+  // Priority for the off-topic check's topic source:
+  //   1. studentTopic (admin typed it into the "Composition topic (optional)"
+  //      field — highest signal, no OCR noise)
+  //   2. detectedQuestionText (OCR'd from a separate question scan OR
+  //      auto-detected from the printed prompt on the composition page)
+  //   3. null → off-topic check skipped entirely
+  const typedTopic = (studentTopic ?? "").trim();
+  const effectiveQuestionText = typedTopic.length > 0 ? typedTopic : detectedQuestionText;
+  const topicSource = typedTopic.length > 0 ? "typed" : (detectedQuestionText ? "ocr" : "none");
+  console.log(`[compo:critique] loaded ${modelEssays.length} model essays (optionType=${optionType ?? "any"}, topic=${studentTopic ?? "(none)"}, onPointCheck=${effectiveQuestionText ? `yes (source=${topicSource})` : "no"}). Calling ${ANALYSIS_MODEL}...`);
   const start = Date.now();
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
-    contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic, detectedQuestionText) }] }],
+    contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic, effectiveQuestionText) }] }],
     config: { responseMimeType: "application/json", temperature: 0.2 },
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
