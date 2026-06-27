@@ -143,6 +143,37 @@ function summarizeMistake(ex: {
 // the whole point. Math + Science have diagrams that don't render
 // reliably in email, so we keep those bodies minimal and let the
 // Progress page show the visuals.
+// Convert a markdown question stem to email-safe HTML — primarily so
+// that comprehension OEQ stems with markdown tables ("| (a) X | True
+// / False | Reason |") render as proper tables instead of a wall of
+// pipes. Stems without table syntax just get escaped + line breaks.
+function renderStemHtml(stem: string): string {
+  const lines = stem.split(/\r?\n/);
+  const out: string[] = [];
+  let table: string[][] = [];
+  const flushTable = () => {
+    if (table.length === 0) return;
+    const rows = table.map(cells => `<tr>${cells.map(c => `<td style="padding: 3px 6px; border: 1px solid #cbd5e1; vertical-align: top; font-size: 12px;">${esc(c)}</td>`).join("")}</tr>`).join("");
+    out.push(`<table style="border-collapse: collapse; margin: 4px 0; font-size: 12px;"><tbody>${rows}</tbody></table>`);
+    table = [];
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Markdown table separator row — skip.
+    if (/^\|[\s:-]+\|[\s:|-]*$/.test(trimmed)) continue;
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      const cells = trimmed.slice(1, -1).split("|").map(c => c.trim());
+      table.push(cells);
+      continue;
+    }
+    flushTable();
+    if (trimmed.length > 0) out.push(esc(trimmed));
+  }
+  flushTable();
+  // Glue paragraphs with <br>. Tables render as their own block already.
+  return out.join("<br>");
+}
+
 function renderEnglishDetails(childFirst: string, ex: {
   stem: string;
   studentAnswer: string | null;
@@ -151,7 +182,14 @@ function renderEnglishDetails(childFirst: string, ex: {
   isMcq: boolean;
   options: string[];
 }, isWin: boolean): string {
-  const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
+  // Allow longer stems for the table-bearing OEQ pattern — those need
+  // the full structure. Cap remains in place for non-table prose so an
+  // overlong stem doesn't blow up email size.
+  const hasMarkdownTable = /\n\s*\|/.test(ex.stem) || /^\s*\|.*\|\s*$/m.test(ex.stem);
+  const stemForRender = hasMarkdownTable
+    ? (ex.stem.length > 1200 ? ex.stem.slice(0, 1197) + "…" : ex.stem)
+    : (ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem);
+  const stemHtml = renderStemHtml(stemForRender);
   // Format JSON-shaped student answers (table cells, multi-line OEQ
   // writing pad) into readable text. Raw {"r1c1":"X","r2c1":"Y"} is
   // not parent-friendly; reuse the same formatter the page report does.
@@ -187,7 +225,7 @@ function renderEnglishDetails(childFirst: string, ex: {
     : "";
   return `
     <div style="margin-top: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
-      <p style="font-size: 12px; color: #1f2937; margin: 0; white-space: pre-wrap;"><em>Question:</em> ${esc(stemTrim)}</p>
+      <p style="font-size: 12px; color: #1f2937; margin: 0;"><em>Question:</em> ${stemHtml}</p>
       ${answerLine}
       ${correctLine}
       ${notesLine}

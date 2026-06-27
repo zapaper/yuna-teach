@@ -96,11 +96,40 @@ function summarizeMistake(ex: {
   return null;
 }
 
+function renderStemHtml(stem: string): string {
+  const lines = stem.split(/\r?\n/);
+  const out: string[] = [];
+  let table: string[][] = [];
+  const flushTable = () => {
+    if (table.length === 0) return;
+    const rows = table.map(cells => `<tr>${cells.map(c => `<td style="padding: 3px 6px; border: 1px solid #cbd5e1; vertical-align: top; font-size: 12px;">${esc(c)}</td>`).join("")}</tr>`).join("");
+    out.push(`<table style="border-collapse: collapse; margin: 4px 0; font-size: 12px;"><tbody>${rows}</tbody></table>`);
+    table = [];
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (/^\|[\s:-]+\|[\s:|-]*$/.test(trimmed)) continue;
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      const cells = trimmed.slice(1, -1).split("|").map(c => c.trim());
+      table.push(cells);
+      continue;
+    }
+    flushTable();
+    if (trimmed.length > 0) out.push(esc(trimmed));
+  }
+  flushTable();
+  return out.join("<br>");
+}
+
 function renderEnglishDetails(childFirst: string, ex: {
   stem: string; studentAnswer: string | null; correctAnswer: string | null;
   markingNotes?: string | null; isMcq: boolean; options: string[];
 }, isWin: boolean): string {
-  const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
+  const hasTable = /\n\s*\|/.test(ex.stem) || /^\s*\|.*\|\s*$/m.test(ex.stem);
+  const stemForRender = hasTable
+    ? (ex.stem.length > 1200 ? ex.stem.slice(0, 1197) + "…" : ex.stem)
+    : (ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem);
+  const stemHtml = renderStemHtml(stemForRender);
   const derefOpt = (raw: string | null) => {
     if (!raw) return null;
     const m = raw.match(/\d+/); if (!m) return null;
@@ -130,7 +159,7 @@ function renderEnglishDetails(childFirst: string, ex: {
     ? `<p style="font-size: 12px; color: #4b5563; margin: 6px 0 0;"><em>Marker:</em> ${esc(ex.markingNotes.slice(0, 300))}${ex.markingNotes.length > 300 ? "…" : ""}</p>`
     : "";
   return `<div style="margin-top: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
-    <p style="font-size: 12px; color: #1f2937; margin: 0; white-space: pre-wrap;"><em>Question:</em> ${esc(stemTrim)}</p>
+    <p style="font-size: 12px; color: #1f2937; margin: 0;"><em>Question:</em> ${stemHtml}</p>
     ${ansLine}${correctLine}${notesLine}
   </div>`;
 }
