@@ -83,7 +83,13 @@ function summarizeMistake(ex: {
   const notes = ex.markingNotes ?? "";
   const isCanonicalMcq = /^Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i.test(notes);
   if (notes && notes.length > 20 && !isCanonicalMcq) return trim(notes);
-  if (ex.studentAnswer && ex.correctAnswer) {
+  // Drop the wrote-vs-answer fallback when both are just option
+  // digits — MCQs without transcribed options leave us with "3" /
+  // "(2)" which reads as nonsense in an email.
+  const looksLikeOptionDigit = (s: string) => /^\s*\(?\s*\d+\s*\)?\s*$/.test(s);
+  if (ex.studentAnswer && ex.correctAnswer
+      && !looksLikeOptionDigit(ex.studentAnswer)
+      && !looksLikeOptionDigit(ex.correctAnswer)) {
     return `wrote “${trim(ex.studentAnswer)}” — answer was “${trim(ex.correctAnswer)}”`;
   }
   return null;

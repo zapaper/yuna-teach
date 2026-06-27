@@ -124,8 +124,14 @@ function summarizeMistake(ex: {
   const isCanonicalMcq = /^Student\s*:\s*\(?\d+\)?\s*,\s*Correct\s*:\s*\(?\d+\)?/i.test(notes);
   if (notes && notes.length > 20 && !isCanonicalMcq) return trim(notes);
 
-  // Last-resort: show what student wrote vs the expected answer.
-  if (ex.studentAnswer && ex.correctAnswer) {
+  // Last-resort: show what student wrote vs the expected answer —
+  // BUT only when both look like real words, not raw option numbers.
+  // For MCQs without transcribed options the answers are just digits
+  // like "3" / "(2)" which read as nonsense in an email. Drop those.
+  const looksLikeOptionDigit = (s: string) => /^\s*\(?\s*\d+\s*\)?\s*$/.test(s);
+  if (ex.studentAnswer && ex.correctAnswer
+      && !looksLikeOptionDigit(ex.studentAnswer)
+      && !looksLikeOptionDigit(ex.correctAnswer)) {
     return `wrote “${trim(ex.studentAnswer)}” — answer was “${trim(ex.correctAnswer)}”`;
   }
   return null;
