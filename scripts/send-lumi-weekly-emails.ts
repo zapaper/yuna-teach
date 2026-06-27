@@ -297,7 +297,13 @@ export async function sendLumiWeeklyForStudent(args: {
   if (sections.length === 0) return { status: "no-delta" };
   const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
   const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
-  const html = `<!doctype html>
+  // Compose, then squeeze whitespace — Gmail clips messages whose HTML
+  // body exceeds ~102 KB ("[Message clipped]" link), and our template
+  // literals are riddled with template-string indentation that bloats
+  // the byte count for no visual benefit. Trim leading whitespace on
+  // every line and collapse multi-newlines so the body stays under
+  // the clip threshold.
+  const rawHtml = `<!doctype html>
 <html><body style="${STYLES.body}">
   <div style="${STYLES.container}">
     <p style="${STYLES.intro}">Hi ${esc(parentFirst)},</p>
@@ -310,6 +316,11 @@ export async function sendLumiWeeklyForStudent(args: {
     </p>
   </div>
 </body></html>`;
+  const html = rawHtml
+    .split(/\n/)
+    .map(l => l.replace(/^\s+/, "")) // strip indentation
+    .filter(l => l.length > 0)        // drop blank lines
+    .join("\n");
 
   if (args.dryRun) {
     let previewHtml = html;

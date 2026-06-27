@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
     }
     const parentFirst = linkedParent?.name?.split(/\s+/)[0] ?? "there";
     const subject = `Lumi's weekly update on ${childFirst} (${sections.length} subject${sections.length === 1 ? "" : "s"})`;
-    const html = `<!doctype html>
+    const rawHtml = `<!doctype html>
 <html><body style="${STYLES.body}">
   <div style="${STYLES.container}">
     <p style="${STYLES.intro}">Hi ${esc(parentFirst)},</p>
@@ -246,6 +246,13 @@ export async function POST(req: NextRequest) {
     </p>
   </div>
 </body></html>`;
+    // Squeeze whitespace so the body stays under Gmail's ~102 KB clip
+    // threshold — see send-lumi-weekly-emails.ts for the same logic.
+    const html = rawHtml
+      .split(/\n/)
+      .map(l => l.replace(/^\s+/, ""))
+      .filter(l => l.length > 0)
+      .join("\n");
     const attachments = sections.map(s => ({
       content: s.chartBuf.toString("base64"),
       filename: `${s.chartCid}.png`,

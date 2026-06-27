@@ -161,23 +161,31 @@ function subjectTopicMatchers(subj: Subject, pattern: Pattern): { topic: RegExp[
   return { topic: [], sub: [], skill: [] };
 }
 
-// Build a keyword matcher from a pattern. Earlier versions also folded
-// in the pattern name's tokens ("Between vs Among Mix-Up" → between |
-// among) but those produced false positives — "Between vs Among" would
-// match an unrelated question that happened to use "between" in its
-// stem, leading to misleading "Lumi noticed this in: <wrong question>"
-// examples. trigger_keywords is the only reliable signal; when Gemini
-// doesn't emit any, we return null and skip the example for that
-// pattern rather than risk a wrong attribution.
-function patternKeywordRegex(pattern: Pattern): RegExp | null {
-  if (!pattern.trigger_keywords?.length) return null;
+// Return the list of trigger keywords for a pattern. We deliberately
+// do NOT include name tokens — those produced false positives, e.g.
+// "Between vs Among Mix-Up" matching any question with "between" in
+// it. Caller scores a question by how many DISTINCT keywords hit; a
+// single match isn't enough (Gemini sometimes emits one generic word
+// like "students" alongside the real ones, and that alone matches
+// most grammar stems).
+function patternKeywords(pattern: Pattern): string[] {
+  if (!pattern.trigger_keywords?.length) return [];
   const kws: string[] = [];
   for (const t of pattern.trigger_keywords) {
     if (typeof t === "string" && t.length >= 3) kws.push(t.toLowerCase());
   }
-  if (kws.length === 0) return null;
-  const escaped = kws.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  return new RegExp(`\\b(${escaped.join("|")})\\b`, "i");
+  return kws;
+}
+
+function countKeywordHits(kws: string[], haystack: string): number {
+  if (kws.length === 0) return 0;
+  let count = 0;
+  for (const k of kws) {
+    const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`\\b${escaped}\\b`, "i");
+    if (re.test(haystack)) count++;
+  }
+  return count;
 }
 
 type WeekQuestion = {
@@ -209,7 +217,7 @@ type Evidence = {
 
 function evidenceForCleared(pattern: Pattern, weekQuestions: WeekQuestion[], subj: Subject): Evidence {
   const matchers = subjectTopicMatchers(subj, pattern);
-  const kwRe = patternKeywordRegex(pattern);
+  const kws = patternKeywords(pattern);
   const matches: WeekQuestion[] = [];
   for (const q of weekQuestions) {
     const t = q.syllabusTopic ?? ""; const s = q.subTopic ?? "";
@@ -218,7 +226,11 @@ function evidenceForCleared(pattern: Pattern, weekQuestions: WeekQuestion[], sub
     const topicHit = matchers.topic.some(r => r.test(t));
     const subHit   = matchers.sub.some(r => r.test(s));
     const skillHit = matchers.skill.length > 0 && tags.some(s => matchers.skill.some(r => r.test(s)));
-    const kwHit    = kwRe ? kwRe.test(haystack) : false;
+    // Keyword path requires ≥2 distinct trigger_keywords in the
+    // question's text — Gemini sometimes emits one generic word
+    // alongside the real ones, and a single hit on a word like
+    // "students" matches every grammar stem.
+    const kwHit    = countKeywordHits(kws, haystack) >= 2;
     if (topicHit || subHit || skillHit || kwHit) matches.push(q);
   }
   if (matches.length === 0) return { status: "not-retested", totalSeen: 0, full: 0, partial: 0, zero: 0 };
@@ -438,7 +450,7 @@ export async function computeWeeklyDelta(
     // careless slip, transcription edge case). Two distinct hits
     // means there's actually a pattern worth telling the parent about.
     const matchers = subjectTopicMatchers(subj, cand);
-    const kwRe = patternKeywordRegex(cand);
+    const kws = patternKeywords(cand);
     let bestWrong: WeekQuestion | null = null;
     let bestLost = 0;
     let matchCount = 0;
@@ -448,7 +460,8 @@ export async function computeWeeklyDelta(
       const topicHit = matchers.topic.some(r => r.test(q.syllabusTopic ?? ""));
       const subHit   = matchers.sub.some(r => r.test(q.subTopic ?? ""));
       const skillHit = matchers.skill.length > 0 && (q.skillTags ?? []).some(s => matchers.skill.some(r => r.test(s)));
-      const kwHit    = kwRe ? kwRe.test(haystack) : false;
+      // ≥2 distinct trigger_keywords required (see evidenceForCleared).
+      const kwHit    = countKeywordHits(kws, haystack) >= 2;
       if (!topicHit && !subHit && !skillHit && !kwHit) continue;
       matchCount++;
       const lost = q.marksAvailable - q.marksAwarded;
