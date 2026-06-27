@@ -251,7 +251,19 @@ export async function buildEmail(c: Candidate, parent: { id: string; name: strin
   const chartPng = drawTopicChart(data.topline.allTopics, data.topline.avgPct, c.subject, childFirst);
   const chartCid = `chart-${safeStu}`;
 
-  const lumiPngFull = readFileSync(path.join(process.cwd(), "public", "avatars", "lumi1.png"));
+  // Read the Lumi mascot — prefer the in-scripts copy (always present
+  // in the cron container, regardless of how Nixpacks treats public/)
+  // and fall back to the original public/ path for local dev / main
+  // service. The cron service's build is "prisma generate" only, so
+  // public/ may not survive into /app; scripts/_assets is guaranteed
+  // because that's where the cron entry point itself lives.
+  const lumiCandidates = [
+    path.join(__dirname, "_assets", "lumi1.png"),
+    path.join(process.cwd(), "public", "avatars", "lumi1.png"),
+  ];
+  const lumiPath = lumiCandidates.find(p => { try { readFileSync(p); return true; } catch { return false; } });
+  if (!lumiPath) throw new Error(`Lumi mascot PNG not found at any of: ${lumiCandidates.join(", ")}`);
+  const lumiPngFull = readFileSync(lumiPath);
   const lumiPng = await sharp(lumiPngFull).resize({ height: 44 }).png().toBuffer();
   const lumiCid = `lumi-icon`;
   const lumiImg = `<img src="cid:${lumiCid}" alt="Lumi" width="22" style="height:22px;width:auto;vertical-align:middle;display:inline-block;margin:0 2px;" />`;
