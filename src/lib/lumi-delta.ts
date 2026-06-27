@@ -417,14 +417,17 @@ export async function computeWeeklyDelta(
       if (kwOverlap >= 2 || tokOverlap >= 2) { overlapsPrev = true; break; }
     }
     if (overlapsPrev) continue;
-    // Find a specific WRONG question this week that matches this new
+    // Find specific WRONG questions this week that match this new
     // pattern. Reuse the same topic/skill/keyword matchers as the
-    // win-evidence path, but pick the highest-marksLost match where
-    // the kid got it WRONG (so the parent sees the actual mistake).
+    // win-evidence path. We need at least TWO matches before raising
+    // the pattern — a single wrong question can be a flier (bad day,
+    // careless slip, transcription edge case). Two distinct hits
+    // means there's actually a pattern worth telling the parent about.
     const matchers = subjectTopicMatchers(subj, cand);
     const kwRe = patternKeywordRegex(cand);
     let bestWrong: WeekQuestion | null = null;
     let bestLost = 0;
+    let matchCount = 0;
     for (const q of weekQuestions) {
       if (q.marksAvailable === 0 || q.marksAwarded >= q.marksAvailable) continue;
       const haystack = [q.stem, q.markingNotes, q.studentAnswer].filter(Boolean).join(" ");
@@ -433,14 +436,12 @@ export async function computeWeeklyDelta(
       const skillHit = matchers.skill.length > 0 && (q.skillTags ?? []).some(s => matchers.skill.some(r => r.test(s)));
       const kwHit    = kwRe ? kwRe.test(haystack) : false;
       if (!topicHit && !subHit && !skillHit && !kwHit) continue;
+      matchCount++;
       const lost = q.marksAvailable - q.marksAwarded;
       if (lost > bestLost) { bestLost = lost; bestWrong = q; }
     }
-    // No concrete this-week example → skip. Showing "new" patterns
-    // without evidence reads as filler and risks falsely flagging the
-    // kid when the matcher just couldn't find a hit. We only surface
-    // a "new mistake" when we can point at the actual question.
-    if (!bestWrong) continue;
+    // Need ≥2 matches AND a best example to surface — otherwise drop.
+    if (matchCount < 2 || !bestWrong) continue;
     newMistakes.push({
       patternName: cand.name,
       patternWhat: cand.what,
