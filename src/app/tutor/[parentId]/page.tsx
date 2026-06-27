@@ -910,6 +910,13 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
                     <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {w.exampleHit.stem.slice(0, 600)}{w.exampleHit.stem.length > 600 ? "…" : ""}</p>
                     {(() => {
                       const img = lazyImages[w.exampleHit.questionId];
+                      // Options must come from the CLEAN extract — the
+                      // raw imageData row dumps stem + diagram + options
+                      // into a confusing strip. Diagram is the exception:
+                      // prefer the clean diagram crop, but fall back to
+                      // the full-row imageData when the clean crop isn't
+                      // populated (always present, gives the parent some
+                      // visual context).
                       const diagram = img?.diagramImageData ?? img?.imageData ?? null;
                       const opts = img?.optionImages ?? null;
                       return (
@@ -996,6 +1003,9 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
                       <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {m.exampleWrong.stem.slice(0, 600)}{m.exampleWrong.stem.length > 600 ? "…" : ""}</p>
                       {(() => {
                         const img = lazyImages[m.exampleWrong!.questionId];
+                        // Same clean-extract policy as wins — options
+                        // from transcribedOptionImages only; diagram
+                        // falls back to imageData for visual context.
                         const diagram = img?.diagramImageData ?? img?.imageData ?? null;
                         const opts = img?.optionImages ?? null;
                         return (
