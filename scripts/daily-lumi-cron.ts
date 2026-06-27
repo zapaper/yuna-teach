@@ -38,6 +38,7 @@ import "dotenv/config";
 import sgMail from "@sendgrid/mail";
 import { readFileSync } from "fs";
 import path from "path";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/db";
 import { loadCandidates, runIntroSend, type Candidate } from "./_do-55-send-intros";
 import { loadTutorData } from "../src/lib/tutor";
@@ -59,6 +60,14 @@ const DELTA_COOLDOWN_DAYS = 6;
 // (override via NURTURE_PER_TICK_CAP env var if you want to bump it for catchup)
 const NURTURE_PER_TICK_CAP = parseInt(process.env.NURTURE_PER_TICK_CAP ?? "5", 10);
 const NURTURE_MIN_DAYS = 3;
+
+// Day-6 follow-up nurture — fires for kids who got the Day-3 Grammar+
+// Vocab nudge but have ≤1 quizzes done total ≥3 days later. We push
+// them to a topic-mixed Science MCQ Daily Quiz so the per-topic chart
+// has enough breadth when it eventually fires.
+const FOLLOWUP_PER_TICK_CAP = parseInt(process.env.FOLLOWUP_PER_TICK_CAP ?? "5", 10);
+const FOLLOWUP_MIN_DAYS_SINCE_NURTURE = 3;
+const FOLLOWUP_MAX_PAPERS = 1;
 const NURTURE_FROM = { email: process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com", name: "MarkForYou" };
 const NURTURE_TEAM_REPLY = "jessica@markforyou.com";
 const NURTURE_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.markforyou.com";
@@ -447,6 +456,209 @@ function daysSince(iso: string | undefined | null): number | null {
         }
         console.log(`  result: sent=${sent} failed=${failed} backlog-remaining=${Math.max(0, nurtureEligible.length - sent)}`);
       }
+    }
+  }
+
+  // ============================================================
+  //  FOLLOWUP (Day-6 Science nudge to kids who didn't engage)
+  // ============================================================
+  // Wired 2026-06-27. Targets kids who received the Day-3 Grammar+Vocab
+  // nudge but completed ≤1 quiz in the FOLLOWUP_MIN_DAYS_SINCE_NURTURE
+  // since. Auto-creates a Science MCQ Daily Quiz and emails the parent
+  // a short softer follow-up. Idempotency via settings.activationFollowupSent.
+  console.log(`\n[FOLLOWUP]  Day-6 Science nudge, ${FOLLOWUP_MIN_DAYS_SINCE_NURTURE}d after Day-3 nudge, kid has ≤${FOLLOWUP_MAX_PAPERS} paper${FOLLOWUP_MAX_PAPERS === 1 ? "" : "s"}, cap=${FOLLOWUP_PER_TICK_CAP}/tick`);
+  // Pull kids with activationNudgeSent set ≥ FOLLOWUP_MIN_DAYS_SINCE_NURTURE
+  // days ago, no activationFollowupSent flag.
+  const followupAllKids = await prisma.user.findMany({
+    where: {
+      role: "STUDENT",
+      settings: { path: ["activationNudgeSent"], not: Prisma.AnyNull },
+    },
+    select: {
+      id: true, name: true, displayName: true, level: true, settings: true,
+      studentLinks: { select: { parent: { select: { id: true, name: true, email: true } } } },
+    },
+  });
+  const followupCutoff = Date.now() - FOLLOWUP_MIN_DAYS_SINCE_NURTURE * 86_400_000;
+  // Pull total non-revision papers count per candidate kid (cheap since
+  // these kids are limited to those who got a Day-3 nudge ≥3 days ago).
+  const followupKidIds = followupAllKids.map(k => k.id);
+  const followupPapers = await prisma.examPaper.findMany({
+    where: {
+      assignedToId: { in: followupKidIds },
+      markingStatus: { in: ["complete", "released"] },
+      NOT: { paperType: "eval" },
+    },
+    select: { assignedToId: true, metadata: true },
+  });
+  const followupPaperCounts = new Map<string, number>();
+  for (const p of followupPapers) {
+    const meta = p.metadata as { revisionMode?: string } | null;
+    if (meta?.revisionMode) continue;
+    if (!p.assignedToId) continue;
+    followupPaperCounts.set(p.assignedToId, (followupPaperCounts.get(p.assignedToId) ?? 0) + 1);
+  }
+
+  type FollowupRow = {
+    kidId: string; kidName: string; kidFirst: string; kidLevel: number | null;
+    parentId: string; parentName: string; parentEmail: string; parentFirst: string;
+    daysSinceNurture: number; papersDone: number;
+  };
+  const followupEligible: FollowupRow[] = [];
+  const followupSkip = { excludedName: 0, tooEarly: 0, tooManyPapers: 0, noLinkedParent: 0, allParentsService: 0, alreadyFollowedUp: 0, noNudgeFlag: 0 };
+  for (const k of followupAllKids) {
+    if (NURTURE_EXCLUDED_NAMES.has((k.name ?? "").toLowerCase())) { followupSkip.excludedName++; continue; }
+    const settings = k.settings as { activationNudgeSent?: string; activationFollowupSent?: string } | null;
+    if (settings?.activationFollowupSent) { followupSkip.alreadyFollowedUp++; continue; }
+    const nurtureAtStr = settings?.activationNudgeSent;
+    if (!nurtureAtStr) { followupSkip.noNudgeFlag++; continue; }
+    const nurtureAt = new Date(nurtureAtStr).getTime();
+    if (Number.isNaN(nurtureAt)) { followupSkip.noNudgeFlag++; continue; }
+    if (nurtureAt > followupCutoff) { followupSkip.tooEarly++; continue; }
+    const papersDone = followupPaperCounts.get(k.id) ?? 0;
+    if (papersDone > FOLLOWUP_MAX_PAPERS) { followupSkip.tooManyPapers++; continue; }
+    if (k.studentLinks.length === 0) { followupSkip.noLinkedParent++; continue; }
+    const nonService = k.studentLinks
+      .map(l => l.parent)
+      .find(p => p.email && !NURTURE_SERVICE_EMAILS.has(p.email.toLowerCase()));
+    if (!nonService) { followupSkip.allParentsService++; continue; }
+    const kidName = k.displayName ?? k.name;
+    followupEligible.push({
+      kidId: k.id, kidName, kidFirst: kidName.split(/\s+/)[0] ?? kidName,
+      kidLevel: k.level,
+      parentId: nonService.id,
+      parentName: nonService.name ?? "Parent",
+      parentEmail: nonService.email!,
+      parentFirst: (nonService.name ?? "Parent").split(/\s+/)[0] ?? "Parent",
+      daysSinceNurture: Math.floor((Date.now() - nurtureAt) / 86_400_000),
+      papersDone,
+    });
+  }
+  // FIFO by nurture-sent timestamp — oldest stalled backlog first.
+  followupEligible.sort((a, b) => b.daysSinceNurture - a.daysSinceNurture);
+  const followupBatch = followupEligible.slice(0, FOLLOWUP_PER_TICK_CAP);
+
+  console.log(`  total eligible: ${followupEligible.length}, batch this tick: ${followupBatch.length}`);
+  console.log(`  skipped — too-early: ${followupSkip.tooEarly}, too-many-papers: ${followupSkip.tooManyPapers}, no-linked-parent: ${followupSkip.noLinkedParent}, service-only: ${followupSkip.allParentsService}, already-followed-up: ${followupSkip.alreadyFollowedUp}, no-nudge-flag: ${followupSkip.noNudgeFlag}, excluded-name: ${followupSkip.excludedName}`);
+
+  if (followupBatch.length > 0) {
+    console.log(`\n  ── batch (oldest nurture-date first) ──`);
+    for (const r of followupBatch.slice(0, 20)) {
+      console.log(`    ${r.kidName.padEnd(28)} P${r.kidLevel ?? "?"}  nurtured ${r.daysSinceNurture}d ago, ${r.papersDone} paper${r.papersDone === 1 ? "" : "s"} done  → ${r.parentEmail}`);
+    }
+    if (followupBatch.length > 20) console.log(`    … and ${followupBatch.length - 20} more`);
+  }
+
+  if (!DRY && followupBatch.length > 0) {
+    const apiKey = process.env.SENDGRID_API_KEY;
+    const cookie = process.env.EVAL_SESSION_COOKIE ?? (() => {
+      try { return readFileSync(path.join(__dirname, "..", "eval", "cookie.txt"), "utf-8").trim(); }
+      catch { return null; }
+    })();
+    if (!apiKey) {
+      console.error(`  [followup] SENDGRID_API_KEY missing — cannot send`);
+    } else if (!cookie) {
+      console.error(`  [followup] no admin cookie (EVAL_SESSION_COOKIE or eval/cookie.txt) — cannot create quizzes`);
+    } else {
+      sgMail.setApiKey(apiKey);
+      console.log(`\n  fanning out follow-up emails…`);
+      const lastSendAt = new Map<string, number>();
+      let sent = 0, failed = 0;
+      for (const r of followupBatch) {
+        try {
+          // Step 1: create the Science MCQ Daily Quiz.
+          const res = await fetch(`${NURTURE_APP_URL}/api/daily-quiz`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie: `yuna_session=${cookie}` },
+            body: JSON.stringify({
+              userId: r.parentId,
+              studentId: r.kidId,
+              quizType: "mcq",
+              subject: "science",
+              firstQuiz: true,
+            }),
+          });
+          if (!res.ok) {
+            console.warn(`  [followup] daily-quiz API ${res.status} for ${r.kidName}: ${await res.text()}`);
+            failed++;
+            continue;
+          }
+          const qr = await res.json() as { paperId?: string; id?: string; examId?: string };
+          const paperId = qr.paperId ?? qr.id ?? qr.examId;
+          if (!paperId) { console.warn(`  [followup] no paperId for ${r.kidName}`); failed++; continue; }
+
+          const quizUrl = `${NURTURE_APP_URL}/quiz/${paperId}?userId=${r.kidId}`;
+          const childHomepage = `${NURTURE_APP_URL}/home/${r.kidId}`;
+          const parentHomepage = `${NURTURE_APP_URL}/home/${r.parentId}`;
+
+          // Per-recipient throttle
+          const key = r.parentEmail.toLowerCase();
+          const last = lastSendAt.get(key);
+          if (last) {
+            const wait = NURTURE_PER_RECIPIENT_GAP_MS - (Date.now() - last);
+            if (wait > 0) await new Promise(rr => setTimeout(rr, wait));
+          }
+          lastSendAt.set(key, Date.now());
+
+          // Render + send
+          const subject = `Quick check-in: 15-min Science quiz for ${r.kidFirst}`;
+          const html = `<div style="font-family:${NURTURE_FONT};color:#1F2A37;max-width:640px;margin:24px auto;padding:0 16px;line-height:1.55;font-size:16px;background:#FFFFFF;">
+<p style="font-family:${NURTURE_FONT};margin:0 0 14px 0;">Hi ${r.parentFirst},</p>
+<p style="font-family:${NURTURE_FONT};margin:0 0 14px 0;">Following up on our last note — we've now teed up a short <strong style="font-weight:700;color:#0E1F2A;">MCQ Science Daily Quiz</strong> for ${r.kidFirst}. It covers a handful of topics in one go, so once ${r.kidFirst} does it, you can start to see the first real per-topic read of where ${r.kidFirst} is strong and where they could use more practice.</p>
+<div style="font-family:${NURTURE_FONT};background:#E5EEFF;border:2px dashed #003366;padding:14px 18px;border-radius:6px;color:#003366;margin:18px 0;font-size:18px;">📌 <b style="font-family:${NURTURE_FONT};font-weight:700;">Start the quiz here:</b> <a href="${quizUrl}" style="font-family:${NURTURE_FONT};color:#003366;font-weight:700;">Open ${r.kidFirst}'s Science quiz</a>.</div>
+<p style="font-family:${NURTURE_FONT};margin:0 0 14px 0;">Takes about 15 minutes on the phone/tablet/desktop. Instantly marked — mistakes get worked-through explanations.</p>
+<p style="font-family:${NURTURE_FONT};font-size:15px;color:#4B5563;margin:14px 0;">Prefer a different quiz? <a href="${parentHomepage}" style="font-family:${NURTURE_FONT};color:#0E6B6B;font-weight:600;">Open your parent dashboard here</a> to browse any subject or set a Focused Practice on a specific topic. Once assigned, ${r.kidFirst} can access it on his <a href="${childHomepage}" style="font-family:${NURTURE_FONT};color:#0E6B6B;font-weight:600;">homepage here</a>. And if anything's blocking you, just hit reply — we'd love to help.</p>
+<p style="font-family:${NURTURE_FONT};margin:18px 0 4px 0;">Warmly,</p>
+<p style="font-family:${NURTURE_FONT};font-weight:600;margin:0;">Jessica</p>
+<p style="font-family:${NURTURE_FONT};color:#6B7280;font-style:italic;font-size:14px;margin:0;">Co-Founder, MarkForYou</p>
+</div>`;
+          const text = `Hi ${r.parentFirst},\n\nFollowing up on our last note — we've now teed up a short MCQ Science Daily Quiz for ${r.kidFirst}. It covers a handful of topics in one go, so once ${r.kidFirst} does it, you can start to see the first real per-topic read of where ${r.kidFirst} is strong.\n\n📌 Start the quiz here: ${quizUrl}\n\nTakes about 15 minutes. Instantly marked.\n\nPrefer a different quiz? Open your parent dashboard: ${parentHomepage}\n\nWarmly,\nJessica\nCo-Founder, MarkForYou`;
+
+          const [resp] = await sgMail.send({
+            to: r.parentEmail,
+            from: NURTURE_FROM,
+            replyTo: NURTURE_TEAM_REPLY,
+            subject, html, text,
+            trackingSettings: {
+              clickTracking: { enable: false, enableText: false },
+              openTracking: { enable: false },
+              subscriptionTracking: { enable: false },
+            },
+          });
+          console.log(`  sent to=${r.parentEmail} kid=${r.kidName} status=${resp.statusCode}`);
+          sent++;
+
+          // Mark followup sent
+          const current = await prisma.user.findUnique({ where: { id: r.kidId }, select: { settings: true } });
+          const currentSettings = (current?.settings as Record<string, unknown> | null) ?? {};
+          await prisma.user.update({
+            where: { id: r.kidId },
+            data: { settings: { ...currentSettings, activationFollowupSent: new Date().toISOString() } },
+          });
+
+          // Mailer log POST
+          const mailerUrl = process.env.MAILER_URL;
+          const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
+          if (mailerUrl && mailerToken) {
+            fetch(`${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
+              body: JSON.stringify({
+                to: r.parentEmail,
+                to_name: r.parentName,
+                subject,
+                body: html,
+                event_type: "activation_followup",
+              }),
+            }).catch(err => console.warn(`  mailer log failed: ${err?.message ?? err}`));
+          }
+        } catch (err) {
+          const e = err as { response?: { statusCode?: number; body?: unknown } } & Error;
+          console.error(`  [followup] FAILED to=${r.parentEmail} kid=${r.kidName} status=${e.response?.statusCode ?? "?"} msg=${e.message}`);
+          failed++;
+        }
+      }
+      console.log(`  result: sent=${sent} failed=${failed} backlog-remaining=${Math.max(0, followupEligible.length - sent)}`);
     }
   }
 
