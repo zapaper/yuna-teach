@@ -35,7 +35,14 @@ const TEAM_BCC = "jessica@markforyou.com";
 
 const EXCLUDED_NAMES = new Set(["admin", "student555", "student666"]);
 const EXCLUDED_FAMILIES = ["mark lim", "david lim", "emily lim"];
-const MIN_QUIZZES = 3;
+// Lowered from 3 → 2 on 2026-06-27. At 2 Daily Quizzes (with the
+// existing Math/Sci title-match + Eng/Ch any-quiz asymmetry), the
+// per-topic chart already has enough topic spread to read as a real
+// "first chart" rather than a noisy single-quiz snapshot. The kid's
+// existing settings.progressReportsSent[subjectKey] flag guarantees
+// we never re-send to anyone who already received their first chart
+// at the old threshold.
+const MIN_QUIZZES = 2;
 const MIN_TOPICS = 5;
 const WEAK_GAP_PP = 8;
 const WEAK_MIN_ATTEMPTS = 5;
