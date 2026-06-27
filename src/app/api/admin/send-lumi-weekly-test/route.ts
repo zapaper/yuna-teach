@@ -15,6 +15,7 @@ import sgMail from "@sendgrid/mail";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 import { loadTutorData, type TutorData } from "@/lib/tutor";
+import { formatStudentAnswerText } from "@/lib/format-student-answer";
 import { drawTopicChart } from "../../../../../scripts/send-progress-emails";
 
 const BASE_URL = "https://www.markforyou.com";
@@ -98,7 +99,7 @@ function summarizeMistake(ex: {
 function renderEnglishDetails(childFirst: string, ex: {
   stem: string; studentAnswer: string | null; correctAnswer: string | null;
   markingNotes?: string | null; isMcq: boolean; options: string[];
-}): string {
+}, isWin: boolean): string {
   const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
   const derefOpt = (raw: string | null) => {
     if (!raw) return null;
@@ -108,10 +109,21 @@ function renderEnglishDetails(childFirst: string, ex: {
   };
   const studentOpt = ex.isMcq ? derefOpt(ex.studentAnswer) : null;
   const correctOpt = ex.isMcq ? derefOpt(ex.correctAnswer) : null;
-  const ansLine = ex.studentAnswer
-    ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} ${ex.isMcq ? "picked" : "wrote"}:</em> ${ex.isMcq && studentOpt ? `“${esc(studentOpt)}”` : esc(ex.studentAnswer.slice(0, 200))}${!ex.isMcq && ex.studentAnswer.length > 200 ? "…" : ""}</p>`
-    : "";
-  const correctLine = ex.correctAnswer
+  let ansLine = "";
+  if (ex.studentAnswer) {
+    if (ex.isMcq) {
+      ansLine = studentOpt
+        ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} picked:</em> “${esc(studentOpt)}”</p>`
+        : "";
+    } else {
+      const formatted = formatStudentAnswerText(ex.studentAnswer);
+      const trimmed = formatted.length > 400 ? formatted.slice(0, 397) + "…" : formatted;
+      ansLine = `<p style="font-size: 12px; color: #4b5563; margin: 4px 0; white-space: pre-wrap;"><em>${esc(childFirst)} wrote:</em> ${esc(trimmed)}</p>`;
+    }
+  }
+  // Suppress "Correct:" for wins — kid's answer already IS the correct
+  // answer; repeating is just noise.
+  const correctLine = (!isWin && ex.correctAnswer)
     ? `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> ${ex.isMcq && correctOpt ? `“${esc(correctOpt)}”` : esc(ex.correctAnswer.slice(0, 200))}${!ex.isMcq && ex.correctAnswer.length > 200 ? "…" : ""}</p>`
     : "";
   const notesLine = ex.markingNotes
@@ -138,7 +150,7 @@ function renderDelta(data: ReadyData, childFirst: string, subject: "Math" | "Sci
       parts.push(`<div style="${STYLES.winCard}">
         <div style="${STYLES.cardTitle} color: #065f46;">${esc(w.patternName)}</div>
         <div style="${STYLES.cardBody}">Example: ${esc(childFirst)} answered Q${esc(ex.questionNum)} of ${esc(ex.paperTitle)} correctly (${ex.aw}/${ex.av}).</div>
-        ${isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
+        ${isEnglish ? renderEnglishDetails(childFirst, ex, true) : ""}
       </div>`);
     }
   }
@@ -160,7 +172,7 @@ function renderDelta(data: ReadyData, childFirst: string, subject: "Math" | "Sci
         <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
         ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
         ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
-        ${ex && isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
+        ${ex && isEnglish ? renderEnglishDetails(childFirst, ex, false) : ""}
       </div>`);
     }
   }

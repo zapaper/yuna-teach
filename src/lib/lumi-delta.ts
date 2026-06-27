@@ -161,13 +161,19 @@ function subjectTopicMatchers(subj: Subject, pattern: Pattern): { topic: RegExp[
   return { topic: [], sub: [], skill: [] };
 }
 
+// Build a keyword matcher from a pattern. Earlier versions also folded
+// in the pattern name's tokens ("Between vs Among Mix-Up" → between |
+// among) but those produced false positives — "Between vs Among" would
+// match an unrelated question that happened to use "between" in its
+// stem, leading to misleading "Lumi noticed this in: <wrong question>"
+// examples. trigger_keywords is the only reliable signal; when Gemini
+// doesn't emit any, we return null and skip the example for that
+// pattern rather than risk a wrong attribution.
 function patternKeywordRegex(pattern: Pattern): RegExp | null {
+  if (!pattern.trigger_keywords?.length) return null;
   const kws: string[] = [];
-  if (pattern.trigger_keywords?.length) {
-    for (const t of pattern.trigger_keywords) if (typeof t === "string" && t.length >= 3) kws.push(t.toLowerCase());
-  }
-  for (const w of pattern.name.toLowerCase().split(/[^a-z]+/)) {
-    if (w.length >= 4 && !["with", "this", "that", "they", "from"].includes(w)) kws.push(w);
+  for (const t of pattern.trigger_keywords) {
+    if (typeof t === "string" && t.length >= 3) kws.push(t.toLowerCase());
   }
   if (kws.length === 0) return null;
   const escaped = kws.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));

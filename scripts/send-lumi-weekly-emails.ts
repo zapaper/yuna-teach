@@ -22,6 +22,7 @@ import sgMail from "@sendgrid/mail";
 import { prisma } from "../src/lib/db";
 import { loadTutorData, type TutorData } from "../src/lib/tutor";
 import { tryOrQueue } from "../src/lib/mail-queue";
+import { formatStudentAnswerText } from "../src/lib/format-student-answer";
 import { drawTopicChart } from "./send-progress-emails";
 
 const BASE_URL = "https://www.markforyou.com";
@@ -149,8 +150,11 @@ function renderEnglishDetails(childFirst: string, ex: {
   markingNotes?: string | null;
   isMcq: boolean;
   options: string[];
-}): string {
+}, isWin: boolean): string {
   const stemTrim = ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem;
+  // Format JSON-shaped student answers (table cells, multi-line OEQ
+  // writing pad) into readable text. Raw {"r1c1":"X","r2c1":"Y"} is
+  // not parent-friendly; reuse the same formatter the page report does.
   let answerLine = "";
   if (ex.studentAnswer) {
     if (ex.isMcq && ex.options.length > 0) {
@@ -159,11 +163,16 @@ function renderEnglishDetails(childFirst: string, ex: {
       const opt = ex.options[idx];
       answerLine = opt ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} picked:</em> “${esc(opt)}”</p>` : "";
     } else {
-      answerLine = `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} wrote:</em> ${esc(ex.studentAnswer.slice(0, 200))}${ex.studentAnswer.length > 200 ? "…" : ""}</p>`;
+      const formatted = formatStudentAnswerText(ex.studentAnswer);
+      const trimmed = formatted.length > 400 ? formatted.slice(0, 397) + "…" : formatted;
+      answerLine = `<p style="font-size: 12px; color: #4b5563; margin: 4px 0; white-space: pre-wrap;"><em>${esc(childFirst)} wrote:</em> ${esc(trimmed)}</p>`;
     }
   }
+  // For wins, the kid's answer IS the correct answer — no point showing
+  // the answer key separately. Only render the "Correct:" line for
+  // mistakes.
   let correctLine = "";
-  if (ex.correctAnswer) {
+  if (!isWin && ex.correctAnswer) {
     if (ex.isMcq && ex.options.length > 0) {
       const m = ex.correctAnswer.match(/\d+/);
       const idx = m ? parseInt(m[0], 10) - 1 : -1;
@@ -205,7 +214,7 @@ function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaU
         <div style="${STYLES.winCard}">
           <div style="${STYLES.cardTitle} color: #065f46;">${esc(w.patternName)}</div>
           <div style="${STYLES.cardBody}">Example: ${esc(childFirst)} answered Q${esc(ex.questionNum)} of ${esc(ex.paperTitle)} correctly (${ex.aw}/${ex.av}).</div>
-          ${isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
+          ${isEnglish ? renderEnglishDetails(childFirst, ex, true) : ""}
         </div>`);
     }
   }
@@ -231,7 +240,7 @@ function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaU
           <div style="${STYLES.cardTitle} color: #9a3412;">${esc(m.patternName)}</div>
           ${m.patternWhat ? `<div style="${STYLES.cardBody}">${esc(m.patternWhat)}</div>` : ""}
           ${ex && summary ? `<div style="${STYLES.cardBody}"><em>Example: ${esc(childFirst)} lost ${ex.av - ex.aw}/${ex.av} marks — ${esc(summary)}</em></div>` : ""}
-          ${ex && isEnglish ? renderEnglishDetails(childFirst, ex) : ""}
+          ${ex && isEnglish ? renderEnglishDetails(childFirst, ex, false) : ""}
         </div>`);
     }
   }
