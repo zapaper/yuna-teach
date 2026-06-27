@@ -38,7 +38,12 @@ const BASE_URL = "https://www.markforyou.com";
 const SERVICE_EMAILS = new Set(["admin@yunateach.com"]);
 const PER_RECIPIENT_GAP_MS = 6000;
 
-const EXCLUDED_NAMES = new Set(["admin", "student555", "student666"]);
+// "student" added 2026-06-27 — peter's test account named literally
+// "Student" was passing the candidate scan but failing the runtime
+// loadTutorData ineligibility check, generating one FAILED log line per
+// cron tick. Filtering at the candidate scan suppresses the noise. If
+// a real student named "Student" ever signs up, narrow this back.
+const EXCLUDED_NAMES = new Set(["admin", "student", "student555", "student666"]);
 
 // Chinese intentionally excluded: there's no Lumi pathway shipped for
 // Chinese yet, so the parent CTA would land on a page without the
