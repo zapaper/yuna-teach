@@ -84,7 +84,6 @@ function daysSince(iso: string | undefined | null): number | null {
 (async () => {
   const runId = new Date().toISOString();
   console.log(`──── daily-lumi-cron ${runId} ────`);
-  console.log(`  VERSION: nurture-v1 commit-marker-2026-06-27-X1Y2Z3`);
   console.log(`  mode: ${DRY ? "DRY-RUN" : "LIVE"}    deltas: ${SEND_DELTAS ? "ON" : "off (gated, --send-deltas to enable)"}`);
 
   // ============================================================
@@ -153,12 +152,14 @@ function daysSince(iso: string | undefined | null): number | null {
   // gated. UTC day-of-week: 0=Sun, 1=Mon, …, 5=Fri.
   const isFriday = new Date().getUTCDay() === 5;
   console.log(`\n[DELTA]  cooldown=${DELTA_COOLDOWN_DAYS}d per (kid × subject), 1 email per kid (first linked parent), Friday-only`);
+  // On non-Friday non-dry ticks we skip ONLY the delta probe — but we
+  // must NOT exit the cron, or the [NURTURE] section below never runs.
+  // Previously this early-returned and killed the nurture step on every
+  // non-Friday tick (introduced + caught 2026-06-27 when nurture stayed
+  // mysteriously silent).
   if (!isFriday && !DRY) {
-    console.log(`  today is not Friday (UTC day=${new Date().getUTCDay()}) — skipping delta send`);
-    console.log(`\n──── done ${new Date().toISOString()} ────`);
-    await prisma.$disconnect();
-    return;
-  }
+    console.log(`  today is not Friday (UTC day=${new Date().getUTCDay()}) — skipping delta probe`);
+  } else {
   // Only kids who've received at least one intro are eligible for a
   // delta — without an intro they have no baseline for "since last
   // week", and the delta email won't make sense to a parent who
@@ -248,6 +249,7 @@ function daysSince(iso: string | undefined | null): number | null {
   if (SEND_DELTAS && !DRY) {
     console.log(`\n  [delta] live send not yet wired — TODO: import sendLumiWeeklyForStudent + mailer log POST, then iterate deltasReadyToSend`);
   }
+  } // end of: if (isFriday || DRY) — delta probe block
 
   // ============================================================
   //  NURTURE (Day-3+ activation nudge)
