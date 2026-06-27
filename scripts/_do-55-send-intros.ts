@@ -52,8 +52,16 @@ function classifySubject(s: string | null | undefined): "Math" | "Science" | "En
   return null;
 }
 
+// Slug used to look up TUTOR_CACHE[safeName + ":" + subject]. Must
+// match the slug the workshop writer (_workshop-unified.ts) and the
+// weekly refresh (run-weekly-lumi.ts) produce — both use the
+// "collapse any non-alnum run into a single dash, then trim trailing
+// dashes" shape. The old version did `\s+ → -` followed by stripping
+// ALL non-[a-z0-9-] chars, which made "J=di O" become "jdi-o" while
+// the workshop wrote "j-di-o". The two never matched and J=di O's
+// intro was silently filtered out at cache-existence check.
 function safeName(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 function firstName(full: string): string {
@@ -111,7 +119,7 @@ function patternCard(p: { name: string; what: string; advice: string; marksLost:
     </div>`;
 }
 
-type Candidate = {
+export type Candidate = {
   studentId: string;
   studentName: string;
   childFirst: string;
@@ -121,7 +129,7 @@ type Candidate = {
   alreadySent: boolean;
 };
 
-async function loadCandidates(): Promise<Candidate[]> {
+export async function loadCandidates(): Promise<Candidate[]> {
   // Excluded admin / test / settings-admin users.
   const allUsers = await prisma.user.findMany({ select: { id: true, name: true, email: true, settings: true } });
   const excludedIds = new Set<string>();
@@ -220,7 +228,10 @@ async function loadCandidates(): Promise<Candidate[]> {
   return out;
 }
 
-async function buildEmail(c: Candidate, parent: { id: string; name: string; email: string }): Promise<{
+// Exported so a one-off override script (e.g. "preview Caleb's intro
+// at peter.lzy@gmail.com") can reuse the exact production renderer
+// without duplicating the chart + sharp + HTML template chain.
+export async function buildEmail(c: Candidate, parent: { id: string; name: string; email: string }): Promise<{
   subject: string; html: string; text: string;
   attachments: Array<{ content: string; filename: string; type: string; disposition: string; content_id: string }>;
 }> {
@@ -307,11 +318,11 @@ The MarkForYou team`;
   return { subject, html, text, attachments };
 }
 
-async function markSent(studentId: string, subjectKey: string) {
+async function markSent(studentId: string, subjectKey: string, opts: { force: boolean }) {
   const student = await prisma.user.findUnique({ where: { id: studentId }, select: { settings: true } });
   const settings = (student?.settings as Record<string, unknown> | null) ?? {};
   const existing = (settings.lumiIntroSent as Record<string, string> | undefined) ?? {};
-  if (existing[subjectKey] && !FORCE) return;
+  if (existing[subjectKey] && !opts.force) return;
   const updated = { ...existing, [subjectKey]: new Date().toISOString() };
   await prisma.user.update({
     where: { id: studentId },
@@ -364,25 +375,34 @@ export async function sendLumiIntroForReplay(args: {
   });
 }
 
-// Only run the main loop when executed as the entry point — the
-// replay sweeper imports this file just to get sendLumiIntroForReplay,
-// and used to trigger a full scan-and-send candidate enumeration as
-// a side effect of the import.
-const IS_ENTRY = (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.ts")
-  || (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.js");
-if (IS_ENTRY) (async () => {
+// Scan + send orchestration extracted so the daily cron can reuse it.
+// The CLI still drives this via FORCE/DRY off process.argv; the cron
+// passes them explicitly. The idempotency guarantee — "never send the
+// same (kid × subject) twice" — lives entirely in the alreadySent
+// filter below (settings.lumiIntroSent[subjectKey]); callers SHOULD NOT
+// pass force=true unless intentionally resending.
+//
+// Multi-parent edge case: if a kid has 2 linked parents and parent A
+// succeeds while parent B fails, the flag is set after A's success and
+// the next run skips both. Parent B never gets the intro. This is the
+// existing behaviour and acceptable for now (would need per-parent
+// dedup to fix properly — schema change).
+export async function runIntroSend(args: { force: boolean; dry: boolean }): Promise<{
+  sent: number; failed: number; skipped: number; eligible: number;
+}> {
+  const force = args.force;
+  const dry = args.dry;
   const apiKey = process.env.SENDGRID_API_KEY;
-  if (!apiKey && !DRY) {
-    console.error("SENDGRID_API_KEY not set — re-run with --dry, or export the key first.");
-    process.exit(1);
+  if (!apiKey && !dry) {
+    throw new Error("SENDGRID_API_KEY not set");
   }
   if (apiKey) sgMail.setApiKey(apiKey);
 
   const candidates = await loadCandidates();
-  const toSend = FORCE ? candidates : candidates.filter(c => !c.alreadySent);
+  const toSend = force ? candidates : candidates.filter(c => !c.alreadySent);
 
   console.log(`\nEligible (kid × subject) pairs: ${candidates.length}`);
-  console.log(`To send now:                    ${toSend.length}${FORCE ? "  (--force: resending already-marked)" : "  (skipping already-marked)"}`);
+  console.log(`To send now:                    ${toSend.length}${force ? "  (--force: resending already-marked)" : "  (skipping already-marked)"}`);
   console.log(`Skipping (already marked):      ${candidates.length - toSend.length}`);
 
   console.log(`\n========== PLAN ==========`);
@@ -395,10 +415,9 @@ if (IS_ENTRY) (async () => {
   }
   console.log(`\nTotal email sends (kid × subject × parent): ${totalRecipients}`);
 
-  if (DRY) {
+  if (dry) {
     console.log("\n--dry: not sending.");
-    await prisma.$disconnect();
-    return;
+    return { sent: 0, failed: 0, skipped: candidates.length - toSend.length, eligible: candidates.length };
   }
 
   const lastSendAt = new Map<string, number>();
@@ -486,9 +505,26 @@ if (IS_ENTRY) (async () => {
     // retry-run picks it up. Earlier draft marked unconditionally,
     // which silently buried 10 quota-failed Science pairs today.
     if (anySucceeded) {
-      await markSent(c.studentId, c.subjectKey);
+      await markSent(c.studentId, c.subjectKey, { force });
     }
   }
   console.log(`\nDone. Sent ${sent}, failed ${failed}.`);
-  await prisma.$disconnect();
-})().catch(e => { console.error(e); process.exit(1); });
+  return { sent, failed, skipped: candidates.length - toSend.length, eligible: candidates.length };
+}
+
+// CLI entry — only run the orchestration when this file is invoked
+// directly. The replay sweeper and the daily cron import named exports
+// (sendLumiIntroForReplay, runIntroSend) and should not trigger the
+// scan-and-send loop just by importing.
+const IS_ENTRY = (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.ts")
+  || (process.argv[1] ?? "").replace(/\\/g, "/").endsWith("/scripts/_do-55-send-intros.js");
+if (IS_ENTRY) (async () => {
+  try {
+    await runIntroSend({ force: FORCE, dry: DRY });
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();

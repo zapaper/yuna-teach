@@ -182,17 +182,17 @@ function renderEnglishDetails(childFirst: string, ex: {
   isMcq: boolean;
   options: string[];
 }, isWin: boolean): string {
-  // Allow longer stems for the table-bearing OEQ pattern — those need
-  // the full structure. Cap remains in place for non-table prose so an
-  // overlong stem doesn't blow up email size.
-  const hasMarkdownTable = /\n\s*\|/.test(ex.stem) || /^\s*\|.*\|\s*$/m.test(ex.stem);
-  const stemForRender = hasMarkdownTable
-    ? (ex.stem.length > 1200 ? ex.stem.slice(0, 1197) + "…" : ex.stem)
-    : (ex.stem.length > 400 ? ex.stem.slice(0, 397) + "…" : ex.stem);
-  const stemHtml = renderStemHtml(stemForRender);
-  // Format JSON-shaped student answers (table cells, multi-line OEQ
-  // writing pad) into readable text. Raw {"r1c1":"X","r2c1":"Y"} is
-  // not parent-friendly; reuse the same formatter the page report does.
+  // For OEQ compre the parent needs the full mistake context — stem
+  // (which embeds the passage / question table), the kid's writing,
+  // the answer key, and the marker note. Earlier caps at 400 / 200 /
+  // 300 chars meant a single OEQ example fired the "…" ellipsis on
+  // every line and parents saw a forest of "..." through the body.
+  // We now only cut if the content is genuinely huge (a 40-row passage
+  // table that would dominate the email): stems up to 3000 chars,
+  // answers up to 1500, marker notes up to 1000 — all comfortably
+  // above the typical OEQ payload. The full report is one tap away
+  // either way.
+  const stemHtml = renderStemHtml(ex.stem.length > 3000 ? ex.stem.slice(0, 2997) + "…" : ex.stem);
   let answerLine = "";
   if (ex.studentAnswer) {
     if (ex.isMcq && ex.options.length > 0) {
@@ -202,13 +202,10 @@ function renderEnglishDetails(childFirst: string, ex: {
       answerLine = opt ? `<p style="font-size: 12px; color: #4b5563; margin: 4px 0;"><em>${esc(childFirst)} picked:</em> “${esc(opt)}”</p>` : "";
     } else {
       const formatted = formatStudentAnswerText(ex.studentAnswer);
-      const trimmed = formatted.length > 400 ? formatted.slice(0, 397) + "…" : formatted;
+      const trimmed = formatted.length > 1500 ? formatted.slice(0, 1497) + "…" : formatted;
       answerLine = `<p style="font-size: 12px; color: #4b5563; margin: 4px 0; white-space: pre-wrap;"><em>${esc(childFirst)} wrote:</em> ${esc(trimmed)}</p>`;
     }
   }
-  // For wins, the kid's answer IS the correct answer — no point showing
-  // the answer key separately. Only render the "Correct:" line for
-  // mistakes.
   let correctLine = "";
   if (!isWin && ex.correctAnswer) {
     if (ex.isMcq && ex.options.length > 0) {
@@ -217,11 +214,15 @@ function renderEnglishDetails(childFirst: string, ex: {
       const opt = ex.options[idx];
       correctLine = opt ? `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> “${esc(opt)}”</p>` : "";
     } else {
-      correctLine = `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> ${esc(ex.correctAnswer.slice(0, 200))}${ex.correctAnswer.length > 200 ? "…" : ""}</p>`;
+      const trimmedCorrect = ex.correctAnswer.length > 1500 ? ex.correctAnswer.slice(0, 1497) + "…" : ex.correctAnswer;
+      correctLine = `<p style="font-size: 12px; color: #065f46; margin: 4px 0;"><em>Correct:</em> ${esc(trimmedCorrect)}</p>`;
     }
   }
-  const notesLine = ex.markingNotes
-    ? `<p style="font-size: 12px; color: #4b5563; margin: 6px 0 0;"><em>Marker:</em> ${esc(ex.markingNotes.slice(0, 300))}${ex.markingNotes.length > 300 ? "…" : ""}</p>`
+  const notesText = ex.markingNotes
+    ? (ex.markingNotes.length > 1000 ? ex.markingNotes.slice(0, 997) + "…" : ex.markingNotes)
+    : "";
+  const notesLine = notesText
+    ? `<p style="font-size: 12px; color: #4b5563; margin: 6px 0 0;"><em>Marker:</em> ${esc(notesText)}</p>`
     : "";
   return `
     <div style="margin-top: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
@@ -299,7 +300,12 @@ export async function sendLumiWeeklyForStudent(args: {
 }): Promise<{ status: "sent" | "queued" | "no-delta" | "no-recipient"; queueId?: string; subjects?: Subject[]; reason?: string }> {
   const stu = await prisma.user.findUnique({
     where: { id: args.studentId },
-    select: { id: true, name: true, parentLinks: { select: { parent: { select: { id: true, name: true, email: true } } } } },
+    // studentLinks (not parentLinks) — for a STUDENT user, the parents
+    // they're linked to live in ParentStudent rows where this user is
+    // the studentId. parentLinks is the inverse (rows where this user
+    // is the PARENT) and is empty for kids, which is why every prior
+    // delta send returned "no-recipient" until a --to override was passed.
+    select: { id: true, name: true, studentLinks: { select: { parent: { select: { id: true, name: true, email: true } } } } },
   });
   if (!stu) return { status: "no-recipient", reason: "student not found" };
   const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
@@ -309,7 +315,17 @@ export async function sendLumiWeeklyForStudent(args: {
   // intro email's shape: land on the parent homepage with the Lumi
   // view active. The bare /tutor/<parentId> route renders Lumi without
   // the dashboard shell + has a confusing "Tutor" header.
-  const linkedParent = stu.parentLinks[0]?.parent ?? null;
+  //
+  // Pick the first non-service linked parent. admin@yunateach.com is a
+  // shared service inbox — Jeremiah's parentLinks[0] is admin@ and
+  // pre-fix that meant his delta would have landed there instead of
+  // his real parent. The intro path filters the same set in
+  // SERVICE_EMAILS; mirror that.
+  const SERVICE_EMAILS = new Set(["admin@yunateach.com"]);
+  const linkedParent = stu.studentLinks
+    .map(l => l.parent)
+    .find(p => p.email && !SERVICE_EMAILS.has(p.email.toLowerCase()))
+    ?? null;
   const ctaParentId = linkedParent?.id ?? stu.id;
   const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
 
@@ -403,6 +419,26 @@ export async function sendLumiWeeklyForStudent(args: {
   });
   if (result.queued) return { status: "queued", queueId: result.queueId, reason: result.reason, subjects: sections.map(s => s.subject) };
   if (!result.sent)  return { status: "no-recipient", reason: result.reason };
+  // External mailer log — same fire-and-forget POST the intro path
+  // uses (see _do-55-send-intros.ts) so the markforyou-mailer's
+  // Users tab + Daily Emails dashboard can pull weekly delta sends
+  // alongside intros. Always non-blocking: a mailer outage must not
+  // prevent the delta from going out.
+  const mailerUrl = process.env.MAILER_URL;
+  const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
+  if (mailerUrl && mailerToken) {
+    fetch(`${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
+      body: JSON.stringify({
+        to: recipient,
+        to_name: linkedParent?.name ?? null,
+        subject,
+        body: html,
+        event_type: "lumi_weekly",
+      }),
+    }).catch((err) => { console.warn(`  mailer log failed: ${err?.message ?? err}`); });
+  }
   return { status: "sent", subjects: sections.map(s => s.subject) };
 }
 
