@@ -1,0 +1,211 @@
+{
+  "patterns": [
+    {
+      "name": "Reported Speech Time Words",
+      "what": "Tends to forget to change time and pointer words when converting direct speech into reported speech.",
+      "specific_examples": [
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J kept 'yesterday' instead of changing it to 'the previous day'."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J left 'next week' as is, rather than shifting it to 'the following week'."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J used 'this' instead of changing it to 'that' for the reported speech."
+        }
+      ],
+      "strategic_advice": "When you see reporting words, treat them as a signal to check your time and pointer words:\n- **'yesterday'** changes to **'the previous day'**\n- **'next week'** changes to **'the following week'**\n- **'this'** changes to **'that'**",
+      "trigger_keywords": [
+        "asked",
+        "told",
+        "wanted to know"
+      ]
+    },
+    {
+      "name": "Dropping Small Words",
+      "what": "Occasionally leaves out descriptive words or swaps specific pronouns when rewriting a sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J missed out the word 'firmly', which slightly changed the meaning of the parents' refusal."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J wrote 'the teacher' instead of keeping the more specific 'their teacher'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J dropped the word 'sudden' when describing Sam's illness."
+        }
+      ],
+      "strategic_advice": "When you finish writing your new sentence, do a quick matching check with the original.\n- Look closely for adjectives (like **'sudden'**) and adverbs (like **'firmly'**).\n- Double-check that ownership words like **'their'** haven't accidentally turned into **'the'**.",
+      "trigger_keywords": [
+        "No matter",
+        "On account of",
+        "Having"
+      ]
+    },
+    {
+      "name": "Forgotten Commas",
+      "what": "Sometimes misses the comma needed to separate a starting phrase from the main part of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J forgot to place a comma after 'heavy rain' to separate the reason from the result."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "oeq",
+          "whatWentWrong": "SHRIV8209J missed the comma after 'throwing the ball' before introducing the main action."
+        }
+      ],
+      "strategic_advice": "When a sentence starts with a phrase that sets the scene or gives a reason, you usually need a comma before the main action begins.\n- Read your sentence aloud and listen for the natural pause.\n- When you see starters like **'Due to'** or **'No matter'**, remember to drop a comma right after the introductory part!",
+      "trigger_keywords": [
+        "Due to",
+        "No matter"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 2
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqsvn63p00729p4hazsx7m61",
+    "2": "cmqsvn63p00769p4hd4dww0li",
+    "3": "cmqsvn63p00779p4h5gzrcbx4",
+    "4": "cmqsvn63p00789p4hjufqn2wa",
+    "5": "cmqsvn63p007b9p4h72q9zhdl",
+    "6": "cmqsv4n7l004l9p4hlcdatup2",
+    "7": "cmqsv4n7l004m9p4hefxr0l8o",
+    "8": "cmqsv4n7l004o9p4hnp1afxyb",
+    "9": "cmqsv4n7l004p9p4hnxmzrbqb",
+    "10": "cmqsv4n7l004r9p4h1fovx3b5",
+    "11": "cmqsv4n7l004s9p4hscohg63e",
+    "12": "cmqsv4n7l004t9p4hopo5zj8k",
+    "13": "cmqpz7fmd009x13p06fm3bez3",
+    "14": "cmqpz7fmd00a313p0rhx1tfae",
+    "15": "cmqpz7fmd00a613p01dvoabcf",
+    "16": "cmqpyj924009l13p0d2yzly5e",
+    "17": "cmqpyj924009m13p0151djjua",
+    "18": "cmqpyj924009n13p0ypqlweu4",
+    "19": "cmqpyj924009o13p0ie9paspv",
+    "20": "cmqpyj924009p13p0ainnxjg7",
+    "21": "cmqpyj924009s13p0g4e0rb0q",
+    "22": "cmqpyj925009u13p0mnrv4pz5",
+    "23": "cmqaclqe70003oxk1d4pdmew0"
+  },
+  "generatedAt": "2026-06-27T07:06:10.984Z",
+  "wrongCounts": {
+    "total": 23,
+    "oeq": 22,
+    "mcq": 1
+  },
+  "toplineSnapshot": {
+    "avgPct": 51,
+    "totalAwarded": 47,
+    "totalAvailable": 93,
+    "paperCount": 5
+  },
+  "previousAssessment": null
+}

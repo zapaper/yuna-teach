@@ -1,0 +1,196 @@
+{
+  "patterns": [
+    {
+      "name": "Checking Every Statement",
+      "what": "Sometimes evaluates the first few statements correctly but misses a detail in the final one, leading to an incomplete answer.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 correctly identified statement A, but missed that statement B was false because it left out one of the blood vessels."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He correctly spotted that statements A and C were true, but missed that statement D was also true about energy converting to heat and sound."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He picked an option with statement B, missing that the table's data actually proved statement B incorrect."
+        }
+      ],
+      "strategic_advice": "When you see questions with multiple statements (A, B, C, D), treat each one as a separate True/False question.\n- **Mark a 'T' or 'F'** next to every single statement before looking at the options.\n- **Double-check the 'only'** keyword in the options to make sure you haven't left out a true statement.",
+      "trigger_keywords": [
+        "Which of the following statements",
+        "A and B only",
+        "true about the"
+      ]
+    },
+    {
+      "name": "Population vs Community",
+      "what": "Occasionally mixes up the definitions of 'population', 'community', and 'habitat' when looking at a group of plants and animals.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 miscounted the groups, likely confusing the total number of individual organisms with the number of populations."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "He thought there were four populations, mixing up the animals living there with the tree itself, which acts as their habitat."
+        }
+      ],
+      "strategic_advice": "When you see ecology terms, use this quick checklist:\n- **Population** = one specific type of plant or animal (e.g., just the frogs).\n- **Community** = ALL the living things together (frogs + fish + plants).\n- **Habitat** = the non-living place where they live (the pond or the tree).",
+      "trigger_keywords": [
+        "community",
+        "population",
+        "habitat"
+      ]
+    },
+    {
+      "name": "Kinetic vs Potential Energy",
+      "what": "Tends to confuse how kinetic energy, potential energy, and heat change when an object moves, stops, or rubs against a surface.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 missed that adding sand increases friction, which creates more heat energy and leaves less kinetic energy for the car."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "He chose a graph that didn't start at zero, forgetting that a marble has no kinetic energy before it is released."
+        }
+      ],
+      "strategic_advice": "When an object is moving or stopping, track its energy step-by-step:\n- **Highest point or stopped** = zero kinetic energy, maximum potential energy.\n- **Moving fastest** = maximum kinetic energy.\n- **Rubbing or rough surfaces** = kinetic energy turns into heat energy.",
+      "trigger_keywords": [
+        "kinetic energy",
+        "potential energy",
+        "heat energy",
+        "released"
+      ]
+    },
+    {
+      "name": "Reading Food Web Arrows",
+      "what": "Sometimes misinterprets the arrows in a food web, which makes it tricky to spot the true producers or figure out who eats whom.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "LohXY2014 counted only one producer, forgetting that any living thing with only outgoing arrows (and no incoming arrows) is a producer."
+        },
+        {
+          "questionRef": "[13]",
+          "type": "mcq",
+          "whatWentWrong": "He picked the wrong table row, likely reading the arrows backwards when trying to figure out the predator and prey roles."
+        }
+      ],
+      "strategic_advice": "When you see a food web, remember that the arrow means **'is eaten by'** or **'gives energy to'**.\n- **Producers** (plants) only have arrows pointing AWAY from them.\n- **Trace the arrow tip** to find the eater (the predator).",
+      "trigger_keywords": [
+        "food web",
+        "producers",
+        "predator",
+        "prey"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 3
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 2
+    },
+    {
+      "idx": 9,
+      "patternIndex": 3
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": 3
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 2
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqnq3u8e0008y0attbweurl8",
+    "2": "cmqnq3u8e000ay0at36vrfx0s",
+    "3": "cmqnq3u8e000by0atu7auuvah",
+    "4": "cmqnq3u8e000dy0athx25v4ty",
+    "5": "cmqnq3u8f000ey0at7h6dlvuk",
+    "6": "cmqacbmae0010l19rh3g6v0oz",
+    "7": "cmqacbmae0013l19rfa0q13tq",
+    "8": "cmqacbmaf0015l19rc4u11urp",
+    "9": "cmqacbmaf0017l19rez0fnm0p",
+    "10": "cmq3kyhc700024k0fk3ioauck",
+    "11": "cmq3kyhc800084k0ftdiwzcoc",
+    "12": "cmq3kyhc9000b4k0fsmmvcn8e",
+    "13": "cmq3kyhc9000d4k0fzozejbgn",
+    "14": "cmq3kyhc9000e4k0fjwanq2b3",
+    "15": "cmq3kyhca000k4k0fp5lm4n1v",
+    "16": "cmq3kyhca000l4k0fl8r39hki"
+  },
+  "generatedAt": "2026-06-27T07:09:10.496Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 0,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 54,
+    "totalAvailable": 80,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

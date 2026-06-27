@@ -1,0 +1,289 @@
+{
+  "patterns": [
+    {
+      "name": "Past Tense Mix-Up",
+      "what": "Omi sometimes confuses when to use a simple finished action (like 'played') and an ongoing past action (like 'was riding').",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Omi chose the ongoing action 'were playing' instead of the completed action 'played' for something that happened yesterday before heading home."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "Omi picked the simple past 'rode' instead of 'was riding' for an action that was interrupted by a loud noise."
+        }
+      ],
+      "strategic_advice": "When deciding between past tenses, look for clue words that tell you if the action was a quick, finished event or something happening over a period of time.\n- **'Yesterday'** or **'before'** usually points to a finished action (e.g., played, gathered).\n- **'When'** or **'while'** often interrupts an ongoing action, so use the continuous form (e.g., was riding, were admiring).",
+      "trigger_keywords": [
+        "yesterday",
+        "before",
+        "when",
+        "while"
+      ]
+    },
+    {
+      "name": "Amount Word Mix-Up",
+      "what": "Omi occasionally mixes up words used for things we can count (like cupcakes) and things we cannot count (like time or energy).",
+      "specific_examples": [
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "Omi chose 'few' for time, but since time cannot be counted in this way, 'little' is the right choice."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Omi picked 'little' for cupcakes, which are countable, so 'few' should be used instead."
+        }
+      ],
+      "strategic_advice": "When choosing words like 'few', 'little', or 'much', always ask yourself if you can count the item one by one.\n- If you can count it (like **cupcakes** or **books**), use **'few'** or **'many'**.\n- If you cannot count it (like **time**, **water**, or **energy**), use **'little'** or **'much'**.",
+      "trigger_keywords": [
+        "few",
+        "little",
+        "much",
+        "many"
+      ]
+    },
+    {
+      "name": "Copying and Spelling Slips",
+      "what": "Omi tends to make small spelling mistakes or copying errors when rewriting familiar words in sentence transformation questions.",
+      "specific_examples": [
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "Omi accidentally added an extra 'm' to spell 'submmitted' instead of 'submitted'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "oeq",
+          "whatWentWrong": "Omi misspelled 'mother' as 'motther' and wrote 'brought' instead of 'bought'."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "oeq",
+          "whatWentWrong": "Omi swapped the letters in 'thirsty', spelling it as 'thristy'."
+        }
+      ],
+      "strategic_advice": "When rewriting sentences, take a moment to check your spelling against the original question.\n- **Trace the words** with your finger as you copy them to make sure no letters are missed or swapped.\n- Double-check words with tricky double letters or vowel pairs, like **'submitted'** or **'thirsty'**.",
+      "trigger_keywords": [
+        "rewrite",
+        "combine",
+        "edit"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 2
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 0
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqw041o7004nniljgv3j5udt",
+    "2": "cmqt8k8r4000l10wwgcusqpf3",
+    "3": "cmqt8hol7000510wwo65p3aqh",
+    "4": "cmqt8hol7000610wwbso2fg0l",
+    "5": "cmqs4bskk005djj509zorysl5",
+    "6": "cmqs3pwic001kjj50rmdw3lj8",
+    "7": "cmqqg8teb00lpqrnvkqhsb2bv",
+    "8": "cmqqg8teb00lqqrnvv2jdi56x",
+    "9": "cmqqdkc7u00b7qrnvyy9xtafv",
+    "10": "cmqpakznt001o13p02kax875s",
+    "11": "cmqpahwlf000y13p033oidp03",
+    "12": "cmqpahwlf001113p09oml9xmh",
+    "13": "cmqnhzgyf00flwgpgylf3q1hg",
+    "14": "cmqnhgkxa00ddwgpge4uvzp2l",
+    "15": "cmqnfwy5w00aewgpg6j9bgq7c",
+    "16": "cmqnfwy5w00ajwgpgyfd6vwan",
+    "17": "cmqnfwy5w00akwgpg5tgnl502",
+    "18": "cmqnfwy5w00alwgpggzrnipbs",
+    "19": "cmqnfwy5w00amwgpgjjx1xobk",
+    "20": "cmqnfwy5w00anwgpgupt84qqg",
+    "21": "cmqnflqzm009nwgpg4bamu34g",
+    "22": "cmqnf3pz6008gwgpgvktrs9fp",
+    "23": "cmqnf3pz6008hwgpgr8nskkxc",
+    "24": "cmqnetn330076wgpgbymw4bxm",
+    "25": "cmqnetn330077wgpgh74v2o77",
+    "26": "cmqnee7nx006twgpgappf2cow",
+    "27": "cmqnee7nx006xwgpguhzfzj7z",
+    "28": "cmqne64eg006mwgpgr5aagtkh",
+    "29": "cmqne1pg40066wgpgdx92weaq",
+    "30": "cmqne1pg40069wgpgf5pxovf7",
+    "31": "cmqndptaj005swgpg9cftoy1u",
+    "32": "cmqndptak005uwgpg88szvevs",
+    "33": "cmqlwt037006p1p80iwk3uqu4",
+    "34": "cmqlwt037006s1p80j6elkud5",
+    "35": "cmqlwqff4006g1p80bm9cbvy4",
+    "36": "cmqlwmy9500641p80lf3yzws6",
+    "37": "cmqjqc6ou002zutjdaultdzbk",
+    "38": "cmqjqc6ov0039utjdtdm9yqlt",
+    "39": "cmqjqc6ov003iutjdsekzvxzi"
+  },
+  "generatedAt": "2026-06-27T07:04:35.030Z",
+  "wrongCounts": {
+    "total": 39,
+    "oeq": 10,
+    "mcq": 29
+  },
+  "toplineSnapshot": {
+    "avgPct": 92,
+    "totalAwarded": 585,
+    "totalAvailable": 636,
+    "paperCount": 49
+  },
+  "previousAssessment": null
+}

@@ -1,0 +1,170 @@
+{
+  "patterns": [
+    {
+      "name": "Ratio vs Fraction Mix-Up",
+      "what": "Sometimes confuses comparing two parts with comparing one part to the total whole.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony found the fraction of pink to white pearls instead of white to the total number of pearls."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony struggled to find the fraction of savings compared to expenditure, likely mixing up the parts and the total."
+        }
+      ],
+      "strategic_advice": "When you see **'fraction of'**, circle the words that come immediately after it.\n- If it says **'fraction of the pearls'**, your bottom number must be the total pearls.\n- If it says **'fraction of his expenditure'**, your bottom number must be the amount spent.",
+      "trigger_keywords": [
+        "fraction of",
+        "ratio of"
+      ]
+    },
+    {
+      "name": "Division Order Mix-Up",
+      "what": "Occasionally divides the bigger number by the smaller number, or forgets to flip the fraction, when setting up a division step.",
+      "specific_examples": [
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony divided the 30 stamps by $15 to get 2 cents, instead of dividing the total cost by the number of stamps."
+        },
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony likely multiplied the fractions straight across instead of flipping the second fraction for division."
+        }
+      ],
+      "strategic_advice": "When finding the cost of one item, always put the **money amount first** in your division.\n- For fraction division, remember to **'keep, change, flip'**: keep the first fraction, change divide to multiply, and flip the second fraction.",
+      "trigger_keywords": [
+        "cost of each",
+        "÷"
+      ]
+    },
+    {
+      "name": "Skipping Wordy Questions",
+      "what": "Tends to leave questions blank when they involve longer text, multiple steps, or complex diagrams.",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony left this question blank, possibly because the overlapping paper problem looked like it needed too many steps."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony skipped this 'before and after' word problem about sweets."
+        },
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "chhaymony skipped this bar graph question, which required reading the graph and calculating a percentage."
+        }
+      ],
+      "strategic_advice": "When a question looks long or complicated, don't skip it immediately!\n- **Draw a simple model** or write down the numbers you know.\n- Break it into **one sentence at a time**. Finding just the first step often unlocks the rest of the problem.",
+      "trigger_keywords": [
+        "at first",
+        "in the end",
+        "percentage of"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": 2
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": 2
+    },
+    {
+      "idx": 10,
+      "patternIndex": 2
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqterq0m000q8lhmc3z4qtw7",
+    "2": "cmqterq0m000t8lhmsi5vsosr",
+    "3": "cmqterq0m000u8lhmiuz9lgxx",
+    "4": "cmqterq0n000v8lhmtleux82b",
+    "5": "cmqterq0n000w8lhmkwddf2g7",
+    "6": "cmqterq0n000z8lhmycdrczka",
+    "7": "cmqterq0n00108lhm6c8dhekx",
+    "8": "cmqryym8w0004irylkkg2oj05",
+    "9": "cmqryym900009irylmqel9lww",
+    "10": "cmqryym90000birylkr4zlwkj",
+    "11": "cmqryym90000dirylny3jl65p",
+    "12": "cmqrx8lbv001d5vy84gvujlbl",
+    "13": "cmqrx8lbv001e5vy8740nbu1m",
+    "14": "cmqrx8lbv001f5vy8iqtz701x",
+    "15": "cmqrx8lbw001l5vy8hb9o8zzx",
+    "16": "cmqrx8lbw001o5vy8nh3izdc9"
+  },
+  "generatedAt": "2026-06-27T07:07:42.294Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 0,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 64,
+    "totalAwarded": 46,
+    "totalAvailable": 72,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

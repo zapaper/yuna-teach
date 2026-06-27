@@ -1,0 +1,239 @@
+{
+  "patterns": [
+    {
+      "name": "Missing Invisible Forces",
+      "what": "Sometimes forgets to include invisible forces like magnetic force or friction when listing all the forces acting on an object.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "Student correctly identified gravity and friction, but missed the magnetic force acting on the worksheet."
+        },
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "Found it tricky to identify all the true statements about the invisible forces acting on a thrown baseball."
+        }
+      ],
+      "strategic_advice": "When a question asks about forces, always run through a mental checklist of invisible forces: **gravity**, **friction**, and **magnetism**. Ask yourself if any magnets are present or if things are rubbing together.",
+      "trigger_keywords": [
+        "forces acting on",
+        "pathway of a baseball",
+        "true statement"
+      ]
+    },
+    {
+      "name": "Fair Test Set-Ups",
+      "what": "Occasionally struggles to pick the right experimental setups where only one variable changes and everything else stays exactly the same.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Needed to test the number of batteries, but didn't choose the two setups that kept the number of coils exactly the same."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "Found it tricky to isolate the changed variable while keeping all other conditions constant."
+        }
+      ],
+      "strategic_advice": "When you see prompts about experiments, treat them as a matching game:\n- Highlight the **ONE thing** the experiment is testing (e.g., number of batteries).\n- Make sure **every other detail** in the setups you choose is identical.",
+      "trigger_keywords": [
+        "investigate his aim",
+        "which two set-ups",
+        "find out how"
+      ]
+    },
+    {
+      "name": "Following Energy Paths",
+      "what": "Tends to get tripped up when having to follow the exact path of light bouncing off mirrors or electricity flowing through a circuit.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Found it challenging to trace the closed loops in a circuit to see which switch would light up the most bulbs."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "Needed to follow the straight lines of light reflecting off mirrors to see which viewing tube worked."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Struggled to visualize how opening or closing specific switches affects the flow of current to each bulb."
+        }
+      ],
+      "strategic_advice": "Use your pencil! When dealing with circuits or light, physically **draw the path** on the paper. For circuits, trace from the battery's positive to negative end. For light, draw straight lines bouncing off mirrors.",
+      "trigger_keywords": [
+        "which switch",
+        "can be used to see",
+        "circuit shown"
+      ]
+    },
+    {
+      "name": "Reading Line Graphs",
+      "what": "Sometimes misinterprets line graphs when trying to figure out how a changing environment affects animal populations.",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "Found it tricky to match the depth of water to the amount of light, and then to the population size."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "Struggled to read the graph to see which organism's population goes up when light increases."
+        }
+      ],
+      "strategic_advice": "When looking at a graph, always read the labels on the bottom and the side first. If the question mentions a hidden factor like **'amount of light'**, write it directly onto the graph next to the depth numbers so you don't forget the relationship.",
+      "trigger_keywords": [
+        "graph shows",
+        "survive(s) better",
+        "population size"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 2
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 2
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 2
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 2
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 2
+    },
+    {
+      "idx": 23,
+      "patternIndex": 1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 3
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmoh2jipc000gq66wvfzp06hm",
+    "2": "cmoh2ehwj000o10keprxf3g1u",
+    "3": "cmoh2ehwj000p10ke56if09mu",
+    "4": "cmoh2ehwj000q10keffwrh8rz",
+    "5": "cmoh2ehwj000r10ketrfukhu4",
+    "6": "cmoh2ehwj000s10kemejsoydj",
+    "7": "cmoh2ehwj000t10key6c3ul46",
+    "8": "cmoh2ehwk000v10keumhk0ikx",
+    "9": "cmoh2ehwk000w10keyan2jjmi",
+    "10": "cmoh26zwz000310kefu2mefl9",
+    "11": "cmoh26zwz000410keds6do7vv",
+    "12": "cmoh26zwz000510ke5pxmwjit",
+    "13": "cmoh26zwz000610ke3xbfx0tq",
+    "14": "cmoh26zwz000710kelltpec2p",
+    "15": "cmoh26zwz000810ketoh6d7pg",
+    "16": "cmoh26zx0000a10keyt0d9ito",
+    "17": "cmoh26zx0000b10keff97rau7",
+    "18": "cmoh0zu1s0003o5b4kk3qwf1s",
+    "19": "cmoh0zu1s0004o5b49630prm9",
+    "20": "cmoh0zu1s0005o5b4rtspod7t",
+    "21": "cmoh0zu1s0006o5b4egsvnvkb",
+    "22": "cmoh0zu1s0007o5b4inr2b5hm",
+    "23": "cmoh0zu1s0008o5b44ivy630n",
+    "24": "cmoh0zu1t000ao5b44kg0uffe",
+    "25": "cmoh0zu1t000bo5b4swl38g2s"
+  },
+  "generatedAt": "2026-06-27T07:08:01.035Z",
+  "wrongCounts": {
+    "total": 25,
+    "oeq": 1,
+    "mcq": 24
+  },
+  "toplineSnapshot": {
+    "avgPct": 25,
+    "totalAwarded": 49,
+    "totalAvailable": 200,
+    "paperCount": 4
+  },
+  "previousAssessment": null
+}

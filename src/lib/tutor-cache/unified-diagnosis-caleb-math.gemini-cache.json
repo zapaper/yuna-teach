@@ -1,0 +1,404 @@
+{
+  "patterns": [
+    {
+      "name": "Skipping Questions",
+      "what": "Tends to leave open-ended questions completely blank, which means he misses out on valuable partial marks even if he knows how to start.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "oeq",
+          "whatWentWrong": "Left the question blank instead of using the graph to find the simple difference between the two months."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "oeq",
+          "whatWentWrong": "Skipped this bar graph question, missing out on straightforward marks for reading the values."
+        },
+        {
+          "questionRef": "[28]",
+          "type": "oeq",
+          "whatWentWrong": "Left this volume question blank, missing the chance to earn method marks for finding the initial volume."
+        }
+      ],
+      "strategic_advice": "When you see a blank page, treat it as an opportunity to show what you know. Write down the first step even if you aren't sure how to finish.\n- **'Find the area'** → write down the formula and plug in any numbers you know.\n- **'What was the total'** → write down the addition sum of the parts you can find.\nEvery step you write is a chance for a partial mark!",
+      "trigger_keywords": [
+        "Find the value",
+        "How many",
+        "What was"
+      ]
+    },
+    {
+      "name": "Geometry Rule Mix-Up",
+      "what": "Sometimes assumes that a diagonal line always cuts a corner angle perfectly in half, or that triangles are isosceles even when the shape properties don't guarantee it.",
+      "specific_examples": [
+        {
+          "questionRef": "[2]",
+          "type": "mcq",
+          "whatWentWrong": "Assumed that the diagonal of a parallelogram splits the corner angles equally and forms an isosceles triangle."
+        },
+        {
+          "questionRef": "[39]",
+          "type": "mcq",
+          "whatWentWrong": "Struggled to identify the correct isosceles triangle inside the square, leading to an incorrect angle calculation."
+        }
+      ],
+      "strategic_advice": "When solving geometry puzzles, only use the rules that are guaranteed for that shape.\n- **'parallelogram'** → opposite angles are equal, but diagonals do NOT cut the corners in half unless it's a rhombus.\n- **'square'** → diagonals DO cut the 90° corners into 45°, but be careful not to assume other lines do the same.",
+      "trigger_keywords": [
+        "parallelogram",
+        "square",
+        "find ∠"
+      ]
+    },
+    {
+      "name": "Stopping One Step Short",
+      "what": "Occasionally does the hard work to find an intermediate value, but stops and selects that as his final answer instead of completing the last step.",
+      "specific_examples": [
+        {
+          "questionRef": "[30]",
+          "type": "mcq",
+          "whatWentWrong": "Successfully found the inside angle of 39°, but forgot to subtract it from 80° to find the final requested angle."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "mcq",
+          "whatWentWrong": "Calculated how much money Ken spent ($4.50), but the question asked for how much money he had left."
+        },
+        {
+          "questionRef": "[35]",
+          "type": "mcq",
+          "whatWentWrong": "Found the number of extra overlapping papers (84), but forgot to add the very first paper back to get the total."
+        }
+      ],
+      "strategic_advice": "When you find a number that matches an option, do a quick double-check before moving on.\n- **'had left'** → subtract the amount spent from the total.\n- **'total number'** → make sure you haven't left out the starting item.\n- **'Find ∠'** → trace the angle letters with your pencil to ensure you are answering for the exact corner requested.",
+      "trigger_keywords": [
+        "left",
+        "remaining",
+        "total number"
+      ]
+    },
+    {
+      "name": "Hidden 3D Faces",
+      "what": "Occasionally finds it tricky to visualise the hidden parts of 3D shapes, such as when calculating the volume of a cuboid from a side face or counting unpainted surfaces.",
+      "specific_examples": [
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "Multiplied the side face area by the height, instead of using the side face to find the true square base area first."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "mcq",
+          "whatWentWrong": "Found it difficult to visualise the new unpainted faces that are exposed when a large block is cut into two."
+        }
+      ],
+      "strategic_advice": "When working with 3D blocks, try to sketch or label the hidden sides.\n- **'square base'** → use the given area to find the length of one side, then calculate the true base area.\n- **'cut into'** → remember that cutting a block exposes new faces that were previously hidden inside.\n- **'painted'** → count the faces on the top, bottom, front, back, left, and right systematically.",
+      "trigger_keywords": [
+        "cuboid",
+        "painted",
+        "volume"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 2
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 0
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": 0
+    },
+    {
+      "idx": 21,
+      "patternIndex": 0
+    },
+    {
+      "idx": 22,
+      "patternIndex": 0
+    },
+    {
+      "idx": 23,
+      "patternIndex": 0
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 0
+    },
+    {
+      "idx": 27,
+      "patternIndex": 0
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 0
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 1
+    },
+    {
+      "idx": 34,
+      "patternIndex": 1
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": 1
+    },
+    {
+      "idx": 39,
+      "patternIndex": 1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 3
+    },
+    {
+      "idx": 42,
+      "patternIndex": 3
+    },
+    {
+      "idx": 43,
+      "patternIndex": 3
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": -1
+    },
+    {
+      "idx": 46,
+      "patternIndex": -1
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": 3
+    },
+    {
+      "idx": 49,
+      "patternIndex": 3
+    },
+    {
+      "idx": 50,
+      "patternIndex": 3
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": 1
+    },
+    {
+      "idx": 53,
+      "patternIndex": -1
+    },
+    {
+      "idx": 54,
+      "patternIndex": -1
+    },
+    {
+      "idx": 55,
+      "patternIndex": 1
+    },
+    {
+      "idx": 56,
+      "patternIndex": 1
+    },
+    {
+      "idx": 57,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmq60gaxs006vjkel1aonvmuf",
+    "2": "cmq60gaxs006zjkel7wjn45bd",
+    "3": "cmq60gaxt0075jkelrb7al7vq",
+    "4": "cmq60gaxt0078jkelv8vc2h1w",
+    "5": "cmq60gaxt007ajkelsajgupq7",
+    "6": "cmq60gaxt007cjkelsh41o7qv",
+    "7": "cmq60gaxt007djkelxld8gkux",
+    "8": "cmq60gaxt007ejkeld7kspucm",
+    "9": "cmq60gaxt007fjkelidd2pz2b",
+    "10": "cmq60gaxt007gjkelojlw1p4d",
+    "11": "cmq60gaxt007hjkel67xfys2t",
+    "12": "cmq60gaxt007ijkelm7sb4gyd",
+    "13": "cmq60gaxu007ljkelpxilsx7v",
+    "14": "cmq60gaxu007mjkel9n7i18s4",
+    "15": "cmq60gaxu007njkelcs0phzfo",
+    "16": "cmq60gaxu007pjkel27jdccnh",
+    "17": "cmq60gaxu007rjkelp6uxhwge",
+    "18": "cmq60gaxu007sjkelrglqqd8j",
+    "19": "cmq60gaxu007tjkelbkwlh5tb",
+    "20": "cmq60gaxu007ujkelzhqg1lck",
+    "21": "cmq60gaxu007vjkelb17e831j",
+    "22": "cmq60gaxu007wjkelozqo3cbt",
+    "23": "cmq60gaxu007xjkelnerkga4k",
+    "24": "cmq60gaxv007yjkeldze0es04",
+    "25": "cmq60gaxv007zjkel8c9b7xq2",
+    "26": "cmq60gaxv0080jkelfytspxwb",
+    "27": "cmq60gaxv0081jkel2gsuug1j",
+    "28": "cmq60gaxv0082jkelj39braf4",
+    "29": "cmq60gaxv0083jkellc8tukfv",
+    "30": "cmqvmj3b300076l4dwuk39l5v",
+    "31": "cmquxa1lb001kji5xlriws3z6",
+    "32": "cmqt4p0mz00bf1qnkym68tal3",
+    "33": "cmqt4p0n000bi1qnkd2s9pwxd",
+    "34": "cmqt4p0n000bk1qnkjugdo18t",
+    "35": "cmqt4p0n000bn1qnk55p9h9kw",
+    "36": "cmqss4q9l004x9edeh1jdsplr",
+    "37": "cmqqdb8cm009yqrnvpaw5dadv",
+    "38": "cmqqdb8cm00a1qrnv0pjxxa2d",
+    "39": "cmqqdb8cn00abqrnvnmh8uy64",
+    "40": "cmqqdep3a00asqrnv7ry1a7v6",
+    "41": "cmqqaxcos0022qrnv690ofpof",
+    "42": "cmqqaxcot0023qrnvbjv80n1o",
+    "43": "cmqoq8oou004z8h72ln74mcwy",
+    "44": "cmqkdkso0002so3ah0lswdz85",
+    "45": "cmqkdkso0002vo3ahqc3mv8wz",
+    "46": "cmqkdcj9g002io3ah3g9xql31",
+    "47": "cmqkdcj9g002jo3ahsazkgp1w",
+    "48": "cmqj9lh74006z6rbdi4gcv84w",
+    "49": "cmqj9lh7400716rbdlvz5rrxg",
+    "50": "cmqj9lh7500726rbdeb43k9dg",
+    "51": "cmqj48rfo006e75f26vxzgfj4",
+    "52": "cmqj48rfo006m75f2wxzk25xf",
+    "53": "cmqj30mjy006375f2kqb7seg0",
+    "54": "cmqj30mjz006675f2n4td1ory",
+    "55": "cmqj30mjz006875f2z8u5q8yw",
+    "56": "cmqj30mjz006a75f2igfbxsdm",
+    "57": "cmq64u9fn008meykw6rmpde66"
+  },
+  "generatedAt": "2026-06-27T07:09:52.124Z",
+  "wrongCounts": {
+    "total": 57,
+    "oeq": 26,
+    "mcq": 31
+  },
+  "toplineSnapshot": {
+    "avgPct": 73,
+    "totalAwarded": 344,
+    "totalAvailable": 474,
+    "paperCount": 18
+  },
+  "previousAssessment": null
+}

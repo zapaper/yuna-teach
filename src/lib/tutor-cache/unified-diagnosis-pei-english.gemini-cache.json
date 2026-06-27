@@ -1,0 +1,223 @@
+{
+  "patterns": [
+    {
+      "name": "Answering Format Slips",
+      "what": "Sometimes writes out the full word as the answer instead of using the required option letter provided in the box.",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "oeq",
+          "whatWentWrong": "Pei wrote the word 'US' instead of the correct option letter 'E'."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "oeq",
+          "whatWentWrong": "He wrote the word 'HE' instead of the correct option letter 'A'."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "oeq",
+          "whatWentWrong": "Pei wrote the word 'ME' instead of the correct option letter 'B'."
+        }
+      ],
+      "strategic_advice": "When you see a grammar cloze with a box of options, **circle the letters** (A, B, C) to remind yourself. Before moving on, **quickly scan your answers** to ensure they are just letters.",
+      "trigger_keywords": [
+        "A, B, C",
+        "Write the letter"
+      ]
+    },
+    {
+      "name": "Missing the Clue Words",
+      "what": "Occasionally picks a vocabulary word that doesn't quite match the specific clues hidden in the rest of the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Pei chose 'slowly' for a bus stopping, but the clue 'causing everyone to fall forward' points to 'abruptly'."
+        },
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "He chose 'gushing' for a leaking tap, but the clue 'little drops' means it was 'dripping'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "Pei chose 'scampered' for a lion, but the clue 'ready to pounce' means it 'prowled'."
+        }
+      ],
+      "strategic_advice": "Treat vocabulary questions like a detective game:\n- Always **underline the clue words** in the sentence before looking at the options.\n- Ask yourself: **'Does my choice make sense with the clues I underlined?'**",
+      "trigger_keywords": [
+        "fill in the blank",
+        "most suitable word"
+      ]
+    },
+    {
+      "name": "Singular and Plural Mix-Up",
+      "what": "Sometimes gets confused between singular and plural forms for pronouns and verbs.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Pei chose the singular 'This' instead of the plural 'These' for the plural noun 'cookies'."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "oeq",
+          "whatWentWrong": "He chose the plural verb 'repair' instead of the singular 'repairs' to match the singular noun 'protein'."
+        }
+      ],
+      "strategic_advice": "When you see options that change between singular and plural, find the **target noun** in the sentence:\n- If the noun has an 's' (like cookies), use the **plural pronoun**.\n- If the noun is singular, the verb usually **needs an 's'** (like repairs).",
+      "trigger_keywords": [
+        "This",
+        "These",
+        "repair",
+        "repairs"
+      ]
+    },
+    {
+      "name": "Small Copying Slips",
+      "what": "Tends to accidentally drop small words or make slight spelling mistakes when rewriting sentences or correcting words.",
+      "specific_examples": [
+        {
+          "questionRef": "[16]",
+          "type": "oeq",
+          "whatWentWrong": "Pei wrote 'taking' instead of 'talking' when combining the sentences."
+        },
+        {
+          "questionRef": "[17]",
+          "type": "oeq",
+          "whatWentWrong": "He missed the small word 'a' before 'black mask' in his final answer."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "oeq",
+          "whatWentWrong": "Pei wrote 'stores' instead of 'storeys' when correcting the spelling error."
+        }
+      ],
+      "strategic_advice": "After rewriting a sentence, use your finger to **point at each word** and read it aloud softly. Check that you haven't left out any **small words like 'a' or 'the'**, and that you've copied the spelling exactly from the original sentence.",
+      "trigger_keywords": [
+        "rewrite",
+        "combine",
+        "edit"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": 1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 3
+    },
+    {
+      "idx": 17,
+      "patternIndex": 3
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqupcgpl0002ce0zygvtxqj3",
+    "2": "cmqupcgpl0007ce0ze5d6hsqg",
+    "3": "cmqupcgpl000ace0z1iigju61",
+    "4": "cmqupcgpl000bce0zj5johr6f",
+    "5": "cmpwi2wjv0007109kxxun6o3q",
+    "6": "cmpwi2wjv000b109ksz3uka7h",
+    "7": "cmpwi2wjv000c109kamqbl1io",
+    "8": "cmpwi2wjv000d109kte9z3tdv",
+    "9": "cmpwi2wjv000e109kfxgkuo89",
+    "10": "cmpwi2wjw000f109kh8qw8336",
+    "11": "cmpwi2wjw000g109kh4dpmq9x",
+    "12": "cmpwi2wjw000k109kuvtjfs13",
+    "13": "cmpwi2wjw000q109kl5bnuxpx",
+    "14": "cmpwi2wjw000r109kf41hhlcp",
+    "15": "cmpwi2wjw000s109k87fcbr2h",
+    "16": "cmpwi2wjw000u109k8krxjll4",
+    "17": "cmpwi2wjw000y109kwktmpow9",
+    "18": "cmpupkx50002f105bj6z8fz5o",
+    "19": "cmpupkx50002m105bwvhbrxlj",
+    "20": "cmpupkx50002n105ba28cn12g"
+  },
+  "generatedAt": "2026-06-27T07:07:44.641Z",
+  "wrongCounts": {
+    "total": 20,
+    "oeq": 11,
+    "mcq": 9
+  },
+  "toplineSnapshot": {
+    "avgPct": 62,
+    "totalAwarded": 36,
+    "totalAvailable": 58,
+    "paperCount": 3
+  },
+  "previousAssessment": null
+}

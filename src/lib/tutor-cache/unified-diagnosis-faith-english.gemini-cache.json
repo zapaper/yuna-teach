@@ -1,0 +1,319 @@
+{
+  "patterns": [
+    {
+      "name": "Distance Words Mix-Up",
+      "what": "Faith occasionally misses the location clue \"here\" and chooses words for things that are far away (that/those) instead of nearby (this/these).",
+      "specific_examples": [
+        {
+          "questionRef": "[9]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'those' for heavy bags, missing the clue 'here' which means they are nearby."
+        },
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'That' for a seat, even though the sentence specifically said the seat was 'here'."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'Those' for boxes on the table, overlooking the word 'here' which points to 'These'."
+        }
+      ],
+      "strategic_advice": "When you see a blank before a noun, look for location words in the sentence.\n- **'here'** → use **this** (singular) or **these** (plural)\n- **'there'** → use **that** (singular) or **those** (plural)",
+      "trigger_keywords": [
+        "here",
+        "there",
+        "this",
+        "that",
+        "these",
+        "those"
+      ]
+    },
+    {
+      "name": "Amount Words Mix-Up",
+      "what": "Faith sometimes picks an amount word (like \"few\" or \"a lot of\") that means the opposite of what the sentence's story tells us.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'few' people, but the clue 'long queue' tells us there were actually 'many' people."
+        },
+        {
+          "questionRef": "[15]",
+          "type": "mcq",
+          "whatWentWrong": "She picked 'a lot of' milk, but the clue 'we need to get more' means there is very 'little' left."
+        },
+        {
+          "questionRef": "[25]",
+          "type": "mcq",
+          "whatWentWrong": "She selected 'a few' books, but a 'valuable resource' implies the library has 'many' books."
+        }
+      ],
+      "strategic_advice": "Always read the second half of the sentence for a context clue before picking an amount word.\n- **'long queue'** or **'valuable resource'** → means there is a lot, so use **many**\n- **'need to get more'** → means there is very little left, so use **little**",
+      "trigger_keywords": [
+        "few",
+        "little",
+        "many",
+        "much",
+        "a lot of"
+      ]
+    },
+    {
+      "name": "Tricky Word Spellings",
+      "what": "Faith tends to misspell a few specific tricky words, especially when they have unusual vowel patterns.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "oeq",
+          "whatWentWrong": "She spelled 'interesting' as 'intresting', missing the 'e' in the middle."
+        },
+        {
+          "questionRef": "[31]",
+          "type": "oeq",
+          "whatWentWrong": "She spelled the plural of storey (levels of a building) as 'storys' instead of 'storeys'."
+        },
+        {
+          "questionRef": "[37]",
+          "type": "oeq",
+          "whatWentWrong": "She used 'stories' (tales in a book) instead of 'storeys' for the height of the Supertrees."
+        }
+      ],
+      "strategic_advice": "Create a personal spelling list for words that trip you up.\n- For **'interesting'**, remember to sound out every syllable: in-ter-est-ing.\n- For **'storeys'** (levels of a building), remember it ends with '-eys', unlike 'stories' (tales in a book).",
+      "trigger_keywords": [
+        "storees",
+        "eentresting",
+        "Editing"
+      ]
+    },
+    {
+      "name": "Gleam vs Glimmer Mix-Up",
+      "what": "Faith sometimes confuses words that describe light, picking \"gleam\" (a bright flash) instead of \"glimmer\" (a faint sign of emotion).",
+      "specific_examples": [
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "She chose 'gleam' for a trace of excitement in someone's eyes, when 'glimmer' is the right word for a faint emotion."
+        },
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "She again picked 'gleam' instead of 'glimmer' for a small sign of excitement."
+        }
+      ],
+      "strategic_advice": "When describing a small, quick trace of an emotion in someone's eyes, use **'glimmer'**.\n- **'glimmer'** → a faint sign of a feeling (like a glimmer of hope or excitement)\n- **'gleam'** → a bright flash of light reflecting off a surface",
+      "trigger_keywords": [
+        "excitement in his eyes",
+        "gleam",
+        "glimmer"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 3
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 3
+    },
+    {
+      "idx": 15,
+      "patternIndex": 1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 0
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 1
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": -1
+    },
+    {
+      "idx": 29,
+      "patternIndex": 3
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": 2
+    },
+    {
+      "idx": 32,
+      "patternIndex": 2
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": 3
+    },
+    {
+      "idx": 37,
+      "patternIndex": 2
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqsup5nh00449p4hu7vnu1f2",
+    "2": "cmqsup5nh00499p4hdbgexwvz",
+    "3": "cmqsup5nh004a9p4h2fzsdy6o",
+    "4": "cmqsup5ni004b9p4hrumc468h",
+    "5": "cmqumziup000gu4pkhq1pnwu9",
+    "6": "cmqumlm4i0025io93dckgp7ff",
+    "7": "cmqumlm4i0029io93kezpnvuk",
+    "8": "cmqsugbd1001n9p4hembdfpei",
+    "9": "cmqsu1r5n000g9p4hk0re760x",
+    "10": "cmqsu1r5p00199p4hhmxhn2fd",
+    "11": "cmqorcfm6008g8h72kisixwpu",
+    "12": "cmqorcfm6008j8h72fivy18qb",
+    "13": "cmqorcl6k008u8h72yvuaa5pu",
+    "14": "cmqorcl6l00918h72vdkhz97y",
+    "15": "cmqor6abo007w8h72n8vyph9x",
+    "16": "cmqoqs2oj00778h724a1c49mk",
+    "17": "cmqoqa5ym005j8h72k1kn5x6y",
+    "18": "cmqnkcj7300l2wgpg37omezk7",
+    "19": "cmqnjg0v200k6wgpgesc8n4lc",
+    "20": "cmqnj0rvq00j1wgpgjssi5la1",
+    "21": "cmqnj0rvq00j2wgpgvt4fbdp9",
+    "22": "cmqnj0rvq00j3wgpgryvzxd1y",
+    "23": "cmqnj0rvr00j4wgpgd2rwitol",
+    "24": "cmqnj0rvr00j5wgpggnnn4xrs",
+    "25": "cmqm07282000699snrwl55641",
+    "26": "cmqlz9agr00av1p805xjpxt5s",
+    "27": "cmqlz9agr00ax1p80ed2t4dgo",
+    "28": "cmqly430b007y1p8013elcu4j",
+    "29": "cmqkhqysx0093o3ahyhuzailh",
+    "30": "cmqkhng6i008to3ahrq10g59t",
+    "31": "cmqjhl9v4002r12dk1tupaye2",
+    "32": "cmqjhl9v4002t12dknmba17hw",
+    "33": "cmqjhl9v5003312dk1uk137at",
+    "34": "cmqjhl9v5003512dk5jwaqbwy",
+    "35": "cmqjhl9v6003h12dk2i8az7j9",
+    "36": "cmqjghn89001o12dkfi4y4jop",
+    "37": "cmqjghn89001x12dklp9ma17d",
+    "38": "cmqjghn89001z12dk4sdkmixe"
+  },
+  "generatedAt": "2026-06-27T07:04:51.190Z",
+  "wrongCounts": {
+    "total": 38,
+    "oeq": 12,
+    "mcq": 26
+  },
+  "toplineSnapshot": {
+    "avgPct": 94,
+    "totalAwarded": 842,
+    "totalAvailable": 896,
+    "paperCount": 42
+  },
+  "previousAssessment": null
+}

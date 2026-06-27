@@ -1,0 +1,314 @@
+{
+  "patterns": [
+    {
+      "name": "Tricky Subject Mix-Up",
+      "what": "Tends to choose plural verbs when the subject is actually an uncountable noun or a singular group.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Ryan_Kho saw 'furniture' but picked the plural 'have been' instead of the singular 'was'."
+        },
+        {
+          "questionRef": "[16]",
+          "type": "mcq",
+          "whatWentWrong": "He saw 'cars' and 'motorcycles' and picked 'were', missing that the main subject 'lineup' is singular."
+        },
+        {
+          "questionRef": "[42]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'were' for 'laundry', forgetting that it is an uncountable noun that needs a singular verb."
+        }
+      ],
+      "strategic_advice": "When you see words like **'All of the'** or phrases with **'as well as'**, find the true subject first.\n- **Uncountable nouns** (like furniture, laundry) always take a singular verb.\n- **Group words** (like lineup, stack) are singular, even if they contain plural items.",
+      "trigger_keywords": [
+        "All of the",
+        "as well as",
+        "furniture",
+        "laundry",
+        "lineup"
+      ]
+    },
+    {
+      "name": "Group Word Mix-Up",
+      "what": "Sometimes looks at the plural item at the end of a phrase instead of the singular group word at the front when choosing 'this' or 'that'.",
+      "specific_examples": [
+        {
+          "questionRef": "[28]",
+          "type": "mcq",
+          "whatWentWrong": "Ryan_Kho picked 'those' because of 'trousers', missing the singular word 'pair'."
+        },
+        {
+          "questionRef": "[41]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'those' because of 'books', missing the singular word 'stack'."
+        }
+      ],
+      "strategic_advice": "When pointing out objects, check if they are grouped together.\n- If you see **'pair of'** or **'stack of'**, the group itself is singular.\n- Use **'this'** or **'that'** for a single group, no matter how many items are inside it!",
+      "trigger_keywords": [
+        "pair of",
+        "stack of",
+        "this",
+        "that",
+        "these",
+        "those"
+      ]
+    },
+    {
+      "name": "Partner Word Mix-Up",
+      "what": "Occasionally mixes up the specific prepositions that must follow certain verbs or adjectives.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Ryan_Kho picked 'keen of' instead of the correct pairing 'keen on'."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'confided with' instead of the correct phrase 'confided in'."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'congratulated over' instead of the correct pairing 'congratulated on'."
+        }
+      ],
+      "strategic_advice": "When you see a blank right after a strong verb or adjective, it is usually testing a fixed pairing.\n- Read the whole phrase aloud to see if it sounds right.\n- Memorise common pairings like **'keen on'**, **'confide in'**, and **'congratulate on'** as single chunks of meaning.",
+      "trigger_keywords": [
+        "keen",
+        "confided",
+        "congratulated",
+        "revel",
+        "fell"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 2
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": 2
+    },
+    {
+      "idx": 26,
+      "patternIndex": -1
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 1
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": 2
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": -1
+    },
+    {
+      "idx": 33,
+      "patternIndex": 0
+    },
+    {
+      "idx": 34,
+      "patternIndex": 2
+    },
+    {
+      "idx": 35,
+      "patternIndex": 2
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": -1
+    },
+    {
+      "idx": 41,
+      "patternIndex": 1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqvxkgw40014niljxyyp6om3",
+    "2": "cmqvxkgw40015niljweynxadz",
+    "3": "cmqvxkgw5001cniljatsh9inb",
+    "4": "cmqvxkgw5001dniljccceeyx1",
+    "5": "cmqvxb9ik0003nilj9z16tbm9",
+    "6": "cmqvxb9il0007niljmlz2bser",
+    "7": "cmqvxb9il000aniljct9fksqj",
+    "8": "cmqvxb9il000bniljmexgik8p",
+    "9": "cmqvxb9il000dniljvmjsfc2q",
+    "10": "cmqvxb9il000eniljweqp76xm",
+    "11": "cmqvxb9il000fniljfo0u6792",
+    "12": "cmqux5o3n000qji5xvrbspthb",
+    "13": "cmqux5o3n000uji5xts3wigic",
+    "14": "cmqux5o3n000wji5xi4vubdqk",
+    "15": "cmquwbslr0002ji5xcpnjx7o2",
+    "16": "cmquwbslr0006ji5x7empiyuk",
+    "17": "cmquwbslr0008ji5xam44z7g5",
+    "18": "cmquwbslr0009ji5xy1g6pos1",
+    "19": "cmquwbslr000cji5xmq0aw65r",
+    "20": "cmquwbsls000eji5x102u7fp0",
+    "21": "cmquwbsls000fji5xn3qazxut",
+    "22": "cmqtgagzw001f8lhm39gqxnr9",
+    "23": "cmqtgagzw001h8lhmde1apm1z",
+    "24": "cmqtgapix001r8lhmi7c98522",
+    "25": "cmqtgapix001u8lhm4yqwy01c",
+    "26": "cmqtgapix001y8lhm0n6kvxf5",
+    "27": "cmqly4g00008c1p80r03ghyj0",
+    "28": "cmqly4g00008f1p80ci4qsqhc",
+    "29": "cmqly4g00008g1p801r0wmp3j",
+    "30": "cmqly4g00008i1p80puttmapd",
+    "31": "cmqly4g01008m1p80sibv3ppf",
+    "32": "cmqly4g01008p1p80o07m573d",
+    "33": "cmqj62jza00236rbdt08mfw1o",
+    "34": "cmqj62jza00246rbdzne8vujm",
+    "35": "cmqj62jzb00266rbdx0tlfqdo",
+    "36": "cmqj62jzb00286rbdmi17elsc",
+    "37": "cmqj62jzb002a6rbdo633rv8j",
+    "38": "cmqj62jzb002d6rbd17q89i7e",
+    "39": "cmptmuhuf00a3zgzxmf282xj9",
+    "40": "cmptmuhuf00a4zgzxnj672bfb",
+    "41": "cmptmuhuf00a5zgzx22zouo6b",
+    "42": "cmptmuhuf00a6zgzxnobcah6r"
+  },
+  "generatedAt": "2026-06-27T07:06:05.561Z",
+  "wrongCounts": {
+    "total": 42,
+    "oeq": 0,
+    "mcq": 42
+  },
+  "toplineSnapshot": {
+    "avgPct": 68,
+    "totalAwarded": 88,
+    "totalAvailable": 130,
+    "paperCount": 9
+  },
+  "previousAssessment": null
+}

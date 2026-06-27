@@ -1,0 +1,183 @@
+{
+  "patterns": [
+    {
+      "name": "Heat vs Temperature Mix-Up",
+      "what": "Tends to confuse gaining heat with a rise in temperature, forgetting that during melting or boiling, a substance gains heat but its temperature stays exactly the same.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Larisalami included the flat parts of the graph where the ice is melting, even though the temperature isn't increasing during those times."
+        },
+        {
+          "questionRef": "[8]",
+          "type": "mcq",
+          "whatWentWrong": "He picked only the sloped lines, forgetting that the ice and water are still gaining heat even when the temperature line is flat."
+        }
+      ],
+      "strategic_advice": "When you see a graph with flat lines, remember:\n- **Flat lines** mean the substance is changing state (like melting or boiling). It is still **gaining heat**, even though the temperature isn't going up!\n- **Sloped lines** mean the temperature is actually changing.",
+      "trigger_keywords": [
+        "increasing in temperature",
+        "gaining heat",
+        "changes in its temperature"
+      ]
+    },
+    {
+      "name": "Conductor vs Insulator Mix-Up",
+      "what": "Occasionally mixes up which materials are good at trapping heat (insulators like plastic) and which are good at letting heat pass through quickly (conductors like metal).",
+      "specific_examples": [
+        {
+          "questionRef": "[7]",
+          "type": "mcq",
+          "whatWentWrong": "Larisalami picked a material that conducts heat well for a vacuum flask, but a flask needs a poor conductor to keep the water warm."
+        },
+        {
+          "questionRef": "[10]",
+          "type": "mcq",
+          "whatWentWrong": "He chose a plastic container for the fastest cooling, but plastic traps heat; a metal container would let the heat escape much faster."
+        }
+      ],
+      "strategic_advice": "When a question asks about keeping things warm or cooling things down quickly, check the material:\n- **Metals** are good conductors. They let heat travel fast, so they cool down hot water quickly.\n- **Plastics and woods** are poor conductors (insulators). They trap heat, keeping things warm for a longer time.",
+      "trigger_keywords": [
+        "lowest temperature",
+        "keep water warm",
+        "most suitable"
+      ]
+    },
+    {
+      "name": "Volume and Cooling Mix-Up",
+      "what": "Sometimes forgets that a smaller amount of water will lose heat and cool down much faster than a larger amount of water.",
+      "specific_examples": [
+        {
+          "questionRef": "[5]",
+          "type": "mcq",
+          "whatWentWrong": "Larisalami picked a graph showing the larger volume of water cooling faster, which is the opposite of what happens."
+        },
+        {
+          "questionRef": "[11]",
+          "type": "mcq",
+          "whatWentWrong": "When trying this similar question again, he still mixed up how the different amounts of water affect the speed of cooling."
+        }
+      ],
+      "strategic_advice": "When comparing different amounts of hot water:\n- **Less water** cools down faster because it has less heat energy to lose.\n- **More water** takes a longer time to cool down. Always check the **volume (ml)** before picking the graph!",
+      "trigger_keywords": [
+        "100 ml and 700 ml",
+        "identical beakers",
+        "boiling water"
+      ]
+    },
+    {
+      "name": "Path of Light Mix-Up",
+      "what": "Occasionally traces the path of light backwards, forgetting that light must bounce off the object and travel into our eyes for us to see it.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "Larisalami chose the option where light travels from the eye to the object, instead of from the object to the eye."
+        }
+      ],
+      "strategic_advice": "When tracing how we see things, always start from the object!\n- Light travels from the **light source** to the **object**.\n- Then it bounces off the object and travels into our **eyes**. Never draw the arrows starting from the eye!",
+      "trigger_keywords": [
+        "path taken by the light rays",
+        "enable him to see"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": -1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 0
+    },
+    {
+      "idx": 5,
+      "patternIndex": 2
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": 1
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": 1
+    },
+    {
+      "idx": 11,
+      "patternIndex": 2
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqrpqm4d000n12o7sy0h7jwk",
+    "2": "cmqrpqm4d000p12o7du99u7ot",
+    "3": "cmqrpqm4e000z12o72e56duet",
+    "4": "cmqolqdzh000y8h72o3njp06q",
+    "5": "cmqols5kx001m8h72khblwooq",
+    "6": "cmqols5ky001q8h72286ikfn5",
+    "7": "cmqol06up00028h72ldujjvra",
+    "8": "cmqol06up00048h72gwlq1vel",
+    "9": "cmqol06up00068h72jbsttt5w",
+    "10": "cmqol06up00098h72o8dsb1w5",
+    "11": "cmqol06uq000b8h72uifes7c8",
+    "12": "cmqokflmu002yimwkojn3g4ia",
+    "13": "cmqokflmv0030imwke9a52u0h",
+    "14": "cmqokflmv0032imwkj0ubxhlx",
+    "15": "cmqokflmv0036imwksi15fd0f",
+    "16": "cmqokflmv0037imwkc272vfrj"
+  },
+  "generatedAt": "2026-06-27T07:09:29.016Z",
+  "wrongCounts": {
+    "total": 16,
+    "oeq": 0,
+    "mcq": 16
+  },
+  "toplineSnapshot": {
+    "avgPct": 77,
+    "totalAwarded": 86,
+    "totalAvailable": 112,
+    "paperCount": 6
+  },
+  "previousAssessment": null
+}

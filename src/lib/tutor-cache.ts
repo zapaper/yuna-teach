@@ -77,6 +77,21 @@ import al4Science           from "./tutor-cache/unified-diagnosis-al4-science.ge
 import drewieScience        from "./tutor-cache/unified-diagnosis-drewie-science.gemini-cache.json";
 import umarhScience         from "./tutor-cache/unified-diagnosis-umarh-science.gemini-cache.json";
 import hongjun23Science     from "./tutor-cache/unified-diagnosis-hongjun23-science.gemini-cache.json";
+// Lumi backlog promotion 2026-06-27: 12 fresh (kid × subject) caches
+// added in one push so the next daily-lumi-cron tick fans the
+// intros out to all 11 kids who were in the [FRESH] backlog.
+import winterark312English  from "./tutor-cache/unified-diagnosis-winterark312-english.gemini-cache.json";
+import omiEnglish           from "./tutor-cache/unified-diagnosis-omi-english.gemini-cache.json";
+import omiScience           from "./tutor-cache/unified-diagnosis-omi-science.gemini-cache.json";
+import faithEnglish         from "./tutor-cache/unified-diagnosis-faith-english.gemini-cache.json";
+import ryanKhoEnglish       from "./tutor-cache/unified-diagnosis-ryan-kho-english.gemini-cache.json";
+import shriv8209jEnglish    from "./tutor-cache/unified-diagnosis-shriv8209j-english.gemini-cache.json";
+import peiEnglish           from "./tutor-cache/unified-diagnosis-pei-english.gemini-cache.json";
+import calebMath            from "./tutor-cache/unified-diagnosis-caleb-math.gemini-cache.json";
+import chhaymonyMath        from "./tutor-cache/unified-diagnosis-chhaymony-math.gemini-cache.json";
+import studentScience       from "./tutor-cache/unified-diagnosis-student-science.gemini-cache.json";
+import lohxy2014Science     from "./tutor-cache/unified-diagnosis-lohxy2014-science.gemini-cache.json";
+import larisalamiScience    from "./tutor-cache/unified-diagnosis-larisalami-science.gemini-cache.json";
 
 export type CachedReport = {
   patterns: Array<{ name: string; what: string; specific_examples: Array<{ questionRef: string; type?: "oeq" | "mcq"; whatWentWrong: string }>; strategic_advice: string; trigger_keywords: string[] }>;
@@ -169,4 +184,17 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "drewie:science":       drewieScience as CachedReport,
   "umarh:science":        umarhScience as CachedReport,
   "hongjun23:science":    hongjun23Science as CachedReport,
+  // Lumi backlog promotion 2026-06-27
+  "winterark312:english": winterark312English as CachedReport,
+  "omi:english":          omiEnglish as CachedReport,
+  "omi:science":          omiScience as CachedReport,
+  "faith:english":        faithEnglish as CachedReport,
+  "ryan-kho:english":     ryanKhoEnglish as CachedReport,
+  "shriv8209j:english":   shriv8209jEnglish as CachedReport,
+  "pei:english":          peiEnglish as CachedReport,
+  "caleb:math":           calebMath as CachedReport,
+  "chhaymony:math":       chhaymonyMath as CachedReport,
+  "student:science":      studentScience as CachedReport,
+  "lohxy2014:science":    lohxy2014Science as CachedReport,
+  "larisalami:science":   larisalamiScience as CachedReport,
 };

@@ -1,0 +1,357 @@
+{
+  "patterns": [
+    {
+      "name": "Close Meaning Mix-Up",
+      "what": "Tends to pick a word that looks familiar or related to the topic but misses the exact meaning needed for the sentence.",
+      "specific_examples": [
+        {
+          "questionRef": "[3]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 chose 'complete' instead of 'complement' when describing how a blouse matches a skirt."
+        },
+        {
+          "questionRef": "[34]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'adaptable' instead of 'accustomed' when talking about getting used to the weather."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 selected 'pandering to' instead of 'tailoring to' for a school accommodating mature students."
+        }
+      ],
+      "strategic_advice": "When you see **blank spaces with similar options**, try plugging each word into the sentence and looking for context clues.\n- **'become'** → look for a word like 'accustomed' that shows a change in habit.\n- **'to the'** or **'for the'** → check if the word has a negative or positive tone before choosing.",
+      "trigger_keywords": [
+        "become",
+        "to the",
+        "sounded",
+        "bought a blouse to"
+      ]
+    },
+    {
+      "name": "Tricky Phrasal Verbs",
+      "what": "Occasionally mixes up which small preposition goes with a verb to create the right meaning.",
+      "specific_examples": [
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
+        },
+        {
+          "questionRef": "[26]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'warmed up with' instead of 'warmed up to' when describing getting comfortable with classmates."
+        },
+        {
+          "questionRef": "[36]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 selected 'call in' instead of 'call on' for visiting grandparents."
+        }
+      ],
+      "strategic_advice": "When you see **a verb followed by a preposition**, treat it as a single vocabulary word.\n- **'warmed up'** → always pairs with **'to'** when talking about people.\n- **'fell'** → use **'out'** for arguments, and **'apart'** for things breaking.",
+      "trigger_keywords": [
+        "warmed up",
+        "fell",
+        "call",
+        "gazing"
+      ]
+    },
+    {
+      "name": "Hidden Past Tense",
+      "what": "Sometimes misses clues that show an action happened further in the past or requires a perfect tense form.",
+      "specific_examples": [
+        {
+          "questionRef": "[21]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 chose 'had been' instead of 'having been' for an action completed before deciding to change."
+        },
+        {
+          "questionRef": "[23]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'came' instead of 'come' after the helping verb 'Had'."
+        },
+        {
+          "questionRef": "[38]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 selected 'heeded' instead of 'had heeded' for a past wish about a past event."
+        }
+      ],
+      "strategic_advice": "When you see **'wished'** or sentences starting with **'Had'**, look out for past perfect rules.\n- **'Had'** at the start → always pair it with the past participle (like 'come', not 'came').\n- **'wished'** → use **'had'** plus the past participle to show regret about the past.",
+      "trigger_keywords": [
+        "wished",
+        "Had",
+        "decided to",
+        "gladly accepted"
+      ]
+    },
+    {
+      "name": "Question Tag Traps",
+      "what": "Occasionally misses the hidden negative words in a sentence when deciding if the question tag should be positive or negative.",
+      "specific_examples": [
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Winterark312 chose 'wouldn't he' instead of 'will he' for a sentence that already had 'won't'."
+        },
+        {
+          "questionRef": "[20]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'doesn't' instead of 'does' because the word 'never' already made the sentence negative."
+        }
+      ],
+      "strategic_advice": "When you see **a comma followed by a blank at the end of a sentence**, check for hidden negative words.\n- **'never'**, **'rarely'**, or **'won't'** → these make the sentence negative, so the tag must be positive (like **'does she?'** or **'will he?'**).",
+      "trigger_keywords": [
+        "won't",
+        "never",
+        "hardly"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": 0
+    },
+    {
+      "idx": 3,
+      "patternIndex": 0
+    },
+    {
+      "idx": 4,
+      "patternIndex": 3
+    },
+    {
+      "idx": 5,
+      "patternIndex": 0
+    },
+    {
+      "idx": 6,
+      "patternIndex": 0
+    },
+    {
+      "idx": 7,
+      "patternIndex": 0
+    },
+    {
+      "idx": 8,
+      "patternIndex": 0
+    },
+    {
+      "idx": 9,
+      "patternIndex": 0
+    },
+    {
+      "idx": 10,
+      "patternIndex": 0
+    },
+    {
+      "idx": 11,
+      "patternIndex": 0
+    },
+    {
+      "idx": 12,
+      "patternIndex": 1
+    },
+    {
+      "idx": 13,
+      "patternIndex": 0
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": 0
+    },
+    {
+      "idx": 16,
+      "patternIndex": 0
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 0
+    },
+    {
+      "idx": 19,
+      "patternIndex": 1
+    },
+    {
+      "idx": 20,
+      "patternIndex": 3
+    },
+    {
+      "idx": 21,
+      "patternIndex": 2
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": 2
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    },
+    {
+      "idx": 25,
+      "patternIndex": 0
+    },
+    {
+      "idx": 26,
+      "patternIndex": 1
+    },
+    {
+      "idx": 27,
+      "patternIndex": -1
+    },
+    {
+      "idx": 28,
+      "patternIndex": 0
+    },
+    {
+      "idx": 29,
+      "patternIndex": 0
+    },
+    {
+      "idx": 30,
+      "patternIndex": 0
+    },
+    {
+      "idx": 31,
+      "patternIndex": 0
+    },
+    {
+      "idx": 32,
+      "patternIndex": 0
+    },
+    {
+      "idx": 33,
+      "patternIndex": 0
+    },
+    {
+      "idx": 34,
+      "patternIndex": 0
+    },
+    {
+      "idx": 35,
+      "patternIndex": 0
+    },
+    {
+      "idx": 36,
+      "patternIndex": 1
+    },
+    {
+      "idx": 37,
+      "patternIndex": 2
+    },
+    {
+      "idx": 38,
+      "patternIndex": 2
+    },
+    {
+      "idx": 39,
+      "patternIndex": 1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 0
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": 0
+    },
+    {
+      "idx": 43,
+      "patternIndex": 0
+    },
+    {
+      "idx": 44,
+      "patternIndex": 0
+    },
+    {
+      "idx": 45,
+      "patternIndex": 0
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqtnsed6001glfv4yew4pa38",
+    "2": "cmqtnsed6001ilfv4b9w3qnvb",
+    "3": "cmqtnsed6001klfv4hvocg4sa",
+    "4": "cmqtnlrmx000jlfv4vpamw2b5",
+    "5": "cmqtnlrmx000olfv466b5clic",
+    "6": "cmqtnlrmx000vlfv4fxh0b7p7",
+    "7": "cmqtnlrmx000xlfv4z8e2mwjz",
+    "8": "cmqtnff25000clfv4wyittzc5",
+    "9": "cmqtnff25000dlfv4cntzx4od",
+    "10": "cmqtnff25000flfv4nyf6bk7y",
+    "11": "cmqtnff26000glfv440m6b0p5",
+    "12": "cmqs42k0z002sjj50smmn3biw",
+    "13": "cmqs42k100031jj50yaga4pko",
+    "14": "cmqs42k100033jj50lb7c047t",
+    "15": "cmqs3oie20018jj50guka19rs",
+    "16": "cmqs3oie2001ajj50egute63j",
+    "17": "cmqpcb2a8004s13p0cvmzv61k",
+    "18": "cmqpcb2a8004w13p0ia8ed2op",
+    "19": "cmqpcb2a8005013p0rbu0xbv5",
+    "20": "cmqpc55l7004h13p0d0v7czfy",
+    "21": "cmqpc55l7004k13p0fhbu1dxj",
+    "22": "cmqn85poj002gwgpggz5d7fj4",
+    "23": "cmqn85poj002iwgpgz3q0ot3c",
+    "24": "cmqn85poj002qwgpg8lohtwqd",
+    "25": "cmqn85pok002twgpgrmx3w5ql",
+    "26": "cmqn7ui8h001ywgpgrcpls1ir",
+    "27": "cmqn7ui8h0020wgpglf3ohsz5",
+    "28": "cmqn7ui8h0023wgpgc1jhauhz",
+    "29": "cmqn7ui8h0028wgpgt85hfhkk",
+    "30": "cmqn7ui8h002awgpg7xafjfen",
+    "31": "cmqn7ui8h002cwgpg3gvwpg5z",
+    "32": "cmqkyr7r000xzo3ahuisxmqz5",
+    "33": "cmqkyr7r000y0o3ahxbxu778e",
+    "34": "cmqkyr7r100y8o3ahtgj9kk22",
+    "35": "cmqkyrk7500yho3ahlpci2n55",
+    "36": "cmqkyrk7500yio3ahf1ycqo6b",
+    "37": "cmqkymcxq00xto3aho1j3hiug",
+    "38": "cmqkymcxq00xwo3ahhfft3rb1",
+    "39": "cmqjkw295008212dktwg4v0gs",
+    "40": "cmqjkw296008d12dk5cvt5z3p",
+    "41": "cmqjkn8l4007112dke7whfxni",
+    "42": "cmqjkn8l4007312dkct1ctll1",
+    "43": "cmqjkn8l4007912dkc503jad0",
+    "44": "cmqjkn8l5007a12dkwy2pbzdj",
+    "45": "cmqjkn8l5007b12dk28lt4h6e",
+    "46": "cmp6mx88z000fk9u7ife7es43"
+  },
+  "generatedAt": "2026-06-27T07:03:40.751Z",
+  "wrongCounts": {
+    "total": 46,
+    "oeq": 0,
+    "mcq": 46
+  },
+  "toplineSnapshot": {
+    "avgPct": 80,
+    "totalAwarded": 192,
+    "totalAvailable": 241,
+    "paperCount": 17
+  },
+  "previousAssessment": null
+}

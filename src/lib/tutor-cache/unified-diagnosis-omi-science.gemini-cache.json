@@ -1,0 +1,211 @@
+{
+  "patterns": [
+    {
+      "name": "Mass vs Volume Mix-Up",
+      "what": "Omi sometimes confuses how heavy an object is (mass) with how much space it takes up (volume).",
+      "specific_examples": [
+        {
+          "questionRef": "[14]",
+          "type": "mcq",
+          "whatWentWrong": "Omi concluded that two balls of different sizes had the same volume just because they balanced on a scale, missing that the scale only measures mass."
+        },
+        {
+          "questionRef": "[24]",
+          "type": "mcq",
+          "whatWentWrong": "Omi thought two objects had a similar mass even though the balance showed one was heavier, likely confusing it with their similar volumes shown in the water beakers."
+        }
+      ],
+      "strategic_advice": "When looking at experiment diagrams, treat mass and volume as two completely separate clues:\n- **Balance scales** only tell you about **mass** (which one is heavier).\n- **Water levels** in beakers only tell you about **volume** (how much space the object takes up).\n- A big object can be light, and a small object can be heavy!",
+      "trigger_keywords": [
+        "balance",
+        "measuring cylinder",
+        "mass",
+        "volume",
+        "water level"
+      ]
+    },
+    {
+      "name": "Fair Test Mix-Up",
+      "what": "Omi occasionally mixes up the one variable we are testing with the variables we need to keep the same or measure.",
+      "specific_examples": [
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "Omi identified the tested variable (amount of liquid) as the reason the test was unfair, instead of spotting the variable that should have been kept the same (surface area of the biscuit)."
+        },
+        {
+          "questionRef": "[4]",
+          "type": "mcq",
+          "whatWentWrong": "Omi included the final result we are measuring (height of the plant) in the list of things to keep exactly the same from the start."
+        }
+      ],
+      "strategic_advice": "When you see a fair test question, remember the golden rule: **Change ONE thing, measure ONE thing, keep EVERYTHING ELSE the same**.\n- **'find out if...'** → this is the ONE thing you change.\n- **'keep the same'** → this is everything else, but NEVER the final result you are measuring at the end!",
+      "trigger_keywords": [
+        "fair test",
+        "keep the same",
+        "ensure that the experiment",
+        "variables"
+      ]
+    },
+    {
+      "name": "Light Path Mix-Up",
+      "what": "Omi sometimes gets tricked by how light travels, especially confusing objects that make their own light with those that just bounce it.",
+      "specific_examples": [
+        {
+          "questionRef": "[18]",
+          "type": "mcq",
+          "whatWentWrong": "Omi selected the moon as a source of light, forgetting that it only reflects light from the sun."
+        },
+        {
+          "questionRef": "[19]",
+          "type": "mcq",
+          "whatWentWrong": "Omi chose the wrong path of light to explain how a girl sees a cat, missing that light must travel from the torch, bounce off the cat, and then enter her eyes."
+        }
+      ],
+      "strategic_advice": "When answering questions about seeing objects, trace the light with your finger:\n- Remember that the **moon and mirrors** are not light sources; they just bounce light from elsewhere.\n- The arrows must always start at the **light source**, bounce off the **object**, and point **INTO the eye**.",
+      "trigger_keywords": [
+        "sources of light",
+        "path of light",
+        "see",
+        "reflection"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 1
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": -1
+    },
+    {
+      "idx": 4,
+      "patternIndex": 1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": -1
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": -1
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": 0
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": -1
+    },
+    {
+      "idx": 18,
+      "patternIndex": 2
+    },
+    {
+      "idx": 19,
+      "patternIndex": 2
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": -1
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": 0
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmqt9ah5s0005glet543bc2vy",
+    "2": "cmqt9ah5t0009gletmdwvmkm4",
+    "3": "cmqt9ah5t000bgletc7lravew",
+    "4": "cmqt8ncy4000t10wwdhbzl2hn",
+    "5": "cmqt8ncy5001410wwl93ikr91",
+    "6": "cmqt6tnnm000h12nkj13eze9w",
+    "7": "cmqt6tnnn000j12nkenf1gl00",
+    "8": "cmqqce6ca007rqrnvwjh0vnto",
+    "9": "cmqqce6ca007wqrnvmr3csmvs",
+    "10": "cmqqce6ca007yqrnvy83ed9le",
+    "11": "cmqqboq0h005uqrnvvn04ssw2",
+    "12": "cmqqboq0i005vqrnv1cnlhlgc",
+    "13": "cmqqboq0i005yqrnvai62bp86",
+    "14": "cmqqboq0i0061qrnv34vv93vi",
+    "15": "cmqqboq0i0062qrnvp6gjyw02",
+    "16": "cmqqau8j30013qrnvum4uxbvi",
+    "17": "cmqncqbnc005hwgpgefmz6ljp",
+    "18": "cmqncpv1x0056wgpgf4euin9u",
+    "19": "cmqncpv1y005ewgpg7cj7f6yl",
+    "20": "cmqjqasgg002autjd6f0uekvc",
+    "21": "cmqjqasgh002dutjdfjd7sbvs",
+    "22": "cmqjqasgh002jutjdjpaw9x7t",
+    "23": "cmqjqasgi002nutjdulprx9on",
+    "24": "cmqjqasgi002outjdd0v4ro90"
+  },
+  "generatedAt": "2026-06-27T07:04:55.866Z",
+  "wrongCounts": {
+    "total": 24,
+    "oeq": 0,
+    "mcq": 24
+  },
+  "toplineSnapshot": {
+    "avgPct": 84,
+    "totalAwarded": 232,
+    "totalAvailable": 276,
+    "paperCount": 14
+  },
+  "previousAssessment": null
+}
