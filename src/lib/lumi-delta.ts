@@ -36,6 +36,10 @@ export type WeeklyDelta = {
     patternWhat?: string;
     patternAdvice?: string;
     exampleHit: {
+      // Stable id so the Lumi page can lazy-fetch the diagram + option
+      // images via /api/tutor/[studentId]/diagrams when the parent
+      // expands "See details". Email path doesn't use this.
+      questionId: string;
       paperTitle: string;
       questionNum: string;
       topic: string | null;
@@ -69,6 +73,7 @@ export type WeeklyDelta = {
     // the highest-marksLost match. Lets the email show "here's the
     // exact place it surfaced" instead of an abstract description.
     exampleWrong?: {
+      questionId: string;
       paperTitle: string;
       questionNum: string;
       topic: string | null;
@@ -170,6 +175,7 @@ function patternKeywordRegex(pattern: Pattern): RegExp | null {
 }
 
 type WeekQuestion = {
+  questionId: string;
   paperTitle: string;
   questionNum: string;
   stem: string;
@@ -343,6 +349,7 @@ export async function computeWeeklyDelta(
         elaboration = (e.explanation as string) ?? (e.body as string) ?? (e.text as string) ?? null;
       }
       weekQuestions.push({
+        questionId: q.id,
         paperTitle: p.title,
         questionNum: q.questionNum,
         stem: q.transcribedStem ?? "",
@@ -384,6 +391,7 @@ export async function computeWeeklyDelta(
         patternWhat: p.what,
         patternAdvice: p.strategic_advice,
         exampleHit: {
+          questionId: ex.questionId,
           paperTitle: ex.paperTitle, questionNum: ex.questionNum,
           topic: ex.syllabusTopic, aw: ex.marksAwarded, av: ex.marksAvailable,
           stem: ex.stem, studentAnswer: ex.studentAnswer,
@@ -447,6 +455,7 @@ export async function computeWeeklyDelta(
       patternWhat: cand.what,
       patternAdvice: cand.strategic_advice,
       exampleWrong: {
+        questionId: bestWrong.questionId,
         paperTitle: bestWrong.paperTitle, questionNum: bestWrong.questionNum,
         topic: bestWrong.syllabusTopic, aw: bestWrong.marksAwarded, av: bestWrong.marksAvailable,
         stem: bestWrong.stem, studentAnswer: bestWrong.studentAnswer,

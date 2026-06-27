@@ -130,6 +130,7 @@ type WeeklyDelta = {
     patternWhat?: string;
     patternAdvice?: string;
     exampleHit: {
+      questionId: string;
       paperTitle: string;
       questionNum: string;
       topic: string | null;
@@ -154,6 +155,7 @@ type WeeklyDelta = {
     patternWhat?: string;
     patternAdvice?: string;
     exampleWrong?: {
+      questionId: string;
       paperTitle: string;
       questionNum: string;
       topic: string | null;
@@ -723,7 +725,7 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
           {data.weeklyDelta && (
-            <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} />
+            <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} studentId={studentId} />
           )}
           <LumiSummary data={data} studentId={studentId} parentId={parentId} />
           {/* Share — inline directly under the summary so it's where
@@ -854,7 +856,30 @@ function scrollToSection(id: string) {
 // snapshot. Renders ABOVE the standard LumiSummary so the parent's
 // weekly visit leads with what changed. Driven by data.weeklyDelta
 // (populated by loadTutorData when a lastweek snapshot exists).
-function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string }) {
+type DeltaLazyImage = { diagramImageData: string | null; imageData: string | null; optionImages: string[] | null };
+
+function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string; studentId: string }) {
+  // Lazy-fetched diagram + option images keyed by questionId. The
+  // initial Lumi payload omits these blobs (they're 50KB-500KB each);
+  // fetched on first "See details" expand via the same endpoint the
+  // standing report uses.
+  const [lazyImages, setLazyImages] = useState<Record<string, DeltaLazyImage>>({});
+  const [openedIds, setOpenedIds] = useState<Set<string>>(() => new Set());
+  const onDetailsToggle = useCallback((qid: string) => (e: React.SyntheticEvent<HTMLDetailsElement>) => {
+    if (!e.currentTarget.open) return; // ignore close
+    if (openedIds.has(qid) || lazyImages[qid]) return;
+    setOpenedIds(prev => { const next = new Set(prev); next.add(qid); return next; });
+    fetch(`/api/tutor/${studentId}/diagrams`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionIds: [qid] }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.diagrams) setLazyImages(prev => ({ ...prev, ...d.diagrams }));
+      })
+      .catch(err => console.warn("[lumi-delta] lazy diagram fetch failed:", err));
+  }, [openedIds, lazyImages, studentId]);
   return (
     <div className="mt-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
@@ -875,7 +900,7 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                 <div className="text-xs text-slate-700 mt-1">
                   Example: {childFirst} answered Q{w.exampleHit.questionNum} of {w.exampleHit.paperTitle} correctly ({w.exampleHit.aw}/{w.exampleHit.av}).
                 </div>
-                <details className="mt-1">
+                <details className="mt-1" onToggle={onDetailsToggle(w.exampleHit.questionId)}>
                   <summary className="text-xs text-emerald-700 cursor-pointer font-semibold">See details</summary>
                   <div className="mt-2 bg-white rounded p-3 text-xs leading-relaxed">
                     <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
@@ -883,6 +908,27 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                       {w.exampleHit.topic ? ` · ${w.exampleHit.topic}` : ""}
                     </div>
                     <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {w.exampleHit.stem.slice(0, 600)}{w.exampleHit.stem.length > 600 ? "…" : ""}</p>
+                    {(() => {
+                      const img = lazyImages[w.exampleHit.questionId];
+                      const diagram = img?.diagramImageData ?? img?.imageData ?? null;
+                      const opts = img?.optionImages ?? null;
+                      return (
+                        <>
+                          {diagram && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={diagram.startsWith("data:") ? diagram : `data:image/png;base64,${diagram}`} alt="Question diagram" className="mt-2 max-w-full rounded border border-slate-200" />
+                          )}
+                          {opts && opts.length > 0 && (
+                            <div className="mt-2 grid grid-cols-2 gap-2">
+                              {opts.map((o, i) => o ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img key={i} src={o.startsWith("data:") ? o : `data:image/png;base64,${o}`} alt={`Option ${i + 1}`} className="rounded border border-slate-200" />
+                              ) : null)}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                     {(() => {
                       // MCQ: dereference option digit → option text so the
                       // parent sees "picked 'Cell B has the most charge'"
@@ -940,7 +986,7 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                   </div>
                 )}
                 {m.exampleWrong && (
-                  <details className="mt-1">
+                  <details className="mt-1" onToggle={onDetailsToggle(m.exampleWrong.questionId)}>
                     <summary className="text-xs text-orange-700 cursor-pointer font-semibold">See details</summary>
                     <div className="mt-2 bg-white rounded p-3 text-xs leading-relaxed">
                       <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
@@ -948,6 +994,27 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                         {m.exampleWrong.topic ? ` · ${m.exampleWrong.topic}` : ""}
                       </div>
                       <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {m.exampleWrong.stem.slice(0, 600)}{m.exampleWrong.stem.length > 600 ? "…" : ""}</p>
+                      {(() => {
+                        const img = lazyImages[m.exampleWrong!.questionId];
+                        const diagram = img?.diagramImageData ?? img?.imageData ?? null;
+                        const opts = img?.optionImages ?? null;
+                        return (
+                          <>
+                            {diagram && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={diagram.startsWith("data:") ? diagram : `data:image/png;base64,${diagram}`} alt="Question diagram" className="mt-2 max-w-full rounded border border-slate-200" />
+                            )}
+                            {opts && opts.length > 0 && (
+                              <div className="mt-2 grid grid-cols-2 gap-2">
+                                {opts.map((o, i) => o ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img key={i} src={o.startsWith("data:") ? o : `data:image/png;base64,${o}`} alt={`Option ${i + 1}`} className="rounded border border-slate-200" />
+                                ) : null)}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                       {m.exampleWrong.studentAnswer && (
                         <p className="mt-2 text-rose-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {m.exampleWrong.studentAnswer.slice(0, 400)}{m.exampleWrong.studentAnswer.length > 400 ? "…" : ""}</p>
                       )}
