@@ -43,6 +43,13 @@ export type WeeklyDelta = {
       av: number;
       stem: string;
       studentAnswer: string | null;
+      // Same MCQ option-text dereference fields as exampleWrong — the
+      // Lumi-page "See details" panel renders studentAnswer verbatim,
+      // which for MCQs is just a digit ("3") unless we surface the
+      // option text alongside.
+      correctAnswer: string | null;
+      isMcq: boolean;
+      options: string[];
     };
   }>;
   topicProgress: Array<{
@@ -380,6 +387,9 @@ export async function computeWeeklyDelta(
           paperTitle: ex.paperTitle, questionNum: ex.questionNum,
           topic: ex.syllabusTopic, aw: ex.marksAwarded, av: ex.marksAvailable,
           stem: ex.stem, studentAnswer: ex.studentAnswer,
+          correctAnswer: ex.correctAnswer,
+          isMcq: ex.isMcq,
+          options: ex.options,
         },
       });
       patternsRetested.add(p.name);
@@ -449,7 +459,10 @@ export async function computeWeeklyDelta(
   }
 
   // Topic progress: ≥5 questions on a topic this week, ≥5pp delta over
-  // last week's average.
+  // last week's average. Plus a declining-last-paper guard so we don't
+  // celebrate "+8pp" when the kid's most recent paper on the topic is
+  // sharply below the prior average — the parent's chart would show a
+  // dip, and "Nice work!" reads as contradicting it.
   const lastTopicTotals = await topicStatsUpTo(studentId, subject, cutoff);
   const thisWeekTopics = new Map<string, { awarded: number; available: number; attempts: number }>();
   for (const q of weekQuestions) {
@@ -459,6 +472,25 @@ export async function computeWeeklyDelta(
     cur.awarded += q.marksAwarded; cur.available += q.marksAvailable; cur.attempts += 1;
     thisWeekTopics.set(t, cur);
   }
+  // Per-paper per-topic stats so we can find the kid's LAST paper on a
+  // topic and compare its % to the prior baseline.
+  const perPaperByTopic = new Map<string, Array<{ aw: number; av: number }>>();
+  for (const p of newPapers) {
+    const byTopic = new Map<string, { aw: number; av: number }>();
+    for (const q of p.questions) {
+      if (q.studentAnswer === "__SKIPPED__") continue;
+      const av = q.marksAvailable ?? 0; if (av === 0) continue;
+      const t = (q.syllabusTopic ?? "").trim(); if (!t) continue;
+      const cur = byTopic.get(t) ?? { aw: 0, av: 0 };
+      cur.aw += q.marksAwarded ?? 0; cur.av += av;
+      byTopic.set(t, cur);
+    }
+    for (const [t, m] of byTopic) {
+      const arr = perPaperByTopic.get(t) ?? [];
+      arr.push(m);
+      perPaperByTopic.set(t, arr);
+    }
+  }
   const topicProgress: WeeklyDelta["topicProgress"] = [];
   for (const [topic, tw] of thisWeekTopics) {
     if (tw.attempts < 5) continue;
@@ -467,7 +499,19 @@ export async function computeWeeklyDelta(
     const thisPct = Math.round((tw.awarded / tw.available) * 100);
     const prevPct = Math.round((lw.awarded / lw.available) * 100);
     const delta = thisPct - prevPct;
-    if (delta >= 5) topicProgress.push({ topic, thisPct, prevPct, delta, attemptsThisWeek: tw.attempts });
+    if (delta < 5) continue;
+    // Declining-last-paper guard: suppress when the most recent paper
+    // on this topic dipped meaningfully below the prior baseline. ≥10pp
+    // below is the threshold — small bumps are noise, but a kid going
+    // from 79% prior to 0% on his most recent paper deserves the
+    // chart's "watch this" framing, not Lumi's "Nice work!"
+    const papers = perPaperByTopic.get(topic) ?? [];
+    if (papers.length > 0) {
+      const lastPaper = papers[papers.length - 1];
+      const lastPct = lastPaper.av > 0 ? (lastPaper.aw / lastPaper.av) * 100 : 0;
+      if (lastPct < prevPct - 10) continue;
+    }
+    topicProgress.push({ topic, thisPct, prevPct, delta, attemptsThisWeek: tw.attempts });
   }
   topicProgress.sort((a, b) => b.delta - a.delta);
 

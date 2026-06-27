@@ -137,6 +137,9 @@ type WeeklyDelta = {
       av: number;
       stem: string;
       studentAnswer: string | null;
+      correctAnswer: string | null;
+      isMcq: boolean;
+      options: string[];
     };
   }>;
   topicProgress: Array<{
@@ -880,9 +883,24 @@ function WeeklyDeltaCard({ delta, childFirst }: { delta: NonNullable<Extract<Tut
                       {w.exampleHit.topic ? ` · ${w.exampleHit.topic}` : ""}
                     </div>
                     <p className="mt-1 whitespace-pre-wrap"><strong>Question:</strong> {w.exampleHit.stem.slice(0, 600)}{w.exampleHit.stem.length > 600 ? "…" : ""}</p>
-                    {w.exampleHit.studentAnswer && (
-                      <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {w.exampleHit.studentAnswer.slice(0, 400)}{w.exampleHit.studentAnswer.length > 400 ? "…" : ""}</p>
-                    )}
+                    {(() => {
+                      // MCQ: dereference option digit → option text so the
+                      // parent sees "picked 'Cell B has the most charge'"
+                      // rather than the meaningless "Caleb wrote: 3".
+                      const sa = w.exampleHit.studentAnswer;
+                      if (!sa) return null;
+                      if (w.exampleHit.isMcq && w.exampleHit.options.length > 0) {
+                        const m = sa.match(/\d+/);
+                        const idx = m ? parseInt(m[0], 10) - 1 : -1;
+                        const opt = w.exampleHit.options[idx];
+                        if (opt) return (
+                          <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} picked:</strong> “{opt}”</p>
+                        );
+                      }
+                      return (
+                        <p className="mt-2 text-emerald-700 whitespace-pre-wrap"><strong>{childFirst} wrote:</strong> {sa.slice(0, 400)}{sa.length > 400 ? "…" : ""}</p>
+                      );
+                    })()}
                     <p className="mt-2 text-emerald-700 font-bold">✓ {w.exampleHit.aw}/{w.exampleHit.av} marks</p>
                   </div>
                 </details>
