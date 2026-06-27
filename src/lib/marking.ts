@@ -846,20 +846,27 @@ function formatLabelledTableAnswer(stem: string, cells: Record<string, string>):
     }
   }
 
-  // Multi-label header row: every cell starts with a label like "(a)…"
-  // / "a) …". When detected, the labels apply column-wise to the NEXT
-  // data row (which is the empty answer row). Q77 PSLE Comp OEQ:
-  //   | (a) How Aunt Lily acted on… | (b) How the writer responded… |
-  //   |                             |                                |   ← answers
-  //   | (c) What Aunt Lily thought  | (d) How the writer responded   |
-  //   |                             |                                |   ← answers
-  // The old single-column-label assumption silently dropped (b)/(d)
-  // entirely and pulled (a)/(c) values from the wrong columns.
+  // Multi-label header row: every cell carries a label like "(a)…" /
+  // "a) …" — at the START of the cell OR at the END (Q63 layout:
+  //   | **Three-word phrase that shows Jared felt bored** (a) | **Reason…** (b) |
+  //   |                                                       |                  |   ← answers
+  //   | **Five-word phrase that shows Grandpa felt happy** (c) | **Reason…** (d) |
+  //   |                                                       |                  |   ← answers
+  // When detected, the labels apply column-wise to the NEXT data row
+  // (the empty answer row). The OLDER label-at-start case is the Q77
+  // PSLE Comp OEQ shape. Both share the same downstream handling —
+  // when ALL cells carry labels, treat ALL columns as fillable (not
+  // just col 1+).
   const detectMultiLabel = (rowCells: string[]): Array<{ label: string; text: string } | null> | null => {
     if (rowCells.length < 2) return null;
     const parsed = rowCells.map(c => {
-      const m = c.match(/^\(?\s*([a-z0-9]+)\s*[).:]\s*(.*)$/i);
-      return m ? { label: m[1].toLowerCase(), text: m[2].trim() } : null;
+      // Label at START: "(a) text", "a) text", "a. text"
+      const startM = c.match(/^\(?\s*([a-z0-9]+)\s*[).:]\s*(.*)$/i);
+      if (startM) return { label: startM[1].toLowerCase(), text: startM[2].trim() };
+      // Label at END: "**text** (a)" / "text (a)"
+      const endM = c.match(/^(.*?)[\s]*\(\s*([a-z0-9]+)\s*\)\s*$/i);
+      if (endM) return { label: endM[2].toLowerCase(), text: endM[1].trim().replace(/\*\*/g, "") };
+      return null;
     });
     return parsed.every(p => p !== null) ? parsed : null;
   };
