@@ -1,0 +1,419 @@
+{
+  "patterns": [
+    {
+      "name": "Singular or Plural Mix-Up",
+      "what": "J=di sometimes gets tricked by special phrases like 'One of', 'Neither of', or 'Either... or', choosing a plural verb when a singular one is needed.",
+      "specific_examples": [
+        {
+          "questionRef": "[46]",
+          "type": "mcq",
+          "whatWentWrong": "He saw 'boys' and picked the plural 'have', forgetting that 'One of' makes the subject singular."
+        },
+        {
+          "questionRef": "[54]",
+          "type": "mcq",
+          "whatWentWrong": "He picked the plural 'were', but uncountable nouns like 'furniture' always take a singular verb."
+        },
+        {
+          "questionRef": "[1]",
+          "type": "mcq",
+          "whatWentWrong": "He picked the singular 'is', but for 'Either... or', the verb must match the noun closest to it (parents)."
+        }
+      ],
+      "strategic_advice": "When you see these tricky subjects, pause and check the rules:\n- **'One of'** or **'Neither of'** → the subject is singular (just one!), so use 'has' or 'is'.\n- **'Either A or B'** → look at the noun closest to the blank to decide.\n- Uncountable nouns like **'furniture'** and **'luggage'** are always treated as singular.",
+      "trigger_keywords": [
+        "One of",
+        "Neither of",
+        "Either",
+        "furniture",
+        "luggage"
+      ]
+    },
+    {
+      "name": "Past vs Present Mix-Up",
+      "what": "J=di occasionally misses time clues in the sentence, mixing up past and present tenses, especially when describing actions that have been happening for a while.",
+      "specific_examples": [
+        {
+          "questionRef": "[60]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'had been practising' (past), but clues like 'am sure' and 'upcoming' show the action is still happening in the present."
+        },
+        {
+          "questionRef": "[59]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'have played' (present), but the clue 'were exhausted' means the playing happened even earlier in the past."
+        }
+      ],
+      "strategic_advice": "Always hunt for **time clues** before choosing a tense:\n- If the sentence has present-tense clues like 'am sure' or 'can', use **'have been'**.\n- If the sentence is already in the past (like 'were exhausted'), use **'had been'** to show an action that happened even earlier.",
+      "trigger_keywords": [
+        "every day",
+        "before",
+        "upcoming",
+        "were",
+        "am"
+      ]
+    },
+    {
+      "name": "Spelling Slips",
+      "what": "J=di occasionally misspells longer words by swapping vowels or getting confused by double letters.",
+      "specific_examples": [
+        {
+          "questionRef": "[6]",
+          "type": "oeq",
+          "whatWentWrong": "He spelled it 'emergancies' instead of 'emergencies'."
+        },
+        {
+          "questionRef": "[40]",
+          "type": "oeq",
+          "whatWentWrong": "He swapped a vowel, writing 'benifit' instead of 'benefit'."
+        },
+        {
+          "questionRef": "[27]",
+          "type": "oeq",
+          "whatWentWrong": "He added an extra 'h', writing 'strenghthens' instead of 'strengthens'."
+        }
+      ],
+      "strategic_advice": "When writing longer words, break them into **smaller syllables** (e.g., e-mer-gen-cies, ben-e-fit) to hear the vowels clearly. When checking your work, try reading the word backwards letter by letter to spot mistakes!",
+      "trigger_keywords": []
+    },
+    {
+      "name": "Phrasal Verb Mix-Up",
+      "what": "J=di sometimes confuses phrasal verbs that look similar but have very different meanings.",
+      "specific_examples": [
+        {
+          "questionRef": "[12]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'fell apart' instead of 'fell out' to describe friends having a misunderstanding."
+        },
+        {
+          "questionRef": "[22]",
+          "type": "mcq",
+          "whatWentWrong": "He picked 'blew up' instead of 'fell through' to describe plans that were cancelled."
+        }
+      ],
+      "strategic_advice": "When learning new vocabulary, try to learn the **phrasal verb as a whole chunk** rather than just the first word. Create a mini-dictionary of common phrasal verbs (like 'fall out' vs 'fall through') and draw a quick picture next to each to remember the difference.",
+      "trigger_keywords": [
+        "fell",
+        "call",
+        "blew"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "idx": 1,
+      "patternIndex": 0
+    },
+    {
+      "idx": 2,
+      "patternIndex": -1
+    },
+    {
+      "idx": 3,
+      "patternIndex": 1
+    },
+    {
+      "idx": 4,
+      "patternIndex": -1
+    },
+    {
+      "idx": 5,
+      "patternIndex": -1
+    },
+    {
+      "idx": 6,
+      "patternIndex": 2
+    },
+    {
+      "idx": 7,
+      "patternIndex": -1
+    },
+    {
+      "idx": 8,
+      "patternIndex": -1
+    },
+    {
+      "idx": 9,
+      "patternIndex": -1
+    },
+    {
+      "idx": 10,
+      "patternIndex": -1
+    },
+    {
+      "idx": 11,
+      "patternIndex": -1
+    },
+    {
+      "idx": 12,
+      "patternIndex": 3
+    },
+    {
+      "idx": 13,
+      "patternIndex": -1
+    },
+    {
+      "idx": 14,
+      "patternIndex": -1
+    },
+    {
+      "idx": 15,
+      "patternIndex": -1
+    },
+    {
+      "idx": 16,
+      "patternIndex": -1
+    },
+    {
+      "idx": 17,
+      "patternIndex": 0
+    },
+    {
+      "idx": 18,
+      "patternIndex": -1
+    },
+    {
+      "idx": 19,
+      "patternIndex": -1
+    },
+    {
+      "idx": 20,
+      "patternIndex": -1
+    },
+    {
+      "idx": 21,
+      "patternIndex": -1
+    },
+    {
+      "idx": 22,
+      "patternIndex": 3
+    },
+    {
+      "idx": 23,
+      "patternIndex": -1
+    },
+    {
+      "idx": 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": 25,
+      "patternIndex": -1
+    },
+    {
+      "idx": 26,
+      "patternIndex": 2
+    },
+    {
+      "idx": 27,
+      "patternIndex": 2
+    },
+    {
+      "idx": 28,
+      "patternIndex": 3
+    },
+    {
+      "idx": 29,
+      "patternIndex": -1
+    },
+    {
+      "idx": 30,
+      "patternIndex": -1
+    },
+    {
+      "idx": 31,
+      "patternIndex": -1
+    },
+    {
+      "idx": 32,
+      "patternIndex": 1
+    },
+    {
+      "idx": 33,
+      "patternIndex": -1
+    },
+    {
+      "idx": 34,
+      "patternIndex": -1
+    },
+    {
+      "idx": 35,
+      "patternIndex": -1
+    },
+    {
+      "idx": 36,
+      "patternIndex": -1
+    },
+    {
+      "idx": 37,
+      "patternIndex": -1
+    },
+    {
+      "idx": 38,
+      "patternIndex": -1
+    },
+    {
+      "idx": 39,
+      "patternIndex": -1
+    },
+    {
+      "idx": 40,
+      "patternIndex": 2
+    },
+    {
+      "idx": 41,
+      "patternIndex": -1
+    },
+    {
+      "idx": 42,
+      "patternIndex": -1
+    },
+    {
+      "idx": 43,
+      "patternIndex": -1
+    },
+    {
+      "idx": 44,
+      "patternIndex": -1
+    },
+    {
+      "idx": 45,
+      "patternIndex": 1
+    },
+    {
+      "idx": 46,
+      "patternIndex": 0
+    },
+    {
+      "idx": 47,
+      "patternIndex": -1
+    },
+    {
+      "idx": 48,
+      "patternIndex": -1
+    },
+    {
+      "idx": 49,
+      "patternIndex": -1
+    },
+    {
+      "idx": 50,
+      "patternIndex": -1
+    },
+    {
+      "idx": 51,
+      "patternIndex": 1
+    },
+    {
+      "idx": 52,
+      "patternIndex": -1
+    },
+    {
+      "idx": 53,
+      "patternIndex": 1
+    },
+    {
+      "idx": 54,
+      "patternIndex": 0
+    },
+    {
+      "idx": 55,
+      "patternIndex": 2
+    },
+    {
+      "idx": 56,
+      "patternIndex": -1
+    },
+    {
+      "idx": 57,
+      "patternIndex": 0
+    },
+    {
+      "idx": 58,
+      "patternIndex": -1
+    },
+    {
+      "idx": 59,
+      "patternIndex": 1
+    },
+    {
+      "idx": 60,
+      "patternIndex": 1
+    }
+  ],
+  "questionIdByIdx": {
+    "1": "cmque39zu0007fj52thfnvi7r",
+    "2": "cmque39zu0009fj522wpweypf",
+    "3": "cmqt82o7p002c11epwfeolab3",
+    "4": "cmqt7cbnn000m11epx4lkdg1s",
+    "5": "cmqt7cbnn000t11epcv8koysr",
+    "6": "cmqt7cbno001911epooudbhwj",
+    "7": "cmqt6uch3001412nkudhw19xk",
+    "8": "cmqnln7uy00ndwgpgzc65iyaw",
+    "9": "cmqs316dy000292s79vtvdf3r",
+    "10": "cmqs31dy7000f92s7j2rsnbhm",
+    "11": "cmqs31dy7000g92s7fa2ayd06",
+    "12": "cmqs31dy8000j92s79lsdz3ni",
+    "13": "cmqs31dy8000k92s78ipi9ybr",
+    "14": "cmqs31dy8000l92s7h3k6dqbi",
+    "15": "cmqs31dy8000m92s7wb2i0iwt",
+    "16": "cmqqjl1lq000kz8o99f18aqkz",
+    "17": "cmqqjl1lq000mz8o935cdnc7p",
+    "18": "cmqqjfuvc000bz8o91nkpzb7v",
+    "19": "cmqqjfuvc000dz8o9p1cd577i",
+    "20": "cmqqjfuvd000gz8o9uf9ylr0y",
+    "21": "cmqqjdqa9002nltqfvfov5hh1",
+    "22": "cmqqjagvv002bltqfexj3rje0",
+    "23": "cmqqiosee000jltqf25sehw7a",
+    "24": "cmqqiosef000xltqfx42l9ik1",
+    "25": "cmqqiosef000yltqfk3cwxgkm",
+    "26": "cmqqiosef0014ltqfijnbvuig",
+    "27": "cmqqiosef001jltqf05s8zbc0",
+    "28": "cmqqih7e3002fx1o9es6y8ofg",
+    "29": "cmqqih7e3002gx1o9zq1unjai",
+    "30": "cmqqih7e3002jx1o9y3kxy4v3",
+    "31": "cmqqih7e3002kx1o9n23csmfq",
+    "32": "cmqqiez3u001xx1o921rhwy62",
+    "33": "cmqqiez3u0023x1o943bq4lkr",
+    "34": "cmqqiez3u0025x1o9l3z1y8pf",
+    "35": "cmqqi8yf90013x1o9x5pvdq3l",
+    "36": "cmqqi17ue000mx1o92eecuu3v",
+    "37": "cmqqi17ue000qx1o92w5mswey",
+    "38": "cmqqhz9z70005x1o9zefzeqdf",
+    "39": "cmqqhz9z7000bx1o93tpo8hk4",
+    "40": "cmqqfopob00h4qrnvd6s7slsl",
+    "41": "cmqqfopob00h9qrnvnbmcjbj2",
+    "42": "cmqqfopob00haqrnvcmyeozof",
+    "43": "cmqqfopob00heqrnvwj9dheh0",
+    "44": "cmqqfopob00hjqrnv5ub7jxjn",
+    "45": "cmqqfopob00hkqrnvg9qos55n",
+    "46": "cmqnlnl5w00nrwgpg9k2cdcxz",
+    "47": "cmqpav4o2003713p0bfpt8y0c",
+    "48": "cmqpav4o2003813p0tde4peay",
+    "49": "cmqpav4o2003913p022yza61c",
+    "50": "cmqpamy5m001x13p0uidd4646",
+    "51": "cmqpajh30001a13p0fnn8ll4v",
+    "52": "cmqpahpxq000s13p002xhpll3",
+    "53": "cmqni8cu200h1wgpgj9aolfzq",
+    "54": "cmqnhzmwk00fzwgpg0zemp6x7",
+    "55": "cmqng0vsf00b2wgpg4mfe0qxt",
+    "56": "cmqng0vsg00biwgpg67tbal2h",
+    "57": "cmqnfnk82009swgpgfparej2x",
+    "58": "cmqnfnk8300abwgpg8vxdxgcb",
+    "59": "cmqlwjw9q005k1p80m6cxoner",
+    "60": "cmqlwjw9q005l1p801bth657g"
+  },
+  "generatedAt": "2026-06-27T01:24:30.990Z",
+  "wrongCounts": {
+    "total": 60,
+    "oeq": 21,
+    "mcq": 39
+  },
+  "toplineSnapshot": {
+    "avgPct": 90,
+    "totalAwarded": 624.5,
+    "totalAvailable": 694,
+    "paperCount": 43
+  },
+  "previousAssessment": null
+}

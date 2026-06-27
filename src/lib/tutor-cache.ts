@@ -27,6 +27,7 @@ import davidEnglish from "./tutor-cache/unified-diagnosis-david-lim-english.gemi
 import egEnglish from "./tutor-cache/unified-diagnosis-eg-english.gemini-cache.json";
 import el44English from "./tutor-cache/unified-diagnosis-el44-english.gemini-cache.json";
 import ijEnglish from "./tutor-cache/unified-diagnosis-ij-english.gemini-cache.json";
+import jdiOEnglish from "./tutor-cache/unified-diagnosis-j-di-o-english.gemini-cache.json";
 import jeron16English from "./tutor-cache/unified-diagnosis-jeron16-english.gemini-cache.json";
 import kaiyangEnglish from "./tutor-cache/unified-diagnosis-kaiyangnggg-english.gemini-cache.json";
 import mahdi12English from "./tutor-cache/unified-diagnosis-mahdi12-english.gemini-cache.json";
@@ -120,6 +121,7 @@ export const TUTOR_CACHE: Record<string, CachedReport> = {
   "eg:english":           egEnglish as CachedReport,
   "el44:english":         el44English as CachedReport,
   "ij:english":           ijEnglish as CachedReport,
+  "j-di-o:english":       jdiOEnglish as CachedReport,
   "jeron16:english":      jeron16English as CachedReport,
   "kaiyangnggg:english":  kaiyangEnglish as CachedReport,
   "lohxy2014:english":    lohxy2014English as CachedReport,
