@@ -296,7 +296,12 @@ function safeName(name: string): string {
 // /api/student-progress + page.tsx use:
 //   - exclude revision papers
 //   - exclude __SKIPPED__ questions
-//   - topic ≥ 3 attempts filter
+//   - topic ≥ 3 attempts filter (raised to 4 briefly on 2026-06-27 then
+//     reverted same day — kids whose first 2 papers include a Focused
+//     Practice get ~3 attempts on each Daily Quiz topic, so a ≥4 floor
+//     wiped out their chart entirely. Mark's Human Respiratory @ 67%
+//     fluke is the tolerable noise we accept for keeping real signal
+//     for typical kids like Kaiyang who'd otherwise see 0 topics.)
 //   - sum awarded/available over surviving topics → subject avg
 function computeTopline(
   papers: Array<{
@@ -790,7 +795,16 @@ function shapeTutorData(args: {
   // render the bar chart + Topics for Practice (the "what to assign"
   // surface) — the parent still gets actionable advice; we just don't
   // pretend to read fine-grained patterns that aren't there yet.
-  const MIN_ANALYSABLE_WRONGS = 15;
+  // Lowered from 15 → 10 on 2026-06-27 after a regression analysis
+  // (Mark/David Sci+Eng @ first 8 vs first 15 wrongs) showed ~60%
+  // concept overlap between an early diagnosis and a mature one. The
+  // alternate-week full-refresh cron (see daily-lumi-cron.ts) catches
+  // the deeper behavioural patterns that only emerge with a fuller
+  // pool. The companion 3-papers-in-subject gate lives in the intro
+  // candidate scan (_do-55-send-intros.ts) so the email never
+  // promises "we studied all your work" for kids with only 1-2
+  // quizzes done.
+  const MIN_ANALYSABLE_WRONGS = 10;
   const enoughForPatterns = wrongs.length >= MIN_ANALYSABLE_WRONGS;
   // Show ALL workshop patterns, not just top 2 in each bucket. The
   // workshop prompt already asks for 3-4 patterns total and prefers 3

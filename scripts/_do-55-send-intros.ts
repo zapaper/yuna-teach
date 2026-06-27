@@ -185,8 +185,14 @@ export async function loadCandidates(): Promise<Candidate[]> {
   }
 
   const out: Candidate[] = [];
+  // Lowered the wrongs gate from 15 → 10 on 2026-06-27. The 3-paper
+  // gate stays — at 10 wrongs the median kid would only have 2 papers
+  // done in the subject, and the email's "Lumi has studied all your
+  // quizzes" claim feels thin at that point. Requiring ≥3 papers AND
+  // ≥10 wrongs lines the intro up with the topic chart (which appears
+  // at 3 papers) and ensures the diagnosis has enough material.
   for (const [key, acc] of byKey) {
-    if (acc.papers < 3 || acc.wrongs < 15) continue;
+    if (acc.papers < 3 || acc.wrongs < 10) continue;
     const [studentId, subject] = key.split("::") as [string, Candidate["subject"]];
     const student = userById.get(studentId);
     if (!student) continue;

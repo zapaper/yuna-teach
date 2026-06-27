@@ -124,9 +124,21 @@ function daysSince(iso: string | undefined | null): number | null {
   }
 
   // ============================================================
-  //  DELTA PLAN
+  //  DELTA PLAN — Friday only
   // ============================================================
-  console.log(`\n[DELTA]  cooldown=${DELTA_COOLDOWN_DAYS}d per (kid × subject), 1 email per kid (first linked parent)`);
+  // Weekly delta cadence locked to Friday on 2026-06-27 so parents
+  // get a predictable "your weekly update" moment rather than rolling
+  // notifications across the week. The probe still runs on dry-run
+  // (so you can preview the plan any day) — only the LIVE send is
+  // gated. UTC day-of-week: 0=Sun, 1=Mon, …, 5=Fri.
+  const isFriday = new Date().getUTCDay() === 5;
+  console.log(`\n[DELTA]  cooldown=${DELTA_COOLDOWN_DAYS}d per (kid × subject), 1 email per kid (first linked parent), Friday-only`);
+  if (!isFriday && !DRY) {
+    console.log(`  today is not Friday (UTC day=${new Date().getUTCDay()}) — skipping delta send`);
+    console.log(`\n──── done ${new Date().toISOString()} ────`);
+    await prisma.$disconnect();
+    return;
+  }
   // Only kids who've received at least one intro are eligible for a
   // delta — without an intro they have no baseline for "since last
   // week", and the delta email won't make sense to a parent who
