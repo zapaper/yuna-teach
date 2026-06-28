@@ -2092,7 +2092,7 @@
       "level": "Primary 4",
       "paperType": "quiz",
       "totalMarks": "57",
-      "score": 48,
+      "score": 49,
       "questionCount": 49,
       "questions": [
         {
@@ -2182,7 +2182,7 @@
         {
           "questionNum": "15",
           "marksAvailable": 1,
-          "marksAwarded": 1,
+          "marksAwarded": 0,
           "syllabusTopic": "Grammar Cloze"
         },
         {
@@ -2380,7 +2380,7 @@
         {
           "questionNum": "48",
           "marksAvailable": 2,
-          "marksAwarded": 0,
+          "marksAwarded": 2,
           "syllabusTopic": "Comprehension Open Ended"
         },
         {
