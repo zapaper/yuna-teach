@@ -826,10 +826,12 @@ async function detectWrongWordsOnce(ocrText: string): Promise<WrongWord[] | null
     contents: [{ role: "user", parts: [{ text: WRONG_WORDS_PROMPT(ocrText) }] }],
     // Wrong-words returns an array of {original, suggestion, kind,
     // reason} — a heavily-corrected essay can hit 20-30 entries
-    // each with a 1-2 sentence reason. Default cap risks truncating
-    // the last few entries (or the closing `]`) which would lose
-    // marks on the kid's lower paragraphs.
-    config: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 8192 },
+    // each with a 1-2 sentence reason in Chinese. 8K was too tight:
+    // user-flagged row cmqxeo3do hit "Unterminated string in JSON
+    // at position 2399" → the response cut mid-reason field on
+    // entry ~13. Bumped to 12K which comfortably fits ~25-30
+    // entries with prose reasons.
+    config: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 12000 },
   }, 2, 5000, "compo-wrong-words");
   const text = (resp.text ?? "[]").trim();
   try {
