@@ -820,16 +820,27 @@ function EssayCoachContent() {
                     </div>
                   );
                 }
+                // Action buttons can't live inside a Next <Link> — the
+                // resulting <a><button> markup is invalid HTML and
+                // browsers either hoist the button out or swallow its
+                // click. Drop the Link entirely and drive navigation
+                // from a div onClick. The action buttons sit as
+                // siblings below the content and stopPropagation so
+                // their click doesn't bubble up to the card.
+                const navigate = () => router.push(`/essay-coach/${parentId}/${r.id}?student=${studentId}`);
                 return (
-                  <Link
+                  <div
                     key={r.id}
-                    href={`/essay-coach/${parentId}/${r.id}?student=${studentId}`}
-                    className={cardCls}
+                    onClick={navigate}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(); } }}
+                    role="link"
+                    tabIndex={0}
+                    className={cardCls + " cursor-pointer"}
                   >
                     {inner}
                     {errorBlock}
                     {actions}
-                  </Link>
+                  </div>
                 );
               })}
             </div>
