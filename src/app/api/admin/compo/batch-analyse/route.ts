@@ -17,6 +17,13 @@ import { isSessionAdmin } from "@/lib/session";
 import { generateContentWithRetry } from "@/lib/gemini";
 import { safeJsonParse } from "@/lib/compo-analysis";
 
+// Gemini 3.1 Pro on 5-10 capped essay blobs at 12k output tokens runs
+// 30-60s in the wild — sometimes 90s when the preview backend is slow.
+// Default Next.js route budget (~15s on Railway / 10s on Vercel) cuts
+// the request off mid-call; the browser then sees "Failed to fetch"
+// and the user has nothing to look at. Lift the cap to 5 min.
+export const maxDuration = 300;
+
 const MODEL = "gemini-3.1-pro-preview";
 
 type BatchAdvice = {
