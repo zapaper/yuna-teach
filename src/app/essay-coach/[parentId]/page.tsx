@@ -63,6 +63,17 @@ type BatchAnalyseResult = {
   essaysAnalysed: number;
   language: "chinese" | "english" | "mixed";
 };
+// Persisted batch coach tip shape — what GET /api/essay-coach returns
+// alongside the rows array. Surfaced on the index page so a saved tip
+// stays visible across refreshes instead of vanishing with the
+// in-memory result panel.
+type SavedTip = {
+  id: string;
+  createdAt: string;
+  language: string | null;
+  attemptIds: string[];
+  analysis: BatchAnalyseResult;
+};
 const BUCKET_PALETTE: Record<BatchBucket["color"], { border: string; headerBg: string; headerText: string; chip: string }> = {
   blue:    { border: "border-blue-200",    headerBg: "bg-blue-50",    headerText: "text-blue-900",    chip: "bg-blue-100 text-blue-800" },
   emerald: { border: "border-emerald-200", headerBg: "bg-emerald-50", headerText: "text-emerald-900", chip: "bg-emerald-100 text-emerald-800" },
@@ -114,6 +125,7 @@ function EssayCoachContent() {
   const [accessError, setAccessError] = useState<string | null>(null);
 
   const [rows, setRows] = useState<AttemptRow[]>([]);
+  const [savedTips, setSavedTips] = useState<SavedTip[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -238,9 +250,10 @@ function EssayCoachContent() {
   // Pull history when the student changes.
   const refresh = useCallback(async () => {
     if (!studentId) { setRows([]); setLoadingHistory(false); return; }
-    const result = await fetchJsonSafe<{ rows: AttemptRow[] }>(`/api/essay-coach?studentId=${studentId}`);
+    const result = await fetchJsonSafe<{ rows: AttemptRow[]; tips?: SavedTip[] }>(`/api/essay-coach?studentId=${studentId}`);
     if (result.ok) {
       setRows(result.data.rows ?? []);
+      setSavedTips(result.data.tips ?? []);
       setError(prev => prev && prev.includes("restarting") ? null : prev);
     } else if (!result.transient) {
       setError(result.error);
@@ -607,6 +620,26 @@ function EssayCoachContent() {
           </div>
         )}
 
+        {/* Persisted saved Lumi's tips — admin-only for now. Survives
+            refresh because each one is a row in batch_coach_tips,
+            re-fetched on every /api/essay-coach poll. Filtered to
+            match the currently picked language so a Chinese session
+            doesn't surface English tips. Hidden while a fresh batch
+            result is open above so we don't double-render. */}
+        {isAdmin && !batchResult && savedTips.filter(t => (t.language ?? "english") === language).length > 0 && (
+          <div className="space-y-2">
+            <h2 className="font-semibold text-[#001e40]">
+              Saved Lumi&rsquo;s tips
+              <span className="text-xs font-normal text-[#737780] ml-2">
+                · {language === "chinese" ? "Chinese 华文" : "English"}
+              </span>
+            </h2>
+            {savedTips
+              .filter(t => (t.language ?? "english") === language)
+              .map(t => <SavedTipCard key={t.id} tip={t} />)}
+          </div>
+        )}
+
         {/* History */}
         <div>
           <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
@@ -767,6 +800,109 @@ function StatusBadge({ status }: { status: AttemptRow["status"] }) {
     status === "failed"    ? "bg-red-100 text-red-700"         :
                              "bg-slate-100 text-slate-600";
   return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${styles}`}>{status}</span>;
+}
+
+// Persisted Lumi's tip — collapsed by default. Same body shape as
+// the BatchResultPanel but pulled from the DB on page load, so it
+// survives a refresh. Click the header to expand. Open the dedicated
+// print route via the 🖨 link.
+function SavedTipCard({ tip }: { tip: SavedTip }) {
+  const [open, setOpen] = useState(false);
+  const a = tip.analysis;
+  const isChinese = (tip.language ?? "english") === "chinese";
+  return (
+    <div className="bg-white border-2 border-violet-200 rounded-2xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-violet-50 transition-colors text-left"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">
+            {isChinese ? "Lumi 的建议" : "Lumi's tip"} ({a.essaysAnalysed} {isChinese ? "篇作文" : `essay${a.essaysAnalysed === 1 ? "" : "s"}`})
+            <span className="ml-2 text-slate-400 font-normal normal-case">
+              {new Date(tip.createdAt).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+            </span>
+          </div>
+          {a.overview && (
+            <p className="text-sm text-[#001e40] mt-0.5 line-clamp-2" style={isChinese ? { fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" } : undefined}>
+              {a.overview}
+            </p>
+          )}
+        </div>
+        <span className="text-violet-600 text-lg shrink-0">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-violet-100 pt-3">
+          <div className="flex items-center justify-between gap-2 text-xs text-[#737780]">
+            <span>Saved {new Date(tip.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}</span>
+            <a
+              href={`/print/batch-tip/${tip.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              🖨 Print this
+            </a>
+          </div>
+          {a.overviewEn && a.overviewEn !== a.overview && (
+            <p className="text-xs text-[#737780] italic">{a.overviewEn}</p>
+          )}
+          <div className="space-y-3">
+            {a.buckets.map((b, bi) => {
+              const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
+              return (
+                <div key={bi} className={`border ${palette.border} rounded-xl overflow-hidden`}>
+                  <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between gap-2`}>
+                    <div className="min-w-0">
+                      <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
+                      {b.titleEn && b.titleEn !== b.title && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{b.titleEn}</div>
+                      )}
+                    </div>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded shrink-0`}>
+                      {b.advice.length} {isChinese ? "条" : `tip${b.advice.length === 1 ? "" : "s"}`}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 space-y-3 bg-white">
+                    {b.advice.map((adv, ai) => (
+                      <div key={ai}>
+                        <div className="text-sm font-bold text-[#001e40]">{adv.tip}</div>
+                        {adv.tipEn && adv.tipEn !== adv.tip && (
+                          <div className="text-xs text-slate-500 mt-0.5">{adv.tipEn}</div>
+                        )}
+                        {adv.why && <p className="text-xs text-[#43474f] mt-1">{adv.why}</p>}
+                        {adv.whyEn && adv.whyEn !== adv.why && (
+                          <p className="text-[11px] text-slate-400 italic mt-0.5">{adv.whyEn}</p>
+                        )}
+                        {adv.examples.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {adv.examples.map((e, ei) => (
+                              <div key={ei} className="text-xs bg-slate-50 rounded-md px-2.5 py-2 space-y-1">
+                                {e.from && <div className="text-[10px] text-[#737780] uppercase tracking-wide">{e.from}</div>}
+                                <div className="flex items-start gap-1.5">
+                                  <span className="text-rose-500 font-bold shrink-0">−</span>
+                                  <span className="text-[#43474f] italic">&ldquo;{e.before}&rdquo;</span>
+                                </div>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="text-emerald-600 font-bold shrink-0">+</span>
+                                  <span className="text-[#001e40] font-medium">&ldquo;{e.after}&rdquo;</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Admin-only Batch Analyse result panel. Mirrors the one on

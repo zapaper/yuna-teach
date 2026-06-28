@@ -8,6 +8,7 @@
 //      as the admin POST plus a required studentId field.
 
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
@@ -44,7 +45,29 @@ export async function GET(req: NextRequest) {
     },
     take: 100,
   });
-  return NextResponse.json({ rows });
+
+  // Admin-only for now: saved cross-essay coaching tips that were
+  // generated FROM this student's essays. Surfaced on the parent
+  // essay-coach index so a "Save this" press persists visually across
+  // refreshes — without this, the result panel disappears and the
+  // saved tip is only findable by drilling into one of the 4 essays.
+  let tips: Array<{ id: string; createdAt: Date; language: string | null; attemptIds: unknown; analysis: unknown }> = [];
+  if (auth.isAdmin && studentId) {
+    tips = await prisma.$queryRaw<Array<{
+      id: string;
+      createdAt: Date;
+      language: string | null;
+      attemptIds: unknown;
+      analysis: unknown;
+    }>>(Prisma.sql`
+      SELECT id, "createdAt", language, "attemptIds", analysis
+      FROM batch_coach_tips
+      WHERE "studentId" = ${studentId}
+      ORDER BY "createdAt" DESC
+      LIMIT 20
+    `);
+  }
+  return NextResponse.json({ rows, tips });
 }
 
 export async function POST(req: NextRequest) {
