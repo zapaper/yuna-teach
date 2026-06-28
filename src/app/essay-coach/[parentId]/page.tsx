@@ -404,7 +404,7 @@ function EssayCoachContent() {
           </h1>
           <p className="text-sm text-[#43474f] mt-1">
             Upload or scan {selectedName ? `${selectedName}'s` : "your child's"} composition and we&rsquo;ll grade it and suggest improvements.
-            {isAdmin && <> Batch Analyse existing compositions to get cross-essay insights and tips.</>}
+            {isAdmin && <> <strong className="font-semibold text-[#001e40]">Batch Analyse</strong> existing compositions to get cross-essay insights and tips.</>}
           </p>
           {/* Global language toggle — drives BOTH new-composition
               language and the past-attempts filter, so there's only
