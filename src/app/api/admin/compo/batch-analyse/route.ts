@@ -139,8 +139,13 @@ Look for PATTERNS that repeat across the essays — not one-off mistakes. Spot t
 
 Rules:
 - 3-5 buckets total. Don't pad. Quality over quantity.
+- **AT LEAST ONE bucket MUST cover CONTENT / PLOT / DESCRIPTION** — i.e. *what* the student is writing, not just *how* they word it. Language buckets alone are a half-coaching. Look at the climax, the build-up to it, the emotional payoff, and the resolution. If the student keeps rushing the climax, skipping the emotional reaction, or under-describing the key moment, SAY SO with a concrete fix. Examples of valid content-bucket tips:
+  · "Slow down and describe the climax with the senses (sight, sound, what the character felt in their body)"
+  · "Show the character's inner thoughts at the turning point — don't just narrate the action"
+  · "The build-up before the climax is too short — add a quiet moment of foreboding or hope before the disaster lands"
+  · "The resolution wraps up in one line — let the character reflect, change, or learn"
 - 2-3 advice items per bucket maximum.
-- Each advice MUST cite 1-2 examples from the student's actual essays (verbatim "before" + your "after").
+- Each advice MUST cite 1-2 examples from the student's actual essays (verbatim "before" + your "after"). For CONTENT examples the "before" can be the rushed climax line and the "after" shows the same moment expanded with description / thought / sensory detail.
 - Pick a different colour per bucket so the rendered output is visually scannable.
 - ${dominantLang === "english"
     ? "Write the tip / why / after fields in English."

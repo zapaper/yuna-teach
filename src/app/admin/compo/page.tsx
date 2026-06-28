@@ -669,7 +669,7 @@ function BatchResultPanel({ result, onClose }: { result: BatchAnalyseResult; onC
         <p className="text-sm text-slate-500 italic">No patterns surfaced — try picking more essays.</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="space-y-3">
         {result.buckets.map((b, bi) => {
           const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
           return (
