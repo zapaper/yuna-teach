@@ -1091,11 +1091,13 @@ export async function critiqueComposition(
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic, effectiveQuestionText) }] }],
     // Critique ships full rubric + cleanRewrite (3 axes + notes ×
-    // CN/EN + summary + benchmarkYears). With long contentNotes for
-    // 部分离题 cases that explain the deviation, default model cap
-    // truncates the trailing `}` and the JSON parser blows up. 12K
-    // is roomy without paying for capacity the stage never uses.
-    config: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 12000 },
+    // CN/EN + summary + benchmarkYears). The new floor-table calibration
+    // section invites longer 评语 (the AI cites idiom counts + flow
+    // rationale per axis), and the cleanRewrite often duplicates the
+    // analysis. 12K was hitting truncation around position 2K-2.5K of
+    // the response. Bumped to 16K (same as the elevate stage) which
+    // comfortably fits even the verbose Chinese cleanRewrite block.
+    config: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 16000 },
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
