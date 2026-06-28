@@ -143,7 +143,6 @@ function EssayCoachContent() {
   const [batchResult, setBatchResult] = useState<BatchAnalyseResult | null>(null);
   const [batchSavedTipId, setBatchSavedTipId] = useState<string | null>(null);
   const [batchSaving, setBatchSaving] = useState(false);
-  const [listLanguage, setListLanguage] = useState<"english" | "chinese">("chinese");
   const BATCH_CAP = 10;
   const batchPanelRef = useRef<HTMLDivElement | null>(null);
   const toggleBatchPick = (id: string) => {
@@ -391,33 +390,36 @@ function EssayCoachContent() {
             <span className="text-[10px] uppercase tracking-wide font-bold text-white bg-[#0040a0] rounded-md px-1.5 py-0.5 align-middle">Beta</span>
           </h1>
           <p className="text-sm text-[#43474f] mt-1">
-            Upload {selectedName ? `${selectedName}'s` : "your child's"} Chinese composition and we&rsquo;ll mark it, suggest upgrades, and rewrite a 35-40 level draft.
+            Upload or scan {selectedName ? `${selectedName}'s` : "your child's"} composition and we&rsquo;ll grade it and suggest improvements.
+            {isAdmin && <> Batch Analyse existing compositions to get cross-essay insights and tips.</>}
           </p>
-        </div>
-
-        {/* New composition card. */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
-          <h2 className="font-semibold text-[#001e40]">New composition</h2>
-
-          {/* Language toggle — segmented pill at the top, before any
-              labels. Picking flips the picker below from Option type
-              (Chinese) to Component (English). */}
-          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
+          {/* Global language toggle — drives BOTH new-composition
+              language and the past-attempts filter, so there's only
+              one place to set "I'm working with Chinese / English"
+              for this session. Picking flips the picker inside the
+              upload card (Option type vs English Component) and
+              re-filters the history list below. */}
+          <div className="mt-3 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
             <button
               type="button"
-              onClick={() => setLanguage("chinese")}
+              onClick={() => { setLanguage("chinese"); setBatchSelected(new Set()); }}
               className={`px-4 py-1.5 rounded-lg transition-colors ${language === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
             >
               Chinese 华文
             </button>
             <button
               type="button"
-              onClick={() => setLanguage("english")}
+              onClick={() => { setLanguage("english"); setBatchSelected(new Set()); }}
               className={`px-4 py-1.5 rounded-lg transition-colors ${language === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
             >
               English
             </button>
           </div>
+        </div>
+
+        {/* New composition card. */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
+          <h2 className="font-semibold text-[#001e40]">New composition</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
@@ -608,29 +610,11 @@ function EssayCoachContent() {
         {/* History */}
         <div>
           <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="font-semibold text-[#001e40]">
-                Past attempts {selectedName ? `for ${selectedName}` : ""}
-              </h2>
-              {isAdmin && (
-                <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => { setListLanguage("english"); setBatchSelected(new Set()); }}
-                    className={`px-2.5 py-1 rounded ${listLanguage === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                  >
-                    English
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setListLanguage("chinese"); setBatchSelected(new Set()); }}
-                    className={`px-2.5 py-1 rounded ${listLanguage === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                  >
-                    Chinese 华文
-                  </button>
-                </div>
-              )}
-            </div>
+            <h2 className="font-semibold text-[#001e40]">
+              Past attempts {selectedName ? `for ${selectedName}` : ""}
+              {" "}
+              <span className="text-xs font-normal text-[#737780]">· {language === "chinese" ? "Chinese 华文" : "English"}</span>
+            </h2>
             {isAdmin && (
               <button
                 type="button"
@@ -658,13 +642,16 @@ function EssayCoachContent() {
             </div>
           )}
           {(() => {
-            const visibleRows = isAdmin
-              ? rows.filter(r => (r.language ?? "chinese") === listLanguage)
-              : rows;
+            // Past-attempts list filters by the same language picked at
+            // the top of the page — single source of truth for "which
+            // language am I working in this session". Pre-toggle uploads
+            // (language=null) are treated as Chinese (matches the
+            // analyser's fallback + the data-backfill we just ran).
+            const visibleRows = rows.filter(r => (r.language ?? "chinese") === language);
             if (loadingHistory) return <p className="text-sm text-[#43474f]">Loading…</p>;
             if (visibleRows.length === 0) return (
               <p className="text-sm text-[#43474f]">
-                No {isAdmin ? (listLanguage === "english" ? "English" : "Chinese") : ""} essays yet — upload one above to get started.
+                No {language === "english" ? "English" : "Chinese"} essays yet — upload one above to get started.
               </p>
             );
             return (
