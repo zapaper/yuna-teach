@@ -90,6 +90,37 @@ type Recommendations = {
   elevatedDraftSwaps?: PhraseSwap[];
 };
 
+// Admin-only: saved cross-essay coaching tip (BatchCoachTip row).
+// Surfaces in an expandable card above the view toggle when the
+// signed-in user is admin AND there's at least one tip covering
+// this attempt. Same shape as the admin compo detail page uses.
+type BatchTipBucket = {
+  title: string;
+  titleEn?: string;
+  color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
+  advice: Array<{
+    tip: string;
+    tipEn?: string;
+    why: string;
+    whyEn?: string;
+    examples: Array<{ from: string; before: string; after: string }>;
+  }>;
+};
+type BatchTipAnalysis = {
+  buckets: BatchTipBucket[];
+  overview: string;
+  overviewEn?: string;
+  essaysAnalysed: number;
+  language: "chinese" | "english" | "mixed";
+};
+type BatchTip = {
+  id: string;
+  createdAt: string;
+  language: string | null;
+  attemptIds: string[];
+  analysis: BatchTipAnalysis;
+};
+
 type Row = {
   id: string;
   label: string | null;
@@ -128,14 +159,16 @@ function DetailContent() {
   const listHref = `/essay-coach/${parentId}${studentQs ? `?student=${studentQs}` : ""}`;
 
   const [row, setRow] = useState<Row | null>(null);
+  const [tips, setTips] = useState<BatchTip[]>([]);
   const [view, setView] = useState<"marked" | "clean" | "elevated">("marked");
   const [error, setError] = useState<string | null>(null);
   const [reanalysing, setReanalysing] = useState(false);
 
   const refresh = useCallback(async () => {
-    const result = await fetchJsonSafe<{ row: Row }>(`${API_BASE}/${id}`);
+    const result = await fetchJsonSafe<{ row: Row; tips?: BatchTip[] }>(`${API_BASE}/${id}`);
     if (result.ok) {
       setRow(result.data.row);
+      setTips(result.data.tips ?? []);
       setError(prev => prev && prev.includes("restarting") ? null : prev);
     } else if (!result.transient) {
       setError(result.error);
@@ -315,6 +348,15 @@ function DetailContent() {
         {row.status === "failed" && !reanalysing && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-800">
             <strong>Something went wrong:</strong> {row.errorMessage ?? "(no detail)"}. Tap <em>Re-analyse</em> to retry.
+          </div>
+        )}
+
+        {/* Saved Lumi's tips that cover this attempt — admin only
+            today (endpoint returns [] for non-admin). Collapsed by
+            default; expanding reveals the bucketed advice. */}
+        {tips.length > 0 && (
+          <div className="space-y-2 print:hidden">
+            {tips.map(t => <BatchTipCard key={t.id} tip={t} />)}
           </div>
         )}
 
@@ -1187,6 +1229,113 @@ function WrongWordsCard({ ws }: { ws: WrongWord[] }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// Saved cross-essay coaching tip — collapsed by default. Same shape
+// as the admin compo detail page renders. Click the header to expand
+// and read the bucketed advice.
+const BATCH_TIP_PALETTE: Record<BatchTipBucket["color"], { border: string; headerBg: string; headerText: string; chip: string }> = {
+  blue:    { border: "border-blue-200",    headerBg: "bg-blue-50",    headerText: "text-blue-900",    chip: "bg-blue-100 text-blue-800" },
+  emerald: { border: "border-emerald-200", headerBg: "bg-emerald-50", headerText: "text-emerald-900", chip: "bg-emerald-100 text-emerald-800" },
+  amber:   { border: "border-amber-200",   headerBg: "bg-amber-50",   headerText: "text-amber-900",   chip: "bg-amber-100 text-amber-800" },
+  rose:    { border: "border-rose-200",    headerBg: "bg-rose-50",    headerText: "text-rose-900",    chip: "bg-rose-100 text-rose-800" },
+  violet:  { border: "border-violet-200",  headerBg: "bg-violet-50",  headerText: "text-violet-900",  chip: "bg-violet-100 text-violet-800" },
+  sky:     { border: "border-sky-200",     headerBg: "bg-sky-50",     headerText: "text-sky-900",     chip: "bg-sky-100 text-sky-800" },
+};
+function BatchTipCard({ tip }: { tip: BatchTip }) {
+  const [open, setOpen] = useState(false);
+  const a = tip.analysis;
+  const isChinese = (tip.language ?? "english") === "chinese";
+  return (
+    <div className="bg-white border-2 border-violet-200 rounded-2xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-violet-50 transition-colors text-left"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">
+            {isChinese ? "Lumi 的建议" : "Lumi's tip"} ({a.essaysAnalysed} {isChinese ? "篇作文" : `essay${a.essaysAnalysed === 1 ? "" : "s"}`})
+          </div>
+          {a.overview && (
+            <p className="text-sm text-[#001e40] mt-0.5 line-clamp-2" style={isChinese ? { fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" } : undefined}>
+              {a.overview}
+            </p>
+          )}
+        </div>
+        <span className="text-violet-600 text-lg shrink-0">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-violet-100 pt-3">
+          <div className="flex items-center justify-between gap-2 text-xs text-[#737780]">
+            <span>Saved {new Date(tip.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}</span>
+            <a
+              href={`/print/batch-tip/${tip.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              🖨 Print this
+            </a>
+          </div>
+          {a.overviewEn && a.overviewEn !== a.overview && (
+            <p className="text-xs text-[#737780] italic">{a.overviewEn}</p>
+          )}
+          <div className="space-y-3">
+            {a.buckets.map((b, bi) => {
+              const palette = BATCH_TIP_PALETTE[b.color] ?? BATCH_TIP_PALETTE.blue;
+              return (
+                <div key={bi} className={`border ${palette.border} rounded-xl overflow-hidden`}>
+                  <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between gap-2`}>
+                    <div className="min-w-0">
+                      <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
+                      {b.titleEn && b.titleEn !== b.title && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{b.titleEn}</div>
+                      )}
+                    </div>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded shrink-0`}>
+                      {b.advice.length} {isChinese ? "条" : `tip${b.advice.length === 1 ? "" : "s"}`}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 space-y-3 bg-white">
+                    {b.advice.map((adv, ai) => (
+                      <div key={ai}>
+                        <div className="text-sm font-bold text-[#001e40]">{adv.tip}</div>
+                        {adv.tipEn && adv.tipEn !== adv.tip && (
+                          <div className="text-xs text-slate-500 mt-0.5">{adv.tipEn}</div>
+                        )}
+                        {adv.why && <p className="text-xs text-[#43474f] mt-1">{adv.why}</p>}
+                        {adv.whyEn && adv.whyEn !== adv.why && (
+                          <p className="text-[11px] text-slate-400 italic mt-0.5">{adv.whyEn}</p>
+                        )}
+                        {adv.examples.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {adv.examples.map((e, ei) => (
+                              <div key={ei} className="text-xs bg-slate-50 rounded-md px-2.5 py-2 space-y-1">
+                                {e.from && <div className="text-[10px] text-[#737780] uppercase tracking-wide">{e.from}</div>}
+                                <div className="flex items-start gap-1.5">
+                                  <span className="text-rose-500 font-bold shrink-0">−</span>
+                                  <span className="text-[#43474f] italic">&ldquo;{e.before}&rdquo;</span>
+                                </div>
+                                <div className="flex items-start gap-1.5">
+                                  <span className="text-emerald-600 font-bold shrink-0">+</span>
+                                  <span className="text-[#001e40] font-medium">&ldquo;{e.after}&rdquo;</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

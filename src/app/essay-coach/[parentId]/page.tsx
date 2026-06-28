@@ -7,7 +7,7 @@
 // page with the essay; OCR auto-detects), label auto-fills with the
 // student's name + date. Main-app font + colour scheme.
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -40,6 +40,36 @@ type LinkedStudent = {
   id: string;
   name: string;
   displayName: string | null;
+};
+
+// ─── Batch Analyse types — admin-only feature (gated below) ───────────
+type BatchAdvice = {
+  tip: string;
+  tipEn?: string;
+  why: string;
+  whyEn?: string;
+  examples: Array<{ from: string; before: string; after: string }>;
+};
+type BatchBucket = {
+  title: string;
+  titleEn?: string;
+  color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
+  advice: BatchAdvice[];
+};
+type BatchAnalyseResult = {
+  buckets: BatchBucket[];
+  overview: string;
+  overviewEn?: string;
+  essaysAnalysed: number;
+  language: "chinese" | "english" | "mixed";
+};
+const BUCKET_PALETTE: Record<BatchBucket["color"], { border: string; headerBg: string; headerText: string; chip: string }> = {
+  blue:    { border: "border-blue-200",    headerBg: "bg-blue-50",    headerText: "text-blue-900",    chip: "bg-blue-100 text-blue-800" },
+  emerald: { border: "border-emerald-200", headerBg: "bg-emerald-50", headerText: "text-emerald-900", chip: "bg-emerald-100 text-emerald-800" },
+  amber:   { border: "border-amber-200",   headerBg: "bg-amber-50",   headerText: "text-amber-900",   chip: "bg-amber-100 text-amber-800" },
+  rose:    { border: "border-rose-200",    headerBg: "bg-rose-50",    headerText: "text-rose-900",    chip: "bg-rose-100 text-rose-800" },
+  violet:  { border: "border-violet-200",  headerBg: "bg-violet-50",  headerText: "text-violet-900",  chip: "bg-violet-100 text-violet-800" },
+  sky:     { border: "border-sky-200",     headerBg: "bg-sky-50",     headerText: "text-sky-900",     chip: "bg-sky-100 text-sky-800" },
 };
 
 function stagedFromFile(f: File): StagedFile {
@@ -96,6 +126,74 @@ function EssayCoachContent() {
   const [compareToMarkings, setCompareToMarkings] = useState(false);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
+
+  // ─── Admin-only: Batch Analyse on the parent page ─────────────────
+  // The same cross-essay coach the admin compo page ships, gated
+  // behind a signed-session admin check so plain parents don't see
+  // the toggle. Will open up to all parents once the cost / UX is
+  // validated.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    fetch("/api/admin/check").then(r => setIsAdmin(r.ok)).catch(() => setIsAdmin(false));
+  }, []);
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchSelected, setBatchSelected] = useState<Set<string>>(new Set());
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const [batchResult, setBatchResult] = useState<BatchAnalyseResult | null>(null);
+  const [batchSavedTipId, setBatchSavedTipId] = useState<string | null>(null);
+  const [batchSaving, setBatchSaving] = useState(false);
+  const [listLanguage, setListLanguage] = useState<"english" | "chinese">("chinese");
+  const BATCH_CAP = 10;
+  const batchPanelRef = useRef<HTMLDivElement | null>(null);
+  const toggleBatchPick = (id: string) => {
+    setBatchSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < BATCH_CAP) next.add(id);
+      return next;
+    });
+  };
+  const runBatchAnalyse = async () => {
+    if (batchSelected.size < 2) return;
+    setBatchLoading(true);
+    setBatchError(null);
+    setBatchResult(null);
+    setBatchSavedTipId(null);
+    try {
+      const res = await fetch("/api/admin/compo/batch-analyse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptIds: [...batchSelected] }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      setBatchResult(j as BatchAnalyseResult);
+      setTimeout(() => batchPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    } catch (e) {
+      setBatchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+  const saveBatchTip = async () => {
+    if (!batchResult || batchSaving) return;
+    setBatchSaving(true);
+    try {
+      const res = await fetch("/api/admin/compo/batch-analyse/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptIds: [...batchSelected], analysis: batchResult }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      setBatchSavedTipId((j as { id: string }).id);
+    } catch (e) {
+      setBatchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBatchSaving(false);
+    }
+  };
 
   // Load parent + linked students on mount.
   useEffect(() => {
@@ -475,25 +573,127 @@ function EssayCoachContent() {
           )}
         </div>
 
+        {/* Batch Analyse result — admin-only, lands right above the
+            history list so the freshly-generated tip is the FIRST
+            thing the admin sees post-Gemini. */}
+        {isAdmin && batchResult && (
+          <div ref={batchPanelRef}>
+            <BatchResultPanel
+              result={batchResult}
+              savedTipId={batchSavedTipId}
+              saving={batchSaving}
+              onSave={saveBatchTip}
+              onClose={() => { setBatchResult(null); setBatchSelected(new Set()); setBatchSavedTipId(null); }}
+            />
+          </div>
+        )}
+
         {/* History */}
         <div>
-          <h2 className="font-semibold text-[#001e40] mb-2">
-            Past attempts {selectedName ? `for ${selectedName}` : ""}
-          </h2>
-          {loadingHistory ? (
-            <p className="text-sm text-[#43474f]">Loading…</p>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-[#43474f]">No essays yet — upload one above to get started.</p>
-          ) : (
-            <div className="space-y-2">
-              {rows.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/essay-coach/${parentId}/${r.id}?student=${studentId}`}
-                  className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-[#0040a0]/60 hover:shadow-sm transition"
+          <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="font-semibold text-[#001e40]">
+                Past attempts {selectedName ? `for ${selectedName}` : ""}
+              </h2>
+              {isAdmin && (
+                <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => { setListLanguage("english"); setBatchSelected(new Set()); }}
+                    className={`px-2.5 py-1 rounded ${listLanguage === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setListLanguage("chinese"); setBatchSelected(new Set()); }}
+                    className={`px-2.5 py-1 rounded ${listLanguage === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  >
+                    Chinese 华文
+                  </button>
+                </div>
+              )}
+            </div>
+            {isAdmin && (
+              <div className="flex gap-2">
+                {batchMode && batchSelected.size >= 2 && !batchResult && (
+                  <button
+                    type="button"
+                    onClick={runBatchAnalyse}
+                    disabled={batchLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
+                  >
+                    {batchLoading ? "Analysing…" : `🪄 Run on ${batchSelected.size} essays`}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBatchMode(v => !v);
+                    setBatchSelected(new Set());
+                    setBatchResult(null);
+                    setBatchError(null);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    batchMode
+                      ? "bg-violet-600 text-white border-violet-600 hover:bg-violet-700"
+                      : "bg-white text-[#0040a0] border-slate-300 hover:border-violet-400"
+                  }`}
+                  title="Pick 2-10 essays for a cross-essay coaching summary"
                 >
+                  <span className="material-symbols-outlined text-base">{batchMode ? "checklist" : "library_add_check"}</span>
+                  Batch Analyse {batchMode && `(${batchSelected.size}/${BATCH_CAP})`}
+                </button>
+              </div>
+            )}
+          </div>
+          {isAdmin && batchError && (
+            <div className="mb-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              Batch analyse failed: {batchError}
+            </div>
+          )}
+          {(() => {
+            const visibleRows = isAdmin
+              ? rows.filter(r => (r.language ?? "chinese") === listLanguage)
+              : rows;
+            if (loadingHistory) return <p className="text-sm text-[#43474f]">Loading…</p>;
+            if (visibleRows.length === 0) return (
+              <p className="text-sm text-[#43474f]">
+                No {isAdmin ? (listLanguage === "english" ? "English" : "Chinese") : ""} essays yet — upload one above to get started.
+              </p>
+            );
+            return (
+            <div className="space-y-2">
+              {visibleRows.map((r) => {
+                const isReady = r.status === "ready";
+                const isPicked = batchSelected.has(r.id);
+                const capReached = batchSelected.size >= BATCH_CAP && !isPicked;
+                const inBatchMode = isAdmin && batchMode;
+                const cardCls = `block bg-white border rounded-xl p-4 transition ${
+                  inBatchMode && isPicked
+                    ? "border-violet-400 ring-2 ring-violet-200"
+                    : "border-slate-200 hover:border-[#0040a0]/60 hover:shadow-sm"
+                }`;
+                const inner = (
                   <div className="flex justify-between items-start gap-3">
-                    <div className="min-w-0">
+                    {inBatchMode && (
+                      <div className="pt-0.5">
+                        {isReady ? (
+                          <input
+                            type="checkbox"
+                            checked={isPicked}
+                            disabled={capReached}
+                            onChange={() => toggleBatchPick(r.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-5 h-5 accent-violet-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                            title={capReached ? `Max ${BATCH_CAP} essays per batch` : ""}
+                          />
+                        ) : (
+                          <div className="w-5 h-5" />
+                        )}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-[#001e40] truncate">
                         {r.label ?? "(no label)"}
                         {r.studentTopic && <span className="ml-2 text-[#43474f] text-sm font-normal">— {r.studentTopic}</span>}
@@ -517,13 +717,39 @@ function EssayCoachContent() {
                       })()}
                     </div>
                   </div>
-                  {r.errorMessage && (
-                    <div className="text-xs text-red-600 mt-2 line-clamp-2">{r.errorMessage}</div>
-                  )}
-                </Link>
-              ))}
+                );
+                const errorBlock = r.errorMessage ? (
+                  <div className="text-xs text-red-600 mt-2 line-clamp-2">{r.errorMessage}</div>
+                ) : null;
+                if (inBatchMode) {
+                  // Batch mode: clicking the row toggles selection
+                  // instead of navigating. Ready rows only — non-ready
+                  // ones stay inert.
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => isReady && !capReached && toggleBatchPick(r.id)}
+                      className={cardCls + (isReady ? " cursor-pointer" : " cursor-default opacity-70")}
+                    >
+                      {inner}
+                      {errorBlock}
+                    </div>
+                  );
+                }
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/essay-coach/${parentId}/${r.id}?student=${studentId}`}
+                    className={cardCls}
+                  >
+                    {inner}
+                    {errorBlock}
+                  </Link>
+                );
+              })}
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 
@@ -549,4 +775,134 @@ function StatusBadge({ status }: { status: AttemptRow["status"] }) {
     status === "failed"    ? "bg-red-100 text-red-700"         :
                              "bg-slate-100 text-slate-600";
   return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${styles}`}>{status}</span>;
+}
+
+// Admin-only Batch Analyse result panel. Mirrors the one on
+// /admin/compo — Save persists to BatchCoachTip, Print opens the
+// dedicated print route. Once saved, the button row swaps from a
+// pending Save → a Print link + success banner.
+function BatchResultPanel({
+  result,
+  savedTipId,
+  saving,
+  onSave,
+  onClose,
+}: {
+  result: BatchAnalyseResult;
+  savedTipId: string | null;
+  saving: boolean;
+  onSave: () => void;
+  onClose: () => void;
+}) {
+  const isChinese = result.language === "chinese";
+  const isSaved = savedTipId !== null;
+  return (
+    <div className="bg-white border-2 border-violet-300 rounded-2xl p-5 space-y-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">
+            {isChinese ? "跨篇作文教练总结" : "Cross-essay coaching summary"}
+          </div>
+          <h3 className="text-lg font-bold text-[#001e40] mt-0.5">
+            {isChinese ? `${result.essaysAnalysed} 篇作文的共同模式` : `Patterns across ${result.essaysAnalysed} essays`}
+          </h3>
+          {result.overview && (
+            <p className="text-sm text-slate-700 mt-1.5 italic" style={isChinese ? { fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" } : undefined}>
+              {result.overview}
+            </p>
+          )}
+          {result.overviewEn && result.overviewEn !== result.overview && (
+            <p className="text-xs text-slate-500 mt-1 italic">{result.overviewEn}</p>
+          )}
+        </div>
+        <div className="flex gap-2 shrink-0">
+          {!isSaved ? (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "💾 Save this"}
+            </button>
+          ) : (
+            <a
+              href={`/print/batch-tip/${savedTipId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              🖨 Print this
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+      {isSaved && (
+        <div className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+          Saved to the covered essays. Open any of them to see this tip under &quot;Lumi&rsquo;s tip&quot;.
+        </div>
+      )}
+      {result.buckets.length === 0 && (
+        <p className="text-sm text-slate-500 italic">No patterns surfaced — try picking more essays.</p>
+      )}
+      <div className="space-y-3">
+        {result.buckets.map((b, bi) => {
+          const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
+          return (
+            <div key={bi} className={`border ${palette.border} rounded-xl overflow-hidden`}>
+              <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between gap-2`}>
+                <div className="min-w-0">
+                  <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
+                  {b.titleEn && b.titleEn !== b.title && (
+                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">{b.titleEn}</div>
+                  )}
+                </div>
+                <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded shrink-0`}>
+                  {b.advice.length} tip{b.advice.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="px-4 py-3 space-y-3 bg-white">
+                {b.advice.map((a, ai) => (
+                  <div key={ai}>
+                    <div className="text-sm font-bold text-[#001e40]">{a.tip}</div>
+                    {a.tipEn && a.tipEn !== a.tip && (
+                      <div className="text-xs text-slate-500 mt-0.5">{a.tipEn}</div>
+                    )}
+                    {a.why && <p className="text-xs text-slate-600 mt-1">{a.why}</p>}
+                    {a.whyEn && a.whyEn !== a.why && (
+                      <p className="text-[11px] text-slate-400 italic mt-0.5">{a.whyEn}</p>
+                    )}
+                    {a.examples.length > 0 && (
+                      <div className="mt-2 space-y-1.5">
+                        {a.examples.map((e, ei) => (
+                          <div key={ei} className="text-xs bg-slate-50 rounded-md px-2.5 py-2 space-y-1">
+                            {e.from && <div className="text-[10px] text-slate-500 uppercase tracking-wide">{e.from}</div>}
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-rose-500 font-bold shrink-0">−</span>
+                              <span className="text-slate-700 italic">&ldquo;{e.before}&rdquo;</span>
+                            </div>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-emerald-600 font-bold shrink-0">+</span>
+                              <span className="text-slate-800 font-medium">&ldquo;{e.after}&rdquo;</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

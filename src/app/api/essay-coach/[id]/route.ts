@@ -4,6 +4,7 @@
 //
 // Auth: caller must be the uploader of this attempt (or an admin).
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
@@ -28,7 +29,25 @@ export async function GET(
   const { id } = await params;
   const { row, status, error } = await loadOwned(id, auth.userId, auth.isAdmin);
   if (!row) return NextResponse.json({ error }, { status });
-  return NextResponse.json({ row });
+  // Admin-only for now: return any saved cross-essay coaching tips
+  // that cover this attempt. Parents will see this once the feature
+  // opens up — currently the UI on the parent path gates on isAdmin.
+  let tips: Array<{ id: string; createdAt: Date; language: string | null; attemptIds: unknown; analysis: unknown }> = [];
+  if (auth.isAdmin) {
+    tips = await prisma.$queryRaw<Array<{
+      id: string;
+      createdAt: Date;
+      language: string | null;
+      attemptIds: unknown;
+      analysis: unknown;
+    }>>(Prisma.sql`
+      SELECT id, "createdAt", language, "attemptIds", analysis
+      FROM batch_coach_tips
+      WHERE "attemptIds" @> ${JSON.stringify([id])}::jsonb
+      ORDER BY "createdAt" DESC
+    `);
+  }
+  return NextResponse.json({ row, tips });
 }
 
 export async function PATCH(
