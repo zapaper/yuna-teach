@@ -268,6 +268,12 @@ export default function CompoIndexPage() {
         <h1 className="text-2xl font-bold text-slate-900 mt-2">Compo Coach</h1>
       </div>
 
+      {batchResult && (
+        <div ref={batchPanelRef}>
+          <BatchResultPanel result={batchResult} onClose={() => { setBatchResult(null); setBatchSelected(new Set()); }} />
+        </div>
+      )}
+
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <h2 className="font-semibold text-slate-800">New composition</h2>
 
@@ -391,14 +397,30 @@ export default function CompoIndexPage() {
           >
             📷 Scan
           </button>
-          <button
-            type="button"
-            onClick={onAnalyse}
-            disabled={uploading || pageFiles.length === 0}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-          >
-            {uploading ? "Sending…" : "🚀 Analyse"}
-          </button>
+          {batchMode ? (
+            // Batch mode swaps the primary action: the upload-then-analyse
+            // button slot is repurposed to "Batch Analyse N essays" so the
+            // user has one obvious next step instead of hunting the
+            // sticky bottom bar.
+            <button
+              type="button"
+              onClick={runBatchAnalyse}
+              disabled={batchLoading || batchSelected.size < 2}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+              title={batchSelected.size < 2 ? "Pick 2+ ready essays below" : ""}
+            >
+              {batchLoading ? "Analysing…" : `🪄 Batch Analyse ${batchSelected.size} essay${batchSelected.size === 1 ? "" : "s"}`}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onAnalyse}
+              disabled={uploading || pageFiles.length === 0}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+            >
+              {uploading ? "Sending…" : "🚀 Analyse"}
+            </button>
+          )}
         </div>
 
         {/* ── Thumbnails of staged pages ── */}
@@ -459,12 +481,6 @@ export default function CompoIndexPage() {
           <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
         )}
       </div>
-
-      {batchResult && (
-        <div ref={batchPanelRef}>
-          <BatchResultPanel result={batchResult} onClose={() => { setBatchResult(null); setBatchSelected(new Set()); }} />
-        </div>
-      )}
 
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -563,24 +579,6 @@ export default function CompoIndexPage() {
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {/* Sticky batch-analyse action bar — appears at the bottom of
-            the viewport when 2+ essays are selected. */}
-        {batchMode && batchSelected.size >= 2 && !batchResult && (
-          <div className="sticky bottom-4 mt-4 z-10">
-            <div className="bg-violet-600 text-white rounded-xl shadow-lg px-5 py-3 flex items-center justify-between">
-              <span className="text-sm font-semibold">{batchSelected.size} essay{batchSelected.size === 1 ? "" : "s"} selected</span>
-              <button
-                type="button"
-                onClick={runBatchAnalyse}
-                disabled={batchLoading}
-                className="px-4 py-2 rounded-lg bg-white text-violet-700 text-sm font-bold hover:bg-violet-50 disabled:opacity-60"
-              >
-                {batchLoading ? "Analysing…" : `🪄 Batch Analyse ${batchSelected.size} essays`}
-              </button>
-            </div>
           </div>
         )}
 

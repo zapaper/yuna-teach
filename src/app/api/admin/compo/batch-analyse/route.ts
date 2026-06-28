@@ -114,45 +114,57 @@ Look for PATTERNS that repeat across the essays — not one-off mistakes. Spot t
     : `You are a Singapore PSLE writing coach. Below are ${attempts.length} compositions written by the same student (mixed Chinese + English). Look for patterns that repeat across both languages.`;
 
   const outputFmt = `【Output — strict JSON】
+
+⚠️ HARD STRUCTURAL REQUIREMENT — the FIRST bucket in your output MUST be a CONTENT / PLOT / DESCRIPTION bucket. This is non-negotiable. Language / Vocabulary / Sentence Structure buckets are valuable but they go AFTER the content bucket, not instead of it. If the first bucket in your output isn't about plot / climax / description / character emotion / resolution, you have failed this task.
+
+Why this rule: language-only coaching pushes the student toward polished sentences of a thin story. The bigger PSLE marks come from a story that builds, peaks, and lands — most students need content coaching more than they need another grammar reminder.
+
+The content bucket title must be ONE of: "Content", "Plot Development", "Description", "Climax & Build-up", "Resolution", "Emotion & Character".
+
+Inside the content bucket, the advice must focus on STORY-CRAFT problems you see across the essays. Use these angles (pick the ones that match this student):
+  · Climax is rushed / under-described — the kid jumps from rising action to "and then the X happened" in one line. Coach them to slow it down with senses (sight, sound, body reaction) for 3-4 sentences.
+  · No build-up before the climax — the disaster / discovery / decision arrives flat. Coach a quiet moment of foreboding, hope, or normalcy that contrasts with what's coming.
+  · Inner thoughts / emotion are missing at the turning point — the kid narrates action but the character is opaque. Coach them to drop in what the character is thinking / fearing / hoping.
+  · Resolution wraps up in one line — "And we lived happily ever after." Coach the character to REFLECT (what changed in them? what did they learn? what's different now?).
+  · Conflict is shallow — no real choice or dilemma. Coach surfacing a moment where the character has to decide between two things they care about.
+
+You may include OTHER content-shaped tips beyond this list if they fit, but the bucket MUST exist as bucket #1.
+
 {
   "overview": "<1-2 sentence summary of the student's overall pattern>",
   "buckets": [
     {
-      "title": "<one of: Content / Plot Development / Language / Vocabulary / Sentence Structure / Flow & Transitions / Description / Opening Hook / Climax / Resolution>",
+      "title": "<bucket #1 MUST be one of: Content / Plot Development / Description / Climax & Build-up / Resolution / Emotion & Character>",
       "color": "<one of: blue / emerald / amber / rose / violet / sky>",
       "advice": [
         {
-          "tip": "<short imperative headline, 5-10 words, e.g. 'Open with a sensory hook'>",
-          "why": "<1 sentence explaining the pattern you noticed across the essays>",
+          "tip": "<short imperative headline, 5-10 words, e.g. 'Slow down the climax with sensory detail'>",
+          "why": "<1 sentence — quote/cite the pattern you noticed across the essays>",
           "examples": [
             {
               "from": "Essay <N>",
-              "before": "<short snippet from the student's actual text — verbatim>",
-              "after": "<a concrete improved version of that snippet>"
+              "before": "<verbatim short snippet from the student's actual text — for content advice this is the rushed climax line, the flat resolution, etc.>",
+              "after": "<a concrete improved version showing the expansion — for content advice this is the same moment expanded into 2-4 sentences with senses / thought / pacing>"
             }
           ]
         }
       ]
     }
+    // Buckets 2+ can be Language / Vocabulary / Sentence Structure / Flow / Opening Hook etc.
   ]
 }
 
 Rules:
 - 3-5 buckets total. Don't pad. Quality over quantity.
-- **AT LEAST ONE bucket MUST cover CONTENT / PLOT / DESCRIPTION** — i.e. *what* the student is writing, not just *how* they word it. Language buckets alone are a half-coaching. Look at the climax, the build-up to it, the emotional payoff, and the resolution. If the student keeps rushing the climax, skipping the emotional reaction, or under-describing the key moment, SAY SO with a concrete fix. Examples of valid content-bucket tips:
-  · "Slow down and describe the climax with the senses (sight, sound, what the character felt in their body)"
-  · "Show the character's inner thoughts at the turning point — don't just narrate the action"
-  · "The build-up before the climax is too short — add a quiet moment of foreboding or hope before the disaster lands"
-  · "The resolution wraps up in one line — let the character reflect, change, or learn"
+- Bucket #1 MUST be content/plot/description per the hard rule above.
 - 2-3 advice items per bucket maximum.
-- Each advice MUST cite 1-2 examples from the student's actual essays (verbatim "before" + your "after"). For CONTENT examples the "before" can be the rushed climax line and the "after" shows the same moment expanded with description / thought / sensory detail.
+- Each advice MUST cite 1-2 examples from the student's actual essays (verbatim "before" + your "after").
 - Pick a different colour per bucket so the rendered output is visually scannable.
 - ${dominantLang === "english"
     ? "Write the tip / why / after fields in English."
     : dominantLang === "chinese"
     ? "建议、原因、改写都用中文。引用学生原文也保留中文。"
     : "Match the language of each example to the source essay."}
-- Common-trap tips that often help PSLE students: opening hook, sensory description over plain narration, varying sentence structures, emotional dilemma in the conflict, planning the resolution before writing the climax, idiomatic phrases used in context. Pick the ones that ACTUALLY fit this student's pattern — don't list them all.
 
 No markdown.`;
 
