@@ -189,7 +189,8 @@ function DetailContent() {
     return wrongWords;
   }, [wrongWords, highlight]);
 
-  const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight), [ocrText, visibleForHighlight]);
+  const isEnglishRow = row?.language === "english";
+  const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight, isEnglishRow), [ocrText, visibleForHighlight, isEnglishRow]);
   const cleanHtml  = useMemo(() => renderClean(ocrText, visibleForHighlight),  [ocrText, visibleForHighlight]);
 
   const elevatedDraft = row?.recommendations?.elevatedDraft ?? "";
@@ -563,13 +564,17 @@ function findRanges(ocr: string, ws: WrongWord[]): Range[] {
   return ranges.sort((a, b) => a.start - b.start);
 }
 
-function renderMarked(ocr: string, ws: WrongWord[]): string {
+function renderMarked(ocr: string, ws: WrongWord[], isEnglish = false): string {
   const ranges = findRanges(ocr, ws);
   let out = "";
   let pos = 0;
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
-    if (r.kind === "awkward") {
+    // English ALWAYS uses whole-word strikethrough + bold replacement,
+    // same as the "awkward" branch. The character-level diff with red
+    // circles makes sense for Chinese (one wrong stroke in a 2-3 char
+    // 词) but is noise on English words like "recieve" → "receive".
+    if (isEnglish || r.kind === "awkward") {
       out += `<span style="color:#b91c1c;text-decoration:line-through">${escapeHtml(r.original)}</span>`;
       out += ` <span style="color:#b91c1c;font-weight:700">${escapeHtml(r.suggestion)}</span>`;
     } else {

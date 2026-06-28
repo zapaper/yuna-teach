@@ -196,7 +196,8 @@ export default function CompoDetailPage() {
     return wrongWords;
   }, [wrongWords, highlight]);
 
-  const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight), [ocrText, visibleForHighlight]);
+  const isEnglishRow = row?.language === "english";
+  const markedHtml = useMemo(() => renderMarked(ocrText, visibleForHighlight, isEnglishRow), [ocrText, visibleForHighlight, isEnglishRow]);
   const cleanHtml  = useMemo(() => renderClean(ocrText, visibleForHighlight),  [ocrText, visibleForHighlight]);
 
   // Client-side substitutions the user has applied via the popup
@@ -763,13 +764,18 @@ function findRanges(ocr: string, ws: WrongWord[]): Range[] {
   return ranges.sort((a, b) => a.start - b.start);
 }
 
-function renderMarked(ocr: string, ws: WrongWord[]): string {
+function renderMarked(ocr: string, ws: WrongWord[], isEnglish = false): string {
   const ranges = findRanges(ocr, ws);
   let out = "";
   let pos = 0;
   for (const r of ranges) {
     out += escapeHtml(ocr.slice(pos, r.start));
-    if (r.kind === "awkward") {
+    // English ALWAYS gets the whole-word strikethrough + replacement
+    // treatment (same as "awkward"). The character-level diff with the
+    // red circle is a Chinese-specific affordance — one wrong stroke
+    // in a 2-3 character 词 — but on English words like "recieve" the
+    // circle on every wrong letter is noise.
+    if (isEnglish || r.kind === "awkward") {
       // Awkward = clumsy phrasing rewrite. Strike out the whole
       // original phrase and bold the new one — the rewrite IS the
       // marking point, char-level diff doesn't help.
