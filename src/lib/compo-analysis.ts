@@ -430,7 +430,33 @@ export async function readFileForGemini(relPath: string): Promise<{ data: string
 // For text-bearing formats (.txt / .docx), pull plain text directly
 // so the OCR Gemini call can be skipped. .docx uses mammoth (handles
 // modern Word; older .doc not supported — kid would need to convert).
-async function readTextDirectly(relPath: string): Promise<string | null> {
+// Detect which lane the OCR'd text belongs in. Used by both
+// orchestrators to auto-correct a mis-toggled upload (e.g. user
+// selected "chinese" then uploaded an English compo). Tally CJK
+// vs Latin letter counts; if one side dominates, route there.
+// Mixed (a Chinese essay with a couple of English place-names) keeps
+// the user's chosen lane.
+export function detectCompoLanguage(text: string): "chinese" | "english" | "mixed" {
+  if (text.length < 20) return "mixed";
+  let cjk = 0;
+  let latin = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0);
+    if (code === undefined) continue;
+    // CJK Unified Ideographs + Extension A. Covers 99%+ of the
+    // characters in a primary-school 华文 composition.
+    if ((code >= 0x4e00 && code <= 0x9fff) || (code >= 0x3400 && code <= 0x4dbf)) cjk++;
+    else if ((code >= 0x41 && code <= 0x5a) || (code >= 0x61 && code <= 0x7a)) latin++;
+  }
+  const total = cjk + latin;
+  if (total < 20) return "mixed";
+  const cjkRatio = cjk / total;
+  if (cjkRatio > 0.6) return "chinese";
+  if (cjkRatio < 0.05) return "english";
+  return "mixed";
+}
+
+export async function readTextDirectly(relPath: string): Promise<string | null> {
   const abs = path.join(COMPO_DIR, relPath);
   const ext = path.extname(relPath).toLowerCase();
   if (ext === ".txt") {
@@ -1731,6 +1757,33 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
     return analyseEnglishCompoAttempt(attemptId);
   }
 
+  // Pre-OCR text-only sniff for the mis-toggled-upload case. When the
+  // attempt is a .txt or .docx we already know the full text without
+  // any Gemini call — peek at it, and if the user toggled "chinese"
+  // but the file is actually English prose, flip language=english on
+  // the row and delegate to the English orchestrator instead of
+  // running the Chinese pipeline against an English essay (which
+  // produces 0 wrong-words and a confused 0/40 critique).
+  // Image-bearing attempts get the same detect AFTER OCR completes;
+  // see the `detectCompoLanguage(ocrText)` check at the end of stage 1.
+  if (!isTextSeeded) {
+    let peeked: string | null = null;
+    for (const p of compositionImagePaths) {
+      const t = await readTextDirectly(p);
+      if (t === null) { peeked = null; break; }
+      peeked = (peeked ?? "") + (peeked ? "\n\n" : "") + t;
+    }
+    if (peeked && detectCompoLanguage(peeked) === "english") {
+      console.log(`${tag} language auto-detect: text-only files are English — switching lane`);
+      await prisma.compoAttempt.update({
+        where: { id: attemptId },
+        data: { language: "english", englishComponent: attempt.englishComponent ?? "continuous" },
+      });
+      const { analyseEnglishCompoAttempt } = await import("@/lib/english-compo-analysis");
+      return analyseEnglishCompoAttempt(attemptId);
+    }
+  }
+
   try {
     // 1. OCR (skipped when text-seeded)
     let ocrText: string;
@@ -1755,6 +1808,19 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
         where: { id: attemptId },
         data: { ocrText, ocrTextWithMarkings, ocrQuestionText },
       });
+    }
+
+    // Post-OCR language sniff — handle the image-upload case (where the
+    // pre-OCR fast path couldn't peek). If Gemini just transcribed an
+    // English handwritten essay, route to the English pipeline now.
+    if (detectCompoLanguage(ocrText) === "english") {
+      console.log(`${tag} language auto-detect: OCR'd text is English — switching lane`);
+      await prisma.compoAttempt.update({
+        where: { id: attemptId },
+        data: { language: "english", englishComponent: attempt.englishComponent ?? "continuous" },
+      });
+      const { analyseEnglishCompoAttempt } = await import("@/lib/english-compo-analysis");
+      return analyseEnglishCompoAttempt(attemptId);
     }
 
     // 2. Wrong words

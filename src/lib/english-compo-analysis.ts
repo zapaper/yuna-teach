@@ -29,7 +29,7 @@ import fs from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
-import { safeJsonParse, COMPO_DIR, readFileForGemini } from "@/lib/compo-analysis";
+import { safeJsonParse, COMPO_DIR, readFileForGemini, readTextDirectly, detectCompoLanguage } from "@/lib/compo-analysis";
 
 const OCR_MODEL = "gemini-3.1-pro-preview";
 const ANALYSIS_MODEL = "gemini-3.1-pro-preview";
@@ -111,6 +111,24 @@ async function runEnglishOcr(
   compositionImagePaths: string[],
   questionImagePath: string | null,
 ): Promise<{ ocrText: string; ocrQuestionText: string | null }> {
+  // Fast path — if every composition file is a text-bearing format
+  // (.txt or .docx), skip the Gemini OCR call entirely. Without this
+  // the .docx gets streamed to Gemini as an inlineData blob and the
+  // model rejects with 400 INVALID_ARGUMENT "Unable to process input
+  // image". Mirrors the runOcr fast path in compo-analysis.ts.
+  const textParts: string[] = [];
+  let allTextOnly = compositionImagePaths.length > 0;
+  for (const p of compositionImagePaths) {
+    const t = await readTextDirectly(p);
+    if (t === null) { allTextOnly = false; break; }
+    textParts.push(t);
+  }
+  if (allTextOnly) {
+    const ocrText = textParts.join("\n\n").trim();
+    console.log(`[english-compo:ocr] text-only fast path: skipped Gemini, ${ocrText.length} chars from ${compositionImagePaths.length} file(s)`);
+    return { ocrText, ocrQuestionText: null };
+  }
+
   const compParts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> = [];
   for (const p of compositionImagePaths) {
     const img = await readFileForGemini(p);
@@ -670,6 +688,20 @@ export async function analyseEnglishCompoAttempt(attemptId: string): Promise<voi
       where: { id: attemptId },
       data: { ocrText, ocrQuestionText },
     });
+
+    // Post-OCR language sniff — mirror of the Chinese path. If the
+    // user toggled "english" but the file is actually Chinese, flip
+    // back and delegate. Guards against infinite ping-pong by only
+    // re-routing on a CLEAR Chinese signal (CJK ratio > 60%).
+    if (detectCompoLanguage(ocrText) === "chinese") {
+      console.log(`${tag} language auto-detect: OCR'd text is Chinese — switching lane`);
+      await prisma.compoAttempt.update({
+        where: { id: attemptId },
+        data: { language: "chinese" },
+      });
+      const { analyseCompoAttempt } = await import("@/lib/compo-analysis");
+      return analyseCompoAttempt(attemptId);
+    }
 
     // 2. Wrong words
     console.log(`${tag} stage 2/4: wrong-words`);
