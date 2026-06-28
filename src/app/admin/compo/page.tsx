@@ -132,12 +132,14 @@ export default function CompoIndexPage() {
       return next;
     });
   };
+  const batchPanelRef = useRef<HTMLDivElement | null>(null);
   const runBatchAnalyse = async () => {
     if (batchSelected.size < 2) return;
     setBatchLoading(true);
     setBatchError(null);
     setBatchResult(null);
     try {
+      console.log(`[batch-analyse] POST with ${batchSelected.size} attemptIds…`);
       const res = await fetch("/api/admin/compo/batch-analyse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,7 +147,14 @@ export default function CompoIndexPage() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      console.log(`[batch-analyse] result:`, j);
       setBatchResult(j as BatchAnalyseResult);
+      // Scroll the freshly-rendered panel into view — the sticky button
+      // was at the bottom of the viewport; the result lands BELOW it,
+      // and on a long list of attempts the user might not notice.
+      setTimeout(() => {
+        batchPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
     } catch (e) {
       setBatchError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -451,6 +460,12 @@ export default function CompoIndexPage() {
         )}
       </div>
 
+      {batchResult && (
+        <div ref={batchPanelRef}>
+          <BatchResultPanel result={batchResult} onClose={() => { setBatchResult(null); setBatchSelected(new Set()); }} />
+        </div>
+      )}
+
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-slate-800">Recent attempts</h2>
@@ -574,8 +589,6 @@ export default function CompoIndexPage() {
             Batch analyse failed: {batchError}
           </div>
         )}
-
-        {batchResult && <BatchResultPanel result={batchResult} onClose={() => { setBatchResult(null); setBatchSelected(new Set()); }} />}
       </div>
 
       {/* ── Scanner overlay ── */}

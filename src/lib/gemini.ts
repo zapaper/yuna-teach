@@ -4634,9 +4634,11 @@ For EACH question, extract:
 - errorWord: the underlined/erroneous word the student must correct` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
   For Synthesis: the stem MUST contain TWO things in order:
     1. The original printed source sentence(s) the student is rewriting (the line above the answer area). NEVER omit this — even if the OCR text only shows the source sentence on the line above, you must copy it into the stem.
-    2. A blank line, then the answer area template with **bold keyword** + ____________________ underscores (one or two lines).
-  Full example stem (use this exact shape):
-  "John drew a picture of his dog. Then he framed it up.\\n\\n**Instead of** ________________________________\\n________________________________"
+    2. A blank line, then the answer area template with **bold keyword** + ____________________ underscores. EMIT EXACTLY ONE BLANK PER SLOT — even if the printed page wraps the answer area across two lines (two rows of underscores after the keyword), collapse them into a single ____________________ run in the stem. Two consecutive underscore runs confuse the marker: it sees the keyword followed by two blanks and can't connect the keyword to either side cleanly. Keep one line of underscores, never two.
+  Full example stem (use this exact shape — note: ONE blank after the keyword, not two):
+  "John drew a picture of his dog. Then he framed it up.\\n\\n**Instead of** ________________________________"
+  For "blank-keyword-blank" shapes (where the keyword sits in the MIDDLE), the same rule applies — one run of underscores on each side, not two:
+  "All the children wanted to go. Tom did not want to go.\\n\\n________________________________ **except** ________________________________"
   If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
   For Comprehension OEQ: include the FULL question text in RICH TEXT format.
   - **SUBPART LABELS — use parenthesised form (a) (b) (c)**: when a question has labelled subparts in the stem, ALWAYS render them as "(a)" / "(b)" / "(c)" with parentheses, never as bare "a)" / "b)" / "c)". The marker keys answer-grading off "(a)" / "(b)", so a bare "a)" in the stem mismatches the answer key. If the OCR text shows "a) Why was the…" or "a. Why was the…" rewrite to "(a) Why was the…".
