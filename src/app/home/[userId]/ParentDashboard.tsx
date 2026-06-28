@@ -2604,7 +2604,7 @@ export default function ParentDashboard({
   const progressNavClick = () => setActiveView("lumi");
   const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
     { icon: "home", label: "Home", onClick: () => setActiveView("progress"), active: activeView === "progress" },
-    { icon: "insights", label: "Progress", onClick: progressNavClick, active: activeView === "lumi" },
+    { icon: "insights", label: "Progress - Lumi", onClick: progressNavClick, active: activeView === "lumi" },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },

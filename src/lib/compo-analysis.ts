@@ -180,6 +180,70 @@ function repairJson(s: string): string {
     if (j === i + 1) continue;
     out += ",";
   }
+
+  // 5. Balanced-close pass — handles Gemini truncation at the model's
+  //    max-output-tokens limit. Walk the string tracking the bracket
+  //    stack + string-open state; if anything is unclosed at the end,
+  //    close it. Specifically handles:
+  //      - response cut mid-string  → close the quote
+  //      - response cut after `:`   → insert null
+  //      - dangling trailing comma  → strip
+  //      - unclosed { [             → pop the stack in LIFO order
+  //    Means a 1-byte truncation (most common: missing outer `}`) still
+  //    parses with all the fields intact. Larger truncations lose the
+  //    cut-off tail but recover everything that did make it through.
+  return closeUnbalanced(out);
+}
+
+// Last-resort repair: produce a structurally-balanced JSON document
+// from a string that may have been truncated mid-response. See step 5
+// in repairJson for the cases handled.
+function closeUnbalanced(s: string): string {
+  const stack: ("{" | "[")[] = [];
+  let inStr = false;
+  let escaped = false;
+  let openStringAt = -1; // index where the most recent string was opened
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (escaped) { escaped = false; continue; }
+    if (c === "\\") { escaped = true; continue; }
+    if (c === '"') {
+      if (!inStr) openStringAt = i;
+      inStr = !inStr;
+      continue;
+    }
+    if (inStr) continue;
+    if (c === "{" || c === "[") stack.push(c);
+    else if (c === "}" || c === "]") {
+      const expect = c === "}" ? "{" : "[";
+      if (stack[stack.length - 1] === expect) stack.pop();
+    }
+  }
+  if (!inStr && stack.length === 0) return s;
+  let out = s;
+  // Close any unterminated string. If the open quote was at a KEY
+  // position (right after `{` or `,` inside an object), also insert
+  // `:null` so the property has a value — otherwise we'd produce
+  // `{"foo":"bar","baz"}` which still doesn't parse.
+  if (inStr) {
+    let j = openStringAt - 1;
+    while (j >= 0 && /\s/.test(s[j])) j--;
+    const prev = j >= 0 ? s[j] : "";
+    const stackTop = stack[stack.length - 1];
+    const isKeyPosition = stackTop === "{" && (prev === "{" || prev === ",");
+    out += isKeyPosition ? '":null' : '"';
+  }
+  // Strip trailing whitespace + dangling commas before closing structure.
+  out = out.replace(/\s+$/, "");
+  while (out.endsWith(",")) out = out.slice(0, -1).replace(/\s+$/, "");
+  // Cut off right after a key+colon ("foo":) — append null so the
+  // property has a value before we close.
+  if (out.endsWith(":")) out += "null";
+  // Now close brackets LIFO.
+  while (stack.length > 0) {
+    const top = stack.pop();
+    out += top === "{" ? "}" : "]";
+  }
   return out;
 }
 
@@ -760,7 +824,12 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: WRONG_WORDS_PROMPT(ocrText) }] }],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
+    // Wrong-words returns an array of {original, suggestion, kind,
+    // reason} — a heavily-corrected essay can hit 20-30 entries
+    // each with a 1-2 sentence reason. Default cap risks truncating
+    // the last few entries (or the closing `]`) which would lose
+    // marks on the kid's lower paragraphs.
+    config: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 8192 },
   }, 2, 5000, "compo-wrong-words");
   console.log(`[compo:wrong-words] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "[]").trim();
@@ -843,13 +912,21 @@ ${detectedQuestionText}
 【题意/图意匹配 — 严格规则 (因为我们已经知道题目了)】
 判断作文是否符合题目 / 图意:
 - **完全离题** (作文情节、人物、地点、主题与题目 / 图意完全无关): **内容 (Content) 直接给 0 分**。在 contentNotes 里说明哪里离题。其他两轴照常评。
-- **部分离题** (主体故事方向对，但有重要情节 / 角色 / 寓意偏离题目要求): **内容 (Content) 扣 10 分** (从你按其他标准给的内容分数中再减 10，下限是 0)。在 contentNotes 里说明偏离了什么。
-- **完全符合**: 按下面的常规打分要点评。
+- **部分离题** (扣 10 分): **以下任一情况即算部分离题** (从你按其他标准给的内容分数中再减 10，下限是 0)。在 contentNotes 里**第一句**就说明 "部分离题" 并指出偏离了什么。
+   (a) **主体故事方向对，但有重要情节 / 角色 / 寓意偏离题目要求** — 例如题目是 "勇敢" 但通篇没体现勇敢的行动。
+   (b) **题目对作文不合适 — "题目像是后贴上去的"**。最关键的一题。
+       - **判断核心**: 假设有一位读者**没看过题目**，他读完作文后，会自然觉得 "原来这篇文章就叫做《XXX》"，还是会觉得 "这个题目和文章有点对不上 / 题目太大 / 文章和题目只擦边"？后者就是部分离题。
+       - 篇幅不是绝对标准 — 题目主体即使只占一小段，只要那一段是故事的**真正核心 / 高潮 / 转折点 / 寓意所在**，题目就贴合，仍算完全符合。例如题目「一个珍贵的礼物」— 礼物即使只在结尾出现，但它若是整篇故事情感的归结、寓意的载体、转折的关键 → 完全符合。
+       - 反过来，若题目主体只是**顺带提及、可有可无、不影响主线**，作文真正的核心是别的东西 (例如一天的经历、一场比赛、一段友情)，那题目就是 "挂上去的"，→ 部分离题。
+       - **自检法**: 把作文中所有提到题目主体的句子整段删掉，剩下的故事是否还能独立成立、依然有重心？如果还能 → 部分离题。
+   (c) **看图作文缺一幅图的情节** — 算部分离题。
+- **完全符合**: 题目能自然地概括作文的核心 (即使题目主体出现的篇幅不大，只要它是故事的真正重心 / 寓意 / 转折)，→ 按下面的常规打分要点评。
 
 判断时:
-- 看图作文必须 *扣紧每幅图* — 缺一幅图的情节就算部分离题。
-- 题目里的关键词 (例如 "勇敢"、"合作"、"明白了一个道理") 必须在作文里有明显呼应；只有情节没有点题也算部分离题。
-- 不要因为风格不同就算离题 — 只要情节方向和题目对得上即可。
+- 不要因为风格不同就算离题 — 只要题目能自然概括作文的核心即可。
+- 不要因为表达不够深就算离题 — 那是词汇 / 句子两轴的事，不是内容轴。
+- 不要单看篇幅就判离题 — 真正的判断是 "题目是否自然贴合作文"。
+- **判断顺序**: 先做 (a)(b)(c) 三项的自检；任何一项命中就标 "部分离题"，**不要因为作文写得通顺、字数够就放过**。这是 PSLE 老师扣分最常见的地方。
 ` : "";
 
   return `你是新加坡 PSLE 华文作文 (Paper 1 写作) 阅卷老师。请按 PSLE 40 分制评分学生作文。${questionBlock}
@@ -898,6 +975,7 @@ ${ocrText}
 - 以上面的范文为 40 分基准，对比学生作文找出差距。
 - 评分要符合小学高年级水平 — 不要拿成年人标准，但也要诚实指出不足。
 - 每个评语 (Notes) 用 1-2 个简短句子，中文，<= 60 字。
+- **如果你判断 "部分离题" 或 "完全离题"**: contentNotes 的 *第一句* 必须明确写 "部分离题:" 或 "完全离题:"，然后说明哪里偏离 (例如 "部分离题: 题目是'珍贵的礼物'，但礼物只在最后一段简短出现，故事核心其实在 XX 上。")。overallSummary 也要在最开头点出 "题目契合度偏弱" 这个关键问题。
 
 【输出格式 — 严格 JSON】每条 Notes 都需要中文 + 英文 (家长版)。
 {
@@ -955,7 +1033,12 @@ export async function critiqueComposition(
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: CRITIQUE_PROMPT(ocrText, modelEssays, studentTopic, effectiveQuestionText) }] }],
-    config: { responseMimeType: "application/json", temperature: 0.2 },
+    // Critique ships full rubric + cleanRewrite (3 axes + notes ×
+    // CN/EN + summary + benchmarkYears). With long contentNotes for
+    // 部分离题 cases that explain the deviation, default model cap
+    // truncates the trailing `}` and the JSON parser blows up. 12K
+    // is roomy without paying for capacity the stage never uses.
+    config: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 12000 },
   }, 2, 5000, "compo-critique");
   console.log(`[compo:critique] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
@@ -1300,7 +1383,10 @@ export async function recommend(
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: RECOMMEND_PROMPT(ocrText, critique, playbookSummary) }] }],
-    config: { responseMimeType: "application/json", temperature: 0.3 },
+    // Recommend returns structural[3] + language[5] each with CN/EN
+    // copy + example snippets. Easily 4-5K tokens before the closing
+    // `]}`. Cap matches the elevate stage so neither truncates.
+    config: { responseMimeType: "application/json", temperature: 0.3, maxOutputTokens: 12000 },
   }, 2, 5000, "compo-recommend");
   console.log(`[compo:recommend] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "").trim();
