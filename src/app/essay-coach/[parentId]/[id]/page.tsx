@@ -312,7 +312,7 @@ function DetailContent() {
         {(row.status === "analysing" || row.status === "uploaded") && (
           <ProgressTracker row={row} />
         )}
-        {row.status === "failed" && (
+        {row.status === "failed" && !reanalysing && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-800">
             <strong>Something went wrong:</strong> {row.errorMessage ?? "(no detail)"}. Tap <em>Re-analyse</em> to retry.
           </div>
