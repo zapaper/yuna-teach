@@ -61,6 +61,12 @@ export default function CompoIndexPage() {
   const [label, setLabel] = useState("");
   const [studentTopic, setStudentTopic] = useState("");
   const [optionType, setOptionType] = useState<"option1" | "option2" | "">("");
+  // Language router. "chinese" stays the default for back-compat with
+  // every existing admin workflow. Switching to "english" swaps the
+  // Option-type picker for a Continuous / Situational picker and tells
+  // the analyser to route through english-compo-analysis.ts.
+  const [language, setLanguage] = useState<"chinese" | "english">("chinese");
+  const [englishComponent, setEnglishComponent] = useState<"continuous" | "situational" | "">("");
   const [compareToMarkings, setCompareToMarkings] = useState(false);
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
@@ -132,7 +138,12 @@ export default function CompoIndexPage() {
       const fd = new FormData();
       if (label) fd.append("label", label);
       if (studentTopic) fd.append("studentTopic", studentTopic);
-      if (optionType) fd.append("optionType", optionType);
+      fd.append("language", language);
+      if (language === "english") {
+        if (englishComponent) fd.append("englishComponent", englishComponent);
+      } else if (optionType) {
+        fd.append("optionType", optionType);
+      }
       if (compareToMarkings) fd.append("compareToMarkings", "true");
       if (questionFile) fd.append("question", questionFile);
       for (const p of pageFiles) fd.append("pages", p.file);
@@ -149,7 +160,7 @@ export default function CompoIndexPage() {
       }
 
       pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
-      setLabel(""); setStudentTopic(""); setOptionType("");
+      setLabel(""); setStudentTopic(""); setOptionType(""); setEnglishComponent("");
       setCompareToMarkings(false);
       setQuestionFile(null); setPageFiles([]);
       router.push(`/admin/compo/${row.id}`);
@@ -191,18 +202,46 @@ export default function CompoIndexPage() {
           </label>
         </div>
 
-        <label className="block">
-          <span className="text-xs font-medium text-slate-600">Option type</span>
-          <select
-            className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-            value={optionType}
-            onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
-          >
-            <option value="">Unknown / not sure</option>
-            <option value="option1">Option 1 (topic only)</option>
-            <option value="option2">Option 2 (picture series)</option>
-          </select>
-        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="text-xs font-medium text-slate-600">Language</span>
+            <select
+              className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as "chinese" | "english")}
+            >
+              <option value="chinese">Chinese (华文)</option>
+              <option value="english">English</option>
+            </select>
+          </label>
+          {language === "english" ? (
+            <label className="block">
+              <span className="text-xs font-medium text-slate-600">Component</span>
+              <select
+                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                value={englishComponent}
+                onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
+              >
+                <option value="">Unknown / not sure</option>
+                <option value="continuous">Continuous Writing (36 marks)</option>
+                <option value="situational">Situational Writing (14 marks)</option>
+              </select>
+            </label>
+          ) : (
+            <label className="block">
+              <span className="text-xs font-medium text-slate-600">Option type</span>
+              <select
+                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                value={optionType}
+                onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
+              >
+                <option value="">Unknown / not sure</option>
+                <option value="option1">Option 1 (topic only)</option>
+                <option value="option2">Option 2 (picture series)</option>
+              </select>
+            </label>
+          )}
+        </div>
 
         <label className="block">
           <span className="text-xs font-medium text-slate-600">Question scan (optional — prompt or picture series, image or PDF)</span>

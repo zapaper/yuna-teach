@@ -69,6 +69,13 @@ export async function POST(req: NextRequest) {
   const studentTopic = ((form.get("studentTopic") as string | null) ?? "").trim() || null;
   const optionTypeRaw = ((form.get("optionType") as string | null) ?? "").trim();
   const optionType = optionTypeRaw === "option1" || optionTypeRaw === "option2" ? optionTypeRaw : null;
+  const languageRaw = ((form.get("language") as string | null) ?? "").trim().toLowerCase();
+  const language = languageRaw === "english" || languageRaw === "chinese" ? languageRaw : null;
+  const englishComponentRaw = ((form.get("englishComponent") as string | null) ?? "").trim().toLowerCase();
+  const englishComponent =
+    language === "english" && (englishComponentRaw === "continuous" || englishComponentRaw === "situational")
+      ? englishComponentRaw
+      : null;
   const compareToMarkings = String(form.get("compareToMarkings") ?? "").toLowerCase() === "true";
   const pageEntries = form.getAll("pages");
 
@@ -84,6 +91,8 @@ export async function POST(req: NextRequest) {
       label,
       studentTopic,
       optionType,
+      language,
+      englishComponent,
       compareToMarkings,
       compositionImagePaths: [],
       status: "uploaded",

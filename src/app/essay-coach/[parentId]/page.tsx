@@ -89,6 +89,8 @@ function EssayCoachContent() {
   const [label, setLabel] = useState("");
   const [studentTopic, setStudentTopic] = useState("");
   const [optionType, setOptionType] = useState<"option1" | "option2" | "">("");
+  const [language, setLanguage] = useState<"chinese" | "english">("chinese");
+  const [englishComponent, setEnglishComponent] = useState<"continuous" | "situational" | "">("");
   const [compareToMarkings, setCompareToMarkings] = useState(false);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -199,7 +201,12 @@ function EssayCoachContent() {
       fd.append("studentId", studentId);
       if (label) fd.append("label", label);
       if (studentTopic) fd.append("studentTopic", studentTopic);
-      if (optionType) fd.append("optionType", optionType);
+      fd.append("language", language);
+      if (language === "english") {
+        if (englishComponent) fd.append("englishComponent", englishComponent);
+      } else if (optionType) {
+        fd.append("optionType", optionType);
+      }
       if (compareToMarkings) fd.append("compareToMarkings", "true");
       for (const p of pageFiles) fd.append("pages", p.file);
 
@@ -213,7 +220,7 @@ function EssayCoachContent() {
         throw new Error(analyseRes.error);
       }
       pageFiles.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
-      setStudentTopic(""); setOptionType("");
+      setStudentTopic(""); setOptionType(""); setEnglishComponent("");
       setCompareToMarkings(false);
       setPageFiles([]);
       router.push(`/essay-coach/${parentId}/${row.id}?student=${studentId}`);
@@ -313,18 +320,46 @@ function EssayCoachContent() {
             </label>
           </div>
 
-          <label className="block">
-            <span className="text-xs font-medium text-[#43474f]">Option type (optional)</span>
-            <select
-              className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
-              value={optionType}
-              onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
-            >
-              <option value="">Unknown / not sure</option>
-              <option value="option1">Option 1 (topic only)</option>
-              <option value="option2">Option 2 (picture series)</option>
-            </select>
-          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs font-medium text-[#43474f]">Language</span>
+              <select
+                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as "chinese" | "english")}
+              >
+                <option value="chinese">Chinese (华文)</option>
+                <option value="english">English</option>
+              </select>
+            </label>
+            {language === "english" ? (
+              <label className="block">
+                <span className="text-xs font-medium text-[#43474f]">Component</span>
+                <select
+                  className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
+                  value={englishComponent}
+                  onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
+                >
+                  <option value="">Unknown / not sure</option>
+                  <option value="continuous">Continuous Writing (36)</option>
+                  <option value="situational">Situational Writing (14)</option>
+                </select>
+              </label>
+            ) : (
+              <label className="block">
+                <span className="text-xs font-medium text-[#43474f]">Option type</span>
+                <select
+                  className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
+                  value={optionType}
+                  onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
+                >
+                  <option value="">Unknown / not sure</option>
+                  <option value="option1">Option 1 (topic only)</option>
+                  <option value="option2">Option 2 (picture series)</option>
+                </select>
+              </label>
+            )}
+          </div>
 
           <label className="flex items-start gap-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 cursor-pointer hover:bg-amber-100/60">
             <input

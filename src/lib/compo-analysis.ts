@@ -1647,6 +1647,17 @@ export async function analyseCompoAttempt(attemptId: string): Promise<void> {
     data: { status: "analysing", errorMessage: null },
   });
 
+  // Language router. NULL language = legacy upload, treat as Chinese.
+  // English path lives in english-compo-analysis.ts (separate file,
+  // separate rubric, separate model essays) per the rule that the two
+  // language pipelines must never share state or branching logic
+  // inside the same function.
+  const lang = (attempt.language ?? "chinese").toLowerCase();
+  if (lang === "english") {
+    const { analyseEnglishCompoAttempt } = await import("@/lib/english-compo-analysis");
+    return analyseEnglishCompoAttempt(attemptId);
+  }
+
   try {
     // 1. OCR (skipped when text-seeded)
     let ocrText: string;

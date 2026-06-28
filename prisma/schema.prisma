@@ -649,6 +649,16 @@ model CompoAttempt {
   // scope history to the currently selected student.
   studentId         String?
 
+  // Composition language. "chinese" routes the analyser through
+  // compo-analysis.ts (PSLE 华文 40-mark rubric); "english" routes
+  // through english-compo-analysis.ts (Continuous 36 / Situational
+  // 14). NULL = legacy upload, treated as "chinese" for back-compat.
+  language          String?  // "chinese" | "english"
+  // Only meaningful when language = "english". "continuous" = theme-
+  // based picture writing (36 marks); "situational" = task-based
+  // scenario writing (14 marks). NULL when language is Chinese.
+  englishComponent  String?  // "continuous" | "situational"
+
   // Optional admin-typed title (e.g. the student's name + topic).
   label             String?
 
@@ -722,6 +732,7 @@ model CompoAttempt {
   @@index([uploaderId])
   @@index([studentId])
   @@index([status])
+  @@index([language])
   @@map("compo_attempts")
 }
 
