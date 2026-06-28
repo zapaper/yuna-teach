@@ -1034,6 +1034,12 @@ ${ocrText}
 - 每个评语 (Notes) 用 1-2 个简短句子，中文，<= 60 字。
 - **如果你判断 "部分离题" 或 "完全离题"**: contentNotes 的 *第一句* 必须明确写 "部分离题:" 或 "完全离题:"，然后说明哪里偏离 (例如 "部分离题: 题目是'珍贵的礼物'，但礼物只在最后一段简短出现，故事核心其实在 XX 上。")。overallSummary 也要在最开头点出 "题目契合度偏弱" 这个关键问题。
 
+【评语口气 — 温和具体, 不要重判】
+评语要像一位耐心的小学高年级老师写给学生看的: 具体指出问题点, 给出改进方向。**不要堆砌带评判性的形容词**。
+- **避免词汇**: "严重", "明显", "频繁", "大量", "充斥", "处处都是", "明显的英语句式影响", "破坏阅读流畅性", "几乎不能", "完全不"。
+- **优先用法**: "时态偶尔不一致", "几句话读起来像直接从英文翻译过来", "可以多变化句首词增添节奏感", "再加一两个细腻的感官细节会让高潮更立体"。
+- 分数本身已经传达严厉程度。Notes 的作用是**让孩子知道下一步往哪里改**, 不是让孩子感到挫败。
+
 【输出格式 — 严格 JSON】每条 Notes 都需要中文 + 英文 (家长版)。
 {
   "contentScore": <0-20>,
@@ -1617,7 +1623,15 @@ export async function buildElevatedDraft(
   const raw = (resp.text ?? "").trim();
   console.log(`[compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
   try {
-    const parsed = safeJsonParse(raw, "elevate");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let parsed: any = safeJsonParse(raw, "elevate");
+    // Some Gemini runs wrap the response as a 1-element array
+    // (`[{ draft, rubric, ... }]`) instead of a bare object. Unwrap so
+    // the field reads below don't fall back to `raw`, which would leak
+    // the raw JSON string into the displayed enhanced draft.
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object") {
+      parsed = parsed[0];
+    }
     const r = parsed.rubric && typeof parsed.rubric === "object" ? parsed.rubric : null;
     const rubric: RubricBreakdown | undefined = r ? {
       contentScore:   Number(r.contentScore ?? 0),

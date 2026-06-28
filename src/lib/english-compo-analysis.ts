@@ -285,6 +285,12 @@ ${ocrText}
 
 【Output — strict JSON】Notes are SHORT (1-2 sentences, English, ≤ 80 words). When you call out content issues, lead with the most-impactful one; same for language.
 
+【Tone of notes — kind & specific, not harsh】
+Write notes the way a thoughtful Primary 6 teacher would: name the issue concretely and suggest the direction of improvement, but DO NOT pile on judgmental adjectives.
+- AVOID: "severe", "disruptive", "obvious", "frequent", "multiple", "constantly", "littered with", "riddled with", "fails to", "poor".
+- PREFER: "tense slips a few times", "some sentences read as direct translations from another language", "vary the sentence openings to add rhythm", "tighten the climax with one more sensory detail".
+- The numerical score already communicates severity. Notes should help the kid know WHAT to fix next, not feel bad.
+
 If you judge the essay partially off-topic or off-topic, contentNotes MUST start with "Partially off-topic:" or "Off-topic:" and explain. overallSummary must mention it too.
 
 {
@@ -340,6 +346,11 @@ ${sample}
 ${ocrText}
 
 【Output — strict JSON】Notes are SHORT (1-2 sentences, English). Lead with the most-impactful issue.
+
+【Tone of notes — kind & specific, not harsh】
+Write notes the way a thoughtful Primary 6 teacher would: name the missing detail or unclear sentence, then suggest the fix. Don't pile on judgmental adjectives.
+- AVOID: "severe", "disruptive", "obvious", "frequent", "fails to", "poor", "littered with".
+- PREFER: "the date wasn't given — add it after the greeting", "the tone shifts to casual mid-letter, keep it formal throughout".
 
 {
   "component": "situational",
@@ -597,7 +608,14 @@ export async function buildElevatedEnglishDraft(
   console.log(`[english-compo:elevate] done in ${((Date.now() - start) / 1000).toFixed(1)}s, ${raw.length} chars`);
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsed = safeJsonParse(raw, "english-elevate") as any;
+    let parsed: any = safeJsonParse(raw, "english-elevate");
+    // Some Gemini runs wrap the response as a 1-element array
+    // (`[{ draft, rubric, ... }]`) instead of a bare object. Unwrap so
+    // the field reads below don't fall back to `raw`, which would leak
+    // the raw JSON string into the displayed enhanced draft.
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object") {
+      parsed = parsed[0];
+    }
     const primaryMax = component === "continuous" ? 18 : 6;
     const languageMax = component === "continuous" ? 18 : 8;
     const norm = (axis: { score?: unknown; max?: unknown; notes?: unknown } | undefined, defaultMax: number): EnglishAxis => ({
