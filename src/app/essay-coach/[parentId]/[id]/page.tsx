@@ -179,9 +179,12 @@ function DetailContent() {
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-5">
         {/* Header */}
         <div>
-          <Link href={listHref} className="inline-flex items-center gap-1 text-sm text-[#0040a0] hover:underline print:hidden">
+          <Link
+            href={listHref}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0040a0] bg-[#eff4ff] hover:bg-[#dfe9ff] px-3 py-1.5 rounded-lg transition-colors print:hidden"
+          >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back
+            <span>Back</span>
           </Link>
           {/* On mobile the title takes its own row above the action
               buttons so it isn't squashed by the right-side controls.

@@ -266,10 +266,10 @@ function EssayCoachContent() {
         <div className="flex items-center justify-between">
           <Link
             href={`/home/${parentId}`}
-            className="inline-flex items-center gap-1 text-sm text-[#0040a0] hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0040a0] bg-[#eff4ff] hover:bg-[#dfe9ff] px-3 py-1.5 rounded-lg transition-colors"
           >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back
+            <span>Back</span>
           </Link>
           {linkedStudents.length > 1 && (
             <select
