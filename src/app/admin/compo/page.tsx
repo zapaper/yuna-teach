@@ -175,7 +175,7 @@ export default function CompoIndexPage() {
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div>
         <Link href={adminHref} className="text-sm text-slate-500 hover:underline">← Admin</Link>
-        <h1 className="text-2xl font-bold text-slate-900 mt-2">作文 Helper</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mt-2">Compo Coach</h1>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">

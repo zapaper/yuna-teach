@@ -317,7 +317,7 @@ export default function CompoDetailPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-5">
       <div>
-        <Link href={compoIndexHref} className="text-sm text-slate-500 hover:underline print:hidden">← 作文 Helper</Link>
+        <Link href={compoIndexHref} className="text-sm text-slate-500 hover:underline print:hidden">← Compo Coach</Link>
         <div className="flex items-end justify-between mt-2">
           <div>
             <EditableLabel

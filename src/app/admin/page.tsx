@@ -219,8 +219,8 @@ function AdminContent() {
     },
     {
       icon: "draw",
-      label: "Compo (Chinese)",
-      description: "Upload a scanned student Chinese composition. Gemini OCRs, flags wrong words (错别字 / 用词不当), scores against the PSLE 40-mark rubric (内容 20 / 词汇好句 10 / 句子结构 10), and recommends structural + language upgrades drawn from the 10-year model essay corpus.",
+      label: "Compo Coach",
+      description: "Upload a scanned student composition (Chinese or English). Gemini OCRs, flags wrong-word / grammar / awkward-phrasing issues, scores against the PSLE rubric (华文 40, English Continuous 36 or Situational 14), and recommends structural + language upgrades drawn from the 10-year model essay corpus per language.",
       href: `/admin/compo?userId=${userId}`,
       color: "bg-rose-50 text-rose-600",
     },
