@@ -181,6 +181,26 @@ export default function CompoIndexPage() {
       <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <h2 className="font-semibold text-slate-800">New composition</h2>
 
+        {/* Language toggle — segmented pill at the top of the form so
+            the rest of the picker layout below (Option type vs
+            Component) keys off it from the moment the admin lands. */}
+        <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
+          <button
+            type="button"
+            onClick={() => setLanguage("chinese")}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${language === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            Chinese 华文
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage("english")}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${language === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            English
+          </button>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="text-xs font-medium text-slate-600">Label (e.g. student name + date)</span>
@@ -202,46 +222,33 @@ export default function CompoIndexPage() {
           </label>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        {language === "english" ? (
           <label className="block">
-            <span className="text-xs font-medium text-slate-600">Language</span>
+            <span className="text-xs font-medium text-slate-600">Component</span>
             <select
               className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as "chinese" | "english")}
+              value={englishComponent}
+              onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
             >
-              <option value="chinese">Chinese (华文)</option>
-              <option value="english">English</option>
+              <option value="">Unknown / not sure</option>
+              <option value="continuous">Continuous Writing (36 marks)</option>
+              <option value="situational">Situational Writing (14 marks)</option>
             </select>
           </label>
-          {language === "english" ? (
-            <label className="block">
-              <span className="text-xs font-medium text-slate-600">Component</span>
-              <select
-                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-                value={englishComponent}
-                onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
-              >
-                <option value="">Unknown / not sure</option>
-                <option value="continuous">Continuous Writing (36 marks)</option>
-                <option value="situational">Situational Writing (14 marks)</option>
-              </select>
-            </label>
-          ) : (
-            <label className="block">
-              <span className="text-xs font-medium text-slate-600">Option type</span>
-              <select
-                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-                value={optionType}
-                onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
-              >
-                <option value="">Unknown / not sure</option>
-                <option value="option1">Option 1 (topic only)</option>
-                <option value="option2">Option 2 (picture series)</option>
-              </select>
-            </label>
-          )}
-        </div>
+        ) : (
+          <label className="block">
+            <span className="text-xs font-medium text-slate-600">Option type</span>
+            <select
+              className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              value={optionType}
+              onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
+            >
+              <option value="">Unknown / not sure</option>
+              <option value="option1">Option 1 (topic only)</option>
+              <option value="option2">Option 2 (picture series)</option>
+            </select>
+          </label>
+        )}
 
         <label className="block">
           <span className="text-xs font-medium text-slate-600">Question scan (optional — prompt or picture series, image or PDF)</span>

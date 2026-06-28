@@ -299,6 +299,26 @@ function EssayCoachContent() {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
           <h2 className="font-semibold text-[#001e40]">New composition</h2>
 
+          {/* Language toggle — segmented pill at the top, before any
+              labels. Picking flips the picker below from Option type
+              (Chinese) to Component (English). */}
+          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
+            <button
+              type="button"
+              onClick={() => setLanguage("chinese")}
+              className={`px-4 py-1.5 rounded-lg transition-colors ${language === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
+            >
+              Chinese 华文
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage("english")}
+              className={`px-4 py-1.5 rounded-lg transition-colors ${language === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
+            >
+              English
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="text-xs font-medium text-[#43474f]">Label</span>
@@ -320,46 +340,33 @@ function EssayCoachContent() {
             </label>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {language === "english" ? (
             <label className="block">
-              <span className="text-xs font-medium text-[#43474f]">Language</span>
+              <span className="text-xs font-medium text-[#43474f]">Component</span>
               <select
                 className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as "chinese" | "english")}
+                value={englishComponent}
+                onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
               >
-                <option value="chinese">Chinese (华文)</option>
-                <option value="english">English</option>
+                <option value="">Unknown / not sure</option>
+                <option value="continuous">Continuous Writing (36)</option>
+                <option value="situational">Situational Writing (14)</option>
               </select>
             </label>
-            {language === "english" ? (
-              <label className="block">
-                <span className="text-xs font-medium text-[#43474f]">Component</span>
-                <select
-                  className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
-                  value={englishComponent}
-                  onChange={(e) => setEnglishComponent(e.target.value as "continuous" | "situational" | "")}
-                >
-                  <option value="">Unknown / not sure</option>
-                  <option value="continuous">Continuous Writing (36)</option>
-                  <option value="situational">Situational Writing (14)</option>
-                </select>
-              </label>
-            ) : (
-              <label className="block">
-                <span className="text-xs font-medium text-[#43474f]">Option type</span>
-                <select
-                  className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
-                  value={optionType}
-                  onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
-                >
-                  <option value="">Unknown / not sure</option>
-                  <option value="option1">Option 1 (topic only)</option>
-                  <option value="option2">Option 2 (picture series)</option>
-                </select>
-              </label>
-            )}
-          </div>
+          ) : (
+            <label className="block">
+              <span className="text-xs font-medium text-[#43474f]">Option type</span>
+              <select
+                className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#0040a0]"
+                value={optionType}
+                onChange={(e) => setOptionType(e.target.value as "option1" | "option2" | "")}
+              >
+                <option value="">Unknown / not sure</option>
+                <option value="option1">Option 1 (topic only)</option>
+                <option value="option2">Option 2 (picture series)</option>
+              </select>
+            </label>
+          )}
 
           <label className="flex items-start gap-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 cursor-pointer hover:bg-amber-100/60">
             <input
