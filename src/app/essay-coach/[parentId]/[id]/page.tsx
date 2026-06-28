@@ -183,9 +183,12 @@ function DetailContent() {
             <span className="material-symbols-outlined text-base">arrow_back</span>
             Back
           </Link>
-          <div className="flex items-end justify-between mt-2 gap-3">
+          {/* On mobile the title takes its own row above the action
+              buttons so it isn't squashed by the right-side controls.
+              From sm: side-by-side again. */}
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-2 gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#001e40] truncate">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#001e40] break-words">
                 {row.label ?? "(no label)"}
               </h1>
               {row.studentTopic && <p className="text-sm text-[#43474f] mt-0.5">{row.studentTopic}</p>}
@@ -195,7 +198,7 @@ function DetailContent() {
                 {row.optionType && <> · {row.optionType}</>}
               </p>
             </div>
-            <div className="flex gap-2 print:hidden shrink-0">
+            <div className="flex flex-wrap gap-2 print:hidden sm:shrink-0">
               {/* Word / PDF / Delete are hidden while the analyser is
                   running — exporting an in-progress essay or deleting
                   it mid-run reads as a foot-gun. Re-analyse stays
@@ -278,28 +281,30 @@ function DetailContent() {
           </div>
         )}
 
-        {/* View tabs */}
+        {/* View tabs — shortened labels + flex-1 on mobile so all
+            three fit in a single row even on a narrow phone. From sm
+            they go back to natural width. */}
         {row.status === "ready" && (
-          <div className="flex gap-2 flex-wrap print:hidden">
+          <div className="flex gap-2 print:hidden">
             <button
               onClick={() => setView("marked")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${view === "marked" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold ${view === "marked" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
             >
-              Marked-up
+              Original
             </button>
             <button
               onClick={() => setView("clean")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${view === "clean" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold ${view === "clean" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
             >
               Clean rewrite
             </button>
             <button
               onClick={() => setView("elevated")}
               disabled={!row.recommendations?.elevatedDraft}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50 ${view === "elevated" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold disabled:opacity-50 ${view === "elevated" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
               title={row.recommendations?.elevatedDraft ? "" : "Enhanced draft not generated yet"}
             >
-              Enhanced (35-40)
+              Enhance
             </button>
           </div>
         )}
