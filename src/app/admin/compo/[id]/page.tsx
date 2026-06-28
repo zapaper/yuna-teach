@@ -1247,12 +1247,22 @@ function ProgressTracker({ row }: { row: Row }) {
   // Vague + fun copy so we don't tip our hand on the underlying
   // pipeline / prompts. The admin still gets a sense of forward
   // motion; the user-facing wording stays magical.
+  const isEnglish = row.language === "english";
   let stageNum = 1;
   let label = "Pulling out the reading glasses… 🤓";
-  if (ocrDone && !wrongWordsDone)           { stageNum = 2; label = "Hunting for sneaky 错字… 🔍"; }
-  else if (wrongWordsDone && !critiqueDone) { stageNum = 3; label = "Channeling our inner 阅卷老师… ✍️"; }
-  else if (critiqueDone && !recsDone)       { stageNum = 4; label = "Brainstorming upgrade ideas… 💡"; }
-  else if (recsDone)                        { stageNum = 5; label = "Sprinkling some 好词好句 magic… ✨"; }
+  if (ocrDone && !wrongWordsDone) {
+    stageNum = 2;
+    label = isEnglish ? "Hunting for sneaky typos… 🔍" : "Hunting for sneaky 错字… 🔍";
+  } else if (wrongWordsDone && !critiqueDone) {
+    stageNum = 3;
+    label = isEnglish ? "Channeling our inner PSLE marker… ✍️" : "Channeling our inner 阅卷老师… ✍️";
+  } else if (critiqueDone && !recsDone) {
+    stageNum = 4;
+    label = "Brainstorming upgrade ideas… 💡";
+  } else if (recsDone) {
+    stageNum = 5;
+    label = isEnglish ? "Sprinkling some powerful phrases… ✨" : "Sprinkling some 好词好句 magic… ✨";
+  }
 
   if (isStuck) {
     const stuckMins = Math.floor(updatedAgeMs / 60000);
