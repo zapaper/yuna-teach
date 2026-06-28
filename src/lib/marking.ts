@@ -7320,6 +7320,45 @@ Return ONLY valid JSON:
       await prisma.$transaction(tabUpdates);
     }
 
+    // ── TYPED-SECTION VERDICT SAFETY NET ───────────────────────────
+    // We've seen completed papers land with marks=full + markingNotes
+    // that are clearly a rejection ("X is incorrect. Correct: Y" / the
+    // comp-cloze AI's "the student's word ... is grammatically wrong"
+    // reason text). Forensics pointed at a stale state from an earlier
+    // marker version, but the contract parents care about is: the
+    // verdict in the notes IS the verdict on the question. Enforce
+    // server-side so a marks/notes mismatch can't reach the parent
+    // page again, no matter how it got introduced.
+    //
+    // Acceptance signature on typed sections (cloze / editing): notes
+    // start with "Correct" (simple-match path) or "Accepted:" (comp-
+    // cloze AI accept path). Anything else is a rejection.
+    const verdictFixes: { id: string; questionNum: string; before: number; after: number; notesShape: string }[] = [];
+    const verdictUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+    for (const q of finalState) {
+      if (!typedSectionQIds.has(q.id)) continue;
+      const marksAvailable = q.marksAvailable ?? 0;
+      if (marksAvailable <= 0) continue;
+      const stored = q.marksAwarded ?? 0;
+      const notes = (q.markingNotes ?? "").trim();
+      // Empty notes / "No answer" / "Skipped" — leave alone, those are
+      // not a verdict mismatch, they're just sparse history.
+      if (!notes || /^(no answer|skipped)\b/i.test(notes)) continue;
+      const looksAccepted = /^(correct\b|accepted\s*:)/i.test(notes);
+      const expected = looksAccepted ? marksAvailable : 0;
+      if (Math.abs(expected - stored) < 0.0001) continue;
+      verdictFixes.push({
+        id: q.id, questionNum: q.questionNum, before: stored, after: expected,
+        notesShape: looksAccepted ? "accept" : "reject",
+      });
+      verdictUpdates.push(prisma.examQuestion.update({ where: { id: q.id }, data: { marksAwarded: expected } }));
+      q.marksAwarded = expected;
+    }
+    if (verdictUpdates.length > 0) {
+      console.warn(`[quiz-marking] Paper ${paperId} typed-section verdict safety net resynced ${verdictUpdates.length} question(s): ${verdictFixes.map(f => `Q${f.questionNum} ${f.notesShape}-notes ${f.before}→${f.after}`).join(", ")}`);
+      await prisma.$transaction(verdictUpdates);
+    }
+
     const finalScore = finalState.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
     // A question is "unmarked" when the marker couldn't commit a verdict
     // (marksAwarded is null) or never produced a note, and the student
