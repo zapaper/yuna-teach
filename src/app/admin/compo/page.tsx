@@ -55,6 +55,10 @@ type BatchBucket = {
 type BatchAnalyseResult = {
   buckets: BatchBucket[];
   overview: string;
+  // English translation of the topline overview, only populated when
+  // language === "chinese". The panel renders it below the Chinese
+  // overview so admin can scan quickly.
+  overviewEn?: string;
   essaysAnalysed: number;
   language: "chinese" | "english" | "mixed";
 };
@@ -123,7 +127,12 @@ export default function CompoIndexPage() {
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchError, setBatchError] = useState<string | null>(null);
   const [batchResult, setBatchResult] = useState<BatchAnalyseResult | null>(null);
+  const [batchSavedTipId, setBatchSavedTipId] = useState<string | null>(null);
   const BATCH_CAP = 10;
+  // Recent attempts language filter — must show one language at a time
+  // so the admin can't accidentally check a mix of English + Chinese
+  // essays and ship them to Gemini as a single batch.
+  const [listLanguage, setListLanguage] = useState<"english" | "chinese">("chinese");
   const toggleBatchPick = (id: string) => {
     setBatchSelected(prev => {
       const next = new Set(prev);
@@ -133,11 +142,32 @@ export default function CompoIndexPage() {
     });
   };
   const batchPanelRef = useRef<HTMLDivElement | null>(null);
+  const [batchSaving, setBatchSaving] = useState(false);
+  const saveBatchTip = async () => {
+    if (!batchResult || batchSaving) return;
+    setBatchSaving(true);
+    try {
+      const res = await fetch("/api/admin/compo/batch-analyse/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptIds: [...batchSelected], analysis: batchResult }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      setBatchSavedTipId((j as { id: string }).id);
+    } catch (e) {
+      setBatchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBatchSaving(false);
+    }
+  };
+
   const runBatchAnalyse = async () => {
     if (batchSelected.size < 2) return;
     setBatchLoading(true);
     setBatchError(null);
     setBatchResult(null);
+    setBatchSavedTipId(null);
     try {
       console.log(`[batch-analyse] POST with ${batchSelected.size} attemptIds…`);
       const res = await fetch("/api/admin/compo/batch-analyse", {
@@ -270,7 +300,13 @@ export default function CompoIndexPage() {
 
       {batchResult && (
         <div ref={batchPanelRef}>
-          <BatchResultPanel result={batchResult} onClose={() => { setBatchResult(null); setBatchSelected(new Set()); }} />
+          <BatchResultPanel
+            result={batchResult}
+            savedTipId={batchSavedTipId}
+            saving={batchSaving}
+            onSave={saveBatchTip}
+            onClose={() => { setBatchResult(null); setBatchSelected(new Set()); setBatchSavedTipId(null); }}
+          />
         </div>
       )}
 
@@ -483,8 +519,30 @@ export default function CompoIndexPage() {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-slate-800">Recent attempts</h2>
+        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <h2 className="font-semibold text-slate-800">Recent attempts</h2>
+            {/* Language filter — must be either English OR Chinese,
+                never both. Mixing the two languages in a single Batch
+                Analyse selection produces useless cross-language advice
+                (and the prompt branches by dominant language anyway). */}
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => { setListLanguage("english"); setBatchSelected(new Set()); }}
+                className={`px-2.5 py-1 rounded ${listLanguage === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => { setListLanguage("chinese"); setBatchSelected(new Set()); }}
+                className={`px-2.5 py-1 rounded ${listLanguage === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Chinese 华文
+              </button>
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -504,13 +562,16 @@ export default function CompoIndexPage() {
             Batch Analyse {batchMode && `(${batchSelected.size}/${BATCH_CAP})`}
           </button>
         </div>
-        {loading ? (
-          <p className="text-sm text-slate-500">Loading...</p>
-        ) : rows.length === 0 ? (
-          <p className="text-sm text-slate-500">No uploads yet.</p>
-        ) : (
+        {(() => {
+          // Filter rows by the currently selected language. A row's
+          // language is null on legacy uploads — fall back to Chinese
+          // since that's how legacy rows are treated by the analyser.
+          const visibleRows = rows.filter(r => (r.language ?? "chinese") === listLanguage);
+          if (loading) return <p className="text-sm text-slate-500">Loading...</p>;
+          if (visibleRows.length === 0) return <p className="text-sm text-slate-500">No {listLanguage === "english" ? "English" : "Chinese"} uploads yet.</p>;
+          return (
           <div className="space-y-2">
-            {rows.map((r) => {
+            {visibleRows.map((r) => {
               const isReady = r.status === "ready";
               const isPicked = batchSelected.has(r.id);
               const capReached = batchSelected.size >= BATCH_CAP && !isPicked;
@@ -580,7 +641,8 @@ export default function CompoIndexPage() {
               );
             })}
           </div>
-        )}
+          );
+        })()}
 
         {batchError && (
           <div className="mt-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -645,23 +707,76 @@ function AttemptRowBody({ r }: { r: AttemptRow }) {
   );
 }
 
-function BatchResultPanel({ result, onClose }: { result: BatchAnalyseResult; onClose: () => void }) {
+function BatchResultPanel({
+  result,
+  savedTipId,
+  saving,
+  onSave,
+  onClose,
+}: {
+  result: BatchAnalyseResult;
+  savedTipId: string | null;
+  saving: boolean;
+  onSave: () => void;
+  onClose: () => void;
+}) {
+  const isChinese = result.language === "chinese";
+  const isSaved = savedTipId !== null;
   return (
     <div className="mt-6 bg-white border-2 border-violet-300 rounded-2xl p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">Cross-essay coaching summary</div>
-          <h3 className="text-lg font-bold text-slate-900 mt-0.5">Patterns across {result.essaysAnalysed} essays</h3>
-          {result.overview && <p className="text-sm text-slate-700 mt-1.5 italic">{result.overview}</p>}
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">
+            {isChinese ? "跨篇作文教练总结" : "Cross-essay coaching summary"}
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 mt-0.5">
+            {isChinese ? `${result.essaysAnalysed} 篇作文的共同模式` : `Patterns across ${result.essaysAnalysed} essays`}
+          </h3>
+          {result.overview && (
+            <p className="text-sm text-slate-700 mt-1.5 italic" style={isChinese ? { fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" } : undefined}>
+              {result.overview}
+            </p>
+          )}
+          {result.overviewEn && result.overviewEn !== result.overview && (
+            <p className="text-xs text-slate-500 mt-1 italic">
+              {result.overviewEn}
+            </p>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
-        >
-          Close
-        </button>
+        <div className="flex gap-2 shrink-0">
+          {!isSaved ? (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "💾 Save this"}
+            </button>
+          ) : (
+            <a
+              href={`/print/batch-tip/${savedTipId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              🖨 Print this
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
+          >
+            Close
+          </button>
+        </div>
       </div>
+      {isSaved && (
+        <div className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+          Saved to the covered essays. Open any of them to see this tip under &quot;Lumi&rsquo;s tip&quot;.
+        </div>
+      )}
 
       {result.buckets.length === 0 && (
         <p className="text-sm text-slate-500 italic">No patterns surfaced — try picking more essays.</p>

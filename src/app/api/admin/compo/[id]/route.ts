@@ -2,6 +2,7 @@
 // DELETE /api/admin/compo/[id] — remove the row AND its uploaded files
 //                                from the Railway volume. Idempotent.
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
@@ -16,7 +17,24 @@ export async function GET(
   const { id } = await params;
   const row = await prisma.compoAttempt.findUnique({ where: { id } });
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ row });
+  // Pull any saved cross-essay tips that cover this attempt. JSONB
+  // containment query — Prisma can't express it ergonomically, so we
+  // drop to raw SQL. Most attempts will have zero tips; some will have
+  // a small handful (the admin re-saves tips as they collect more
+  // essays).
+  const tips = await prisma.$queryRaw<Array<{
+    id: string;
+    createdAt: Date;
+    language: string | null;
+    attemptIds: unknown;
+    analysis: unknown;
+  }>>(Prisma.sql`
+    SELECT id, "createdAt", language, "attemptIds", analysis
+    FROM batch_coach_tips
+    WHERE "attemptIds" @> ${JSON.stringify([id])}::jsonb
+    ORDER BY "createdAt" DESC
+  `);
+  return NextResponse.json({ row, tips });
 }
 
 // PATCH /api/admin/compo/[id] — update mutable fields. Body accepts:

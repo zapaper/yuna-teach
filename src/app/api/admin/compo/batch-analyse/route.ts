@@ -39,6 +39,7 @@ type BatchBucket = {
 type BatchResult = {
   buckets: BatchBucket[];
   overview: string;
+  overviewEn?: string;
   essaysAnalysed: number;
   language: "chinese" | "english" | "mixed";
 };
@@ -132,7 +133,7 @@ You may include OTHER content-shaped tips beyond this list if they fit, but the 
 
 {
   "overview": "<1-2 sentence summary of the student's overall pattern>",
-  "buckets": [
+${dominantLang === "chinese" ? `  "overviewEn": "<the same 1-2 sentence summary, translated to English so a parent reading this in English can grasp the pattern at a glance — KEEP IT TIGHT, no padding, no Chinese terms left untranslated>",\n` : ""}  "buckets": [
     {
       "title": "<bucket #1 MUST be one of: Content / Plot Development / Description / Climax & Build-up / Resolution / Emotion & Character>",
       "color": "<one of: blue / emerald / amber / rose / violet / sky>",
@@ -205,9 +206,16 @@ ${outputFmt}`;
               })) : [],
           })),
       })) : [];
+    const overviewEnRaw = parsed.overviewEn;
     const result: BatchResult = {
       buckets,
       overview: String(parsed.overview ?? "").trim(),
+      // Only surface overviewEn when (a) Chinese pipeline produced it
+      // AND (b) it's non-empty after trim. The detail card hides it
+      // when missing or identical to the Chinese version.
+      ...(dominantLang === "chinese" && typeof overviewEnRaw === "string" && overviewEnRaw.trim().length > 0
+        ? { overviewEn: overviewEnRaw.trim() }
+        : {}),
       essaysAnalysed: attempts.length,
       language: dominantLang,
     };

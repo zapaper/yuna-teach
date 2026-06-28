@@ -736,6 +736,32 @@ model CompoAttempt {
   @@map("compo_attempts")
 }
 
+// Saved cross-essay coaching tip from /api/admin/compo/batch-analyse.
+// Each row is one "Lumi's tip" pulled across N composition attempts.
+// The detail page for any included attempt surfaces this tip in an
+// expandable card so the admin can recall earlier coaching without
+// re-running Gemini.
+//
+// attemptIds is stored as a JSON string[] so we can JSONB-contain
+// query for "tips that include THIS attempt" without a join table.
+//
+// studentId is optional — admin uploads from /admin/compo aren't
+// scoped to a student. When set, parent app can also surface the
+// tip on the student's essay page.
+model BatchCoachTip {
+  id          String   @id @default(cuid())
+  studentId   String?  // CompoAttempt.studentId of the covered attempts (null = admin pool)
+  savedById   String?  // User.id of the admin who saved the tip
+  attemptIds  Json     // string[] of CompoAttempt.id covered by this tip
+  analysis    Json     // BatchAnalyseResult shape: { buckets, overview, overviewEn?, essaysAnalysed, language }
+  language    String?  // "chinese" | "english" | "mixed"
+  createdAt   DateTime @default(now())
+
+  @@index([studentId])
+  @@index([savedById])
+  @@map("batch_coach_tips")
+}
+
 // Queue of outbound emails that couldn't be sent at trigger time —
 // usually because of an upstream transport failure (e.g. SendGrid
 // returning 401 while the trial / paid plan is suspended). The send
