@@ -81,6 +81,17 @@ async function switchToStudentPath(studentId: string, childPath: string) {
   window.open(childPath, "_blank", "noopener");
 }
 
+// Closed-beta allowlist for the Essay Coach sidebar entry. Names are
+// User.name values (the login handle, exact case). Expand here as we
+// invite more parents into the beta; remove the gate entirely once
+// the paywall + onboarding ship.
+const ESSAY_COACH_BETA_PARENTS = new Set<string>([
+  "jessicabwt18", // Jessica
+  "Pychua",       // Kaiyang's parent (Chua Pei Yee)
+  "nilohoo",      // Loh
+  "YLTan",        // Yi-Lin Tan
+]);
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SubjectGap = { subject: string; topics: string[] };
@@ -2608,11 +2619,11 @@ export default function ParentDashboard({
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
-    // Essay Coach (Chinese composition helper, currently in private
-    // beta). Admin-only until we ship the paywall + onboarding copy
-    // for general parents. Threads selectedStudentId so the upload
-    // page lands pre-scoped to the right kid for label + history.
-    ...(isAdminUser ? [{
+    // Essay Coach (Chinese composition helper). Currently a closed
+    // beta — admin + a small hand-picked allowlist of parents. The
+    // allowlist matches on User.name (the login handle) so it works
+    // regardless of displayName changes.
+    ...((isAdminUser || ESSAY_COACH_BETA_PARENTS.has(user.name)) ? [{
       icon: "edit_document",
       label: "Essay Coach",
       href: `/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`,
