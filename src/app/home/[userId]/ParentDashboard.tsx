@@ -90,6 +90,7 @@ const ESSAY_COACH_BETA_PARENTS = new Set<string>([
   "Pychua",       // Kaiyang's parent (Chua Pei Yee)
   "nilohoo",      // Loh
   "YLTan",        // Yi-Lin Tan
+  "Sachia",       // Sharon Chia
 ]);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
