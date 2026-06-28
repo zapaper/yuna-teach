@@ -26,6 +26,10 @@ type AttemptRow = {
   errorMessage: string | null;
   analysedAt: string | null;
   createdAt: string;
+  // updatedAt is what we use to spot a stuck "analysing" — if it
+  // hasn't moved in >5 min the orchestrator probably died and the
+  // row should expose a Restart action.
+  updatedAt: string;
   studentId: string | null;
   critique: { overallScore?: number; component?: string } | null;
 };
@@ -292,6 +296,28 @@ function EssayCoachContent() {
       new File([p.blob], `scan_${Date.now()}_${p.index + 1}.jpg`, { type: "image/jpeg" })
     ));
     setPageFiles(prev => [...prev, ...staged]);
+  };
+
+  // Per-row actions on the index list — same shapes the detail page
+  // wires up, surfaced inline so the user doesn't have to drill into
+  // a broken row to fix it.
+  // - Restart kicks the analyser. Used on stuck-analysing (updatedAt
+  //   not moved in >5 min) and failed rows.
+  // - Delete tears the row + its files down. Confirm prompt first.
+  const restartRow = async (rowId: string) => {
+    const res = await fetch(`/api/essay-coach/${rowId}/analyse`, { method: "POST" });
+    if (!res.ok && res.status !== 202) {
+      const j = await res.json().catch(() => ({} as { error?: string }));
+      setError((j as { error?: string }).error ?? `Restart failed (HTTP ${res.status})`);
+      return;
+    }
+    refresh();
+  };
+  const deleteRow = async (rowId: string, label: string | null) => {
+    if (!confirm(`Delete '${label ?? "this essay"}'? Removes uploaded pages + AI output. Cannot be undone.`)) return;
+    const res = await fetchJsonSafe(`/api/essay-coach/${rowId}`, { method: "DELETE" });
+    if (res.ok) refresh();
+    else setError(res.error);
   };
 
   const removeStaged = (idx: number) => {
@@ -742,6 +768,43 @@ function EssayCoachContent() {
                 const errorBlock = r.errorMessage ? (
                   <div className="text-xs text-red-600 mt-2 line-clamp-2">{r.errorMessage}</div>
                 ) : null;
+                // Stuck = analysing + updatedAt hasn't moved in 5 min.
+                // Matches the heuristic on the detail page.
+                const STUCK_MS = 5 * 60 * 1000;
+                const isStuckAnalysing =
+                  r.status === "analysing" && Date.now() - new Date(r.updatedAt).getTime() > STUCK_MS;
+                const showRestart = isStuckAnalysing || r.status === "failed";
+                const actions = !inBatchMode && (
+                  <div className="mt-2 flex gap-2 print:hidden" onClick={(e) => e.stopPropagation()}>
+                    {showRestart && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          restartRow(r.id);
+                        }}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200"
+                        title={isStuckAnalysing ? "The analyser stalled — kick it again" : "Retry the failed run"}
+                      >
+                        {isStuckAnalysing ? "Restart (stuck)" : "Re-analyse"}
+                      </button>
+                    )}
+                    {r.status !== "analysing" && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deleteRow(r.id, r.label);
+                        }}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                );
                 if (inBatchMode) {
                   // Batch mode: clicking the row toggles selection
                   // instead of navigating. Ready rows only — non-ready
@@ -765,6 +828,7 @@ function EssayCoachContent() {
                   >
                     {inner}
                     {errorBlock}
+                    {actions}
                   </Link>
                 );
               })}
