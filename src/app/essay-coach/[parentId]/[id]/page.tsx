@@ -196,30 +196,42 @@ function DetailContent() {
               </p>
             </div>
             <div className="flex gap-2 print:hidden shrink-0">
-              <button
-                onClick={() => {
-                  const url = `${API_BASE}/${id}/export-docx?view=${view}`;
-                  window.location.href = url;
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eff4ff] text-[#0040a0] hover:bg-[#dfe9ff]"
-                title="Download as Word"
-              >
-                Word
-              </button>
-              <button
-                onClick={() => {
-                  const orig = document.title;
-                  document.title = exportName(row.label, view);
-                  setTimeout(() => {
-                    window.print();
-                    setTimeout(() => { document.title = orig; }, 1000);
-                  }, 0);
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eff4ff] text-[#0040a0] hover:bg-[#dfe9ff]"
-                title="Use 'Save as PDF' in the print dialog"
-              >
-                PDF
-              </button>
+              {/* Word / PDF / Delete are hidden while the analyser is
+                  running — exporting an in-progress essay or deleting
+                  it mid-run reads as a foot-gun. Re-analyse stays
+                  visible (and double-purposes as the "Re-analysing…"
+                  progress indicator). The orchestrator is fire-and-
+                  forget on the server, so pressing back during the
+                  run is safe — the pipeline keeps running and the
+                  next visit picks up the latest state. */}
+              {row.status === "ready" && (
+                <>
+                  <button
+                    onClick={() => {
+                      const url = `${API_BASE}/${id}/export-docx?view=${view}`;
+                      window.location.href = url;
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eff4ff] text-[#0040a0] hover:bg-[#dfe9ff]"
+                    title="Download as Word"
+                  >
+                    Word
+                  </button>
+                  <button
+                    onClick={() => {
+                      const orig = document.title;
+                      document.title = exportName(row.label, view);
+                      setTimeout(() => {
+                        window.print();
+                        setTimeout(() => { document.title = orig; }, 1000);
+                      }, 0);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eff4ff] text-[#0040a0] hover:bg-[#dfe9ff]"
+                    title="Use 'Save as PDF' in the print dialog"
+                  >
+                    PDF
+                  </button>
+                </>
+              )}
               {(() => {
                 const STUCK_MS = 5 * 60 * 1000;
                 const isAnalysing = row.status === "analysing";
@@ -240,17 +252,19 @@ function DetailContent() {
                   </button>
                 );
               })()}
-              <button
-                onClick={async () => {
-                  if (!confirm(`Delete '${row.label ?? "this essay"}'? Removes uploaded pages + AI output. Cannot be undone.`)) return;
-                  const res = await fetchJsonSafe(`${API_BASE}/${id}`, { method: "DELETE" });
-                  if (res.ok) window.location.href = listHref;
-                  else setError(res.error);
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100"
-              >
-                Delete
-              </button>
+              {row.status === "ready" && (
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Delete '${row.label ?? "this essay"}'? Removes uploaded pages + AI output. Cannot be undone.`)) return;
+                    const res = await fetchJsonSafe(`${API_BASE}/${id}`, { method: "DELETE" });
+                    if (res.ok) window.location.href = listHref;
+                    else setError(res.error);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
