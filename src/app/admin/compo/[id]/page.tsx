@@ -85,10 +85,13 @@ function isEnglishCritique(c: Critique | EnglishCritique | null | undefined): c 
 
 type BatchTipBucket = {
   title: string;
+  titleEn?: string;
   color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
   advice: Array<{
     tip: string;
+    tipEn?: string;
     why: string;
+    whyEn?: string;
     examples: Array<{ from: string; before: string; after: string }>;
   }>;
 };
@@ -1696,9 +1699,14 @@ function BatchTipCard({ tip }: { tip: BatchTip }) {
               const palette = BATCH_TIP_PALETTE[b.color] ?? BATCH_TIP_PALETTE.blue;
               return (
                 <div key={bi} className={`border ${palette.border} rounded-xl overflow-hidden`}>
-                  <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between`}>
-                    <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
-                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded`}>
+                  <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between gap-2`}>
+                    <div className="min-w-0">
+                      <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
+                      {b.titleEn && b.titleEn !== b.title && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{b.titleEn}</div>
+                      )}
+                    </div>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded shrink-0`}>
                       {b.advice.length} {isChinese ? "条" : `tip${b.advice.length === 1 ? "" : "s"}`}
                     </span>
                   </div>
@@ -1706,7 +1714,13 @@ function BatchTipCard({ tip }: { tip: BatchTip }) {
                     {b.advice.map((adv, ai) => (
                       <div key={ai}>
                         <div className="text-sm font-bold text-slate-900">{adv.tip}</div>
-                        {adv.why && <p className="text-xs text-slate-600 mt-0.5">{adv.why}</p>}
+                        {adv.tipEn && adv.tipEn !== adv.tip && (
+                          <div className="text-xs text-slate-500 mt-0.5">{adv.tipEn}</div>
+                        )}
+                        {adv.why && <p className="text-xs text-slate-600 mt-1">{adv.why}</p>}
+                        {adv.whyEn && adv.whyEn !== adv.why && (
+                          <p className="text-[11px] text-slate-400 italic mt-0.5">{adv.whyEn}</p>
+                        )}
                         {adv.examples.length > 0 && (
                           <div className="mt-2 space-y-1.5">
                             {adv.examples.map((e, ei) => (

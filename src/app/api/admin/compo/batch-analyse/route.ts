@@ -28,11 +28,14 @@ const MODEL = "gemini-3.1-pro-preview";
 
 type BatchAdvice = {
   tip: string;
+  tipEn?: string;
   why: string;
+  whyEn?: string;
   examples: Array<{ from: string; before: string; after: string }>;
 };
 type BatchBucket = {
   title: string;
+  titleEn?: string;
   color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
   advice: BatchAdvice[];
 };
@@ -136,12 +139,12 @@ You may include OTHER content-shaped tips beyond this list if they fit, but the 
 ${dominantLang === "chinese" ? `  "overviewEn": "<the same 1-2 sentence summary, translated to English so a parent reading this in English can grasp the pattern at a glance — KEEP IT TIGHT, no padding, no Chinese terms left untranslated>",\n` : ""}  "buckets": [
     {
       "title": "<bucket #1 MUST be one of: Content / Plot Development / Description / Climax & Build-up / Resolution / Emotion & Character>",
-      "color": "<one of: blue / emerald / amber / rose / violet / sky>",
+${dominantLang === "chinese" ? `      "titleEn": "<English translation of the title field — e.g. 内容 → 'Content', 高潮与铺垫 → 'Climax & Build-up'. ALWAYS provide this when language is Chinese.>",\n` : ""}      "color": "<one of: blue / emerald / amber / rose / violet / sky>",
       "advice": [
         {
           "tip": "<short imperative headline, 5-10 words, e.g. 'Slow down the climax with sensory detail'>",
-          "why": "<1 sentence — quote/cite the pattern you noticed across the essays>",
-          "examples": [
+${dominantLang === "chinese" ? `          "tipEn": "<English translation of the tip headline — same imperative tone, 5-12 words. ALWAYS provide this when language is Chinese.>",\n` : ""}          "why": "<1 sentence — quote/cite the pattern you noticed across the essays>",
+${dominantLang === "chinese" ? `          "whyEn": "<English translation of the why field — same 1 sentence, plain English. ALWAYS provide this when language is Chinese. Do NOT translate the example before / after fields — those stay Chinese-only.>",\n` : ""}          "examples": [
             {
               "from": "Essay <N>",
               "before": "<verbatim short snippet from the student's actual text — for content advice this is the rushed climax line, the flat resolution, etc.>",
@@ -153,7 +156,9 @@ ${dominantLang === "chinese" ? `  "overviewEn": "<the same 1-2 sentence summary,
     }
     // Buckets 2+ can be Language / Vocabulary / Sentence Structure / Flow / Opening Hook etc.
   ]
-}
+}${dominantLang === "chinese" ? `
+
+⚠️ Chinese-mode translation requirement: EVERY bucket MUST have a "titleEn" field. EVERY advice MUST have "tipEn" and "whyEn" fields. The "before" / "after" example text stays Chinese only — don't translate it. The English translations let an English-reading parent skim the structure without losing the Chinese content underneath.` : ""}
 
 Rules:
 - 3-5 buckets total. Don't pad. Quality over quantity.
@@ -187,25 +192,44 @@ ${outputFmt}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parsed = safeJsonParse((resp.text ?? "").trim(), "batch-analyse") as any;
     const validColors = new Set(["blue", "emerald", "amber", "rose", "violet", "sky"]);
+    // Helper: only carry an English translation field forward when the
+    // pipeline is Chinese AND the model actually produced a non-empty
+    // string. Keeps the response shape minimal for English-only runs.
+    const pickEn = (raw: unknown): string | undefined => {
+      if (dominantLang !== "chinese") return undefined;
+      if (typeof raw !== "string") return undefined;
+      const t = raw.trim();
+      return t.length > 0 ? t : undefined;
+    };
     const buckets: BatchBucket[] = Array.isArray(parsed.buckets) ? parsed.buckets
       .filter((b: { title?: unknown; advice?: unknown }) => b && typeof b.title === "string" && Array.isArray(b.advice))
-      .map((b: { title: string; color?: string; advice: Array<{ tip?: unknown; why?: unknown; examples?: unknown }> }, i: number) => ({
-        title: String(b.title).trim(),
-        color: validColors.has(String(b.color)) ? (b.color as BatchBucket["color"]) : (["blue", "emerald", "amber", "rose", "violet", "sky"] as const)[i % 6],
-        advice: b.advice
-          .filter(a => a && typeof a.tip === "string")
-          .map(a => ({
-            tip: String(a.tip).trim(),
-            why: String((a as { why?: unknown }).why ?? "").trim(),
-            examples: Array.isArray((a as { examples?: unknown }).examples) ? ((a as { examples: Array<{ from?: unknown; before?: unknown; after?: unknown }> }).examples)
-              .filter(e => e && typeof e.before === "string" && typeof e.after === "string")
-              .map(e => ({
-                from: String((e as { from?: unknown }).from ?? "").trim(),
-                before: String(e.before).trim(),
-                after: String(e.after).trim(),
-              })) : [],
-          })),
-      })) : [];
+      .map((b: { title: string; titleEn?: unknown; color?: string; advice: Array<{ tip?: unknown; tipEn?: unknown; why?: unknown; whyEn?: unknown; examples?: unknown }> }, i: number) => {
+        const titleEn = pickEn(b.titleEn);
+        return {
+          title: String(b.title).trim(),
+          ...(titleEn ? { titleEn } : {}),
+          color: validColors.has(String(b.color)) ? (b.color as BatchBucket["color"]) : (["blue", "emerald", "amber", "rose", "violet", "sky"] as const)[i % 6],
+          advice: b.advice
+            .filter(a => a && typeof a.tip === "string")
+            .map(a => {
+              const tipEn = pickEn((a as { tipEn?: unknown }).tipEn);
+              const whyEn = pickEn((a as { whyEn?: unknown }).whyEn);
+              return {
+                tip: String(a.tip).trim(),
+                ...(tipEn ? { tipEn } : {}),
+                why: String((a as { why?: unknown }).why ?? "").trim(),
+                ...(whyEn ? { whyEn } : {}),
+                examples: Array.isArray((a as { examples?: unknown }).examples) ? ((a as { examples: Array<{ from?: unknown; before?: unknown; after?: unknown }> }).examples)
+                  .filter(e => e && typeof e.before === "string" && typeof e.after === "string")
+                  .map(e => ({
+                    from: String((e as { from?: unknown }).from ?? "").trim(),
+                    before: String(e.before).trim(),
+                    after: String(e.after).trim(),
+                  })) : [],
+              };
+            }),
+        };
+      }) : [];
     const overviewEnRaw = parsed.overviewEn;
     const result: BatchResult = {
       buckets,

@@ -44,11 +44,14 @@ function maxMarksFor(r: { language: AttemptRow["language"]; englishComponent: At
 
 type BatchAdvice = {
   tip: string;
+  tipEn?: string;
   why: string;
+  whyEn?: string;
   examples: Array<{ from: string; before: string; after: string }>;
 };
 type BatchBucket = {
   title: string;
+  titleEn?: string;
   color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
   advice: BatchAdvice[];
 };
@@ -787,9 +790,14 @@ function BatchResultPanel({
           const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
           return (
             <div key={bi} className={`border ${palette.border} rounded-xl overflow-hidden`}>
-              <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between`}>
-                <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
-                <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded`}>
+              <div className={`${palette.headerBg} px-4 py-2 flex items-center justify-between gap-2`}>
+                <div className="min-w-0">
+                  <h4 className={`font-bold text-sm ${palette.headerText}`}>{b.title}</h4>
+                  {b.titleEn && b.titleEn !== b.title && (
+                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">{b.titleEn}</div>
+                  )}
+                </div>
+                <span className={`text-[10px] font-semibold uppercase tracking-wide ${palette.chip} px-2 py-0.5 rounded shrink-0`}>
                   {b.advice.length} tip{b.advice.length === 1 ? "" : "s"}
                 </span>
               </div>
@@ -797,7 +805,13 @@ function BatchResultPanel({
                 {b.advice.map((a, ai) => (
                   <div key={ai}>
                     <div className="text-sm font-bold text-slate-900">{a.tip}</div>
-                    {a.why && <p className="text-xs text-slate-600 mt-0.5">{a.why}</p>}
+                    {a.tipEn && a.tipEn !== a.tip && (
+                      <div className="text-xs text-slate-500 mt-0.5">{a.tipEn}</div>
+                    )}
+                    {a.why && <p className="text-xs text-slate-600 mt-1">{a.why}</p>}
+                    {a.whyEn && a.whyEn !== a.why && (
+                      <p className="text-[11px] text-slate-400 italic mt-0.5">{a.whyEn}</p>
+                    )}
                     {a.examples.length > 0 && (
                       <div className="mt-2 space-y-1.5">
                         {a.examples.map((e, ei) => (
