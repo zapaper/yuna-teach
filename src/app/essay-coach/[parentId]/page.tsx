@@ -268,7 +268,8 @@ function EssayCoachContent() {
             <select
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
-              className="text-base font-semibold px-4 py-2 border border-slate-300 rounded-lg bg-white text-[#001e40] focus:outline-none focus:border-[#0040a0]"
+              title={linkedStudents.find(s => s.id === studentId)?.displayName ?? linkedStudents.find(s => s.id === studentId)?.name ?? ""}
+              className="text-base font-semibold px-3 py-2 max-w-[10rem] truncate border border-slate-300 rounded-lg bg-white text-[#001e40] focus:outline-none focus:border-[#0040a0]"
             >
               {linkedStudents.map(s => (
                 <option key={s.id} value={s.id}>{s.displayName ?? s.name}</option>
