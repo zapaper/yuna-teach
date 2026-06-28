@@ -361,12 +361,14 @@ export default function DocumentScanner({
   const liveScaleRef = useRef(1);
   // Adaptive edge-detection presets. The default (index 0) is the
   // strict setting tuned for typical document-on-table scans. If
-  // the live loop hasn't found an edge for ~5s we step to a more
+  // the live loop hasn't found an edge for ~2s we step to a more
   // permissive set (lower Canny thresholds, smaller minArea, more
   // lenient fill ratio). Resets back to 0 the moment a quad lands.
   // This covers: dim lighting, dark paper, small page in frame,
   // low-contrast scenes where the original 75/200 Canny thresholds
-  // would silently never trigger.
+  // would silently never trigger. 2s was 5s — bumped down because
+  // parents on the essay-coach scan were getting stuck at the strict
+  // preset and giving up before the relax kicked in.
   const detectPresets = [
     { cannyLow: 75, cannyHigh: 200, minAreaPct: 0.15, fillRatioMin: 0.85 },
     { cannyLow: 50, cannyHigh: 150, minAreaPct: 0.10, fillRatioMin: 0.80 },
@@ -375,7 +377,7 @@ export default function DocumentScanner({
   ];
   const detectPresetIdxRef = useRef(0);
   const lastDetectSuccessAtRef = useRef<number>(performance.now());
-  const PRESET_BUMP_MS = 5000;
+  const PRESET_BUMP_MS = 2000;
 
   // No-edge streak counter — ticks every 500ms while in capture
   // stage. Drives the progressive hint text underneath the
