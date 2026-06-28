@@ -10,6 +10,7 @@ import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
+import { hasOptionText, looksLikeMcq } from "@/lib/question-shape";
 import React from "react";
 
 /** Strip explanation tails from a one-word answer key so the review
@@ -1048,7 +1049,10 @@ function ExamReviewContent({ id }: { id: string }) {
   // For quiz OEQ: determine submission page index for the current question.
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
   // MCQ/OEQ classification logic changes between quiz-taking and review.
-  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o)) || (!!q.transcribedOptionTable && Array.isArray(q.transcribedOptionTable.rows) && q.transcribedOptionTable.rows.length === 4);
+  // Delegate to the shared looksLikeMcq helper — it falls back to the
+  // answer field's shape when transcribedOptions is the empty-string
+  // array (extractor bug on some legacy OEQ rows).
+  const hasOpts = (q: ReviewQuestion) => looksLikeMcq(q);
   // Math/Science MCQ get the plain "Explanation" label (the elaboration
   // is admin-curated and lives on the master paper). Everything else
   // (English, OEQ on any subject) keeps "AI explanation" since those
@@ -2984,7 +2988,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   underlined phrase. Browser TTS, no
                                   network round-trip. */}
                               {isChineseComp || rawLabel.includes("语文应用") || rawLabel.includes("短文填空") || rawLabel.includes("完成对话") ? (
-                                Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4 ? (
+                                hasOptionText(q.transcribedOptions) ? (
                                   <button
                                     type="button"
                                     onClick={() => speakChineseMcq(q.transcribedStem ?? "", q.transcribedOptions as string[], correctAns)}
@@ -3024,7 +3028,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
-                                    {Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4 ? (
+                                    {hasOptionText(q.transcribedOptions) ? (
                                       // Chinese 阅读理解 A is a mixed
                                       // MCQ + OEQ section, but the
                                       // comp-OEQ render path was
@@ -3291,7 +3295,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       })()}</p>
                                     )}
                                   </div>
-                                  {correctAns && !(Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) && (
+                                  {correctAns && !(hasOptionText(q.transcribedOptions)) && (
                                     // Hide the textual "Correct answer:" line
                                     // for MCQ — the option list above already
                                     // highlights the correct option in green

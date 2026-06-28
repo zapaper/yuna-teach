@@ -10,6 +10,7 @@ import { playPointChime, playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 import { isCompOeqLabel } from "@/lib/english-sections";
 import { patchJsonWithRetry, postFormWithRetry, drainOutboxForPaper } from "@/lib/save-with-retry";
+import { looksLikeMcq } from "@/lib/question-shape";
 
 /* ────────────── types ────────────── */
 
@@ -65,14 +66,15 @@ type DrawTool = "type" | "pen" | "highlight" | "eraser" | "eraser-large";
 
 /** MCQ = question has transcribed options (text or images).
  *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
-function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; transcribedOptionTable?: unknown }): boolean {
-  const opts = q.transcribedOptions;
-  const imgs = q.transcribedOptionImages;
-  const tbl = q.transcribedOptionTable;
-  if (Array.isArray(opts) && opts.length === 4) return true;
-  if (Array.isArray(imgs) && imgs.some((o: unknown) => !!o)) return true;
-  if (tbl && typeof tbl === "object" && Array.isArray((tbl as { rows?: unknown }).rows)) return true;
-  return false;
+// Delegates to the shared looksLikeMcq helper so the quiz-taking page
+// and the review page classify the same way. Without this delegation,
+// a row with transcribedOptions = ["","","",""] AND a prose answer
+// (extractor bug on some OEQ rows) was being shown to the kid as a
+// 4-option MCQ. The helper also falls back to the answer-key shape so
+// legacy MCQs whose options were never transcribed still classify
+// as MCQ.
+function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; transcribedOptionTable?: unknown; answer?: string | null }): boolean {
+  return looksLikeMcq(q);
 }
 
 /** Render __underline__ markup */
