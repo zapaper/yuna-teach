@@ -345,7 +345,11 @@ function DetailContent() {
           </div>
         )}
 
-        {view === "marked" && wrongWords.length > 0 && row.status === "ready" && (
+        {/* English: drop the highlight filter altogether — the
+            strikethrough + red-replacement inline is already enough.
+            Chinese keeps the 3-way chip because awkward-phrasing
+            rewrites are a separate category worth filtering. */}
+        {view === "marked" && wrongWords.length > 0 && row.status === "ready" && row.language !== "english" && (
           <div className="flex items-center gap-2 flex-wrap print:hidden text-xs">
             <span className="text-[#43474f] font-medium">Highlight:</span>
             <button
@@ -921,6 +925,7 @@ function CritiqueCard({
         {/* Score is the headline number — parents asked for it bigger. */}
         <div className="text-3xl font-extrabold text-[#001e40] leading-none">
           {active.overallScore}<span className="text-[#737780] text-base font-bold">/40</span>
+          <span className="text-[#737780] text-base font-bold ml-1.5">({Math.round((active.overallScore / 40) * 100)}%)</span>
         </div>
       </div>
       {deltaBadge && <div className="mt-1 text-right">{deltaBadge}</div>}
@@ -1021,6 +1026,7 @@ function EnglishCritiqueCard({
         <h3 className="text-sm font-semibold text-[#001e40]">{panelLabel}</h3>
         <div className="text-3xl font-extrabold text-[#001e40] leading-none">
           {active.overallScore}<span className="text-[#737780] text-base font-bold">/{overallMax}</span>
+          <span className="text-[#737780] text-base font-bold ml-1.5">({Math.round((active.overallScore / overallMax) * 100)}%)</span>
         </div>
       </div>
       {deltaBadge && <div className="mt-1 text-right">{deltaBadge}</div>}

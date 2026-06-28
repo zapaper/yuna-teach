@@ -476,7 +476,9 @@ export default function CompoDetailPage() {
           Toggles which categories from the wrong-words panel show
           up inline in the main composition body. Default 'Both'
           lights everything so the admin sees the full marking. */}
-      {view !== "elevated" && wrongWords.length > 0 && (
+      {/* English: skip the highlight chip — strikethrough + red
+          replacement inline is sufficient, no awkward-phrase split. */}
+      {view !== "elevated" && wrongWords.length > 0 && row.language !== "english" && (
         <div className="flex items-center gap-2 flex-wrap print:hidden text-xs">
           <span className="text-slate-500 font-medium">Highlight:</span>
           <button
@@ -1327,6 +1329,7 @@ function EnglishCritiqueCard({
         <h3 className="text-sm font-semibold text-slate-800">{panelLabel}</h3>
         <div className="text-xl font-bold text-slate-900">
           {active.overallScore}<span className="text-slate-500 text-sm">/{overallMax}</span>
+          <span className="text-slate-500 text-sm ml-1">({Math.round((active.overallScore / overallMax) * 100)}%)</span>
           {deltaBadge}
         </div>
       </div>
@@ -1404,6 +1407,7 @@ function CritiqueCard({
         <h3 className="text-sm font-semibold text-slate-800">{panelLabel}</h3>
         <div className="text-xl font-bold text-slate-900">
           {active.overallScore}<span className="text-slate-500 text-sm">/40</span>
+          <span className="text-slate-500 text-sm ml-1">({Math.round((active.overallScore / 40) * 100)}%)</span>
           {deltaBadge}
         </div>
       </div>
