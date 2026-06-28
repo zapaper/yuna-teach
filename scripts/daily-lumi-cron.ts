@@ -438,21 +438,38 @@ function daysSince(iso: string | undefined | null): number | null {
               data: { settings: { ...settings, activationNudgeSent: new Date().toISOString() } },
             });
 
-            // Step 5: external mailer log
+            // Step 5: external mailer log — POST to the markforyou-mailer
+            // app so it can record the send. Verbose logging on this
+            // step (skip vs OK vs failure) because the catch was
+            // silently swallowing failures and we couldn't tell why
+            // sends weren't appearing in the mailer dashboard.
             const mailerUrl = process.env.MAILER_URL;
             const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
-            if (mailerUrl && mailerToken) {
-              fetch(`${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
-                body: JSON.stringify({
-                  to: r.parentEmail,
-                  to_name: r.parentName,
-                  subject,
-                  body: html,
-                  event_type: "activation_nudge",
-                }),
-              }).catch(err => console.warn(`  mailer log failed: ${err?.message ?? err}`));
+            if (!mailerUrl || !mailerToken) {
+              console.warn(`  [nurture] mailer log SKIPPED — env missing (MAILER_URL=${!!mailerUrl}, token=${!!mailerToken}). Live send went out, but mailer won't see it.`);
+            } else {
+              const mailerEndpoint = `${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`;
+              try {
+                const resp = await fetch(mailerEndpoint, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
+                  body: JSON.stringify({
+                    to: r.parentEmail,
+                    to_name: r.parentName,
+                    subject,
+                    body: html,
+                    event_type: "activation_nudge",
+                  }),
+                });
+                if (!resp.ok) {
+                  const bodyTxt = await resp.text().catch(() => "");
+                  console.warn(`  [nurture] mailer log POST failed: ${resp.status} ${resp.statusText} ${bodyTxt.slice(0, 200)}`);
+                } else {
+                  console.log(`  [nurture] mailer log OK: kid=${r.kidName} → ${mailerEndpoint}`);
+                }
+              } catch (err) {
+                console.warn(`  [nurture] mailer log POST threw: ${(err as Error)?.message ?? err}`);
+              }
             }
           } catch (err) {
             const e = err as { response?: { statusCode?: number; body?: unknown } } & Error;
@@ -642,21 +659,34 @@ function daysSince(iso: string | undefined | null): number | null {
             data: { settings: { ...currentSettings, activationFollowupSent: new Date().toISOString() } },
           });
 
-          // Mailer log POST
+          // Mailer log POST — same verbose logging as the Day-3 path.
           const mailerUrl = process.env.MAILER_URL;
           const mailerToken = process.env.MAILER_LOG_TOKEN ?? process.env.NURTURE_API_TOKEN;
-          if (mailerUrl && mailerToken) {
-            fetch(`${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
-              body: JSON.stringify({
-                to: r.parentEmail,
-                to_name: r.parentName,
-                subject,
-                body: html,
-                event_type: "activation_followup",
-              }),
-            }).catch(err => console.warn(`  mailer log failed: ${err?.message ?? err}`));
+          if (!mailerUrl || !mailerToken) {
+            console.warn(`  [followup] mailer log SKIPPED — env missing (MAILER_URL=${!!mailerUrl}, token=${!!mailerToken})`);
+          } else {
+            const mailerEndpoint = `${mailerUrl.replace(/\/$/, "")}/api/events/email-sent`;
+            try {
+              const resp = await fetch(mailerEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${mailerToken}` },
+                body: JSON.stringify({
+                  to: r.parentEmail,
+                  to_name: r.parentName,
+                  subject,
+                  body: html,
+                  event_type: "activation_followup",
+                }),
+              });
+              if (!resp.ok) {
+                const bodyTxt = await resp.text().catch(() => "");
+                console.warn(`  [followup] mailer log POST failed: ${resp.status} ${resp.statusText} ${bodyTxt.slice(0, 200)}`);
+              } else {
+                console.log(`  [followup] mailer log OK: kid=${r.kidName} → ${mailerEndpoint}`);
+              }
+            } catch (err) {
+              console.warn(`  [followup] mailer log POST threw: ${(err as Error)?.message ?? err}`);
+            }
           }
         } catch (err) {
           const e = err as { response?: { statusCode?: number; body?: unknown } } & Error;

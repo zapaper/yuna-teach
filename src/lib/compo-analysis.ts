@@ -818,9 +818,9 @@ ${ocrText}
 如果没有 100% 确定的错误，返回 \`[]\`。
 不要 markdown 包围。`;
 
-export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
-  console.log(`[compo:wrong-words] scanning ${ocrText.length} chars with ${ANALYSIS_MODEL}...`);
-  const start = Date.now();
+// One pass of the wrong-words call. Extracted so we can retry from
+// outside without duplicating the Gemini config + parse.
+async function detectWrongWordsOnce(ocrText: string): Promise<WrongWord[] | null> {
   const resp = await generateContentWithRetry({
     model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: WRONG_WORDS_PROMPT(ocrText) }] }],
@@ -831,7 +831,6 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
     // marks on the kid's lower paragraphs.
     config: { responseMimeType: "application/json", temperature: 0.1, maxOutputTokens: 8192 },
   }, 2, 5000, "compo-wrong-words");
-  console.log(`[compo:wrong-words] done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
   const text = (resp.text ?? "[]").trim();
   try {
     const parsed = safeJsonParse(text, "wrong-words");
@@ -844,25 +843,35 @@ export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
         reason: String(x.reason ?? ""),
       }));
   } catch (err) {
-    // Surface enough context to actually fix the malformation next time.
-    // Print the surrounding ±200 chars around the V8-reported position
-    // so we can see WHICH char tripped JSON.parse.
-    const msg = (err as Error).message ?? "";
-    const posMatch = msg.match(/position (\d+)/);
-    const pos = posMatch ? parseInt(posMatch[1], 10) : -1;
-    console.error("[compo] wrong-words parse failed:", err);
-    if (pos >= 0) {
-      const start = Math.max(0, pos - 200);
-      const end = Math.min(text.length, pos + 200);
-      console.error(`[compo] wrong-words raw at pos ${pos} (±200 chars):`);
-      console.error(`  pre:  ${JSON.stringify(text.slice(start, pos))}`);
-      console.error(`  bad:  ${JSON.stringify(text.slice(pos, pos + 1))}`);
-      console.error(`  post: ${JSON.stringify(text.slice(pos + 1, end))}`);
-    } else {
-      console.error(`[compo] wrong-words raw (first 400 chars):`, text.slice(0, 400));
-    }
-    return [];
+    console.error("[compo] wrong-words parse failed:", (err as Error).message);
+    return null; // signal "retry-worthy failure" to the caller
   }
+}
+
+export async function detectWrongWords(ocrText: string): Promise<WrongWord[]> {
+  console.log(`[compo:wrong-words] scanning ${ocrText.length} chars with ${ANALYSIS_MODEL}...`);
+  const start = Date.now();
+  const first = await detectWrongWordsOnce(ocrText);
+  console.log(`[compo:wrong-words] done in ${((Date.now() - start) / 1000).toFixed(1)}s · ${first === null ? "PARSE FAIL" : `${first.length} entries`}`);
+
+  // Retry path. Fires when:
+  //   (a) parse failed (first === null) — usually transient JSON
+  //       truncation that closeUnbalanced couldn't reach, OR
+  //   (b) the AI returned an empty array on a substantive essay
+  //       (> 300 chars). A real Chinese essay almost always has at
+  //       least one 的/地/得 slip or character omission; zero entries
+  //       is the silent-fail signature of a redeploy-killed call
+  //       or a half-truncated response.
+  // One extra Gemini call is worth the cost vs. a re-analyse loop
+  // for the user.
+  const suspiciousEmpty = first !== null && first.length === 0 && ocrText.length > 300;
+  if (first === null || suspiciousEmpty) {
+    console.warn(`[compo:wrong-words] suspicious result (${first === null ? "parse fail" : "empty on long essay"}) — retrying ONE more time…`);
+    const second = await detectWrongWordsOnce(ocrText);
+    console.warn(`[compo:wrong-words] retry result: ${second === null ? "PARSE FAIL again" : `${second.length} entries`}`);
+    if (second !== null && second.length > (first?.length ?? 0)) return second;
+  }
+  return first ?? [];
 }
 
 // ─── Critique vs. PSLE 40-mark rubric ───────────────────────────────
