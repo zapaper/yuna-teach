@@ -20,12 +20,14 @@ type AttemptRow = {
   label: string | null;
   studentTopic: string | null;
   optionType: "option1" | "option2" | null;
+  language: "chinese" | "english" | null;
+  englishComponent: "continuous" | "situational" | null;
   status: "uploaded" | "analysing" | "ready" | "failed";
   errorMessage: string | null;
   analysedAt: string | null;
   createdAt: string;
   studentId: string | null;
-  critique: { overallScore?: number } | null;
+  critique: { overallScore?: number; component?: string } | null;
 };
 
 type StagedFile = {
@@ -503,11 +505,16 @@ function EssayCoachContent() {
                     </div>
                     <div className="text-right shrink-0">
                       <StatusBadge status={r.status} />
-                      {r.critique?.overallScore !== undefined && (
-                        <div className="text-sm font-bold text-[#001e40] mt-1">
-                          {r.critique.overallScore}/40
-                        </div>
-                      )}
+                      {r.critique?.overallScore !== undefined && (() => {
+                        const max = r.language === "english"
+                          ? (r.englishComponent === "situational" ? 14 : 36)
+                          : 40;
+                        return (
+                          <div className="text-sm font-bold text-[#001e40] mt-1">
+                            {r.critique.overallScore}/{max} <span className="font-normal text-[#737780]">({Math.round((r.critique.overallScore / max) * 100)}%)</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   {r.errorMessage && (

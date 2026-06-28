@@ -22,11 +22,52 @@ type AttemptRow = {
   label: string | null;
   studentTopic: string | null;
   optionType: "option1" | "option2" | null;
+  language: "chinese" | "english" | null;
+  englishComponent: "continuous" | "situational" | null;
   status: "uploaded" | "analysing" | "ready" | "failed";
   errorMessage: string | null;
   analysedAt: string | null;
   createdAt: string;
-  critique: { overallScore?: number } | null;
+  // Chinese rows store /40 with contentScore axes; English rows store
+  // /36 (Continuous) or /14 (Situational) with `component` + per-axis
+  // max fields. The list view only reads `overallScore` and computes
+  // the denominator from row.language + englishComponent.
+  critique: { overallScore?: number; component?: string } | null;
+};
+
+function maxMarksFor(r: { language: AttemptRow["language"]; englishComponent: AttemptRow["englishComponent"] }): number {
+  if (r.language === "english") {
+    return r.englishComponent === "situational" ? 14 : 36;
+  }
+  return 40;
+}
+
+type BatchAdvice = {
+  tip: string;
+  why: string;
+  examples: Array<{ from: string; before: string; after: string }>;
+};
+type BatchBucket = {
+  title: string;
+  color: "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
+  advice: BatchAdvice[];
+};
+type BatchAnalyseResult = {
+  buckets: BatchBucket[];
+  overview: string;
+  essaysAnalysed: number;
+  language: "chinese" | "english" | "mixed";
+};
+
+// Tailwind palette per bucket colour. Each bucket gets its own border
+// + header background so the rendered result is visually scannable.
+const BUCKET_PALETTE: Record<BatchBucket["color"], { border: string; headerBg: string; headerText: string; chip: string }> = {
+  blue:    { border: "border-blue-200",    headerBg: "bg-blue-50",    headerText: "text-blue-900",    chip: "bg-blue-100 text-blue-800" },
+  emerald: { border: "border-emerald-200", headerBg: "bg-emerald-50", headerText: "text-emerald-900", chip: "bg-emerald-100 text-emerald-800" },
+  amber:   { border: "border-amber-200",   headerBg: "bg-amber-50",   headerText: "text-amber-900",   chip: "bg-amber-100 text-amber-800" },
+  rose:    { border: "border-rose-200",    headerBg: "bg-rose-50",    headerText: "text-rose-900",    chip: "bg-rose-100 text-rose-800" },
+  violet:  { border: "border-violet-200",  headerBg: "bg-violet-50",  headerText: "text-violet-900",  chip: "bg-violet-100 text-violet-800" },
+  sky:     { border: "border-sky-200",     headerBg: "bg-sky-50",     headerText: "text-sky-900",     chip: "bg-sky-100 text-sky-800" },
 };
 
 type StagedFile = {
@@ -71,6 +112,46 @@ export default function CompoIndexPage() {
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [pageFiles, setPageFiles] = useState<StagedFile[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
+
+  // ── Batch Analyse ─────────────────────────────────────────────────
+  // Toggle exposes a checkbox on every ready row. 2-10 essays can be
+  // picked at once; we call /api/admin/compo/batch-analyse with the
+  // selected ids and render the bucketed advice inline below the
+  // attempts list.
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchSelected, setBatchSelected] = useState<Set<string>>(new Set());
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const [batchResult, setBatchResult] = useState<BatchAnalyseResult | null>(null);
+  const BATCH_CAP = 10;
+  const toggleBatchPick = (id: string) => {
+    setBatchSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < BATCH_CAP) next.add(id);
+      return next;
+    });
+  };
+  const runBatchAnalyse = async () => {
+    if (batchSelected.size < 2) return;
+    setBatchLoading(true);
+    setBatchError(null);
+    setBatchResult(null);
+    try {
+      const res = await fetch("/api/admin/compo/batch-analyse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptIds: [...batchSelected] }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      setBatchResult(j as BatchAnalyseResult);
+    } catch (e) {
+      setBatchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBatchLoading(false);
+    }
+  };
   // /admin requires the userId query param for session resolution —
   // landing there without it shows an error page. Read from
   // window.location after mount (rather than useSearchParams) so
@@ -397,11 +478,11 @@ export default function CompoIndexPage() {
                     </div>
                     <div className="text-right pr-16">
                       <StatusBadge status={r.status} />
-                      {r.critique?.overallScore !== undefined && (
+                      {r.critique?.overallScore !== undefined && (() => { const max = maxMarksFor(r); return (
                         <div className="text-sm font-semibold text-slate-800 mt-1">
-                          {r.critique.overallScore}/40
+                          {r.critique.overallScore}/{max} <span className="font-normal text-slate-400">({Math.round((r.critique.overallScore / max) * 100)}%)</span>
                         </div>
-                      )}
+                      ); })()}
                     </div>
                   </div>
                   {r.errorMessage && (

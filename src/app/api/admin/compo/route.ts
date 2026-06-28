@@ -39,6 +39,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, label: true, studentTopic: true, optionType: true,
+      language: true, englishComponent: true,
       status: true, errorMessage: true, analysedAt: true,
       createdAt: true, updatedAt: true,
       critique: true,
