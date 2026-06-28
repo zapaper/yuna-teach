@@ -413,7 +413,7 @@ function fixHandwriting3ToLe(text: string): string {
   return out;
 }
 
-async function readFileForGemini(relPath: string): Promise<{ data: string; mimeType: string }> {
+export async function readFileForGemini(relPath: string): Promise<{ data: string; mimeType: string }> {
   const abs = path.join(COMPO_DIR, relPath);
   const buf = await fs.readFile(abs);
   const ext = path.extname(relPath).toLowerCase();
