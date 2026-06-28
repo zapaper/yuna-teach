@@ -3606,6 +3606,41 @@ export default function ParentDashboard({
                 {showStudentMenu && <div className="mt-2"><StudentDropdown /></div>}
               </section>
 
+              {/* Mobile-only primary actions — Revise + (gated) Essay.
+                  Sit just below the student selector so they're the
+                  first thing a parent's thumb reaches for after
+                  picking a child. The bottom bar is full so the
+                  desktop sidebar entries can't fit there; this row
+                  is the mobile equivalent. Essay is only rendered
+                  for admin + the closed-beta allowlist. */}
+              <section className="flex gap-3">
+                <button
+                  onClick={() => setShowReviseModal(true)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold transition-colors ${
+                    showReviseModal
+                      ? "bg-[#d3e4fe] text-[#001e40]"
+                      : "bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff]"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined text-base"
+                    style={showReviseModal ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    history_edu
+                  </span>
+                  <span>Revise</span>
+                </button>
+                {(isAdminUser || ESSAY_COACH_BETA_PARENTS.has(user.name)) && (
+                  <Link
+                    href={`/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff] transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">edit_document</span>
+                    <span>Essay</span>
+                  </Link>
+                )}
+              </section>
+
               <MetricsGrid />
               <AiInsightCard />
 
@@ -3628,37 +3663,18 @@ export default function ParentDashboard({
               <section>
                 <div className="flex flex-wrap justify-between items-center gap-2 mb-5">
                   <h3 className="font-headline font-bold text-lg text-[#001e40] shrink-0">Performance Analysis</h3>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Mobile: bottom bar is full so the "Revise Work"
-                        entry lives here, beside Full Report. Icon-only
-                        on the narrowest phones so both chips fit on
-                        one row beside the heading. */}
-                    <button
-                      onClick={() => setShowReviseModal(true)}
-                      title="Revise work — compile recent mistakes"
-                      className={`flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-xl transition-colors ${
-                        showReviseModal
-                          ? "bg-[#d3e4fe] text-[#001e40]"
-                          : "bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff]"
-                      }`}
-                    >
-                      <span
-                        className="material-symbols-outlined text-base"
-                        style={showReviseModal ? { fontVariationSettings: "'FILL' 1" } : {}}
-                      >
-                        history_edu
-                      </span>
-                      <span>Revise</span>
-                    </button>
-                    <button
-                      onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
-                      title="Full performance report"
-                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-base">bar_chart</span>
-                      <span>Report</span>
-                    </button>
-                  </div>
+                  {/* Revise chip moved up beside the student selector
+                      (top of page). Only Report stays here since it's
+                      the section-specific "drill into this analysis"
+                      action. */}
+                  <button
+                    onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                    title="Full performance report"
+                    className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-base">bar_chart</span>
+                    <span>Report</span>
+                  </button>
                 </div>
                 <PerformanceCards />
               </section>
