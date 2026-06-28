@@ -505,19 +505,36 @@ function EssayCoachContent() {
               <span className="material-symbols-outlined text-base">photo_camera</span>
               Scan
             </button>
-            <button
-              type="button"
-              onClick={onAnalyse}
-              disabled={uploading || pageFiles.length === 0}
-              className="ml-auto px-4 py-2 rounded-lg text-sm font-semibold bg-[#0040a0] text-white hover:bg-[#003080] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
-            >
-              {uploading ? "Sending…" : (
-                <>
-                  <span className="material-symbols-outlined text-base">auto_awesome</span>
-                  Analyse
-                </>
-              )}
-            </button>
+            {isAdmin && batchMode ? (
+              // When admin batch mode is on, the primary action of the
+              // upload form is repurposed: instead of "Analyse this new
+              // upload" we want "Run Batch Analyse on the picked essays
+              // below". One obvious next step, no hunting for a second
+              // button in the past-attempts header.
+              <button
+                type="button"
+                onClick={runBatchAnalyse}
+                disabled={batchLoading || batchSelected.size < 2}
+                className="ml-auto px-4 py-2 rounded-lg text-sm font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                title={batchSelected.size < 2 ? "Pick 2+ ready essays below" : ""}
+              >
+                {batchLoading ? "Analysing…" : `🪄 Batch Analyse ${batchSelected.size} essay${batchSelected.size === 1 ? "" : "s"}`}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onAnalyse}
+                disabled={uploading || pageFiles.length === 0}
+                className="ml-auto px-4 py-2 rounded-lg text-sm font-semibold bg-[#0040a0] text-white hover:bg-[#003080] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+              >
+                {uploading ? "Sending…" : (
+                  <>
+                    <span className="material-symbols-outlined text-base">auto_awesome</span>
+                    Analyse
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Staged thumbnails */}
@@ -615,36 +632,24 @@ function EssayCoachContent() {
               )}
             </div>
             {isAdmin && (
-              <div className="flex gap-2">
-                {batchMode && batchSelected.size >= 2 && !batchResult && (
-                  <button
-                    type="button"
-                    onClick={runBatchAnalyse}
-                    disabled={batchLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
-                  >
-                    {batchLoading ? "Analysing…" : `🪄 Run on ${batchSelected.size} essays`}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBatchMode(v => !v);
-                    setBatchSelected(new Set());
-                    setBatchResult(null);
-                    setBatchError(null);
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                    batchMode
-                      ? "bg-violet-600 text-white border-violet-600 hover:bg-violet-700"
-                      : "bg-white text-[#0040a0] border-slate-300 hover:border-violet-400"
-                  }`}
-                  title="Pick 2-10 essays for a cross-essay coaching summary"
-                >
-                  <span className="material-symbols-outlined text-base">{batchMode ? "checklist" : "library_add_check"}</span>
-                  Batch Analyse {batchMode && `(${batchSelected.size}/${BATCH_CAP})`}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setBatchMode(v => !v);
+                  setBatchSelected(new Set());
+                  setBatchResult(null);
+                  setBatchError(null);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  batchMode
+                    ? "bg-violet-600 text-white border-violet-600 hover:bg-violet-700"
+                    : "bg-white text-[#0040a0] border-slate-300 hover:border-violet-400"
+                }`}
+                title="Pick 2-10 essays for a cross-essay coaching summary"
+              >
+                <span className="material-symbols-outlined text-base">{batchMode ? "checklist" : "library_add_check"}</span>
+                Batch Analyse {batchMode && `(${batchSelected.size}/${BATCH_CAP})`}
+              </button>
             )}
           </div>
           {isAdmin && batchError && (
@@ -794,8 +799,17 @@ function BatchResultPanel({
   onSave: () => void;
   onClose: () => void;
 }) {
+  // Closed-state controls: Save / Print as independent buttons (Print
+  // requires a saved tip — disabled with a hint tooltip until the tip
+  // is persisted). Expand/Collapse replaces Close so the admin can
+  // tuck the bucket list out of the way without losing the panel.
   const isChinese = result.language === "chinese";
   const isSaved = savedTipId !== null;
+  const [expanded, setExpanded] = useState(true);
+  // onClose is plumbed through but only fires from the parent's "X" on
+  // the result clearing path — keep the prop so the call sites don't
+  // need to change.
+  void onClose;
   return (
     <div className="bg-white border-2 border-violet-300 rounded-2xl p-5 space-y-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -816,16 +830,19 @@ function BatchResultPanel({
           )}
         </div>
         <div className="flex gap-2 shrink-0">
-          {!isSaved ? (
-            <button
-              type="button"
-              onClick={onSave}
-              disabled={saving}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
-            >
-              {saving ? "Saving…" : "💾 Save this"}
-            </button>
-          ) : (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving || isSaved}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 ${
+              isSaved
+                ? "bg-emerald-100 text-emerald-700 cursor-default"
+                : "bg-violet-600 text-white hover:bg-violet-700"
+            }`}
+          >
+            {isSaved ? "✓ Saved" : saving ? "Saving…" : "💾 Save this"}
+          </button>
+          {isSaved ? (
             <a
               href={`/print/batch-tip/${savedTipId}`}
               target="_blank"
@@ -834,13 +851,24 @@ function BatchResultPanel({
             >
               🖨 Print this
             </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="Save the tip first to enable printing"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 cursor-not-allowed"
+            >
+              🖨 Print this
+            </button>
           )}
           <button
             type="button"
-            onClick={onClose}
-            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
+            onClick={() => setExpanded(v => !v)}
+            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 inline-flex items-center gap-1"
+            title={expanded ? "Collapse" : "Expand"}
           >
-            Close
+            <span>{expanded ? "▾" : "▸"}</span>
+            {expanded ? "Collapse" : "Expand"}
           </button>
         </div>
       </div>
@@ -849,9 +877,10 @@ function BatchResultPanel({
           Saved to the covered essays. Open any of them to see this tip under &quot;Lumi&rsquo;s tip&quot;.
         </div>
       )}
-      {result.buckets.length === 0 && (
+      {expanded && result.buckets.length === 0 && (
         <p className="text-sm text-slate-500 italic">No patterns surfaced — try picking more essays.</p>
       )}
+      {expanded && (
       <div className="space-y-3">
         {result.buckets.map((b, bi) => {
           const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
@@ -903,6 +932,7 @@ function BatchResultPanel({
           );
         })}
       </div>
+      )}
     </div>
   );
 }

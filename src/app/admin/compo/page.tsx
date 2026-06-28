@@ -725,6 +725,10 @@ function BatchResultPanel({
 }) {
   const isChinese = result.language === "chinese";
   const isSaved = savedTipId !== null;
+  const [expanded, setExpanded] = useState(true);
+  // Kept for API compatibility — the index page passes onClose, but the
+  // panel now uses Expand/Collapse instead of a hard close.
+  void onClose;
   return (
     <div className="mt-6 bg-white border-2 border-violet-300 rounded-2xl p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -747,16 +751,19 @@ function BatchResultPanel({
           )}
         </div>
         <div className="flex gap-2 shrink-0">
-          {!isSaved ? (
-            <button
-              type="button"
-              onClick={onSave}
-              disabled={saving}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60"
-            >
-              {saving ? "Saving…" : "💾 Save this"}
-            </button>
-          ) : (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving || isSaved}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 ${
+              isSaved
+                ? "bg-emerald-100 text-emerald-700 cursor-default"
+                : "bg-violet-600 text-white hover:bg-violet-700"
+            }`}
+          >
+            {isSaved ? "✓ Saved" : saving ? "Saving…" : "💾 Save this"}
+          </button>
+          {isSaved ? (
             <a
               href={`/print/batch-tip/${savedTipId}`}
               target="_blank"
@@ -765,13 +772,24 @@ function BatchResultPanel({
             >
               🖨 Print this
             </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="Save the tip first to enable printing"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 cursor-not-allowed"
+            >
+              🖨 Print this
+            </button>
           )}
           <button
             type="button"
-            onClick={onClose}
-            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
+            onClick={() => setExpanded(v => !v)}
+            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 inline-flex items-center gap-1"
+            title={expanded ? "Collapse" : "Expand"}
           >
-            Close
+            <span>{expanded ? "▾" : "▸"}</span>
+            {expanded ? "Collapse" : "Expand"}
           </button>
         </div>
       </div>
@@ -781,10 +799,11 @@ function BatchResultPanel({
         </div>
       )}
 
-      {result.buckets.length === 0 && (
+      {expanded && result.buckets.length === 0 && (
         <p className="text-sm text-slate-500 italic">No patterns surfaced — try picking more essays.</p>
       )}
 
+      {expanded && (
       <div className="space-y-3">
         {result.buckets.map((b, bi) => {
           const palette = BUCKET_PALETTE[b.color] ?? BUCKET_PALETTE.blue;
@@ -836,6 +855,7 @@ function BatchResultPanel({
           );
         })}
       </div>
+      )}
     </div>
   );
 }
