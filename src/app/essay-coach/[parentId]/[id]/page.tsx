@@ -408,6 +408,7 @@ function DetailContent() {
                 view={view}
                 ocrText={ocrText}
                 elevatedDraft={row?.recommendations?.elevatedDraft ?? null}
+                isEnglish={isEnglish}
               />
               {row.compareToMarkings && row.ocrTextWithMarkings && (
                 <div className="mt-4 print:hidden">
@@ -809,19 +810,56 @@ function countChars(text: string): { cjk: number; total: number } {
   return { cjk, total: cleaned.length };
 }
 
+// English word count: split on whitespace, drop empty tokens. We strip
+// the [+...+] / |bucket markers FIRST when called on an elevated draft
+// (that happens at the caller via stripMarkers).
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
 function WordCountFooter({
-  view, ocrText, elevatedDraft,
+  view, ocrText, elevatedDraft, isEnglish,
 }: {
   view: "marked" | "clean" | "elevated";
   ocrText: string;
   elevatedDraft: string | null;
+  isEnglish: boolean;
 }) {
-  const original = countChars(ocrText);
-  const elevated = elevatedDraft ? countChars(stripMarkers(elevatedDraft)) : null;
   const currentLabel =
     view === "marked"   ? "Original (with errors marked)"  :
     view === "clean"    ? "Original (errors corrected)"    :
                           "Enhanced draft";
+
+  if (isEnglish) {
+    // English: words is the marker's primary signal. PSLE Continuous
+    // Writing rubric calls 150 the minimum; 500-600 is the band where
+    // top-band development can be shown.
+    const originalWords = countWords(ocrText);
+    const elevatedWords = elevatedDraft ? countWords(stripMarkers(elevatedDraft)) : null;
+    const currentWords = view === "elevated" && elevatedWords != null ? elevatedWords : originalWords;
+    const advice =
+      currentWords < 150 ? "below the 150-word PSLE minimum — content can't be developed." :
+      currentWords < 350 ? "shorter than the 500-600 word ideal — limits development for top-band scoring." :
+      currentWords < 500 ? "slightly under the 500-600 word ideal — adding 1-2 paragraphs of description / dialogue would help reach the top band." :
+      currentWords <= 700 ? "in the 500-700 word sweet spot for top-band scoring." :
+      "comfortably above the ideal range.";
+    return (
+      <div className="mt-2 flex flex-col gap-1 text-[11px] text-[#737780] px-2">
+        <span>
+          <span className="font-semibold text-[#43474f]">{currentLabel}:</span>{" "}
+          {currentWords} words
+          {view === "elevated" && elevatedWords != null && (
+            <span className="text-slate-400"> (original was {originalWords})</span>
+          )}
+        </span>
+        <span className="italic">{advice}</span>
+      </div>
+    );
+  }
+
+  // Chinese: CJK character count remains the primary signal.
+  const original = countChars(ocrText);
+  const elevated = elevatedDraft ? countChars(stripMarkers(elevatedDraft)) : null;
   const current = view === "elevated" && elevated ? elevated : original;
   return (
     <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-[#737780] px-2">
