@@ -6,7 +6,7 @@
 // mini-app), Analyse (sends collected pages to the pipeline).
 // Thumbnails of staged pages render between the buttons and Analyse.
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
