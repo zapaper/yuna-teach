@@ -16,9 +16,14 @@ import { isSessionAdmin } from "@/lib/session";
 //                              fires on signup; there is no dedicated
 //                              welcomeSentAt field)
 //   subject_3_quizzes_done   — per student, per subject, from
-//                              user.settings.progressReportsSent
+//                              student.settings.progressReportsSent
 //   lumi_intro_15_mistakes   — per student, per subject, from
-//                              user.settings.lumiIntroSent
+//                              student.settings.lumiIntroSent
+//   activation_nudge         — Day-3 nurture (Grammar+Vocab quiz), from
+//                              student.settings.activationNudgeSent
+//                              (single ISO timestamp, fires once per kid)
+//   activation_followup      — Day-6 follow-up Science quiz, from
+//                              student.settings.activationFollowupSent
 //
 // Friday Lumi refresh is not yet implemented in main app — when it is,
 // add a new branch here that surfaces those records too.
@@ -32,7 +37,9 @@ type EventType =
   | "welcome"
   | "subject_3_quizzes_done"
   | "lumi_intro_15_mistakes"
-  | "lumi_friday_refresh";
+  | "lumi_friday_refresh"
+  | "activation_nudge"
+  | "activation_followup";
 
 type EmailEvent = {
   to: string;
@@ -105,6 +112,10 @@ export async function GET(request: NextRequest) {
     studentDisplayName: string | null;
     progressReportsSent: Record<string, string> | null;
     lumiIntroSent: Record<string, string> | null;
+    // Single-string timestamps (NOT per-subject objects). Cast via
+    // ->>'key' so Postgres hands us the raw string, not a JSON value.
+    activationNudgeSent: string | null;
+    activationFollowupSent: string | null;
   };
   const subjectRows = await prisma.$queryRaw<SubjectEventRow[]>(Prisma.sql`
     SELECT
@@ -114,7 +125,9 @@ export async function GET(request: NextRequest) {
       s.name                                        AS "studentName",
       s."displayName"                               AS "studentDisplayName",
       s.settings->'progressReportsSent'             AS "progressReportsSent",
-      s.settings->'lumiIntroSent'                   AS "lumiIntroSent"
+      s.settings->'lumiIntroSent'                   AS "lumiIntroSent",
+      s.settings->>'activationNudgeSent'            AS "activationNudgeSent",
+      s.settings->>'activationFollowupSent'         AS "activationFollowupSent"
     FROM users p
     INNER JOIN parent_students ps ON ps."parentId" = p.id
     INNER JOIN users s ON s.id = ps."studentId"
@@ -123,6 +136,8 @@ export async function GET(request: NextRequest) {
       AND (
         s.settings->'progressReportsSent' IS NOT NULL
         OR s.settings->'lumiIntroSent' IS NOT NULL
+        OR s.settings->>'activationNudgeSent' IS NOT NULL
+        OR s.settings->>'activationFollowupSent' IS NOT NULL
       )
   `);
 
@@ -158,6 +173,34 @@ export async function GET(request: NextRequest) {
           event_type: "lumi_intro_15_mistakes",
           sent_at: dt.toISOString(),
           subject_key: subjectKey,
+          child_name: childName,
+        });
+      }
+    }
+
+    // Day-3 activation nudge — single timestamp per kid (not per-subject).
+    if (r.activationNudgeSent) {
+      const dt = new Date(r.activationNudgeSent);
+      if (!isNaN(dt.getTime()) && (!sinceDate || dt >= sinceDate)) {
+        events.push({
+          to: r.parentEmail,
+          to_name: toName,
+          event_type: "activation_nudge",
+          sent_at: dt.toISOString(),
+          child_name: childName,
+        });
+      }
+    }
+
+    // Day-6 follow-up Science nudge — single timestamp per kid.
+    if (r.activationFollowupSent) {
+      const dt = new Date(r.activationFollowupSent);
+      if (!isNaN(dt.getTime()) && (!sinceDate || dt >= sinceDate)) {
+        events.push({
+          to: r.parentEmail,
+          to_name: toName,
+          event_type: "activation_followup",
+          sent_at: dt.toISOString(),
           child_name: childName,
         });
       }
