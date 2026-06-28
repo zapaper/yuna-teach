@@ -79,12 +79,26 @@ export default async function PrintBatchTipPage({
       `}</style>
 
       <header className="border-b border-slate-300 pb-4 mb-6">
-        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
-          Lumi&rsquo;s cross-essay coaching tip
-        </div>
-        <h1 className="text-2xl font-bold mt-1">Patterns across {analysis.essaysAnalysed} {isChinese ? "篇作文" : "essays"}</h1>
-        <div className="text-xs text-slate-500 mt-2">
-          Saved {new Date(tip.createdAt).toLocaleDateString("en-SG", { dateStyle: "medium" })}
+        {/* Top branding row — student-facing title on the left, the
+            MarkForYou.com mark on the right. Matches the layout of the
+            student Learning Progress Report so the two printables
+            read as a family. */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              Lumi&rsquo;s cross-essay coaching tip
+            </div>
+            <h1 className="text-2xl font-extrabold mt-1" style={{ color: "#001e40" }}>
+              Patterns across {analysis.essaysAnalysed} {isChinese ? "篇作文" : "essays"}
+            </h1>
+            <div className="text-xs text-slate-500 mt-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              Saved {new Date(tip.createdAt).toLocaleDateString("en-SG", { dateStyle: "medium" })}
+            </div>
+          </div>
+          <div className="text-right shrink-0" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#001e40", lineHeight: 1 }}>MarkForYou.com</div>
+            <div className="text-sm text-slate-500 mt-1">AI-Powered Essay Coach</div>
+          </div>
         </div>
         {analysis.overview && (
           <p className="mt-4 text-base leading-relaxed italic text-slate-700">

@@ -54,6 +54,21 @@ export async function POST(req: NextRequest) {
 
   const savedById = await getSessionUserId();
 
+  // Only the LATEST tip for a (student, language) pair is kept —
+  // saving a new batch overwrites the prior one. Two reasons:
+  //  · The earlier tip is almost always stale (the kid's portfolio
+  //    moves on) and surfacing both produces clutter on the index
+  //    page where they all stack into the saved-tips list.
+  //  · Avoids the "what's the difference between these 3 tips" ask
+  //    the admin would have to answer for the parent.
+  // Tips with no studentId (mixed-batch admin runs) are never
+  // deleted by this path — they only collide on (null, language)
+  // and we don't want a per-language null overwrite either.
+  if (studentId) {
+    await prisma.batchCoachTip.deleteMany({
+      where: { studentId, language },
+    });
+  }
   const tip = await prisma.batchCoachTip.create({
     data: {
       studentId,

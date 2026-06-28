@@ -407,6 +407,30 @@ function EssayCoachContent() {
             {isAdmin && <> <strong className="font-semibold text-[#001e40]">Batch Analyse</strong> existing compositions to get cross-essay insights and tips.</>}
           </p>
 
+          {/* Global language toggle — drives BOTH new-composition
+              language and the past-attempts filter, so there's only
+              one place to set "I'm working with Chinese / English"
+              for this session. Picking flips the picker inside the
+              upload card (Option type vs English Component) and
+              re-filters the history list below. Strong brand colour
+              + larger pill so the active language is unmistakable. */}
+          <div className="mt-3 inline-flex rounded-xl border-2 border-[#0040a0]/30 bg-white p-1 text-sm font-bold shadow-sm">
+            <button
+              type="button"
+              onClick={() => { setLanguage("chinese"); setBatchSelected(new Set()); }}
+              className={`px-5 py-2 rounded-lg transition-colors ${language === "chinese" ? "bg-[#0040a0] text-white shadow" : "text-[#0040a0] hover:bg-[#eff4ff]"}`}
+            >
+              Chinese 华文
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLanguage("english"); setBatchSelected(new Set()); }}
+              className={`px-5 py-2 rounded-lg transition-colors ${language === "english" ? "bg-[#0040a0] text-white shadow" : "text-[#0040a0] hover:bg-[#eff4ff]"}`}
+            >
+              English
+            </button>
+          </div>
+
           {/* Persisted saved Lumi's tips — admin-only for now. Survives
               refresh because each one is a row in batch_coach_tips,
               re-fetched on every /api/essay-coach poll. Filtered to
@@ -420,29 +444,6 @@ function EssayCoachContent() {
                 .map(t => <SavedTipCard key={t.id} tip={t} />)}
             </div>
           )}
-
-          {/* Global language toggle — drives BOTH new-composition
-              language and the past-attempts filter, so there's only
-              one place to set "I'm working with Chinese / English"
-              for this session. Picking flips the picker inside the
-              upload card (Option type vs English Component) and
-              re-filters the history list below. */}
-          <div className="mt-3 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
-            <button
-              type="button"
-              onClick={() => { setLanguage("chinese"); setBatchSelected(new Set()); }}
-              className={`px-4 py-1.5 rounded-lg transition-colors ${language === "chinese" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
-            >
-              Chinese 华文
-            </button>
-            <button
-              type="button"
-              onClick={() => { setLanguage("english"); setBatchSelected(new Set()); }}
-              className={`px-4 py-1.5 rounded-lg transition-colors ${language === "english" ? "bg-white text-[#001e40] shadow-sm" : "text-[#737780] hover:text-[#001e40]"}`}
-            >
-              English
-            </button>
-          </div>
         </div>
 
         {/* New composition card. */}
