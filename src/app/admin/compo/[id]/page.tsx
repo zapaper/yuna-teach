@@ -47,23 +47,49 @@ type Recommendations = {
     piece: string; pieceEn?: string;
     issue: string; issueEn?: string;
     suggestion: string; suggestionEn?: string;
-    exampleFromModel?: { year: string; snippet: string; bucket: string };
+    exampleFromModel?: { year: string; snippet: string; bucket?: string };
   }>;
   language: Array<{
-    phraseCn: string; phraseEn?: string; fromYear?: string;
-    bucket: string; whyItHelps: string;
+    // English pipeline emits `phrase`; Chinese emits `phraseCn`.
+    phrase?: string;
+    phraseCn?: string;
+    phraseEn?: string;
+    fromYear?: string;
+    bucket?: string;
+    whyItHelps: string;
   }>;
   elevatedDraft?: string;
   elevatedDraftScore?: number;
-  elevatedDraftRubric?: RubricBreakdown;
+  elevatedDraftRubric?: RubricBreakdown | EnglishRubric;
   elevatedDraftSwaps?: PhraseSwap[];
 };
+
+// English critique stored in the same JSON column with a different
+// shape. Detection: presence of the `component` field.
+type EnglishAxis = { score: number; max: number; notes: string };
+type EnglishRubric = {
+  component: "continuous" | "situational";
+  primary: EnglishAxis;
+  language: EnglishAxis;
+  overallScore: number;
+  whyChanged?: string;
+};
+type EnglishCritique = EnglishRubric & {
+  overallSummary: string;
+  cleanRewrite?: EnglishRubric;
+  benchmarkYears: string[];
+};
+function isEnglishCritique(c: Critique | EnglishCritique | null | undefined): c is EnglishCritique {
+  return !!c && typeof (c as EnglishCritique).component === "string";
+}
 
 type Row = {
   id: string;
   label: string | null;
   studentTopic: string | null;
   optionType: string | null;
+  language: "chinese" | "english" | null;
+  englishComponent: "continuous" | "situational" | null;
   status: "uploaded" | "analysing" | "ready" | "failed";
   errorMessage: string | null;
   compareToMarkings: boolean;
@@ -71,7 +97,7 @@ type Row = {
   ocrTextWithMarkings: string | null;
   ocrQuestionText: string | null;
   wrongWords: WrongWord[] | null;
-  critique: Critique | null;
+  critique: Critique | EnglishCritique | null;
   recommendations: Recommendations | null;
   analysedAt: string | null;
   createdAt: string;
@@ -474,10 +500,11 @@ export default function CompoDetailPage() {
         </div>
       )}
 
+      {(() => { const isEnglish = row.language === "english"; const essayFont = isEnglish ? "'Georgia', 'Times New Roman', serif" : "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif"; const essayHeading = isEnglish ? "Composition" : "作文"; return (
       <div className="grid grid-cols-3 gap-5 print:grid-cols-1 print:gap-0">
         {/* Main composition view */}
         <div className="col-span-2 print:col-span-1">
-          <h2 className="text-sm font-semibold text-slate-800 mb-2">作文</h2>
+          <h2 className="text-sm font-semibold text-slate-800 mb-2">{essayHeading}</h2>
           {editing ? (
             <>
               <textarea
@@ -486,7 +513,7 @@ export default function CompoDetailPage() {
                 onChange={e => setDraftText(e.target.value)}
                 onContextMenu={openAltMenu}
                 className="w-full bg-white border-2 border-amber-300 rounded-2xl p-6 text-base leading-loose text-slate-900 focus:outline-none focus:border-amber-500"
-                style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif", minHeight: 500 }}
+                style={{ fontFamily: essayFont, minHeight: 500 }}
               />
               <p className="text-[10px] text-amber-700 mt-1">
                 ✎ Editing — right-click a selected phrase to get AI alternatives. Save above to commit.
@@ -495,7 +522,7 @@ export default function CompoDetailPage() {
           ) : view === "elevated" ? (
             <div
               className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
-              style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+              style={{ fontFamily: essayFont }}
             >
               <ElevatedDraftView
                 draft={elevatedDraft}
@@ -514,7 +541,7 @@ export default function CompoDetailPage() {
           ) : (
             <div
               className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-slate-900"
-              style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+              style={{ fontFamily: essayFont }}
               dangerouslySetInnerHTML={{ __html: view === "marked" ? markedHtml : cleanHtml }}
             />
           )}
@@ -551,7 +578,7 @@ export default function CompoDetailPage() {
               </div>
               <div
                 className="bg-amber-50/40 border border-amber-200 rounded-2xl p-5 text-sm leading-relaxed whitespace-pre-wrap text-slate-800"
-                style={{ fontFamily: "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif" }}
+                style={{ fontFamily: essayFont }}
                 dangerouslySetInnerHTML={{ __html: renderMarkingsOcr(row.ocrTextWithMarkings) }}
               />
               <p className="mt-2 text-[11px] text-slate-500 italic">
@@ -567,11 +594,16 @@ export default function CompoDetailPage() {
             so the Wrong-words card lands with breathing room below
             the passage, full width, instead of getting scrunched. */}
         <div className="col-span-1 print:col-span-1 space-y-4 print:mt-12 print:space-y-8">
-          {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} view={view} />}
+          {row.critique && (
+            isEnglishCritique(row.critique)
+              ? <EnglishCritiqueCard c={row.critique} r={row.recommendations} view={view} />
+              : <CritiqueCard c={row.critique as Critique} r={row.recommendations} view={view} />
+          )}
           {row.recommendations && <RecommendationsCard r={row.recommendations} />}
           {row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}
         </div>
       </div>
+      ); })()}
     </div>
   );
 }
@@ -1246,6 +1278,84 @@ function ProgressTracker({ row }: { row: Row }) {
   );
 }
 
+// English critique renderer. 2 axes (Content/Language for Continuous,
+// Task fulfilment/Language for Situational), total /36 or /14.
+function EnglishCritiqueCard({
+  c, r, view,
+}: {
+  c: EnglishCritique;
+  r?: Recommendations | null;
+  view: "marked" | "clean" | "elevated";
+}) {
+  const primaryLabel = c.component === "continuous" ? "Content" : "Task fulfilment";
+  const elevatedRubric = r?.elevatedDraftRubric as unknown as EnglishRubric | undefined;
+  const fallback = (overall: number): EnglishRubric => ({
+    component: c.component,
+    primary: { score: 0, max: c.primary.max, notes: "" },
+    language: { score: 0, max: c.language.max, notes: "" },
+    overallScore: overall,
+  });
+  const active: EnglishRubric =
+    view === "elevated" ? (elevatedRubric ?? fallback(Number(r?.elevatedDraftScore ?? c.overallScore))) :
+    view === "clean"    ? (c.cleanRewrite ?? fallback(Number(c.overallScore))) :
+                          c;
+  const overallMax = c.primary.max + c.language.max;
+  const panelLabel =
+    view === "elevated" ? "Rubric — Enhanced draft" :
+    view === "clean"    ? "Rubric — After corrections" :
+                          "Rubric — As submitted";
+  const deltaBadge =
+    view !== "marked" && active.overallScore !== c.overallScore ? (
+      <span className={`ml-2 text-[11px] font-semibold ${active.overallScore > c.overallScore ? "text-emerald-700" : "text-rose-700"}`}>
+        {active.overallScore > c.overallScore ? "+" : ""}{(active.overallScore - c.overallScore).toFixed(1)} vs. original
+      </span>
+    ) : null;
+  const isFallback = active.primary.score === 0 && active.language.score === 0 && !active.primary.notes && !active.language.notes;
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4">
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-sm font-semibold text-slate-800">{panelLabel}</h3>
+        <div className="text-xl font-bold text-slate-900">
+          {active.overallScore}<span className="text-slate-500 text-sm">/{overallMax}</span>
+          {deltaBadge}
+        </div>
+      </div>
+      <div className="mt-3 space-y-3 text-sm">
+        {!isFallback && (
+          <>
+            <div>
+              <div className="flex justify-between font-medium text-slate-700">
+                <span>{primaryLabel}</span><span>{active.primary.score}/{active.primary.max}</span>
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5">{active.primary.notes}</p>
+            </div>
+            <div>
+              <div className="flex justify-between font-medium text-slate-700">
+                <span>Language</span><span>{active.language.score}/{active.language.max}</span>
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5">{active.language.notes}</p>
+            </div>
+          </>
+        )}
+        <div className="pt-3 border-t border-slate-100">
+          {view === "marked" ? (
+            <p className="text-xs text-slate-700 italic">{c.overallSummary}</p>
+          ) : (
+            <>
+              <div className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">
+                Why this score
+              </div>
+              {active.whyChanged
+                ? <p className="text-xs text-slate-700">{active.whyChanged}</p>
+                : <p className="text-xs text-slate-400 italic">No detailed breakdown returned for this view — re-analyse to refresh.</p>}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CritiqueCard({
   c,
   r,
@@ -1258,8 +1368,11 @@ function CritiqueCard({
   // Pick the rubric breakdown for the active view. Falls back to the
   // original critique if the sub-breakdown isn't populated (older
   // rows pre-date cleanRewrite / elevatedDraftRubric).
+  // Chinese-shape elevated rubric; the union with EnglishRubric is
+  // resolved at the caller's dispatch site (EnglishCritiqueCard branch).
+  const elevatedChineseRubric = r?.elevatedDraftRubric as RubricBreakdown | undefined;
   const active: RubricBreakdown =
-    view === "elevated" ? (r?.elevatedDraftRubric ?? makeFallback(r?.elevatedDraftScore ?? c.overallScore)) :
+    view === "elevated" ? (elevatedChineseRubric ?? makeFallback(r?.elevatedDraftScore ?? c.overallScore)) :
     view === "clean"    ? (c.cleanRewrite ?? makeFallback(c.cleanRewriteScore ?? c.overallScore)) :
                           c;
 
@@ -1400,7 +1513,7 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
           <ul className="space-y-2 text-sm">
             {r.language.map((l, i) => (
               <li key={i} className="bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-2">
-                <div className="font-medium text-emerald-900">{l.phraseCn}</div>
+                <div className="font-medium text-emerald-900">{l.phrase ?? l.phraseCn}</div>
                 {l.phraseEn && <div className="text-xs text-slate-500">{l.phraseEn}</div>}
                 <div className="text-xs text-slate-700 mt-1">{l.whyItHelps}</div>
               </li>
