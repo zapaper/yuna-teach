@@ -304,10 +304,16 @@ function daysSince(iso: string | undefined | null): number | null {
     parentId: string; parentName: string; parentEmail: string; parentFirst: string;
   };
   const nurtureEligible: NurtureRow[] = [];
-  const nurtureSkip = { excludedName: 0, alreadyStarted: 0, noLinkedParent: 0, noParentEmail: 0, allParentsService: 0, alreadyNudged: 0 };
+  const nurtureSkip = { excludedName: 0, alreadyStarted: 0, noLinkedParent: 0, noParentEmail: 0, allParentsService: 0, alreadyNudged: 0, levelUnsupported: 0 };
   for (const k of nurtureKids) {
     if (NURTURE_EXCLUDED_NAMES.has((k.name ?? "").toLowerCase())) { nurtureSkip.excludedName++; continue; }
     if (startedSet.has(k.id)) { nurtureSkip.alreadyStarted++; continue; }
+    // Skip P2/P3 — the daily-quiz API rejects "Not enough English
+    // questions" for P2 and "Primary 3 English not yet supported"
+    // for P3, so nurture sends would 5/5-fail and the FIFO queue
+    // would stay jammed on these kids forever. Re-enable by
+    // dropping this gate once Primary 2-3 English content ships.
+    if ((k.level ?? 0) < 4) { nurtureSkip.levelUnsupported++; continue; }
     if (k.studentLinks.length === 0) { nurtureSkip.noLinkedParent++; continue; }
     const withEmail = k.studentLinks.map(l => l.parent).filter(p => p.email);
     if (withEmail.length === 0) { nurtureSkip.noParentEmail++; continue; }
@@ -329,7 +335,7 @@ function daysSince(iso: string | undefined | null): number | null {
   const nurtureBatch = nurtureEligible.slice(0, NURTURE_PER_TICK_CAP);
 
   console.log(`  total eligible: ${nurtureEligible.length}, batch this tick: ${nurtureBatch.length}`);
-  console.log(`  skipped — already-started: ${nurtureSkip.alreadyStarted}, no-linked-parent: ${nurtureSkip.noLinkedParent}, no-parent-email: ${nurtureSkip.noParentEmail}, service-only: ${nurtureSkip.allParentsService}, already-nudged: ${nurtureSkip.alreadyNudged}, excluded-name: ${nurtureSkip.excludedName}`);
+  console.log(`  skipped — already-started: ${nurtureSkip.alreadyStarted}, level-unsupported (P2/P3): ${nurtureSkip.levelUnsupported}, no-linked-parent: ${nurtureSkip.noLinkedParent}, no-parent-email: ${nurtureSkip.noParentEmail}, service-only: ${nurtureSkip.allParentsService}, already-nudged: ${nurtureSkip.alreadyNudged}, excluded-name: ${nurtureSkip.excludedName}`);
 
   if (nurtureBatch.length > 0) {
     console.log(`\n  ── batch (oldest first) ──`);
