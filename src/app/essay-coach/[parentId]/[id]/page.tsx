@@ -258,9 +258,19 @@ function DetailContent() {
               From sm: side-by-side again. */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-2 gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#001e40] break-words">
-                {row.label ?? "(no label)"}
-              </h1>
+              <EditableLabel
+                value={row.label}
+                onSave={async (next) => {
+                  const trimmed = next.trim();
+                  const result = await fetchJsonSafe<{ row: Row }>(`${API_BASE}/${id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ label: trimmed.length === 0 ? null : trimmed }),
+                  });
+                  if (result.ok) setRow(result.data.row);
+                  else setError(result.error);
+                }}
+              />
               {row.studentTopic && <p className="text-sm text-[#43474f] mt-0.5">{row.studentTopic}</p>}
               <p className="text-xs text-[#737780] mt-1">
                 uploaded {new Date(row.createdAt).toLocaleString("en-SG", { dateStyle: "medium", timeStyle: "short" })}
@@ -1230,6 +1240,52 @@ function WrongWordsCard({ ws }: { ws: WrongWord[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+// Inline-editable label — same UX pattern as the admin compo detail
+// page: click to turn the heading into a textarea; Enter / blur saves
+// via the parent's onSave (which PATCHes /api/essay-coach/[id]);
+// Escape reverts. Styled in the parent-app palette so it sits flush
+// with the rest of the header.
+function EditableLabel({
+  value,
+  onSave,
+}: {
+  value: string | null;
+  onSave: (next: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? "");
+  // Keep draft in sync when the row refreshes from the server, but
+  // never stomp the user's in-flight typing.
+  useEffect(() => { if (!editing) setDraft(value ?? ""); }, [value, editing]);
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter")  { e.preventDefault(); setEditing(false); void onSave(draft); }
+          if (e.key === "Escape") { e.preventDefault(); setEditing(false); setDraft(value ?? ""); }
+        }}
+        onBlur={() => { setEditing(false); if (draft !== (value ?? "")) void onSave(draft); }}
+        placeholder="Label this composition"
+        className="text-xl sm:text-2xl font-extrabold text-[#001e40] bg-yellow-50 border-b-2 border-yellow-400 outline-none w-full max-w-lg px-1"
+      />
+    );
+  }
+  const isEmpty = !value;
+  return (
+    <h1
+      onClick={() => setEditing(true)}
+      className={`text-xl sm:text-2xl font-extrabold cursor-text hover:bg-slate-50 rounded px-1 -ml-1 inline-block break-words ${isEmpty ? "text-[#737780] italic" : "text-[#001e40]"}`}
+      title="Click to edit"
+    >
+      {value ?? "(no label — tap to add)"}
+    </h1>
   );
 }
 
