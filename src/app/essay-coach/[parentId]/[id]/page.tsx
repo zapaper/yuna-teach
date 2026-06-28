@@ -309,7 +309,7 @@ function DetailContent() {
           </div>
         )}
 
-        {view !== "elevated" && wrongWords.length > 0 && row.status === "ready" && (
+        {view === "marked" && wrongWords.length > 0 && row.status === "ready" && (
           <div className="flex items-center gap-2 flex-wrap print:hidden text-xs">
             <span className="text-[#43474f] font-medium">Highlight:</span>
             <button
@@ -389,7 +389,12 @@ function DetailContent() {
             <div className="lg:col-span-1 print:col-span-1 space-y-4 print:mt-12 print:space-y-8">
               {row.critique && <CritiqueCard c={row.critique} r={row.recommendations} view={view} />}
               {row.recommendations && <RecommendationsCard r={row.recommendations} />}
-              {row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}
+              {/* Wrong-words / awkward-phrase list is a critique of the
+                  original draft — it has nothing to teach on the Clean
+                  rewrite (errors already applied) or the Enhanced
+                  draft (different prose entirely). Keep it on the
+                  Original tab only. */}
+              {view === "marked" && row.wrongWords && row.wrongWords.length > 0 && <WrongWordsCard ws={row.wrongWords} />}
             </div>
           </div>
         )}
