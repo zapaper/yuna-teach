@@ -260,17 +260,24 @@ ${questionBlock}
 - **Language (18 marks)**: Grammar (tense consistency — usually past for narratives, subject-verb agreement, articles, prepositions), precise vocabulary (NO bombastic words used out of context — that loses marks), sentence variety (simple + compound + complex mix), and organisation (paragraphing + logical transitions).
 
 【Real PSLE score distribution — calibration】
-- ≤ 18:    weak. Major errors, plot incoherent, off-topic.
-- 19-23:   below average. Storyline holds but errors throughout.
+PSLE markers are GENEROUS to clean, well-structured work. Use these bands strictly:
+- ≤ 18:    weak. Major errors, plot incoherent, or off-topic.
+- 19-23:   below average. Storyline holds but persistent grammar / spelling errors throughout.
 - 24-28:   average. Clear plot, fewer errors, some attempt at description.
-- 29-32:   good. Plot has climax + resolution, varied sentence types, 1-2 idiomatic phrases.
-- 33-35:   excellent. Strong opening hook, clear conflict / climax / resolution, vivid description, 3-4 strong phrases, near-flawless grammar.
-- 36:      rare top mark.
+- 29-32:   good. Plot has climax + resolution, varied sentence types, occasional idiomatic phrase, mostly clean grammar.
+- 33-35:   excellent — **this is where most clean, coherent narratives land**. Clear conflict / climax / resolution + vivid description + near-flawless grammar + some sentence variety. You do NOT need a "stunning" hook or 5+ idioms to land here. A solid, well-paced narrative with mostly clean language IS 33-35.
+- 36:      reserved for compositions that *also* have a particularly memorable opening, climax, or moral / emotional payoff. Don't withhold it from work that clearly belongs in the top band just because no single feature is "extraordinary".
+
+**Anchor your scoring against the benchmark essays below — they are real 36/36 PSLE work. If the student's writing is at a similar level of grammar control, plot structure, and description (even if shorter or simpler in theme), score 34-36. Do NOT default to 28-32 for clean, competent narratives — that is the most common calibration mistake.**
 
 【Word count guidance】
-PSLE requires ≥ 150 words. Top-scoring compositions are typically 350-500 words; below 200 makes the top bands very hard to reach because development can't be shown. Penalise undeveloped plot when CJK-equivalent is short.
+PSLE requires ≥ 150 words. Length is a SOFT signal, not a hard ceiling:
+- < 150: cannot be assessed at top band — content is undeveloped by definition.
+- 150-300: top bands ARE reachable if the writing is dense, every line earns its place, and the climax/resolution land. Don't cap at 28 just because it's short — judge on what's there.
+- 300-500: ideal range; no length penalty.
+- > 500: no penalty for length, no bonus either — judge purely on quality.
 
-【Real 36/36 benchmarks for reference】
+【Real 36/36 benchmarks for reference — the standard you're scoring against】
 ${sample}
 
 【Student composition】
