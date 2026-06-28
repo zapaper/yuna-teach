@@ -341,7 +341,7 @@ function DetailContent() {
               className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold disabled:opacity-50 ${view === "elevated" ? "bg-[#001e40] text-white" : "bg-white border border-slate-300 text-[#001e40]"}`}
               title={row.recommendations?.elevatedDraft ? "" : "Enhanced draft not generated yet"}
             >
-              Enhance
+              Enhanced to 32-36 (upgrades in green)
             </button>
           </div>
         )}
