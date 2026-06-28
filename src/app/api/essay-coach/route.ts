@@ -30,7 +30,13 @@ export async function GET(req: NextRequest) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const studentId = req.nextUrl.searchParams.get("studentId");
-  const where: { uploaderId: string; studentId?: string } = { uploaderId: auth.userId };
+  // Admins viewing another parent's essay-coach page (or a kid's) need
+  // to see the essays uploaded by THAT parent, not by themselves.
+  // Without this bypass, admin lands on /essay-coach/<other-parentId>
+  // and sees an empty list because their own uploaderId never matches.
+  // Non-admin callers stay locked to their own uploads.
+  const where: { uploaderId?: string; studentId?: string } = {};
+  if (!auth.isAdmin) where.uploaderId = auth.userId;
   if (studentId) where.studentId = studentId;
 
   const rows = await prisma.compoAttempt.findMany({

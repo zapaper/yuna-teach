@@ -457,6 +457,22 @@ function EssayCoachContent() {
             </button>
           </div>
 
+          {/* Fresh Batch Analyse result — same slot as the saved-tips
+              section below so the panel doesn't visually jump when
+              the persisted list takes over after save+refresh. Pinned
+              to the header block, sits right under the language pill. */}
+          {isAdmin && batchResult && (
+            <div ref={batchPanelRef} className="mt-3">
+              <BatchResultPanel
+                result={batchResult}
+                savedTipId={batchSavedTipId}
+                saving={batchSaving}
+                onSave={saveBatchTip}
+                onClose={() => { setBatchResult(null); setBatchSelected(new Set()); setBatchSavedTipId(null); }}
+              />
+            </div>
+          )}
+
           {/* Persisted saved Lumi's tips — admin-only for now. Survives
               refresh because each one is a row in batch_coach_tips,
               re-fetched on every /api/essay-coach poll. Filtered to
@@ -646,21 +662,6 @@ function EssayCoachContent() {
             <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
           )}
         </div>
-
-        {/* Batch Analyse result — admin-only, lands right above the
-            history list so the freshly-generated tip is the FIRST
-            thing the admin sees post-Gemini. */}
-        {isAdmin && batchResult && (
-          <div ref={batchPanelRef}>
-            <BatchResultPanel
-              result={batchResult}
-              savedTipId={batchSavedTipId}
-              saving={batchSaving}
-              onSave={saveBatchTip}
-              onClose={() => { setBatchResult(null); setBatchSelected(new Set()); setBatchSavedTipId(null); }}
-            />
-          </div>
-        )}
 
         {/* History */}
         <div>
@@ -878,7 +879,11 @@ function StatusBadge({ status }: { status: AttemptRow["status"] }) {
 // survives a refresh. Click the header to expand. Open the dedicated
 // print route via the 🖨 link.
 function SavedTipCard({ tip }: { tip: SavedTip }) {
-  const [open, setOpen] = useState(false);
+  // Open by default — the tip is the most useful thing on this page
+  // after a save, so don't make the admin click again to read what
+  // they just generated. Header still toggles closed/open to tuck the
+  // content away once they're done with it.
+  const [open, setOpen] = useState(true);
   const a = tip.analysis;
   const isChinese = (tip.language ?? "english") === "chinese";
   return (
