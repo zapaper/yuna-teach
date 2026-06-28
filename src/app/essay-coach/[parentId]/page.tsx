@@ -406,6 +406,21 @@ function EssayCoachContent() {
             Upload or scan {selectedName ? `${selectedName}'s` : "your child's"} composition and we&rsquo;ll grade it and suggest improvements.
             {isAdmin && <> <strong className="font-semibold text-[#001e40]">Batch Analyse</strong> existing compositions to get cross-essay insights and tips.</>}
           </p>
+
+          {/* Persisted saved Lumi's tips — admin-only for now. Survives
+              refresh because each one is a row in batch_coach_tips,
+              re-fetched on every /api/essay-coach poll. Filtered to
+              match the currently picked language so a Chinese session
+              doesn't surface English tips. Hidden while a fresh batch
+              result is open above so we don't double-render. */}
+          {isAdmin && !batchResult && savedTips.filter(t => (t.language ?? "english") === language).length > 0 && (
+            <div className="space-y-2 mt-3">
+              {savedTips
+                .filter(t => (t.language ?? "english") === language)
+                .map(t => <SavedTipCard key={t.id} tip={t} />)}
+            </div>
+          )}
+
           {/* Global language toggle — drives BOTH new-composition
               language and the past-attempts filter, so there's only
               one place to set "I'm working with Chinese / English"
@@ -617,26 +632,6 @@ function EssayCoachContent() {
               onSave={saveBatchTip}
               onClose={() => { setBatchResult(null); setBatchSelected(new Set()); setBatchSavedTipId(null); }}
             />
-          </div>
-        )}
-
-        {/* Persisted saved Lumi's tips — admin-only for now. Survives
-            refresh because each one is a row in batch_coach_tips,
-            re-fetched on every /api/essay-coach poll. Filtered to
-            match the currently picked language so a Chinese session
-            doesn't surface English tips. Hidden while a fresh batch
-            result is open above so we don't double-render. */}
-        {isAdmin && !batchResult && savedTips.filter(t => (t.language ?? "english") === language).length > 0 && (
-          <div className="space-y-2">
-            <h2 className="font-semibold text-[#001e40]">
-              Saved Lumi&rsquo;s tips
-              <span className="text-xs font-normal text-[#737780] ml-2">
-                · {language === "chinese" ? "Chinese 华文" : "English"}
-              </span>
-            </h2>
-            {savedTips
-              .filter(t => (t.language ?? "english") === language)
-              .map(t => <SavedTipCard key={t.id} tip={t} />)}
           </div>
         )}
 
