@@ -84,6 +84,17 @@ export default function CompoDetailPage() {
   const [row, setRow] = useState<Row | null>(null);
   const [view, setView] = useState<"marked" | "clean" | "elevated">("marked");
   const [error, setError] = useState<string | null>(null);
+  // Preserve ?userId=<id> on the back link + post-delete redirect so
+  // the admin chain (/admin → /admin/compo → /admin/compo/[id]) doesn't
+  // lose the param when the user goes back — without this, /admin loads
+  // without the query and the "session resolution" comment in the index
+  // page bites: the admin lands on an error page (the "dead end").
+  const [compoIndexHref, setCompoIndexHref] = useState("/admin/compo");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const uid = new URLSearchParams(window.location.search).get("userId");
+    if (uid) setCompoIndexHref(`/admin/compo?userId=${uid}`);
+  }, []);
 
   const refresh = useCallback(async () => {
     const result = await fetchJsonSafe<{ row: Row }>(`/api/admin/compo/${id}`);
@@ -280,7 +291,7 @@ export default function CompoDetailPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-5">
       <div>
-        <Link href="/admin/compo" className="text-sm text-slate-500 hover:underline print:hidden">← 作文 Helper</Link>
+        <Link href={compoIndexHref} className="text-sm text-slate-500 hover:underline print:hidden">← 作文 Helper</Link>
         <div className="flex items-end justify-between mt-2">
           <div>
             <EditableLabel
@@ -388,7 +399,7 @@ export default function CompoDetailPage() {
                 if (!confirm(`Delete this analysis (${row.label ?? "no label"})? This removes the uploaded pages and all generated output. Cannot be undone.`)) return;
                 const res = await fetchJsonSafe(`/api/admin/compo/${id}`, { method: "DELETE" });
                 if (res.ok) {
-                  window.location.href = "/admin/compo";
+                  window.location.href = compoIndexHref;
                 } else {
                   setError(res.error);
                 }
@@ -1274,27 +1285,36 @@ function CritiqueCard({
         </div>
       </div>
       <div className="mt-3 space-y-3 text-sm">
-        <div>
-          <div className="flex justify-between font-medium text-slate-700">
-            <span>内容 Content</span><span>{active.contentScore}/20</span>
-          </div>
-          <p className="text-slate-600 text-xs mt-0.5">{active.contentNotes}</p>
-          {active.contentNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.contentNotesEn}</p>}
-        </div>
-        <div>
-          <div className="flex justify-between font-medium text-slate-700">
-            <span>词汇好句 Vocab &amp; phrases</span><span>{active.vocabScore}/10</span>
-          </div>
-          <p className="text-slate-600 text-xs mt-0.5">{active.vocabNotes}</p>
-          {active.vocabNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.vocabNotesEn}</p>}
-        </div>
-        <div>
-          <div className="flex justify-between font-medium text-slate-700">
-            <span>句子结构 Sentence &amp; org</span><span>{active.sentenceScore}/10</span>
-          </div>
-          <p className="text-slate-600 text-xs mt-0.5">{active.sentenceNotes}</p>
-          {active.sentenceNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.sentenceNotesEn}</p>}
-        </div>
+        {/* Per-axis breakdown — suppressed when the active rubric is
+            the all-zero / empty-notes fallback stub (model omitted
+            the rubric block). Showing 0/20 + blank notes reads as a
+            broken score; better to surface ONLY the overall and the
+            re-analyse hint below. */}
+        {!isFallbackRubric(active) && (
+          <>
+            <div>
+              <div className="flex justify-between font-medium text-slate-700">
+                <span>内容 Content</span><span>{active.contentScore}/20</span>
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5">{active.contentNotes}</p>
+              {active.contentNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.contentNotesEn}</p>}
+            </div>
+            <div>
+              <div className="flex justify-between font-medium text-slate-700">
+                <span>词汇好句 Vocab &amp; phrases</span><span>{active.vocabScore}/10</span>
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5">{active.vocabNotes}</p>
+              {active.vocabNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.vocabNotesEn}</p>}
+            </div>
+            <div>
+              <div className="flex justify-between font-medium text-slate-700">
+                <span>句子结构 Sentence &amp; org</span><span>{active.sentenceScore}/10</span>
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5">{active.sentenceNotes}</p>
+              {active.sentenceNotesEn && <p className="text-slate-500 text-xs italic mt-0.5">{active.sentenceNotesEn}</p>}
+            </div>
+          </>
+        )}
 
         {/* "Why this score" — for the Clean / Elevated views, surface
             the delta-vs-original explanation. For the Original view,
@@ -1319,9 +1339,6 @@ function CritiqueCard({
               )}
             </>
           )}
-          {c.benchmarkYears.length > 0 && view === "marked" && (
-            <p className="text-[10px] text-slate-400 mt-1">benchmarked vs PSLE {c.benchmarkYears.join(", ")}</p>
-          )}
         </div>
       </div>
     </div>
@@ -1338,6 +1355,15 @@ function makeFallback(overallScore: number): RubricBreakdown {
     sentenceScore: 0, sentenceNotes: "", sentenceNotesEn: "",
     overallScore,
   };
+}
+
+// Detect the makeFallback stub by its signature: all three axis scores
+// are 0 AND all three CN notes are empty. The CritiqueCard suppresses
+// the per-axis rows in that case so we don't render misleading 0/20
+// rows next to blank notes.
+function isFallbackRubric(r: RubricBreakdown): boolean {
+  return r.contentScore === 0 && r.vocabScore === 0 && r.sentenceScore === 0
+    && !r.contentNotes && !r.vocabNotes && !r.sentenceNotes;
 }
 
 function RecommendationsCard({ r }: { r: Recommendations }) {
@@ -1360,7 +1386,7 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
                 {s.suggestionEn && <div className="text-xs text-slate-500 italic mt-0.5">→ {s.suggestionEn}</div>}
                 {s.exampleFromModel && (
                   <div className="text-xs text-slate-500 mt-1 italic">
-                    PSLE {s.exampleFromModel.year}: 「{s.exampleFromModel.snippet}」
+                    「{s.exampleFromModel.snippet}」
                   </div>
                 )}
               </li>
@@ -1377,9 +1403,6 @@ function RecommendationsCard({ r }: { r: Recommendations }) {
                 <div className="font-medium text-emerald-900">{l.phraseCn}</div>
                 {l.phraseEn && <div className="text-xs text-slate-500">{l.phraseEn}</div>}
                 <div className="text-xs text-slate-700 mt-1">{l.whyItHelps}</div>
-                {l.fromYear && l.fromYear.trim() && /^\d{4}$/.test(l.fromYear.trim()) && (
-                  <div className="text-[10px] text-slate-400 mt-1">PSLE {l.fromYear}</div>
-                )}
               </li>
             ))}
           </ul>

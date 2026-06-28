@@ -643,6 +643,12 @@ model CompoAttempt {
   id                String   @id @default(cuid())
   uploaderId        String?  // User.id
 
+  // Parent Essay Coach: which child this composition belongs to.
+  // Set on every upload from /essay-coach/[parentId]; admin uploads
+  // from /admin/compo can leave this null. Used by the parent UI to
+  // scope history to the currently selected student.
+  studentId         String?
+
   // Optional admin-typed title (e.g. the student's name + topic).
   label             String?
 
@@ -714,6 +720,7 @@ model CompoAttempt {
   analysedAt        DateTime?
 
   @@index([uploaderId])
+  @@index([studentId])
   @@index([status])
   @@map("compo_attempts")
 }

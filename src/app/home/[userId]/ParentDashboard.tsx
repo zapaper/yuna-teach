@@ -2608,6 +2608,15 @@ export default function ParentDashboard({
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
+    // Essay Coach (Chinese composition helper, currently in private
+    // beta). Admin-only until we ship the paywall + onboarding copy
+    // for general parents. Threads selectedStudentId so the upload
+    // page lands pre-scoped to the right kid for label + history.
+    ...(isAdminUser ? [{
+      icon: "edit_document",
+      label: "Essay Coach",
+      href: `/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`,
+    }] : []),
     // The "Revise work" modal scans the selected student's last 100
     // papers, surfaces per-subject mistakes, and compiles a review
     // or practice paper out of them. Sits after Set Papers in the

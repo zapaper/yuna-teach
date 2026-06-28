@@ -1493,9 +1493,9 @@ ${ocrText}
 按规则改写，并对改写后的版本做一份完整的 PSLE 40 分制评分。
 
 【输出格式 — 严格 JSON】
+**rubric 字段是必填，绝对不能省略**。即使你觉得 estimatedScore 已经够了，也必须填完整的 rubric 三个轴 (contentScore / vocabScore / sentenceScore) 的分数 + 中英文 notes + whyChanged。estimatedScore 必须等于 rubric.overallScore。
 {
   "draft": "<改写后的作文，含 [+ +] 和 [+...|bucket+] 标记。保留 \\n 段落换行>",
-  "estimatedScore": <三项总分>,
   "rubric": {
     "contentScore": <0-20>,
     "contentNotes": "<中文短>",
@@ -1506,10 +1506,11 @@ ${ocrText}
     "sentenceScore": <0-10>,
     "sentenceNotes": "<中文短>",
     "sentenceNotesEn": "<English short>",
-    "overallScore": <三项总和，应等于 estimatedScore>,
+    "overallScore": <三项总和>,
     "whyChanged": "<中文 1-2 句: 改写后为什么得到这分 / 和原作差距在哪>",
     "whyChangedEn": "<English 1-2 sentences — why the rewrite earns this score vs the original>"
   },
+  "estimatedScore": <三项总分，必须等于 rubric.overallScore>,
   "phraseSwaps": [
     {
       "originalText": "<exact text that appears between [+ and |bucket+] in the draft>",
