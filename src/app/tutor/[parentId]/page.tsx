@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { LUMI_QUIZ_COMBOS, LUMI_QUIZ_COMBOS_ENGLISH, deriveCombosFromWeakTopics, type DerivedCombo } from "@/lib/lumi-combos";
+import { getDisplayCombosForKid } from "@/lib/lumi-combos";
 import { deriveRationale } from "@/lib/lumi-rationale";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
@@ -1259,21 +1259,19 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem(`${storageKey}:combos`, JSON.stringify(generatedIdxs)); } catch { /* ignore quota errors */ }
   }, [generatedIdxs, storageKey]);
-  // Combo source: prefer hand-written (richer rationale + sub-topic
-  // weights), fall back to data-derived from the kid's weakest topics
-  // when no hand-written entry exists. Subject-aware so Science reads
-  // LUMI_QUIZ_COMBOS, English reads LUMI_QUIZ_COMBOS_ENGLISH, and
-  // Math/Chinese always derive. Hand-written combos click through to
-  // the lumi-quiz picker (skill-tag + weighted sub-topics); derived
-  // combos click through to /api/focused-test (same path as the 3rd
-  // amber CTA, just with a personalised topic up top).
-  const handwrittenCombos = subject === "Science" ? (LUMI_QUIZ_COMBOS[studentId] ?? [])
-    : subject === "English" ? (LUMI_QUIZ_COMBOS_ENGLISH[studentId] ?? [])
-    : [];
-  const derivedCombos: DerivedCombo[] = handwrittenCombos.length === 0
-    ? deriveCombosFromWeakTopics(weakTopics)
-    : [];
-  const combos = handwrittenCombos;
+  // Combo source: hand-written (richest) → auto-generated from
+  // workshop cache (medium tier) → raw weakTopics derive (coarsest).
+  // getDisplayCombosForKid encapsulates the tiered lookup. The "hand-
+  // written" slot covers both genuinely hand-written entries AND auto-
+  // generated ones from the workshop cache — both have the same shape
+  // (LumiQuizCombo or LumiEnglishQuizCombo) and click through to the
+  // lumi-quiz picker. The "derived" slot is the no-cache fallback
+  // (label = topic name only, click → /api/focused-test).
+  const { handwritten: combos, derived: derivedCombos } = getDisplayCombosForKid(
+    studentId,
+    subject,
+    weakTopics,
+  );
   const hasCombos = combos.length > 0 || derivedCombos.length > 0;
 
   // 3rd-button picker — pick the weakest topic NOT already targeted

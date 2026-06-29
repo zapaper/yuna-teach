@@ -13,6 +13,7 @@
 // from the Lumi diagnosis cache.
 
 import type { ScienceSkillTag } from "./science-skills";
+import { AUTO_LUMI_COMBOS_SCIENCE, AUTO_LUMI_COMBOS_ENGLISH } from "./lumi-combos.auto.generated";
 
 export type LumiQuizCombo = {
   // Friendly label for the parent dashboard button ("Electrical + Evidence").
@@ -544,9 +545,10 @@ export function deriveCombosFromWeakTopics(
 }
 
 // Front-door helper. Returns hand-written combos when available
-// (richer), otherwise derives from weakTopics. Subject-aware so the
-// English path uses LUMI_QUIZ_COMBOS_ENGLISH and Science uses
-// LUMI_QUIZ_COMBOS.
+// (richer), otherwise auto-generated combos from the workshop cache
+// (medium tier), otherwise derives from raw weakTopics (coarsest).
+// Subject-aware so the English path uses LUMI_QUIZ_COMBOS_ENGLISH and
+// Science uses LUMI_QUIZ_COMBOS.
 export function getDisplayCombosForKid(
   studentId: string,
   subject: string,
@@ -555,11 +557,15 @@ export function getDisplayCombosForKid(
   if (subject === "Science") {
     const hand = LUMI_QUIZ_COMBOS[studentId];
     if (hand?.length) return { handwritten: hand, derived: [] };
+    const auto = AUTO_LUMI_COMBOS_SCIENCE[studentId];
+    if (auto?.length) return { handwritten: auto, derived: [] };
     return { handwritten: [], derived: deriveCombosFromWeakTopics(weakTopics) };
   }
   if (subject === "English") {
     const hand = LUMI_QUIZ_COMBOS_ENGLISH[studentId];
     if (hand?.length) return { handwritten: hand, derived: [] };
+    const auto = AUTO_LUMI_COMBOS_ENGLISH[studentId];
+    if (auto?.length) return { handwritten: auto, derived: [] };
     return { handwritten: [], derived: deriveCombosFromWeakTopics(weakTopics) };
   }
   // Math / Chinese — no curated combos, derive from data.
