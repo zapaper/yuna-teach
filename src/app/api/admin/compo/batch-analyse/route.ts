@@ -134,6 +134,12 @@ Inside the content bucket, the advice must focus on STORY-CRAFT problems you see
 
 You may include OTHER content-shaped tips beyond this list if they fit, but the bucket MUST exist as bucket #1.
 
+When the student's gap is VOCAB (limited adjectives / repeated verbs / generic nouns), the highest-impact coaching is "show, don't tell" — replace abstract emotion words with concrete sensory action. Examples for the "before/after" pair:
+  · Before: "She was scared." → After: "Her palms turned cold and her breath caught in her throat."
+  · Before: "The room was messy." → After: "Half-eaten apples sat on the windowsill; clothes spilled from open drawers."
+  · Before: "He was angry." → After: "His jaw tightened, and the pen snapped between his fingers."
+Surface this advice INSIDE the content bucket (or a Description sub-bucket) rather than as a vocab item — it lands as a craft move, not a thesaurus exercise.
+
 {
   "overview": "<1-2 sentence summary of the student's overall pattern>",
 ${dominantLang === "chinese" ? `  "overviewEn": "<the same 1-2 sentence summary, translated to English so a parent reading this in English can grasp the pattern at a glance — KEEP IT TIGHT, no padding, no Chinese terms left untranslated>",\n` : ""}  "buckets": [

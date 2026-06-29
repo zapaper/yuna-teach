@@ -199,11 +199,18 @@ Rules:
 - Frame as a tip: start with "Remember", "Watch out for", "Don't forget", "Make sure to", or similar.
 - One short sentence (max ~25 words).
 - Keep the scientific content, just flip the framing.
+- Use the EXACT scientific vocabulary the PSLE answer keys use. NOT casual paraphrases.
+  · "compressed" — NEVER "squashed"
+  · "evaporates" — NEVER "dries up" or "disappears"
+  · "transparent" / "translucent" / "opaque" — NEVER "see-through" or "glow-y"
+  · "freezes" / "solidifies" — NEVER "becomes hard"
+  · "boils" / "melts" / "condenses" — keep these words as-is
+  · "luminous" is ONLY for objects that produce their own light (sun, fire, bulb). Do NOT use it for anything else.
 - No quotation marks, no leading bullet character.
 
 Example
   Input: "Tends to identify the obvious solid objects in a container but occasionally forgets that air (a gas) is also present in the empty spaces."
-  Output: Remember that an "empty" container still holds air — air is a gas and takes up space.
+  Output: Remember that an "empty" container still holds air — air is a gas that takes up space and can be compressed.
 
 Just give the rewritten sentence, no labels or quotes.`;
   try {
