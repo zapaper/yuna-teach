@@ -125,6 +125,20 @@ function parseBank(passage: string | null | undefined): Map<string, string> {
     interleavedHits++;
   }
   if (interleavedHits > 0 && out.size >= 10) return out;
+  // Shape 3: each cell contains BOTH letter and word, e.g.
+  //   | (A) as | (D) each | (G) his | (K) their | (N) were |
+  // Pull all cells, regex out "(LETTER) word" pairs.
+  const allCells = tableRows.flat();
+  let comboHits = 0;
+  for (const cell of allCells) {
+    const m = /^\(([A-Z])\)\s+([A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]+)*)$/.exec(cell);
+    if (!m) continue;
+    const L = m[1].toUpperCase();
+    if (!BANK_LETTERS.has(L)) continue;
+    if (!out.has(L)) out.set(L, m[2]);
+    comboHits++;
+  }
+  if (comboHits > 0 && out.size >= 10) return out;
   // Shape 1 fallback: alternating letter-row / word-row.
   for (let r = 0; r + 1 < tableRows.length; r++) {
     const letters = tableRows[r];
