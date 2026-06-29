@@ -127,7 +127,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, passageImage
           <h2 className={headerTitleCls}>
             {sectionLabel.toUpperCase()}
             {sectionLabelGloss(sectionLabel) && (
-              <span className="ml-2 font-normal text-sm lg:text-base text-slate-400">
+              <span className="hidden lg:inline ml-2 font-normal text-base text-slate-400">
                 ({sectionLabelGloss(sectionLabel)})
               </span>
             )}

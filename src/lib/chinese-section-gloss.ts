@@ -12,10 +12,13 @@ export function sectionLabelGloss(label: string): string | null {
   if (l.includes("对话填空")) return "Dialogue cloze";
   if (l.includes("短文填空")) return "Cloze passage";
   if (l.includes("阅读理解")) {
-    // Preserve A / B / MCQ / OEQ suffix for the longer comprehension
-    // forms.
-    const tail = l.replace(/^.*?阅读理解\s*/, "").trim();
-    return tail ? `Comprehension ${tail}` : "Comprehension";
+    // 阅读理解 splits into MCQ-heavy and OEQ-heavy variants. Use the
+    // shorter "Compre MCQ" / "Compre OEQ" labels parents asked for,
+    // since the long "Comprehension A (MCQ + 长 OEQ)" form clutters
+    // the modal. Plain 阅读理解 stays as "Comprehension".
+    if (/OEQ/i.test(l)) return "Compre OEQ";
+    if (/MCQ|\bA\b/i.test(l)) return "Compre MCQ";
+    return "Comprehension";
   }
   if (l.includes("语文应用")) return "Vocabulary application";
   if (l.includes("词语搭配")) return "Word collocations";

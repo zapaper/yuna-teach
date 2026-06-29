@@ -1861,7 +1861,7 @@ export default function ParentDashboard({
                   <span className="text-sm text-[#001e40]">
                     {s.label}
                     {sectionLabelGloss(s.key) && (
-                      <span className="ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
+                      <span className="hidden lg:inline ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
                     )}
                   </span>
                 </label>
@@ -1948,7 +1948,7 @@ export default function ParentDashboard({
                   <span className="text-sm text-[#001e40]">
                     {s.label}
                     {sectionLabelGloss(s.key) && (
-                      <span className="ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
+                      <span className="hidden lg:inline ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
                     )}
                   </span>
                 </label>
