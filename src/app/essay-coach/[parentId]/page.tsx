@@ -894,10 +894,15 @@ function SavedTipCard({ tip }: { tip: SavedTip }) {
         className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-violet-50 transition-colors text-left"
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-wide font-bold text-violet-700">
-            {isChinese ? "Lumi 的建议" : "Lumi's tip"} ({a.essaysAnalysed} {isChinese ? "篇作文" : `essay${a.essaysAnalysed === 1 ? "" : "s"}`})
-            <span className="ml-2 text-slate-400 font-normal normal-case">
-              {new Date(tip.createdAt).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <h3 className="text-lg sm:text-xl font-extrabold text-violet-700">
+              {isChinese ? "Lumi 的建议" : "Lumi's advice"}
+            </h3>
+            <span className="text-xs font-semibold text-violet-500">
+              {a.essaysAnalysed} {isChinese ? "篇作文" : `essay${a.essaysAnalysed === 1 ? "" : "s"}`}
+            </span>
+            <span className="text-xs text-slate-400 font-normal">
+              · {new Date(tip.createdAt).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
             </span>
           </div>
           {a.overview && (
