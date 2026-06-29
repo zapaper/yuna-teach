@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { LUMI_QUIZ_COMBOS } from "@/lib/lumi-combos";
+import { LUMI_QUIZ_COMBOS, LUMI_QUIZ_COMBOS_ENGLISH, deriveCombosFromWeakTopics, type DerivedCombo } from "@/lib/lumi-combos";
 import { deriveRationale } from "@/lib/lumi-rationale";
 import Link from "next/link";
 import { AdminTopicChart, type SubjectData, type TimelineEntry } from "../../progress/[studentId]/page";
@@ -1259,19 +1259,30 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem(`${storageKey}:combos`, JSON.stringify(generatedIdxs)); } catch { /* ignore quota errors */ }
   }, [generatedIdxs, storageKey]);
-  // Combos are Science-only for the moment; the LUMI_QUIZ_COMBOS map
-  // is keyed by studentId but only Science kids in the test gate get
-  // populated entries. The priorities bar still appears for non-combo
-  // subjects/kids — just with the 2 personalised buttons collapsed
-  // out, leaving the 3rd button (focused practice / daily quiz) to
-  // span the full row.
-  const combos = subject === "Science" ? (LUMI_QUIZ_COMBOS[studentId] ?? []) : [];
-  const hasCombos = combos.length > 0;
+  // Combo source: prefer hand-written (richer rationale + sub-topic
+  // weights), fall back to data-derived from the kid's weakest topics
+  // when no hand-written entry exists. Subject-aware so Science reads
+  // LUMI_QUIZ_COMBOS, English reads LUMI_QUIZ_COMBOS_ENGLISH, and
+  // Math/Chinese always derive. Hand-written combos click through to
+  // the lumi-quiz picker (skill-tag + weighted sub-topics); derived
+  // combos click through to /api/focused-test (same path as the 3rd
+  // amber CTA, just with a personalised topic up top).
+  const handwrittenCombos = subject === "Science" ? (LUMI_QUIZ_COMBOS[studentId] ?? [])
+    : subject === "English" ? (LUMI_QUIZ_COMBOS_ENGLISH[studentId] ?? [])
+    : [];
+  const derivedCombos: DerivedCombo[] = handwrittenCombos.length === 0
+    ? deriveCombosFromWeakTopics(weakTopics)
+    : [];
+  const combos = handwrittenCombos;
+  const hasCombos = combos.length > 0 || derivedCombos.length > 0;
 
   // 3rd-button picker — pick the weakest topic NOT already targeted
-  // by either combo. Falls back to a daily quiz CTA when every weak
-  // topic is already covered.
-  const comboTopicSet = new Set(combos.map(c => c.topic.toLowerCase()));
+  // by either combo (hand-written OR derived). Falls back to a daily
+  // quiz CTA when every weak topic is already covered.
+  const comboTopicSet = new Set([
+    ...combos.map(c => c.topic.toLowerCase()),
+    ...derivedCombos.map(c => c.topic.toLowerCase()),
+  ]);
   const fallbackTopic = weakTopics.find(wt => !comboTopicSet.has(wt.topic.toLowerCase())) ?? null;
 
   async function handleGenerate(idx: number) {
@@ -1341,6 +1352,30 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     }
   }
 
+  // Derived combos click the same focused-test API as the 3rd button
+  // (kids without hand-written combos don't have lumi-quiz comboIdx to
+  // index into). Each combo gets its own slot in generatedIdxs so the
+  // state survives refresh + matches the hand-written combo pattern.
+  async function handleGenerateDerived(idx: number, topic: string) {
+    setSubmittingIdx(idx);
+    setErr(null);
+    try {
+      const apiSubject = subject === "Math" ? "Mathematics" : subject;
+      const r = await fetch("/api/focused-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId, studentId, subject: apiSubject, topic }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.id) throw new Error(j?.error ?? `failed (${r.status})`);
+      setGeneratedIdxs(prev => ({ ...prev, [idx]: { paperId: j.id } }));
+      setSubmittingIdx(null);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Generate failed");
+      setSubmittingIdx(null);
+    }
+  }
+
   // Daily quiz auto-generate — same idea. Math/Science use the
   // simple MCQ body; English/Chinese need section selection so we
   // fall back to scrolling the parent into the existing daily-
@@ -1398,7 +1433,7 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
           Dark backgrounds make the actions pop off the purple card
           so the parent's eye lands on them before reading the prose
           above. Personalised = deep purple · Ready = deep emerald ·
-          Focused / Daily = deep amber. */}
+          Focused / Daily = deep teal. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {combos.slice(0, 2).map((c, i) => {
           const done = generatedIdxs[i];
@@ -1430,6 +1465,41 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
             </button>
           );
         })}
+        {/* Derived combos take the same purple slot as hand-written
+            combos. Only rendered when no hand-written combos exist
+            (the two arrays are mutually exclusive above). Click calls
+            /api/focused-test directly so it works without a
+            corresponding lumi-quiz hand-written entry. */}
+        {derivedCombos.slice(0, 2).map((c, i) => {
+          const done = generatedIdxs[i];
+          if (done) {
+            return (
+              <a
+                key={`derived-${i}`}
+                href={`/quiz/${done.paperId}?userId=${studentId}`}
+                className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
+              >
+                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
+                <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
+                <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
+              </a>
+            );
+          }
+          const busy = submittingIdx === i;
+          return (
+            <button
+              key={`derived-${i}`}
+              type="button"
+              onClick={() => handleGenerateDerived(i, c.topic)}
+              disabled={submittingIdx !== null}
+              className="rounded-xl bg-purple-700 hover:bg-purple-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-purple-900/10 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-200">Personalised quiz {i + 1}</div>
+              <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.topic}</div>
+              <div className="text-xs text-purple-200 mt-1 font-semibold">{busy ? "Generating…" : "Generate quiz →"}</div>
+            </button>
+          );
+        })}
         {thirdReady ? (
           // Already generated — same green "ready" treatment as the
           // combo buttons. Clicking opens the quiz directly.
@@ -1446,22 +1516,22 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
             type="button"
             onClick={handleGenerateFocusedPractice}
             disabled={thirdSubmitting}
-            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
+            className={`rounded-xl bg-teal-700 hover:bg-teal-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-teal-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
           >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Focused practice</div>
+            <div className="text-[10px] uppercase tracking-wider font-bold text-teal-200">Focused practice</div>
             <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
-            <div className="text-xs text-amber-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
+            <div className="text-xs text-teal-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
           </button>
         ) : (
           <button
             type="button"
             onClick={handleGenerateDailyQuiz}
             disabled={thirdSubmitting}
-            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
+            className={`rounded-xl bg-teal-700 hover:bg-teal-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-teal-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
           >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Daily quiz</div>
+            <div className="text-[10px] uppercase tracking-wider font-bold text-teal-200">Daily quiz</div>
             <div className="text-sm font-bold text-white mt-0.5">A 10-min MCQ refresh</div>
-            <div className="text-xs text-amber-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
+            <div className="text-xs text-teal-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
           </button>
         )}
       </div>

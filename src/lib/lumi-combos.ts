@@ -459,6 +459,67 @@ export const LUMI_QUIZ_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,   // Mark Lim
 };
 
+// ─── Derived (no-hand-written) combos ────────────────────────────────
+//
+// For students without a hand-written combo entry, derive 2 personali-
+// sed quiz buttons from their top-2 weakest syllabus topics. The
+// button generates a focused-practice paper via /api/focused-test
+// (same path as the 3rd amber CTA), so no new server work is needed —
+// the picker stays standardised. The point is *visual*: a kid with
+// real Lumi data (Caleb at 482 English attempts, Faith at 641) should
+// see 2 purple "personalised" buttons instead of one stretched-wide
+// amber CTA.
+//
+// Hand-written combos are still richer (skill-tag pairing, weighted
+// sub-topics, hand-tuned topic recap) — derived combos are the
+// minimum-viable surface for kids who don't have a curated entry yet.
+
+export type DerivedCombo = {
+  label: string;
+  rationale: string;
+  topic: string;
+  pct: number;       // miss-% for display in the rationale
+  attempts: number;  // sample size, for the "light on data" guard
+};
+
+export function deriveCombosFromWeakTopics(
+  weakTopics: Array<{ topic: string; pct: number; attempts?: number }>,
+): DerivedCombo[] {
+  // Take top 2 weakest topics with at least a minimum attempt count.
+  // Below 5 attempts the % is too noisy to claim a real weakness.
+  const usable = weakTopics.filter(t => (t.attempts ?? Infinity) >= 5);
+  return usable.slice(0, 2).map(t => ({
+    label: `${t.topic} — focused practice`,
+    rationale: `Your top miss area${t.attempts ? ` over ${t.attempts} attempts` : ""} (avg. ${Math.round(t.pct)}%). 10-min targeted drill.`,
+    topic: t.topic,
+    pct: Math.round(t.pct),
+    attempts: t.attempts ?? 0,
+  }));
+}
+
+// Front-door helper. Returns hand-written combos when available
+// (richer), otherwise derives from weakTopics. Subject-aware so the
+// English path uses LUMI_QUIZ_COMBOS_ENGLISH and Science uses
+// LUMI_QUIZ_COMBOS.
+export function getDisplayCombosForKid(
+  studentId: string,
+  subject: string,
+  weakTopics: Array<{ topic: string; pct: number; attempts?: number }>,
+): { handwritten: LumiQuizCombo[] | LumiEnglishQuizCombo[]; derived: DerivedCombo[] } {
+  if (subject === "Science") {
+    const hand = LUMI_QUIZ_COMBOS[studentId];
+    if (hand?.length) return { handwritten: hand, derived: [] };
+    return { handwritten: [], derived: deriveCombosFromWeakTopics(weakTopics) };
+  }
+  if (subject === "English") {
+    const hand = LUMI_QUIZ_COMBOS_ENGLISH[studentId];
+    if (hand?.length) return { handwritten: hand, derived: [] };
+    return { handwritten: [], derived: deriveCombosFromWeakTopics(weakTopics) };
+  }
+  // Math / Chinese — no curated combos, derive from data.
+  return { handwritten: [], derived: deriveCombosFromWeakTopics(weakTopics) };
+}
+
 export const LUMI_QUIZ_COMBOS: Record<string, LumiQuizCombo[]> = {
   "cmm5wf91d000ryrxwaddlo6xh": DAVID_COMBOS,   // David Lim
   "cmmbbyvs30004qa9yinn3drl6": MARK_COMBOS,    // Mark Lim (kid; admin@yunateach.com's student)
