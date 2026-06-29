@@ -49,6 +49,12 @@ const PUBLIC_REGEXES: RegExp[] = [
   // markforyou-mailer quiz-activity summaries for the
   // weekly-progress / nurture emails. Bearer ${NURTURE_API_TOKEN}.
   /^\/api\/admin\/activity-summary\/?$/,
+  // markforyou-mailer pre-send opt-out gate + per-recipient
+  // unsubscribe-footer fetch. Both verify Bearer ${NURTURE_API_TOKEN}
+  // internally; without the whitelist the default-deny middleware
+  // returns 401 before the route's own auth runs.
+  /^\/api\/email-prefs\/check\/?$/,
+  /^\/api\/email-prefs\/footer\/?$/,
 ];
 
 // Some paths are public for ONE method but auth'd for others.
