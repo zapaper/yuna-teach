@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSessionUserId } from "@/lib/session";
 
 // POST /api/exam/[id]/flag
 // Body: { questionId, userId, text?, action? }
@@ -20,7 +21,18 @@ export async function POST(
 ) {
   const { id } = await params;
   const body = (await request.json()) as { questionId?: string; userId?: string; text?: string; action?: string };
-  const { questionId, userId } = body;
+  const { questionId } = body;
+  // Fall back to the session-cookie userId when the client doesn't
+  // send one. The 3 flag callers (quiz, review, overview) all read
+  // userId from the URL search param — if a parent / admin lands on
+  // a flag UI from a path that lacks ?userId=, the body.userId is
+  // empty and the flag previously stored null. That hides the +1
+  // crystal toggle on the admin flagged-Q&A page (the toggle gates
+  // on flaggedByUserId). Session fallback keeps every flag from a
+  // logged-in user attributed.
+  const userId = (body.userId && body.userId.length > 0)
+    ? body.userId
+    : (await getSessionUserId() ?? null);
   const text = typeof body.text === "string" ? body.text.trim() : "";
   const action = body.action === "flag" || body.action === "unflag" ? body.action : null;
 

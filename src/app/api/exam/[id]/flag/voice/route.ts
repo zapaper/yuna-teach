@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
+import { getSessionUserId } from "@/lib/session";
 
 // POST /api/exam/[id]/flag/voice
 // Multipart body: questionId, userId (optional), audio (Blob)
@@ -58,7 +59,12 @@ export async function POST(
 
   // Raise the flag (or keep it raised) and store the filename so the
   // admin / agent knows where to look.
-  const userId = typeof userIdRaw === "string" ? userIdRaw : null;
+  // Fall back to session-cookie userId when the body lacks one — same
+  // reasoning as /api/exam/[id]/flag. Voice flags from any logged-in
+  // user should always be attributed so the admin Flagged Q&A page
+  // can offer the +1 crystal toggle.
+  const bodyUserId = typeof userIdRaw === "string" && userIdRaw.length > 0 ? userIdRaw : null;
+  const userId = bodyUserId ?? (await getSessionUserId()) ?? null;
   await prisma.examQuestion.update({
     where: { id: questionId },
     data: {
