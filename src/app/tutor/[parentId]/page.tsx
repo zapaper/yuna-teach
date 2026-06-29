@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState, use, forwardRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { LUMI_QUIZ_COMBOS } from "@/lib/lumi-combos";
 import { deriveRationale } from "@/lib/lumi-rationale";
 import Link from "next/link";
@@ -718,6 +718,12 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
           we render "Lumi's update this week" INLINE after the greeting
           and before the standing LumiSummary so the parent reads one
           long narrative instead of switching between cards. */}
+      {/* Owl + greeting + this-week preface — kept tight so the parent
+          can immediately see the "what changed this week" framing
+          before scrolling into the analysis. Owl on the left only on
+          md+; mobile stacks. The detailed analysis (LumiSummary +
+          delta details + priorities + buttons) all lives full-width
+          below, where it gets room to breathe. */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-8 py-6 mb-6 flex flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
         <LumiAvatar />
         <div className="flex-1 w-full">
@@ -725,31 +731,46 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
             Hi! I&apos;m <strong>Lumi</strong>, your owl assistant <span className="text-[10px] uppercase tracking-wider font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Beta</span>. Let&apos;s review {data.childFirst}&apos;s progress in {data.subject}.
           </p>
           {data.weeklyDelta && (
-            <WeeklyDeltaCard delta={data.weeklyDelta} childFirst={data.childFirst} studentId={studentId} />
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">Lumi&apos;s update this week</span>
+              </div>
+              <p className="text-[#001e40] text-sm leading-relaxed">{data.weeklyDelta.prefaceText}</p>
+            </div>
           )}
-          <LumiSummary data={data} studentId={studentId} parentId={parentId} />
-          {/* Share — inline directly under the summary so it's where
-              the parent expects after reading the topline briefing. */}
-          <div className="mt-5 flex justify-end">
-            <button
-              type="button"
-              onClick={handleShare}
-              disabled={sharing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] disabled:opacity-60 transition-colors"
-              title="Save or forward this Lumi report as an image"
-            >
-              <span className="material-symbols-outlined text-base">share</span>
-              {sharing ? "Preparing…" : "Share Lumi"}
-            </button>
-          </div>
-          {/* Staleness banner removed — caches refresh daily, so the
-              minor drift between regens is acceptable and not worth
-              alerting the parent over. The questionId-based resolution
-              under enrichExample still keeps examples accurate even
-              when drift exists; only the marks-lost % may be slightly
-              off until the next daily refresh. */}
         </div>
       </section>
+
+      {/* Full-width summary block: standing narrative + the wins / topic-
+          progress / new-mistakes detail cards lifted out of the old
+          purple delta bar. Reads as one continuous Lumi report. */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-8 py-6 mb-6">
+        <LumiSummary data={data} studentId={studentId} parentId={parentId} />
+        {data.weeklyDelta && (
+          <WeeklyDeltaDetails delta={data.weeklyDelta} childFirst={data.childFirst} studentId={studentId} />
+        )}
+        {/* Share button sits at the bottom of the full-width summary
+            so it lands once the parent has read the whole briefing. */}
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#003366] text-white text-sm font-bold shadow-sm hover:bg-[#001e40] disabled:opacity-60 transition-colors"
+            title="Save or forward this Lumi report as an image"
+          >
+            <span className="material-symbols-outlined text-base">share</span>
+            {sharing ? "Preparing…" : "Share Lumi"}
+          </button>
+        </div>
+      </section>
+
+      {/* Priorities action bar — purple call-to-action with the three
+          highest-leverage next steps for the week. Two personalised
+          quizzes (when the kid is in the test gate and combos exist)
+          plus a third button for daily-quiz or focused-practice on a
+          weak topic not already covered. */}
+      <PrioritiesBar data={data} studentId={studentId} parentId={parentId} />
 
       {/* Swipe stage — flex row holds both panels side-by-side; we
           translate the whole row by -100% to slide overview off
@@ -937,7 +958,7 @@ function DeltaExampleBody({ ex, img, childFirst }: {
   );
 }
 
-function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string; studentId: string }) {
+function WeeklyDeltaDetails({ delta, childFirst, studentId }: { delta: NonNullable<Extract<TutorData, { kind: "ready" }>["weeklyDelta"]>; childFirst: string; studentId: string }) {
   // Lazy-fetched diagram + option images keyed by questionId. The
   // initial Lumi payload omits these blobs (they're 50KB-500KB each);
   // fetched on first "See details" expand via the same endpoint the
@@ -959,13 +980,15 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
       })
       .catch(err => console.warn("[lumi-delta] lazy diagram fetch failed:", err));
   }, [openedIds, lazyImages, studentId]);
+  // Preface badge + prefaceText now live in the owl section above —
+  // this component is JUST the structured detail cards (wins / topic
+  // progress / new mistakes). Renders nothing when none of those are
+  // present so the full-width LumiSummary section above stays tight.
+  if (delta.wins.length === 0 && delta.topicProgress.length === 0 && delta.newMistakes.length === 0) {
+    return null;
+  }
   return (
-    <div className="mt-4 mb-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] uppercase tracking-wider font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">Lumi&apos;s update this week</span>
-      </div>
-      <p className="text-[#001e40] text-sm leading-relaxed mb-4">{delta.prefaceText}</p>
-
+    <div className="mt-6 pt-4 border-t border-slate-200">
       {delta.wins.length > 0 && (
         <div className="mb-5">
           <h3 className="text-sm font-bold text-emerald-700 mb-2">🎉 Wins this week</h3>
@@ -1084,10 +1107,6 @@ function WeeklyDeltaCard({ delta, childFirst, studentId }: { delta: NonNullable<
           </ul>
         </div>
       )}
-      {/* Divider between this week's delta and the standing summary
-          below. Keeps the whole greeting card visually contiguous —
-          the parent reads one continuous Lumi narrative. */}
-      <div className="mt-4 border-t border-violet-200"></div>
     </div>
   );
 }
@@ -2523,5 +2542,161 @@ function ExpandableExample({ ex, index, accent, childFirst, lazyImages }: { ex: 
         </div>
       )}
     </div>
+  );
+}
+
+// ─── PrioritiesBar ───────────────────────────────────────────────
+// The purple call-to-action bar that lives below the full-width
+// LumiSummary. Three numbered steps + three action buttons:
+//
+//   1. Walk through the kid's common mistakes / conceptual gaps
+//   2. Take two personalised quizzes (combo subtopic × pattern)
+//   3. Daily quiz OR focused practice on a weak topic not already
+//      covered by buttons 1 + 2
+//
+// When the kid is NOT in the personalised-combo test gate (or the
+// subject isn't Science — combos are Science-only today), buttons 1
+// and 2 are absent and the bar narrows to just the 3rd-button
+// action.
+//
+function PrioritiesBar({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
+  const { childFirst, subject, topline, commonMistakes, conceptualGaps } = data;
+  const router = useRouter();
+  const combos = subject === "Science" && LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId)
+    ? (LUMI_QUIZ_COMBOS[studentId] ?? [])
+    : [];
+  const hasCombos = combos.length > 0;
+  const hasPatterns = commonMistakes.length > 0 || conceptualGaps.length > 0;
+
+  // 3rd-button logic: pick a weakest topic that ISN'T already the
+  // target of either combo (combo[0].topic / combo[1].topic). If we
+  // find one, the 3rd button is "Focused Practice on <topic>".
+  // Otherwise fall back to "Daily Quiz".
+  const comboTopicSet = new Set(combos.map(c => c.topic.toLowerCase()));
+  const weakNotInCombos = topline.weakTopics.filter(
+    wt => !comboTopicSet.has(wt.topic.toLowerCase())
+  );
+  const fallbackTopic = weakNotInCombos[0] ?? null;
+
+  const [submittingCombo, setSubmittingCombo] = useState<number | null>(null);
+  const [generatedCombos, setGeneratedCombos] = useState<Record<number, { paperId: string }>>({});
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleGenerateCombo(idx: number) {
+    setSubmittingCombo(idx);
+    setErr(null);
+    try {
+      const r = await fetch("/api/admin/lumi-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, subject: subject.toLowerCase(), comboIdx: idx, count: 10 }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.paperId) throw new Error(j?.error ?? j?.detail ?? `failed (${r.status})`);
+      setGeneratedCombos(prev => ({ ...prev, [idx]: { paperId: j.paperId } }));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Generate failed");
+    } finally {
+      setSubmittingCombo(null);
+    }
+  }
+
+  const handleOpenFocusedPractice = () => {
+    if (!fallbackTopic) return;
+    // Same shape as the "Topics for Practice" CTAs higher up the page.
+    const url = `/home/${parentId}?focused=1&studentId=${studentId}&subject=${encodeURIComponent(subject.toLowerCase())}&topic=${encodeURIComponent(fallbackTopic.topic)}`;
+    router.push(url);
+  };
+  const handleScrollToDailyQuiz = () => {
+    const el = document.getElementById("daily-practices-section");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    else router.push(`/home/${parentId}?student=${studentId}`);
+  };
+
+  // Compute the third-priority sentence based on what's available.
+  const thirdSentence = fallbackTopic
+    ? <>Third, do a <strong>focused practice on {fallbackTopic.topic}</strong> to strengthen {childFirst}&apos;s knowledge on a topic not already covered above.</>
+    : <>Third, do a <strong>daily quiz</strong> to refresh {childFirst}&apos;s concepts across topics.</>;
+
+  return (
+    <section className="bg-gradient-to-br from-violet-100 via-violet-50 to-white border-2 border-violet-300 rounded-2xl px-6 sm:px-8 py-6 mb-6 shadow-sm">
+      <h2 className="text-lg font-extrabold text-violet-900 mb-3">Top three priorities for this week</h2>
+      <div className="text-sm text-[#001e40] leading-relaxed space-y-2.5">
+        {hasPatterns && (
+          <p>
+            First, walk through the <strong>common mistakes and conceptual gaps</strong> with {childFirst} — those are the patterns Lumi keeps seeing.
+          </p>
+        )}
+        {hasCombos && (
+          <p>
+            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a subtopic where {childFirst} struggles with a common-mistakes pattern, and starts with a short guide and some tips.
+          </p>
+        )}
+        <p>{thirdSentence}</p>
+      </div>
+
+      {err && (
+        <div className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>
+      )}
+
+      {/* Action buttons — grid of up to 3. On mobile they stack
+          vertically; from sm: side-by-side. Each combo button shows
+          its label + a tiny rationale chip, then turns into an "Open
+          quiz" link once generated. */}
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {combos.slice(0, 2).map((c, i) => {
+          const done = generatedCombos[i];
+          const busy = submittingCombo === i;
+          if (done) {
+            return (
+              <a
+                key={`combo-${i}`}
+                href={`/quiz/${done.paperId}?userId=${studentId}`}
+                className="block rounded-xl border-2 border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-3 text-center transition-colors"
+              >
+                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700">Quiz {i + 1} ready</div>
+                <div className="text-sm font-bold text-emerald-900 mt-0.5 line-clamp-2">{c.label}</div>
+                <div className="text-xs text-emerald-700 mt-1">Open quiz →</div>
+              </a>
+            );
+          }
+          return (
+            <button
+              key={`combo-${i}`}
+              type="button"
+              onClick={() => handleGenerateCombo(i)}
+              disabled={busy}
+              className="rounded-xl border-2 border-violet-300 bg-white hover:bg-violet-50 px-4 py-3 text-left transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <div className="text-[10px] uppercase tracking-wider font-bold text-violet-700">Personalised quiz {i + 1}</div>
+              <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{c.label}</div>
+              <div className="text-xs text-violet-700 mt-1">{busy ? "Generating…" : "Generate quiz →"}</div>
+            </button>
+          );
+        })}
+        {/* When combos absent, the 3rd action takes the full row. */}
+        {fallbackTopic ? (
+          <button
+            type="button"
+            onClick={handleOpenFocusedPractice}
+            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+          >
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Focused practice</div>
+            <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
+            <div className="text-xs text-amber-700 mt-1">Open assignment →</div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleScrollToDailyQuiz}
+            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+          >
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Daily quiz</div>
+            <div className="text-sm font-bold text-[#001e40] mt-0.5">A 10-min MCQ refresh</div>
+            <div className="text-xs text-amber-700 mt-1">Schedule daily quizzes →</div>
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
