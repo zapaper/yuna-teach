@@ -3862,13 +3862,13 @@ const BlankCanvas = forwardRef<
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
 
-    // Pen stroke width: bumped to 5 when the active stroke comes from
+    // Pen stroke width: bumped to 4 when the active stroke comes from
     // a finger (PointerEvent.pointerType === "touch") OR when the
     // device's primary pointer is coarse (fingerFriendly prop, set by
     // matchMedia('(pointer: coarse)') in the parent). Stylus / mouse
     // strokes stay at 3 even on a touch-primary device, so an iPad +
     // Apple Pencil user gets the precise pen they want.
-    const strokePenWidth = { current: fingerFriendly ? 5 : 3 };
+    const strokePenWidth = { current: fingerFriendly ? 4 : 3 };
 
     function applyStyleVisible() {
       ctx.lineCap = "round"; ctx.lineJoin = "round";
@@ -3909,9 +3909,9 @@ const BlankCanvas = forwardRef<
       // Branch pen width on actual pointer type — finger gets 5, stylus
       // / mouse get 3 — falling back to the device-level fingerFriendly
       // hint when the browser doesn't surface a type (older WebKit).
-      if (e.pointerType === "touch") strokePenWidth.current = 5;
+      if (e.pointerType === "touch") strokePenWidth.current = 4;
       else if (e.pointerType === "pen" || e.pointerType === "mouse") strokePenWidth.current = 3;
-      else strokePenWidth.current = fingerFriendly ? 5 : 3;
+      else strokePenWidth.current = fingerFriendly ? 4 : 3;
       // Route subsequent move/up events here even if the finger slides off
       // the canvas, so strokes don't end prematurely at the edge.
       canvas!.setPointerCapture(e.pointerId);
