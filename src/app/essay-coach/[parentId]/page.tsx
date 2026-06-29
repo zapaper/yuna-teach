@@ -430,9 +430,9 @@ function EssayCoachContent() {
           <div className="flex items-start gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/avatars/lumi1.png"
+              src="/lumi-mascot.png"
               alt="Lumi"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shrink-0 shadow-sm border border-slate-200 bg-white"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shrink-0 shadow-sm border border-slate-200 bg-white object-cover"
             />
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[#001e40] flex items-baseline gap-2">
