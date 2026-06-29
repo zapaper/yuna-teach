@@ -42,6 +42,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/db";
 import { loadCandidates, runIntroSend, type Candidate } from "./_do-55-send-intros";
 import { loadTutorData } from "../src/lib/tutor";
+import { renderUnsubscribeFooter } from "../src/lib/email-prefs";
 
 const ARGS = process.argv.slice(2);
 const DRY  = ARGS.includes("--dry-run");
@@ -392,6 +393,20 @@ function daysSince(iso: string | undefined | null): number | null {
             const childHomepage = `${NURTURE_APP_URL}/home/${r.kidId}`;
             const parentHomepage = `${NURTURE_APP_URL}/home/${r.parentId}`;
 
+            // Step 1.5: honour the parent's marketing email preference.
+            // The activation nudge is a nurture / marketing email — if
+            // the parent has unsubscribed, skip the send AND skip the
+            // sent-flag write so we don't permanently lock them out of
+            // a future re-engagement if they opt back in.
+            {
+              const { canSendEmail } = await import("../src/lib/email-prefs");
+              const ok = await canSendEmail(r.parentId, "marketing");
+              if (!ok) {
+                console.log(`  skip kid=${r.kidName} parent=${r.parentEmail} — opted out of marketing`);
+                continue;
+              }
+            }
+
             // Step 2: throttle per-recipient
             const key = r.parentEmail.toLowerCase();
             const last = lastSendAt.get(key);
@@ -413,6 +428,7 @@ function daysSince(iso: string | undefined | null): number | null {
 <p style="font-family:${NURTURE_FONT};margin:18px 0 4px 0;">Warmly,</p>
 <p style="font-family:${NURTURE_FONT};font-weight:600;margin:0;">Jessica</p>
 <p style="font-family:${NURTURE_FONT};color:#6B7280;font-style:italic;font-size:14px;margin:0;">Co-Founder, MarkForYou</p>
+${renderUnsubscribeFooter(r.parentId, "marketing", NURTURE_APP_URL)}
 </div>`;
             const text = `Hi ${r.parentFirst},\n\nQuick check-in from us. We noticed ${r.kidFirst} hasn't done a quiz yet, so we've teed one up to make it easy.\n\nWe've already assigned a short Grammar + Vocab quiz to ${r.kidFirst} — takes about 5 minutes.\n\n📌 Start the quiz here: ${quizUrl}\n\nPrefer a different quiz first? Open your parent dashboard: ${parentHomepage}. Once assigned, ${r.kidFirst} can access the quiz on his homepage: ${childHomepage}.\n\nWarmly,\nJessica\nCo-Founder, MarkForYou`;
 
@@ -614,6 +630,19 @@ function daysSince(iso: string | undefined | null): number | null {
           const childHomepage = `${NURTURE_APP_URL}/home/${r.kidId}`;
           const parentHomepage = `${NURTURE_APP_URL}/home/${r.parentId}`;
 
+          // Honour the parent's marketing email preference. The Day-6
+          // follow-up is a nurture / marketing email — skip if opted
+          // out (no sent-flag write, so they re-enter the funnel if
+          // they later opt back in).
+          {
+            const { canSendEmail } = await import("../src/lib/email-prefs");
+            const ok = await canSendEmail(r.parentId, "marketing");
+            if (!ok) {
+              console.log(`  [followup] skip kid=${r.kidName} parent=${r.parentEmail} — opted out of marketing`);
+              continue;
+            }
+          }
+
           // Per-recipient throttle
           const key = r.parentEmail.toLowerCase();
           const last = lastSendAt.get(key);
@@ -634,6 +663,7 @@ function daysSince(iso: string | undefined | null): number | null {
 <p style="font-family:${NURTURE_FONT};margin:18px 0 4px 0;">Warmly,</p>
 <p style="font-family:${NURTURE_FONT};font-weight:600;margin:0;">Jessica</p>
 <p style="font-family:${NURTURE_FONT};color:#6B7280;font-style:italic;font-size:14px;margin:0;">Co-Founder, MarkForYou</p>
+${renderUnsubscribeFooter(r.parentId, "marketing", NURTURE_APP_URL)}
 </div>`;
           const text = `Hi ${r.parentFirst},\n\nFollowing up on our last note — we've now teed up a short MCQ Science Daily Quiz for ${r.kidFirst}. It covers a handful of topics in one go, so once ${r.kidFirst} does it, you can start to see the first real per-topic read of where ${r.kidFirst} is strong.\n\n📌 Start the quiz here: ${quizUrl}\n\nTakes about 15 minutes. Instantly marked.\n\nPrefer a different quiz? Open your parent dashboard: ${parentHomepage}\n\nWarmly,\nJessica\nCo-Founder, MarkForYou`;
 

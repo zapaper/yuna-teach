@@ -24,6 +24,7 @@ import { loadTutorData, type TutorData } from "../src/lib/tutor";
 import { tryOrQueue } from "../src/lib/mail-queue";
 import { formatStudentAnswerText } from "../src/lib/format-student-answer";
 import { drawTopicChart } from "./send-progress-emails";
+import { renderUnsubscribeFooter } from "../src/lib/email-prefs";
 
 const BASE_URL = "https://www.markforyou.com";
 const FROM = { email: process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com", name: "MarkForYou Lumi" };
@@ -329,6 +330,19 @@ export async function sendLumiWeeklyForStudent(args: {
   const ctaParentId = linkedParent?.id ?? stu.id;
   const ctaUrl = `${BASE_URL}/home/${ctaParentId}?userId=${ctaParentId}&view=lumi&student=${stu.id}`;
 
+  // Honour the parent's progress-email preferences. Lumi weekly is in
+  // the same "progress" bucket as the subject_3 progress email — if
+  // the parent opted out, we skip the send. Dry runs (which write the
+  // preview HTML to eval/) are unaffected.
+  if (!args.dryRun && linkedParent) {
+    const { canSendEmail } = await import("@/lib/email-prefs");
+    const ok = await canSendEmail(linkedParent.id, "progress");
+    if (!ok) {
+      console.log(`  ${childFirst}: parent ${linkedParent.email} has unsubscribed from progress emails — skipping`);
+      return { status: "no-recipient", reason: "unsubscribed" };
+    }
+  }
+
   const sections: Array<{ subject: Subject; chartBuf: Buffer; chartCid: string; html: string }> = [];
   for (const subj of SUBJECTS) {
     const data = await loadTutorData(stu.id, subj);
@@ -368,6 +382,7 @@ export async function sendLumiWeeklyForStudent(args: {
       Cheering ${esc(childFirst)} on,<br/>
       <strong>Lumi &amp; the MarkForYou team</strong>
     </p>
+    ${linkedParent ? renderUnsubscribeFooter(linkedParent.id, "progress", BASE_URL) : ""}
   </div>
 </body></html>`;
   const html = rawHtml

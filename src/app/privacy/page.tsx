@@ -5,7 +5,7 @@ export const metadata = {
   description: "How MarkForYou collects, uses, and protects your data.",
 };
 
-const LAST_UPDATED = "May 2026";
+const LAST_UPDATED = "June 2026";
 
 export default function PrivacyPage() {
   return (
@@ -20,9 +20,9 @@ export default function PrivacyPage() {
           Singapore and is committed to protecting the privacy of parents and
           students who use our exam-marking service. This policy explains
           what we collect, how we use it, and your rights under Singapore&rsquo;s
-          Personal Data Protection Act 2012 (PDPA) and applicable
-          children&rsquo;s-privacy regulations including the U.S. Children&rsquo;s
-          Online Privacy Protection Act (COPPA).
+          Personal Data Protection Act 2012 (PDPA). MarkForYou is designed
+          for Singapore primary-school students (Primary 1 – 6, typically
+          ages 7 to 12).
         </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">1. Information we collect</h2>
@@ -39,9 +39,13 @@ export default function PrivacyPage() {
         </p>
         <p className="mb-3 leading-relaxed">
           <strong>Submitted school work.</strong> Photos of handwritten
-          exam papers, drawings on our digital quiz canvases, and audio
-          notes recorded when a parent flags a question. These are stored
-          to provide AI marking and progress reports back to the family.
+          exam papers and compositions, drawings on our digital quiz
+          canvases, audio notes recorded when a parent flags a question,
+          and AI-generated coaching summaries (such as cross-essay
+          &ldquo;Lumi&rsquo;s advice&rdquo;) which may include short verbatim
+          excerpts of the student&rsquo;s own writing. These are stored to
+          provide AI marking, progress reports, and writing coaching back
+          to the family.
         </p>
         <p className="mb-3 leading-relaxed">
           <strong>Payment metadata.</strong> When a parent subscribes via
@@ -53,38 +57,53 @@ export default function PrivacyPage() {
         </p>
         <p className="mb-3 leading-relaxed">
           <strong>Device and usage data.</strong> Standard server logs
-          (URL, user agent, response time) for security and reliability.
-          We do not use third-party advertising or behavioural-tracking
-          SDKs.
+          (URL, user agent, response time) and a session cookie used to
+          keep parents signed in. We do not use third-party advertising or
+          behavioural-tracking SDKs.
         </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">2. How we use it</h2>
         <ul className="list-disc pl-6 space-y-2 mb-4 leading-relaxed">
-          <li>Provide AI-powered marking, progress reports, and revision tools.</li>
+          <li>Provide AI-powered marking, progress reports, writing coaching, and revision tools.</li>
           <li>Authenticate sign-ins, recover accounts, and respond to support requests.</li>
           <li>Bill subscriptions, recognise renewals, and process refunds.</li>
           <li>Detect abuse, protect against fraud, and maintain service availability.</li>
           <li>Improve our marking accuracy by reviewing flagged questions.</li>
+          <li>Send transactional emails (welcome, progress updates, Lumi tips, billing receipts). These are part of the service. You can disable progress emails from your account settings at any time.</li>
         </ul>
         <p className="mb-4 leading-relaxed">
           We do <strong>not</strong> sell, rent, or trade personal data, and
           we do not use student work to train external AI models.
         </p>
 
-        <h2 className="text-xl font-bold mt-10 mb-3">3. Third-party services</h2>
+        <h2 className="text-xl font-bold mt-10 mb-3">3. Third-party services and data location</h2>
         <p className="mb-3 leading-relaxed">
-          We rely on a small number of carefully-chosen processors to run
-          the service. Each is bound by their own privacy commitments and
+          Our application servers and primary database are hosted on
+          Railway in their <strong>Singapore region</strong>, so the bulk
+          of personal data — accounts, exam papers, drawings, audio notes
+          — is stored within Singapore. A small number of carefully-chosen
+          processors are used for specific tasks, some of which are based
+          overseas. Each is bound by their own privacy commitments and
           processes only the minimum data needed:
         </p>
         <ul className="list-disc pl-6 space-y-2 mb-4 leading-relaxed">
-          <li><strong>Railway</strong> — application hosting and database (Singapore region).</li>
-          <li><strong>Vercel</strong> — front-end hosting and CDN.</li>
-          <li><strong>Stripe</strong> — payment processing (web subscriptions).</li>
-          <li><strong>Apple App Store / RevenueCat</strong> — payment processing (iOS subscriptions).</li>
-          <li><strong>Various AI models</strong> — AI marking and explanation. We use a variety of models and workflows, including finetuning, to ensure quality marking and explanation. Nothing is retained by external providers.</li>
-          <li><strong>SendGrid</strong> — sending email and receiving scanned-paper attachments.</li>
+          <li><strong>Railway</strong> (Singapore) — application hosting, database, and file storage for uploaded papers and audio notes.</li>
+          <li><strong>Cloudflare</strong> (global edge) — content delivery network and R2 object storage for static images (such as avatars and stickers). Cloudflare proxies HTTP requests in transit; it does not retain personal data from those requests.</li>
+          <li><strong>Various AI models (including OpenAI, Google Gemini, and Anthropic)</strong> — AI marking, explanation, and writing coaching. Excerpts of student work are sent to these models at request time to generate marks and coaching feedback. We use API tiers that do not retain prompts or completions for training, and outputs are stored only on our Railway database.</li>
+          <li><strong>SendGrid</strong> (United States) — sending email and receiving scanned-paper attachments.</li>
+          <li><strong>Stripe</strong> (United States, when web subscriptions are enabled) — payment processing.</li>
+          <li><strong>Apple App Store / RevenueCat</strong> (when iOS subscriptions are enabled) — payment processing for iOS.</li>
         </ul>
+        <p className="mb-3 leading-relaxed">
+          Where a processor is based overseas (notably the AI providers,
+          SendGrid, and Stripe), the data we send them constitutes a
+          cross-border transfer under PDPA s.26. We rely on these
+          processors&rsquo; published privacy commitments and standard
+          contractual terms to ensure a comparable standard of protection
+          to PDPA. We will update this list and notify users via the
+          in-app dashboard and email if we materially add to or change our
+          processors.
+        </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">4. Children&rsquo;s privacy</h2>
         <p className="mb-3 leading-relaxed">
@@ -93,7 +112,8 @@ export default function PrivacyPage() {
           administered by parents — children cannot self-register.
           Parents have full visibility of and control over their
           child&rsquo;s account, including the ability to delete it at any
-          time.
+          time. The parent provides consent on the child&rsquo;s behalf at
+          sign-up.
         </p>
         <p className="mb-3 leading-relaxed">
           We do not knowingly collect personal information directly from
@@ -118,9 +138,12 @@ export default function PrivacyPage() {
 
         <h2 className="text-xl font-bold mt-10 mb-3">6. Data retention</h2>
         <p className="mb-3 leading-relaxed">
-          We keep account data for as long as the account is active. When
-          a parent deletes their account, we delete all linked student
-          accounts, exam papers, and uploaded media within 30 days.
+          We keep account data, exam papers, drawings, audio notes, and
+          coaching summaries for as long as the account is active. When a
+          parent deletes their account, we delete all linked student
+          accounts, exam papers, uploaded media, audio notes, and coaching
+          summaries within 30 days. Billing and transaction records are
+          retained for 5 years to meet Singapore tax-record requirements.
           Anonymous logs may be retained longer for security analysis
           (typically 90 days).
         </p>
@@ -128,13 +151,22 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-bold mt-10 mb-3">7. Your rights</h2>
         <p className="mb-3 leading-relaxed">
           Under PDPA you have the right to access the personal data we
-          hold about you, correct it, or request deletion. You can:
+          hold about you, correct it, withdraw your consent, or request
+          deletion. You can:
         </p>
         <ul className="list-disc pl-6 space-y-2 mb-4 leading-relaxed">
           <li>Update your name and email from the in-app settings.</li>
           <li>Delete your account and all linked student accounts from the in-app account-management screen.</li>
-          <li>Email us at <a href="mailto:hello@markforyou.com" className="underline text-[#003366]">hello@markforyou.com</a> for any other request — we will respond within 30 days.</li>
+          <li>Request a complete copy of the personal data we hold on you (right of access) by emailing our Data Protection Officer at the address below. We will respond within 30 calendar days.</li>
+          <li>Disable transactional progress emails from your account settings; you will still receive essential service notices (such as billing receipts).</li>
+          <li>Withdraw your consent at any time. Note that withdrawing consent for essential data (such as account email) means we can no longer provide the service.</li>
         </ul>
+        <p className="mb-3 leading-relaxed">
+          If you are not satisfied with how we handle a privacy request,
+          you may lodge a complaint with the Personal Data Protection
+          Commission of Singapore at{" "}
+          <a href="https://www.pdpc.gov.sg" className="underline text-[#003366]" target="_blank" rel="noopener noreferrer">pdpc.gov.sg</a>.
+        </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">8. Security</h2>
         <p className="mb-3 leading-relaxed">
@@ -142,6 +174,13 @@ export default function PrivacyPage() {
           internal access controls on production data. No system is
           perfectly secure, so we recommend choosing a strong password
           and not reusing it across services.
+        </p>
+        <p className="mb-3 leading-relaxed">
+          In the event of a personal-data breach that is likely to result
+          in significant harm or affects 500 or more individuals, we will
+          notify the Personal Data Protection Commission within 3 calendar
+          days of our assessment, and affected users without undue delay,
+          as required under PDPA Part VIA.
         </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">9. Changes to this policy</h2>
@@ -152,11 +191,15 @@ export default function PrivacyPage() {
           indicates acceptance of the updated policy.
         </p>
 
-        <h2 className="text-xl font-bold mt-10 mb-3">10. Contact</h2>
+        <h2 className="text-xl font-bold mt-10 mb-3">10. Contact and Data Protection Officer</h2>
+        <p className="mb-3 leading-relaxed">
+          For general support email{" "}
+          <a href="mailto:hello@markforyou.com" className="underline text-[#003366]">hello@markforyou.com</a>.
+        </p>
         <p className="mb-12 leading-relaxed">
-          MarkForYou
-          <br />
-          <a href="mailto:hello@markforyou.com" className="underline text-[#003366]">hello@markforyou.com</a>
+          For PDPA access, correction, withdrawal, or deletion requests,
+          our Data Protection Officer is{" "}
+          <a href="mailto:jessica@markforyou.com" className="underline text-[#003366]">jessica@markforyou.com</a>.
         </p>
 
         <p className="text-xs text-[#737780]">

@@ -30,6 +30,7 @@ import { loadTutorData } from "../src/lib/tutor";
 import { TUTOR_CACHE } from "../src/lib/tutor-cache";
 import { tryOrQueue } from "../src/lib/mail-queue";
 import { drawTopicChart } from "./send-progress-emails";
+import { renderUnsubscribeFooter } from "../src/lib/email-prefs";
 
 const DRY = process.argv.includes("--dry");
 const FORCE = process.argv.includes("--force");
@@ -308,6 +309,7 @@ export async function buildEmail(c: Candidate, parent: { id: string; name: strin
       Cheering ${childFirst} on,<br/>
       <strong>The MarkForYou team</strong>
     </p>
+    ${renderUnsubscribeFooter(parent.id, "progress", BASE_URL)}
   </div>
 </body>
 </html>`;
@@ -374,6 +376,17 @@ export async function sendLumiIntroForReplay(args: {
   });
   if (!student) throw new Error(`student ${args.studentId} not found`);
   if (!parent?.email) throw new Error(`parent ${args.parentId} has no email`);
+  // Honour the parent's progress-email preferences. Lumi intros are
+  // an alert about the kid's mistakes — same "progress" category as
+  // the weekly delta and subject_3_quizzes_done emails.
+  {
+    const { canSendEmail } = await import("../src/lib/email-prefs");
+    const ok = await canSendEmail(parent.id, "progress");
+    if (!ok) {
+      console.log(`  skip intro to=${parent.email} kid=${student.name} subj=${args.subject} — opted out of progress`);
+      return;
+    }
+  }
   const studentName = student.displayName ?? student.name;
   const childFirst = studentName.split(/\s+/)[0] ?? studentName;
   const candidate: Candidate = {

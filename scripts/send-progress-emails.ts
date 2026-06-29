@@ -26,6 +26,7 @@ import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
 import path from "path";
 import { createCanvas } from "@napi-rs/canvas";
 import { tryOrQueue } from "../src/lib/mail-queue";
+import { renderUnsubscribeFooter } from "../src/lib/email-prefs";
 import sharp from "sharp";
 import sgMail from "@sendgrid/mail";
 
@@ -563,6 +564,7 @@ function buildEmailHtml(args: {
       Cheering ${childFirst} on,<br/>
       <strong>The MarkForYou team</strong>
     </p>
+    ${renderUnsubscribeFooter(args.parentId, "progress", BASE_URL)}
   </div>
 </body></html>`;
 
@@ -843,6 +845,18 @@ export async function loadCandidates(args: { onlyStudentName?: string; onlyStude
 }
 
 export async function sendOne(c: Awaited<ReturnType<typeof loadCandidates>>[number], opts: { dryRun: boolean }) {
+  // Honour the parent's email preferences. Progress emails are in the
+  // "progress" category — if the parent opted out via /unsubscribe we
+  // skip the send entirely. Dry runs still render the preview so a
+  // local writeup is unaffected.
+  if (!opts.dryRun) {
+    const { canSendEmail } = await import("@/lib/email-prefs");
+    const ok = await canSendEmail(c.parentId, "progress");
+    if (!ok) {
+      console.log(`  ${c.studentName} ${c.subject}: parent ${c.parentEmail} has unsubscribed from progress emails — skipping`);
+      return;
+    }
+  }
   const safeStu = c.studentName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const png = drawTopicChart(c.topics, c.avg, c.subject, c.studentName);
   const chartCid = `chart-${safeStu}-${c.subjectKey}`;
