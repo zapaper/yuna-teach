@@ -294,9 +294,13 @@ subTopics:
     label: Tag questions
     description: "Tag question structure ('isn't he?', 'shall we?') — mirroring the main verb and flipping the polarity. Includes negative-word traps (never, hardly, seldom) and irregular cases ('Let's…' → shall we, 'I am' → aren't I)."
     slideIdx: 1
-  - id: noun-number-rules
-    label: Noun number rules
-    description: "Subject-verb agreement plus countable / uncountable rules. Handles mass nouns (news, luggage, advice), 'the number of' vs 'a number of', interrupters (everyone except…), -ing-form subjects (Reading is fun)."
+  - id: subject-verb-agreement
+    label: Subject-verb agreement
+    description: "Singular vs plural verb form picked to match the subject. Covers interrupters ('Ahmad, together with his friends, IS going'), pre-set subjects ('Neither of the siblings ATTENDS', 'Each of the students HAS'), existential there-is/there-are, and -ing-form / collective-noun subjects (Reading IS fun)."
+    slideIdx: 3
+  - id: countable/uncountable
+    label: Countable / uncountable
+    description: "Choosing the correct quantifier for a noun based on countability. Covers much/many, few/little, a number of vs the number of, a great deal of, plenty of, fewer vs less, and mass-noun behaviour (news, luggage, advice, evidence)."
     slideIdx: 3
   - id: pronouns
     label: Pronouns

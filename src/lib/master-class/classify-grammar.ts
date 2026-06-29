@@ -62,9 +62,17 @@ function looksLikeVerbForms(opts: string[]): boolean {
   return matches >= 3;
 }
 
+// Sub-topic IDs. The old "noun-number-rules" combined two distinct
+// teaching points and made Lumi callouts ambiguous ("Mark loses marks
+// on noun-number-rules" — but is that SVA verb-form mistakes, or
+// many/much/few/little choice?). Split into two:
+//   subject-verb-agreement   — singular vs plural verb form
+//   countable/uncountable    — quantifier + mass-noun rules
+// Slash kept in the second ID per the agreed display label.
 export type GrammarSubTopic =
   | "tag-questions"
-  | "noun-number-rules"
+  | "subject-verb-agreement"
+  | "countable/uncountable"
   | "pronouns"
   | "verb-forms"
   | "connectors-tenses"
@@ -77,8 +85,8 @@ export function classifyGrammarMcq(stem: string | null, options: string[] | null
   const s = stem.trim();
 
   if (looksLikeTag(s, opts)) return "tag-questions";
-  if (opts.every(o => SVA_VERB_RE.test(o))) return "noun-number-rules";
-  if (opts.every(o => QUANT_RE.test(o))) return "noun-number-rules";
+  if (opts.every(o => SVA_VERB_RE.test(o))) return "subject-verb-agreement";
+  if (opts.every(o => QUANT_RE.test(o))) return "countable/uncountable";
   if (opts.every(o => PRONOUNS.has(o.toLowerCase()))) return "pronouns";
   if (opts.every(o => PREPS.has(o.toLowerCase()))) return "idiomatic-prepositions";
   if (opts.every(o => CONNECTOR_RE.test(o))) return "connectors-tenses";
@@ -105,8 +113,12 @@ export function classifyGrammarMcq(stem: string | null, options: string[] | null
     return "idiomatic-prepositions";
   }
   if (/\b(wish|wished|wishes|if only)\b/i.test(s)) return "connectors-tenses";
+  // Quantifier-subject SVA — interrupters (as well as / together with),
+  // pre-set quantifiers (each of / one of / every / neither / nobody)
+  // + the verb in options. These are SVA mistakes, not pure quantifier
+  // choice — split goes to subject-verb-agreement.
   if (/(as well as|in addition to|together with|along with|neither.*nor|either.*or|one of the|each of the|every|everyone|nobody)/i.test(s) && opts.some(o => /(is|are|was|were|has|have)/i.test(o))) {
-    return "noun-number-rules";
+    return "subject-verb-agreement";
   }
   if (/^\s*(having|being)\b/i.test(s) || /\b(suggest(s|ed)?\s+that)\b/i.test(s)) return "verb-forms";
 
