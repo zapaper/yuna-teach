@@ -602,6 +602,15 @@ function ExamReviewContent({ id }: { id: string }) {
               if (l.includes("-")) {
                 const parenParen = "(" + l.split("-").join(")(") + ")";
                 if (ans.includes(parenParen)) return false;
+                // OCR sometimes drops the inner parens entirely:
+                // "(b)(ii)" → "(bii)". Match the squashed form so we
+                // don't re-trigger auto-solve on an otherwise-good
+                // answer key whose only flaw is a missing paren. Also
+                // tolerate a single-space variant "(b ii)".
+                const squashed = "(" + l.split("-").join("") + ")";
+                if (ans.includes(squashed)) return false;
+                const spaced = "(" + l.split("-").join(" ") + ")";
+                if (ans.includes(spaced)) return false;
               }
               // word-boundary "a)" — avoid matching the "a)" inside "(a)"
               if (new RegExp(`(^|[\\s|])${l}\\)`, "i").test(ans)) return false;
