@@ -1306,14 +1306,18 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
         )}
         {hasCombos && (
           <p>
-            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a subtopic where {childFirst} struggles with a common-mistakes pattern, and starts with a short guide and some tips.
+            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic</strong> where {childFirst} struggles with a <strong>common-mistakes pattern</strong>, and starts with a short guide and some tips.
           </p>
         )}
         <p>{thirdSentence}</p>
       </div>
 
       {/* Horizontal 3-button row — combos take 2 cols when present,
-          3rd button auto-stretches to fill the remaining col(s). */}
+          3rd button auto-stretches to fill the remaining col(s).
+          Dark backgrounds make the actions pop off the purple card
+          so the parent's eye lands on them before reading the prose
+          above. Personalised = deep purple · Ready = deep emerald ·
+          Focused / Daily = deep amber. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {combos.slice(0, 2).map((c, i) => {
           const done = generatedIdxs[i];
@@ -1322,11 +1326,11 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
               <a
                 key={`combo-${i}`}
                 href={`/quiz/${done.paperId}?userId=${studentId}`}
-                className="block rounded-xl border-2 border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-3 text-center transition-colors"
+                className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
               >
-                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700">Quiz {i + 1} ready</div>
-                <div className="text-sm font-bold text-emerald-900 mt-0.5 line-clamp-2">{c.label}</div>
-                <div className="text-xs text-emerald-700 mt-1">Open quiz →</div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
+                <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
+                <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
               </a>
             );
           }
@@ -1337,11 +1341,11 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
               type="button"
               onClick={() => handleGenerate(i)}
               disabled={submittingIdx !== null}
-              className="rounded-xl border-2 border-purple-300 bg-white hover:bg-purple-50 px-4 py-3 text-left transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="rounded-xl bg-purple-700 hover:bg-purple-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-purple-900/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-700">Personalised quiz {i + 1}</div>
-              <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{c.label}</div>
-              <div className="text-xs text-purple-700 mt-1">{busy ? "Generating…" : "Generate quiz →"}</div>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-200">Personalised quiz {i + 1}</div>
+              <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
+              <div className="text-xs text-purple-200 mt-1 font-semibold">{busy ? "Generating…" : "Generate quiz →"}</div>
             </button>
           );
         })}
@@ -1349,21 +1353,21 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
           <button
             type="button"
             onClick={handleOpenFocusedPractice}
-            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
           >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Focused practice</div>
-            <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
-            <div className="text-xs text-amber-700 mt-1">Open assignment →</div>
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Focused practice</div>
+            <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
+            <div className="text-xs text-amber-200 mt-1 font-semibold">Open assignment →</div>
           </button>
         ) : (
           <button
             type="button"
             onClick={handleScrollToDailyQuiz}
-            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
           >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Daily quiz</div>
-            <div className="text-sm font-bold text-[#001e40] mt-0.5">A 10-min MCQ refresh</div>
-            <div className="text-xs text-amber-700 mt-1">Schedule daily quizzes →</div>
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Daily quiz</div>
+            <div className="text-sm font-bold text-white mt-0.5">A 10-min MCQ refresh</div>
+            <div className="text-xs text-amber-200 mt-1 font-semibold">Schedule daily quizzes →</div>
           </button>
         )}
       </div>
