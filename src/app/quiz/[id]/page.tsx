@@ -140,10 +140,22 @@ export default function QuizPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
+// Finger-friendly OEQ mode — gives the kid a taller writing area
+// (+30% canvas height) and a thicker default stroke (5 px instead
+// of 3) so finger-on-iPad writing is legible without zooming. Gated
+// to a small set of kids while we shake the UX down; the canvas
+// signal flow + ink storage are unchanged, only the visual sizing.
+const FINGER_FRIENDLY_STUDENT_IDS = new Set<string>([
+  "cmmfmmnwy00fdbbbfgm7k3wpn",  // Emily Lim
+  "cmmbbyvs30004qa9yinn3drl6",  // Mark Lim
+  "cmm5wf91d000ryrxwaddlo6xh",  // David Lim
+]);
+
 function QuizContent({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
+  const fingerFriendly = FINGER_FRIENDLY_STUDENT_IDS.has(userId);
   const isDiagnostic = searchParams.get("diagnostic") === "1";
   const diagnosticParentId = searchParams.get("parentId") ?? "";
   // ?direct=1 — flagged-Q&A vetting flow. Skips the "Quiz Complete"
@@ -2288,6 +2300,7 @@ function QuizContent({ id }: { id: string }) {
                   subject={paper?.subject ?? null}
                   index={mcqQuestions.length + idx}
                   tool={tool}
+                  fingerFriendly={fingerFriendly}
                   onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
                   onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
                   onStrokeStart={() => { lastDrawnId.current = q.id; lastDrawnSubLabel.current[q.id] = null; }}
@@ -3185,6 +3198,7 @@ function OeqQuestionCard({
   onToggleFlag,
   skipped,
   onSkip,
+  fingerFriendly = false,
 }: {
   question: QuizQuestion;
   subject?: string | null;
@@ -3205,6 +3219,10 @@ function OeqQuestionCard({
   onToggleFlag?: () => void;
   skipped?: boolean;
   onSkip?: () => void;
+  // When true, hand the canvas a +30% defaultHeight and a thicker
+  // default stroke so finger-on-iPad writing is legible. Plumbed
+  // through to ResizableCanvas → BlankCanvas.
+  fingerFriendly?: boolean;
 }) {
   // Math papers want a printed-paper-style "Ans: ___" placeholder
   // in the canvas footer (students are used to it from worksheets).
@@ -3428,7 +3446,8 @@ function OeqQuestionCard({
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
                     onStrokeStart={() => { onStrokeStart(); onSubpartStrokeStart?.(sp.label); }}
-                    defaultHeight={sp.diagramBase64 ? 780 : 260}
+                    defaultHeight={Math.round((sp.diagramBase64 ? 780 : 260) * (fingerFriendly ? 1.3 : 1))}
+                    fingerFriendly={fingerFriendly}
                     backgroundImage={sp.diagramBase64 ?? null}
                     savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink&t=${savedInkTick}`}
                     canvasId={`${question.id}_${sp.label}`}
@@ -3452,7 +3471,8 @@ function OeqQuestionCard({
               // height to (image display height) + a fixed writing
               // buffer below. defaultHeight is just the seed used
               // until the image loads (or the fallback when no image).
-              defaultHeight={drawableDiagramBase64 ? 700 : 300}
+              defaultHeight={Math.round((drawableDiagramBase64 ? 700 : 300) * (fingerFriendly ? 1.3 : 1))}
+              fingerFriendly={fingerFriendly}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink&t=${savedInkTick}`}
               canvasId={question.id}
@@ -3520,8 +3540,8 @@ interface AnswerCanvasHandle {
 
 const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; paperId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean }
->(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, paperId, savedHeight, onHeightChange, showAnsOverlay = true }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; paperId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean; fingerFriendly?: boolean }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, paperId, savedHeight, onHeightChange, showAnsOverlay = true, fingerFriendly = false }, ref) {
   const maxCanvasHeight = 900;
   const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
@@ -3579,6 +3599,7 @@ const ResizableCanvas = forwardRef<
           backgroundImage={backgroundImage}
           savedInkUrl={savedInkUrl}
           snapshotKey={paperId && canvasId ? `${QUIZ_SNAPSHOT_PREFIX}:${paperId}:canvas:${canvasId}` : null}
+          fingerFriendly={fingerFriendly}
         />
         {/* Ans: overlay at bottom right — Math only. Science answers
             are sentences/paragraphs so the placeholder just clutters
@@ -3605,8 +3626,8 @@ const ResizableCanvas = forwardRef<
 
 const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null; snapshotKey?: string | null }
->(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl, snapshotKey }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null; snapshotKey?: string | null; fingerFriendly?: boolean }
+>(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl, snapshotKey, fingerFriendly = false }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -3831,6 +3852,11 @@ const BlankCanvas = forwardRef<
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
 
+    // Pen stroke width: 5 in finger-friendly mode (finger ink reads
+    // skinny + jagged at 3 on iPad), 3 otherwise. Eraser sizes are
+    // unchanged — they already work fine for fingers.
+    const penWidth = fingerFriendly ? 5 : 3;
+
     function applyStyleVisible() {
       ctx.lineCap = "round"; ctx.lineJoin = "round";
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") {
@@ -3840,7 +3866,7 @@ const BlankCanvas = forwardRef<
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(37,99,235,0.85)";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = penWidth;
       }
     }
 
@@ -3853,7 +3879,7 @@ const BlankCanvas = forwardRef<
       } else {
         inkCtx.globalCompositeOperation = "source-over";
         inkCtx.strokeStyle = "rgba(37,99,235,0.85)";
-        inkCtx.lineWidth = 3;
+        inkCtx.lineWidth = penWidth;
       }
     }
 
