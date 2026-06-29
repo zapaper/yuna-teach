@@ -55,7 +55,7 @@ const OPTIONS: Array<{ id: Tier; title: string; sub: string }> = [
     title: "Unsubscribe from marketing and new features",
     sub: "I only want my child&rsquo;s progress updates." },
   { id: "none",
-    title: "Unsubscribe from all communication",
+    title: "Unsubscribe from all communication, including progress reports on my child",
     sub: "Stops every non-essential email. Billing receipts and account-security notices still come through." },
 ];
 

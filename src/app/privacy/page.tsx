@@ -21,8 +21,8 @@ export default function PrivacyPage() {
           students who use our exam-marking service. This policy explains
           what we collect, how we use it, and your rights under Singapore&rsquo;s
           Personal Data Protection Act 2012 (PDPA). MarkForYou is designed
-          for Singapore primary-school students (Primary 1 – 6, typically
-          ages 7 to 12).
+          for Singapore primary-school students (Primary 4 – 6, typically
+          ages 10 to 12).
         </p>
 
         <h2 className="text-xl font-bold mt-10 mb-3">1. Information we collect</h2>
