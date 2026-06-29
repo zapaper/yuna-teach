@@ -454,9 +454,55 @@ const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
 // science-keyed LUMI_QUIZ_COMBOS so existing callers don't have to
 // know about subject yet — the Lumi quiz route will gain English
 // support in a follow-up that reads from BOTH maps.
+// Caleb (Felicia's kid) — 482 attempts, 85% accuracy. Grammar +
+// Vocab MCQ are at 10% miss each — marginal, not a real pattern.
+// Synthesis is his only individually-pickable weakness, concentrated
+// in reported-speech (38%) and noun-phrase (50%). Same shape as Mark:
+// no Grammar MCQ delta, split synthesis into two themed quizzes.
+// 3rd CTA: Comp Open-Ended section (33% miss, section-bound).
+const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
+  {
+    label: "Synthesis: Reported Speech",
+    rationale: "Reported speech is your highest-miss synthesis trick. Same set of moves every time — backshift tense, swap subject pronoun, today → that day.",
+    topic: "Synthesis / Transformation",
+    subTopicWeights: {
+      "reported-speech": 6,
+    },
+    count: 6,
+    topicRecap: {
+      heading: "Reported Speech — what to look out for",
+      watchOut: [
+        "Shift the tense BACK by one step: is → was, has → had, will → would, did → had done. 'She MISSED her appointment' → 'she HAD MISSED her appointment'.",
+        "Keep the subject pronoun. The blank needs 'she had missed', NOT just 'had missed'. Look at who is being reported on and start the answer with their pronoun.",
+        "Time and place words shift too: today → that day, yesterday → the previous day / the day before, tomorrow → the next day, here → there.",
+        "Yes/No questions use 'if' or 'whether'. Wh- questions keep the wh-word but use statement order: 'Why did she sing?' → 'why she had sung', NOT 'why had she sung'.",
+      ],
+    },
+  },
+  {
+    label: "Synthesis: Noun-Phrase Transformations",
+    rationale: "Relative clauses (who/whom/whose/which), possessives, and verb→noun. The three structural transformations you've been losing marks on.",
+    topic: "Synthesis / Transformation",
+    subTopicWeights: {
+      "noun-phrase": 6,
+    },
+    count: 6,
+    topicRecap: {
+      heading: "Noun-Phrase Transformations — what to look out for",
+      watchOut: [
+        "Relative clauses: WHO replaces a subject pronoun (he / she), WHOM replaces an object pronoun (him / her), WHOSE replaces a possessive (his / her), WHICH is for things. 'The blender CAN make juices' → 'a blender WHICH can make juices'.",
+        "Use commas around a non-essential clause: 'Mrs Lee, WHOM the students praise, is a dedicated teacher.' Without the commas, the meaning of the sentence changes.",
+        "Possessive transformation: 'The student WAS diligent' → 'The student's DILIGENCE'. The verb / adjective becomes a noun + 's. Watch the spelling — diligent → diligence, complain → complaint, decide → decision.",
+        "Verb → noun: a strong verb often has a noun partner. 'They DECIDED to go' → 'They made the DECISION to go'. Look for cues like 'made' / 'gave' / 'took' / 'came' — they often signal this trick.",
+      ],
+    },
+  },
+];
+
 export const LUMI_QUIZ_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = {
-  "cmm5wf91d000ryrxwaddlo6xh": DAVID_ENGLISH_COMBOS,  // David Lim
-  "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,   // Mark Lim
+  "cmm5wf91d000ryrxwaddlo6xh": DAVID_ENGLISH_COMBOS,   // David Lim
+  "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,    // Mark Lim
+  "cmq4xj0vm0029apq234jrmrh6": CALEB_ENGLISH_COMBOS,   // Caleb (Felicia's kid)
 };
 
 // ─── Derived (no-hand-written) combos ────────────────────────────────
