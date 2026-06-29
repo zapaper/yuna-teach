@@ -424,14 +424,27 @@ function EssayCoachContent() {
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#001e40] flex items-baseline gap-2">
-            Essay Coach
-            <span className="text-[10px] uppercase tracking-wide font-bold text-white bg-[#0040a0] rounded-md px-1.5 py-0.5 align-middle">Beta</span>
-          </h1>
-          <p className="text-sm text-[#43474f] mt-1">
-            Upload or scan {selectedName ? `${selectedName}'s` : "your child's"} composition and we&rsquo;ll grade it and suggest improvements.
-            {isAdmin && <> <strong className="font-semibold text-[#001e40]">Batch Analyse</strong> existing compositions to get cross-essay insights and tips.</>}
-          </p>
+          {/* Lumi avatar + heading row — the panda gives the page a
+              clear "this is Lumi" anchor that matches the saved-tip
+              card's "Lumi's advice" branding below. */}
+          <div className="flex items-start gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/avatars/lumi1.png"
+              alt="Lumi"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shrink-0 shadow-sm border border-slate-200 bg-white"
+            />
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#001e40] flex items-baseline gap-2">
+                Essay Coach
+                <span className="text-[10px] uppercase tracking-wide font-bold text-white bg-[#0040a0] rounded-md px-1.5 py-0.5 align-middle">Beta</span>
+              </h1>
+              <p className="text-sm text-[#43474f] mt-1">
+                Upload or scan {selectedName ? `${selectedName}'s` : "your child's"} composition and we&rsquo;ll grade it and suggest improvements.
+                {isAdmin && <> <strong className="font-semibold text-[#001e40]">Batch Analyse</strong> existing compositions to get cross-essay insights and tips.</>}
+              </p>
+            </div>
+          </div>
 
           {/* Global language toggle — drives BOTH new-composition
               language and the past-attempts filter, so there's only
@@ -552,7 +565,7 @@ function EssayCoachContent() {
               <span className="font-semibold">Teacher already marked it (compare)</span>
               <br />
               <span className="text-amber-700">
-                Removes red/green teacher marks before analysis, and shows the teacher&rsquo;s edits side-by-side so you can compare what the teacher caught vs the AI.
+                Removes red/green teacher marks before analysis, and shows the teacher&rsquo;s edits side-by-side so you can compare.
               </span>
             </span>
           </label>
@@ -654,7 +667,7 @@ function EssayCoachContent() {
 
           {pageFiles.length === 0 && (
             <p className="text-xs text-[#43474f]">
-              No pages yet — tap <strong>Upload</strong> for a file or <strong>Scan</strong> to capture pages with your camera. You can stage multiple pages before analysing.
+              No pages yet — tap <strong>Upload</strong> for a file or <strong>Scan</strong> to capture pages with your camera. Handwriting should be neat and cancellation clear.
             </p>
           )}
 
