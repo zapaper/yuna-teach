@@ -971,7 +971,21 @@ function ExamReviewContent({ id }: { id: string }) {
   // question quiz comes back as Q1, Q10, Q2, Q3, … which scrambles
   // the review. orderIndex is a real integer set by the quiz-create
   // endpoints and survives every clone.
-  const orderedQuestions = [...data.questions].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+  //
+  // For quizzes the kid took MCQs first then OEQs (the quiz UI splits
+  // them into two blocks regardless of questionNum), so the review
+  // should mirror that: MCQs first, then OEQs, each group sorted by
+  // orderIndex. Without this, a paper like Q1–4 OEQ, Q5 MCQ, Q6 OEQ
+  // shows interleaved in review even though the kid saw all MCQs
+  // grouped at the top.
+  const orderedQuestions = [...data.questions].sort((a, b) => {
+    if (isQuiz) {
+      const aMcq = looksLikeMcq(a);
+      const bMcq = looksLikeMcq(b);
+      if (aMcq !== bMcq) return aMcq ? -1 : 1;
+    }
+    return (a.orderIndex ?? 0) - (b.orderIndex ?? 0);
+  });
   const writtenQuestions = isStudent && !isQuiz
     ? orderedQuestions.filter((q) => q.marksAwarded !== null)
     : orderedQuestions;
@@ -1030,10 +1044,12 @@ function ExamReviewContent({ id }: { id: string }) {
       displayItems.push({ type: "question", question: q });
     }
   }
-  // Sort by first question's position in data.questions
+  // Sort by first question's position in orderedQuestions (which
+  // already encodes MCQ-first-then-OEQ for quizzes). Falling back to
+  // data.questions here would re-interleave the items.
   displayItems.sort((a, b) => {
-    const aIdx = data.questions.findIndex(q => q.id === (a.type === "question" ? a.question.id : a.questions[0]?.id));
-    const bIdx = data.questions.findIndex(q => q.id === (b.type === "question" ? b.question.id : b.questions[0]?.id));
+    const aIdx = orderedQuestions.findIndex(q => q.id === (a.type === "question" ? a.question.id : a.questions[0]?.id));
+    const bIdx = orderedQuestions.findIndex(q => q.id === (b.type === "question" ? b.question.id : b.questions[0]?.id));
     return aIdx - bIdx;
   });
 

@@ -142,20 +142,30 @@ export default function QuizPage({ params }: { params: Promise<{ id: string }> }
 
 // Finger-friendly OEQ mode — gives the kid a taller writing area
 // (+30% canvas height) and a thicker default stroke (5 px instead
-// of 3) so finger-on-iPad writing is legible without zooming. Gated
-// to a small set of kids while we shake the UX down; the canvas
-// signal flow + ink storage are unchanged, only the visual sizing.
-const FINGER_FRIENDLY_STUDENT_IDS = new Set<string>([
-  "cmmfmmnwy00fdbbbfgm7k3wpn",  // Emily Lim
-  "cmmbbyvs30004qa9yinn3drl6",  // Mark Lim
-  "cmm5wf91d000ryrxwaddlo6xh",  // David Lim
-]);
+// of 3) so finger-on-iPad writing is legible without zooming. The
+// gate is now device-driven: any device whose primary pointer is
+// coarse (touch tablet / phone without a stylus) gets the bigger
+// canvas + thicker default pen. BlankCanvas additionally bumps line
+// width on a per-stroke basis when PointerEvent.pointerType is
+// "touch", so a stylus user on the same device still draws fine.
+function useFingerFriendlyDevice(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(pointer: coarse)");
+    setCoarse(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setCoarse(e.matches);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return coarse;
+}
 
 function QuizContent({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
-  const fingerFriendly = FINGER_FRIENDLY_STUDENT_IDS.has(userId);
+  const fingerFriendly = useFingerFriendlyDevice();
   const isDiagnostic = searchParams.get("diagnostic") === "1";
   const diagnosticParentId = searchParams.get("parentId") ?? "";
   // ?direct=1 — flagged-Q&A vetting flow. Skips the "Quiz Complete"
@@ -1728,7 +1738,7 @@ function QuizContent({ id }: { id: string }) {
       </header>
 
       {/* Single scrollable paper */}
-      <div className="pt-24 pb-8 max-w-4xl mx-auto px-4 lg:px-16">
+      <div className="pt-24 pb-8 max-w-4xl lg:max-w-6xl mx-auto px-4 lg:px-12">
 
         {/* Mobile progress bar */}
         {mcqQuestions.length > 0 && !isEnglishQuiz && !isChineseQuiz && (
@@ -3852,10 +3862,13 @@ const BlankCanvas = forwardRef<
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
 
-    // Pen stroke width: 5 in finger-friendly mode (finger ink reads
-    // skinny + jagged at 3 on iPad), 3 otherwise. Eraser sizes are
-    // unchanged — they already work fine for fingers.
-    const penWidth = fingerFriendly ? 5 : 3;
+    // Pen stroke width: bumped to 5 when the active stroke comes from
+    // a finger (PointerEvent.pointerType === "touch") OR when the
+    // device's primary pointer is coarse (fingerFriendly prop, set by
+    // matchMedia('(pointer: coarse)') in the parent). Stylus / mouse
+    // strokes stay at 3 even on a touch-primary device, so an iPad +
+    // Apple Pencil user gets the precise pen they want.
+    const strokePenWidth = { current: fingerFriendly ? 5 : 3 };
 
     function applyStyleVisible() {
       ctx.lineCap = "round"; ctx.lineJoin = "round";
@@ -3866,7 +3879,7 @@ const BlankCanvas = forwardRef<
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(37,99,235,0.85)";
-        ctx.lineWidth = penWidth;
+        ctx.lineWidth = strokePenWidth.current;
       }
     }
 
@@ -3879,7 +3892,7 @@ const BlankCanvas = forwardRef<
       } else {
         inkCtx.globalCompositeOperation = "source-over";
         inkCtx.strokeStyle = "rgba(37,99,235,0.85)";
-        inkCtx.lineWidth = penWidth;
+        inkCtx.lineWidth = strokePenWidth.current;
       }
     }
 
@@ -3893,6 +3906,12 @@ const BlankCanvas = forwardRef<
     function handlePointerDown(e: PointerEvent) {
       if (toolRef.current === "type" || toolRef.current === "highlight") return;
       e.preventDefault();
+      // Branch pen width on actual pointer type — finger gets 5, stylus
+      // / mouse get 3 — falling back to the device-level fingerFriendly
+      // hint when the browser doesn't surface a type (older WebKit).
+      if (e.pointerType === "touch") strokePenWidth.current = 5;
+      else if (e.pointerType === "pen" || e.pointerType === "mouse") strokePenWidth.current = 3;
+      else strokePenWidth.current = fingerFriendly ? 5 : 3;
       // Route subsequent move/up events here even if the finger slides off
       // the canvas, so strokes don't end prematurely at the edge.
       canvas!.setPointerCapture(e.pointerId);
