@@ -1170,13 +1170,6 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
             or jump to {link("topics-section", "Topics for Practice")} below.
           </li>
         )}
-        {(m1 || concept) && (
-          <li>
-            <strong>
-              Aside from reviewing the quizzes done, it would be good to go through {childFirst}&apos;s common mistakes and conceptual gaps highlighted below.
-            </strong>
-          </li>
-        )}
         {m1 && (
           <li>
             There are common trends in the mistakes. The biggest pattern is

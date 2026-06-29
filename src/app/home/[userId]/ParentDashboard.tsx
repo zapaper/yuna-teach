@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExamPaperSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
+import { sectionLabelGloss } from "@/lib/chinese-section-gloss";
 import { canAssignChinese } from "@/lib/chinese-access";
 import { hasSessionCookie } from "@/lib/session-client";
 import ExamPaperCard from "@/components/ExamPaperCard";
@@ -1857,7 +1858,12 @@ export default function ParentDashboard({
                     onChange={() => setChineseSections(new Set([s.key]))}
                     className="w-4 h-4 accent-[#006c49]"
                   />
-                  <span className="text-sm text-[#001e40]">{s.label}</span>
+                  <span className="text-sm text-[#001e40]">
+                    {s.label}
+                    {sectionLabelGloss(s.key) && (
+                      <span className="ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
+                    )}
+                  </span>
                 </label>
               ))}
             </div>
@@ -1939,7 +1945,12 @@ export default function ParentDashboard({
                     }}
                     className="w-4 h-4 rounded accent-[#006c49]"
                   />
-                  <span className="text-sm text-[#001e40]">{s.label}</span>
+                  <span className="text-sm text-[#001e40]">
+                    {s.label}
+                    {sectionLabelGloss(s.key) && (
+                      <span className="ml-2 text-slate-400 font-normal">({sectionLabelGloss(s.key)})</span>
+                    )}
+                  </span>
                 </label>
               ))}
             </div>
