@@ -1242,8 +1242,23 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
   // Per-combo "generated" state — keyed by comboIdx. Stays set after
   // generate so the parent doesn't see the button revert and click
   // twice (each click would generate ANOTHER quiz for the kid).
-  const [generatedIdxs, setGeneratedIdxs] = useState<Record<number, { paperId: string }>>({});
+  // Persisted to localStorage so a page refresh doesn't wipe the
+  // state and silently invite a duplicate generate.
+  const storageKey = `lumi-priorities:${studentId}:${subject.toLowerCase()}`;
+  const [generatedIdxs, setGeneratedIdxs] = useState<Record<number, { paperId: string }>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem(`${storageKey}:combos`);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
   const [err, setErr] = useState<string | null>(null);
+
+  // Persist combo state on every change.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem(`${storageKey}:combos`, JSON.stringify(generatedIdxs)); } catch { /* ignore quota errors */ }
+  }, [generatedIdxs, storageKey]);
   // Combos are Science-only for the moment; the LUMI_QUIZ_COMBOS map
   // is keyed by studentId but only Science kids in the test gate get
   // populated entries. The priorities bar still appears for non-combo
@@ -1280,16 +1295,82 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     }
   }
 
-  const handleOpenFocusedPractice = () => {
-    if (!fallbackTopic) return;
-    const url = `/home/${parentId}?focused=1&studentId=${studentId}&subject=${encodeURIComponent(subject.toLowerCase())}&topic=${encodeURIComponent(fallbackTopic.topic)}`;
-    router.push(url);
-  };
-  const handleScrollToDailyQuiz = () => {
-    const el = document.getElementById("daily-practices-section");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    else router.push(`/home/${parentId}?student=${studentId}`);
-  };
+  // Generation in-flight states for the 3rd button. Mirrors the
+  // submittingIdx pattern combos use above + persists across
+  // refreshes via localStorage.
+  const [thirdSubmitting, setThirdSubmitting] = useState(false);
+  const [thirdReady, setThirdReady] = useState<{ paperId: string } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(`${storageKey}:third`);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (thirdReady) window.localStorage.setItem(`${storageKey}:third`, JSON.stringify(thirdReady));
+      else window.localStorage.removeItem(`${storageKey}:third`);
+    } catch { /* ignore */ }
+  }, [thirdReady, storageKey]);
+
+  // Auto-generate the focused practice + navigate the parent straight
+  // to the quiz player. Previously this button bounced to the parent
+  // home with the modal pre-filled — but the modal was redundant
+  // friction; we already know the subject + topic + kid.
+  async function handleGenerateFocusedPractice() {
+    if (!fallbackTopic || thirdSubmitting) return;
+    setThirdSubmitting(true);
+    setErr(null);
+    try {
+      // Math is "Mathematics" in the focused-test API's subject
+      // taxonomy; everything else matches as-is.
+      const apiSubject = subject === "Math" ? "Mathematics" : subject;
+      const r = await fetch("/api/focused-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId, studentId, subject: apiSubject, topic: fallbackTopic.topic }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.id) throw new Error(j?.error ?? `failed (${r.status})`);
+      setThirdReady({ paperId: j.id });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Generate failed");
+    } finally {
+      setThirdSubmitting(false);
+    }
+  }
+
+  // Daily quiz auto-generate — same idea. Math/Science use the
+  // simple MCQ body; English/Chinese need section selection so we
+  // fall back to scrolling the parent into the existing daily-
+  // practices picker for those.
+  async function handleGenerateDailyQuiz() {
+    if (thirdSubmitting) return;
+    const subjLower = subject.toLowerCase();
+    if (subjLower === "english" || subjLower === "chinese") {
+      const el = document.getElementById("daily-practices-section");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else router.push(`/home/${parentId}?student=${studentId}`);
+      return;
+    }
+    setThirdSubmitting(true);
+    setErr(null);
+    try {
+      const r = await fetch("/api/daily-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: parentId, studentId, quizType: "mcq", subject: subjLower }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.id) throw new Error(j?.error ?? `failed (${r.status})`);
+      setThirdReady({ paperId: j.id });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Generate failed");
+    } finally {
+      setThirdSubmitting(false);
+    }
+  }
 
   const thirdSentence = fallbackTopic
     ? <>Third, do a <strong>focused practice on {fallbackTopic.topic}</strong> to strengthen {childFirst}&apos;s knowledge on a topic not already covered above.</>
@@ -1349,25 +1430,38 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
             </button>
           );
         })}
-        {fallbackTopic ? (
+        {thirdReady ? (
+          // Already generated — same green "ready" treatment as the
+          // combo buttons. Clicking opens the quiz directly.
+          <a
+            href={`/quiz/${thirdReady.paperId}?userId=${studentId}`}
+            className={`block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
+          >
+            <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">{fallbackTopic ? "Focused practice ready" : "Daily quiz ready"}</div>
+            <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic?.topic ?? "10-min MCQ refresh"}</div>
+            <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
+          </a>
+        ) : fallbackTopic ? (
           <button
             type="button"
-            onClick={handleOpenFocusedPractice}
-            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
+            onClick={handleGenerateFocusedPractice}
+            disabled={thirdSubmitting}
+            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
           >
             <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Focused practice</div>
             <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
-            <div className="text-xs text-amber-200 mt-1 font-semibold">Open assignment →</div>
+            <div className="text-xs text-amber-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
           </button>
         ) : (
           <button
             type="button"
-            onClick={handleScrollToDailyQuiz}
-            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
+            onClick={handleGenerateDailyQuiz}
+            disabled={thirdSubmitting}
+            className={`rounded-xl bg-amber-700 hover:bg-amber-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-amber-900/10 disabled:opacity-60 disabled:cursor-not-allowed ${hasCombos ? "" : "sm:col-span-3"}`}
           >
             <div className="text-[10px] uppercase tracking-wider font-bold text-amber-200">Daily quiz</div>
             <div className="text-sm font-bold text-white mt-0.5">A 10-min MCQ refresh</div>
-            <div className="text-xs text-amber-200 mt-1 font-semibold">Schedule daily quizzes →</div>
+            <div className="text-xs text-amber-200 mt-1 font-semibold">{thirdSubmitting ? "Generating…" : "Generate quiz →"}</div>
           </button>
         )}
       </div>
