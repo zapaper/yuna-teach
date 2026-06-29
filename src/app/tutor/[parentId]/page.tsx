@@ -765,12 +765,6 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
         </div>
       </section>
 
-      {/* Priorities action bar — purple call-to-action with the three
-          highest-leverage next steps for the week. Two personalised
-          quizzes (when the kid is in the test gate and combos exist)
-          plus a third button for daily-quiz or focused-practice on a
-          weak topic not already covered. */}
-      <PrioritiesBar data={data} studentId={studentId} parentId={parentId} />
 
       {/* Swipe stage — flex row holds both panels side-by-side; we
           translate the whole row by -100% to slide overview off
@@ -1199,12 +1193,12 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
             We can walk through together, plus take a guided quiz.
           </li>
         )}
-        {/* Personalised-quiz CTAs — admin-only, science-only, kids
-            in the test gate for v1. Each combo is a content+skill
-            pairing ("kill two birds") drawn from LUMI_QUIZ_COMBOS
-            (src/lib/lumi-combos.ts). Two combos per kid are shown so
-            the parent can pick the angle. */}
-        {LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId) && subject === "Science" && (m1 || concept) && (
+        {/* Top three priorities — purple action card. Personalised
+            quizzes (combos) only populate for Science kids in the
+            test gate; for everyone else the bar still shows with
+            just the 3rd button (focused practice on the weakest
+            non-overlapping topic, or daily quiz fallback). */}
+        {(LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId) && subject === "Science") || topline.weakTopics.length > 0 || m1 || concept ? (
           <li className="!list-none -ml-5 mt-2">
             <LumiQuizCombosCard
               studentId={studentId}
@@ -1212,9 +1206,12 @@ function LumiSummary({ data, studentId, parentId }: { data: Extract<TutorData, {
               childFullName={childFullName}
               parentId={parentId}
               totalAvailable={topline.totalAvailable}
+              subject={subject}
+              weakTopics={topline.weakTopics}
+              hasPatterns={!!(m1 || concept)}
             />
           </li>
-        )}
+        ) : null}
       </ul>
     </div>
   );
@@ -1239,14 +1236,28 @@ function numWord(n: number): string {
   return ["zero", "one", "two", "three", "four", "five", "six"][n] ?? String(n);
 }
 
-function LumiQuizCombosCard({ studentId, childFirst, childFullName, parentId: _parentId, totalAvailable }: { studentId: string; childFirst: string; childFullName: string; parentId: string; totalAvailable: number }) {
+function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullName, parentId, totalAvailable, subject, weakTopics, hasPatterns }: { studentId: string; childFirst: string; childFullName: string; parentId: string; totalAvailable: number; subject: string; weakTopics: Array<{ topic: string; pct: number }>; hasPatterns: boolean }) {
+  const router = useRouter();
   const [submittingIdx, setSubmittingIdx] = useState<number | null>(null);
   // Per-combo "generated" state — keyed by comboIdx. Stays set after
   // generate so the parent doesn't see the button revert and click
   // twice (each click would generate ANOTHER quiz for the kid).
   const [generatedIdxs, setGeneratedIdxs] = useState<Record<number, { paperId: string }>>({});
   const [err, setErr] = useState<string | null>(null);
-  const combos = LUMI_QUIZ_COMBOS[studentId] ?? [];
+  // Combos are Science-only for the moment; the LUMI_QUIZ_COMBOS map
+  // is keyed by studentId but only Science kids in the test gate get
+  // populated entries. The priorities bar still appears for non-combo
+  // subjects/kids — just with the 2 personalised buttons collapsed
+  // out, leaving the 3rd button (focused practice / daily quiz) to
+  // span the full row.
+  const combos = subject === "Science" ? (LUMI_QUIZ_COMBOS[studentId] ?? []) : [];
+  const hasCombos = combos.length > 0;
+
+  // 3rd-button picker — pick the weakest topic NOT already targeted
+  // by either combo. Falls back to a daily quiz CTA when every weak
+  // topic is already covered.
+  const comboTopicSet = new Set(combos.map(c => c.topic.toLowerCase()));
+  const fallbackTopic = weakTopics.find(wt => !comboTopicSet.has(wt.topic.toLowerCase())) ?? null;
 
   async function handleGenerate(idx: number) {
     setSubmittingIdx(idx);
@@ -1255,7 +1266,7 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName, parentId: _p
       const r = await fetch("/api/admin/lumi-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId, subject: "science", comboIdx: idx, count: 10 }),
+        body: JSON.stringify({ studentId, subject: subject.toLowerCase(), comboIdx: idx, count: 10 }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok || !data?.paperId) {
@@ -1269,62 +1280,98 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName, parentId: _p
     }
   }
 
-  if (combos.length === 0) return null;
+  const handleOpenFocusedPractice = () => {
+    if (!fallbackTopic) return;
+    const url = `/home/${parentId}?focused=1&studentId=${studentId}&subject=${encodeURIComponent(subject.toLowerCase())}&topic=${encodeURIComponent(fallbackTopic.topic)}`;
+    router.push(url);
+  };
+  const handleScrollToDailyQuiz = () => {
+    const el = document.getElementById("daily-practices-section");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    else router.push(`/home/${parentId}?student=${studentId}`);
+  };
+
+  const thirdSentence = fallbackTopic
+    ? <>Third, do a <strong>focused practice on {fallbackTopic.topic}</strong> to strengthen {childFirst}&apos;s knowledge on a topic not already covered above.</>
+    : <>Third, do a <strong>daily quiz</strong> to refresh {childFirst}&apos;s concepts across topics.</>;
 
   return (
     <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
-      <p className="text-[#001e40]">
-        First, walk through the <strong>common mistakes</strong> and <strong>conceptual gaps</strong> with {childFirst} — those are the patterns Lumi keeps seeing.
-      </p>
-      <p className="text-[#001e40]">
-        Then, take the {numWord(combos.length)} <strong>personalised quiz{combos.length === 1 ? "" : "zes"}</strong> below to drill them. Each one pairs a <strong>subtopic</strong>{" "}
-        where {childFirst} struggles with <strong>a common-mistakes pattern</strong>, and starts with a short guide and some tips.
-      </p>
-      <div className="space-y-2">
-        {combos.map((c, i) => {
+      <h3 className="font-bold text-[#001e40] text-base">Top three priorities for this week</h3>
+      <div className="text-[#001e40] text-sm leading-relaxed space-y-2.5">
+        {hasPatterns && (
+          <p>
+            First, walk through the <strong>common mistakes and conceptual gaps</strong> with {childFirst} — those are the patterns Lumi keeps seeing.
+          </p>
+        )}
+        {hasCombos && (
+          <p>
+            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a subtopic where {childFirst} struggles with a common-mistakes pattern, and starts with a short guide and some tips.
+          </p>
+        )}
+        <p>{thirdSentence}</p>
+      </div>
+
+      {/* Horizontal 3-button row — combos take 2 cols when present,
+          3rd button auto-stretches to fill the remaining col(s). */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {combos.slice(0, 2).map((c, i) => {
           const done = generatedIdxs[i];
+          if (done) {
+            return (
+              <a
+                key={`combo-${i}`}
+                href={`/quiz/${done.paperId}?userId=${studentId}`}
+                className="block rounded-xl border-2 border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-3 text-center transition-colors"
+              >
+                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700">Quiz {i + 1} ready</div>
+                <div className="text-sm font-bold text-emerald-900 mt-0.5 line-clamp-2">{c.label}</div>
+                <div className="text-xs text-emerald-700 mt-1">Open quiz →</div>
+              </a>
+            );
+          }
+          const busy = submittingIdx === i;
           return (
-            <div key={i} className="rounded-lg bg-white border border-purple-100 p-3 flex flex-col sm:flex-row sm:items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-[#001e40]">{c.label}</p>
-                <p className="text-xs text-[#43474f] mt-0.5 leading-relaxed">
-                  {deriveRationale(c, childFullName, "science", childFirst) ?? c.rationale}
-                </p>
-                {done && (
-                  <p className="text-xs text-green-700 mt-1 font-medium">
-                    Quiz generated — it&apos;ll show on {childFirst}&apos;s homepage next time {childFirst} logs in.
-                  </p>
-                )}
-              </div>
-              {done ? (
-                <span className="self-start sm:self-auto shrink-0 px-3 py-2 rounded-lg bg-green-100 text-green-800 text-xs font-bold flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  Generated
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleGenerate(i)}
-                  disabled={submittingIdx !== null}
-                  className="self-start sm:self-auto shrink-0 px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center gap-1"
-                >
-                  {submittingIdx === i ? (
-                    <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                  )}
-                  {submittingIdx === i ? "Generating…" : "Generate"}
-                </button>
-              )}
-            </div>
+            <button
+              key={`combo-${i}`}
+              type="button"
+              onClick={() => handleGenerate(i)}
+              disabled={submittingIdx !== null}
+              className="rounded-xl border-2 border-purple-300 bg-white hover:bg-purple-50 px-4 py-3 text-left transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-700">Personalised quiz {i + 1}</div>
+              <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{c.label}</div>
+              <div className="text-xs text-purple-700 mt-1">{busy ? "Generating…" : "Generate quiz →"}</div>
+            </button>
           );
         })}
+        {fallbackTopic ? (
+          <button
+            type="button"
+            onClick={handleOpenFocusedPractice}
+            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+          >
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Focused practice</div>
+            <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
+            <div className="text-xs text-amber-700 mt-1">Open assignment →</div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleScrollToDailyQuiz}
+            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
+          >
+            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Daily quiz</div>
+            <div className="text-sm font-bold text-[#001e40] mt-0.5">A 10-min MCQ refresh</div>
+            <div className="text-xs text-amber-700 mt-1">Schedule daily quizzes →</div>
+          </button>
+        )}
       </div>
-      {totalAvailable < LUMI_COMBO_SPARSE_DATA_THRESHOLD && (
+
+      {hasCombos && totalAvailable < LUMI_COMBO_SPARSE_DATA_THRESHOLD && (
         <p className="text-xs text-[#43474f] leading-relaxed border-t border-purple-100 pt-3">
           <span className="font-bold text-[#001e40]">Light on data so far</span> ({totalAvailable} marks).
-          A few <a href="#daily-practices-section" onClick={scrollToSection("daily-practices-section")} className="text-violet-700 font-semibold underline decoration-violet-300 hover:decoration-violet-700 underline-offset-2">daily quizzes</a> would
-          refresh {childFirst}&apos;s practice and give Lumi more to work with next time.
+          The personalised quizzes use whatever pattern signal Lumi can see — keep the daily quizzes going so Lumi has more to work with next time.
         </p>
       )}
       {err && <p className="text-xs text-red-600">{err}</p>}
@@ -2542,161 +2589,5 @@ function ExpandableExample({ ex, index, accent, childFirst, lazyImages }: { ex: 
         </div>
       )}
     </div>
-  );
-}
-
-// ─── PrioritiesBar ───────────────────────────────────────────────
-// The purple call-to-action bar that lives below the full-width
-// LumiSummary. Three numbered steps + three action buttons:
-//
-//   1. Walk through the kid's common mistakes / conceptual gaps
-//   2. Take two personalised quizzes (combo subtopic × pattern)
-//   3. Daily quiz OR focused practice on a weak topic not already
-//      covered by buttons 1 + 2
-//
-// When the kid is NOT in the personalised-combo test gate (or the
-// subject isn't Science — combos are Science-only today), buttons 1
-// and 2 are absent and the bar narrows to just the 3rd-button
-// action.
-//
-function PrioritiesBar({ data, studentId, parentId }: { data: Extract<TutorData, { kind: "ready" }>; studentId: string; parentId: string }) {
-  const { childFirst, subject, topline, commonMistakes, conceptualGaps } = data;
-  const router = useRouter();
-  const combos = subject === "Science" && LUMI_QUIZ_TEST_STUDENT_IDS.has(studentId)
-    ? (LUMI_QUIZ_COMBOS[studentId] ?? [])
-    : [];
-  const hasCombos = combos.length > 0;
-  const hasPatterns = commonMistakes.length > 0 || conceptualGaps.length > 0;
-
-  // 3rd-button logic: pick a weakest topic that ISN'T already the
-  // target of either combo (combo[0].topic / combo[1].topic). If we
-  // find one, the 3rd button is "Focused Practice on <topic>".
-  // Otherwise fall back to "Daily Quiz".
-  const comboTopicSet = new Set(combos.map(c => c.topic.toLowerCase()));
-  const weakNotInCombos = topline.weakTopics.filter(
-    wt => !comboTopicSet.has(wt.topic.toLowerCase())
-  );
-  const fallbackTopic = weakNotInCombos[0] ?? null;
-
-  const [submittingCombo, setSubmittingCombo] = useState<number | null>(null);
-  const [generatedCombos, setGeneratedCombos] = useState<Record<number, { paperId: string }>>({});
-  const [err, setErr] = useState<string | null>(null);
-
-  async function handleGenerateCombo(idx: number) {
-    setSubmittingCombo(idx);
-    setErr(null);
-    try {
-      const r = await fetch("/api/admin/lumi-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId, subject: subject.toLowerCase(), comboIdx: idx, count: 10 }),
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok || !j?.paperId) throw new Error(j?.error ?? j?.detail ?? `failed (${r.status})`);
-      setGeneratedCombos(prev => ({ ...prev, [idx]: { paperId: j.paperId } }));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Generate failed");
-    } finally {
-      setSubmittingCombo(null);
-    }
-  }
-
-  const handleOpenFocusedPractice = () => {
-    if (!fallbackTopic) return;
-    // Same shape as the "Topics for Practice" CTAs higher up the page.
-    const url = `/home/${parentId}?focused=1&studentId=${studentId}&subject=${encodeURIComponent(subject.toLowerCase())}&topic=${encodeURIComponent(fallbackTopic.topic)}`;
-    router.push(url);
-  };
-  const handleScrollToDailyQuiz = () => {
-    const el = document.getElementById("daily-practices-section");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    else router.push(`/home/${parentId}?student=${studentId}`);
-  };
-
-  // Compute the third-priority sentence based on what's available.
-  const thirdSentence = fallbackTopic
-    ? <>Third, do a <strong>focused practice on {fallbackTopic.topic}</strong> to strengthen {childFirst}&apos;s knowledge on a topic not already covered above.</>
-    : <>Third, do a <strong>daily quiz</strong> to refresh {childFirst}&apos;s concepts across topics.</>;
-
-  return (
-    <section className="bg-gradient-to-br from-violet-100 via-violet-50 to-white border-2 border-violet-300 rounded-2xl px-6 sm:px-8 py-6 mb-6 shadow-sm">
-      <h2 className="text-lg font-extrabold text-violet-900 mb-3">Top three priorities for this week</h2>
-      <div className="text-sm text-[#001e40] leading-relaxed space-y-2.5">
-        {hasPatterns && (
-          <p>
-            First, walk through the <strong>common mistakes and conceptual gaps</strong> with {childFirst} — those are the patterns Lumi keeps seeing.
-          </p>
-        )}
-        {hasCombos && (
-          <p>
-            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a subtopic where {childFirst} struggles with a common-mistakes pattern, and starts with a short guide and some tips.
-          </p>
-        )}
-        <p>{thirdSentence}</p>
-      </div>
-
-      {err && (
-        <div className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>
-      )}
-
-      {/* Action buttons — grid of up to 3. On mobile they stack
-          vertically; from sm: side-by-side. Each combo button shows
-          its label + a tiny rationale chip, then turns into an "Open
-          quiz" link once generated. */}
-      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {combos.slice(0, 2).map((c, i) => {
-          const done = generatedCombos[i];
-          const busy = submittingCombo === i;
-          if (done) {
-            return (
-              <a
-                key={`combo-${i}`}
-                href={`/quiz/${done.paperId}?userId=${studentId}`}
-                className="block rounded-xl border-2 border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-4 py-3 text-center transition-colors"
-              >
-                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700">Quiz {i + 1} ready</div>
-                <div className="text-sm font-bold text-emerald-900 mt-0.5 line-clamp-2">{c.label}</div>
-                <div className="text-xs text-emerald-700 mt-1">Open quiz →</div>
-              </a>
-            );
-          }
-          return (
-            <button
-              key={`combo-${i}`}
-              type="button"
-              onClick={() => handleGenerateCombo(i)}
-              disabled={busy}
-              className="rounded-xl border-2 border-violet-300 bg-white hover:bg-violet-50 px-4 py-3 text-left transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <div className="text-[10px] uppercase tracking-wider font-bold text-violet-700">Personalised quiz {i + 1}</div>
-              <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{c.label}</div>
-              <div className="text-xs text-violet-700 mt-1">{busy ? "Generating…" : "Generate quiz →"}</div>
-            </button>
-          );
-        })}
-        {/* When combos absent, the 3rd action takes the full row. */}
-        {fallbackTopic ? (
-          <button
-            type="button"
-            onClick={handleOpenFocusedPractice}
-            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Focused practice</div>
-            <div className="text-sm font-bold text-[#001e40] mt-0.5 line-clamp-2">{fallbackTopic.topic}</div>
-            <div className="text-xs text-amber-700 mt-1">Open assignment →</div>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleScrollToDailyQuiz}
-            className={`rounded-xl border-2 border-amber-300 bg-white hover:bg-amber-50 px-4 py-3 text-left transition-colors ${hasCombos ? "" : "sm:col-span-3"}`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-amber-700">Daily quiz</div>
-            <div className="text-sm font-bold text-[#001e40] mt-0.5">A 10-min MCQ refresh</div>
-            <div className="text-xs text-amber-700 mt-1">Schedule daily quizzes →</div>
-          </button>
-        )}
-      </div>
-    </section>
   );
 }
