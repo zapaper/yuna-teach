@@ -55,18 +55,26 @@ const DELTA_COOLDOWN_DAYS = 6;
 
 // Day-3 nurture per-tick cap. We run the cron HOURLY (10am-9pm SGT =
 // 12 ticks/day), and each tick sends at most NURTURE_PER_TICK_CAP
-// emails. Default 5 → 60/day max → ~3 days to clear the 187 backlog
-// of never-started kids. Trickle pattern keeps us out of Gmail's
-// Promotions tab. Override via env var to tune up or down.
-// (override via NURTURE_PER_TICK_CAP env var if you want to bump it for catchup)
-const NURTURE_PER_TICK_CAP = parseInt(process.env.NURTURE_PER_TICK_CAP ?? "5", 10);
+// emails. Default historically 5 → 60/day. Trickle pattern keeps us
+// out of Gmail's Promotions tab. Override via env var to tune up.
+//
+// PAUSED 2026-06-30: default temporarily set to 0 so the 124 already-
+// nudged kids stew through their full 7-day conversion window without
+// new sends polluting the read. Conversion checkpoint 2026-07-04 (per
+// [[nurture-conversion-checkpoint]] memory). To resume: change the
+// default back to 5 (or set NURTURE_PER_TICK_CAP env var).
+const NURTURE_PER_TICK_CAP = parseInt(process.env.NURTURE_PER_TICK_CAP ?? "0", 10);
 const NURTURE_MIN_DAYS = 3;
 
 // Day-6 follow-up nurture — fires for kids who got the Day-3 Grammar+
 // Vocab nudge but have ≤1 quizzes done total ≥3 days later. We push
 // them to a topic-mixed Science MCQ Daily Quiz so the per-topic chart
 // has enough breadth when it eventually fires.
-const FOLLOWUP_PER_TICK_CAP = parseInt(process.env.FOLLOWUP_PER_TICK_CAP ?? "5", 10);
+//
+// PAUSED 2026-06-30 alongside NURTURE: a Day-6 followup to the existing
+// 124 nudged kids would muddy the conversion read. Resume default to
+// 5 when we re-enable the Day-3 trickle.
+const FOLLOWUP_PER_TICK_CAP = parseInt(process.env.FOLLOWUP_PER_TICK_CAP ?? "0", 10);
 const FOLLOWUP_MIN_DAYS_SINCE_NURTURE = 3;
 const FOLLOWUP_MAX_PAPERS = 1;
 const NURTURE_FROM = { email: process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com", name: "MarkForYou" };
