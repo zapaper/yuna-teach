@@ -2542,6 +2542,8 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
 const GRAMMAR_RADAR_KIDS = new Set<string>([
   "cmmbbyvs30004qa9yinn3drl6", // Mark Lim
   "cmm5wf91d000ryrxwaddlo6xh", // David Lim
+  "cmnk7dkkj006z14p6yf06ohzm", // JeremiahSy
+  "cmojzr4fu004gd4vnx8wmz6zk", // Kaiyangnggg
 ]);
 type FluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
 type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null };
@@ -2642,8 +2644,8 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
         {data.synthesis.overall !== null && <> Synthesis overall: <strong>{data.synthesis.overall}%</strong>.</>}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RadarSvg title="Grammar (MCQ + Cloze)" subTopics={data.grammar.subTopics} />
-        <RadarSvg title="Synthesis & Transformation" subTopics={data.synthesis.subTopics} />
+        <RadarSvg title="Grammar (MCQ + Cloze)" subTopics={data.grammar.subTopics.filter(s => s.available >= 3)} />
+        <RadarSvg title="Synthesis & Transformation" subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)} />
       </div>
     </div>
   );
