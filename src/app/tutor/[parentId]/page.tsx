@@ -2544,9 +2544,10 @@ const GRAMMAR_RADAR_KIDS = new Set<string>([
   "cmm5wf91d000ryrxwaddlo6xh", // David Lim
   "cmnk7dkkj006z14p6yf06ohzm", // JeremiahSy
   "cmojzr4fu004gd4vnx8wmz6zk", // Kaiyangnggg
+  "cmqg8upha0000l3ijfr3co6t8", // student67 (David clone for test cohort)
 ]);
 type FluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
-type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null };
+type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null; totalAwarded: number; totalAvailable: number };
 
 // Single radar SVG — accepts axes + per-axis percentages. Re-used
 // for grammar (7 rules) and synthesis (6 tricks). Zone thresholds:
