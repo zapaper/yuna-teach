@@ -516,7 +516,17 @@ export async function POST(request: NextRequest) {
 
   // ── Build the question creates ───────────────────────────────────
   type QuestionCreate = Prisma.ExamQuestionCreateWithoutExamPaperInput;
-  const questionCreates: QuestionCreate[] = picked.map((m, i) => ({
+  const questionCreates: QuestionCreate[] = picked.map((m, i) => {
+    // Synthesis & Transformation masters occasionally have polluted
+    // transcribedOptions (the answer text leaked into an options array)
+    // — when the clone inherits this the quiz player sees options[0]
+    // non-empty and renders as an MCQ instead of the proper synthesis
+    // fill-in-the-blank format. Strip options on any synthesis row.
+    const isSynth = (m.syllabusTopic ?? "").toLowerCase().includes("synthesis");
+    const cleanOpts = isSynth ? null : m.transcribedOptions;
+    const cleanOptImgs = isSynth ? null : m.transcribedOptionImages;
+    const cleanOptTable = isSynth ? null : m.transcribedOptionTable;
+    return ({
     questionNum: String(i + 1),
     imageData: m.imageData ?? "",
     answer: m.answer,
@@ -527,15 +537,15 @@ export async function POST(request: NextRequest) {
     syllabusTopic: m.syllabusTopic,
     subTopic: m.subTopic,
     transcribedStem: m.transcribedStem,
-    transcribedOptions: (m.transcribedOptions ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    transcribedOptionImages: (m.transcribedOptionImages ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    transcribedOptions: (cleanOpts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    transcribedOptionImages: (cleanOptImgs ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     // transcribedOptionTable carries the structured rows for
     // table-MCQs ("Which row of the table best describes…"). Without
     // this, a table-MCQ master clones with no options at all and the
     // quiz player treats it as an OEQ — silently lost the question
     // type. Found on Kaiyang's Forces quiz (PSLE 2025 Q25, PSLE 2016
     // Q21 — both table-MCQs).
-    transcribedOptionTable: (m.transcribedOptionTable ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    transcribedOptionTable: (cleanOptTable ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     transcribedSubparts: (m.transcribedSubparts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     diagramBounds: (m.diagramBounds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     diagramImageData: m.diagramImageData,
@@ -543,7 +553,8 @@ export async function POST(request: NextRequest) {
     // future Lumi-quiz runs WILL exclude this question — drilling
     // the same Q twice doesn't help.
     sourceQuestionId: m.id,
-  }));
+  });
+  });
 
   const totalMarks = picked.reduce((sum, q) => sum + (Number(q.marksAvailable) || 1), 0);
   const dateLabel = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Singapore" });
@@ -616,6 +627,17 @@ export async function POST(request: NextRequest) {
         lumiSubject: subject,
         ...(activeTopic ? { lumiTopic: activeTopic } : {}),
         ...(activeCombo ? { lumiComboLabel: activeCombo.label } : {}),
+        // English subject-aware section stamp: the quiz player's
+        // English renderer keys section-specific UI (Synthesis blank-
+        // fill format, Editing inline diff, Comp Cloze passage with
+        // numbered blanks, etc.) on metadata.englishSections[].label
+        // containing the topic name. Without this, an English Lumi
+        // quiz falls back to plain OEQ/MCQ rendering — David's
+        // synthesis Qs render as text boxes instead of the proper
+        // "**bold middle phrase**____" fill-in-the-blank shape.
+        ...(subject === "english" && activeTopic
+          ? { englishSections: [{ label: activeTopic, startIndex: 0, endIndex: questionCreates.length - 1 }] }
+          : {}),
         // Kid-facing recap rendered at the top of the quiz player.
         // Topic recap (combo path only) + skill recap (always).
         // See src/lib/science-skills.ts.

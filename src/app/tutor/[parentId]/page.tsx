@@ -1280,10 +1280,15 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     setSubmittingIdx(idx);
     setErr(null);
     try {
+      // Respect the combo's own count when set — English Synthesis
+      // combos request 6 Qs (shorter quiz), Grammar/Vocab MCQ request
+      // 10. Science combos don't carry a count field; fall back to 10.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const desiredCount = (combos[idx] as any)?.count ?? 10;
       const r = await fetch("/api/admin/lumi-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId, subject: subject.toLowerCase(), comboIdx: idx, count: 10 }),
+        body: JSON.stringify({ studentId, subject: subject.toLowerCase(), comboIdx: idx, count: desiredCount }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok || !data?.paperId) {
