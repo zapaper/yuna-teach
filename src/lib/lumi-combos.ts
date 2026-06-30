@@ -412,7 +412,7 @@ const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
 // section-bound, surfaced as spotlight).
 const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
   {
-    label: "Grammar Rules — pronouns, tag questions, much/many",
+    label: "Grammar Rules — pronouns, tag questions, countable/uncountable",
     rationale: "Two rules to lock in: pronouns (whom / whose / herself) and tag questions (the 'isn't he?' check). Plus a top-up on countable / uncountable quantifiers.",
     topic: "Grammar MCQ",
     subTopicWeights: {
