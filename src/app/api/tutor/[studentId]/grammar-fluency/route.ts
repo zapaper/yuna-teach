@@ -11,22 +11,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAuthorizedForStudent } from "@/lib/access";
 
+// Labels use `\n` to control line breaks in the radar axis text —
+// otherwise the SVG render splits on spaces and 'Connectors & tenses'
+// spreads over 3 lines instead of 2.
 const GRAMMAR_SUBTOPICS: Array<{ id: string; label: string }> = [
-  { id: "connectors-tenses",       label: "Connectors & tenses" },
+  { id: "connectors-tenses",       label: "Connectors &\ntenses" },
   { id: "verb-forms",              label: "Verb forms" },
-  { id: "idiomatic-prepositions",  label: "Idiomatic prepositions" },
+  { id: "idiomatic-prepositions",  label: "Idiomatic\nprepositions" },
   { id: "tag-questions",           label: "Tag questions" },
-  { id: "countable/uncountable",   label: "Countable / uncountable" },
-  { id: "subject-verb-agreement",  label: "Subject-verb agreement" },
+  { id: "countable/uncountable",   label: "Countable /\nuncountable" },
+  { id: "subject-verb-agreement",  label: "Subject-verb\nagreement" },
   { id: "pronouns",                label: "Pronouns" },
 ];
 
 const SYNTHESIS_SUBTOPICS: Array<{ id: string; label: string }> = [
   { id: "reported-speech",         label: "Reported speech" },
-  { id: "correlative-preference",  label: "Correlative / preference" },
+  { id: "correlative-preference",  label: "Correlative /\npreference" },
   { id: "subordinator",            label: "Subordinator" },
   { id: "participle-clauses",      label: "Participle clauses" },
-  { id: "substitution-inversion",  label: "Substitution / inversion" },
+  { id: "substitution-inversion",  label: "Substitution /\ninversion" },
   { id: "noun-phrase",             label: "Noun phrase" },
 ];
 

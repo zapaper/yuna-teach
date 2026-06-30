@@ -2610,7 +2610,7 @@ function RadarSvg({ title, subTopics, overall, totalAwarded, totalAvailable }: {
             <g key={s.id}>
               <line x1={CX} y1={CY} x2={ax} y2={ay} stroke="#cccccc" strokeWidth={0.8} />
               <text x={lx} y={ly} fontSize={9.5} textAnchor="middle" dominantBaseline="middle" fill="#001e40" fontWeight={600}>
-                {s.label.split(" ").map((w, j) => (
+                {s.label.split("\n").map((w, j) => (
                   <tspan key={j} x={lx} dy={j === 0 ? 0 : 11}>{w}</tspan>
                 ))}
               </text>
