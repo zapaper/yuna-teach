@@ -4100,66 +4100,12 @@ export default function ParentDashboard({
               {/* Bento grid */}
               <div className="space-y-8">
                 <div>
-                  {/* Skill analysis */}
-                  <div className="bg-white rounded-3xl p-8 shadow-sm">
-                    <div className="flex items-center justify-between mb-7">
-                      <h4 className="font-headline text-xl font-extrabold text-[#001e40] flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#ffb952]" style={{ fontVariationSettings: "'FILL' 1" }}>analytics</span>
-                        Skill Profile Analysis
-                      </h4>
-                      <button
-                        onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
-                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-base">bar_chart</span>
-                        Full Report
-                      </button>
-                    </div>
-                    {loadingProgress ? (
-                      <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-6 w-6 border-2 border-[#dce9ff] border-t-[#003366]" /></div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-10">
-                        <div>
-                          <span className="text-xs font-extrabold uppercase tracking-widest text-[#006c49] mb-4 block">Strong Areas</span>
-                          <div className="space-y-3">
-                            {strongTopics.length > 0 ? strongTopics.map(t => (
-                              <div key={t.topic} className="flex items-center justify-between p-4 bg-[#006c49]/5 rounded-2xl">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-full bg-[#6cf8bb]/40 flex items-center justify-center text-[#006c49]">
-                                    <span className="material-symbols-outlined text-sm">category</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-[#001e40] text-sm">{t.topic}</span>
-                                    <p className="text-[10px] text-[#43474f]">{t.subject}</p>
-                                  </div>
-                                </div>
-                                <span className="text-sm font-extrabold text-[#006c49]">{t.pct}%</span>
-                              </div>
-                            )) : <p className="text-sm text-[#43474f] py-2">No data yet.</p>}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-xs font-extrabold uppercase tracking-widest text-[#ba1a1a] mb-4 block">Gaps to Fill</span>
-                          <div className="space-y-3">
-                            {weakTopics.length > 0 ? weakTopics.map(t => (
-                              <div key={t.topic} className="flex items-center justify-between p-4 bg-[#ba1a1a]/5 rounded-2xl">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-full bg-[#ffdad6] flex items-center justify-center text-[#93000a]">
-                                    <span className="material-symbols-outlined text-sm">pie_chart</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-[#001e40] text-sm">{t.topic}</span>
-                                    <p className="text-[10px] text-[#43474f]">{t.subject}</p>
-                                  </div>
-                                </div>
-                                <span className="text-sm font-extrabold text-[#ba1a1a]">{t.pct}%</span>
-                              </div>
-                            )) : <p className="text-sm text-[#43474f] py-2">{allTopics.length > 0 ? "No significant gaps!" : "No data yet."}</p>}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Skill Profile Analysis hidden 2026-06-30 — the
+                      Progress and Lumi pages cover the same ground with
+                      richer per-subject context; the homepage card was
+                      duplicate surface. Full Report still reachable via
+                      the left-rail "Progress" link. Restore the JSX
+                      from git history if we want it back. */}
 
                   {/* Recent activities */}
                   <div className="bg-white rounded-3xl p-8 shadow-sm">
