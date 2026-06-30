@@ -42,12 +42,36 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
 import { SCIENCE_SKILL_TAGS, SCIENCE_SKILL_PREAMBLE, type ScienceSkillTag, type LumiPreamble } from "@/lib/science-skills";
-import { LUMI_QUIZ_COMBOS, type LumiQuizCombo } from "@/lib/lumi-combos";
+import { LUMI_QUIZ_COMBOS, LUMI_QUIZ_COMBOS_ENGLISH, type LumiQuizCombo, type LumiEnglishQuizCombo } from "@/lib/lumi-combos";
+import { AUTO_LUMI_COMBOS_SCIENCE, AUTO_LUMI_COMBOS_ENGLISH } from "@/lib/lumi-combos.auto.generated";
 import { getDeepDivePreamble, reframePreamble } from "@/lib/lumi-deepdive";
 
-const SUBJECT_FULL: Record<"science", string> = {
+const SUBJECT_FULL: Record<"science" | "english", string> = {
   science: "Science",
+  english: "English",
 };
+
+// Returns the active combo for a (kid, subject, comboIdx) tuple, going
+// hand-written → auto-generated. Mirrors getDisplayCombosForKid's
+// tiered lookup so the picker can't disagree with the UI on which
+// combo a given button refers to.
+function lookupCombo(studentId: string, subject: string, comboIdx: number): LumiQuizCombo | LumiEnglishQuizCombo | null {
+  if (subject === "science") {
+    const hand = LUMI_QUIZ_COMBOS[studentId];
+    if (hand?.length && comboIdx >= 0 && comboIdx < hand.length) return hand[comboIdx];
+    const auto = AUTO_LUMI_COMBOS_SCIENCE[studentId];
+    if (auto?.length && comboIdx >= 0 && comboIdx < auto.length) return auto[comboIdx];
+    return null;
+  }
+  if (subject === "english") {
+    const hand = LUMI_QUIZ_COMBOS_ENGLISH[studentId];
+    if (hand?.length && comboIdx >= 0 && comboIdx < hand.length) return hand[comboIdx];
+    const auto = AUTO_LUMI_COMBOS_ENGLISH[studentId];
+    if (auto?.length && comboIdx >= 0 && comboIdx < auto.length) return auto[comboIdx];
+    return null;
+  }
+  return null;
+}
 
 export async function POST(request: NextRequest) {
   const callerId = await getSessionUserId();
@@ -74,15 +98,20 @@ export async function POST(request: NextRequest) {
   if (!studentId || !subject) {
     return NextResponse.json({ error: "studentId and subject required" }, { status: 400 });
   }
-  if (subject !== "science") {
-    return NextResponse.json({ error: "only 'science' supported in v1" }, { status: 400 });
+  if (subject !== "science" && subject !== "english") {
+    return NextResponse.json({ error: "only 'science' and 'english' supported" }, { status: 400 });
   }
   if (typeof comboIdx === "number") {
-    const combos = LUMI_QUIZ_COMBOS[studentId];
-    if (!combos || comboIdx < 0 || comboIdx >= combos.length) {
-      return NextResponse.json({ error: `no combo at index ${comboIdx} for this student` }, { status: 400 });
+    const found = lookupCombo(studentId, subject, comboIdx);
+    if (!found) {
+      return NextResponse.json({ error: `no combo at index ${comboIdx} for this student/subject` }, { status: 400 });
     }
   } else if (skillTag) {
+    // skillTag path is Science-only (English has no cross-cutting
+    // skill taxonomy yet). Reject for English to avoid silent fallbacks.
+    if (subject !== "science") {
+      return NextResponse.json({ error: "skillTag path is science-only; use comboIdx for english" }, { status: 400 });
+    }
     if (!(SCIENCE_SKILL_TAGS as readonly string[]).includes(skillTag)) {
       return NextResponse.json({ error: `invalid skillTag (must be one of: ${SCIENCE_SKILL_TAGS.join(", ")})` }, { status: 400 });
     }
@@ -111,9 +140,11 @@ export async function POST(request: NextRequest) {
 
   // Resolve the active target — either the combo's (topic, sub-topic
   // weights, skill) tuple or just a free-standing skill tag.
-  const activeCombo: LumiQuizCombo | null =
-    typeof comboIdx === "number" ? LUMI_QUIZ_COMBOS[studentId][comboIdx] : null;
-  const activeSkillTag = (activeCombo?.skillTag ?? skillTag) as ScienceSkillTag;
+  const activeCombo: LumiQuizCombo | LumiEnglishQuizCombo | null =
+    typeof comboIdx === "number" ? lookupCombo(studentId, subject, comboIdx) : null;
+  // skillTag only exists on LumiQuizCombo (Science); LumiEnglishQuizCombo
+  // doesn't have one. Type-guard before access.
+  const activeSkillTag = ((activeCombo && "skillTag" in activeCombo ? activeCombo.skillTag : undefined) ?? skillTag) as ScienceSkillTag | undefined;
   const activeTopic = activeCombo?.topic ?? null;
   const activeSubTopicWeights = activeCombo?.subTopicWeights ?? null;
 
@@ -156,7 +187,7 @@ export async function POST(request: NextRequest) {
     where: {
       examPaper: {
         sourceExamId: null, paperType: null, extractionStatus: "ready",
-        subject: { contains: "science", mode: "insensitive" },
+        subject: { contains: subject, mode: "insensitive" },
         ...(levelVariants ? { level: { in: levelVariants } } : {}),
       },
       marksAvailable: { gte: 2 },
@@ -328,12 +359,14 @@ export async function POST(request: NextRequest) {
   const pickedKeys = new Set<string>();
   const takeSkillFirst = (pool: Group[], n: number) => {
     const ordered = orderByDifficulty(pool);
-    // 4-tier ranking: unseen+skill > unseen+nosill > seen+skill > seen+noskill.
-    // Kid gets fresh material first; repeats only fill the remainder.
-    const unseenSkill   = ordered.filter(g => !g.isSeen && g.skillTags.includes(activeSkillTag));
-    const unseenNoSkill = ordered.filter(g => !g.isSeen && !g.skillTags.includes(activeSkillTag));
-    const seenSkill     = ordered.filter(g =>  g.isSeen && g.skillTags.includes(activeSkillTag));
-    const seenNoSkill   = ordered.filter(g =>  g.isSeen && !g.skillTags.includes(activeSkillTag));
+    // 4-tier ranking when a skill is active (Science): unseen+skill >
+    // unseen+noskill > seen+skill > seen+noskill. For English (no
+    // skill tag in the combo), collapse to 2-tier: unseen > seen.
+    const skill = activeSkillTag;
+    const unseenSkill   = skill ? ordered.filter(g => !g.isSeen && g.skillTags.includes(skill)) : [];
+    const unseenNoSkill = skill ? ordered.filter(g => !g.isSeen && !g.skillTags.includes(skill)) : ordered.filter(g => !g.isSeen);
+    const seenSkill     = skill ? ordered.filter(g =>  g.isSeen && g.skillTags.includes(skill)) : [];
+    const seenNoSkill   = skill ? ordered.filter(g =>  g.isSeen && !g.skillTags.includes(skill)) : ordered.filter(g => g.isSeen);
     const taken: Group[] = [];
     for (const g of [...unseenSkill, ...unseenNoSkill, ...seenSkill, ...seenNoSkill]) {
       if (taken.length >= n) break;
@@ -520,8 +553,9 @@ export async function POST(request: NextRequest) {
   // + reason"); skill-only path uses the skill's title.
   const titleSegment = activeCombo
     ? activeCombo.label
-    : SKILL_TITLE[activeSkillTag];
-  const title = `${levelLabel}Science: ${titleSegment} ${dateLabel}`;
+    : (activeSkillTag ? SKILL_TITLE[activeSkillTag] : "Practice");
+  const subjectLabel = subject === "science" ? "Science" : "English";
+  const title = `${levelLabel}${subjectLabel}: ${titleSegment} ${dateLabel}`;
 
   // Build the two-part preamble. Combo path stamps both topic + skill
   // halves. Skill-only path stamps the skill block alone.
@@ -532,27 +566,36 @@ export async function POST(request: NextRequest) {
   // hand-written generic content on the combo definition. Falls back
   // to the static topicRecap when the kid has no cached patterns for
   // this topic (e.g. P5 kid + a topic the workshop never tagged).
-  const skillBlock = SCIENCE_SKILL_PREAMBLE[activeSkillTag];
+  // Skill block only exists for Science (where every combo carries a
+  // ScienceSkillTag). English combos have no skill, so the preamble
+  // becomes topic-only. Either side may be absent in v2 when topic
+  // also fails to resolve.
+  const skillBlock = activeSkillTag ? SCIENCE_SKILL_PREAMBLE[activeSkillTag] : null;
   let topicBlock = activeCombo?.topicRecap;
   if (activeCombo) {
-    const deepDive = getDeepDivePreamble(student.name ?? "", subject as "science", activeCombo.topic);
-    if (deepDive) {
-      // Reframe each "mistake callout" bullet ("Tends to forget X")
-      // into kid-facing advice ("Remember that X..."). Adds ~1-2s to
-      // quiz creation, runs in parallel across the 2-6 bullets. The
-      // result is stamped onto metadata.lumiPreamble so the quiz
-      // player renders ready-made advice — no runtime LLM call.
-      topicBlock = await reframePreamble(deepDive);
+    // getDeepDivePreamble is currently Science-keyed. For English
+    // combos, fall back to the static topicRecap from the combo
+    // definition — that's where the hand-crafted English advice lives.
+    if (subject === "science") {
+      const deepDive = getDeepDivePreamble(student.name ?? "", "science", activeCombo.topic);
+      if (deepDive) {
+        // Reframe each "mistake callout" bullet ("Tends to forget X")
+        // into kid-facing advice ("Remember that X..."). Adds ~1-2s
+        // to quiz creation, runs in parallel across the 2-6 bullets.
+        topicBlock = await reframePreamble(deepDive);
+      }
     }
   }
+  // Preamble shape: topic + skill for Science combos, topic only for
+  // English, skill only for the science-skill direct path.
   const lumiPreamble: LumiPreamble = activeCombo
-    ? { topic: topicBlock!, skill: skillBlock }
-    : { skill: skillBlock };
+    ? (skillBlock ? { topic: topicBlock!, skill: skillBlock } : { topic: topicBlock! })
+    : (skillBlock ? { skill: skillBlock } : {});
 
   const paper = await prisma.examPaper.create({
     data: {
       title,
-      subject: SUBJECT_FULL[subject as "science"],
+      subject: SUBJECT_FULL[subject as "science" | "english"],
       level: student.level ? `Primary ${student.level}` : null,
       userId: callerId,
       assignedToId: studentId,

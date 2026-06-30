@@ -101,7 +101,7 @@ export type LumiPreamble = {
     heading: string;
     watchOut: string[];
   };
-  skill: {
+  skill?: {
     heading: string;        // The skill name, in plain English
     tested: string;         // "Today we're practising X" — one sentence
     watchOut: string[];     // 2–4 bullet pitfalls to keep in mind

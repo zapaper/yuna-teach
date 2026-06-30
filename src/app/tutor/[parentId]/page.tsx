@@ -1462,7 +1462,18 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
         )}
         {hasCombos && (
           <p>
-            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic{topicAreaStr ? ` (${topicAreaStr})` : ""}</strong> where {childFirst} struggles with a <strong>common-mistakes pattern</strong>
+            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic</strong>
+            {topicAreaStr && (
+              <> (
+                {comboTopicAreas.map((t, i) => (
+                  <span key={t}>
+                    {i > 0 && (i === comboTopicAreas.length - 1 ? " and " : ", ")}
+                    <strong className="text-purple-700">{t}</strong>
+                  </span>
+                ))}
+              )</>
+            )}
+            {" "}where {childFirst} struggles with a <strong>common-mistakes pattern</strong>
             {comboSubTopics.length > 0 && (
               <> (
                 {comboSubTopics.map((s, i) => (
