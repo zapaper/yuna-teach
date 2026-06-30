@@ -500,10 +500,58 @@ const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
   },
 ];
 
+// Kaiyangnggg — grammar weaknesses concentrated in SVA (35%),
+// connectors-tenses (50%), pronouns (55%). Synthesis is weakest
+// overall — reported-speech / correlative-preference / noun-phrase.
+// Auto-promote picked Vocab MCQ (46% raw miss rate) over Grammar
+// MCQ, but Vocab has no sub-topic targeting available — Grammar is
+// the right second slot. Hand-curated combos override.
+const KAIYANG_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
+  {
+    label: "Synthesis — reported speech, both/either/neither, verb→noun",
+    rationale: "Synthesis is your biggest English weakness. Drilling the three tricks where you've lost most marks — reported speech, correlative pairs, and verb→noun (relative clauses).",
+    topic: "Synthesis / Transformation",
+    subTopicWeights: {
+      "reported-speech": 2,
+      "correlative-preference": 2,
+      "noun-phrase": 2,
+    },
+    count: 6,
+    topicRecap: {
+      heading: "Synthesis Tricks — what to look out for",
+      watchOut: [
+        "Reported speech: converting direct speech to reported speech needs three shifts at once.\nTense shifts BACK — is/are → was/were, has/have → had, will → would, did → had done.\nPronouns shift to the new viewpoint — 'I' usually becomes 'she' or 'he'.\nTime and place words shift too — today → that day, yesterday → the previous day, here → there.\nYes/No questions take IF or WHETHER ('Are you going?' → 'asked if she was going').\nWh- questions keep the wh-word but use STATEMENT order ('Why did she sing?' → 'why she had sung', NOT 'why had she sung').",
+        "Correlative pairs (both / either / neither): two rules.\n'BOTH X and Y' → always plural verb ('Both Tom and Jerry ARE here').\n'NEITHER X NOR Y' / 'EITHER X OR Y' → verb matches the noun CLOSER to it. 'Neither the cake nor the BISCUITS were tasty' (biscuits closer → plural); 'Neither the biscuits nor the CAKE was tasty' (cake closer → singular).",
+        "Verb → noun (relative clauses): many strong verbs have a partner noun.\n'They DECIDED to go' → 'They made the DECISION to go'.\nWatch for trigger verbs MADE, GAVE, TOOK, CAME, HAD, REACHED — they often signal this transformation.\nFor relative clauses: WHO replaces a subject pronoun (he/she), WHOM replaces an object pronoun (him/her), WHOSE replaces a possessive (his/her). Quick test — if 'he/she' fits, use WHO; 'him/her' → WHOM; 'his/her' → WHOSE.",
+      ],
+    },
+  },
+  {
+    label: "Grammar Rules — subject-verb, connectors, pronouns",
+    rationale: "Three grammar rules you're under-performing on: subject-verb agreement (35% accuracy), connectors & tenses (50%), and pronouns (55%). Drilling all three in one pack.",
+    topic: "Grammar MCQ",
+    subTopicWeights: {
+      "subject-verb-agreement": 4,
+      "connectors-tenses": 3,
+      "pronouns": 3,
+    },
+    count: 10,
+    topicRecap: {
+      heading: "Grammar Rules — what to look out for",
+      watchOut: [
+        "Subject-verb agreement: the verb must match the SUBJECT's number, not the noun closest to it.\n'Mrs Vishal, together with her children, JOGS' (subject = Mrs Vishal, singular).\n'The hotel guests are facing inconvenience as all their LUGGAGE IS missing' (luggage is uncountable → singular).\nWatch interrupters — 'except / together with / as well as' don't change the subject's number.\n'A number of pupils ARE absent' (plural) vs 'THE number of pupils IS rising' (singular).",
+        "Connectors & tenses: connectors set the relationship between two clauses + the tense pattern.\nCAUSE → because / since / due to / on account of ('She was late BECAUSE of the traffic').\nCONCESSION → although / despite / in spite of ('She arrived on time ALTHOUGH the traffic was bad').\nCONDITION → if / unless / only with ('You can go IF you finish').\nTense markers — by the time / no sooner / had it not been — often pair with past perfect ('By the time he arrived, the show HAD STARTED').",
+        "Pronouns: pick the form by the ROLE the pronoun plays in the sentence.\nWHO is for the doer — 'the boy WHO is running'.\nWHOM is for the receiver of an action — 'the boy WHOM I called' (quick check: if 'him/her' fits, use WHOM).\nWHOSE shows possession — 'the boy WHOSE bag is missing'.\nReflexive (himself / herself) ONLY when the subject and object are the SAME person — 'Mr Loh smiled at HIMSELF'.",
+      ],
+    },
+  },
+];
+
 export const LUMI_QUIZ_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = {
-  "cmm5wf91d000ryrxwaddlo6xh": DAVID_ENGLISH_COMBOS,   // David Lim
-  "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,    // Mark Lim
-  "cmq4xj0vm0029apq234jrmrh6": CALEB_ENGLISH_COMBOS,   // Caleb (Felicia's kid)
+  "cmm5wf91d000ryrxwaddlo6xh": DAVID_ENGLISH_COMBOS,    // David Lim
+  "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,     // Mark Lim
+  "cmq4xj0vm0029apq234jrmrh6": CALEB_ENGLISH_COMBOS,    // Caleb (Felicia's kid)
+  "cmojzr4fu004gd4vnx8wmz6zk": KAIYANG_ENGLISH_COMBOS,  // Kaiyangnggg
 };
 
 // ─── Derived (no-hand-written) combos ────────────────────────────────
