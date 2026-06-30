@@ -1462,7 +1462,7 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
         )}
         {hasCombos && (
           <p>
-            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic</strong>
+            Then, take the <strong>two personalised quizzes Lumi has hand-crafted for {childFirst}</strong> below to drill them. Each one pairs a <strong>subtopic</strong>
             {topicAreaStr && (
               <> (
                 {comboTopicAreas.map((t, i) => (
