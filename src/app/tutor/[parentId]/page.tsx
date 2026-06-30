@@ -1506,15 +1506,23 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
           const done = generatedIdxs[i];
           if (done) {
             return (
-              <a
-                key={`combo-${i}`}
-                href={`/quiz/${done.paperId}?userId=${studentId}`}
-                className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
-              >
-                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
-                <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
-                <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
-              </a>
+              <div key={`combo-${i}`} className="relative">
+                <a
+                  href={`/quiz/${done.paperId}?userId=${studentId}`}
+                  className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
+                >
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
+                  <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
+                  <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
+                </a>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setGeneratedIdxs(prev => { const next = { ...prev }; delete next[i]; return next; }); }}
+                  title="Discard this quiz and regenerate"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-emerald-900/40 hover:bg-emerald-900/60 text-white text-xs font-bold flex items-center justify-center"
+                  aria-label="Regenerate"
+                >↻</button>
+              </div>
             );
           }
           const busy = submittingIdx === i;
@@ -1549,15 +1557,23 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
           const done = generatedIdxs[i];
           if (done) {
             return (
-              <a
-                key={`derived-${i}`}
-                href={`/quiz/${done.paperId}?userId=${studentId}`}
-                className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
-              >
-                <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
-                <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
-                <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
-              </a>
+              <div key={`derived-${i}`} className="relative">
+                <a
+                  href={`/quiz/${done.paperId}?userId=${studentId}`}
+                  className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
+                >
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">Quiz {i + 1} ready</div>
+                  <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
+                  <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
+                </a>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setGeneratedIdxs(prev => { const next = { ...prev }; delete next[i]; return next; }); }}
+                  title="Discard this quiz and regenerate"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-emerald-900/40 hover:bg-emerald-900/60 text-white text-xs font-bold flex items-center justify-center"
+                  aria-label="Regenerate"
+                >↻</button>
+              </div>
             );
           }
           const busy = submittingIdx === i;
@@ -1586,14 +1602,23 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
         {thirdReady ? (
           // Already generated — same green "ready" treatment as the
           // combo buttons. Clicking opens the quiz directly.
-          <a
-            href={`/quiz/${thirdReady.paperId}?userId=${studentId}`}
-            className={`block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10 ${hasCombos ? "" : "sm:col-span-3"}`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">{fallbackTopic ? "Focused practice ready" : "Daily quiz ready"}</div>
-            <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic?.topic ?? "10-min MCQ refresh"}</div>
-            <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
-          </a>
+          <div className={`relative ${hasCombos ? "" : "sm:col-span-3"}`}>
+            <a
+              href={`/quiz/${thirdReady.paperId}?userId=${studentId}`}
+              className="block rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-3.5 text-center transition-colors shadow-md ring-2 ring-emerald-900/10"
+            >
+              <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-200">{fallbackTopic ? "Focused practice ready" : "Daily quiz ready"}</div>
+              <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{fallbackTopic?.topic ?? "10-min MCQ refresh"}</div>
+              <div className="text-xs text-emerald-200 mt-1 font-semibold">Open quiz →</div>
+            </a>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setThirdReady(null); }}
+              title="Discard this quiz and regenerate"
+              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-emerald-900/40 hover:bg-emerald-900/60 text-white text-xs font-bold flex items-center justify-center"
+              aria-label="Regenerate"
+            >↻</button>
+          </div>
         ) : fallbackTopic ? (
           <button
             type="button"
