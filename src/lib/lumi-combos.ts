@@ -379,9 +379,9 @@ const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     topicRecap: {
       heading: "Reporting & Combining — what to look out for",
       watchOut: [
-        "Reported speech: shift the tense BACK by one step (is → was, has → had, will → would) AND keep the subject pronoun ('she was', not 'was'). Today/yesterday also shift — today → that day, yesterday → the previous day.",
-        "Yes/No questions: use 'if' or 'whether'. Wh- questions: keep the wh-word, but the word order becomes statement-shaped ('why she sang', not 'why did she sing').",
-        "Correlative pairs: 'both X and Y' takes a plural verb. 'Neither X nor Y' / 'either X or Y' — the verb matches the noun CLOSER to it.",
+        "Reported speech (tenses + pronouns + time words): when you change direct speech to reported speech, the verb tense shifts BACK one step — is → was, has → had, will → would, did → had done. Keep the subject pronoun in the new clause ('she was', not 'was'). Pronouns also shift to the new viewpoint — 'I' usually becomes 'she' or 'he'. Time and place words shift too: today → that day, yesterday → the previous day / the day before, tomorrow → the next day, here → there. Modal verbs follow the pattern too (can → could, may → might, must → had to).",
+        "Reported questions (yes/no vs wh-): two different shapes. Yes/No questions take IF or WHETHER ('Are you going?' → 'asked IF she was going'). Wh- questions keep the wh-word but use STATEMENT order — drop the do/does/did helper and put subject before verb: 'Why did she sing?' → 'wanted to know WHY SHE HAD SUNG' (NOT 'why had she sung'). The classic slip — students leave the question word order intact, which is wrong.",
+        "Correlative pairs (both / either / neither / not only): 'BOTH X and Y' always takes a plural verb ('Both Tom and Jerry ARE here'). 'NEITHER X NOR Y' and 'EITHER X OR Y' use the verb that matches the noun CLOSER to it — 'Neither the cake nor the BISCUITS were tasty' (biscuits is closer → plural verb), but 'Neither the biscuits nor the CAKE was tasty' (cake is closer → singular verb). For 'Not only X but also Y', both halves of the pair must share the same grammatical structure (both nouns, or both verbs).",
       ],
     },
   },
@@ -396,9 +396,9 @@ const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     topicRecap: {
       heading: "Noun-Phrase Transformations — what to look out for",
       watchOut: [
-        "Relative clauses: WHO replaces a subject pronoun (he/she), WHOM replaces an object pronoun (him/her), WHOSE replaces a possessive (his/her), WHICH is for things. Don't forget the commas around a non-essential clause: 'Mrs Lee, whom the students praise, is a dedicated teacher.'",
-        "Possessive transformation: 'The student WAS diligent' → 'The student's DILIGENCE'. The verb / adjective becomes a noun, and you add 's. Watch the spelling — diligent → diligence, complain → complaint.",
-        "Verb → noun: a strong verb often has a noun partner. 'They DECIDED to go' → 'They made the DECISION to go'. 'I REPORTED him' → 'I made a REPORT against him'. Look for verbs like made / gave / took / came — they usually signal this trick.",
+        "Relative clauses: relative pronouns let you combine two sentences about the same noun. WHO replaces the subject pronoun (he / she) — 'The girl WHO won the prize is my sister'. WHOM replaces the object pronoun (him / her) — 'The girl WHOM I called won the prize'. WHOSE shows possession (his / her / its) — 'The girl WHOSE bag was lost'. WHICH is for things, not people. A quick test that works most of the time: try substituting the pronoun back into a simple sentence — if 'he/she' fits, use WHO; if 'him/her' fits, use WHOM; if 'his/her' fits, use WHOSE. When the clause is non-essential (you could remove it and the sentence still makes sense), wrap it in commas — 'Mrs Lee, WHOM the students praise, is a dedicated teacher'.",
+        "Possessive transformation: turn 'X was/is ADJECTIVE' into 'X's NOUN'. The verb or adjective becomes a noun, and you add 's to the owner. Spelling matters — PSLE deducts for misspellings: diligent → diligence, complain → complaint, ill → illness, careless → carelessness, kind → kindness, generous → generosity, jealous → jealousy. Always use the apostrophe-s ('s) for the possessive — 'the student's diligence' is correct, 'the students diligence' is wrong.",
+        "Verb → noun: many strong verbs have a partner noun. 'They DECIDED to go' → 'They made the DECISION to go'. 'I REPORTED him to the teacher' → 'I made a REPORT against him to the teacher'. Watch for sentences that start with trigger verbs MADE, GAVE, TOOK, CAME, HAD, REACHED — they often signal this transformation, where the original verb is hiding inside as a noun. e.g. 'made an ANNOUNCEMENT' (from announce), 'gave a SUGGESTION' (from suggest), 'took a DECISION' (from decide), 'came to a CONCLUSION' (from conclude), 'had a DISCUSSION' (from discuss).",
       ],
     },
   },
@@ -443,9 +443,9 @@ const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     topicRecap: {
       heading: "Synthesis Tricks — what to look out for",
       watchOut: [
-        "Reported speech: shift the tense BACK (is → was, did → had done), keep the subject pronoun ('she had gone', not 'had gone'), and convert today / yesterday → that day / the previous day. Yes/No questions take 'if' or 'whether'.",
-        "Correlative pairs: 'Both X and Y' → plural verb. 'Neither X nor Y' / 'Either X or Y' → verb matches the NEAREST noun. 'Not only X but also Y' → keep the pair together.",
-        "Joining sentences with because / although / if: pick the joining word for the meaning. CAUSE → because / due to / on account of. CONCESSION (in-spite-of) → although / despite / however. CONDITION → if / unless / only with. PURPOSE → so that / in order to.",
+        "Reported speech: when you convert direct speech ('She said, \"I am happy\"') to reported speech ('She said that she was happy'), three shifts happen together. (1) Tense shifts BACK by one step — is/are → was/were, has/have → had, will → would, did → had done. (2) Pronouns shift to match the new viewpoint — 'I' usually becomes 'she/he'. (3) Time and place words also shift — today → that day, yesterday → the previous day, tomorrow → the next day, here → there. Yes/No questions take IF or WHETHER ('Are you going?' → 'asked if she was going'). Wh- questions keep the wh-word but use STATEMENT order ('Why did she sing?' → 'wanted to know why she had sung', NOT 'why had she sung').",
+        "Correlative pairs (both / either / neither / not only): two rules to remember. (1) Verb agreement — 'BOTH X and Y' is always plural ('Both Tom and Jerry ARE here'). 'NEITHER X NOR Y' and 'EITHER X OR Y' use the verb that matches the noun CLOSER to it — 'Neither the cake nor the BISCUITS were tasty' (biscuits is closer → plural), but 'Neither the biscuits nor the CAKE was tasty' (cake is closer → singular). (2) Pair completeness — keep both halves of the pair together. 'Not only X but also Y' — both halves must include the same grammatical structure (both nouns, or both verbs).",
+        "Joining sentences with because / although / if: when combining two related sentences, the joining word tells you the relationship. Pick by MEANING. (a) CAUSE → because, since, due to, on account of, owing to ('She was late BECAUSE of the traffic'). (b) CONCESSION (something happened DESPITE something else) → although, even though, despite, in spite of ('She arrived on time ALTHOUGH the traffic was bad'). (c) CONDITION → if, unless, only with, only if, provided that ('You can go IF you finish your homework'). (d) PURPOSE → in order to, so that, so as to ('She studied hard SO THAT she could pass'). Watch the grammar: 'despite' and 'in spite of' are followed by a NOUN ('despite the rain', not 'despite it rained'); 'because of' is followed by a noun, while 'because' is followed by a full clause.",
       ],
     },
   },
@@ -473,10 +473,10 @@ const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     topicRecap: {
       heading: "Reported Speech — what to look out for",
       watchOut: [
-        "Shift the tense BACK by one step: is → was, has → had, will → would, did → had done. 'She MISSED her appointment' → 'she HAD MISSED her appointment'.",
-        "Keep the subject pronoun. The blank needs 'she had missed', NOT just 'had missed'. Look at who is being reported on and start the answer with their pronoun.",
-        "Time and place words shift too: today → that day, yesterday → the previous day / the day before, tomorrow → the next day, here → there.",
-        "Yes/No questions use 'if' or 'whether'. Wh- questions keep the wh-word but use statement order: 'Why did she sing?' → 'why she had sung', NOT 'why had she sung'.",
+        "Tense shift: when you change direct speech (someone's exact words) to reported speech, the verb tense always shifts BACK by one step. Present becomes past (is → was, have → had, can → could, will → would, may → might). Past simple becomes past perfect (did → had done, went → had gone, saw → had seen). 'She MISSED her appointment' (direct) → 'she HAD MISSED her appointment' (reported). Modal verbs follow the same pattern — must → had to, shall → should. Skip the tense shift only when the reported fact is a permanent truth ('The teacher said the Earth IS round').",
+        "Subject + pronoun: the reported clause needs a clear subject, and the pronouns must match the new viewpoint. 'Are you going?' (Ben to his sister) → 'Ben asked his sister IF SHE WAS going'. Notice SHE — not the original 'you' — and the SHE can't be dropped. 'if was going' is grammatically wrong. Always start the reported clause with the right pronoun for the person being reported on.",
+        "Time and place words: words that depend on the moment of speaking also shift. today → that day, yesterday → the previous day / the day before, tomorrow → the next day, last week → the previous week, here → there, this → that, now → then. 'I saw him YESTERDAY' (said today) → 'said he had seen him THE PREVIOUS DAY' (reported later).",
+        "Reported questions (yes/no vs wh-): change the word order from question to statement. (1) Yes/No questions take IF or WHETHER: 'Are you coming?' → 'asked if I was coming'. (2) Wh- questions keep the wh-word but drop the do/does/did helper and use STATEMENT order: 'Why did she sing?' → 'wanted to know WHY SHE HAD SUNG' (NOT 'why HAD SHE SUNG'). Common slip — students leave the question word order intact, which is wrong.",
       ],
     },
   },
@@ -491,10 +491,10 @@ const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     topicRecap: {
       heading: "Noun-Phrase Transformations — what to look out for",
       watchOut: [
-        "Relative clauses: WHO replaces a subject pronoun (he / she), WHOM replaces an object pronoun (him / her), WHOSE replaces a possessive (his / her), WHICH is for things. 'The blender CAN make juices' → 'a blender WHICH can make juices'.",
-        "Use commas around a non-essential clause: 'Mrs Lee, WHOM the students praise, is a dedicated teacher.' Without the commas, the meaning of the sentence changes.",
-        "Possessive transformation: 'The student WAS diligent' → 'The student's DILIGENCE'. The verb / adjective becomes a noun + 's. Watch the spelling — diligent → diligence, complain → complaint, decide → decision.",
-        "Verb → noun: a strong verb often has a noun partner. 'They DECIDED to go' → 'They made the DECISION to go'. Look for cues like 'made' / 'gave' / 'took' / 'came' — they often signal this trick.",
+        "Relative clauses (who / whom / whose / which): relative pronouns let you combine two sentences about the same noun. WHO replaces the subject pronoun (he / she) — 'The blender CAN make juices' becomes 'a blender WHICH can make juices'. WHOM replaces the object pronoun (him / her) — 'I called the girl' + 'The girl won the prize' → 'The girl WHOM I called won the prize'. WHOSE shows possession (his / her / its). WHICH is for things, not people. A quick test: try substituting the pronoun back into a simple sentence — if 'he/she' fits, use WHO; if 'him/her' fits, use WHOM; if 'his/her' fits, use WHOSE.",
+        "Commas around relative clauses: when the clause adds EXTRA (non-essential) information, wrap it in commas — 'Mrs Lee, WHOM the students praise, is a dedicated teacher'. The praise info is extra; the main sentence still makes sense without it. When the clause is ESSENTIAL (it identifies which person or thing), don't use commas — 'The girl who won the prize is my sister' (the 'who won the prize' tells us WHICH girl).",
+        "Possessive transformation: turn 'X was/is ADJECTIVE' into 'X's NOUN'. The verb or adjective becomes a noun, and you add 's to the owner. 'The student WAS diligent' → 'The student's DILIGENCE impressed the principal'. Spelling matters — PSLE deducts for misspellings: diligent → diligence, complain → complaint, decide → decision, ill → illness, careless → carelessness, kind → kindness, generous → generosity.",
+        "Verb → noun: many strong verbs have a partner noun. 'They DECIDED to go' → 'They made the DECISION to go'. 'I REPORTED him to the teacher' → 'I made a REPORT against him'. Look for trigger verbs MADE, GAVE, TOOK, CAME, HAD, REACHED at the start of the new sentence — they often signal this transformation, where the original verb is hiding inside as a noun. Common pairs: made an ANNOUNCEMENT (announce), gave a SUGGESTION (suggest), took a DECISION (decide), came to a CONCLUSION (conclude), had a DISCUSSION (discuss).",
       ],
     },
   },
