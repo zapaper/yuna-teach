@@ -109,9 +109,9 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   "cmopc9wpb007svj1mp4mgoae2": [
     {
       label: "Plant parts and functions — water-transport-system, integrated-plant-systems, food-production-and-transport",
-      rationale: "Top miss area (17/29 = 59%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (11/19 = 58%). Drilled where your sub-topic gaps are biggest.",
       topic: "Plant parts and functions",
-      subTopicWeights: {"water-transport-system":5,"integrated-plant-systems":3,"food-production-and-transport":3},
+      subTopicWeights: {"water-transport-system":4,"integrated-plant-systems":3,"food-production-and-transport":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Plant parts and functions — what to look out for",
@@ -124,7 +124,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
     },
     {
       label: "Diversity of living and non-living things",
-      rationale: "Top miss area (6/12 = 50%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of living and non-living things",
       subTopicWeights: {},
       skillTag: "evidence-then-conclusion",
@@ -138,9 +138,9 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   "cmq4xj0vm0029apq234jrmrh6": [
     {
       label: "Interactions within the environment — food-web-explaining, adaptation, causal-chain",
-      rationale: "Top miss area (13/48 = 27%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (12/47 = 26%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
-      subTopicWeights: {"food-web-explaining":7,"adaptation":2,"causal-chain":2},
+      subTopicWeights: {"food-web-explaining":6,"adaptation":2,"causal-chain":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Interactions within the environment — what to look out for",
@@ -166,10 +166,10 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // david-lim
   "cmm5wf91d000ryrxwaddlo6xh": [
     {
-      label: "Human respiratory and circulatory systems — blood-circulation-and-transport, gas-exchange-and-air-composition, physiological-response-to-activity",
-      rationale: "Top miss area (12/23 = 52%). Drilled where your sub-topic gaps are biggest.",
+      label: "Human respiratory and circulatory systems — gas-exchange-and-air-composition, blood-circulation-and-transport, physiological-response-to-activity",
+      rationale: "Top miss area (10/14 = 71%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human respiratory and circulatory systems",
-      subTopicWeights: {"blood-circulation-and-transport":5,"gas-exchange-and-air-composition":4,"physiological-response-to-activity":2},
+      subTopicWeights: {"gas-exchange-and-air-composition":4,"blood-circulation-and-transport":3,"physiological-response-to-activity":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Human respiratory and circulatory systems — what to look out for",
@@ -181,17 +181,17 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Interaction of forces — applying-force-concepts, investigating-frictional-force, investigating-elastic-force",
-      rationale: "Top miss area (34/84 = 40%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
-      subTopicWeights: {"applying-force-concepts":4,"investigating-frictional-force":3,"investigating-elastic-force":3},
+      label: "Electrical system and circuits — electromagnets, general-circuits, series-vs-parallel",
+      rationale: "Top miss area (12/27 = 44%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Electrical system and circuits",
+      subTopicWeights: {"electromagnets":4,"general-circuits":3,"series-vs-parallel":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
-        heading: "Interaction of forces — what to look out for",
+        heading: "Electrical system and circuits — what to look out for",
         watchOut: [
-        "When you see these prompts, treat them as a chain of events:\n- **'explain how'** or **'explain why'** → always ask yourself, **'And then what happens?'** until you reach the final result.\n- Use linking words like **'so that'**, **'which causes'**, or **'resulting in'** to connect your ideas and show the full picture.",
-        "He correctly identified that Animal B helps pollinate the plant, but missed the final steps about fertilisation and seed germination.",
-        "He noted that the block had more gravitational potential energy, but stopped short of explaining that it converts to more kinetic energy."
+        "Remember that in a **parallel circuit**, electricity has multiple paths to travel. If one path is broken, the others still work!\n- When drawing a parallel circuit, make sure each bulb has its own direct connection to the battery.\n- Practice tracing the path of electricity with your finger to ensure there are no dead ends.",
+        "He drew two bulbs in a series circuit instead of setting them up in parallel.",
+        "He drew a single series circuit instead of the required parallel arrangement for the toy train."
         ],
       },
     },
@@ -258,9 +258,9 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   "cmmfmmnwy00fdbbbfgm7k3wpn": [
     {
       label: "Human digestive system — process-of-digestion-and-absorption, factors-and-system-interactions, organ-identification-and-function",
-      rationale: "Top miss area (13/50 = 26%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (12/49 = 24%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
-      subTopicWeights: {"process-of-digestion-and-absorption":4,"factors-and-system-interactions":4,"organ-identification-and-function":3},
+      subTopicWeights: {"process-of-digestion-and-absorption":4,"factors-and-system-interactions":4,"organ-identification-and-function":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Human digestive system — what to look out for",
@@ -352,10 +352,10 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // ij
   "cmpjshl820001c9kbsdebavk9": [
     {
-      label: "Interactions within the environment — adaptation, food-web-explaining, causal-chain",
-      rationale: "Top miss area (18/42 = 43%). Drilled where your sub-topic gaps are biggest.",
+      label: "Interactions within the environment — food-web-explaining, adaptation, causal-chain",
+      rationale: "Top miss area (14/32 = 44%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
-      subTopicWeights: {"adaptation":4,"food-web-explaining":4,"causal-chain":2},
+      subTopicWeights: {"food-web-explaining":5,"adaptation":4,"causal-chain":2},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Interactions within the environment — what to look out for",
@@ -367,14 +367,18 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Reproduction in plants and animals — fruit-and-seed-dispersal, reproductive-parts-and-functions, experimental-design-and-data-interpretation",
-      rationale: "Top miss area (7/23 = 30%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Reproduction in plants and animals",
-      subTopicWeights: {"fruit-and-seed-dispersal":6,"reproductive-parts-and-functions":2,"experimental-design-and-data-interpretation":2},
+      label: "Interaction of forces — magnetic-properties-and-principles, interaction-with-other-forces",
+      rationale: "Top miss area (4/15 = 27%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Interaction of forces (Magnets)",
+      subTopicWeights: {"magnetic-properties-and-principles":5,"interaction-with-other-forces":5},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
-        heading: "Reproduction in plants and animals — what to look out for",
-        watchOut: [],
+        heading: "Interaction of forces — what to look out for",
+        watchOut: [
+        "When you see **'populations'**, group the same plants or animals together first. Remember that different life stages (like caterpillars and butterflies) count as **one population**.",
+        "IJ counted 24 individual plants as 24 populations, forgetting that a population is a group of the same kind of living thing.",
+        "IJ counted 9 populations instead of 4, missing that different life stages like tadpoles and frogs count as one single population."
+        ],
       },
     },
   ],
@@ -382,7 +386,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   "cmnk7dkkj006z14p6yf06ohzm": [
     {
       label: "Reproduction in plants and animals — reproductive-parts-and-functions, pollination-and-fertilisation, experimental-design-and-data-interpretation",
-      rationale: "Top miss area (31/37 = 84%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (14/18 = 78%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"reproductive-parts-and-functions":6,"pollination-and-fertilisation":3,"experimental-design-and-data-interpretation":1},
       skillTag: "evidence-then-conclusion",
@@ -397,7 +401,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
     },
     {
       label: "Light energy and uses — vision-and-reflection, shadow-formation-and-properties, properties-of-materials",
-      rationale: "Top miss area (12/23 = 52%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (6/17 = 35%). Drilled where your sub-topic gaps are biggest.",
       topic: "Light energy and uses",
       subTopicWeights: {"vision-and-reflection":3,"shadow-formation-and-properties":3,"properties-of-materials":3},
       skillTag: "evidence-then-conclusion",
@@ -410,29 +414,29 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // kaiyangnggg
   "cmojzr4fu004gd4vnx8wmz6zk": [
     {
+      label: "Heat energy and uses — heat-transfer-and-materials, changes-of-state, heat-temperature-and-measurement",
+      rationale: "Top miss area (37/72 = 51%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Heat energy and uses",
+      subTopicWeights: {"heat-transfer-and-materials":5,"changes-of-state":3,"heat-temperature-and-measurement":2},
+      skillTag: "evidence-then-conclusion",
+      topicRecap: {
+        heading: "Heat energy and uses — what to look out for",
+        watchOut: [
+        "When you see questions about heating or cooling, pause and think about the material and the state:\n- **Conductors:** Metals are **good conductors** (they gain and lose heat fast). Plastics, wood, and air are **poor conductors** (they trap heat).\n- **Heating graphs:** If the heat source is on, the substance is **always gaining heat**, whether the temperature is rising or staying flat during a state change.",
+        "He thought water in a glass container would cool down the fastest, forgetting that metal is a better conductor and allows heat to escape more quickly.",
+        "Looking at a heating graph for ice, he thought heat was only gained during melting, missing that the ice and water are also gaining heat when the temperature goes up."
+        ],
+      },
+    },
+    {
       label: "Interaction of forces — identifying-and-representing-forces, applying-force-concepts, investigating-elastic-force",
-      rationale: "Top miss area (59/78 = 76%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (18/37 = 49%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
       subTopicWeights: {"identifying-and-representing-forces":6,"applying-force-concepts":3,"investigating-elastic-force":1},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Interaction of forces — what to look out for",
         watchOut: [],
-      },
-    },
-    {
-      label: "Energy conversion — electricity-generation-and-application, gravitational-potential-to-kinetic, elastic-potential-to-kinetic",
-      rationale: "Top miss area (34/50 = 68%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Energy conversion",
-      subTopicWeights: {"electricity-generation-and-application":5,"gravitational-potential-to-kinetic":3,"elastic-potential-to-kinetic":2},
-      skillTag: "evidence-then-conclusion",
-      topicRecap: {
-        heading: "Energy conversion — what to look out for",
-        watchOut: [
-        "When you see questions about energy conversion, ask yourself: 'Is it moving right now?'\n- **Moving objects** (wind, falling water, a flying ball) have **kinetic energy**.\n- **Stored energy** (fuels, food, batteries, stretched springs) is **potential energy**.",
-        "When asked for a source that is NOT potential energy, he picked fuel (which stores chemical potential energy) instead of wind (which has kinetic energy).",
-        "He thought the stretched rubber band had kinetic energy, rather than recognizing it stores potential energy until it is released."
-        ],
       },
     },
   ],
@@ -498,9 +502,9 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   "cmq09jz9r006iptoefdj5bj90": [
     {
       label: "Cycles in matter — properties-of-matter, measuring-volume-displacement, water-cycle-applications",
-      rationale: "Top miss area (17/26 = 65%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (15/24 = 63%). Drilled where your sub-topic gaps are biggest.",
       topic: "Cycles in matter",
-      subTopicWeights: {"properties-of-matter":6,"measuring-volume-displacement":4,"water-cycle-applications":1},
+      subTopicWeights: {"properties-of-matter":6,"measuring-volume-displacement":3,"water-cycle-applications":1},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Cycles in matter — what to look out for",
@@ -513,9 +517,9 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
     },
     {
       label: "Human digestive system — organ-identification-and-function, process-of-digestion-and-absorption, factors-and-system-interactions",
-      rationale: "Top miss area (8/14 = 57%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (7/13 = 54%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
-      subTopicWeights: {"organ-identification-and-function":5,"process-of-digestion-and-absorption":4,"factors-and-system-interactions":1},
+      subTopicWeights: {"organ-identification-and-function":6,"process-of-digestion-and-absorption":3,"factors-and-system-interactions":1},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
         heading: "Human digestive system — what to look out for",
@@ -530,25 +534,29 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // mark-lim
   "cmmbbyvs30004qa9yinn3drl6": [
     {
-      label: "Human respiratory and circulatory systems — gas-exchange-and-air-composition, physiological-response-to-activity, blood-circulation-and-transport",
-      rationale: "Top miss area (60/105 = 57%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Human respiratory and circulatory systems",
-      subTopicWeights: {"gas-exchange-and-air-composition":5,"physiological-response-to-activity":3,"blood-circulation-and-transport":2},
+      label: "Interactions within the environment — adaptation, food-web-explaining, mutual-benefits",
+      rationale: "Top miss area (22/68 = 32%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Interactions within the environment",
+      subTopicWeights: {"adaptation":3,"food-web-explaining":3,"mutual-benefits":3},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
-        heading: "Human respiratory and circulatory systems — what to look out for",
+        heading: "Interactions within the environment — what to look out for",
         watchOut: [],
       },
     },
     {
-      label: "Plant parts and functions — integrated-plant-systems",
-      rationale: "Top miss area (10/16 = 63%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Plant parts and functions",
-      subTopicWeights: {"integrated-plant-systems":10},
+      label: "Electrical system and circuits — electromagnets, general-circuits, series-vs-parallel",
+      rationale: "Top miss area (12/42 = 29%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Electrical system and circuits",
+      subTopicWeights: {"electromagnets":4,"general-circuits":3,"series-vs-parallel":3},
       skillTag: "evidence-then-conclusion",
       topicRecap: {
-        heading: "Plant parts and functions — what to look out for",
-        watchOut: [],
+        heading: "Electrical system and circuits — what to look out for",
+        watchOut: [
+        "For electromagnet questions with moving parts, trace the path of electricity step-by-step:\n- Step 1: Switch closes → **closed circuit**\n- Step 2: Electromagnet turns on → **attracts iron**\n- Step 3: Iron moves → **opens circuit** (mention which bulbs turn off!)\n- Step 4: Electromagnet turns off → iron drops back.",
+        "He described the electromagnet attracting the bar, but missed that this causes the circuit to open and the bulb to turn off.",
+        "He explained the iron bar moving, but forgot to mention that the bulb stops lighting up when the bar touches the other contacts."
+        ],
       },
     },
   ],
@@ -828,7 +836,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   "cmpzc9z4a00f1x52fsyd53tgh": [
     {
       label: "Grammar MCQ",
-      rationale: "Top miss area (9/42 = 21%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (7/35 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -843,7 +851,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
     },
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (14/52 = 27%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (12/35 = 34%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -921,10 +929,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // david-lim
   "cmm5wf91d000ryrxwaddlo6xh": [
     {
-      label: "Synthesis / Transformation — reported-speech, subordinator, participle-clauses",
-      rationale: "Top miss area (74/188 = 39%). Drilled where your sub-topic gaps are biggest.",
+      label: "Synthesis / Transformation — reported-speech, correlative-preference, subordinator",
+      rationale: "Top miss area (38/152 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"reported-speech":3,"subordinator":2,"participle-clauses":1},
+      subTopicWeights: {"reported-speech":3,"correlative-preference":2,"subordinator":1},
       count: 6,
       topicRecap: {
         heading: "Synthesis / Transformation — what to look out for",
@@ -936,10 +944,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — tag-questions, connectors-tenses, pronouns",
-      rationale: "Top miss area (124/503 = 25%). Drilled where your sub-topic gaps are biggest.",
+      label: "Grammar MCQ — tag-questions, pronouns, connectors-tenses",
+      rationale: "Top miss area (52/420 = 12%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"tag-questions":4,"connectors-tenses":3,"pronouns":3},
+      subTopicWeights: {"tag-questions":4,"pronouns":4,"connectors-tenses":2},
       count: 10,
       topicRecap: {
         heading: "Grammar MCQ — what to look out for",
@@ -1111,7 +1119,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
     },
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (22/168 = 13%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (18/155 = 12%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -1211,10 +1219,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // kaiyangnggg
   "cmojzr4fu004gd4vnx8wmz6zk": [
     {
-      label: "Synthesis / Transformation — reported-speech, correlative-preference, noun-phrase",
-      rationale: "Top miss area (49/70 = 70%). Drilled where your sub-topic gaps are biggest.",
+      label: "Synthesis / Transformation — correlative-preference, reported-speech, noun-phrase",
+      rationale: "Top miss area (29/50 = 58%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"reported-speech":2,"correlative-preference":2,"noun-phrase":1},
+      subTopicWeights: {"correlative-preference":2,"reported-speech":2,"noun-phrase":1},
       count: 6,
       topicRecap: {
         heading: "Synthesis / Transformation — what to look out for",
@@ -1226,18 +1234,14 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — subject-verb-agreement, pronouns, connectors-tenses",
-      rationale: "Top miss area (33/94 = 35%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"subject-verb-agreement":4,"pronouns":3,"connectors-tenses":3},
+      label: "Vocabulary MCQ",
+      rationale: "Top miss area (18/90 = 20%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {},
       count: 10,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
-        watchOut: [
-        "When you see speech marks **\" \"**, remember the three steps for reported speech:\n- **Change the pronouns** so they make sense from the reporter's point of view.\n- **Shift the tense backwards** (e.g., present becomes past, past becomes past perfect).\n- **Change time words** (e.g., 'today' becomes 'that day', 'now' becomes 'then').",
-        "Kaiyangnggg kept the word order as a question and used 'my' instead of 'their'.",
-        "He used the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
-        ],
+        heading: "Vocabulary MCQ — what to look out for",
+        watchOut: [],
       },
     },
   ],
@@ -1292,10 +1296,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — tag-questions, connectors-tenses, verb-forms",
-      rationale: "Top miss area (36/88 = 41%). Drilled where your sub-topic gaps are biggest.",
+      label: "Grammar MCQ — tag-questions, verb-forms, connectors-tenses",
+      rationale: "Top miss area (16/65 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"tag-questions":4,"connectors-tenses":3,"verb-forms":3},
+      subTopicWeights: {"tag-questions":4,"verb-forms":4,"connectors-tenses":3},
       count: 10,
       topicRecap: {
         heading: "Grammar MCQ — what to look out for",
@@ -1311,7 +1315,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   "cmq09jz9r006iptoefdj5bj90": [
     {
       label: "Grammar MCQ",
-      rationale: "Top miss area (13/64 = 20%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (9/60 = 15%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -1326,7 +1330,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
     },
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (23/66 = 35%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (17/60 = 28%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -1376,10 +1380,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // mark-lim
   "cmmbbyvs30004qa9yinn3drl6": [
     {
-      label: "Synthesis / Transformation — reported-speech, noun-phrase, correlative-preference",
-      rationale: "Top miss area (100/202 = 50%). Drilled where your sub-topic gaps are biggest.",
+      label: "Synthesis / Transformation — reported-speech, noun-phrase, subordinator",
+      rationale: "Top miss area (53/155 = 34%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"reported-speech":3,"noun-phrase":2,"correlative-preference":1},
+      subTopicWeights: {"reported-speech":3,"noun-phrase":2,"subordinator":2},
       count: 6,
       topicRecap: {
         heading: "Synthesis / Transformation — what to look out for",
@@ -1391,10 +1395,10 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — tag-questions, pronouns, verb-forms",
-      rationale: "Top miss area (96/945 = 10%). Drilled where your sub-topic gaps are biggest.",
+      label: "Grammar MCQ — tag-questions, pronouns, connectors-tenses",
+      rationale: "Top miss area (57/906 = 6%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"tag-questions":4,"pronouns":4,"verb-forms":2},
+      subTopicWeights: {"tag-questions":4,"pronouns":4,"connectors-tenses":2},
       count: 10,
       topicRecap: {
         heading: "Grammar MCQ — what to look out for",
@@ -1592,7 +1596,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   "cmptmu3x5009xzgzx9esqs7i8": [
     {
       label: "Grammar MCQ — subject-verb-agreement, pronouns, idiomatic-prepositions",
-      rationale: "Top miss area (17/49 = 35%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (13/45 = 29%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subject-verb-agreement":4,"pronouns":3,"idiomatic-prepositions":3},
       count: 10,
@@ -1607,7 +1611,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
     },
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (21/52 = 40%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (14/45 = 31%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,

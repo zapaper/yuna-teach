@@ -73,19 +73,34 @@ function readCache(path: string): Cache | null {
 }
 
 async function weakTopicsForKid(userId: string, subject: string): Promise<Array<{ topic: string; pct: number; missed: number; seen: number; subBreakdown: Map<string, { missed: number; seen: number }> }>> {
+  // Match the student-progress endpoint filter exactly:
+  //   - exclude eval paperType (regression test clones)
+  //   - exclude papers with metadata.revisionMode (curated past-mistake
+  //     re-attempts that would double-count those mistakes and
+  //     artificially drop weak-topic scores)
+  // Without these filters, a kid like Kaiyang shows Grammar MCQ 65%
+  // (inflated by revision clones repeating the same wrongs) while the
+  // dashboard chart shows Grammar MCQ 87% — and the picker would
+  // mistakenly target Grammar over actually-weaker topics.
   const rows = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
         assignedToId: userId,
         subject: { contains: subject, mode: "insensitive" },
         markingStatus: { in: ["complete", "released"] },
+        NOT: { paperType: "eval" },
       },
       marksAwarded: { not: null }, marksAvailable: { not: null, gt: 0 },
     },
-    select: { syllabusTopic: true, subTopic: true, marksAwarded: true, marksAvailable: true },
+    select: { syllabusTopic: true, subTopic: true, marksAwarded: true, marksAvailable: true, examPaper: { select: { metadata: true } } },
+  });
+  // Drop revision-mode papers (filter in JS — metadata is JSON)
+  const filtered = rows.filter(r => {
+    const meta = (r.examPaper.metadata ?? {}) as { revisionMode?: string };
+    return !meta.revisionMode;
   });
   const byTopic = new Map<string, { seen: number; missed: number; subs: Map<string, { seen: number; missed: number }> }>();
-  for (const r of rows) {
+  for (const r of filtered) {
     const t = r.syllabusTopic ?? "(no topic)";
     if (!t || t === "(no topic)") continue;
     const b = byTopic.get(t) ?? { seen: 0, missed: 0, subs: new Map() };

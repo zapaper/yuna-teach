@@ -31,22 +31,29 @@ const SYNTHESIS_SUBTOPICS: Array<{ id: string; label: string }> = [
 ];
 
 async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: typeof GRAMMAR_SUBTOPICS) {
+  // Match the student-progress endpoint filter exactly — exclude
+  // eval paperType + revision-mode papers. Without these, revision
+  // clones (curated past-mistake re-attempts) inflate the denominator
+  // and pull the radar % below what the parent dashboard chart shows.
   const rows = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
         assignedToId: studentId,
         subject: { contains: "english", mode: "insensitive" },
         markingStatus: { in: ["complete", "released"] },
+        NOT: { paperType: "eval" },
       },
       syllabusTopic: { in: syllabusTopics },
       marksAwarded: { not: null },
       marksAvailable: { not: null, gt: 0 },
       subTopic: { not: null },
     },
-    select: { subTopic: true, marksAwarded: true, marksAvailable: true },
+    select: { subTopic: true, marksAwarded: true, marksAvailable: true, examPaper: { select: { metadata: true } } },
   });
   const byId = new Map<string, { awarded: number; available: number }>();
   for (const r of rows) {
+    const meta = (r.examPaper.metadata ?? {}) as { revisionMode?: string };
+    if (meta.revisionMode) continue;
     if (!r.subTopic) continue;
     const cur = byId.get(r.subTopic) ?? { awarded: 0, available: 0 };
     cur.awarded += r.marksAwarded ?? 0;
