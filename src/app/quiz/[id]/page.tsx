@@ -1788,12 +1788,19 @@ function QuizContent({ id }: { id: string }) {
           const raw = (paper.metadata as { lumiPreamble?: unknown } | null | undefined)?.lumiPreamble;
           if (!raw || typeof raw !== "object") return null;
           const rawObj = raw as { topic?: PreambleBlock; skill?: PreambleBlock; heading?: string; tested?: string; watchOut?: string[] };
-          const topicBlock: PreambleBlock | null = rawObj.topic && rawObj.topic.heading
+          // Empty-watchOut blocks render as a lone heading with no
+          // bullets — looks broken. Treat them as absent so the
+          // preamble card is skipped when neither block has content.
+          // This is the Vocab MCQ case: auto-promote stamps a
+          // topicRecap with heading but no bullets when the
+          // workshop cache patterns don't match the topic's
+          // keywords. No bullets = no value to the kid.
+          const topicBlock: PreambleBlock | null = rawObj.topic && rawObj.topic.heading && (rawObj.topic.watchOut?.length ?? 0) > 0
             ? { heading: rawObj.topic.heading, watchOut: rawObj.topic.watchOut ?? [] }
             : null;
-          const skillBlock: PreambleBlock | null = rawObj.skill && rawObj.skill.heading
+          const skillBlock: PreambleBlock | null = rawObj.skill && rawObj.skill.heading && (rawObj.skill.watchOut?.length ?? 0) > 0
             ? { heading: rawObj.skill.heading, tested: rawObj.skill.tested, watchOut: rawObj.skill.watchOut ?? [] }
-            : rawObj.heading
+            : rawObj.heading && (rawObj.watchOut?.length ?? 0) > 0
               ? { heading: rawObj.heading, tested: rawObj.tested, watchOut: rawObj.watchOut ?? [] }
               : null;
           if (!topicBlock && !skillBlock) return null;
