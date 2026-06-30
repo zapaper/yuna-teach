@@ -306,13 +306,19 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         .catch(() => { /* silent */ });
       return () => ctrl.abort();
     }
-    const queuedFor = { studentId, subject };
+    // `stale` flag flipped to true by the cleanup function (which
+    // runs immediately on effect re-fire). The prior guard compared
+    // `queuedFor.studentId === studentId` — but both were from the
+    // SAME closure, so the comparison was always true. That meant a
+    // late .finally() from an aborted-but-already-running fetch
+    // would toggle setLoading(false) AFTER the new subject's effect
+    // had set it to true — spinner disappeared, page went blank.
+    let stale = false;
     const ctrl = new AbortController();
     fetch(`/api/tutor/${studentId}?subject=${encodeURIComponent(subject)}`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        // Drop the response if the effect has been superseded.
-        if (queuedFor.studentId !== studentId || queuedFor.subject !== subject) return;
+        if (stale) return;
         if (d) {
           setData(d as TutorData);
           if ((d as TutorData).kind === "ready") {
@@ -326,15 +332,12 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         }
       })
       .catch(err => {
-        // Ignore the AbortError thrown by ctrl.abort() on cleanup —
-        // any other failure is logged but doesn't disturb the prior
-        // payload still on screen.
         if (err?.name !== "AbortError") console.warn("[tutor] fetch failed:", err);
       })
       .finally(() => {
-        if (queuedFor.studentId === studentId && queuedFor.subject === subject) setLoading(false);
+        if (!stale) setLoading(false);
       });
-    return () => ctrl.abort();
+    return () => { stale = true; ctrl.abort(); };
   }, [studentId, subject]);
 
   const paperDelta = (() => {

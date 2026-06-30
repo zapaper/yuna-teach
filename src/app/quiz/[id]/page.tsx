@@ -82,15 +82,28 @@ function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOption
 // → **Pronouns**: WHO does the action... So the parent's eye lands on
 // the topic of each tip first. If the bullet has no colon, render
 // plain.
+//
+// Multi-line bullets render as a nested sub-list: the first line is
+// the headline (with colon-prefix bold), subsequent newline-separated
+// lines become nested <li> children. Lets long preamble paragraphs
+// break into scannable sub-bullets without losing the heading.
 function PreambleBullet({ text }: { text: string }): React.ReactNode {
-  const colonIdx = text.indexOf(":");
-  // Heuristic guard — only bold when the prefix is a real phrase (2–40
-  // chars). Skips weird hits like a colon mid-clause and bullets that
-  // start with "**markdown** :" where the bolding would conflict.
-  if (colonIdx < 2 || colonIdx > 40) return text;
-  const prefix = text.slice(0, colonIdx);
-  const rest = text.slice(colonIdx);
-  return <><span className="font-bold">{prefix}</span>{rest}</>;
+  const lines = text.split(/\n+/).map(s => s.replace(/^[-•]\s*/, "").trim()).filter(Boolean);
+  const head = lines[0];
+  const subs = lines.slice(1);
+  const colonIdx = head.indexOf(":");
+  const headNode = (colonIdx >= 2 && colonIdx <= 40)
+    ? <><span className="font-bold">{head.slice(0, colonIdx)}</span>{head.slice(colonIdx)}</>
+    : head;
+  if (subs.length === 0) return headNode;
+  return (
+    <>
+      {headNode}
+      <ul className="mt-1 mb-1 ml-2 space-y-0.5 list-[circle] list-outside pl-5">
+        {subs.map((s, i) => <li key={i}>{s}</li>)}
+      </ul>
+    </>
+  );
 }
 
 /** Render __underline__ markup */
