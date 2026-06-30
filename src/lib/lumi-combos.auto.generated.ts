@@ -701,13 +701,13 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (12/55 = 22%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — connectors-tenses, verb-forms, tag-questions",
+      rationale: "Top miss area (11/70 = 16%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"connectors-tenses":3,"verb-forms":3,"tag-questions":3},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
         "When filling in blanks or choosing vocabulary words:\n- Look for **collocations** (words that naturally go together, like 'poor visibility' instead of 'vague visibility').\n- In cloze passages, check if your word fits the **grammar of the sentence**, not just the general topic (e.g., needing a pronoun like 'our' instead of an adjective like 'deep').",
         "He picked 'reaps', which a farmer does, instead of 'yields', which is what the garden itself does to produce a crop.",
@@ -944,13 +944,13 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — tag-questions, pronouns, connectors-tenses",
-      rationale: "Top miss area (52/420 = 12%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"tag-questions":4,"pronouns":4,"connectors-tenses":2},
-      count: 10,
+      label: "Synthesis / Transformation — substitution-inversion, noun-phrase, participle-clauses",
+      rationale: "Top miss area (38/152 = 25%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"substitution-inversion":2,"noun-phrase":2,"participle-clauses":2},
+      count: 6,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
+        heading: "Synthesis / Transformation — what to look out for",
         watchOut: [
         "When you see prompts like **'asked'** or **'wanted to know'**, treat them as a checklist:\n- **Pronouns** → check who is talking to whom (e.g., change 'I' to 'he' or 'she')\n- **Time words** → shift words like 'yesterday' to **'the previous day'**\n- **Tense** → take one step back in time (e.g., 'is' becomes 'was')",
         "David forgot to change the pronoun to match the speaker, writing 'he' instead of 'she'.",
@@ -1143,18 +1143,14 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ",
-      rationale: "Top miss area (3/25 = 12%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
+      label: "Synthesis / Transformation — correlative-preference",
+      rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"correlative-preference":6},
+      count: 6,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
-        watchOut: [
-        "When you need to connect two ideas:\n- **Check for commas** → if there's a comma joining two clauses, you often need a relative pronoun like **'which'** or **'who'**, not 'It'.\n- **Look at the relationship** → ask yourself if the second part is an addition, a contrast, or a consequence, and pick the matching word.",
-        "He used 'It' instead of 'which' to link a descriptive clause to the main sentence.",
-        "He chose 'if' instead of 'or' to show the consequence of not doing something."
-        ],
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [],
       },
     },
   ],
@@ -1234,14 +1230,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (18/90 = 20%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
+      label: "Synthesis / Transformation — participle-clauses, subordinator, substitution-inversion",
+      rationale: "Top miss area (29/50 = 58%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"participle-clauses":2,"subordinator":2,"substitution-inversion":1},
+      count: 6,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [
+        "When you see speech marks **\" \"**, remember the three steps for reported speech:\n- **Change the pronouns** so they make sense from the reporter's point of view.\n- **Shift the tense backwards** (e.g., present becomes past, past becomes past perfect).\n- **Change time words** (e.g., 'today' becomes 'that day', 'now' becomes 'then').",
+        "Kaiyangnggg kept the word order as a question and used 'my' instead of 'their'.",
+        "He used the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
+        ],
       },
     },
   ],
@@ -1362,17 +1362,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (23/30 = 77%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — countable/uncountable, verb-forms, connectors-tenses",
+      rationale: "Top miss area (13/30 = 43%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"countable/uncountable":5,"verb-forms":3,"connectors-tenses":3},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
-        "When two words seem to mean the same thing, look closely at the words around the blank.\n- **Read the whole sentence** to see if the word needs to fit a specific tone or pair with a specific preposition.\n- **Try plugging in both options** to see which one sounds more natural in that exact context.",
-        "Chose 'prevented' instead of 'impeded' when describing how a lack of confidence slows down an ability.",
-        "Picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
+        "Certain words are best friends and always stick together with specific prepositions.\n- **Learn them as a pair**: When you learn a new word, learn its preposition partner too (e.g., 'similar to', 'confide in').\n- **Read aloud**: Sometimes your ears can catch the right pair if you read the sentence softly to yourself.",
+        "Chose 'over' instead of 'on' after the word 'congratulated'.",
+        "Picked 'from' instead of 'to' when using the word 'similar'."
         ],
       },
     },
@@ -1395,17 +1395,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — tag-questions, pronouns, connectors-tenses",
-      rationale: "Top miss area (57/906 = 6%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"tag-questions":4,"pronouns":4,"connectors-tenses":2},
-      count: 10,
+      label: "Synthesis / Transformation — correlative-preference, participle-clauses, substitution-inversion",
+      rationale: "Top miss area (53/155 = 34%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"correlative-preference":4,"participle-clauses":1,"substitution-inversion":1},
+      count: 6,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
+        heading: "Synthesis / Transformation — what to look out for",
         watchOut: [
-        "When deciding between 'who' and 'whom', try the 'he/him' trick!\n- If you can replace the word with **'he'**, use **'who'** (e.g., 'who is a teacher').\n- If you can replace it with **'him'**, use **'whom'** (e.g., 'to whom you were speaking').",
-        "He picked 'who' instead of 'whom' after the preposition 'to'.",
-        "He used 'whom' as the subject of the verb 'is' ('whom is an excellent teacher') instead of 'who'."
+        "When you see speech marks being removed, remember to step back in time!\n- **Change the tense**: present becomes past, and past becomes past perfect (e.g., 'wrote' becomes 'had written').\n- **Update time words**: 'yesterday' becomes 'the previous day', and 'now' becomes 'then'.",
+        "He kept the present tense 'like' instead of shifting it back to the past tense 'liked'.",
+        "He forgot to change the present tense 'is' to 'was' and left the time word 'today' instead of changing it to 'that day'."
         ],
       },
     },
@@ -1519,14 +1519,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — connectors-tenses, countable/uncountable, subject-verb-agreement",
-      rationale: "Top miss area (19/260 = 7%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"connectors-tenses":5,"countable/uncountable":3,"subject-verb-agreement":3},
-      count: 10,
+      label: "Synthesis / Transformation — correlative-preference, substitution-inversion",
+      rationale: "Top miss area (7/15 = 47%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"correlative-preference":3,"substitution-inversion":3},
+      count: 6,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
-        watchOut: [],
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [
+        "When rewriting sentences, take a moment to check your spelling against the original question.\n- **Trace the words** with your finger as you copy them to make sure no letters are missed or swapped.\n- Double-check words with tricky double letters or vowel pairs, like **'submitted'** or **'thirsty'**.",
+        "Omi accidentally added an extra 'm' to spell 'submmitted' instead of 'submitted'.",
+        "Omi misspelled 'mother' as 'motther' and wrote 'brought' instead of 'bought'."
+        ],
       },
     },
   ],
@@ -1610,14 +1614,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (14/45 = 31%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — countable/uncountable, verb-forms, connectors-tenses",
+      rationale: "Top miss area (13/45 = 29%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"countable/uncountable":3,"verb-forms":3,"connectors-tenses":3},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Grammar MCQ — what to look out for",
+        watchOut: [
+        "When you see a blank right after a strong verb or adjective, it is usually testing a fixed pairing.\n- Read the whole phrase aloud to see if it sounds right.\n- Memorise common pairings like **'keen on'**, **'confide in'**, and **'congratulate on'** as single chunks of meaning.",
+        "Ryan_Kho picked 'keen of' instead of the correct pairing 'keen on'.",
+        "He picked 'confided with' instead of the correct phrase 'confided in'."
+        ],
       },
     },
   ],
@@ -1693,17 +1701,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (2/10 = 20%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — connectors-tenses",
+      rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"connectors-tenses":10},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
-        "When two words seem similar, look at the clues around the blank. For example, a garden **'yields'** (produces) crops, while a farmer **'reaps'** (harvests) them. Try plugging your choice back into the sentence to see if it sounds natural.",
-        "Shayane picked 'defeated' instead of 'stumped' to describe being confused by a clue.",
-        "Shayane chose 'reaps' instead of 'yields' for what a garden produces."
+        "When learning new verbs or nouns, try to memorize the preposition that goes with them as a pair (e.g., **'congratulate on'**, **'conclusion about'**). For time phrases, remember that **'since'** is used for a starting point in the past.",
+        "Shayane chose 'of' instead of 'on' for the phrase 'congratulated on'.",
+        "Shayane used 'since' instead of 'about' when describing a conclusion."
         ],
       },
     },
@@ -1726,14 +1734,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (1/10 = 10%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
+      label: "Synthesis / Transformation — participle-clauses, correlative-preference",
+      rationale: "Top miss area (22/40 = 55%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"participle-clauses":4,"correlative-preference":2},
+      count: 6,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [
+        "When you see reporting words, treat them as a signal to check your time and pointer words:\n- **'yesterday'** changes to **'the previous day'**\n- **'next week'** changes to **'the following week'**\n- **'this'** changes to **'that'**",
+        "SHRIV8209J kept 'yesterday' instead of changing it to 'the previous day'.",
+        "SHRIV8209J left 'next week' as is, rather than shifting it to 'the following week'."
+        ],
       },
     },
   ],
@@ -1813,14 +1825,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (19/120 = 16%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — verb-forms, tag-questions, pronouns",
+      rationale: "Top miss area (15/80 = 19%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"verb-forms":4,"tag-questions":4,"pronouns":2},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Grammar MCQ — what to look out for",
+        watchOut: [
+        "When you see **a verb followed by a preposition**, treat it as a single vocabulary word.\n- **'warmed up'** → always pairs with **'to'** when talking about people.\n- **'fell'** → use **'out'** for arguments, and **'apart'** for things breaking.",
+        "Winterark312 chose 'fell apart' instead of 'fell out' to describe friends having a misunderstanding.",
+        "He picked 'warmed up with' instead of 'warmed up to' when describing getting comfortable with classmates."
+        ],
       },
     },
   ],

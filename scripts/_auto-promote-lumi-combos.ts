@@ -234,13 +234,45 @@ async function main() {
     // combo for it carries no targeting beyond the topic name — drill
     // is shallower. Only fall back to Vocab MCQ when neither of the
     // two preferred topics is a real weakness (miss rate >= 15%).
+    //
+    // Special case: when only ONE preferred topic qualifies, split it
+    // into two themed combos by sub-topic (top 3 weak sub-topics in
+    // Quiz 1, next 3 in Quiz 2) instead of falling back to a non-weak
+    // Vocab MCQ. Kaiyang's case — Synthesis is his only real English
+    // weakness, so both quizzes drill it from different angles rather
+    // than filling Quiz 2 with Vocab at 80% just to have something
+    // there.
     let top2: typeof weak;
     if (subject === "english") {
       const PREFERRED = new Set(["Grammar MCQ", "Synthesis / Transformation"]);
       const preferred = weak.filter(t => PREFERRED.has(t.topic) && t.pct >= 15);
       const others = weak.filter(t => !PREFERRED.has(t.topic) || t.pct < 15);
-      // Take from preferred first, top up from others. Limit 2.
-      top2 = [...preferred, ...others].slice(0, 2);
+      if (preferred.length === 1) {
+        const t = preferred[0];
+        const sortedSubs = [...t.subBreakdown.entries()]
+          .filter(([k]) => k !== "(untagged)")
+          .filter(([, b]) => b.missed > 0)
+          .sort((a, b) => b[1].missed - a[1].missed);
+        const half1 = sortedSubs.slice(0, 3);
+        const half2 = sortedSubs.slice(3, 6);
+        if (half2.length > 0) {
+          // Enough sub-topic spread to split. Build two pseudo-topic
+          // entries sharing the same topic name but different
+          // subBreakdowns — the combo builder reads subBreakdown to
+          // compute subTopicWeights and the label.
+          top2 = [
+            { ...t, subBreakdown: new Map(half1) },
+            { ...t, subBreakdown: new Map(half2) },
+          ];
+        } else {
+          // Only 1-3 weak sub-topics → can't split. Fall through to
+          // the standard "preferred + next-best" pick so Quiz 2 still
+          // exists (even if Vocab at 80%).
+          top2 = [...preferred, ...others].slice(0, 2);
+        }
+      } else {
+        top2 = [...preferred, ...others].slice(0, 2);
+      }
     } else {
       top2 = weak.slice(0, 2);
     }
