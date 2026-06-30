@@ -235,15 +235,22 @@ function renderEnglishDetails(childFirst: string, ex: {
   `;
 }
 
-export function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaUrl: string): string {
+export function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaUrl: string, opts?: { suppressEnglishDetails?: boolean }): string {
   const delta = data.weeklyDelta;
   if (!delta) return ""; // shouldn't happen (caller filters), but safety
-  const isEnglish = subject === "English";
+  // English OEQ stems + answer keys + marker notes are the single
+  // biggest contributor to email body size — for a kid with 3 wins +
+  // 2 new mistakes the renderEnglishDetails blocks easily push past
+  // Gmail's ~102 KB clip threshold. The feature-announcement email
+  // sets this flag to keep the delta cards but drop the per-example
+  // detail blocks; the weekly email keeps the full detail.
+  const isEnglish = subject === "English" && !opts?.suppressEnglishDetails;
   const parts: string[] = [];
   // One-line activity summary so the parent immediately sees the
   // volume of work: "David has done 2 papers (37 questions) this week."
-  parts.push(`<p style="${STYLES.activity}">${esc(childFirst)} has done <strong>${delta.papersThisWeek}</strong> paper${delta.papersThisWeek === 1 ? "" : "s"} (<strong>${delta.questionsThisWeek}</strong> question${delta.questionsThisWeek === 1 ? "" : "s"}) this week.</p>`);
-  parts.push(`<p style="${STYLES.preface}">${esc(delta.prefaceText)} <a href="${ctaUrl}" style="color: #7c3aed; text-decoration: underline; font-weight: 600;">More details can be found on his Progress page.</a></p>`);
+  // <div> not <p> — Gmail mangles styled <p> blocks. [[email-avoid-p-tags]]
+  parts.push(`<div style="${STYLES.activity}">${esc(childFirst)} has done <strong>${delta.papersThisWeek}</strong> paper${delta.papersThisWeek === 1 ? "" : "s"} (<strong>${delta.questionsThisWeek}</strong> question${delta.questionsThisWeek === 1 ? "" : "s"}) this week.</div>`);
+  parts.push(`<div style="${STYLES.preface}">${esc(delta.prefaceText)} <a href="${ctaUrl}" style="color: #7c3aed; text-decoration: underline; font-weight: 600;">More details can be found on his Progress page.</a></div>`);
 
   if (delta.wins.length > 0) {
     parts.push(`<div style="${STYLES.sectionH} color: #065f46;">🎉 Wins this week</div>`);

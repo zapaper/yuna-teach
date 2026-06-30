@@ -87,16 +87,137 @@ async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: 
   return { subTopics, overall, totalAwarded, totalAvailable };
 }
 
+// Column-chart variant of the fluency view — parents who don't read
+// radars at a glance get a familiar bar chart: one bar per sub-topic,
+// y-axis 0-100%, green ≥ overall average, yellow < average, dashed red
+// avg line. Sub-topic labels rotated below the x-axis (multi-line
+// labels are pre-joined since rotation makes wraps awkward). n=attempts
+// inside the bar foot, pct on top.
+function drawColumnChart(title: string, subtitle: string, subTopics: FluencyRow[], avgPct: number | null): Buffer {
+  const W = 1100, H = 760;
+  const FONT_TITLE = 38;
+  const FONT_SUBTITLE = 24;
+  const FONT_AXIS = 22;
+  const FONT_BAR_PCT = 30;
+  const FONT_N = 18;
+  const FONT_XLABEL = 24;
+  const FONT_AVG = 22;
+  const padL = 80, padR = 40;
+  const subtitleBottom = 16 + FONT_TITLE + 10 + FONT_SUBTITLE + 6; // ≈ 100
+  const barLabelStackH = FONT_BAR_PCT + 14;
+  const padT = subtitleBottom + barLabelStackH + 12;
+  // Max label width when rotated -35° — sub-topic labels can be quite
+  // long ("Subject-verb agreement" ~ 22 chars). Treat each char as
+  // ~13 px at 24 px font, sin(35°) ≈ 0.57 vertical footprint.
+  const maxLabelChars = subTopics.reduce((m, s) => Math.max(m, s.label.replace(/\n/g, " ").length), 0);
+  const padB = Math.max(140, Math.ceil(maxLabelChars * 13 * 0.57) + 30);
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#DDD6FE"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  // Title + subtitle.
+  ctx.fillStyle = "#001E40";
+  ctx.font = `bold ${FONT_TITLE}px sans-serif`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(title, padL, FONT_TITLE + 14);
+  ctx.font = `${FONT_SUBTITLE}px sans-serif`;
+  ctx.fillStyle = "#43474F";
+  ctx.fillText(subtitle, padL, FONT_TITLE + 14 + FONT_SUBTITLE + 6);
+
+  // Y-axis grid + tick labels (0, 25, 50, 75, 100).
+  const y = (pct: number) => padT + plotH - (Math.max(0, Math.min(100, pct)) / 100) * plotH;
+  ctx.strokeStyle = "#E5E7EB"; ctx.lineWidth = 1;
+  ctx.font = `${FONT_AXIS}px sans-serif`;
+  ctx.fillStyle = "#737780"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (const t of [0, 25, 50, 75, 100]) {
+    const py = y(t);
+    ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(padL + plotW, py); ctx.stroke();
+    ctx.fillText(`${t}%`, padL - 12, py);
+  }
+  ctx.textBaseline = "alphabetic";
+
+  // Bars.
+  const n = subTopics.length;
+  const slot = plotW / n;
+  const barW = Math.min(110, slot * 0.65);
+  for (let i = 0; i < subTopics.length; i++) {
+    const s = subTopics[i];
+    const bx = padL + slot * i + (slot - barW) / 2;
+    const pct = s.pct ?? 0;
+    const by = y(pct);
+    const h = (padT + plotH) - by;
+    // Colour: green ≥ avg, yellow < avg. Null (no data) renders slate.
+    const colour = s.pct === null
+      ? "#cbd5e1"
+      : (avgPct !== null && s.pct >= avgPct) ? "#10B981" : "#facc15";
+    ctx.fillStyle = colour;
+    const r = 6;
+    ctx.beginPath();
+    ctx.moveTo(bx, by + r);
+    ctx.quadraticCurveTo(bx, by, bx + r, by);
+    ctx.lineTo(bx + barW - r, by);
+    ctx.quadraticCurveTo(bx + barW, by, bx + barW, by + r);
+    ctx.lineTo(bx + barW, by + h);
+    ctx.lineTo(bx, by + h);
+    ctx.closePath();
+    ctx.fill();
+    // % above bar.
+    ctx.fillStyle = "#001E40";
+    ctx.font = `bold ${FONT_BAR_PCT}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(s.pct === null ? "—" : `${s.pct}%`, bx + barW / 2, by - 10);
+    // n=attempts at the foot of the bar (skip when no data so we don't
+    // print "n=0" inside a zero-height bar).
+    if (s.available > 0) {
+      ctx.fillStyle = "#001E40";
+      ctx.font = `${FONT_N}px sans-serif`;
+      ctx.fillText(`n=${s.available}`, bx + barW / 2, padT + plotH - 8);
+    }
+    // Rotated x-axis label (join \n labels back to single line for
+    // rotation — multi-line tilted text becomes unreadable).
+    const label = s.label.replace(/\n/g, " ");
+    ctx.save();
+    ctx.translate(bx + barW / 2, padT + plotH + 14);
+    ctx.rotate(-Math.PI * 35 / 180);
+    ctx.fillStyle = "#43474F";
+    ctx.font = `600 ${FONT_XLABEL}px sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+
+  // Dashed average line.
+  if (avgPct !== null) {
+    ctx.strokeStyle = "#DC2626"; ctx.lineWidth = 3; ctx.setLineDash([12, 8]);
+    ctx.beginPath(); ctx.moveTo(padL, y(avgPct)); ctx.lineTo(padL + plotW, y(avgPct)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#DC2626";
+    ctx.font = `bold ${FONT_AVG}px sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText(`avg ${avgPct}%`, padL + plotW - 8, y(avgPct) - 10);
+  }
+
+  return canvas.toBuffer("image/png");
+}
+
 // Canvas port of the React RadarSvg in src/app/tutor/[parentId]/page.tsx.
-// 800×800 image (was 320×320 in the React component) so the labels stay
-// crisp when Gmail rescales the inline attachment. Same colour palette
-// and zone bands (green ≥75 / yellow 50-74 / red <50).
+// 1100×1200 image — canvas + fonts roughly doubled from the first pass
+// so the per-axis pct labels and rule names stay legible at Gmail's
+// rescaled width (~360 px). Same colour palette and zone bands
+// (green ≥75 / yellow 50-74 / red <50). Bottom strip is a small
+// colour-band legend so the chart is self-explanatory.
 function drawRadar(title: string, subtitle: string, subTopics: FluencyRow[]): Buffer {
-  const W = 800, H = 820;          // extra 20 px for the title strip on top
-  const TITLE_STRIP = 60;
+  const W = 1100, H = 1200;
+  const TITLE_STRIP = 90;
+  const LEGEND_STRIP = 60;
   const CX = W / 2;
-  const CY = TITLE_STRIP + (H - TITLE_STRIP) / 2;
-  const R = 230;
+  const CY = TITLE_STRIP + (H - TITLE_STRIP - LEGEND_STRIP) / 2;
+  const R = 290;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d");
 
@@ -105,13 +226,13 @@ function drawRadar(title: string, subtitle: string, subTopics: FluencyRow[]): Bu
 
   // Title strip.
   ctx.fillStyle = "#001E40";
-  ctx.font = "bold 26px sans-serif";
+  ctx.font = "bold 38px sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(title, CX, 22);
-  ctx.font = "16px sans-serif";
+  ctx.fillText(title, CX, 32);
+  ctx.font = "24px sans-serif";
   ctx.fillStyle = "#666";
-  ctx.fillText(subtitle, CX, 46);
+  ctx.fillText(subtitle, CX, 70);
 
   // Zone bands (green ≥75 / yellow 50-74 / red <50).
   const drawRing = (pctOuter: number, pctInner: number, fill: string) => {
@@ -149,19 +270,19 @@ function drawRadar(title: string, subtitle: string, subTopics: FluencyRow[]): Bu
   };
 
   // Spokes + axis labels.
-  ctx.font = "600 17px sans-serif";
+  ctx.font = "600 30px sans-serif";
   ctx.fillStyle = "#001E40";
   for (let i = 0; i < subs.length; i++) {
     const a = angles[i];
     const [ax, ay] = point(a, 100);
-    ctx.strokeStyle = "#cccccc"; ctx.lineWidth = 1.4;
+    ctx.strokeStyle = "#cccccc"; ctx.lineWidth = 1.8;
     ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(ax, ay); ctx.stroke();
 
-    const [lx, ly] = point(a, 116);          // label sits outside the polygon
+    const [lx, ly] = point(a, 118);          // label sits outside the polygon
     const lines = subs[i].label.split("\n");
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    const lineH = 20;
+    const lineH = 34;
     const offsetY = -((lines.length - 1) / 2) * lineH;
     for (let j = 0; j < lines.length; j++) {
       ctx.fillText(lines[j], lx, ly + offsetY + j * lineH);
@@ -178,7 +299,7 @@ function drawRadar(title: string, subtitle: string, subTopics: FluencyRow[]): Bu
   ctx.fillStyle = "rgba(59, 130, 246, 0.30)";
   ctx.fill();
   ctx.strokeStyle = "#1e40af";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   ctx.stroke();
 
   // Per-axis dots + pct label.
@@ -188,17 +309,47 @@ function drawRadar(title: string, subtitle: string, subTopics: FluencyRow[]): Bu
     const colour = s.pct === null ? "#999" : s.pct >= 75 ? "#16a34a" : s.pct >= 50 ? "#ca8a04" : "#dc2626";
     ctx.fillStyle = colour;
     ctx.beginPath();
-    ctx.arc(x, y, 8.5, 0, Math.PI * 2);
+    ctx.arc(x, y, 12, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "white";
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.stroke();
     if (s.pct !== null) {
       ctx.fillStyle = "#001E40";
-      ctx.font = "bold 17px sans-serif";
+      ctx.font = "bold 30px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`${s.pct}%`, x, y - 18);
+      ctx.fillText(`${s.pct}%`, x, y - 26);
     }
+  }
+
+  // Bottom legend strip: three coloured swatches with their pct band.
+  // Centred horizontally, sits below the radar — matches the chart's
+  // own zone colours so the parent can read accuracy at a glance.
+  const legendY = H - LEGEND_STRIP / 2;
+  const legendItems = [
+    { label: "Strong (≥75%)",  fill: "#bbf7d0", border: "#16a34a" },
+    { label: "Mid (50–74%)",   fill: "#fde68a", border: "#ca8a04" },
+    { label: "Weak (<50%)",    fill: "#fecaca", border: "#dc2626" },
+  ];
+  ctx.font = "600 26px sans-serif";
+  ctx.textBaseline = "middle";
+  // Measure each item (swatch + gap + label) and the gaps between
+  // them, then offset so the whole row centres on CX.
+  const SWATCH = 28, SWATCH_GAP = 12, ITEM_GAP = 40;
+  const widths = legendItems.map(it => SWATCH + SWATCH_GAP + ctx.measureText(it.label).width);
+  const totalW = widths.reduce((s, w) => s + w, 0) + ITEM_GAP * (legendItems.length - 1);
+  let x = CX - totalW / 2;
+  for (let i = 0; i < legendItems.length; i++) {
+    const it = legendItems[i];
+    ctx.fillStyle = it.fill;
+    ctx.fillRect(x, legendY - SWATCH / 2, SWATCH, SWATCH);
+    ctx.strokeStyle = it.border;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, legendY - SWATCH / 2, SWATCH, SWATCH);
+    ctx.fillStyle = "#001E40";
+    ctx.textAlign = "left";
+    ctx.fillText(it.label, x + SWATCH + SWATCH_GAP, legendY);
+    x += widths[i] + ITEM_GAP;
   }
 
   return canvas.toBuffer("image/png");
@@ -224,7 +375,6 @@ async function buildAndSendForKid(kid: Kid, dryRun: boolean): Promise<void> {
   if (!stu) { console.log(`  ! student not found: ${kid.studentId}`); return; }
   const childFirst = stu.name.split(/\s+/)[0] ?? stu.name;
 
-  // Pull both fluency bundles in parallel with the English tutor data.
   const [grammar, synthesis, tutor] = await Promise.all([
     fluencyFor(stu.id, ["Grammar MCQ", "Grammar Cloze"], GRAMMAR_SUBTOPICS),
     fluencyFor(stu.id, ["Synthesis / Transformation", "Synthesis & Transformation"], SYNTHESIS_SUBTOPICS),
@@ -233,17 +383,55 @@ async function buildAndSendForKid(kid: Kid, dryRun: boolean): Promise<void> {
 
   const ctaUrl = `${BASE_URL}/home/${kid.parentId}?userId=${kid.parentId}&view=lumi&student=${stu.id}&subject=English`;
 
-  // Radar PNGs.
-  const grammarPng = drawRadar(
-    `${childFirst}'s Grammar fluency`,
-    grammar.totalAvailable > 0 ? `Overall ${grammar.overall ?? 0}% (${grammar.totalAwarded}/${grammar.totalAvailable} marks)` : "No attempts yet",
-    grammar.subTopics,
-  );
-  const synthesisPng = drawRadar(
-    `${childFirst}'s Synthesis fluency`,
-    synthesis.totalAvailable > 0 ? `Overall ${synthesis.overall ?? 0}% (${synthesis.totalAwarded}/${synthesis.totalAvailable} marks)` : "No attempts yet",
-    synthesis.subTopics,
-  );
+  // Email visualisation is now two side-by-side HTML tables — rows
+  // ≥75% in light green, rows <75% in light yellow, "no data" rows
+  // in dim slate. Canvas chart renderers (drawColumnChart / drawRadar)
+  // stay in the script for the web toggle, just not used here.
+  const fluencyTable = (heading: string, bundle: FluencyBundle): string => {
+    const headerCell = (text: string, align: "left" | "right") =>
+      `<th style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #475569; padding: 6px 10px; text-align: ${align}; border-bottom: 1px solid #e2e8f0;">${esc(text)}</th>`;
+    const sorted = [...bundle.subTopics].sort((a, b) => {
+      // Null pcts (no attempts yet) sink to the bottom; the rest go
+      // strongest → weakest so the parent's eye lands on the green
+      // band first and the yellow gaps cluster underneath.
+      if (a.pct === null && b.pct === null) return 0;
+      if (a.pct === null) return 1;
+      if (b.pct === null) return -1;
+      return b.pct - a.pct;
+    });
+    const rows = sorted.map(s => {
+      const noData = s.pct === null;
+      const bg = noData ? "#f8fafc" : (s.pct! >= 80 ? "#dcfce7" : "#fef9c3");
+      const colour = noData ? "#94a3b8" : "#0f172a";
+      const labelText = s.label.replace(/\n/g, " ");
+      const pctCell = noData
+        ? `<span style="color: #94a3b8;">—</span>`
+        : `<strong>${s.pct}%</strong>`;
+      const nText = noData
+        ? `<span style="color: #94a3b8;">no data</span>`
+        : `<span style="color: #64748b; font-size: 11px;">n=${s.available}</span>`;
+      return `
+        <tr style="background: ${bg};">
+          <td style="font-size: 13px; padding: 8px 10px; color: ${colour};">${esc(labelText)}</td>
+          <td style="font-size: 13px; padding: 8px 10px; color: ${colour}; text-align: right; white-space: nowrap;">${pctCell}</td>
+          <td style="font-size: 12px; padding: 8px 10px; text-align: right; white-space: nowrap;">${nText}</td>
+        </tr>`;
+    }).join("");
+    const overallLine = bundle.totalAvailable > 0
+      ? `Overall <strong>${bundle.overall ?? 0}%</strong> (${bundle.totalAwarded}/${bundle.totalAvailable} marks)`
+      : `<span style="color: #94a3b8; font-style: italic;">No attempts yet</span>`;
+    return `
+      <div style="font-size: 15px; font-weight: 800; color: #001e40; margin: 0 0 4px 0;">${esc(heading)}</div>
+      <div style="font-size: 12px; color: #475569; margin: 0 0 8px 0;">${overallLine}</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr>${headerCell("Sub-topic", "left")}${headerCell("Score", "right")}${headerCell("Attempts", "right")}</tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  };
+  const grammarTableHtml   = fluencyTable(`${childFirst}'s Grammar fluency`,   grammar);
+  const synthesisTableHtml = fluencyTable(`${childFirst}'s Synthesis fluency`, synthesis);
 
   // Topic bar chart (re-using the same renderer as the weekly email).
   let chartPng: Buffer | null = null;
@@ -252,70 +440,88 @@ async function buildAndSendForKid(kid: Kid, dryRun: boolean): Promise<void> {
   }
 
   // English Lumi delta body — only when the kid has new activity this week.
+  // suppressEnglishDetails strips the per-example stem/answer/marker-notes
+  // blocks (the biggest body-size hog) so Gmail doesn't clip the email
+  // after the tables. Headline cards still render so the parent sees
+  // wins / topic progress / new mistakes by name.
   let deltaHtml = "";
   if (tutor.kind === "ready" && tutor.weeklyDelta) {
-    deltaHtml = renderDelta(tutor as Extract<TutorData, { kind: "ready" }>, childFirst, "English", ctaUrl);
+    deltaHtml = renderDelta(tutor as Extract<TutorData, { kind: "ready" }>, childFirst, "English", ctaUrl, { suppressEnglishDetails: true });
   }
 
-  const grammarCid    = `radar-grammar-${stu.id.slice(-6)}`;
-  const synthesisCid  = `radar-synthesis-${stu.id.slice(-6)}`;
   const chartCid      = `chart-english-${stu.id.slice(-6)}`;
 
-  const subject = `Personalised practice targeting ${childFirst}'s gaps in grammar and synthesis`;
+  // Subject deliberately reworded — the previous "Personalised practice
+  // targeting ..." string was sent ~10 times in a row to peter.lzy and
+  // Gmail bundled every send into a single thread, so the top of each
+  // new message rendered with a "..." collapse marker for the earlier
+  // copies. Fresh wording → fresh thread → clean read.
+  const subject = `${childFirst}'s personalised English practice is ready (grammar + synthesis)`;
 
-  // Body layout:
-  //   1. Feature announcement intro (the "what's new")
-  //   2. Grammar + Synthesis radar images side-by-side (stacked on mobile)
-  //   3. The standard English Lumi delta block (wins, topic progress, new mistakes)
-  //   4. Topic bar chart "Progress so far"
-  //   5. CTA → Lumi English
+  // Body layout (post-revision — feature announcement, not weekly update):
+  //   1. Opening intro
+  //   2. "Child's strengths and weaknesses on grammar and synthesis:"
+  //   3. Grammar + Synthesis radar images side-by-side (legend baked in)
+  //   4. "Lumi has handcrafted two personalised quizzes … Click here to assign them."
+  //
+  // Deliberately drops the weekly delta block + topic bar chart + secondary
+  // CTA — this email is a one-off feature announcement, not the recurring
+  // weekly update. Single CTA so there's no ambiguity about where to click.
+  // Gmail mangles <p style="..."> prose in emails (sees "..." mid-body
+  // even when the body is well under the 102 KB clip threshold). Every
+  // prose block here uses <div> instead, and the multi-block layout
+  // sits inside <table role="presentation"> wrappers — the most
+  // reliable email-client primitive for spacing.
   const rawHtml = `<!doctype html>
 <html><body style="${STYLES.body}">
   <div style="${STYLES.container}">
-    <p style="${STYLES.intro}">Hi ${esc(kid.parentFirst)},</p>
-    <p style="${STYLES.intro}"><strong>New on MarkForYou:</strong> personalised practice for ${esc(childFirst)} now drills the exact PSLE rule families and synthesis tricks ${esc(childFirst)} keeps losing marks on — not just generic Grammar / Synthesis sections.</p>
-    <p style="${STYLES.intro}">The two charts below show ${esc(childFirst)}'s fluency on every PSLE Grammar rule (7) and Synthesis trick (6) — based on every marked English paper to date. Green ≥75%, yellow 50–74%, red &lt;50%.</p>
+    <div style="${STYLES.intro}">Hi ${esc(kid.parentFirst)},</div>
+    <div style="${STYLES.intro}"><strong>New on MarkForYou:</strong> personalised practice for ${esc(childFirst)} now drills the exact PSLE grammar rules and synthesis tricks ${esc(childFirst)} keeps losing marks on.</div>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 12px 0;">
+    <div style="${STYLES.intro}">${esc(childFirst)}'s strengths and weaknesses on grammar and synthesis:</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 14px 0;">
       <tr>
-        <td align="center" style="padding: 6px; vertical-align: top;">
-          <img src="cid:${grammarCid}" alt="${esc(childFirst)} — Grammar fluency radar" style="width: 100%; max-width: 360px; display: block; border-radius: 12px; border: 1px solid #ddd6fe;" />
-        </td>
-        <td align="center" style="padding: 6px; vertical-align: top;">
-          <img src="cid:${synthesisCid}" alt="${esc(childFirst)} — Synthesis fluency radar" style="width: 100%; max-width: 360px; display: block; border-radius: 12px; border: 1px solid #ddd6fe;" />
+        <td valign="top" style="padding: 6px; width: 50%;">${grammarTableHtml}</td>
+        <td valign="top" style="padding: 6px; width: 50%;">${synthesisTableHtml}</td>
+      </tr>
+    </table>
+    <div style="font-size: 12px; color: #64748b; margin: 0 0 4px 0;">
+      <span style="display: inline-block; width: 12px; height: 12px; background: #dcfce7; border: 1px solid #86efac; vertical-align: middle; margin-right: 6px;"></span>
+      Strong (≥80%)
+      <span style="display: inline-block; width: 12px; height: 12px; background: #fef9c3; border: 1px solid #fde047; vertical-align: middle; margin: 0 6px 0 18px;"></span>
+      Needs work (&lt;80%)
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 18px 0;">
+      <tr>
+        <td style="background: #f5f3ff; border: 1px solid #ddd6fe; border-left: 4px solid #7c3aed; border-radius: 10px; padding: 16px 18px;">
+          <div style="font-size: 15px; color: #1e293b; line-height: 1.55; margin: 0 0 12px 0;">Lumi has <strong>handcrafted two personalised quizzes</strong> on the sub-topics (above) that ${esc(childFirst)} has been weak on.</div>
+          <a href="${ctaUrl}" style="display: inline-block; background: #7c3aed; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 800; font-size: 14px;">Click here to assign them →</a>
         </td>
       </tr>
     </table>
 
-    <p style="${STYLES.intro}">Each week Lumi picks the weakest two sub-topics from these radars and builds ${esc(childFirst)}'s personalised quizzes around them — with watch-out bullets that name the rule, the trap, and the recurring mistake from ${esc(childFirst)}'s own papers.</p>
-
     <h2 style="${STYLES.subjectH}">✍️ ${SUBJECT_LABEL.English} — this week's Lumi update</h2>
-    ${deltaHtml || `<p style="${STYLES.intro}">No new English papers since the last snapshot — the radars above still reflect ${esc(childFirst)}'s cumulative fluency, and the next Lumi update will follow as soon as a new paper is marked.</p>`}
+    ${deltaHtml || `<div style="${STYLES.intro}">No new English papers since the last snapshot — the tables above still reflect ${esc(childFirst)}'s cumulative fluency, and the next Lumi update will follow as soon as a new paper is marked.</div>`}
     ${chartPng ? `<div style="${STYLES.sectionH} color: #475569;">Progress so far</div><img src="cid:${chartCid}" alt="${esc(childFirst)} — English per-topic accuracy" style="${STYLES.chart}" />` : ""}
 
-    <a href="${ctaUrl}" style="${STYLES.cta}">See ${esc(childFirst)}'s full English report on Lumi →</a>
-
-    <p style="margin: 20px 0 0 0; color: #001e40; font-size: 14px; line-height: 1.55;">
+    <div style="margin: 24px 0 0 0; color: #001e40; font-size: 14px; line-height: 1.55;">
       Cheering ${esc(childFirst)} on,<br/>
       <strong>Lumi &amp; the MarkForYou team</strong>
-    </p>
+    </div>
   </div>
 </body></html>`;
   const html = rawHtml
     .split(/\n/).map(l => l.replace(/^\s+/, "")).filter(l => l.length > 0).join("\n");
 
-  const attachments: Array<{ content: string; filename: string; type: string; disposition: string; content_id: string }> = [
-    { content: grammarPng.toString("base64"),   filename: `${grammarCid}.png`,   type: "image/png", disposition: "inline", content_id: grammarCid },
-    { content: synthesisPng.toString("base64"), filename: `${synthesisCid}.png`, type: "image/png", disposition: "inline", content_id: synthesisCid },
-  ];
+  const attachments: Array<{ content: string; filename: string; type: string; disposition: string; content_id: string }> = [];
   if (chartPng) {
     attachments.push({ content: chartPng.toString("base64"), filename: `${chartCid}.png`, type: "image/png", disposition: "inline", content_id: chartCid });
   }
 
   if (dryRun) {
     let previewHtml = html;
-    previewHtml = previewHtml.replace(new RegExp(`cid:${grammarCid}`, "g"),   `data:image/png;base64,${grammarPng.toString("base64")}`);
-    previewHtml = previewHtml.replace(new RegExp(`cid:${synthesisCid}`, "g"), `data:image/png;base64,${synthesisPng.toString("base64")}`);
     if (chartPng) {
       previewHtml = previewHtml.replace(new RegExp(`cid:${chartCid}`, "g"), `data:image/png;base64,${chartPng.toString("base64")}`);
     }

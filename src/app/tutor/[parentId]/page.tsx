@@ -2637,8 +2637,61 @@ function RadarSvg({ title, subTopics, overall, totalAwarded, totalAvailable }: {
   );
 }
 
+// Table variant of the fluency view — mirrors the parent-facing email
+// (rows ≥80% light green, <80% light yellow, no-data dimmed). Sorted
+// strongest → weakest so the eye lands on green first. Used as the
+// alternate view inside GrammarRadar's Radar / Table toggle.
+function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle }) {
+  const sorted = [...bundle.subTopics].sort((a, b) => {
+    if (a.pct === null && b.pct === null) return 0;
+    if (a.pct === null) return 1;
+    if (b.pct === null) return -1;
+    return b.pct - a.pct;
+  });
+  return (
+    <div className="flex flex-col">
+      <h4 className="text-sm font-bold text-[#001e40]">{title}</h4>
+      <p className="text-[11px] text-[#666] mb-2">
+        {bundle.totalAvailable > 0 ? (
+          <>Overall <strong className="text-[#001e40]">{bundle.overall ?? 0}%</strong> ({bundle.totalAwarded}/{bundle.totalAvailable} marks)</>
+        ) : (
+          <span className="italic">No attempts yet</span>
+        )}
+      </p>
+      <table className="w-full border border-slate-200 rounded-md overflow-hidden text-[12px]">
+        <thead>
+          <tr className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+            <th className="text-left px-2 py-1 font-bold">Sub-topic</th>
+            <th className="text-right px-2 py-1 font-bold">Score</th>
+            <th className="text-right px-2 py-1 font-bold">Attempts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map(s => {
+            const noData = s.pct === null;
+            const bg = noData ? "bg-slate-50" : (s.pct! >= 80 ? "bg-green-100" : "bg-yellow-100");
+            const labelText = s.label.replace(/\n/g, " ");
+            return (
+              <tr key={s.id} className={`${bg} border-t border-slate-100`}>
+                <td className={`px-2 py-1.5 ${noData ? "text-slate-400" : "text-slate-900"}`}>{labelText}</td>
+                <td className={`px-2 py-1.5 text-right whitespace-nowrap ${noData ? "text-slate-400" : "text-slate-900 font-bold"}`}>
+                  {noData ? "—" : `${s.pct}%`}
+                </td>
+                <td className="px-2 py-1.5 text-right whitespace-nowrap text-slate-500 text-[11px]">
+                  {noData ? "no data" : `n=${s.available}`}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; subject: string; childFirst: string }) {
   const [data, setData] = useState<{ grammar: FluencyBundle; synthesis: FluencyBundle } | null>(null);
+  const [view, setView] = useState<"radar" | "table">("radar");
   useEffect(() => {
     if (subject !== "English") return;
     if (!GRAMMAR_RADAR_KIDS.has(studentId)) return;
@@ -2651,27 +2704,56 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
   }, [studentId, subject]);
   if (subject !== "English" || !GRAMMAR_RADAR_KIDS.has(studentId) || !data) return null;
 
+  const helpText = view === "radar"
+    ? `${childFirst}'s accuracy on each rule family. Green zone ≥ 75%, yellow 50–75%, red < 50%.`
+    : `${childFirst}'s accuracy on each rule family. Green ≥ 80%, yellow < 80%.`;
+
   return (
     <div className="mt-8 pt-6 border-t border-slate-200">
-      <h3 className="text-sm font-bold text-[#001e40] mb-1">English Fluency · sub-topic radar</h3>
-      <p className="text-xs text-[#666] mb-4">
-        {childFirst}&apos;s accuracy on each rule family. Green zone ≥ 75%, yellow 50–75%, red &lt; 50%.
-      </p>
+      <div className="flex items-start justify-between mb-1 gap-3">
+        <h3 className="text-sm font-bold text-[#001e40]">English Fluency · sub-topic {view === "radar" ? "radar" : "table"}</h3>
+        <div className="inline-flex rounded-lg bg-[#eff4ff] p-1 text-[11px] font-bold uppercase tracking-wider">
+          <button
+            type="button"
+            onClick={() => setView("radar")}
+            className={`px-3 py-1 rounded-md transition-colors ${view === "radar" ? "bg-[#003366] text-white shadow-sm" : "text-[#001e40] hover:text-[#003366]"}`}
+          >
+            Radar
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("table")}
+            className={`px-3 py-1 rounded-md transition-colors ${view === "table" ? "bg-[#003366] text-white shadow-sm" : "text-[#001e40] hover:text-[#003366]"}`}
+          >
+            Table
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-[#666] mb-4">{helpText}</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RadarSvg
-          title="Grammar (MCQ + Cloze)"
-          subTopics={data.grammar.subTopics.filter(s => s.available >= 3)}
-          overall={data.grammar.overall}
-          totalAwarded={data.grammar.totalAwarded}
-          totalAvailable={data.grammar.totalAvailable}
-        />
-        <RadarSvg
-          title="Synthesis & Transformation"
-          subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)}
-          overall={data.synthesis.overall}
-          totalAwarded={data.synthesis.totalAwarded}
-          totalAvailable={data.synthesis.totalAvailable}
-        />
+        {view === "radar" ? (
+          <>
+            <RadarSvg
+              title="Grammar (MCQ + Cloze)"
+              subTopics={data.grammar.subTopics.filter(s => s.available >= 3)}
+              overall={data.grammar.overall}
+              totalAwarded={data.grammar.totalAwarded}
+              totalAvailable={data.grammar.totalAvailable}
+            />
+            <RadarSvg
+              title="Synthesis & Transformation"
+              subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)}
+              overall={data.synthesis.overall}
+              totalAwarded={data.synthesis.totalAwarded}
+              totalAvailable={data.synthesis.totalAvailable}
+            />
+          </>
+        ) : (
+          <>
+            <FluencyTable title="Grammar (MCQ + Cloze)" bundle={data.grammar} />
+            <FluencyTable title="Synthesis & Transformation" bundle={data.synthesis} />
+          </>
+        )}
       </div>
     </div>
   );
