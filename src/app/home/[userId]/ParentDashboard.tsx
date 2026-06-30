@@ -3879,9 +3879,9 @@ export default function ParentDashboard({
                   <div className="absolute top-0 right-0 w-64 h-64 bg-[#006c49]/20 rounded-full blur-3xl -mr-20 -mt-20" />
                   <div className="flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-5">
-                      <button onClick={() => fetchInsight(true)} disabled={recLoading} className="px-3 py-1 bg-[#006c49]/20 backdrop-blur-md rounded-full border border-[#006c49]/30 flex items-center gap-2 hover:bg-[#006c49]/30 transition-colors cursor-pointer disabled:opacity-60">
+                      <button onClick={() => setActiveView("lumi")} className="px-3 py-1 bg-[#006c49]/20 backdrop-blur-md rounded-full border border-[#006c49]/30 flex items-center gap-2 hover:bg-[#006c49]/30 transition-colors cursor-pointer">
                         <span className="material-symbols-outlined text-[#4edea3] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                        <span className="text-xs font-extrabold uppercase tracking-wider text-[#4edea3]">AI Smart Insights</span>
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-[#4edea3]">Go to Lumi</span>
                       </button>
                     </div>
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
