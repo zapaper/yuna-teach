@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MarkForYou.com — Know your child's learning gaps, and close them today</title>
+<meta name="description" content="MarkForYou marks your child's handwritten papers, diagnoses the exact gaps, and builds next week's personalised practice automatically. P4–P6 Math, Science, English, Chinese. MOE/PSLE-aligned." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#003366;
+    --navy-2:#0A4A78;
+    --blue:#006C49;
+    --blue-dk:#00543A;
+    --amber:#0E9F6E;
+    --amber-dk:#0B7C55;
+    --green:#0EA371;
+    --ink:#1E293B;
+    --slate:#475569;
+    --slate-2:#64748B;
+    --line:#E4EEEA;
+    --bg:#FFFFFF;
+    --bg-soft:#F4FAFA;
+    --bg-navy-soft:#0A3A66;
+    --heading:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
+    --radius:18px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.05);
+    --shadow:0 8px 30px rgba(15,23,42,.10);
+    --shadow-lg:0 24px 60px rgba(11,31,58,.22);
+    --maxw:1160px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{margin:0;line-height:1.12;letter-spacing:-.02em;font-family:var(--heading)}
+  h2{font-size:clamp(1.7rem,3.4vw,2.6rem);font-weight:800}
+  p{margin:0}
+  img{max-width:100%;display:block}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+  .serif{font-family:var(--heading)}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:600;font-size:.98rem;
+    padding:.85rem 1.4rem;border-radius:999px;transition:.18s ease;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+  .btn-amber{background:var(--blue);color:#fff;box-shadow:0 6px 18px rgba(0,108,73,.30)}
+  .btn-amber:hover{background:var(--blue-dk);color:#fff;transform:translateY(-1px)}
+  .btn-blue{background:var(--blue);color:#fff;box-shadow:0 6px 18px rgba(0,108,73,.30)}
+  .btn-blue:hover{background:var(--blue-dk);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{background:var(--bg-soft)}
+  .btn-light{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.25)}
+  .btn-light:hover{background:rgba(255,255,255,.18)}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;font-size:1.12rem;color:var(--navy)}
+  .brand img{height:30px;width:auto}
+  .nav-links{display:flex;align-items:center;gap:1.6rem}
+  .nav-links a.lnk{font-size:.95rem;font-weight:500;color:var(--slate)}
+  .nav-links a.lnk:hover{color:var(--ink)}
+  .nav-cta{display:flex;align-items:center;gap:.7rem}
+  .menu-btn{display:none;background:none;border:0;cursor:pointer;padding:8px}
+  .menu-btn span{display:block;width:22px;height:2px;background:var(--ink);margin:4px 0;border-radius:2px}
+
+  /* Hero */
+  .hero{position:relative;overflow:hidden;background:
+     radial-gradient(1100px 520px at 85% -10%,rgba(0,108,73,.10),transparent 60%),
+     radial-gradient(800px 400px at 5% 0%,rgba(0,51,102,.08),transparent 55%),
+     var(--bg);padding:0}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:48px 0 32px}
+  .pill{display:inline-flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line);
+    box-shadow:var(--shadow-sm);border-radius:999px;padding:.4rem .8rem;font-size:.82rem;font-weight:600;color:var(--slate)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(14,163,113,.15)}
+  .hero h1{font-size:clamp(2.3rem,5vw,3.55rem);font-weight:800;margin:18px 0 0;color:var(--navy)}
+  .hero h1 .hl{color:var(--blue);position:relative}
+  .hero .lead{font-size:1.12rem;color:var(--slate);margin-top:18px;max-width:560px}
+  .hero-cta{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:28px}
+  .hero-badges{display:flex;gap:1rem;margin-top:28px;align-items:flex-start}
+  .hb{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+  .hb b{font-size:1.25rem;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+  .hb span{font-size:.74rem;color:var(--slate-2);font-weight:500;display:block;line-height:1.25;margin-top:2px}
+
+  /* Hero visual */
+  .hero-visual{position:relative}
+  .hero-photo{border-radius:24px;box-shadow:var(--shadow-lg);width:100%;object-fit:cover;aspect-ratio:4/3.4}
+  .float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:.7rem .9rem;display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:600}
+  .float .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .float.f1{top:18px;left:-26px}
+  .float.f2{bottom:74px;right:-22px}
+  .float.f3{bottom:-18px;left:30px}
+  .float small{display:block;font-weight:500;color:var(--slate-2);font-size:.74rem}
+  /* consolidated hero info card */
+  .hero-card{position:absolute;left:-22px;bottom:22px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:14px 16px;display:grid;gap:12px;max-width:280px}
+  .hc-row{display:flex;align-items:center;gap:.7rem;font-size:.88rem;font-weight:600;color:var(--navy)}
+  .hc-row .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
+  .hc-row small{display:block;font-weight:500;color:var(--slate-2);font-size:.74rem}
+  /* featured pull-quote inside feature sections */
+  .pull{margin-top:22px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;box-shadow:var(--shadow-sm);font-style:italic;color:var(--ink);font-size:.98rem}
+  .pull b{display:block;font-style:normal;font-weight:600;color:var(--slate-2);font-size:.82rem;margin-top:8px}
+  /* framed screenshot */
+  .shot-frame{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+  .shot-frame img{width:100%;display:block}
+  .shot-frame+.shot-frame{margin-top:14px}
+  .shot-col{max-width:360px;margin:0 auto;width:100%}
+  /* essay before/after */
+  .ba{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+  .ba-col{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm)}
+  .ba-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:.82rem;font-weight:700;border-bottom:1px solid var(--line)}
+  .ba-head.before{background:#FFF4F4;color:#B42318}
+  .ba-head.after{background:#ECFDF3;color:#067647}
+  .ba-score{font-weight:800;font-size:.95rem}
+  .ba-col img{width:100%;display:block}
+  .ba-arrow{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--amber);color:#fff;box-shadow:0 6px 16px rgba(245,158,11,.4);flex:none}
+  @media(max-width:760px){.ba{grid-template-columns:1fr;gap:12px}.ba-arrow{transform:rotate(90deg);margin:0 auto}}
+  /* essay overlap stack */
+  .essay-stack{position:relative;max-width:560px;margin:0 auto}
+  .essay-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+  .essay-card .ec-head{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;font-size:.8rem;font-weight:700;border-bottom:1px solid var(--line)}
+  .essay-card .ec-head.before{background:#FFF4F4;color:#B42318}
+  .essay-card .ec-head.after{background:#ECFDF3;color:#067647}
+  .ec-score{font-weight:800;font-size:.92rem}
+  .essay-card.back{width:80%;box-shadow:var(--shadow)}
+  .essay-card.front{width:80%;margin-left:20%;margin-top:-30%;box-shadow:var(--shadow-lg);position:relative;z-index:2}
+  @media(max-width:760px){.essay-card.back,.essay-card.front{width:100%;margin-left:0}.essay-card.front{margin-top:16px}}
+  /* clean accuracy chart */
+  .chart-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:24px 26px}
+  .chart-card h4{margin:0 0 4px;font-size:1.02rem;color:var(--navy)}
+  .chart-card .sub{font-size:.82rem;color:var(--slate-2);margin-bottom:20px}
+  .bar-row{display:grid;grid-template-columns:138px 1fr 48px;align-items:center;gap:12px;margin-bottom:14px}
+  .bar-row .lbl{font-size:.86rem;font-weight:600;color:var(--ink);text-align:right;line-height:1.2}
+  .bar-row .lbl small{display:block;font-weight:500;color:var(--slate-2);font-size:.7rem;margin-top:1px}
+  .bar-track{background:var(--bg-soft);border-radius:8px;height:26px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:8px;background:#CBD5E1}
+  .bar-fill.win{background:linear-gradient(90deg,var(--blue),#0E9F6E)}
+  .bar-row .val{font-size:.88rem;font-weight:800;color:var(--navy)}
+  .bar-row.mfy .lbl{color:var(--blue-dk);font-weight:800}
+
+  /* Marquee proof */
+  .proof{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-soft)}
+  .proof-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:18px;padding:22px 0}
+  .proof-item{display:flex;align-items:center;gap:.6rem;font-weight:600;color:var(--navy);font-size:.96rem}
+  .proof-item svg{flex:none}
+
+  /* Section scaffolding */
+  section{padding:84px 0}
+  .sec-head{max-width:720px;margin:0 auto 50px;text-align:center}
+  .sec-head.wide{max-width:1100px}
+  .sec-head h2{margin-top:12px;color:var(--navy)}
+  .sec-head p{margin-top:14px;color:var(--slate);font-size:1.08rem}
+
+  /* The Loop */
+  .loop{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+  .loop::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(700px 360px at 12% 0%,rgba(0,108,73,.30),transparent 60%),
+    radial-gradient(700px 360px at 88% 100%,rgba(14,159,110,.18),transparent 60%)}
+  .loop .wrap{position:relative}
+  .loop .sec-head h2{color:#fff}
+  .loop .sec-head p{color:#C7D2E4}
+  .loop .eyebrow{color:var(--amber)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:step}
+  .step .meta{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);display:flex;flex-wrap:wrap;gap:8px}
+  .step .meta span{font-size:.74rem;font-weight:600;color:#D8E2F2;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:.25rem .55rem;border-radius:999px}
+  .step{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:26px 22px;position:relative}
+  .step .num{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;margin-bottom:16px}
+  .step h3{font-size:1.18rem;margin-bottom:8px}
+  .step p{color:#BCC9DE;font-size:.92rem}
+  .step .arrow{position:absolute;top:50%;right:-26px;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--amber);color:#fff;box-shadow:0 4px 12px rgba(14,159,110,.45);z-index:3}
+  .step .arrow.loopback{background:#fff;color:var(--blue)}
+  .loop-tag{text-align:center;margin-top:44px;font-family:var(--heading);font-size:clamp(1.15rem,2.2vw,1.5rem);color:#fff;font-weight:700}
+  .loop-tag b{color:var(--amber)}
+
+  /* Pillars */
+  .pillars{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .pillar{border:1px solid var(--line);border-radius:22px;padding:34px;background:#fff;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .pillar .tag{display:inline-flex;align-items:center;gap:.45rem;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:999px;margin-bottom:18px}
+  .pillar.mark .tag{background:rgba(37,99,235,.10);color:var(--blue-dk)}
+  .pillar.pers .tag{background:rgba(245,158,11,.14);color:var(--amber-dk)}
+  .pillar h3{font-size:1.5rem;color:var(--navy);margin-bottom:10px}
+  .pillar>p{color:var(--slate);margin-bottom:18px}
+  .feat-list{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+  .feat-list li{display:flex;gap:.7rem;align-items:flex-start;font-size:.95rem;color:var(--ink)}
+  .feat-list li b{font-weight:600}
+  .check{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+  .pillar.mark .check{background:rgba(37,99,235,.12);color:var(--blue-dk)}
+  .pillar.pers .check{background:rgba(245,158,11,.16);color:var(--amber-dk)}
+
+  /* Feature screenshots */
+  .shots{display:grid;grid-template-columns:repeat(2,1fr);gap:26px}
+  .shot{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);transition:.2s}
+  .shot:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+  .shot .img{background:var(--bg-soft);padding:18px;border-bottom:1px solid var(--line)}
+  .shot .img img{border-radius:10px;width:100%;box-shadow:var(--shadow-sm)}
+  .shot .cap{padding:20px 22px 24px}
+  .shot .cap h3{font-size:1.12rem;color:var(--navy);margin-bottom:6px}
+  .shot .cap p{color:var(--slate);font-size:.93rem}
+  .shot-quote{margin-top:16px;padding:14px 16px;background:var(--bg-soft);border-radius:12px;border-left:3px solid var(--amber);font-size:.86rem;color:var(--ink);font-style:italic}
+  .shot-quote b{display:block;font-style:normal;font-weight:600;color:var(--slate-2);font-size:.78rem;margin-top:8px}
+  .cta-quote{background:linear-gradient(155deg,var(--navy),var(--navy-2));border:0;color:#fff;display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center;padding:30px}
+  .cta-quote b{font-size:1.6rem;color:#fff;font-weight:800;letter-spacing:-.02em}
+  .cta-quote span{color:#C7D2E4;font-size:.92rem}
+  .cta-quote .btn{align-self:center;margin-top:4px}
+
+  /* Diagnosis spotlight (split) */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:46px;align-items:center}
+  .split.rev .copy{order:2}
+  .split .copy h2{color:var(--navy);margin-bottom:14px}
+  .split .copy p{color:var(--slate);margin-bottom:18px}
+  .mini{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px}
+  .mini li{display:flex;gap:.8rem;align-items:flex-start}
+  .mini .mi{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--bg-soft);border:1px solid var(--line)}
+  .mini b{display:block;color:var(--navy);font-size:.98rem}
+  .mini span{color:var(--slate);font-size:.9rem}
+  .split-visual{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:var(--bg-soft);padding:16px}
+  .split-visual img{border-radius:12px}
+
+  /* Lumi / engagement band */
+  .lumi{background:linear-gradient(180deg,#FFF9EE 0%,#FFFFFF 100%);border-top:1px solid var(--line)}
+  .lumi-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:46px;align-items:center}
+  .owl-card{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:30px;text-align:center}
+  .eng-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .eng{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm)}
+  .eng .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(245,158,11,.14);color:var(--amber-dk);margin-bottom:12px}
+  .eng h3{font-size:1.05rem;color:var(--navy);margin-bottom:6px}
+  .eng p{font-size:.9rem;color:var(--slate)}
+
+  /* Testimonials */
+  .tg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .quote{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:14px}
+  .quote .qm{font-family:'Fraunces',serif;font-size:2.4rem;line-height:.5;color:var(--amber);height:18px}
+  .quote p{color:var(--ink);font-size:.96rem}
+  .quote .who{display:flex;align-items:center;gap:.7rem;margin-top:auto}
+  .avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;font-size:.9rem;flex:none}
+  .who b{font-size:.92rem;color:var(--navy)}
+  .who span{font-size:.8rem;color:var(--slate-2);display:block}
+
+  /* Accuracy band */
+  .trust{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:46px;align-items:center}
+  .stat-row{display:flex;gap:34px;flex-wrap:wrap;margin-top:24px}
+  .stat b{display:block;font-size:2.1rem;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+  .stat span{font-size:.85rem;color:var(--slate)}
+
+  /* FAQ */
+  .faq{max-width:780px;margin:0 auto}
+  details{border:1px solid var(--line);border-radius:14px;padding:0;margin-bottom:14px;background:#fff;overflow:hidden}
+  details[open]{box-shadow:var(--shadow-sm)}
+  summary{list-style:none;cursor:pointer;padding:20px 22px;font-weight:600;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:1rem}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{transition:.2s;flex:none;color:var(--slate-2)}
+  details[open] summary .chev{transform:rotate(180deg)}
+  details .ans{padding:0 22px 22px;color:var(--slate);font-size:.96rem}
+
+  /* Final CTA */
+  .cta{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+  .cta::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(700px 320px at 20% 0%,rgba(0,108,73,.34),transparent 60%),
+    radial-gradient(700px 320px at 90% 100%,rgba(14,159,110,.22),transparent 60%)}
+  .cta .wrap{position:relative;text-align:center;padding:24px 0}
+  .cta h2{color:#fff;max-width:680px;margin:0 auto}
+  .cta p{color:#C7D2E4;margin:16px auto 28px;max-width:560px;font-size:1.06rem}
+  .cta .hero-cta{justify-content:center}
+
+  /* Footer */
+  footer{background:#081628;color:#9FB0C7;padding:60px 0 30px}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px}
+  .foot-brand{display:flex;align-items:center;gap:.6rem;color:#fff;font-weight:800;font-size:1.1rem;margin-bottom:14px}
+  .foot-brand img{height:28px}
+  footer p{font-size:.9rem;max-width:300px}
+  .foot-col h4{color:#fff;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px}
+  .foot-col a{display:block;font-size:.92rem;margin-bottom:10px;color:#9FB0C7}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{border-top:1px solid rgba(255,255,255,.10);margin-top:40px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.84rem}
+
+  /* Responsive */
+  @media(max-width:960px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-visual{max-width:460px;margin:0 auto}
+    .steps{grid-template-columns:1fr 1fr}
+    .step .arrow{display:none}
+    .pillars,.shots,.split,.lumi-grid,.trust-grid{grid-template-columns:1fr}
+    .split.rev .copy{order:0}
+    .tg{grid-template-columns:1fr 1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:640px){
+    section{padding:60px 0}
+    .nav-links{display:none}
+    .nav-links.open{display:flex;position:absolute;top:68px;left:0;right:0;flex-direction:column;align-items:flex-start;background:#fff;border-bottom:1px solid var(--line);padding:18px 24px;gap:1rem}
+    .menu-btn{display:block}
+    .hero-cta .btn{flex:1 1 auto;justify-content:center}
+    .hero-badges{flex-wrap:wrap}.hb{flex:1 1 42%}
+    .eng-cards,.tg,.foot-grid{grid-template-columns:1fr}
+    .float.f1{left:-8px}.float.f2{right:-6px}
+    .proof-row{justify-content:flex-start;gap:14px 26px}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><img src="https://www.markforyou.com/logo_t.png" alt="MarkForYou logo" />MarkForYou</a>
+    <nav class="nav-links" id="navLinks">
+      <a class="lnk" href="#loop">How it works</a>
+      <a class="lnk" href="#features">Features</a>
+      <a class="lnk" href="#diagnose">Diagnosis</a>
+      <a class="lnk" href="#kids">For kids</a>
+      <a class="lnk" href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://www.markforyou.com/login">Login</a>
+      <a class="btn btn-amber" href="https://www.markforyou.com/signup">Try free</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<span id="top"></span>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><span class="dot"></span>Built by Singapore parents, for Singapore parents</span>
+      <h1>Know your child's <span class="hl">learning gaps</span> — and close them today.</h1>
+      <p class="lead">MarkForYou marks your child's work, pinpoints the exact concepts they keep getting wrong, and builds personalised practice to close those gaps — automatically. Less guessing, more progress.</p>
+      <div class="hero-cta">
+        <a class="btn btn-amber" href="https://www.markforyou.com/signup">Try now — free →</a>
+        <a class="btn btn-ghost" href="#loop">See how the loop works</a>
+      </div>
+      <div class="hero-badges">
+        <div class="hb"><b>55,000+</b><span>Marks graded</span></div>
+        <div class="hb"><b>100%</b><span>Marking accuracy for MCQ &amp; OEQ</span></div>
+        <div class="hb"><b>P4–P6</b><span>MOE / PSLE aligned</span></div>
+        <div class="hb"><b>4 subjects</b><span>EN · Math · Sci · 中文</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img class="hero-photo" src="https://www.markforyou.com/girlmom.jpg" alt="Mother and daughter learning together" />
+      <div class="hero-card">
+        <div class="hc-row">
+          <span class="ic" style="background:rgba(14,163,113,.14);color:var(--green)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          <div>Marked instantly<small>handwriting &amp; working steps</small></div>
+        </div>
+        <div class="hc-row">
+          <span class="ic" style="background:rgba(0,51,102,.10);color:var(--navy)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 4 3 5-7"/></svg>
+          </span>
+          <div>3 weak topics found<small>by topic &amp; sub-topic</small></div>
+        </div>
+        <div class="hc-row">
+          <span class="ic" style="background:rgba(14,159,110,.16);color:var(--amber-dk)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M19 19l-2.5-2.5M19 5l-2.5 2.5M5 19l2.5-2.5"/></svg>
+          </span>
+          <div>Next quiz built<small>personalised for your child</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<div class="proof">
+  <div class="wrap proof-row">
+    <div class="proof-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Reads messy handwriting</div>
+    <div class="proof-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Awards partial marks like a teacher</div>
+    <div class="proof-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>MOE / PSLE rubric-aligned</div>
+    <div class="proof-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Free during beta</div>
+  </div>
+</div>
+
+<!-- THE LOOP -->
+<section class="loop" id="loop">
+  <div class="wrap">
+    <div class="sec-head wide">
+      <span class="eyebrow">How it works</span>
+      <h2>One loop that keeps closing the gaps</h2>
+      <p>Our platform marks, diagnoses and builds the next personalised quiz for your child — constantly.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Practise</h3>
+        <p>Your child practises on a 10,000-question bank — MCQ and open-ended, personalised to them.</p>
+        <div class="meta"><span>Desktop · tablet · mobile</span><span>or print &amp; scan</span><span>15-min quiz → full paper</span></div>
+        <div class="arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Mark</h3>
+        <p>Marks MCQ and open-ended answers — including messy handwriting — instantly. Scored against MOE rubrics, pointing out missing keywords and steps, and explaining the grammar rules and concepts behind each one.</p>
+        <div class="arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Diagnose &amp; craft</h3>
+        <p>Lumi, our smart owl, reads every working step to detect conceptual errors and common mistakes. It consolidates the insights each week and crafts the next personalised practice for your child.</p>
+        <div class="arrow loopback" title="…and the loop begins again, every week"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg></div>
+      </div>
+    </div>
+    <p class="loop-tag">Every wrong answer becomes <b>next week's quiz.</b></p>
+  </div>
+</section>
+
+<!-- CORE FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head wide">
+      <span class="eyebrow">What's inside</span>
+      <h2>Four things MarkForYou does brilliantly</h2>
+      <p>High accuracy marking and personalised learning.</p>
+    </div>
+  </div>
+
+  <!-- Feature 1: Marking -->
+  <div class="wrap split" style="margin-bottom:18px">
+    <div class="copy">
+      <span class="eyebrow">Marking</span>
+      <h2>Built to mark like a PSLE examiner</h2>
+      <p>Our proprietary high-accuracy marker reads handwriting, understands working steps, and scores against MOE-aligned rubrics. It awards partial credit where due, and explains exactly how to earn full marks using the concepts taught in school.</p>
+      <ul class="mini">
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div><b>MCQ and open-ended</b><span>Including messy handwriting — marked instantly.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div><b>Partial credit, the way a teacher would</b><span>Flags missing keywords and explains step-by-step.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div><b>Benchmarked for accuracy</b><span>MOE rubric-aligned and tested against the top AI models.</span></div>
+        </li>
+      </ul>
+      <div class="chart-card" style="margin-top:26px">
+        <h4>Marking accuracy vs leading AI models</h4>
+        <div class="sub">% accuracy on Science MCQ + OEQ marking <span style="color:var(--slate-2)">· scale starts at 50%</span></div>
+        <div class="bar-row mfy">
+          <div class="lbl">MarkForYou</div>
+          <div class="bar-track"><div class="bar-fill win" style="width:100%"></div></div>
+          <div class="val">100%</div>
+        </div>
+        <div class="bar-row">
+          <div class="lbl">ChatGPT V5.5 Pro<small>Apr-26</small></div>
+          <div class="bar-track"><div class="bar-fill" style="width:76%"></div></div>
+          <div class="val">88%</div>
+        </div>
+        <div class="bar-row">
+          <div class="lbl">Gemini Pro V3.1<small>Feb-26</small></div>
+          <div class="bar-track"><div class="bar-fill" style="width:64%"></div></div>
+          <div class="val">82%</div>
+        </div>
+        <div class="bar-row">
+          <div class="lbl">Qwen 3.6 Plus<small>Apr-26</small></div>
+          <div class="bar-track"><div class="bar-fill" style="width:52%"></div></div>
+          <div class="val">76%</div>
+        </div>
+      </div>
+      <div class="pull">“I like that I can choose what my kid practises on, and on his weak areas. I can see where he needs to use specific Science keywords to score.”<b>— Parent, P5</b></div>
+    </div>
+    <div class="shot-col">
+      <div class="shot-frame"><img src="assets/marking_crop.png" alt="Handwritten Science answer marked with partial credit and explanation" loading="lazy" /></div>
+      <div class="shot-frame"><img src="assets/marking2.png" alt="Handwritten Chinese composition marked against the rubric" loading="lazy" /></div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature 2: Essay Coach -->
+<section style="background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap split rev">
+    <div class="copy">
+      <span class="eyebrow">Essay coach</span>
+      <h2>Coaches your child to upgrade their own essay — not memorise a model one</h2>
+      <p>Instead of cramming yet another model essay, Lumi takes the essay your child already wrote and shows the surgical edits that lift its structure, flow, content and language toward model standard. Far more natural — and far easier for a child to actually learn from.</p>
+      <ul class="mini">
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2M3 12h18"/></svg></span>
+          <div><b>Scan your child's English or Chinese essay</b><span>Get specific tips on how to improve, in both languages.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          <div><b>Surgical edits, shown in green</b><span>Targeted upgrades to structure, flow, content and language.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          <div><b>Export to Word or PDF</b><span>Customise and export the annotated essay.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v4h4"/></svg></span>
+          <div><b>Practise and score again</b><span>Practise again, resubmit, and get an objective read on improvements.</span></div>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <div class="essay-stack">
+        <div class="essay-card back">
+          <div class="ec-head before"><span>Original — as submitted</span><span class="ec-score">29/40</span></div>
+          <img src="assets/essay1.png" alt="Original essay as submitted, scored 29 out of 40" loading="lazy" />
+        </div>
+        <div class="essay-card front">
+          <div class="ec-head after"><span>Enhanced — upgrades in green</span><span class="ec-score">36/40</span></div>
+          <img src="assets/essay2.png" alt="Enhanced essay with surgical edits, scored 36 out of 40" loading="lazy" />
+        </div>
+      </div>
+      <p style="text-align:center;font-size:.85rem;color:var(--slate-2);margin-top:18px">Same essay, surgical edits — a jump from 73% to 90%.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Feature 3: Diagnosis -->
+<section id="diagnose">
+  <div class="wrap split">
+    <div class="copy">
+      <span class="eyebrow">Diagnosis</span>
+      <h2>A view of your child's learning that's simply unparalleled</h2>
+      <p>Lumi reads every working step to explain <em>why</em> marks are being lost — the recurring mistake, the misconception underneath it, and the exact sub-topics bleeding marks. Then it crafts the next practice to close them. Nothing for you to plan; the next quiz is ready and waiting.</p>
+      <ul class="mini">
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <div><b>Spots conceptual errors &amp; common mistakes</b><span>Analysed across papers and topics, with real examples from your child's own work.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6Z"/></svg></span>
+          <div><b>Tracks topic &amp; sub-topic fluency by subject</b><span>Monitors the gaps and creates targeted quizzes to close them.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l3-4 4 3 5-7"/></svg></span>
+          <div><b>Weekly progress, summarised — with next steps</b><span>Lumi works 24/7 for you and your child: marking, diagnosing, tracking, and teeing up the next practice.</span></div>
+        </li>
+      </ul>
+      <div class="pull">“I didn't even realise my kid was making the same mistakes in Area and Circumference across papers.”<b>— Parent, P5</b></div>
+      <div class="pull" style="margin-top:14px">“The biggest star for MarkForYou is the personalised quizzes and identification of my child's weaknesses — it targets those spots and tracks progress.”<b>— Parent, P6</b></div>
+    </div>
+    <div>
+      <div class="shot-frame"><img src="assets/progress.png" alt="Per-topic accuracy chart with weak topics highlighted and progress over time" loading="lazy" /></div>
+      <div class="shot-frame"><img src="assets/lumi.png" alt="Lumi diagnosis: conceptual gaps, common mistakes and personalised next quizzes" loading="lazy" /></div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature 4: Practice backed by neuroscience -->
+<section id="kids" style="background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap split rev">
+    <div class="copy">
+      <span class="eyebrow">Practice</span>
+      <h2>A practice backed by fun — and neuroscience</h2>
+      <p>Kids genuinely love our platform, even though they're attempting PSLE-level questions. Instant feedback and small rewards keep them going — and the way we schedule that practice is built on how memory actually works.</p>
+      <ul class="mini">
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.4 5 5.6.8-4 4 .9 5.5L12 21l-4.9 2.3.9-5.5-4-4 5.6-.8Z"/></svg></span>
+          <div><b>Instant feedback &amp; rewards</b><span>Instant feedback, avatar, stickers and habitats keep kids coming back — even on hard questions.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><b>~25-min Pomodoro quizzes</b><span>Each quiz is sized to a focused work block — long enough to learn, short enough to finish.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v4h4"/></svg></span>
+          <div><b>Spaced repetition</b><span>Our Revise function brings mistakes back with one touch — a neuroscience trick to retain memory.</span></div>
+        </li>
+        <li>
+          <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M5 8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/></svg></span>
+          <div><b>On-the-go convenience</b><span>From a 15-min quiz on mobile to a full printed paper, our platform flexes to your needs.</span></div>
+        </li>
+      </ul>
+      <div class="pull">“My kids complete the quizzes without complaining. The instant feedback and explanation is helpful when I'm not around — kids can go through themselves to know what went wrong.”<b>— Parent, P5</b></div>
+      <div class="pull" style="margin-top:14px">“The Revise function is super helpful to go through all their mistakes with one touch. I used to dog-ear a pile of assessment books.”<b>— Parent, P6</b></div>
+    </div>
+    <div style="max-width:340px;margin:0 auto;width:100%">
+      <div class="shot-frame"><img src="assets/revise.png" alt="One-touch Revise — pull every mistake in a subject into one quick review" loading="lazy" /></div>
+      <div class="shot-frame"><img src="assets/avatar.png" alt="Choose your avatar — kids pick a character to play as" loading="lazy" /></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">FAQ</span>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>What subjects and levels are covered?<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="ans">Primary 4 to 6 English, Mathematics, Science and Chinese, all aligned with the latest MOE syllabus. Upper-primary content is driven by PSLE-grade material.</div>
+      </details>
+      <details>
+        <summary>How does the personalised practice work?<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="ans">After marking, Lumi reads your child's paper history and finds the recurring mistakes and weak sub-topics. It then builds personalised quizzes around those exact gaps, refreshed weekly. You don't pick what to assign — the next quiz is ready and waiting.</div>
+      </details>
+      <details>
+        <summary>How does the AI marking work?<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="ans">Students complete quizzes on their device or on printed worksheets. The AI reads handwriting, applies MOE scoring rubrics, awards partial marks part-by-part, and returns a result within minutes — with step-by-step explanations.</div>
+      </details>
+      <details>
+        <summary>How do I submit my child's work?<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="ans">Three ways: write directly on the in-app handwriting canvas, email a scanned paper to your child's print code, or use a printed worksheet. Each path routes the work back to the right student automatically.</div>
+      </details>
+      <details>
+        <summary>How much does it cost?<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="ans">MarkForYou is currently free during our beta period. Our priority is the best possible experience for families before we introduce pricing. No credit card required.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta">
+  <div class="wrap">
+    <h2>See exactly where your child's gaps are — tonight.</h2>
+    <p>Do a quick 15-min diagnostic quiz, watch it get marked, see the gaps, and get the first personalised assessment and next steps — free, no credit card required.</p>
+    <div class="hero-cta">
+      <a class="btn btn-amber" href="https://www.markforyou.com/signup">Try now — free →</a>
+      <a class="btn btn-light" href="#loop">See how it works</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand"><img src="https://www.markforyou.com/logo_t.png" alt="MarkForYou logo" />MarkForYou.com</div>
+        <p>Know your child's learning gaps — and close them. Warm, AI-powered targeted practice that makes Singapore parents' lives easier.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Product</h4>
+        <a href="#loop">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#diagnose">Diagnosis</a>
+        <a href="#kids">For kids</a>
+      </div>
+      <div class="foot-col">
+        <h4>Company</h4>
+        <a href="https://www.markforyou.com/about">About us</a>
+        <a href="https://www.markforyou.com/faq">FAQ</a>
+        <a href="https://www.markforyou.com/contact">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h4>Legal</h4>
+        <a href="https://www.markforyou.com/privacy">Privacy</a>
+        <a href="https://www.markforyou.com/terms">Terms</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 MarkForYou.com. All rights reserved.</span>
+      <span>Made by Singapore parents 🇸🇬</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav
+  const mb = document.getElementById('menuBtn');
+  const nl = document.getElementById('navLinks');
+  mb.addEventListener('click', () => nl.classList.toggle('open'));
+  nl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nl.classList.remove('open')));
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
