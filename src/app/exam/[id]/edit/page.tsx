@@ -1275,6 +1275,38 @@ function QuestionEditCard({
             </div>
           );
         })()}
+        {/* Transcribed text fallback — primary content for synthetic /
+            text-only questions (which have no scanned imageData), and
+            useful side-by-side context for extracted questions too. The
+            edit page itself doesn't let you re-type the stem (that's
+            /transcribe-edit), so this is read-only. */}
+        {(() => {
+          const stem = (question.transcribedStem ?? "").trim();
+          const opts = (question.transcribedOptions as string[] | null) ?? null;
+          type SubP = { label?: string; text?: string };
+          // transcribedSubparts isn't on ExamQuestionItem so widen via unknown.
+          const subsRaw = (question as unknown as { transcribedSubparts?: SubP[] | null }).transcribedSubparts ?? null;
+          const subs = subsRaw?.filter(s => s && typeof s.label === "string" && !s.label.startsWith("_")) ?? [];
+          if (!stem && (!opts || opts.length === 0) && subs.length === 0) return null;
+          return (
+            <div className="px-4 py-3 bg-white border-t border-slate-100 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+              {stem && <div className="font-medium text-slate-900">{stem}</div>}
+              {opts && opts.length > 0 && (
+                <ol className="mt-1 ml-4 list-decimal space-y-0.5 text-slate-700">
+                  {opts.map((o, i) => <li key={i}>{o}</li>)}
+                </ol>
+              )}
+              {subs.length > 0 && (
+                <ul className="mt-1 ml-4 space-y-0.5 text-slate-700">
+                  {subs.map((s, i) => (
+                    <li key={i}><span className="font-medium">({s.label})</span> {s.text ?? <span className="italic text-slate-400">— no text —</span>}</li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-2 text-[10px] italic text-slate-400">Transcribed stem (edit on /transcribe-edit)</p>
+            </div>
+          );
+        })()}
         <p className="px-3 py-0.5 text-[10px] text-blue-500 font-mono">
           page {question.pageIndex ?? "—"} · yStart {question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "—"} · yEnd {question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "—"}
         </p>
