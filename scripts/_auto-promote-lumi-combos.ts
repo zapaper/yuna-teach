@@ -213,7 +213,22 @@ async function main() {
       : allWeakTopics;
     if (weak.length < 2) { skipped.push(`${slug}/${subject}: only ${weak.length} pickable weak topic(s)`); continue; }
 
-    const top2 = weak.slice(0, 2);
+    // For English: prefer Grammar MCQ + Synthesis (both have sub-topic
+    // targeting + workshop-pattern coverage). Vocab MCQ is technically
+    // pickable but has no sub-topic classifier, so the auto-generated
+    // combo for it carries no targeting beyond the topic name — drill
+    // is shallower. Only fall back to Vocab MCQ when neither of the
+    // two preferred topics is a real weakness (miss rate >= 15%).
+    let top2: typeof weak;
+    if (subject === "english") {
+      const PREFERRED = new Set(["Grammar MCQ", "Synthesis / Transformation"]);
+      const preferred = weak.filter(t => PREFERRED.has(t.topic) && t.pct >= 15);
+      const others = weak.filter(t => !PREFERRED.has(t.topic) || t.pct < 15);
+      // Take from preferred first, top up from others. Limit 2.
+      top2 = [...preferred, ...others].slice(0, 2);
+    } else {
+      top2 = weak.slice(0, 2);
+    }
     const combos = top2.map(t => ({
       topic: t.topic,
       pct: t.pct,

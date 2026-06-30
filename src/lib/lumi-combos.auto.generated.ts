@@ -678,13 +678,13 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // adriel
   "cmpuxa81a000nn2qp6cfegw0u": [
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (12/55 = 22%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — subject-verb-agreement, idiomatic-prepositions, pronouns",
+      rationale: "Top miss area (11/70 = 16%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"subject-verb-agreement":5,"idiomatic-prepositions":3,"pronouns":3},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
         "When filling in blanks or choosing vocabulary words:\n- Look for **collocations** (words that naturally go together, like 'poor visibility' instead of 'vague visibility').\n- In cloze passages, check if your word fits the **grammar of the sentence**, not just the general topic (e.g., needing a pronoun like 'our' instead of an adjective like 'deep').",
         "He picked 'reaps', which a farmer does, instead of 'yields', which is what the garden itself does to produce a crop.",
@@ -693,13 +693,13 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — subject-verb-agreement, idiomatic-prepositions, pronouns",
-      rationale: "Top miss area (11/70 = 16%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"subject-verb-agreement":5,"idiomatic-prepositions":3,"pronouns":3},
+      label: "Vocabulary MCQ",
+      rationale: "Top miss area (12/55 = 22%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {},
       count: 10,
       topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
+        heading: "Vocabulary MCQ — what to look out for",
         watchOut: [
         "When filling in blanks or choosing vocabulary words:\n- Look for **collocations** (words that naturally go together, like 'poor visibility' instead of 'vague visibility').\n- In cloze passages, check if your word fits the **grammar of the sentence**, not just the general topic (e.g., needing a pronoun like 'our' instead of an adjective like 'deep').",
         "He picked 'reaps', which a farmer does, instead of 'yields', which is what the garden itself does to produce a crop.",
@@ -776,34 +776,23 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (3/5 = 60%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      label: "Grammar MCQ",
+      rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Grammar MCQ — what to look out for",
+        watchOut: [
+        "When checking your verbs, always find the main **'who' or 'what'** doing the action. If there are extra phrases like 'together with', ignore them. For plural subjects like 'stalls' or 'centres', use **'have'** instead of 'has'.",
+        "Andrea picked the plural 'were' instead of the singular 'was' for the singular subject 'Jane'.",
+        "She used the singular 'has' instead of the plural 'have' for the plural subject 'stalls'."
+        ],
       },
     },
   ],
   // angyunshanariel
   "cmpnv03yo001cu9v124es2hwf": [
-    {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (18/60 = 30%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
-      topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [
-        "When you see a blank in a vocabulary question, look for the **story clues** in the rest of the sentence. Treat it like a detective game:\n- If there are **'leftovers'**, the feast must be big!\n- If there are **'financial difficulties'**, the spending must be huge!\n- Always double-check if your chosen word matches the **cause and effect** in the sentence.",
-        "She chose 'meager' (small) for a feast, but the clue 'lots of leftovers' tells us the feast was actually 'lavish' (huge).",
-        "She picked 'negligible' (tiny) for spending, but the clue 'financial difficulties' means the spending was 'extravagant' (too much)."
-        ],
-      },
-    },
     {
       label: "Grammar MCQ",
       rationale: "Top miss area (6/20 = 30%). Drilled where your sub-topic gaps are biggest.",
@@ -819,24 +808,24 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-  ],
-  // audrey
-  "cmpzc9z4a00f1x52fsyd53tgh": [
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (14/52 = 27%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (18/60 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
         heading: "Vocabulary MCQ — what to look out for",
         watchOut: [
-        "When choosing a vocabulary word, look for the **'context clues'** hidden in the rest of the sentence.\n- Highlight the reason or action happening around the blank.\n- Ask yourself: 'Does my choice make sense with the rest of the story?'",
-        "Audrey chose 'desired' instead of 'inevitable' for a concert cancellation caused by a sudden heavy downpour.",
-        "She picked 'curiously' instead of 'suspiciously' to match the meaning of 'skeptically'."
+        "When you see a blank in a vocabulary question, look for the **story clues** in the rest of the sentence. Treat it like a detective game:\n- If there are **'leftovers'**, the feast must be big!\n- If there are **'financial difficulties'**, the spending must be huge!\n- Always double-check if your chosen word matches the **cause and effect** in the sentence.",
+        "She chose 'meager' (small) for a feast, but the clue 'lots of leftovers' tells us the feast was actually 'lavish' (huge).",
+        "She picked 'negligible' (tiny) for spending, but the clue 'financial difficulties' means the spending was 'extravagant' (too much)."
         ],
       },
     },
+  ],
+  // audrey
+  "cmpzc9z4a00f1x52fsyd53tgh": [
     {
       label: "Grammar MCQ",
       rationale: "Top miss area (9/42 = 21%). Drilled where your sub-topic gaps are biggest.",
@@ -849,6 +838,21 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         "When you see a phrasal verb question, try replacing the blank with the meaning of each option to see which one fits best.\n- **'put off'** means to postpone, while **'put down'** means to insult or place something on a surface.\n- **'taken in'** means to be tricked, while **'taken up'** means to start a new hobby.",
         "Audrey chose 'put down' instead of 'put off' for delaying a birthday party.",
         "She picked 'taken up' instead of 'taken in' when describing being tricked by a magician."
+        ],
+      },
+    },
+    {
+      label: "Vocabulary MCQ",
+      rationale: "Top miss area (14/52 = 27%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {},
+      count: 10,
+      topicRecap: {
+        heading: "Vocabulary MCQ — what to look out for",
+        watchOut: [
+        "When choosing a vocabulary word, look for the **'context clues'** hidden in the rest of the sentence.\n- Highlight the reason or action happening around the blank.\n- Ask yourself: 'Does my choice make sense with the rest of the story?'",
+        "Audrey chose 'desired' instead of 'inevitable' for a concert cancellation caused by a sudden heavy downpour.",
+        "She picked 'curiously' instead of 'suspiciously' to match the meaning of 'skeptically'."
         ],
       },
     },
@@ -900,17 +904,16 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (3/5 = 60%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — verb-forms",
+      rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"verb-forms":10},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
-        "If you are stuck on a multiple-choice question, use this strategy:\n- **Cross out the options** you know are definitely wrong.\n- **Make a guess** from the remaining choices.\n- Never leave an MCQ blank!",
-        "Clara left this vocabulary question blank instead of guessing the best fit.",
-        "Clara skipped this visual text question rather than picking the most likely reason for the exclamation mark."
+        "When you see phrases like **'one of the students who'**, look at the noun right before 'who' (in this case, 'students') to decide if the action word should be singular or plural.",
+        "Clara picked the singular 'signs' instead of the plural 'sign' for the phrase 'students who sign up'."
         ],
       },
     },
@@ -984,6 +987,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // el44
   "cmpjr2yjx00mweplm8xet2iit": [
     {
+      label: "Grammar MCQ — pronouns, connectors-tenses, subject-verb-agreement",
+      rationale: "Top miss area (5/20 = 25%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"pronouns":4,"connectors-tenses":4,"subject-verb-agreement":2},
+      count: 10,
+      topicRecap: {
+        heading: "Grammar MCQ — what to look out for",
+        watchOut: [],
+      },
+    },
+    {
       label: "Vocabulary MCQ",
       rationale: "Top miss area (10/40 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
@@ -996,17 +1010,6 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         "He chose 'superficial' (meaning on the surface) instead of 'indispensable' (meaning absolutely necessary) for a crucial scientific step.",
         "He picked 'obstructed' (physically blocked) instead of 'stumped' (confused) when talking about a tricky clue."
         ],
-      },
-    },
-    {
-      label: "Grammar MCQ — pronouns, connectors-tenses, subject-verb-agreement",
-      rationale: "Top miss area (5/20 = 25%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"pronouns":4,"connectors-tenses":4,"subject-verb-agreement":2},
-      count: 10,
-      topicRecap: {
-        heading: "Grammar MCQ — what to look out for",
-        watchOut: [],
       },
     },
   ],
@@ -1067,21 +1070,6 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // ij
   "cmpjshl820001c9kbsdebavk9": [
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (13/95 = 14%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
-      topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [
-        "When choosing a vocabulary word, look closely at the **surrounding clues** and ask 'who or what is doing the action?':\n- **Check the actor:** Is it a person, an object, or a place? (e.g., a person 'reaps', but a garden 'yields').\n- **Check the tone:** Is the situation normal or sudden? (e.g., 'bustle' vs 'flurry').\n- **Try it in a simple sentence:** Substitute the word into a basic sentence to see if it sounds right with the surrounding words.",
-        "IJ chose 'bustle' (which means normal busy movement) instead of 'flurry' to describe a sudden, chaotic panic.",
-        "IJ picked 'reaps' (which is what a farmer does) instead of 'yields' to describe what the garden itself produces."
-        ],
-      },
-    },
-    {
       label: "Grammar MCQ — connectors-tenses",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
@@ -1094,6 +1082,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         "IJ used 'between' (which is for two things) instead of 'amongst' (which is for a larger group of students).",
         "IJ used 'some' instead of 'others' to complete the contrasting pair 'some... while others...'."
         ],
+      },
+    },
+    {
+      label: "Synthesis / Transformation — substitution-inversion",
+      rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"substitution-inversion":6},
+      count: 6,
+      topicRecap: {
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [],
       },
     },
   ],
@@ -1194,17 +1193,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (4/5 = 80%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      label: "Grammar MCQ",
+      rationale: "Top miss area (3/5 = 60%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [
-        "When options look similar, look for context clues in the rest of the sentence to guide your choice.\n- If the sentence mentions **'never giving up'**, look for a word that means stubborn or determined.\n- If it talks about **'cutting down too many trees'**, look for a negative word about taking advantage.",
-        "Joylynn confused 'explore' with 'exploit' when describing loggers cutting down too many trees.",
-        "She chose 'indignant' (angry) instead of 'tenacious' (determined) for an opponent who never gives up."
+        "When you see a verb followed by a blank, try reading the sentence silently with each option to see which paints the right picture.\n- **'look to'** means to rely on someone, while **'look into'** means to investigate.\n- **'set off'** means to start a journey or action, while **'set for'** usually means being ready for something.",
+        "Joylynn picked 'looked into' (which means to investigate) instead of 'looked to' for seeking support from a brother.",
+        "She chose 'set for' instead of 'set off' to mean getting started on an action."
         ],
       },
     },
@@ -1227,14 +1226,18 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (62/134 = 46%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
+      label: "Grammar MCQ — subject-verb-agreement, pronouns, connectors-tenses",
+      rationale: "Top miss area (33/94 = 35%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"subject-verb-agreement":4,"pronouns":3,"connectors-tenses":3},
       count: 10,
       topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        heading: "Grammar MCQ — what to look out for",
+        watchOut: [
+        "When you see speech marks **\" \"**, remember the three steps for reported speech:\n- **Change the pronouns** so they make sense from the reporter's point of view.\n- **Shift the tense backwards** (e.g., present becomes past, past becomes past perfect).\n- **Change time words** (e.g., 'today' becomes 'that day', 'now' becomes 'then').",
+        "Kaiyangnggg kept the word order as a question and used 'my' instead of 'their'.",
+        "He used the past tense 'saw' instead of shifting it back to the past perfect 'had seen'."
+        ],
       },
     },
   ],
@@ -1307,21 +1310,6 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // lohzr-p4
   "cmq09jz9r006iptoefdj5bj90": [
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (23/66 = 35%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
-      topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [
-        "When choosing a vocabulary word, look for **hidden clues** in the sentence that tell you exactly how an action happens.\n- For example, if the sentence mentions a 'leaking tap' and a 'slow stream', look for a gentle word like **'trickling'** rather than 'pouring'.\n- Try plugging your chosen word into the sentence and imagine the action in your head to see if it fits perfectly.",
-        "He chose 'swell' instead of 'slosh' to describe the big, noisy splash of water when children jump into a pool.",
-        "He picked 'manage' instead of 'handle' when talking about holding a delicate physical object like a vase."
-        ],
-      },
-    },
-    {
       label: "Grammar MCQ",
       rationale: "Top miss area (13/64 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
@@ -1336,24 +1324,24 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-  ],
-  // mahdi12
-  "cmpujhw1u000l14eokd2gzxj9": [
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (23/30 = 77%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (23/66 = 35%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
         heading: "Vocabulary MCQ — what to look out for",
         watchOut: [
-        "When two words seem to mean the same thing, look closely at the words around the blank.\n- **Read the whole sentence** to see if the word needs to fit a specific tone or pair with a specific preposition.\n- **Try plugging in both options** to see which one sounds more natural in that exact context.",
-        "Chose 'prevented' instead of 'impeded' when describing how a lack of confidence slows down an ability.",
-        "Picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
+        "When choosing a vocabulary word, look for **hidden clues** in the sentence that tell you exactly how an action happens.\n- For example, if the sentence mentions a 'leaking tap' and a 'slow stream', look for a gentle word like **'trickling'** rather than 'pouring'.\n- Try plugging your chosen word into the sentence and imagine the action in your head to see if it fits perfectly.",
+        "He chose 'swell' instead of 'slosh' to describe the big, noisy splash of water when children jump into a pool.",
+        "He picked 'manage' instead of 'handle' when talking about holding a delicate physical object like a vase."
         ],
       },
     },
+  ],
+  // mahdi12
+  "cmpujhw1u000l14eokd2gzxj9": [
     {
       label: "Grammar MCQ — pronouns, idiomatic-prepositions, tag-questions",
       rationale: "Top miss area (13/30 = 43%). Drilled where your sub-topic gaps are biggest.",
@@ -1366,6 +1354,21 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         "Certain words are best friends and always stick together with specific prepositions.\n- **Learn them as a pair**: When you learn a new word, learn its preposition partner too (e.g., 'similar to', 'confide in').\n- **Read aloud**: Sometimes your ears can catch the right pair if you read the sentence softly to yourself.",
         "Chose 'over' instead of 'on' after the word 'congratulated'.",
         "Picked 'from' instead of 'to' when using the word 'similar'."
+        ],
+      },
+    },
+    {
+      label: "Vocabulary MCQ",
+      rationale: "Top miss area (23/30 = 77%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {},
+      count: 10,
+      topicRecap: {
+        heading: "Vocabulary MCQ — what to look out for",
+        watchOut: [
+        "When two words seem to mean the same thing, look closely at the words around the blank.\n- **Read the whole sentence** to see if the word needs to fit a specific tone or pair with a specific preposition.\n- **Try plugging in both options** to see which one sounds more natural in that exact context.",
+        "Chose 'prevented' instead of 'impeded' when describing how a lack of confidence slows down an ability.",
+        "Picked 'intensive' instead of 'overwhelming' to describe a very strong smell."
         ],
       },
     },
@@ -1526,6 +1529,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // pei
   "cmpupjw830029105bqopzb0t3": [
     {
+      label: "Synthesis / Transformation — subordinator, noun-phrase",
+      rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"subordinator":3,"noun-phrase":3},
+      count: 6,
+      topicRecap: {
+        heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [],
+      },
+    },
+    {
       label: "Vocabulary MCQ",
       rationale: "Top miss area (9/30 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
@@ -1540,35 +1554,9 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-    {
-      label: "Synthesis / Transformation — subordinator, noun-phrase",
-      rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {"subordinator":3,"noun-phrase":3},
-      count: 6,
-      topicRecap: {
-        heading: "Synthesis / Transformation — what to look out for",
-        watchOut: [],
-      },
-    },
   ],
   // rizqi
   "cmptyxf6y000j14gm905pad52": [
-    {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (8/10 = 80%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
-      topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [
-        "Treat vocabulary questions like a detective game. Always look for **clue words** in the sentence before making a choice. For example, if a sentence mentions 'leftovers and wastage', that is a big hint that the meal was huge or **lavish**.",
-        "He chose 'immature' instead of 'impulsive' for an act done without checking the truth first.",
-        "He picked 'humble' for the feast, missing the clues about 'leftovers and wastage' which point to a 'lavish' meal."
-        ],
-      },
-    },
     {
       label: "Grammar MCQ",
       rationale: "Top miss area (6/10 = 60%). Drilled where your sub-topic gaps are biggest.",
@@ -1584,20 +1572,24 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-  ],
-  // ryan-kho
-  "cmptmu3x5009xzgzx9esqs7i8": [
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (21/52 = 40%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (8/10 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
         heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
+        watchOut: [
+        "Treat vocabulary questions like a detective game. Always look for **clue words** in the sentence before making a choice. For example, if a sentence mentions 'leftovers and wastage', that is a big hint that the meal was huge or **lavish**.",
+        "He chose 'immature' instead of 'impulsive' for an act done without checking the truth first.",
+        "He picked 'humble' for the feast, missing the clues about 'leftovers and wastage' which point to a 'lavish' meal."
+        ],
       },
     },
+  ],
+  // ryan-kho
+  "cmptmu3x5009xzgzx9esqs7i8": [
     {
       label: "Grammar MCQ — subject-verb-agreement, pronouns, idiomatic-prepositions",
       rationale: "Top miss area (17/49 = 35%). Drilled where your sub-topic gaps are biggest.",
@@ -1613,24 +1605,20 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-  ],
-  // saarah1
-  "cmplwi5iv0005timm7o6h8ty0": [
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (4/5 = 80%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (21/52 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
       topicRecap: {
         heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [
-        "When you see vocabulary questions with words that look similar, test each option in the sentence to see which one sounds like natural English.\n- **Look for clue words** in the sentence (like 'emergency' or 'thunderstorm') that hint at the exact meaning needed.\n- **Read the whole sentence aloud** in your head with your chosen word to check if it forms a common phrase.",
-        "Saarah1 picked 'vague' instead of 'poor' to describe bad visibility during a thunderstorm.",
-        "She wrote 'put attention' instead of the common English phrase 'give attention' or 'pay attention'."
-        ],
+        watchOut: [],
       },
     },
+  ],
+  // saarah1
+  "cmplwi5iv0005timm7o6h8ty0": [
     {
       label: "Synthesis / Transformation — subordinator",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
@@ -1639,6 +1627,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       count: 6,
       topicRecap: {
         heading: "Synthesis / Transformation — what to look out for",
+        watchOut: [],
+      },
+    },
+    {
+      label: "Grammar MCQ — pronouns",
+      rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {"pronouns":10},
+      count: 10,
+      topicRecap: {
+        heading: "Grammar MCQ — what to look out for",
         watchOut: [],
       },
     },
@@ -1737,17 +1736,6 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // tylerng
   "cmokaegzx0005wkxzxu2qcn2m": [
     {
-      label: "Vocabulary MCQ",
-      rationale: "Top miss area (19/35 = 54%). Drilled where your sub-topic gaps are biggest.",
-      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
-      subTopicWeights: {},
-      count: 10,
-      topicRecap: {
-        heading: "Vocabulary MCQ — what to look out for",
-        watchOut: [],
-      },
-    },
-    {
       label: "Grammar MCQ",
       rationale: "Top miss area (25/60 = 42%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
@@ -1762,12 +1750,9 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         ],
       },
     },
-  ],
-  // umarm
-  "cmpuhv13p0001818swyt565lx": [
     {
       label: "Vocabulary MCQ",
-      rationale: "Top miss area (7/10 = 70%). Drilled where your sub-topic gaps are biggest.",
+      rationale: "Top miss area (19/35 = 54%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
       count: 10,
@@ -1776,6 +1761,9 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         watchOut: [],
       },
     },
+  ],
+  // umarm
+  "cmpuhv13p0001818swyt565lx": [
     {
       label: "Grammar MCQ",
       rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
@@ -1789,6 +1777,17 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
         "He picked 'put down' instead of 'put off' for cancelling or postponing a party.",
         "He chose 'looked into' instead of 'looked to' when referring to seeking support from an older brother."
         ],
+      },
+    },
+    {
+      label: "Vocabulary MCQ",
+      rationale: "Top miss area (7/10 = 70%). Drilled where your sub-topic gaps are biggest.",
+      topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
+      subTopicWeights: {},
+      count: 10,
+      topicRecap: {
+        heading: "Vocabulary MCQ — what to look out for",
+        watchOut: [],
       },
     },
   ],
