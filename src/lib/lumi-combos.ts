@@ -368,7 +368,7 @@ export type LumiEnglishQuizCombo = {
 //          spotlight, not a Lumi combo).
 const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
   {
-    label: "Synthesis: Reporting & Combining",
+    label: "Synthesis — reported speech + both/either/neither",
     rationale: "Reported speech is your highest-miss synthesis trick. Paired with correlative pairs (both / either / neither) — same 'two people / two facts' frame.",
     topic: "Synthesis / Transformation",
     subTopicWeights: {
@@ -386,7 +386,7 @@ const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     },
   },
   {
-    label: "Synthesis: Noun-Phrase Transformations",
+    label: "Synthesis — relative clauses, possessives, verb→noun",
     rationale: "Relative clauses, possessives, and verb→noun. Three structural transformations you keep slipping on — drilled together in one focused session.",
     topic: "Synthesis / Transformation",
     subTopicWeights: {
@@ -412,7 +412,7 @@ const MARK_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
 // section-bound, surfaced as spotlight).
 const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
   {
-    label: "Grammar Rules",
+    label: "Grammar Rules — pronouns, tag questions, much/many",
     rationale: "Two rules to lock in: pronouns (whom / whose / herself) and tag questions (the 'isn't he?' check). Plus a top-up on countable / uncountable quantifiers.",
     topic: "Grammar MCQ",
     subTopicWeights: {
@@ -431,7 +431,7 @@ const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     },
   },
   {
-    label: "Synthesis Tricks",
+    label: "Synthesis — reported speech, both/either/neither, because/although/if",
     rationale: "Reported speech + correlative pairs + joining sentences with because / although / if. The three synthesis tricks you've lost the most marks on.",
     topic: "Synthesis / Transformation",
     subTopicWeights: {
@@ -463,7 +463,7 @@ const DAVID_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
 // 3rd CTA: Comp Open-Ended section (33% miss, section-bound).
 const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
   {
-    label: "Synthesis: Reported Speech",
+    label: "Synthesis — reported speech",
     rationale: "Reported speech is your highest-miss synthesis trick. Same set of moves every time — backshift tense, swap subject pronoun, today → that day.",
     topic: "Synthesis / Transformation",
     subTopicWeights: {
@@ -481,7 +481,7 @@ const CALEB_ENGLISH_COMBOS: LumiEnglishQuizCombo[] = [
     },
   },
   {
-    label: "Synthesis: Noun-Phrase Transformations",
+    label: "Synthesis — relative clauses, possessives, verb→noun",
     rationale: "Relative clauses (who/whom/whose/which), possessives, and verb→noun. The three structural transformations you've been losing marks on.",
     topic: "Synthesis / Transformation",
     subTopicWeights: {

@@ -1402,6 +1402,55 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
     ? <>Third, do a <strong>focused practice on {fallbackTopic.topic}</strong> to strengthen {childFirst}&apos;s knowledge on a topic not already covered above.</>
     : <>Third, do a <strong>daily quiz</strong> to refresh {childFirst}&apos;s concepts across topics.</>;
 
+  // For the "personalised quizzes" prose line: pull a friendly topic-
+  // area name (e.g. "grammar", "synthesis") + the top sub-topics from
+  // the combos. Lets the prose call out specifics — "(grammar and
+  // synthesis) ... (pronouns, tag questions, reported speech)" —
+  // instead of a generic "where X struggles with a pattern".
+  const topicAreaName = (topic: string): string => {
+    if (topic === "Grammar MCQ") return "grammar";
+    if (topic === "Vocabulary MCQ") return "vocabulary";
+    if (topic === "Synthesis / Transformation") return "synthesis";
+    return topic.toLowerCase();
+  };
+  const subTopicFriendly = (sub: string): string => {
+    const map: Record<string, string> = {
+      "pronouns": "pronouns",
+      "tag-questions": "tag questions",
+      "countable/uncountable": "much/many",
+      "reported-speech": "reported speech",
+      "correlative-preference": "both/either/neither",
+      "subordinator": "joining with because/although",
+      "noun-phrase": "verb→noun",
+      "subject-verb-agreement": "subject-verb",
+      "idiomatic-prepositions": "prepositions",
+      "verb-forms": "gerund/infinitive",
+      "connectors-tenses": "connectors + tenses",
+      "food-web-explaining": "food web",
+      "adaptation": "adaptation",
+      "vision-and-reflection": "vision + reflection",
+      "magnetic-properties-and-principles": "magnetism",
+      "applying-force-concepts": "applying forces",
+      "identifying-and-representing-forces": "naming forces",
+      "gravitational-potential-to-kinetic": "PE → KE",
+      "heat-transfer-and-materials": "heat transfer",
+      "properties-of-matter": "properties of matter",
+      "causal-chain": "causal chain",
+      "shadow-formation-and-properties": "shadows",
+    };
+    return map[sub] ?? sub.replace(/-/g, " ");
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const comboTopicAreas = [...new Set(combos.slice(0, 2).map((c: any) => topicAreaName(c.topic)))];
+  const topicAreaStr = comboTopicAreas.length === 0 ? ""
+    : comboTopicAreas.length === 1 ? comboTopicAreas[0]
+    : comboTopicAreas.length === 2 ? `${comboTopicAreas[0]} and ${comboTopicAreas[1]}`
+    : `${comboTopicAreas.slice(0, -1).join(", ")} and ${comboTopicAreas.slice(-1)[0]}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const comboSubTopics = [...new Set(combos.slice(0, 2).flatMap((c: any) => Object.keys(c.subTopicWeights ?? {})))]
+    .slice(0, 4)
+    .map(subTopicFriendly);
+
   return (
     <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 space-y-3">
       <h3 className="font-bold text-[#001e40] text-base">Top three priorities for this week</h3>
@@ -1413,7 +1462,18 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
         )}
         {hasCombos && (
           <p>
-            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic</strong> where {childFirst} struggles with a <strong>common-mistakes pattern</strong>, and starts with a short guide and some tips.
+            Then, take the <strong>two personalised quizzes</strong> below to drill them. Each one pairs a <strong>subtopic{topicAreaStr ? ` (${topicAreaStr})` : ""}</strong> where {childFirst} struggles with a <strong>common-mistakes pattern</strong>
+            {comboSubTopics.length > 0 && (
+              <> (
+                {comboSubTopics.map((s, i) => (
+                  <span key={s}>
+                    {i > 0 && ", "}
+                    <strong className="text-purple-700">{s}</strong>
+                  </span>
+                ))}
+              )</>
+            )}
+            , and starts with a short guide and some tips.
           </p>
         )}
         <p>{thirdSentence}</p>

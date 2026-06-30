@@ -13,7 +13,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // al4
   "cmpjrpzqc00qheplmyhd42g36": [
     {
-      label: "Interaction of forces — focused practice",
+      label: "Interaction of forces — magnetic-properties-and-principles",
       rationale: "Top miss area (5/10 = 50%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Magnets)",
       subTopicWeights: {"magnetic-properties-and-principles":10},
@@ -28,7 +28,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Life cycles in plants and animals — focused practice",
+      label: "Life cycles in plants and animals — seed-germination-and-experiments, animal-life-cycle-stages, plant-reproduction-and-life-cycle",
       rationale: "Top miss area (5/13 = 38%). Drilled where your sub-topic gaps are biggest.",
       topic: "Life cycles in plants and animals",
       subTopicWeights: {"seed-germination-and-experiments":5,"animal-life-cycle-stages":3,"plant-reproduction-and-life-cycle":3},
@@ -42,7 +42,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // alexa-goh
   "cmonse0zo004v8eod7ohjm6go": [
     {
-      label: "Water cycle, evaporation, condensation — focused practice",
+      label: "Water cycle, evaporation, condensation — factors-affecting-evaporation, explaining-condensation-phenomena, water-cycle-and-definitions",
       rationale: "Top miss area (8/10 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Water cycle, evaporation, condensation",
       subTopicWeights: {"factors-affecting-evaporation":5,"explaining-condensation-phenomena":3,"water-cycle-and-definitions":3},
@@ -57,7 +57,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Cycles in matter — focused practice",
+      label: "Cycles in matter — properties-of-matter, measuring-volume-displacement, interpreting-heating-curves-data",
       rationale: "Top miss area (11/20 = 55%). Drilled where your sub-topic gaps are biggest.",
       topic: "Cycles in matter",
       subTopicWeights: {"properties-of-matter":5,"measuring-volume-displacement":3,"interpreting-heating-curves-data":2},
@@ -75,7 +75,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // amberamberteo
   "cmojzgv7t0026d4vn3i1frkhp": [
     {
-      label: "Reproduction in plants and animals — focused practice",
+      label: "Reproduction in plants and animals — pollination-and-fertilisation, reproductive-parts-and-functions, experimental-design-and-data-interpretation",
       rationale: "Top miss area (13/16 = 81%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"pollination-and-fertilisation":5,"reproductive-parts-and-functions":4,"experimental-design-and-data-interpretation":2},
@@ -90,7 +90,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Diversity of materials — focused practice",
+      label: "Diversity of materials — fundamental-concepts-of-matter, scientific-investigation-and-classification",
       rationale: "Top miss area (6/11 = 55%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of materials",
       subTopicWeights: {"fundamental-concepts-of-matter":8,"scientific-investigation-and-classification":2},
@@ -108,7 +108,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // benjamin-ong
   "cmopc9wpb007svj1mp4mgoae2": [
     {
-      label: "Plant parts and functions — focused practice",
+      label: "Plant parts and functions — water-transport-system, integrated-plant-systems, food-production-and-transport",
       rationale: "Top miss area (17/29 = 59%). Drilled where your sub-topic gaps are biggest.",
       topic: "Plant parts and functions",
       subTopicWeights: {"water-transport-system":5,"integrated-plant-systems":3,"food-production-and-transport":3},
@@ -123,7 +123,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Diversity of living and non-living things — focused practice",
+      label: "Diversity of living and non-living things",
       rationale: "Top miss area (6/12 = 50%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of living and non-living things",
       subTopicWeights: {},
@@ -137,7 +137,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // caleb
   "cmq4xj0vm0029apq234jrmrh6": [
     {
-      label: "Interactions within the environment — focused practice",
+      label: "Interactions within the environment — food-web-explaining, adaptation, causal-chain",
       rationale: "Top miss area (13/48 = 27%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
       subTopicWeights: {"food-web-explaining":7,"adaptation":2,"causal-chain":2},
@@ -152,7 +152,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Light energy and uses — focused practice",
+      label: "Light energy and uses — vision-and-reflection",
       rationale: "Top miss area (5/21 = 24%). Drilled where your sub-topic gaps are biggest.",
       topic: "Light energy and uses",
       subTopicWeights: {"vision-and-reflection":10},
@@ -166,7 +166,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // david-lim
   "cmm5wf91d000ryrxwaddlo6xh": [
     {
-      label: "Human respiratory and circulatory systems — focused practice",
+      label: "Human respiratory and circulatory systems — blood-circulation-and-transport, gas-exchange-and-air-composition, physiological-response-to-activity",
       rationale: "Top miss area (12/23 = 52%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human respiratory and circulatory systems",
       subTopicWeights: {"blood-circulation-and-transport":5,"gas-exchange-and-air-composition":4,"physiological-response-to-activity":2},
@@ -181,7 +181,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Interaction of forces — focused practice",
+      label: "Interaction of forces — applying-force-concepts, investigating-frictional-force, investigating-elastic-force",
       rationale: "Top miss area (34/84 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
       subTopicWeights: {"applying-force-concepts":4,"investigating-frictional-force":3,"investigating-elastic-force":3},
@@ -199,7 +199,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // drewie
   "cmotxyhij002gd15sbadl7k6i": [
     {
-      label: "Reproduction in plants and animals — focused practice",
+      label: "Reproduction in plants and animals — reproductive-parts-and-functions, experimental-design-and-data-interpretation",
       rationale: "Top miss area (6/6 = 100%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"reproductive-parts-and-functions":8,"experimental-design-and-data-interpretation":2},
@@ -210,7 +210,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Water cycle, evaporation, condensation — focused practice",
+      label: "Water cycle, evaporation, condensation — water-cycle-and-definitions, factors-affecting-evaporation, explaining-condensation-phenomena",
       rationale: "Top miss area (7/9 = 78%). Drilled where your sub-topic gaps are biggest.",
       topic: "Water cycle, evaporation, condensation",
       subTopicWeights: {"water-cycle-and-definitions":6,"factors-affecting-evaporation":3,"explaining-condensation-phenomena":1},
@@ -228,7 +228,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // elijah
   "cmpv1u1kz0001kej78ivc2ii2": [
     {
-      label: "Interaction of forces — focused practice",
+      label: "Interaction of forces",
       rationale: "Top miss area (19/64 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Magnets)",
       subTopicWeights: {},
@@ -239,7 +239,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Diversity of materials — focused practice",
+      label: "Diversity of materials",
       rationale: "Top miss area (16/216 = 7%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of materials",
       subTopicWeights: {},
@@ -257,7 +257,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // emily-lim
   "cmmfmmnwy00fdbbbfgm7k3wpn": [
     {
-      label: "Human digestive system — focused practice",
+      label: "Human digestive system — process-of-digestion-and-absorption, factors-and-system-interactions, organ-identification-and-function",
       rationale: "Top miss area (13/50 = 26%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
       subTopicWeights: {"process-of-digestion-and-absorption":4,"factors-and-system-interactions":4,"organ-identification-and-function":3},
@@ -272,7 +272,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Life cycles in plants and animals — focused practice",
+      label: "Life cycles in plants and animals — animal-life-cycle-stages",
       rationale: "Top miss area (9/36 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Life cycles in plants and animals",
       subTopicWeights: {"animal-life-cycle-stages":10},
@@ -290,7 +290,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // enxin
   "cmpii1sad0029edtv33dhmalc": [
     {
-      label: "Human digestive system — focused practice",
+      label: "Human digestive system — organ-identification-and-function, process-of-digestion-and-absorption, factors-and-system-interactions",
       rationale: "Top miss area (7/11 = 64%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
       subTopicWeights: {"organ-identification-and-function":4,"process-of-digestion-and-absorption":4,"factors-and-system-interactions":1},
@@ -305,7 +305,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Water cycle, evaporation, condensation — focused practice",
+      label: "Water cycle, evaporation, condensation — explaining-condensation-phenomena, factors-affecting-evaporation, water-cycle-and-definitions",
       rationale: "Top miss area (17/42 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Water cycle, evaporation, condensation",
       subTopicWeights: {"explaining-condensation-phenomena":4,"factors-affecting-evaporation":3,"water-cycle-and-definitions":3},
@@ -323,7 +323,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // hongjun23
   "cmpxpj5650003129ks5j25l5i": [
     {
-      label: "Life cycles in plants and animals — focused practice",
+      label: "Life cycles in plants and animals — animal-life-cycle-stages, seed-germination-and-experiments, factors-affecting-animal-development",
       rationale: "Top miss area (5/9 = 56%). Drilled where your sub-topic gaps are biggest.",
       topic: "Life cycles in plants and animals",
       subTopicWeights: {"animal-life-cycle-stages":3,"seed-germination-and-experiments":3,"factors-affecting-animal-development":3},
@@ -338,7 +338,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Interaction of forces — focused practice",
+      label: "Interaction of forces — applying-force-concepts, identifying-and-representing-forces",
       rationale: "Top miss area (5/10 = 50%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
       subTopicWeights: {"applying-force-concepts":7,"identifying-and-representing-forces":3},
@@ -352,7 +352,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // ij
   "cmpjshl820001c9kbsdebavk9": [
     {
-      label: "Interactions within the environment — focused practice",
+      label: "Interactions within the environment — adaptation, food-web-explaining, causal-chain",
       rationale: "Top miss area (18/42 = 43%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
       subTopicWeights: {"adaptation":4,"food-web-explaining":4,"causal-chain":2},
@@ -367,7 +367,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Reproduction in plants and animals — focused practice",
+      label: "Reproduction in plants and animals — fruit-and-seed-dispersal, reproductive-parts-and-functions, experimental-design-and-data-interpretation",
       rationale: "Top miss area (7/23 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"fruit-and-seed-dispersal":6,"reproductive-parts-and-functions":2,"experimental-design-and-data-interpretation":2},
@@ -381,7 +381,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // jeremiahsy
   "cmnk7dkkj006z14p6yf06ohzm": [
     {
-      label: "Reproduction in plants and animals — focused practice",
+      label: "Reproduction in plants and animals — reproductive-parts-and-functions, pollination-and-fertilisation, experimental-design-and-data-interpretation",
       rationale: "Top miss area (31/37 = 84%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"reproductive-parts-and-functions":6,"pollination-and-fertilisation":3,"experimental-design-and-data-interpretation":1},
@@ -396,7 +396,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Light energy and uses — focused practice",
+      label: "Light energy and uses — vision-and-reflection, shadow-formation-and-properties, properties-of-materials",
       rationale: "Top miss area (12/23 = 52%). Drilled where your sub-topic gaps are biggest.",
       topic: "Light energy and uses",
       subTopicWeights: {"vision-and-reflection":3,"shadow-formation-and-properties":3,"properties-of-materials":3},
@@ -410,7 +410,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // kaiyangnggg
   "cmojzr4fu004gd4vnx8wmz6zk": [
     {
-      label: "Interaction of forces — focused practice",
+      label: "Interaction of forces — identifying-and-representing-forces, applying-force-concepts, investigating-elastic-force",
       rationale: "Top miss area (59/78 = 76%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
       subTopicWeights: {"identifying-and-representing-forces":6,"applying-force-concepts":3,"investigating-elastic-force":1},
@@ -421,7 +421,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Energy conversion — focused practice",
+      label: "Energy conversion — electricity-generation-and-application, gravitational-potential-to-kinetic, elastic-potential-to-kinetic",
       rationale: "Top miss area (34/50 = 68%). Drilled where your sub-topic gaps are biggest.",
       topic: "Energy conversion",
       subTopicWeights: {"electricity-generation-and-application":5,"gravitational-potential-to-kinetic":3,"elastic-potential-to-kinetic":2},
@@ -439,7 +439,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // larisalami
   "cmp0i0w260007ed25233a901u": [
     {
-      label: "Heat energy and uses — focused practice",
+      label: "Heat energy and uses — expansion-and-contraction, changes-of-state, heat-temperature-and-measurement",
       rationale: "Top miss area (9/42 = 21%). Drilled where your sub-topic gaps are biggest.",
       topic: "Heat energy and uses",
       subTopicWeights: {"expansion-and-contraction":5,"changes-of-state":3,"heat-temperature-and-measurement":2},
@@ -454,7 +454,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Reproduction in plants and animals — focused practice",
+      label: "Reproduction in plants and animals — fruit-and-seed-dispersal",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Reproduction in plants and animals",
       subTopicWeights: {"fruit-and-seed-dispersal":10},
@@ -468,7 +468,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // lohxy2014
   "cmpuqemdt000112ltfrrcmpqg": [
     {
-      label: "Interactions within the environment — focused practice",
+      label: "Interactions within the environment — food-web-explaining, adaptation",
       rationale: "Top miss area (6/13 = 46%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
       subTopicWeights: {"food-web-explaining":8,"adaptation":2},
@@ -483,7 +483,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Cycles in matter — focused practice",
+      label: "Cycles in matter — interpreting-heating-curves-data",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Cycles in matter",
       subTopicWeights: {"interpreting-heating-curves-data":10},
@@ -497,7 +497,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // lohzr-p4
   "cmq09jz9r006iptoefdj5bj90": [
     {
-      label: "Cycles in matter — focused practice",
+      label: "Cycles in matter — properties-of-matter, measuring-volume-displacement, water-cycle-applications",
       rationale: "Top miss area (17/26 = 65%). Drilled where your sub-topic gaps are biggest.",
       topic: "Cycles in matter",
       subTopicWeights: {"properties-of-matter":6,"measuring-volume-displacement":4,"water-cycle-applications":1},
@@ -512,7 +512,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Human digestive system — focused practice",
+      label: "Human digestive system — organ-identification-and-function, process-of-digestion-and-absorption, factors-and-system-interactions",
       rationale: "Top miss area (8/14 = 57%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
       subTopicWeights: {"organ-identification-and-function":5,"process-of-digestion-and-absorption":4,"factors-and-system-interactions":1},
@@ -530,7 +530,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // mark-lim
   "cmmbbyvs30004qa9yinn3drl6": [
     {
-      label: "Human respiratory and circulatory systems — focused practice",
+      label: "Human respiratory and circulatory systems — gas-exchange-and-air-composition, physiological-response-to-activity, blood-circulation-and-transport",
       rationale: "Top miss area (60/105 = 57%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human respiratory and circulatory systems",
       subTopicWeights: {"gas-exchange-and-air-composition":5,"physiological-response-to-activity":3,"blood-circulation-and-transport":2},
@@ -541,7 +541,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Plant parts and functions — focused practice",
+      label: "Plant parts and functions — integrated-plant-systems",
       rationale: "Top miss area (10/16 = 63%). Drilled where your sub-topic gaps are biggest.",
       topic: "Plant parts and functions",
       subTopicWeights: {"integrated-plant-systems":10},
@@ -555,7 +555,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // omi
   "cmqjq81ni0017utjdartsk52u": [
     {
-      label: "Human digestive system — focused practice",
+      label: "Human digestive system — organ-identification-and-function, process-of-digestion-and-absorption, factors-and-system-interactions",
       rationale: "Top miss area (13/22 = 59%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human digestive system",
       subTopicWeights: {"organ-identification-and-function":6,"process-of-digestion-and-absorption":2,"factors-and-system-interactions":2},
@@ -566,7 +566,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Human respiratory and circulatory systems — focused practice",
+      label: "Human respiratory and circulatory systems — system-components-and-functions, blood-circulation-and-transport",
       rationale: "Top miss area (4/8 = 50%). Drilled where your sub-topic gaps are biggest.",
       topic: "Human respiratory and circulatory systems",
       subTopicWeights: {"system-components-and-functions":8,"blood-circulation-and-transport":3},
@@ -580,7 +580,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // ruthie
   "cmos5pfmw000114n1eem2gcw7": [
     {
-      label: "Energy conversion — focused practice",
+      label: "Energy conversion — electricity-generation-and-application, gravitational-potential-to-kinetic, energy-loss-and-inefficiency",
       rationale: "Top miss area (9/25 = 36%). Drilled where your sub-topic gaps are biggest.",
       topic: "Energy conversion",
       subTopicWeights: {"electricity-generation-and-application":4,"gravitational-potential-to-kinetic":3,"energy-loss-and-inefficiency":3},
@@ -595,7 +595,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Interactions within the environment — focused practice",
+      label: "Interactions within the environment — food-web-explaining, mutual-benefits, adaptation",
       rationale: "Top miss area (6/31 = 19%). Drilled where your sub-topic gaps are biggest.",
       topic: "Interactions within the environment",
       subTopicWeights: {"food-web-explaining":7,"mutual-benefits":2,"adaptation":2},
@@ -609,7 +609,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // shayane
   "cmpuoa41n001d105bxxo78i02": [
     {
-      label: "Diversity of living and non-living things — focused practice",
+      label: "Diversity of living and non-living things — classification-of-organisms, characteristics-of-plants-and-fungi",
       rationale: "Top miss area (6/7 = 86%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of living and non-living things",
       subTopicWeights: {"classification-of-organisms":8,"characteristics-of-plants-and-fungi":2},
@@ -624,7 +624,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Plant parts and functions — focused practice",
+      label: "Plant parts and functions — integrated-plant-systems, water-transport-system, transpiration-and-gaseous-exchange",
       rationale: "Top miss area (7/9 = 78%). Drilled where your sub-topic gaps are biggest.",
       topic: "Plant parts and functions",
       subTopicWeights: {"integrated-plant-systems":4,"water-transport-system":4,"transpiration-and-gaseous-exchange":2},
@@ -642,7 +642,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
   // umarh
   "cmpu1m6pf009a14gmkdfrforu": [
     {
-      label: "Diversity of living and non-living things — focused practice",
+      label: "Diversity of living and non-living things",
       rationale: "Top miss area (13/29 = 45%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of living and non-living things",
       subTopicWeights: {},
@@ -657,7 +657,7 @@ export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {
       },
     },
     {
-      label: "Diversity of materials — focused practice",
+      label: "Diversity of materials",
       rationale: "Top miss area (1/7 = 14%). Drilled where your sub-topic gaps are biggest.",
       topic: "Diversity of materials",
       subTopicWeights: {},
@@ -678,7 +678,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // adriel
   "cmpuxa81a000nn2qp6cfegw0u": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (12/55 = 22%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -693,7 +693,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — subject-verb-agreement, idiomatic-prepositions, pronouns",
       rationale: "Top miss area (11/70 = 16%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subject-verb-agreement":5,"idiomatic-prepositions":3,"pronouns":3},
@@ -711,7 +711,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // al4
   "cmpjrpzqc00qheplmyhd42g36": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — correlative-preference",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"correlative-preference":6},
@@ -722,7 +722,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (5/95 = 5%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -736,7 +736,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // allisonteo
   "cmpwicswm0003pwrh52tmawxi": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, correlative-preference",
       rationale: "Top miss area (8/10 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"subordinator":2,"correlative-preference":2},
@@ -747,7 +747,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — connectors-tenses, pronouns, verb-forms",
       rationale: "Top miss area (6/20 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"connectors-tenses":5,"pronouns":3,"verb-forms":3},
@@ -765,7 +765,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // andrea
   "cmq67kcxn0019bgkrvdku9w6f": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator, substitution-inversion, correlative-preference",
       rationale: "Top miss area (5/5 = 100%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":2,"substitution-inversion":2,"correlative-preference":1},
@@ -776,7 +776,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (3/5 = 60%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -790,7 +790,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // angyunshanariel
   "cmpnv03yo001cu9v124es2hwf": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (18/60 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -805,7 +805,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (6/20 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -823,7 +823,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // audrey
   "cmpzc9z4a00f1x52fsyd53tgh": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (14/52 = 27%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -838,7 +838,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (9/42 = 21%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -856,7 +856,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // caleb
   "cmq4xj0vm0029apq234jrmrh6": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, noun-phrase, substitution-inversion",
       rationale: "Top miss area (7/30 = 23%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"noun-phrase":3,"substitution-inversion":1},
@@ -871,7 +871,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — pronouns, connectors-tenses, subject-verb-agreement",
       rationale: "Top miss area (3/30 = 10%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"pronouns":3,"connectors-tenses":3,"subject-verb-agreement":3},
@@ -885,7 +885,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // clara
   "cmnq8plhv007jetag5gmxvl8v": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, correlative-preference, noun-phrase",
       rationale: "Top miss area (5/5 = 100%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"correlative-preference":2,"noun-phrase":2},
@@ -900,7 +900,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (3/5 = 60%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -918,7 +918,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // david-lim
   "cmm5wf91d000ryrxwaddlo6xh": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, participle-clauses",
       rationale: "Top miss area (74/188 = 39%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"subordinator":2,"participle-clauses":1},
@@ -933,7 +933,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — tag-questions, connectors-tenses, pronouns",
       rationale: "Top miss area (124/503 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"tag-questions":4,"connectors-tenses":3,"pronouns":3},
@@ -951,7 +951,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // eg
   "cmqa97aqx00138zk403nx9ud2": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, participle-clauses",
       rationale: "Top miss area (13/25 = 52%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":2,"subordinator":2,"participle-clauses":2},
@@ -966,7 +966,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — pronouns, connectors-tenses",
       rationale: "Top miss area (3/20 = 15%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"pronouns":7,"connectors-tenses":3},
@@ -984,7 +984,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // el44
   "cmpjr2yjx00mweplm8xet2iit": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (10/40 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -999,7 +999,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — pronouns, connectors-tenses, subject-verb-agreement",
       rationale: "Top miss area (5/20 = 25%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"pronouns":4,"connectors-tenses":4,"subject-verb-agreement":2},
@@ -1013,7 +1013,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // emily-lim
   "cmmfmmnwy00fdbbbfgm7k3wpn": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator, correlative-preference",
       rationale: "Top miss area (6/15 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":5,"correlative-preference":1},
@@ -1028,7 +1028,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (2/40 = 5%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1042,7 +1042,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // faith
   "cmqj81mfb004m6rbdsgw8zobn": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator, correlative-preference",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":3,"correlative-preference":3},
@@ -1053,7 +1053,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — countable/uncountable, connectors-tenses",
       rationale: "Top miss area (10/190 = 5%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"countable/uncountable":8,"connectors-tenses":3},
@@ -1067,7 +1067,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // ij
   "cmpjshl820001c9kbsdebavk9": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (13/95 = 14%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1082,7 +1082,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — connectors-tenses",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"connectors-tenses":10},
@@ -1100,7 +1100,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // j-di-o
   "cmqjq1kmn0005utjdsl4090e8": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, noun-phrase, substitution-inversion",
       rationale: "Top miss area (6/40 = 15%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":2,"noun-phrase":2,"substitution-inversion":2},
@@ -1111,7 +1111,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (22/168 = 13%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1125,7 +1125,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // jeremiahsy
   "cmnk7dkkj006z14p6yf06ohzm": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — noun-phrase, reported-speech, participle-clauses",
       rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"noun-phrase":2,"reported-speech":2,"participle-clauses":2},
@@ -1136,7 +1136,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (3/25 = 12%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1154,7 +1154,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // jeron16
   "cmpsi48y5000qji84cyscuzcy": [
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — verb-forms, connectors-tenses",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"verb-forms":5,"connectors-tenses":5},
@@ -1169,7 +1169,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1183,7 +1183,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // joylynn
   "cmpw71a1t0021bzg3jvn7c5dy": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator, reported-speech, substitution-inversion",
       rationale: "Top miss area (5/5 = 100%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":2,"reported-speech":2,"substitution-inversion":2},
@@ -1194,7 +1194,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (4/5 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1212,7 +1212,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // kaiyangnggg
   "cmojzr4fu004gd4vnx8wmz6zk": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, correlative-preference, noun-phrase",
       rationale: "Top miss area (49/70 = 70%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":2,"correlative-preference":2,"noun-phrase":1},
@@ -1227,7 +1227,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (62/134 = 46%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1241,7 +1241,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // kayden
   "cmplc7a1l00033gxd3mvd27io": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech",
       rationale: "Top miss area (4/5 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":6},
@@ -1256,7 +1256,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (5/15 = 33%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1274,7 +1274,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // lohxy2014
   "cmpuqemdt000112ltfrrcmpqg": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, substitution-inversion",
       rationale: "Top miss area (12/25 = 48%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":2,"subordinator":2,"substitution-inversion":2},
@@ -1289,7 +1289,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — tag-questions, connectors-tenses, verb-forms",
       rationale: "Top miss area (36/88 = 41%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"tag-questions":4,"connectors-tenses":3,"verb-forms":3},
@@ -1307,7 +1307,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // lohzr-p4
   "cmq09jz9r006iptoefdj5bj90": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (23/66 = 35%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1322,7 +1322,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (13/64 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1340,7 +1340,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // mahdi12
   "cmpujhw1u000l14eokd2gzxj9": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (23/30 = 77%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1355,7 +1355,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — pronouns, idiomatic-prepositions, tag-questions",
       rationale: "Top miss area (13/30 = 43%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"pronouns":4,"idiomatic-prepositions":4,"tag-questions":3},
@@ -1373,7 +1373,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // mark-lim
   "cmmbbyvs30004qa9yinn3drl6": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, noun-phrase, correlative-preference",
       rationale: "Top miss area (100/202 = 50%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"noun-phrase":2,"correlative-preference":1},
@@ -1388,7 +1388,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — tag-questions, pronouns, verb-forms",
       rationale: "Top miss area (96/945 = 10%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"tag-questions":4,"pronouns":4,"verb-forms":2},
@@ -1406,7 +1406,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // meryll
   "cmpuockrk0023105b9sfvsifx": [
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (3/10 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1421,7 +1421,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (2/10 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1435,7 +1435,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // natashatsai
   "cmq1nty4o0002umcoodrkjp79": [
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1450,7 +1450,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (3/10 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1464,7 +1464,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // naurahumaira
   "cmptyivvp000314gmr7d5ai51": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, participle-clauses",
       rationale: "Top miss area (20/25 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"subordinator":2,"participle-clauses":2},
@@ -1479,7 +1479,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (10/15 = 67%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1497,7 +1497,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // omi
   "cmqjq81ni0017utjdartsk52u": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — noun-phrase, participle-clauses, subordinator",
       rationale: "Top miss area (7/15 = 47%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"noun-phrase":2,"participle-clauses":2,"subordinator":1},
@@ -1512,7 +1512,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — connectors-tenses, countable/uncountable, subject-verb-agreement",
       rationale: "Top miss area (19/260 = 7%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"connectors-tenses":5,"countable/uncountable":3,"subject-verb-agreement":3},
@@ -1526,7 +1526,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // pei
   "cmpupjw830029105bqopzb0t3": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (9/30 = 30%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1541,7 +1541,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator, noun-phrase",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":3,"noun-phrase":3},
@@ -1555,7 +1555,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // rizqi
   "cmptyxf6y000j14gm905pad52": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (8/10 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1570,7 +1570,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (6/10 = 60%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1588,7 +1588,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // ryan-kho
   "cmptmu3x5009xzgzx9esqs7i8": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (21/52 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1599,7 +1599,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — subject-verb-agreement, pronouns, idiomatic-prepositions",
       rationale: "Top miss area (17/49 = 35%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subject-verb-agreement":4,"pronouns":3,"idiomatic-prepositions":3},
@@ -1617,7 +1617,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // saarah1
   "cmplwi5iv0005timm7o6h8ty0": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (4/5 = 80%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1632,7 +1632,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — subordinator",
       rationale: "Top miss area (2/5 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subordinator":6},
@@ -1646,7 +1646,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // shadow-demon
   "cmpnkrb4c001hn6wks6oisdiu": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — substitution-inversion",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"substitution-inversion":6},
@@ -1657,7 +1657,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (1/5 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1675,7 +1675,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // shayane
   "cmpuoa41n001d105bxxo78i02": [
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — subject-verb-agreement, countable/uncountable, idiomatic-prepositions",
       rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"subject-verb-agreement":3,"countable/uncountable":3,"idiomatic-prepositions":3},
@@ -1690,7 +1690,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (2/10 = 20%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1708,7 +1708,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // shriv8209j
   "cmpl9m4f40002xwmmj0zm2fkn": [
     {
-      label: "Synthesis / Transformation — focused practice",
+      label: "Synthesis / Transformation — reported-speech, subordinator, noun-phrase",
       rationale: "Top miss area (22/40 = 55%). Drilled where your sub-topic gaps are biggest.",
       topic: "Synthesis / Transformation" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"reported-speech":3,"subordinator":2,"noun-phrase":2},
@@ -1723,7 +1723,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (1/10 = 10%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1737,7 +1737,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // tylerng
   "cmokaegzx0005wkxzxu2qcn2m": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (19/35 = 54%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1748,7 +1748,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (25/60 = 42%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1766,7 +1766,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // umarm
   "cmpuhv13p0001818swyt565lx": [
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (7/10 = 70%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1777,7 +1777,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ",
       rationale: "Top miss area (4/10 = 40%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},
@@ -1795,7 +1795,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   // winterark312
   "cmp6mtgj50003k9u71g0n8pnh": [
     {
-      label: "Grammar MCQ — focused practice",
+      label: "Grammar MCQ — idiomatic-prepositions, connectors-tenses, countable/uncountable",
       rationale: "Top miss area (15/80 = 19%). Drilled where your sub-topic gaps are biggest.",
       topic: "Grammar MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {"idiomatic-prepositions":4,"connectors-tenses":4,"countable/uncountable":3},
@@ -1810,7 +1810,7 @@ export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
       },
     },
     {
-      label: "Vocabulary MCQ — focused practice",
+      label: "Vocabulary MCQ",
       rationale: "Top miss area (19/120 = 16%). Drilled where your sub-topic gaps are biggest.",
       topic: "Vocabulary MCQ" as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",
       subTopicWeights: {},

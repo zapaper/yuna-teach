@@ -248,11 +248,24 @@ import type { LumiQuizCombo, LumiEnglishQuizCombo } from "./lumi-combos";
 
 `;
 
+  // Build a friendly label that includes top sub-topics where the
+  // picker will bias the quiz. Falls back to plain topic name when no
+  // sub-topics are weighted (the kid's clones don't have sub-topic
+  // tags). Drops the misleading "— focused practice" suffix the
+  // previous version used: the button container already says
+  // "Personalised quiz" and adding "focused practice" made parents
+  // mistake the personalised button for the generic amber CTA.
+  function comboLabel(c: { topic: string; subWeights: Record<string, number> }): string {
+    const topName = topicLabel(c.topic);
+    const subs = Object.entries(c.subWeights).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => k);
+    return subs.length > 0 ? `${topName} — ${subs.join(", ")}` : topName;
+  }
+
   const sciExport = `export const AUTO_LUMI_COMBOS_SCIENCE: Record<string, LumiQuizCombo[]> = {\n` +
-    scienceGen.map(g => `  // ${g.studentName}\n  "${g.studentId}": [\n${g.combos.map(c => `    {\n      label: ${JSON.stringify(`${topicLabel(c.topic)} — focused practice`)},\n      rationale: ${JSON.stringify(`Top miss area (${c.missed}/${c.seen} = ${c.pct}%). Drilled where your sub-topic gaps are biggest.`)},\n      topic: ${JSON.stringify(c.topic)},\n      subTopicWeights: ${JSON.stringify(c.subWeights)},\n      skillTag: "evidence-then-conclusion",\n      topicRecap: {\n        heading: ${JSON.stringify(`${topicLabel(c.topic)} — what to look out for`)},\n        watchOut: ${JSON.stringify(c.pattern ? watchOutFromPattern(c.pattern) : [], null, 8).split("\n").map(l => "        " + l.trim()).join("\n").trim()},\n      },\n    },`).join("\n")}\n  ],`).join("\n") + "\n};\n\n";
+    scienceGen.map(g => `  // ${g.studentName}\n  "${g.studentId}": [\n${g.combos.map(c => `    {\n      label: ${JSON.stringify(comboLabel(c))},\n      rationale: ${JSON.stringify(`Top miss area (${c.missed}/${c.seen} = ${c.pct}%). Drilled where your sub-topic gaps are biggest.`)},\n      topic: ${JSON.stringify(c.topic)},\n      subTopicWeights: ${JSON.stringify(c.subWeights)},\n      skillTag: "evidence-then-conclusion",\n      topicRecap: {\n        heading: ${JSON.stringify(`${topicLabel(c.topic)} — what to look out for`)},\n        watchOut: ${JSON.stringify(c.pattern ? watchOutFromPattern(c.pattern) : [], null, 8).split("\n").map(l => "        " + l.trim()).join("\n").trim()},\n      },\n    },`).join("\n")}\n  ],`).join("\n") + "\n};\n\n";
 
   const engExport = `export const AUTO_LUMI_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = {\n` +
-    englishGen.map(g => `  // ${g.studentName}\n  "${g.studentId}": [\n${g.combos.map(c => `    {\n      label: ${JSON.stringify(`${topicLabel(c.topic)} — focused practice`)},\n      rationale: ${JSON.stringify(`Top miss area (${c.missed}/${c.seen} = ${c.pct}%). Drilled where your sub-topic gaps are biggest.`)},\n      topic: ${JSON.stringify(c.topic)} as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",\n      subTopicWeights: ${JSON.stringify(c.subWeights)},\n      count: ${c.topic === "Synthesis / Transformation" ? 6 : 10},\n      topicRecap: {\n        heading: ${JSON.stringify(`${topicLabel(c.topic)} — what to look out for`)},\n        watchOut: ${JSON.stringify(c.pattern ? watchOutFromPattern(c.pattern) : [], null, 8).split("\n").map(l => "        " + l.trim()).join("\n").trim()},\n      },\n    },`).join("\n")}\n  ],`).join("\n") + "\n};\n";
+    englishGen.map(g => `  // ${g.studentName}\n  "${g.studentId}": [\n${g.combos.map(c => `    {\n      label: ${JSON.stringify(comboLabel(c))},\n      rationale: ${JSON.stringify(`Top miss area (${c.missed}/${c.seen} = ${c.pct}%). Drilled where your sub-topic gaps are biggest.`)},\n      topic: ${JSON.stringify(c.topic)} as "Grammar MCQ" | "Vocabulary MCQ" | "Synthesis / Transformation",\n      subTopicWeights: ${JSON.stringify(c.subWeights)},\n      count: ${c.topic === "Synthesis / Transformation" ? 6 : 10},\n      topicRecap: {\n        heading: ${JSON.stringify(`${topicLabel(c.topic)} — what to look out for`)},\n        watchOut: ${JSON.stringify(c.pattern ? watchOutFromPattern(c.pattern) : [], null, 8).split("\n").map(l => "        " + l.trim()).join("\n").trim()},\n      },\n    },`).join("\n")}\n  ],`).join("\n") + "\n};\n";
 
   writeFileSync(OUT_PATH, header + sciExport + engExport, "utf8");
   console.log(`\nWrote ${OUT_PATH}`);
