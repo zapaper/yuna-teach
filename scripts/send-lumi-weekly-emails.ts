@@ -42,19 +42,19 @@ function safeSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 // Subject key passed to loadTutorData (must be one of these short
 // names — subjectWhere() matches them exactly to derive the SQL
 // `contains` predicate). Display labels are separate (LABEL).
-const SUBJECTS = ["Math", "Science", "English"] as const;
-type Subject = (typeof SUBJECTS)[number];
-const SUBJECT_LABEL: Record<Subject, string> = { Math: "Mathematics", Science: "Science", English: "English" };
-const SUBJECT_EMOJI: Record<Subject, string> = { Math: "🧮", Science: "🔬", English: "✍️" };
+export const SUBJECTS = ["Math", "Science", "English"] as const;
+export type Subject = (typeof SUBJECTS)[number];
+export const SUBJECT_LABEL: Record<Subject, string> = { Math: "Mathematics", Science: "Science", English: "English" };
+export const SUBJECT_EMOJI: Record<Subject, string> = { Math: "🧮", Science: "🔬", English: "✍️" };
 
-const STYLES = {
+export const STYLES = {
   body:      `font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7fb; padding: 24px;`,
   container: `max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(11, 28, 48, 0.06);`,
   intro:     `font-size: 15px; color: #1e293b; line-height: 1.6; margin: 0 0 16px 0;`,
@@ -235,7 +235,7 @@ function renderEnglishDetails(childFirst: string, ex: {
   `;
 }
 
-function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaUrl: string): string {
+export function renderDelta(data: ReadyData, childFirst: string, subject: Subject, ctaUrl: string): string {
   const delta = data.weeklyDelta;
   if (!delta) return ""; // shouldn't happen (caller filters), but safety
   const isEnglish = subject === "English";

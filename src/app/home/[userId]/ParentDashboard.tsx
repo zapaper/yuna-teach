@@ -4897,7 +4897,21 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
 // students is one in-page state change, no full-page navigation.
 type LumiAdminCandidate = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
 function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { studentId: string; parentId: string; studentName: string; isAdmin?: boolean }) {
-  const [subject, setSubject] = useState<string>("Science");
+  // Deep-link support: `?subject=English` on the Lumi URL preselects the
+  // English tab so the grammar/synthesis new-feature email button lands
+  // exactly where it claims. Read once, then let the user click pills
+  // freely. Defaults to Science (the original behaviour) when no param.
+  const initialSubject = (() => {
+    if (typeof window === "undefined") return "Science";
+    const raw = new URLSearchParams(window.location.search).get("subject");
+    if (!raw) return "Science";
+    const lc = raw.toLowerCase();
+    if (lc.startsWith("eng")) return "English";
+    if (lc.startsWith("mat")) return "Math";
+    if (lc.startsWith("sci")) return "Science";
+    return "Science";
+  })();
+  const [subject, setSubject] = useState<string>(initialSubject);
   // Admin override: when the caller is an admin, /api/tutor/admin-students
   // returns every kid who qualifies for the current subject — including
   // ones not linked to this parent account. Belt-and-braces gating:

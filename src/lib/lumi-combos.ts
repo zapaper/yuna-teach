@@ -547,6 +547,10 @@ export const LUMI_QUIZ_COMBOS_ENGLISH: Record<string, LumiEnglishQuizCombo[]> = 
   "cmmbbyvs30004qa9yinn3drl6": MARK_ENGLISH_COMBOS,     // Mark Lim
   "cmq4xj0vm0029apq234jrmrh6": CALEB_ENGLISH_COMBOS,    // Caleb (Felicia's kid)
   "cmojzr4fu004gd4vnx8wmz6zk": KAIYANG_ENGLISH_COMBOS,  // Kaiyangnggg
+  // student67 cloned from David's English combos — matches the Science
+  // clone above; David's 199 English papers were cloned to student67 so
+  // the same recommendations stay coherent across both subjects.
+  "cmqg8upha0000l3ijfr3co6t8": DAVID_ENGLISH_COMBOS,    // student67
 };
 
 // ─── Derived (no-hand-written) combos ────────────────────────────────

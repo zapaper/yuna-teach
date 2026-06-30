@@ -17,7 +17,7 @@ import { isAuthorizedForStudent } from "@/lib/access";
 const GRAMMAR_SUBTOPICS: Array<{ id: string; label: string }> = [
   { id: "connectors-tenses",       label: "Connectors &\ntenses" },
   { id: "verb-forms",              label: "Verb forms" },
-  { id: "idiomatic-prepositions",  label: "Idiomatic\nprepositions" },
+  { id: "idiomatic-prepositions",  label: "Prepositions" },
   { id: "tag-questions",           label: "Tag questions" },
   { id: "countable/uncountable",   label: "Countable /\nuncountable" },
   { id: "subject-verb-agreement",  label: "Subject-verb\nagreement" },
