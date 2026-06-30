@@ -77,6 +77,22 @@ function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOption
   return looksLikeMcq(q);
 }
 
+// Renders a Lumi-preamble bullet with the first phrase (everything up
+// to the first colon) bolded. e.g. "Pronouns: WHO does the action..."
+// → **Pronouns**: WHO does the action... So the parent's eye lands on
+// the topic of each tip first. If the bullet has no colon, render
+// plain.
+function PreambleBullet({ text }: { text: string }): React.ReactNode {
+  const colonIdx = text.indexOf(":");
+  // Heuristic guard — only bold when the prefix is a real phrase (2–40
+  // chars). Skips weird hits like a colon mid-clause and bullets that
+  // start with "**markdown** :" where the bolding would conflict.
+  if (colonIdx < 2 || colonIdx > 40) return text;
+  const prefix = text.slice(0, colonIdx);
+  const rest = text.slice(colonIdx);
+  return <><span className="font-bold">{prefix}</span>{rest}</>;
+}
+
 /** Render __underline__ markup */
 function renderUnderline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
@@ -1795,7 +1811,7 @@ function QuizContent({ id }: { id: string }) {
                   <p className="font-bold mb-1">{topicBlock.heading}</p>
                   <ul className="space-y-1 list-disc list-outside pl-5">
                     {topicBlock.watchOut.map((tip, i) => (
-                      <li key={i} className="leading-relaxed">{tip}</li>
+                      <li key={i} className="leading-relaxed"><PreambleBullet text={tip} /></li>
                     ))}
                   </ul>
                 </div>
@@ -1811,7 +1827,7 @@ function QuizContent({ id }: { id: string }) {
                   <p className="font-bold mb-1">Watch out for:</p>
                   <ul className="space-y-1 list-disc list-outside pl-5">
                     {skillBlock.watchOut.map((tip, i) => (
-                      <li key={i} className="leading-relaxed">{tip}</li>
+                      <li key={i} className="leading-relaxed"><PreambleBullet text={tip} /></li>
                     ))}
                   </ul>
                 </div>
