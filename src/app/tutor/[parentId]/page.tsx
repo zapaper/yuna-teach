@@ -2531,7 +2531,126 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
           creating={creating}
         />
       )}
+      <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst} />
     </section>
+  );
+}
+
+// English Grammar 7-rule fluency radar. Gated to a small set of kids
+// (Mark + David) with enough Grammar MCQ + Cloze attempts to make the
+// chart meaningful. Pulls from /api/tutor/[id]/grammar-fluency.
+const GRAMMAR_RADAR_KIDS = new Set<string>([
+  "cmmbbyvs30004qa9yinn3drl6", // Mark Lim
+  "cmm5wf91d000ryrxwaddlo6xh", // David Lim
+]);
+type GrammarFluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
+function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; subject: string; childFirst: string }) {
+  const [data, setData] = useState<{ subTopics: GrammarFluencyRow[]; overall: number | null } | null>(null);
+  useEffect(() => {
+    if (subject !== "English") return;
+    if (!GRAMMAR_RADAR_KIDS.has(studentId)) return;
+    let cancelled = false;
+    fetch(`/api/tutor/${studentId}/grammar-fluency`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled && d) setData(d); })
+      .catch(() => { /* silent */ });
+    return () => { cancelled = true; };
+  }, [studentId, subject]);
+  if (subject !== "English" || !GRAMMAR_RADAR_KIDS.has(studentId) || !data) return null;
+
+  // SVG radar geometry — 7 axes evenly spaced starting at top, then
+  // clockwise.
+  const W = 360, H = 360, CX = W / 2, CY = H / 2, R = 130;
+  const subs = data.subTopics;
+  const angles = subs.map((_, i) => (i / subs.length) * 2 * Math.PI - Math.PI / 2);
+  function point(angle: number, pct: number): [number, number] {
+    const r = (pct / 100) * R;
+    return [CX + r * Math.cos(angle), CY + r * Math.sin(angle)];
+  }
+  function ringPath(pctOuter: number, pctInner: number, segments = 60): string {
+    // Annular ring as a closed path — two arcs.
+    const ro = (pctOuter / 100) * R;
+    const ri = (pctInner / 100) * R;
+    let p = "";
+    for (let i = 0; i <= segments; i++) {
+      const a = (i / segments) * 2 * Math.PI - Math.PI / 2;
+      const x = CX + ro * Math.cos(a), y = CY + ro * Math.sin(a);
+      p += (i === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2) + " ";
+    }
+    for (let i = segments; i >= 0; i--) {
+      const a = (i / segments) * 2 * Math.PI - Math.PI / 2;
+      const x = CX + ri * Math.cos(a), y = CY + ri * Math.sin(a);
+      p += "L" + x.toFixed(2) + "," + y.toFixed(2) + " ";
+    }
+    return p + "Z";
+  }
+  const polygonPts = subs.map((s, i) => point(angles[i], s.pct ?? 0).join(",")).join(" ");
+
+  return (
+    <div className="mt-8 pt-6 border-t border-slate-200">
+      <h3 className="text-sm font-bold text-[#001e40] mb-1">English Grammar Fluency · 7 PSLE rules</h3>
+      <p className="text-xs text-[#666] mb-3">
+        {childFirst}&apos;s accuracy on Grammar MCQ + Grammar Cloze combined, split by the 7 rule families.
+        {data.overall !== null && <> Overall: <strong>{data.overall}%</strong>.</>}
+      </p>
+      <div className="flex items-start gap-6 flex-wrap">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[360px]">
+          {/* Zone bands: green ≥80, yellow 50–80, red <50 */}
+          <path d={ringPath(100, 80)} fill="#bbf7d0" opacity="0.5" />
+          <path d={ringPath(80, 50)} fill="#fde68a" opacity="0.5" />
+          <path d={ringPath(50, 0)} fill="#fecaca" opacity="0.4" />
+          {/* Grid rings */}
+          {[20, 40, 60, 80, 100].map(p => {
+            const r = (p / 100) * R;
+            return <circle key={p} cx={CX} cy={CY} r={r} fill="none" stroke="#cccccc" strokeWidth={0.8} />;
+          })}
+          {/* Axis lines + labels */}
+          {subs.map((s, i) => {
+            const [ax, ay] = point(angles[i], 100);
+            const [lx, ly] = point(angles[i], 115);
+            return (
+              <g key={s.id}>
+                <line x1={CX} y1={CY} x2={ax} y2={ay} stroke="#cccccc" strokeWidth={0.8} />
+                <text x={lx} y={ly} fontSize={10} textAnchor="middle" dominantBaseline="middle" fill="#001e40" fontWeight={600}>
+                  {s.label.split(" ").map((w, j) => (
+                    <tspan key={j} x={lx} dy={j === 0 ? 0 : 11}>{w}</tspan>
+                  ))}
+                </text>
+              </g>
+            );
+          })}
+          {/* Polygon */}
+          <polygon points={polygonPts} fill="#3b82f6" fillOpacity={0.3} stroke="#1e40af" strokeWidth={2} />
+          {/* Dots + value labels */}
+          {subs.map((s, i) => {
+            const [x, y] = point(angles[i], s.pct ?? 0);
+            const colour = s.pct === null ? "#999" : s.pct >= 80 ? "#16a34a" : s.pct >= 50 ? "#ca8a04" : "#dc2626";
+            return (
+              <g key={`pt-${s.id}`}>
+                <circle cx={x} cy={y} r={4.5} fill={colour} stroke="white" strokeWidth={1.5} />
+                {s.pct !== null && (
+                  <text x={x} y={y - 9} fontSize={10} textAnchor="middle" fill="#001e40" fontWeight={700}>
+                    {s.pct}%
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+        <div className="text-xs text-[#43474f] space-y-1.5 flex-1 min-w-[180px]">
+          <p><span className="inline-block w-3 h-3 rounded-sm bg-[#bbf7d0] align-middle mr-1.5" /> Green zone — 80%+</p>
+          <p><span className="inline-block w-3 h-3 rounded-sm bg-[#fde68a] align-middle mr-1.5" /> Yellow zone — 50-80%</p>
+          <p><span className="inline-block w-3 h-3 rounded-sm bg-[#fecaca] align-middle mr-1.5" /> Red zone — under 50%</p>
+          <div className="pt-2 border-t border-slate-100 mt-2">
+            {subs.filter(s => s.available > 0).map(s => (
+              <p key={s.id} className="text-[11px] text-[#666] leading-snug">
+                {s.label}: {s.awarded}/{s.available} ({s.pct}%)
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
