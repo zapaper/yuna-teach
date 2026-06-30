@@ -2552,7 +2552,13 @@ type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null };
 // for grammar (7 rules) and synthesis (6 tricks). Zone thresholds:
 // green ≥ 75% (raised from 80% to give a slightly wider safe band),
 // yellow 50–75%, red < 50%.
-function RadarSvg({ title, subTopics }: { title: string; subTopics: FluencyRow[] }) {
+function RadarSvg({ title, subTopics, overall, totalAwarded, totalAvailable }: {
+  title: string;
+  subTopics: FluencyRow[];
+  overall: number | null;
+  totalAwarded: number;
+  totalAvailable: number;
+}) {
   const W = 320, H = 320, CX = W / 2, CY = H / 2, R = 115;
   const subs = subTopics;
   const angles = subs.map((_, i) => (i / Math.max(subs.length, 1)) * 2 * Math.PI - Math.PI / 2);
@@ -2579,7 +2585,14 @@ function RadarSvg({ title, subTopics }: { title: string; subTopics: FluencyRow[]
   const polygonPts = subs.map((s, i) => point(angles[i], s.pct ?? 0).join(",")).join(" ");
   return (
     <div className="flex flex-col items-center">
-      <h4 className="text-sm font-bold text-[#001e40] mb-2 text-center">{title}</h4>
+      <h4 className="text-sm font-bold text-[#001e40] text-center">{title}</h4>
+      <p className="text-[11px] text-[#666] mb-2 text-center">
+        {totalAvailable > 0 ? (
+          <>Overall <strong className="text-[#001e40]">{overall ?? 0}%</strong> ({totalAwarded}/{totalAvailable} marks)</>
+        ) : (
+          <span className="italic">No attempts yet</span>
+        )}
+      </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[320px]">
         <path d={ringPath(100, 75)} fill="#bbf7d0" opacity="0.55" />
         <path d={ringPath(75, 50)} fill="#fde68a" opacity="0.55" />
@@ -2640,12 +2653,22 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
       <h3 className="text-sm font-bold text-[#001e40] mb-1">English Fluency · sub-topic radar</h3>
       <p className="text-xs text-[#666] mb-4">
         {childFirst}&apos;s accuracy on each rule family. Green zone ≥ 75%, yellow 50–75%, red &lt; 50%.
-        {data.grammar.overall !== null && <> Grammar overall: <strong>{data.grammar.overall}%</strong>.</>}
-        {data.synthesis.overall !== null && <> Synthesis overall: <strong>{data.synthesis.overall}%</strong>.</>}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RadarSvg title="Grammar (MCQ + Cloze)" subTopics={data.grammar.subTopics.filter(s => s.available >= 3)} />
-        <RadarSvg title="Synthesis & Transformation" subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)} />
+        <RadarSvg
+          title="Grammar (MCQ + Cloze)"
+          subTopics={data.grammar.subTopics.filter(s => s.available >= 3)}
+          overall={data.grammar.overall}
+          totalAwarded={data.grammar.totalAwarded}
+          totalAvailable={data.grammar.totalAvailable}
+        />
+        <RadarSvg
+          title="Synthesis & Transformation"
+          subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)}
+          overall={data.synthesis.overall}
+          totalAwarded={data.synthesis.totalAwarded}
+          totalAvailable={data.synthesis.totalAvailable}
+        />
       </div>
     </div>
   );
