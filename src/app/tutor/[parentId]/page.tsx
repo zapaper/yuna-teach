@@ -1521,7 +1521,7 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
               disabled={submittingIdx !== null}
               className="rounded-xl bg-purple-700 hover:bg-purple-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-purple-900/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-200">Personalised quiz {i + 1}</div>
+              <div className="text-sm uppercase tracking-wider font-bold text-white">Personalised quiz {i + 1}</div>
               <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.label}</div>
               <div className="text-xs text-purple-200 mt-1 font-semibold flex items-center gap-1.5">
                 {busy && (
@@ -1564,7 +1564,7 @@ function LumiQuizCombosCard({ studentId, childFirst, childFullName: _childFullNa
               disabled={submittingIdx !== null}
               className="rounded-xl bg-purple-700 hover:bg-purple-800 px-4 py-3.5 text-left transition-colors shadow-md ring-2 ring-purple-900/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <div className="text-[10px] uppercase tracking-wider font-bold text-purple-200">Personalised quiz {i + 1}</div>
+              <div className="text-sm uppercase tracking-wider font-bold text-white">Personalised quiz {i + 1}</div>
               <div className="text-sm font-bold text-white mt-0.5 line-clamp-2">{c.topic}</div>
               <div className="text-xs text-purple-200 mt-1 font-semibold flex items-center gap-1.5">
                 {busy && (
