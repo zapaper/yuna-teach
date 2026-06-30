@@ -4124,7 +4124,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                     : "bg-[#ffdad6] text-[#93000a]"
                                               }`}>
                                                 <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
-                                                {cleaned}
+                                                <MathText text={cleaned} />
                                               </div>
                                             );
                                           })()}
@@ -4251,7 +4251,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   ? "bg-[#fef3c7] text-[#633f00]"
                                   : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {cleanDetectedAnswer(studentAnswerText)}
+                              <MathText text={cleanDetectedAnswer(studentAnswerText)} />
                             </div>
                           </div>
                         )}
@@ -4347,7 +4347,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   ? "bg-[#fef3c7] text-[#633f00]"
                                   : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {cleanDetectedAnswer(studentAnswerText)}
+                              <MathText text={cleanDetectedAnswer(studentAnswerText)} />
                             </div>
                           </div>
                         )}

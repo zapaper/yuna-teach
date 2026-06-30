@@ -66,7 +66,25 @@ export async function GET(
   if (question.examPaperId !== paperId) {
     return NextResponse.json({ error: "Question does not belong to paper" }, { status: 400 });
   }
+  // In-app quizzes (paperType=quiz with handwriting OEQs) have no y-bounds
+  // because there's no scanned PDF — the kid drew directly on a per-OEQ
+  // canvas. The paper's metadata.oeqPageMap maps each OEQ questionId to
+  // the submission page that holds that canvas; serve the full page.
   if (question.yStartPct == null || question.yEndPct == null) {
+    const meta = paper.metadata as { oeqPageMap?: Record<string, number> } | null;
+    const oeqIdx = meta?.oeqPageMap?.[questionId];
+    if (typeof oeqIdx === "number") {
+      const pagePath = path.join(SUBMISSIONS_DIR, paperId, `page_${oeqIdx}.jpg`);
+      try {
+        const buf = await fs.readFile(pagePath);
+        return new NextResponse(new Uint8Array(buf), {
+          status: 200,
+          headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" },
+        });
+      } catch {
+        return NextResponse.json({ error: "Scanned page file not found on disk (canvas may have been blank — nothing was saved)" }, { status: 404 });
+      }
+    }
     return NextResponse.json({ error: "Question has no y-bounds" }, { status: 400 });
   }
 
