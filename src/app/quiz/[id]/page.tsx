@@ -321,32 +321,67 @@ function QuizContent({ id }: { id: string }) {
   }
 
   function applyCssHighlights() {
+    // Two-track: prefer the CSS Custom Highlight API when the browser
+    // supports it (Chrome 105+, Safari 17.4+, Firefox 140+) — that
+    // path leaves the DOM untouched so React re-renders don't wipe
+    // strokes. Any browser that fails the feature check falls through
+    // to a DOM-wrap fallback (<mark data-quiz-highlight="1">) so
+    // highlights still visibly stick. The fallback is also used when
+    // CSS.highlights.set silently no-ops (some engines drop the
+    // ::highlight() pseudo-element rule at parse time and we can't
+    // easily detect that; wrapping is a safe belt-and-braces).
     const cssAny = CSS as unknown as { highlights?: Map<string, unknown>; Highlight?: unknown };
     const HighlightCtor = (typeof window !== "undefined" ? (window as unknown as { Highlight?: new (...r: Range[]) => unknown }).Highlight : undefined);
-    if (!cssAny.highlights || !HighlightCtor) {
-      // Diagnostic — log ONCE if the Custom Highlight API is missing
-      // so DevTools shows why drag-time highlight doesn't persist.
-      const w = window as unknown as { __quizHighlightWarned?: boolean };
-      if (!w.__quizHighlightWarned) {
-        w.__quizHighlightWarned = true;
-        console.warn(`[quiz-highlight] CSS Custom Highlight API unavailable (highlights=${typeof cssAny.highlights}, Highlight=${typeof HighlightCtor}). Highlight will only show during drag.`);
-      }
-      return;
-    }
+    const canUseHighlightApi = !!cssAny.highlights && !!HighlightCtor;
+
+    // Wipe any prior fallback wrappers before re-applying so we don't
+    // accumulate. Selector matches only our marks — safe to blast.
+    document.querySelectorAll('mark[data-quiz-highlight="1"]').forEach(mark => {
+      const parent = mark.parentNode;
+      if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
+      parent.normalize?.();
+    });
+
+    // Live ranges — filter collapsed ones (text nodes gone).
     const live = highlightRangesRef.current.filter(r => !r.collapsed);
     highlightRangesRef.current = live;
-    try {
-      cssAny.highlights.set("quiz-yellow", new HighlightCtor(...live));
-    } catch (err) {
-      console.warn("[quiz-highlight] CSS.highlights.set failed:", err);
+
+    if (canUseHighlightApi) {
+      try {
+        (cssAny.highlights as Map<string, unknown>).set("quiz-yellow", new (HighlightCtor as new (...r: Range[]) => unknown)(...live));
+      } catch (err) {
+        console.warn("[quiz-highlight] CSS.highlights.set failed:", err);
+      }
     }
-    // Diagnostic — confirm the rule + the highlights set look right.
-    // Logs once on first apply.
+
+    // Always ALSO DOM-wrap from the serialised source of truth. The
+    // CSS API is invisible on some Chromium versions where a
+    // stylesheet-scoped ::highlight() rule doesn't render;
+    // double-painting is fine because they're the same yellow. On
+    // real fallback browsers (old iOS Safari, some in-app WebViews)
+    // this is the only path that shows anything.
+    for (const h of serializedHighlightsRef.current) {
+      const card = document.querySelector(`[data-question-id="${h.questionId}"]`) as HTMLElement | null;
+      if (!card) continue;
+      const r = rangeForAnchor(card, h.text, h.occurrence);
+      if (!r) continue;
+      try {
+        const contents = r.extractContents();
+        const mark = document.createElement("mark");
+        mark.setAttribute("data-quiz-highlight", "1");
+        mark.style.cssText = "background-color: #fde68a; color: inherit; padding: 0; border-radius: 0;";
+        mark.appendChild(contents);
+        r.insertNode(mark);
+      } catch { /* range straddles a node it can't wrap — skip */ }
+    }
+
+    // Diagnostic log once on first apply.
     const w = window as unknown as { __quizHighlightLogged?: boolean };
     if (!w.__quizHighlightLogged) {
       w.__quizHighlightLogged = true;
-      const ruleEl = document.getElementById("quiz-highlight-style");
-      console.log(`[quiz-highlight] ranges=${live.length}, registered=${cssAny.highlights.has("quiz-yellow")}, ruleInjected=${!!ruleEl}, ruleText=${ruleEl?.textContent?.slice(0, 80)}`);
+      console.log(`[quiz-highlight] applied — apiAvailable=${canUseHighlightApi}, serialized=${serializedHighlightsRef.current.length}, liveRanges=${live.length}`);
     }
   }
 

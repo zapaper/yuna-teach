@@ -973,10 +973,26 @@ function ExamReviewContent({ id }: { id: string }) {
           ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
           : `/home/${userId}?view=progress`;
 
-  if (loading) {
+  // Diagnostic-quiz gate: hold the review screen behind a friendly
+  // 'Marking your quiz…' spinner until the paper actually has
+  // markingStatus=complete/released. Without this, kids opened the
+  // review and saw score='—' for ~1-2 seconds while the marker was
+  // still working, followed by an abrupt jump to the real score +
+  // the congrats popup. Holding on the loading screen instead means
+  // they never see the intermediate state. Non-diagnostic reviews
+  // keep the old behaviour (loading spinner only during the initial
+  // fetch) so parents scrubbing through old papers aren't blocked.
+  const diagnosticMarkPending = isDiagnostic
+    && !!data
+    && data.markingStatus !== "complete"
+    && data.markingStatus !== "released";
+  if (loading || diagnosticMarkPending) {
     return (
-      <div className="flex justify-center py-24 bg-[#f8f9ff] min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#dce9ff] border-t-[#001e40]" />
+      <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#dce9ff] border-t-[#001e40]" />
+        <p className="text-sm text-[#43474f] font-medium">
+          {diagnosticMarkPending ? "Marking your quiz…" : ""}
+        </p>
       </div>
     );
   }
@@ -1530,7 +1546,7 @@ function ExamReviewContent({ id }: { id: string }) {
             </div>
             <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Congratulations on finishing your first quiz!</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-6">
-              With each quiz, <strong className="font-bold text-[#001e40]">Lumi</strong> gets smarter in identifying weak areas and personalising the next practice. Click &ldquo;Go to diagnostic&rdquo; on the top left when you are done reviewing the mistakes here.
+              With each quiz, <strong className="font-bold text-[#001e40]">Lumi</strong> gets smarter in identifying weak areas and personalising the next practice. Click <strong className="font-bold text-[#001e40]">&ldquo;Go to diagnostic&rdquo;</strong> on the top left when you are done reviewing the mistakes here.
             </p>
             <button
               onClick={() => setShowFirstQuizPopup(false)}
