@@ -306,6 +306,7 @@ export async function POST(request: NextRequest) {
             transcribedSubparts: q.transcribedSubparts ?? undefined,
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
+            subTopic: q.subTopic ?? undefined,
             sourceQuestionId: q.id,
           })),
         },
@@ -496,6 +497,7 @@ export async function POST(request: NextRequest) {
             transcribedSubparts: q.transcribedSubparts ?? undefined,
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
+            subTopic: q.subTopic ?? undefined,
             sourceQuestionId: q.id,
           })),
         },
@@ -511,6 +513,14 @@ export async function POST(request: NextRequest) {
   // findMany + backfill loops); if the parent switches tabs or
   // re-clicks before the first request resolves, we'd otherwise
   // create two papers.
+  //
+  // firstQuiz (onboarding diagnostic): match on metadata.
+  // onboardingDiagnostic === true instead of the fragile
+  // label-based section fingerprint. Prior fingerprint compared the
+  // request's SECTION KEYS ('grammar-mcq,synthesis') against the
+  // paper metadata's DISPLAY LABELS ('Grammar MCQ,Synthesis'), so
+  // dedup always missed — the parent got a fresh diagnostic every
+  // time they clicked Assign+Email then Start Quiz.
   {
     const subj: string = subject ?? "";
     const dedupWindow = new Date(Date.now() - 90_000);
@@ -525,6 +535,25 @@ export async function POST(request: NextRequest) {
       : subj === "math" ? { subject: { contains: "math", mode: "insensitive" } }
       : subj === "science" ? { subject: { contains: "science", mode: "insensitive" } }
       : {};
+    // firstQuiz path: look for ANY existing onboarding-diagnostic
+    // paper for this student+subject — no time window at all, since
+    // there should only ever be one per (student, subject).
+    if (firstQuiz) {
+      const existingDiagnostic = await prisma.examPaper.findFirst({
+        where: {
+          assignedToId: targetStudentId,
+          paperType: "quiz",
+          metadata: { path: ["onboardingDiagnostic"], equals: true },
+          ...subjectFilter,
+        },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, questions: { select: { id: true } } },
+      });
+      if (existingDiagnostic) {
+        console.log(`[daily-quiz] firstQuiz dedup hit — returning existing diagnostic ${existingDiagnostic.id} for student=${targetStudentId} subject=${subj}`);
+        return NextResponse.json({ id: existingDiagnostic.id, questionCount: existingDiagnostic.questions.length, dedup: true });
+      }
+    }
     const recent = await prisma.examPaper.findFirst({
       where: {
         userId,
@@ -1689,6 +1718,14 @@ export async function POST(request: NextRequest) {
             transcribedSubparts: q.transcribedSubparts ?? undefined,
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
+            // Copy subTopic from master so the diagnostic's
+            // per-rule fluency query (grammar-fluency route filters
+            // subTopic != null) actually gets rows back. Prior to
+            // this the clone shape omitted subTopic entirely and
+            // every fluency row was silently dropped — the radar /
+            // table read 'no data' despite the column chart
+            // rendering the same paper's scores just fine.
+            subTopic: q.subTopic ?? undefined,
             sourceQuestionId: q.id,
           })) as any,
         },
@@ -2102,6 +2139,10 @@ export async function POST(request: NextRequest) {
           transcribedSubparts: q.transcribedSubparts ?? undefined,
           diagramImageData: q.diagramImageData,
           diagramBounds: q.diagramBounds ?? undefined,
+          // See English clone comment above — carry subTopic across
+          // to the clone so downstream per-rule fluency / classifier
+          // queries actually resolve.
+          subTopic: q.subTopic ?? undefined,
           sourceQuestionId: q.id,
         })) as any,
       },
