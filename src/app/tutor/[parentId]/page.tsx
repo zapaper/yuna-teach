@@ -597,20 +597,10 @@ function IneligibleView({
         </section>
       )}
 
-      {/* Need-more-data banner — replaces the common-mistakes /
-          conceptual-gaps cards that ReadyView would show. */}
-      <section className="bg-violet-50 border border-violet-200 rounded-2xl px-6 py-5">
-        <p className="text-sm font-bold text-violet-800 mb-1">Need more data</p>
-        <p className="text-sm text-violet-900 leading-relaxed">
-          {remaining > 0 ? (
-            <>
-              Finish <strong>{remaining}</strong> more {subject.toLowerCase()} {subject === "MATH" || subject === "SCIENCE" ? `daily quiz${remaining === 1 ? "" : "zes"}` : `practice${remaining === 1 ? "" : "s"}`} and I&apos;ll surface common mistakes and conceptual gaps to focus on.
-            </>
-          ) : (
-            <>I need a bit more data before I can surface common mistakes and conceptual gaps.</>
-          )}
-        </p>
-      </section>
+      {/* 'Need more data' banner removed 2026-07-02 — the Lumi
+          greeting already communicates 'With 3 or more papers, I will
+          be able to provide deeper personalised insights.' Repeating
+          it below the topic chart read as noisy. */}
 
     </div>
   );

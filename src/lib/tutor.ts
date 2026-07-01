@@ -651,7 +651,7 @@ function shapeTutorData(args: {
   if (topline.paperCount < 3) {
     return {
       kind: "ineligible",
-      reason: "Need at least 3 papers to surface common mistakes.",
+      reason: "With 3 or more papers, I will be able to provide deeper personalised insights.",
       paperCount: topline.paperCount,
       ...partialFromTopline({ studentName, subject, topline }),
     };
@@ -1157,7 +1157,7 @@ export async function loadTutorData(studentId: string, subject: string): Promise
     if (topline.paperCount < 3) {
       return {
         kind: "ineligible",
-        reason: "Need at least 3 papers to surface common mistakes.",
+        reason: "With 3 or more papers, I will be able to provide deeper personalised insights.",
         paperCount: topline.paperCount,
         ...partialFromTopline({ studentName: displayStudent.name, subject, topline }),
       };

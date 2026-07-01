@@ -364,48 +364,12 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
           </div>
         ) : (
           <>
-            {/* ── Summary card ── */}
-            {subjectSummary && (
-              <div className="bg-white rounded-3xl p-7 mb-8 shadow-sm border border-[#e5eeff] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-[#001e40]/5 rounded-full -mr-24 -mt-24 pointer-events-none" />
-                <div className="relative z-10">
-                  <p className="text-xl text-[#0b1c30] mb-6 font-body leading-relaxed">
-                    {data?.student?.name}&apos;s {activeSubject}:{" "}
-                    <span className="font-bold text-[#001e40] underline decoration-[#d5e3ff] decoration-4 underline-offset-4">
-                      Overall {subjectSummary.overallPct}th %tile
-                    </span>{" "}
-                    across {currentSubject ? (currentSubject as SubjectData).examCount : 0} exam{(currentSubject as SubjectData)?.examCount !== 1 ? "s" : ""}.
-                  </p>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {subjectSummary.strong && (
-                      <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-[#006c49]/10 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[#006c49]">trending_up</span>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#006c49] uppercase tracking-wider mb-1">Strong in</p>
-                          <p className="text-[#0b1c30] font-semibold leading-snug">{subjectSummary.strong}</p>
-                        </div>
-                      </div>
-                    )}
-                    {subjectSummary.gaps && (
-                      <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-[#ba1a1a]/10 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[#ba1a1a]">error_outline</span>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#ba1a1a] uppercase tracking-wider mb-1">Gaps in</p>
-                          <p className="text-[#0b1c30] font-semibold leading-snug">{subjectSummary.gaps}</p>
-                        </div>
-                      </div>
-                    )}
-                    {!subjectSummary.strong && !subjectSummary.gaps && (
-                      <p className="text-sm text-[#43474f] md:col-span-2">Not enough data to identify strengths or gaps yet.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Summary card removed 2026-07-02 — with a single
+                diagnostic exam the strong/gaps read is misleading
+                (the diagnostic's per-topic buckets are ~3 attempts
+                each so a couple wrong answers flip a whole topic
+                into 'gaps'). The Lumi surface further down is the
+                canonical read now. */}
 
             {/* ── Subject tabs + Topic/Time toggle ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
