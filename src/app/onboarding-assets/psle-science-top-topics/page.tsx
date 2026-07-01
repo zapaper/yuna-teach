@@ -106,7 +106,7 @@ export default function ScienceTopTopics() {
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Heat energy &amp; uses</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
               Confusing <strong>conductor</strong> with <strong>insulator</strong> when picking the container.
-              <div className="mt-1 text-slate-700"><em>E.g. Hot water at 80&deg;C is poured into four containers. Which will be coldest after 2 hours?</em> Students pick the <strong>metal</strong> container (option 1) &mdash; the correct answer is the <strong>metal</strong>, but the same trap in reverse (&ldquo;which stays hottest?&rdquo;) sees students pick the metal instead of <strong>plastic / wood</strong>. MarkForYou saw this wrong pick <strong>18 times</strong> in the sample.</div>
+              <div className="mt-1 text-slate-700"><em>E.g. Hot water at 80&deg;C is poured into four identical containers. Which will be coldest after 2 hours?</em> The correct answer is the <strong>metal</strong> (best conductor &mdash; heat escapes fastest). Students often pick an <strong>insulator</strong> instead. MarkForYou saw this wrong pick <strong>18 times</strong> in the sample.</div>
             </td>
           </tr>
         </tbody>
