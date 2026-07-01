@@ -2641,7 +2641,31 @@ function RadarSvg({ title, subTopics, overall, totalAwarded, totalAvailable }: {
 // (rows ≥80% light green, <80% light yellow, no-data dimmed). Sorted
 // strongest → weakest so the eye lands on green first. Used as the
 // alternate view inside GrammarRadar's Radar / Table toggle.
-function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle }) {
+// PSLE Grammar MCQ weightage per sub-topic — from the 12-year audit
+// of PSLE English 2014-2025 (n=122). Used to show "how often does
+// this rule show up in PSLE" alongside the fluency %, so parents can
+// see which rules are worth prioritising.
+const PSLE_GRAMMAR_WEIGHTAGE: Record<string, number> = {
+  "connectors-tenses":       26,
+  "verb-forms":              21,
+  "idiomatic-prepositions":  18,
+  "tag-questions":           12,
+  "countable/uncountable":    9,
+  "subject-verb-agreement":   7,
+  "pronouns":                 6,
+};
+// PSLE Synthesis weightage — approximate from the historical spread
+// (Synthesis is a smaller, 5-per-paper section so precision matters
+// less; these numbers are directional).
+const PSLE_SYNTHESIS_WEIGHTAGE: Record<string, number> = {
+  "reported-speech":         25,
+  "correlative-preference":  20,
+  "subordinator":            18,
+  "noun-phrase":             15,
+  "participle-clauses":      12,
+  "substitution-inversion":  10,
+};
+function FluencyTable({ title, bundle, weightageMap }: { title: string; bundle: FluencyBundle; weightageMap?: Record<string, number> }) {
   const sorted = [...bundle.subTopics].sort((a, b) => {
     if (a.pct === null && b.pct === null) return 0;
     if (a.pct === null) return 1;
@@ -2664,6 +2688,7 @@ function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle 
             <th className="text-left px-2 py-1 font-bold">Sub-topic</th>
             <th className="text-right px-2 py-1 font-bold">Score</th>
             <th className="text-right px-2 py-1 font-bold">Attempts</th>
+            {weightageMap && <th className="text-right px-2 py-1 font-bold" title="Share of the PSLE section this rule typically covers">PSLE %</th>}
           </tr>
         </thead>
         <tbody>
@@ -2671,6 +2696,7 @@ function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle 
             const noData = s.pct === null;
             const bg = noData ? "bg-slate-50" : (s.pct! >= 80 ? "bg-green-100" : "bg-yellow-100");
             const labelText = s.label.replace(/\n/g, " ");
+            const weight = weightageMap?.[s.id];
             return (
               <tr key={s.id} className={`${bg} border-t border-slate-100`}>
                 <td className={`px-2 py-1.5 ${noData ? "text-slate-400" : "text-slate-900"}`}>{labelText}</td>
@@ -2680,6 +2706,11 @@ function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle 
                 <td className="px-2 py-1.5 text-right whitespace-nowrap text-slate-500 text-[11px]">
                   {noData ? "no data" : `n=${s.available}`}
                 </td>
+                {weightageMap && (
+                  <td className="px-2 py-1.5 text-right whitespace-nowrap text-slate-600 text-[11px] font-semibold">
+                    {typeof weight === "number" ? `${weight}%` : "—"}
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -2691,7 +2722,15 @@ function FluencyTable({ title, bundle }: { title: string; bundle: FluencyBundle 
 
 function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; subject: string; childFirst: string }) {
   const [data, setData] = useState<{ grammar: FluencyBundle; synthesis: FluencyBundle } | null>(null);
-  const [view, setView] = useState<"radar" | "table">("radar");
+  // Default to Table view during first-time onboarding (?onboarding=1)
+  // so the parent lands on the PSLE-weightage-annotated table right
+  // away instead of the radar. Everyone else keeps radar as default.
+  const initialView: "radar" | "table" = (() => {
+    if (typeof window === "undefined") return "radar";
+    const qs = new URLSearchParams(window.location.search);
+    return qs.get("onboarding") === "1" ? "table" : "radar";
+  })();
+  const [view, setView] = useState<"radar" | "table">(initialView);
   useEffect(() => {
     if (subject !== "English") return;
     if (!GRAMMAR_RADAR_KIDS.has(studentId)) return;
@@ -2750,8 +2789,8 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
           </>
         ) : (
           <>
-            <FluencyTable title="Grammar (MCQ + Cloze)" bundle={data.grammar} />
-            <FluencyTable title="Synthesis & Transformation" bundle={data.synthesis} />
+            <FluencyTable title="Grammar (MCQ + Cloze)" bundle={data.grammar} weightageMap={PSLE_GRAMMAR_WEIGHTAGE} />
+            <FluencyTable title="Synthesis & Transformation" bundle={data.synthesis} weightageMap={PSLE_SYNTHESIS_WEIGHTAGE} />
           </>
         )}
       </div>

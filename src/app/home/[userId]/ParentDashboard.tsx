@@ -4928,6 +4928,11 @@ function OnboardingBanner({
         )}
         . You can also do a quiz in <a href={`/home/${parentId}?view=lumi&student=${studentId}`} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
       </p>
+      {subjSlug === "english" && (
+        <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
+          You could also assign a quiz on <a href={`/home/${parentId}?openQuiz=1&subject=english&student=${studentId}`} className="text-[#7c3aed] font-semibold underline">other sections of the English paper</a> — Vocabulary, Comprehension Cloze, Editing, or Visual Text.
+        </p>
+      )}
       {ctx?.wasMcqOnly && (subjSlug === "math" || subjSlug === "science") && (
         <p className="text-sm text-[#1e293b] leading-relaxed mb-3 italic">
           In addition, Open-Ended Questions (OEQ) can be tricky for {ctx.subject}. To sharpen our analysis, Lumi recommends doing another quiz with OEQs.
