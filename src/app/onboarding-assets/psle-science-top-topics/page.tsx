@@ -6,7 +6,7 @@ import { A4Sheet, A4SectionTitle } from "../A4Sheet";
 export default function ScienceTopTopics() {
   return (
     <A4Sheet
-      title="PSLE Science — Top Topics"
+      title="PSLE Science Top Topics and Mistakes"
       subtitle="Top 5 topics by share of total PSLE Science marks."
     >
       {/* Squeeze the chart to ~65% width so the tables below have
@@ -71,53 +71,47 @@ export default function ScienceTopTopics() {
         </tbody>
       </table>
 
-      <A4SectionTitle>Common mistakes on the top 5 — from real marking data</A4SectionTitle>
-      <p className="text-[9pt] text-slate-500 italic mb-2">Based on 900+ wrong answers across MarkForYou&rsquo;s marked Science papers. Ranked by frequency within each topic.</p>
+      <A4SectionTitle>Common Mistakes</A4SectionTitle>
+      <p className="text-[9pt] text-slate-500 italic mb-2">Based on 800+ wrong answers on the top 4 topics across MarkForYou&rsquo;s marked Science papers.</p>
       <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
             <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide" style={{ width: "22%" }}>Topic</th>
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Where students actually lose marks</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">The mistake &amp; a real example</th>
           </tr>
         </thead>
         <tbody>
           <tr className="bg-white">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Forces</strong><br/><span className="text-[9pt] text-slate-500">(friction / gravity / spring)</span></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              <strong>#1 Applying force concepts (35% of wrong).</strong> Kids can name the force but can&rsquo;t explain what happens next. <em>E.g. a parachutist at points P&rarr;Q&rarr;R</em> — students identify &ldquo;gravity&rdquo; but skip the effect on speed.
-              <div className="mt-1 text-slate-700">#2 Force direction / arrows (23%). #3 Elastic-force setups &mdash; springs and rubber bands (19%).</div>
+              Can <strong>name</strong> the force but can&rsquo;t <strong>explain what happens next</strong>.
+              <div className="mt-1 text-slate-700"><em>E.g. A parachutist falls from P to R and opens the parachute after P.</em> Students correctly identify <strong>gravity</strong> and <strong>air resistance</strong>, but forget to say the parachutist <strong>slows down</strong> once the parachute opens because <strong>air resistance now exceeds gravity</strong>.</div>
             </td>
           </tr>
           <tr className="bg-slate-50">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Interactions within the environment</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              <strong>#1 Adaptation (25% of wrong).</strong> Describing what the organism looks like instead of <em>how the feature helps it survive</em>.
-              <div className="mt-1 text-slate-700">#2 Food-web reasoning (23%) — predicting the knock-on effect when one organism is removed. #3 Human impact (14%) &mdash; pollution, deforestation causal chains.</div>
+              Describing what the organism / nest <strong>looks like</strong> instead of <strong>how the feature helps it survive</strong>.
+              <div className="mt-1 text-slate-700"><em>E.g. Insect P builds its nest underground and stores leaves for a fungus that its young feed on.</em> Students write &ldquo;the nest keeps the leaves hidden.&rdquo; The marker wants: &ldquo;<strong>underground is dark, moist and warm</strong> &mdash; ideal for the <strong>fungus to grow</strong> on the leaves, providing <strong>food for the young</strong>.&rdquo;</div>
             </td>
           </tr>
           <tr className="bg-white">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Electrical systems &amp; circuits</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              <strong>#1 Reading a circuit (42% of wrong).</strong> Not tracing whether the path is a complete closed loop before answering &mdash; especially on circuit-tester questions (&ldquo;which two clips must be connected?&rdquo;).
-              <div className="mt-1 text-slate-700">#2 Series-vs-parallel behaviour when one bulb is removed (17%). #3 Electromagnet setups (16%).</div>
+              Not tracing whether the circuit forms a <strong>complete closed loop</strong>.
+              <div className="mt-1 text-slate-700"><em>E.g. A circuit-tester with clips A-F: which clips must be connected so the bulb lights?</em> Students pick paths that break at one junction. Always trace <strong>battery &rarr; clip &rarr; wire &rarr; bulb &rarr; back to battery</strong> before committing.</div>
             </td>
           </tr>
           <tr className="bg-slate-50">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Heat energy &amp; uses</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              <strong>#1 Heat transfer &amp; material choice (32% of wrong).</strong> Picking the wrong container / material for insulation. <em>MCQ trap:</em> in one 10-yr recurring question &ldquo;which container keeps water hottest?&rdquo;, kids pick option (1) instead of (4) &mdash; 18 wrong attempts in the sample.
-              <div className="mt-1 text-slate-700">#2 Changes of state (22%). #3 Heat vs temperature confusion (19%). #4 Expansion / contraction (18%).</div>
-            </td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Diversity of living &amp; non-living</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">
-              MCQ-dominated topic (90% MCQ). Wrong answers spread thinly &mdash; no single sub-topic dominates. Watch for questions asking &ldquo;true for BOTH X and Y&rdquo; where a plausible-but-wrong distractor sits next to the correct option.
+              Confusing <strong>conductor</strong> with <strong>insulator</strong> when picking the container.
+              <div className="mt-1 text-slate-700"><em>E.g. Hot water at 80&deg;C is poured into four containers. Which will be coldest after 2 hours?</em> Students pick the <strong>metal</strong> container (option 1) &mdash; the correct answer is the <strong>metal</strong>, but the same trap in reverse (&ldquo;which stays hottest?&rdquo;) sees students pick the metal instead of <strong>plastic / wood</strong>. MarkForYou saw this wrong pick <strong>18 times</strong> in the sample.</div>
             </td>
           </tr>
         </tbody>
       </table>
-      <p className="text-[9pt] text-slate-500 italic mt-2">One universal pattern: <strong>blank OEQ answers</strong> account for 15-25% of lost marks across every top-5 topic. Always attempt every sub-part &mdash; a half-answer scores more than zero.</p>
+      <p className="text-[9pt] text-slate-500 italic mt-2">Universal pattern: <strong>blank OEQ answers</strong> account for 15-25% of lost marks across every top topic. Always attempt every sub-part &mdash; a half-answer scores more than zero.</p>
     </A4Sheet>
   );
 }
