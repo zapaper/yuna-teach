@@ -2809,14 +2809,14 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
           <>
             <RadarSvg
               title="Grammar (MCQ + Cloze)"
-              subTopics={data.grammar.subTopics.filter(s => s.available >= 3)}
+              subTopics={data.grammar.subTopics}
               overall={data.grammar.overall}
               totalAwarded={data.grammar.totalAwarded}
               totalAvailable={data.grammar.totalAvailable}
             />
             <RadarSvg
               title="Synthesis & Transformation"
-              subTopics={data.synthesis.subTopics.filter(s => s.available >= 3)}
+              subTopics={data.synthesis.subTopics}
               overall={data.synthesis.overall}
               totalAwarded={data.synthesis.totalAwarded}
               totalAvailable={data.synthesis.totalAvailable}

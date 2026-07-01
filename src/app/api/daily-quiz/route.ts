@@ -1120,14 +1120,21 @@ export async function POST(request: NextRequest) {
           if (!seen.has(q.id) && picked.length < total) { picked.push(q); seen.add(q.id); }
         }
       }
-      // Backfill from any grammar pool question if a bucket was short.
+      // Backfill from OTHER TAGGED sub-topics (any subTopic ≠ null),
+      // NOT from the full pool. Grabbing untagged rows here poisons
+      // the downstream grammar-fluency query (which filters
+      // subTopic ≠ null) and leaves the row invisible in the table.
+      // 2026-07-02 fix: prefer taggedPool for backfill; if that runs
+      // out too, we accept fewer than `total` rather than mixing in
+      // untagged questions that don't surface anywhere.
       if (picked.length < total) {
-        for (const q of pool) {
+        const taggedPool = pool.filter(q => !!(q.subTopic ?? "").trim());
+        for (const q of taggedPool) {
           if (picked.length >= total) break;
           if (!seen.has(q.id)) { picked.push(q); seen.add(q.id); }
         }
       }
-      console.log(`[daily-quiz] English stratified grammar — pool=${pool.length}, per-rule counts: ${subTopics.map(st => `${st}=${byTopic.get(st)?.length ?? 0}`).join(", ")}, picked=${picked.length}`);
+      console.log(`[daily-quiz] English stratified — pool=${pool.length}, tagged=${pool.filter(q => !!q.subTopic).length}, per-target counts: ${subTopics.map(st => `${st}=${byTopic.get(st)?.length ?? 0}`).join(", ")}, picked=${picked.length}/${total}`);
       return picked.slice(0, total);
     }
     const useFirstQuizGrammar = firstQuiz && selectedSections.has("grammar-mcq");
