@@ -4,7 +4,7 @@
 // except: parent-themed colours, larger Score, no inline edit mode,
 // no right-click alternatives, back link goes to /essay-coach list.
 
-import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { fetchJsonSafe } from "@/lib/client-fetch";
@@ -231,6 +231,104 @@ function DetailContent() {
   const [substitutions, setSubstitutions] = useState<Map<string, string>>(new Map());
   useEffect(() => { setSubstitutions(new Map()); }, [elevatedDraft]);
 
+  // ─── Free-form edit mode ─────────────────────────────────────────
+  // Mirrors the admin /compo/[id] edit tool: toggle a textarea over
+  // the essay, save via PATCH, right-click a selected phrase to ask
+  // Gemini for context-fit alternatives. Works for both English and
+  // Chinese essays (server picks the language automatically).
+  //   - Marked / Clean views write back to ocrText
+  //   - Enhanced view writes back to recommendations.elevatedDraft
+  const [editing, setEditing] = useState(false);
+  const [draftText, setDraftText] = useState("");
+  const [savingDraft, setSavingDraft] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const [altMenu, setAltMenu] = useState<{ x: number; y: number; selStart: number; selEnd: number; selText: string } | null>(null);
+  const [altLoading, setAltLoading] = useState(false);
+  const [alternatives, setAlternatives] = useState<Array<{ cn: string; en: string; pattern?: string }> | null>(null);
+  const [altError, setAltError] = useState<string | null>(null);
+
+  // Seed the textarea whenever editing toggles on or the underlying view changes.
+  useEffect(() => {
+    if (!editing) return;
+    if (view === "elevated") setDraftText(stripMarkers(elevatedDraft));
+    else                     setDraftText(ocrText);
+    setAltMenu(null);
+    setAlternatives(null);
+  }, [editing, view, ocrText, elevatedDraft]);
+
+  const saveDraft = async () => {
+    setSavingDraft(true);
+    setError(null);
+    try {
+      const body: { ocrText?: string; elevatedDraft?: string } = {};
+      if (view === "elevated") body.elevatedDraft = draftText;
+      else                     body.ocrText       = draftText;
+      const res = await fetchJsonSafe<{ row: Row }>(`${API_BASE}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setRow(res.data.row);
+        setEditing(false);
+      } else {
+        setError(res.error);
+      }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const openAltMenu = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const ta = taRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    if (end <= start) return;
+    const text = draftText.slice(start, end);
+    if (text.trim().length === 0) return;
+    if (text.length > 80) return;
+    e.preventDefault();
+    setAltMenu({ x: e.clientX, y: e.clientY, selStart: start, selEnd: end, selText: text });
+    setAlternatives(null);
+    setAltError(null);
+  };
+
+  const fetchAlternatives = async () => {
+    if (!altMenu) return;
+    setAltLoading(true);
+    setAltError(null);
+    setAlternatives(null);
+    try {
+      const pStart = draftText.lastIndexOf("\n", Math.max(0, altMenu.selStart - 1)) + 1;
+      const pEndRaw = draftText.indexOf("\n", altMenu.selEnd);
+      const pEnd = pEndRaw < 0 ? draftText.length : pEndRaw;
+      const paragraph = draftText.slice(pStart, pEnd);
+      const res = await fetch(`${API_BASE}/${id}/phrase-alternatives`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedText: altMenu.selText, paragraph }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const j = await res.json() as { alternatives: Array<{ cn: string; en: string; pattern?: string }> };
+      setAlternatives(j.alternatives);
+    } catch (e) {
+      setAltError((e as Error).message);
+    } finally {
+      setAltLoading(false);
+    }
+  };
+
+  const applyAlternative = (alt: string) => {
+    if (!altMenu) return;
+    setDraftText(draftText.slice(0, altMenu.selStart) + alt + draftText.slice(altMenu.selEnd));
+    setAltMenu(null);
+    setAlternatives(null);
+  };
+
   if (!row && !error) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center">
@@ -287,7 +385,33 @@ function DetailContent() {
                   forget on the server, so pressing back during the
                   run is safe — the pipeline keeps running and the
                   next visit picks up the latest state. */}
-              {row.status === "ready" && (
+              {row.status === "ready" && !editing && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 inline-flex items-center gap-1"
+                  title="Edit the essay directly. Right-click on selected text to get phrase alternatives from AI."
+                >
+                  ✎ Edit
+                </button>
+              )}
+              {editing && (
+                <>
+                  <button
+                    onClick={saveDraft}
+                    disabled={savingDraft}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    {savingDraft ? "Saving…" : "💾 Save"}
+                  </button>
+                  <button
+                    onClick={() => { setEditing(false); setAltMenu(null); setAlternatives(null); }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+              {row.status === "ready" && !editing && (
                 <>
                   <button
                     onClick={() => {
@@ -430,7 +554,21 @@ function DetailContent() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 print:grid-cols-1 print:gap-0">
             <div className="lg:col-span-2 print:col-span-1">
               <h2 className="text-sm font-semibold text-[#001e40] mb-2">{essayHeading}</h2>
-              {view === "elevated" ? (
+              {editing ? (
+                <>
+                  <textarea
+                    ref={taRef}
+                    value={draftText}
+                    onChange={e => setDraftText(e.target.value)}
+                    onContextMenu={openAltMenu}
+                    className="w-full bg-white border-2 border-amber-300 rounded-2xl p-6 text-base leading-loose text-[#001e40] focus:outline-none focus:border-amber-500"
+                    style={{ fontFamily: essayFont, minHeight: 500 }}
+                  />
+                  <p className="text-[10px] text-amber-700 mt-1">
+                    ✎ Editing — right-click a selected phrase to get AI alternatives. Save above to commit.
+                  </p>
+                </>
+              ) : view === "elevated" ? (
                 <div
                   className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-[#001e40]"
                   style={{ fontFamily: essayFont }}
@@ -454,6 +592,19 @@ function DetailContent() {
                   className="bg-white border border-slate-200 rounded-2xl p-6 text-base leading-loose whitespace-pre-wrap text-[#001e40]"
                   style={{ fontFamily: essayFont }}
                   dangerouslySetInnerHTML={{ __html: view === "marked" ? markedHtml : cleanHtml }}
+                />
+              )}
+              {altMenu && (
+                <AlternativesPopup
+                  x={altMenu.x}
+                  y={altMenu.y}
+                  selectedText={altMenu.selText}
+                  loading={altLoading}
+                  alternatives={alternatives}
+                  error={altError}
+                  onFetch={fetchAlternatives}
+                  onApply={applyAlternative}
+                  onClose={() => { setAltMenu(null); setAlternatives(null); }}
                 />
               )}
               <WordCountFooter
@@ -845,6 +996,101 @@ function PhrasePopup({
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────
+
+// Right-click alternatives popup used by the free-form edit tool.
+// Ported verbatim from admin/compo/[id]. Auto-fetches on mount,
+// closes on outside-click, clamps to viewport bounds. Works for both
+// English and Chinese essays (server picks language automatically).
+function AlternativesPopup({
+  x, y,
+  selectedText,
+  loading,
+  alternatives,
+  error,
+  onFetch,
+  onApply,
+  onClose,
+}: {
+  x: number; y: number;
+  selectedText: string;
+  loading: boolean;
+  alternatives: Array<{ cn: string; en: string; pattern?: string }> | null;
+  error: string | null;
+  onFetch: () => void;
+  onApply: (alt: string) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (!t.closest?.("[data-alt-popup]")) onClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [onClose]);
+  useEffect(() => { if (!alternatives && !loading && !error) onFetch(); /* eslint-disable-next-line */ }, []);
+  const left = Math.min(x, (typeof window !== "undefined" ? window.innerWidth : 1024) - 360);
+  const top  = Math.min(y, (typeof window !== "undefined" ? window.innerHeight : 800) - 320);
+  return (
+    <div
+      data-alt-popup
+      style={{
+        position: "fixed",
+        left, top,
+        zIndex: 50,
+        width: 340,
+        maxHeight: 360,
+        overflowY: "auto",
+        background: "white",
+        border: "1px solid #cbd5e1",
+        borderRadius: 10,
+        boxShadow: "0 12px 28px rgba(0,0,0,0.15)",
+        padding: 12,
+        fontSize: 13,
+      }}
+    >
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] uppercase tracking-wide font-semibold text-slate-500">Alternatives</div>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xs">×</button>
+      </div>
+      <div className="text-sm font-semibold text-slate-800 mb-2 border-b border-slate-100 pb-2">
+        「{selectedText}」
+      </div>
+      {loading && <div className="text-xs text-slate-500 italic py-3 text-center">Finding alternatives…</div>}
+      {error && <div className="text-xs text-rose-600 py-3">{error}</div>}
+      {alternatives && alternatives.length === 0 && (
+        <div className="text-xs text-slate-500 italic py-3">No alternatives returned.</div>
+      )}
+      {alternatives && alternatives.length > 0 && (
+        <ul className="space-y-1.5">
+          {alternatives.map((alt, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => onApply(alt.cn)}
+                className="w-full text-left px-2 py-1.5 rounded-md border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
+              >
+                {alt.pattern && (
+                  <div className="text-[10px] uppercase tracking-wide text-sky-700 font-semibold">{alt.pattern}</div>
+                )}
+                <div className="text-slate-900">{alt.cn}</div>
+                {alt.en && <div className="text-[11px] italic text-slate-500 mt-0.5">{alt.en}</div>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!loading && (
+        <button
+          onClick={onFetch}
+          className="mt-3 w-full text-[11px] text-slate-500 hover:text-slate-800 underline"
+        >
+          Regenerate
+        </button>
+      )}
+    </div>
+  );
+}
 
 function stripMarkers(text: string): string {
   return text.replace(/\[\+([\s\S]*?)\+\]/g, (_m, body) =>
