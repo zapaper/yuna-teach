@@ -614,8 +614,16 @@ function partialFromTopline(args: {
   const { studentName, subject, topline } = args;
   if (topline.paperCount === 0) return {};
   const childFirst = studentName.split(/\s+/)[0] ?? studentName;
+  // Attempts filter: normally require ≥3 attempts per topic to smooth
+  // out sample noise, but on a single-paper diagnostic (paperCount=1)
+  // that filter hides most attempted topics — a P4 science diagnostic
+  // splits 15 questions across 8 raw syllabusTopic strings, so almost
+  // every topic has n<3 and the chart drops them. On diagnostics we
+  // want ALL attempted topics visible so the parent sees the coverage
+  // survey, so relax to attempts≥1 when paperCount≤1.
+  const minAttempts = topline.paperCount <= 1 ? 1 : 3;
   const topics = [...topline.topicTotals.entries()]
-    .filter(([, v]) => v.attempts >= 3 && v.available > 0)
+    .filter(([, v]) => v.attempts >= minAttempts && v.available > 0)
     .map(([t, v]) => ({ topic: t, attempts: v.attempts, pct: Math.round((v.awarded / v.available) * 100) }));
   return {
     childFirst,
