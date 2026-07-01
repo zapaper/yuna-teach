@@ -95,7 +95,7 @@ export default function ScienceTopTopics() {
       </table>
 
       <A4SectionTitle>Common Mistakes</A4SectionTitle>
-      <p className="text-[9pt] text-slate-500 italic mb-2">Based on 800+ wrong answers on the top 4 topics across MarkForYou&rsquo;s marked Science papers.</p>
+      <p className="text-[11pt] font-bold text-[#7c3aed] mb-2">MarkForYou analysed <span className="text-[13pt]">900+</span> wrong answers to find the biggest trap in each topic.</p>
       <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
@@ -108,7 +108,12 @@ export default function ScienceTopTopics() {
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Forces</strong><br/><span className="text-[9pt] text-slate-500">(friction / gravity / spring)</span></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
               Can <strong>name</strong> the force but can&rsquo;t <strong>explain what happens next</strong>.
-              <div className="mt-1 text-slate-700"><em>E.g. A parachutist falls from P to R and opens the parachute after P.</em> Students correctly identify <strong>gravity</strong> and <strong>air resistance</strong>, but forget to say the parachutist <strong>slows down</strong> once the parachute opens because <strong>air resistance now exceeds gravity</strong>.</div>
+              <div className="mt-1 text-slate-700"><em>E.g. A rubber ball is dropped and bounces back up, but not as high as where it started.</em> Students say &ldquo;gravity pulls the ball down.&rdquo; The marker wants: the ball has <strong>gravitational potential energy</strong>, which converts to <strong>kinetic energy</strong> on the way down; on impact <strong>some energy is lost as heat and sound</strong>, so the ball rises to a <strong>lower</strong> height.</div>
+
+              {/* Remove the frequency callout per user feedback —
+                  the prominent "900+ wrong answers" claim at the top
+                  of the table already sets expectations, we don't
+                  need per-row %-of-wrong stats. */}
             </td>
           </tr>
           <tr className="bg-slate-50">
@@ -121,15 +126,15 @@ export default function ScienceTopTopics() {
           <tr className="bg-white">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Electrical systems &amp; circuits</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              Not tracing whether the circuit forms a <strong>complete closed loop</strong>.
-              <div className="mt-1 text-slate-700"><em>E.g. A circuit-tester with clips A-F: which clips must be connected so the bulb lights?</em> Students pick paths that break at one junction. Always trace <strong>battery &rarr; clip &rarr; wire &rarr; bulb &rarr; back to battery</strong> before committing.</div>
+              Forgetting that a bulb with a <strong>wire in parallel across it</strong> is <strong>short-circuited</strong> and will <strong>not light up</strong>.
+              <div className="mt-1 text-slate-700"><em>E.g. Three bulbs are drawn, but one has a plain wire connecting both sides of it.</em> Students say the bulb lights because there is a &ldquo;complete path&rdquo; through it. In fact the current takes the <strong>easier route through the wire</strong> (no resistance) and bypasses the bulb entirely, so the bulb <strong>stays off</strong>.</div>
             </td>
           </tr>
           <tr className="bg-slate-50">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Heat energy &amp; uses</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              Confusing <strong>conductor</strong> with <strong>insulator</strong> when picking the container.
-              <div className="mt-1 text-slate-700"><em>E.g. Hot water at 80&deg;C is poured into four identical containers. Which will be coldest after 2 hours?</em> The correct answer is the <strong>metal</strong> (best conductor &mdash; heat escapes fastest). Students often pick an <strong>insulator</strong> instead. MarkForYou saw this wrong pick <strong>18 times</strong> in the sample.</div>
+              Mixing up <strong>heat</strong> (energy) with <strong>temperature</strong> (how hot).
+              <div className="mt-1 text-slate-700"><em>E.g. A cup of hot chocolate at 80&deg;C and a swimming pool of water at 20&deg;C. Which has more heat energy?</em> Students pick the cup (&ldquo;higher temperature&rdquo;). In fact the <strong>swimming pool</strong> has far more heat energy because it has <strong>much more mass</strong> &mdash; temperature is <em>how hot</em>, heat is <em>how much energy</em>.</div>
             </td>
           </tr>
         </tbody>
