@@ -1991,22 +1991,43 @@ export async function POST(request: NextRequest) {
   // rectangle', etc.), so we group them by keyword matcher and draw
   // 3 questions from each of the 5 semantic groups.
   //
-  // Groups mirror the PSLE Top Topics cheat-sheet in
-  // /onboarding-assets/psle-{math,science}-top-topics. Order matters
-  // — matched by first hit, so more-specific keywords come first.
-  const MATH_SEMANTIC_GROUPS: Array<{ id: string; matches: RegExp }> = [
+  // Level split: the P5/P6 lists mirror the PSLE Top Topics cheat-sheet
+  // in /onboarding-assets/psle-{math,science}-top-topics. P4 uses a
+  // different 5 because the P4 SYLLABUS doesn't ship Interactions
+  // within the environment or Electrical circuits (both P5-P6 topics)
+  // — using the P5/P6 list at P4 leaves 2 of 5 buckets empty and the
+  // backfill pulls unrelated topics, scattering the diagnostic across
+  // 8+ raw topic strings. Order matters — matched by first hit, so
+  // more-specific keywords come first.
+  const MATH_SEMANTIC_GROUPS_P56: Array<{ id: string; matches: RegExp }> = [
     { id: "Geometry",         matches: /geometry|angle|triangle|quadrilateral|shape|net|symmetry|coordinate/i },
     { id: "Fractions",        matches: /fraction/i },
     { id: "Area & Perimeter", matches: /area|perimeter|circumference/i },
     { id: "Measurement",      matches: /volume|mass|length|weight|time|speed|measurement/i },
     { id: "Statistics",       matches: /statistic|average|graph|chart|table|data|mean/i },
   ];
-  const SCIENCE_SEMANTIC_GROUPS: Array<{ id: string; matches: RegExp }> = [
+  const MATH_SEMANTIC_GROUPS_P4: Array<{ id: string; matches: RegExp }> = [
+    { id: "Whole Numbers",    matches: /whole numbers?|place value|addition|subtraction|multiplication|division|operations/i },
+    { id: "Fractions",        matches: /fraction/i },
+    { id: "Measurement",      matches: /volume|mass|length|weight|time|measurement/i },
+    { id: "Geometry",         matches: /geometry|angle|triangle|quadrilateral|shape|net|symmetry|coordinate/i },
+    { id: "Data & Statistics", matches: /statistic|average|graph|chart|table|data|mean|pictogram|bar graph/i },
+  ];
+  const SCIENCE_SEMANTIC_GROUPS_P56: Array<{ id: string; matches: RegExp }> = [
     { id: "Forces",            matches: /force|friction|gravity|spring|magnet/i },
     { id: "Environment",       matches: /environment|adaptation|food chain|food web|ecosystem|habitat/i },
     { id: "Electrical",        matches: /electric|circuit/i },
     { id: "Heat",              matches: /heat/i },
     { id: "Diversity",         matches: /diversity|living.*non-living|classification|non-living/i },
+  ];
+  // P4 MOE syllabus organises around 5 themes: Diversity, Cycles, Systems, Interactions, Energy.
+  // Regexes tuned against the actual P4 master pool (Cycles in matter, Human digestive, Plant parts, etc.).
+  const SCIENCE_SEMANTIC_GROUPS_P4: Array<{ id: string; matches: RegExp }> = [
+    { id: "Diversity",     matches: /diversity/i },
+    { id: "Cycles",        matches: /cycle/i },
+    { id: "Systems",       matches: /plant part|plant.*function|photosynthesis|human digestive|human respiratory|circulatory|respiratory/i },
+    { id: "Interactions",  matches: /force|magnet|friction|gravity|spring/i },
+    { id: "Energy",        matches: /heat|light energy|electric/i },
   ];
   function pickStratifiedMcq(
     pool: Q[],
@@ -2049,7 +2070,10 @@ export async function POST(request: NextRequest) {
   }
   const subjLc = (subject ?? "").toLowerCase();
   const useStratified = firstQuiz && (subjLc.includes("math") || subjLc.includes("science"));
-  const semanticGroups = subjLc.includes("science") ? SCIENCE_SEMANTIC_GROUPS : MATH_SEMANTIC_GROUPS;
+  const isP4Diag = student?.level === 4;
+  const semanticGroups = subjLc.includes("science")
+    ? (isP4Diag ? SCIENCE_SEMANTIC_GROUPS_P4 : SCIENCE_SEMANTIC_GROUPS_P56)
+    : (isP4Diag ? MATH_SEMANTIC_GROUPS_P4 : MATH_SEMANTIC_GROUPS_P56);
 
   if (quizType === "mcq") {
     if (mcqPool.length < 1) {
