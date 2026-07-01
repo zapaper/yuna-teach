@@ -1139,9 +1139,41 @@ export async function POST(request: NextRequest) {
     }
     const useFirstQuizGrammar = firstQuiz && selectedSections.has("grammar-mcq");
     const mcqTake = isFocusedEnglish ? 10 : 5;
+    // firstQuiz English grammar-mcq — widen the pool to ALL levels
+    // because subTopic tagging is level-uneven (P5 has 0/142 tagged
+    // right now; P4 has 52/104; P6 has 147/308). Without this, a P5
+    // kid's diagnostic falls entirely into the untagged backfill and
+    // the fluency table shows 'No attempts yet' across every rule.
+    // The stratifier still tries the current-level pool first (its
+    // buckets prefer earlier entries), then backfills from the wider
+    // any-level tagged pool.
+    let grammarPoolForFirstQuiz = grammarMcqPool;
+    if (useFirstQuizGrammar) {
+      const wide = await prisma.examQuestion.findMany({
+        where: {
+          examPaper: {
+            subject: { contains: "english", mode: "insensitive" },
+            paperType: null,
+            visible: true,
+          },
+          syllabusTopic: { contains: "grammar", mode: "insensitive" },
+          NOT: [{ syllabusTopic: { contains: "cloze", mode: "insensitive" } }],
+          subTopic: { not: null },
+          answer: { not: null },
+        },
+        select: questionSelectLight,
+      });
+      const wideMcq = wide.filter(q => isMcq(q.answer) && !!(q.transcribedStem?.trim()));
+      // Merge: current-level pool first, then any-level tagged rows
+      // not already in the pool. Dedup by id.
+      const seenIds = new Set<string>(grammarMcqPool.map(q => q.id));
+      const extras = wideMcq.filter(q => !seenIds.has(q.id));
+      grammarPoolForFirstQuiz = shuffle([...grammarMcqPool, ...(extras as Q[])]);
+      console.log(`[daily-quiz] firstQuiz grammar pool widened: base=${grammarMcqPool.length}, wide-tagged=${wideMcq.length}, merged=${grammarPoolForFirstQuiz.length}`);
+    }
     const selectedGrammar = selectedSections.has("grammar-mcq")
       ? (useFirstQuizGrammar
-          ? pickStratifiedBySubTopic(grammarMcqPool, GRAMMAR_SUBTOPIC_IDS, 2, 14)
+          ? pickStratifiedBySubTopic(grammarPoolForFirstQuiz, GRAMMAR_SUBTOPIC_IDS, 2, 14)
           : grammarMcqPool.slice(0, mcqTake))
       : [];
     const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, mcqTake) : [];

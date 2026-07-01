@@ -8,7 +8,7 @@ import { classifyGrammarMcq, type GrammarSubTopic } from "../src/lib/master-clas
     where: {
       sourceExamId: null,
       subject: { contains: "english", mode: "insensitive" },
-      OR: [{ level: "Primary 6" }, { level: "PSLE" }],
+      OR: [{ level: "Primary 4" }, { level: "Primary 5" }, { level: "Primary 6" }, { level: "PSLE" }],
       NOT: { title: { startsWith: "Test Quiz" } },
     },
     select: { id: true, title: true },

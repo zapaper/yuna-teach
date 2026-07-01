@@ -306,14 +306,9 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
           <h1 className="font-headline font-extrabold text-[#001e40] text-lg truncate">
             {data?.student?.name ?? "Progress Report"}
           </h1>
-          <button
-            onClick={handleShare}
-            disabled={sharing || subjects.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#d5e3ff] text-[#001e40] text-sm font-bold hover:bg-[#a7c8ff] transition-colors disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-base">share</span>
-            {sharing ? "..." : "Share"}
-          </button>
+          {/* Share button hidden 2026-07-02 — reinstate when the
+              shared image is redesigned for the new Lumi surface. */}
+          <div className="w-10" />
         </div>
       </header>
 
@@ -469,14 +464,7 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
           <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart</span>
           <span className="text-[10px] font-bold uppercase tracking-wider">Reports</span>
         </button>
-        <button
-          onClick={handleShare}
-          disabled={sharing}
-          className="flex flex-col items-center gap-1 text-[#43474f] disabled:opacity-50"
-        >
-          <span className="material-symbols-outlined">share</span>
-          <span className="text-[10px] font-bold uppercase tracking-wider">Share</span>
-        </button>
+        {/* Bottom-nav Share button hidden 2026-07-02. */}
       </nav>
     </div>
   );
