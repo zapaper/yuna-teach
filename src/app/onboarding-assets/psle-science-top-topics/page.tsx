@@ -71,37 +71,53 @@ export default function ScienceTopTopics() {
         </tbody>
       </table>
 
-      <A4SectionTitle>Common mistakes on the top 5</A4SectionTitle>
+      <A4SectionTitle>Common mistakes on the top 5 — from real marking data</A4SectionTitle>
+      <p className="text-[9pt] text-slate-500 italic mb-2">Based on 900+ wrong answers across MarkForYou&rsquo;s marked Science papers. Ranked by frequency within each topic.</p>
       <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Topic</th>
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Common mistake</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide" style={{ width: "22%" }}>Topic</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Where students actually lose marks</th>
           </tr>
         </thead>
         <tbody>
           <tr className="bg-white">
-            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Interactions within the environment</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Describing appearance instead of the survival mechanism; food-chain arrows drawn the wrong way (arrows show energy flow).</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Forces</strong><br/><span className="text-[9pt] text-slate-500">(friction / gravity / spring)</span></td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">
+              <strong>#1 Applying force concepts (35% of wrong).</strong> Kids can name the force but can&rsquo;t explain what happens next. <em>E.g. a parachutist at points P&rarr;Q&rarr;R</em> — students identify &ldquo;gravity&rdquo; but skip the effect on speed.
+              <div className="mt-1 text-slate-700">#2 Force direction / arrows (23%). #3 Elastic-force setups &mdash; springs and rubber bands (19%).</div>
+            </td>
           </tr>
           <tr className="bg-slate-50">
-            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Electrical systems &amp; circuits</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Confusing series ↔ parallel behaviour; not tracing the complete closed circuit before answering.</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Interactions within the environment</strong></td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">
+              <strong>#1 Adaptation (25% of wrong).</strong> Describing what the organism looks like instead of <em>how the feature helps it survive</em>.
+              <div className="mt-1 text-slate-700">#2 Food-web reasoning (23%) — predicting the knock-on effect when one organism is removed. #3 Human impact (14%) &mdash; pollution, deforestation causal chains.</div>
+            </td>
           </tr>
           <tr className="bg-white">
-            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Forces</strong> (friction / gravity / spring)</td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Forgetting arrow direction on the force diagram; not saying which force is bigger.</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Electrical systems &amp; circuits</strong></td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">
+              <strong>#1 Reading a circuit (42% of wrong).</strong> Not tracing whether the path is a complete closed loop before answering &mdash; especially on circuit-tester questions (&ldquo;which two clips must be connected?&rdquo;).
+              <div className="mt-1 text-slate-700">#2 Series-vs-parallel behaviour when one bulb is removed (17%). #3 Electromagnet setups (16%).</div>
+            </td>
           </tr>
           <tr className="bg-slate-50">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Heat energy &amp; uses</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Mixing up heat with temperature; forgetting that heat flows from hot to cold, not the other way.</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">
+              <strong>#1 Heat transfer &amp; material choice (32% of wrong).</strong> Picking the wrong container / material for insulation. <em>MCQ trap:</em> in one 10-yr recurring question &ldquo;which container keeps water hottest?&rdquo;, kids pick option (1) instead of (4) &mdash; 18 wrong attempts in the sample.
+              <div className="mt-1 text-slate-700">#2 Changes of state (22%). #3 Heat vs temperature confusion (19%). #4 Expansion / contraction (18%).</div>
+            </td>
           </tr>
           <tr className="bg-white">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Diversity of living &amp; non-living</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Grouping by visual difference (colour, size) instead of a scientific property.</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">
+              MCQ-dominated topic (90% MCQ). Wrong answers spread thinly &mdash; no single sub-topic dominates. Watch for questions asking &ldquo;true for BOTH X and Y&rdquo; where a plausible-but-wrong distractor sits next to the correct option.
+            </td>
           </tr>
         </tbody>
       </table>
+      <p className="text-[9pt] text-slate-500 italic mt-2">One universal pattern: <strong>blank OEQ answers</strong> account for 15-25% of lost marks across every top-5 topic. Always attempt every sub-part &mdash; a half-answer scores more than zero.</p>
     </A4Sheet>
   );
 }
