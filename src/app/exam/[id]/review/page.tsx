@@ -282,6 +282,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [paperType, setPaperType] = useState<string | null>(null);
+  // Set true when metadata.onboardingDiagnostic === true — flips the
+  // review page's back / continue button to route into the preliminary
+  // progress/lumi view instead of the parent home. First-time
+  // onboarding flow.
+  const [isOnboardingDiagnostic, setIsOnboardingDiagnostic] = useState(false);
   // Master Class metadata — populated only when paperType === "mastery".
   // masterClassSlug links back to /admin/master-class/<slug>; the
   // missed-sub-topic computation below derives weak areas from this.
@@ -453,6 +458,7 @@ function ExamReviewContent({ id }: { id: string }) {
           paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "mastery";
           setIsQuiz(paperIsQuiz);
           setPaperType(paper.paperType ?? null);
+          setIsOnboardingDiagnostic((paper.metadata as { onboardingDiagnostic?: boolean } | null)?.onboardingDiagnostic === true);
           if (paper.paperType === "mastery") {
             const meta = paper.metadata as { masterClassSlug?: string; masterClassTitle?: string } | null;
             setMasterClassSlug(meta?.masterClassSlug ?? null);
@@ -925,13 +931,19 @@ function ExamReviewContent({ id }: { id: string }) {
   // landed here without it), bounce to /login rather than build a
   // /home/ URL with an empty id, which 404s. The login page reads
   // the session cookie and redirects to the right home automatically.
+  // Onboarding-diagnostic quizzes bounce back to the Lumi view with an
+  // `onboarding=1` flag so the progress page can render the first-time
+  // congratulations copy + preliminary read + next-step CTAs. Everyone
+  // else falls through to the standard home / progress route.
   const backPath = !userId
     ? "/login"
-    : assignedToId && !isStudent
-      ? `/home/${userId}?view=progress&student=${assignedToId}`
-      : canCelebrateBack
-        ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
-        : `/home/${userId}?view=progress`;
+    : isOnboardingDiagnostic
+      ? `/home/${userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
+      : assignedToId && !isStudent
+        ? `/home/${userId}?view=progress&student=${assignedToId}`
+        : canCelebrateBack
+          ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
+          : `/home/${userId}?view=progress`;
 
   if (loading) {
     return (

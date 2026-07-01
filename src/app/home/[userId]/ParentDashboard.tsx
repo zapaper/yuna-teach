@@ -4844,6 +4844,102 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
 // stays visible — clicking between Home / Progress / Set Papers /
 // students is one in-page state change, no full-page navigation.
 type LumiAdminCandidate = { id: string; name: string; level?: number | null; hasDiagnosis?: boolean };
+// First-time onboarding congratulations banner. Renders inside the
+// Lumi view when the URL has ?onboarding=1&fromPaper=<id>. Fetches the
+// diagnostic paper's per-topic accuracy to (a) surface the weakest
+// topic in the CTA and (b) decide whether to say "all-strong" vs
+// "focused practice on X".
+type OnboardingContext = { subject: string; weakest: string | null; allStrong: boolean; wasMcqOnly: boolean };
+function OnboardingBanner({
+  parentId, studentId, studentName, subject, fromPaperId,
+}: { parentId: string; studentId: string; studentName: string; subject: string; fromPaperId: string }) {
+  const [ctx, setCtx] = useState<OnboardingContext | null>(null);
+  const firstName = studentName.split(/\s+/)[0] ?? studentName;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/exam/${fromPaperId}`);
+        if (!res.ok) return;
+        const paper = await res.json() as { subject?: string | null; metadata?: { quizType?: string } | null; questions?: Array<{ syllabusTopic?: string | null; marksAwarded?: number | null; marksAvailable?: number | null }> };
+        const perTopic = new Map<string, { correct: number; total: number; n: number }>();
+        for (const q of paper.questions ?? []) {
+          const t = q.syllabusTopic ?? "Unknown";
+          const cur = perTopic.get(t) ?? { correct: 0, total: 0, n: 0 };
+          cur.correct += q.marksAwarded ?? 0;
+          cur.total += q.marksAvailable ?? 0;
+          cur.n += 1;
+          perTopic.set(t, cur);
+        }
+        // Filter to topics with N ≥ 3 questions (per user spec on
+        // preliminary chart display).
+        const eligible = [...perTopic.entries()]
+          .filter(([, v]) => v.n >= 3 && v.total > 0)
+          .map(([t, v]) => ({ topic: t, acc: v.correct / v.total }))
+          .sort((a, b) => a.acc - b.acc);
+        let weakest: string | null = null;
+        let allStrong = false;
+        if (eligible.length === 0) {
+          allStrong = true;
+        } else {
+          weakest = eligible[0].topic;
+          allStrong = eligible[0].acc >= 0.8;
+        }
+        if (cancelled) return;
+        setCtx({
+          subject: paper.subject ?? subject,
+          weakest,
+          allStrong,
+          wasMcqOnly: (paper.metadata?.quizType ?? "") === "mcq",
+        });
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [fromPaperId, subject]);
+  // Helper: focused-practice link if we know the weakest topic. Routes
+  // to the parent dashboard with the assign-focused modal seeded to
+  // that (subject, topic). The modal already handles this shape (see
+  // ParentDashboard state around emailFocusedSubject/emailFocusedTopic).
+  const subjSlug = subject.toLowerCase().includes("math") ? "math" : subject.toLowerCase().includes("science") ? "science" : "english";
+  const nextBroadHref = `/home/${parentId}?openQuiz=1&subject=${subjSlug}&student=${studentId}`;
+  const focusedHref = ctx?.weakest ? `/home/${parentId}?focused=1&subject=${subjSlug}&topic=${encodeURIComponent(ctx.weakest)}&student=${studentId}` : nextBroadHref;
+  const pdfHref = `/onboarding-assets/psle-${subjSlug}-top-topics.pdf`;
+  return (
+    <div className="mt-4 mb-8 rounded-2xl border border-[#ddd6fe] bg-gradient-to-br from-[#f5f3ff] to-[#faf5ff] p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="material-symbols-outlined text-[#7c3aed]" style={{ fontVariationSettings: "'FILL' 1" }}>celebration</span>
+        <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Congratulations on finishing your first quiz!</h3>
+      </div>
+      <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
+        With each quiz, Lumi builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can personalise the next practice. The diagnosis below is <em>preliminary</em>. It will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
+      </p>
+      <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
+        For now, I would recommend a further broad quiz{" "}
+        <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">assign one here →</a>
+        {ctx && !ctx.allStrong && ctx.weakest && (
+          <>, or a focused practice on <strong>{ctx.weakest}</strong>{" "}
+            <a href={focusedHref} className="text-[#7c3aed] font-semibold underline">assign focused →</a>
+          </>
+        )}
+        {ctx && ctx.allStrong && (
+          <>. <strong>{firstName}</strong> is all-strong in this subject — a further broad quiz{" "}
+            <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">here</a> would strengthen the analysis further.
+          </>
+        )}
+        . You can also do a quiz in <a href={`/home/${parentId}?view=lumi&student=${studentId}`} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
+      </p>
+      {ctx?.wasMcqOnly && (subjSlug === "math" || subjSlug === "science") && (
+        <p className="text-sm text-[#1e293b] leading-relaxed mb-3 italic">
+          In addition, Open-Ended Questions (OEQ) can be tricky for {ctx.subject}. To sharpen our analysis, Lumi recommends doing another quiz with OEQs.
+        </p>
+      )}
+      <p className="text-sm text-[#1e293b] leading-relaxed">
+        Lastly, here is your downloadable Top topics and mistakes for PSLE {ctx?.subject ?? subject} — <a href={pdfHref} className="text-[#7c3aed] font-semibold underline">download PDF →</a>
+      </p>
+    </div>
+  );
+}
+
 function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { studentId: string; parentId: string; studentName: string; isAdmin?: boolean }) {
   // Deep-link support: `?subject=English` on the Lumi URL preselects the
   // English tab so the grammar/synthesis new-feature email button lands
@@ -4860,6 +4956,17 @@ function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { s
     return "Science";
   })();
   const [subject, setSubject] = useState<string>(initialSubject);
+  // Onboarding-diagnostic entry: ?onboarding=1&fromPaper=<quizId> comes
+  // from the review page after a first-time diagnostic submission. We
+  // render a top banner explaining what the parent is looking at.
+  const onboardingCtx = (() => {
+    if (typeof window === "undefined") return null;
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("onboarding") !== "1") return null;
+    const fromPaper = qs.get("fromPaper");
+    if (!fromPaper) return null;
+    return { fromPaper };
+  })();
   // Admin override: when the caller is an admin, /api/tutor/admin-students
   // returns every kid who qualifies for the current subject — including
   // ones not linked to this parent account. Belt-and-braces gating:
@@ -4892,6 +4999,15 @@ function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { s
           tab-style buttons so the choice reads as a primary action,
           not a tucked-away select. */}
       <div className="pt-8 lg:pt-10 mb-6">
+        {onboardingCtx && (
+          <OnboardingBanner
+            parentId={parentId}
+            studentId={effectiveStudentId}
+            studentName={effectiveStudentName}
+            subject={subject}
+            fromPaperId={onboardingCtx.fromPaper}
+          />
+        )}
         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Progress · Lumi</p>
         <h2 className="text-2xl font-headline font-extrabold text-[#001e40] mb-4">
           {firstName ? `${firstName}'s ${subject}` : subject}
