@@ -17,6 +17,7 @@ export interface QuizAssignedEmailParams {
   childUsername: string;
   subject: string;                    // 'English' | 'Math' | 'Science'
   childHomepageUrl: string;
+  parentHomepageUrl: string;
 }
 
 export async function sendQuizAssignedEmail(p: QuizAssignedEmailParams): Promise<void> {
@@ -33,6 +34,7 @@ export async function sendQuizAssignedEmail(p: QuizAssignedEmailParams): Promise
     childUsername: p.childUsername,
     subject: p.subject,
     childHomepageUrl: p.childHomepageUrl,
+    parentHomepageUrl: p.parentHomepageUrl,
   });
 
   const TEAM_ADDRESS = "jessica@markforyou.com";

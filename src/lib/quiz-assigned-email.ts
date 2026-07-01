@@ -10,6 +10,7 @@ export interface QuizAssignedEmailSubstitutions {
   childUsername: string;
   subject: string;              // 'English' | 'Math' | 'Science' (display case)
   childHomepageUrl: string;     // e.g. https://www.markforyou.com/home/<childId>
+  parentHomepageUrl: string;    // e.g. https://www.markforyou.com/home/<parentId>
 }
 
 export const QUIZ_ASSIGNED_EMAIL_SUBJECT =
@@ -39,6 +40,10 @@ export const QUIZ_ASSIGNED_EMAIL_HTML = `<div style="font-family: -apple-system,
 
   <p style="margin: 0 0 14px 0; font-size: 14px; color: #43474f;">If the button doesn&rsquo;t work, copy this link into a browser:<br><a href="{{childHomepageUrl}}" style="color: #7c3aed; word-break: break-all;">{{childHomepageUrl}}</a></p>
 
+  <p style="margin: 16px 0; font-size: 13px; color: #43474f; padding: 10px 12px; background: #f8f9ff; border-left: 3px solid #001e40; border-radius: 4px;">
+    <strong>Want to check on {{childName}}&rsquo;s progress?</strong> Log in to <a href="{{parentHomepageUrl}}" style="color: #001e40; font-weight: 700;">your parent dashboard</a> — the button above is for {{childName}} to sign in as themselves. Your parent login and {{childName}}&rsquo;s login are separate.
+  </p>
+
   <p style="margin: 18px 0 4px 0;">See you inside.</p>
   <p style="margin: 0; font-weight: 600;">Jessica</p>
   <p style="margin: 0; color: #6B7280; font-style: italic; font-size: 14px;">Co-Founder, MarkForYou</p>
@@ -51,6 +56,8 @@ The {{subject}} diagnostic quiz for {{childName}} is ready. It takes about 20 mi
 Start the quiz: {{childHomepageUrl}}
 
 {{signInSentence}}
+
+Want to check on {{childName}}'s progress? Log in to YOUR parent dashboard at {{parentHomepageUrl}} — the link above is for {{childName}} to sign in as themselves. Your parent login and {{childName}}'s login are separate.
 
 See you inside.
 
@@ -78,6 +85,7 @@ export function renderQuizAssignedEmail(subs: QuizAssignedEmailSubstitutions): {
       .replace(/\{\{\s*childUsername\s*\}\}/g, subs.childUsername)
       .replace(/\{\{\s*subject\s*\}\}/g, subs.subject)
       .replace(/\{\{\s*childHomepageUrl\s*\}\}/g, subs.childHomepageUrl)
+      .replace(/\{\{\s*parentHomepageUrl\s*\}\}/g, subs.parentHomepageUrl)
       .replace(/\{\{\s*signInSentence\s*\}\}/g, textVariant ? signInSentenceText : signInSentence);
   return {
     subject: replace(QUIZ_ASSIGNED_EMAIL_SUBJECT),

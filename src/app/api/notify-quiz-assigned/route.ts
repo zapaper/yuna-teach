@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
     childUsername,
     subject: subjectLabel,
     childHomepageUrl: `${APP_URL}/home/${studentId}`,
+    parentHomepageUrl: `${APP_URL}/home/${parentId}`,
   });
 
   return NextResponse.json({ queued: true }, { status: 202 });
