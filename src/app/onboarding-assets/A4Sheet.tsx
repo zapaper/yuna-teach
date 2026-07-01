@@ -50,9 +50,6 @@ export function A4Sheet({ title, subtitle, children }: {
             {subtitle && <p className="mt-1 text-[10pt] text-slate-600">{subtitle}</p>}
           </header>
           {children}
-          <footer className="mt-6 pt-3 border-t border-slate-200 text-[8.5pt] text-slate-500 leading-tight">
-            Diagnosed and marked automatically by MarkForYou. Try a 20-min diagnostic quiz free at <strong>markforyou.com</strong>. Content synthesised from 10 years of past PSLE papers.
-          </footer>
         </article>
       </div>
     </>

@@ -24,8 +24,8 @@ export default function MathTopTopics() {
 
   return (
     <A4Sheet
-      title="PSLE Math — Top Topics"
-      subtitle="Top 5 topics by marks (per 100-mark paper). 10-year average, 2016-2025."
+      title="Top Topics and Advanced Bar Models Cheatsheet"
+      subtitle="PSLE Math — top 5 topics by marks (per 100-mark paper). 10-year average, 2016-2025."
     >
       <div style={{ backgroundColor: "#f8f4ea", padding: "12px 14px", borderRadius: 8, marginTop: 8 }}>
         <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
