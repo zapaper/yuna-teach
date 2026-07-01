@@ -584,6 +584,11 @@ export default function StudentDashboard({
   // dismissal sticks across devices / browsers / Capacitor WebView.
   // Falls back to localStorage if the settings flag isn't set yet
   // (legacy users who dismissed before this change shipped).
+  //
+  // Also suppressed once the kid has completed at least one paper —
+  // the 'Your first quiz is ready. Click on the quiz below to begin.'
+  // copy is stale in that case and shouldn't fire on subsequent
+  // logins.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const settings = (user.settings as Record<string, unknown> | null) ?? {};
@@ -591,9 +596,11 @@ export default function StudentDashboard({
     const seenKey = `mfy_studentAccountInfoSeen_${userId}`;
     const localSeen = window.localStorage.getItem(seenKey) === "1";
     if (dbSeen || localSeen) return;
+    const hasCompletedPaper = examPapers.some(p => p.markingStatus === "complete" || p.markingStatus === "released");
+    if (hasCompletedPaper) return;
     const t = setTimeout(() => setShowAccountInfo(true), 600);
     return () => clearTimeout(t);
-  }, [userId, user.settings]);
+  }, [userId, user.settings, examPapers]);
 
   // `name` is the immutable login username; `displayName` is the
   // mutable greeting label. Falls back to the username when not set.
