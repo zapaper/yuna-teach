@@ -706,11 +706,11 @@ function SignupFlow() {
                   You are all set!
                 </h1>
                 <p className="text-lg md:text-xl max-w-2xl lg:max-w-none mb-12 leading-relaxed" style={{ color: "#43474f" }}>
-                  To get started, I suggest starting with a{" "}
-                  <span className="font-bold" style={{ color: "#006c49" }}>20-min diagnostic quiz</span>{" "}
-                  for <span className="font-bold">{studentName.trim() || "your child"}</span> so that we can personalise their next practice.
-                  Choose one of the subjects below, and whether you would like MCQ or MCQ + OEQ (stylus recommended).
-                  Upon completion, we will also provide the <span className="font-bold">PSLE Top Topics and Mistakes</span> for the subject chosen.
+                  Let&apos;s start with a{" "}
+                  <span className="font-bold" style={{ color: "#006c49" }}>quick diagnostic (~20 min)</span>{" "}
+                  to get a sense of <span className="font-bold">{studentName.trim() || "your child"}</span>&rsquo;s current academic picture.
+                  Pick a subject, and whether you would like MCQ or MCQ + OEQ (stylus recommended).
+                  We&rsquo;ll also provide a <span className="font-bold">FREE PSLE Top Topics and Tips</span> for that subject upon completion of the diagnostic quiz.
                 </p>
 
                 {/* Actions */}

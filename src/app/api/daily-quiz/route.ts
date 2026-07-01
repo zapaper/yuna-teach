@@ -1659,6 +1659,11 @@ export async function POST(request: NextRequest) {
         metadata: {
           quizType: "mcq",
           englishSections: sections,
+          // Onboarding-diagnostic flag lets the review page's 'Go to
+          // Diagnostic' backPath know to route to /progress/{kidId}
+          // instead of the regular /home/{userId} branch (which
+          // bounces the parent's session on the kid's homepage).
+          ...(firstQuiz ? { onboardingDiagnostic: true } : {}),
           sourceLabels: Object.fromEntries(
             allSelectedFull.map((q, i) => {
               const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
@@ -2069,6 +2074,9 @@ export async function POST(request: NextRequest) {
       totalMarks: String(totalMarks),
       metadata: {
         quizType,
+        // Onboarding-diagnostic flag — see the English path above.
+        // Drives the review-page routing to /progress/{kidId}.
+        ...(firstQuiz ? { onboardingDiagnostic: true } : {}),
         sourceLabels: Object.fromEntries(
           allSelectedFull2.map((q, i) => {
             const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);

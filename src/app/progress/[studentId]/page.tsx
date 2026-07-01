@@ -143,6 +143,14 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
   // loop.
   useEffect(() => {
     if (!isAdmin || skipAdminRedirect) return;
+    // Suppress the admin-shortcut redirect when the user got here
+    // from the diagnostic 'Go to Diagnostic' handoff (?onboarding=1
+    // or ?view=lumi). Those URLs want the /progress render — which
+    // renders TutorBodyForStudent + OnboardingBanner inline — not a
+    // bounce to /home. Without this guard the admin got kicked off
+    // the /progress page and lost the onboarding params.
+    const isOnboardingFlow = searchParams.get("onboarding") === "1" || searchParams.get("view") === "lumi";
+    if (isOnboardingFlow) return;
     let parentForHome = parentId;
     if (!parentForHome) {
       // No parentId in the URL — fall back to the admin's own user id
@@ -157,7 +165,7 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
       return;
     }
     router.replace(`/home/${parentForHome}?view=lumi&student=${studentId}`);
-  }, [isAdmin, parentId, studentId, router, skipAdminRedirect]);
+  }, [isAdmin, parentId, studentId, router, skipAdminRedirect, searchParams]);
 
   // English syllabus topic → daily-quiz section key (matches the parent-
   // dashboard Assign English Focus flow). Anything not in this map falls

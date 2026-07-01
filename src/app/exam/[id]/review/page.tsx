@@ -677,7 +677,9 @@ function ExamReviewContent({ id }: { id: string }) {
   // Auto-refresh while marking is still in progress. Native iOS has
   // no pull-to-refresh, so without this the page sits on
   // "marking…" forever even after the server has finished. Poll
-  // every 5 s, stop as soon as we see complete/released or any
+  // every 1.5 s so MCQ scoring (fast, sub-second server-side)
+  // surfaces the score without the parent staring at '-' for
+  // ~3 seconds. Stop as soon as we see complete/released or any
   // error state.
   useEffect(() => {
     const status = data?.markingStatus;
@@ -709,7 +711,7 @@ function ExamReviewContent({ id }: { id: string }) {
           window.location.reload();
         }
       } catch { /* ignore — try again next tick */ }
-    }, 5000);
+    }, 1500);
     return () => clearInterval(tick);
   }, [id, data?.markingStatus]);
 

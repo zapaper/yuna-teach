@@ -1297,6 +1297,14 @@ export default function StudentDashboard({
             <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#001e40] font-bold border-r-4 border-[#001e40] bg-blue-50/50">
               <span className="material-symbols-outlined">home</span>Home
             </button>
+            <button
+              onClick={() => router.push(`/progress/${userId}?view=lumi`)}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors"
+            >
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              <span className="hidden lg:inline">Progress &amp; Lumi</span>
+              <span className="inline lg:hidden">Lumi</span>
+            </button>
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
               <span className="material-symbols-outlined">spellcheck</span>
               {/* Desktop has room for both labels; mobile sidebar
@@ -2233,6 +2241,13 @@ export default function StudentDashboard({
         >
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "home" ? "'FILL' 1" : "'FILL' 0" }}>home</span>
           <span className="text-[10px] font-bold">Home</span>
+        </button>
+        <button
+          onClick={() => router.push(`/progress/${userId}?view=lumi`)}
+          className="flex flex-col items-center gap-0.5 transition-all text-slate-400"
+        >
+          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          <span className="text-[10px] font-bold">Lumi</span>
         </button>
         <button
           onClick={() => { setActiveNav("scan"); router.push(`/spelling?userId=${userId}`); }}
