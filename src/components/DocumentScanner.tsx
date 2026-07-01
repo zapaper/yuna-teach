@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { playClick } from "@/lib/sfx";
+import { deleteScanSession, loadScanSession, saveScanSession } from "@/lib/scan-session-store";
 
 type Stage = "loading" | "capture" | "review" | "submitting" | "error";
 
@@ -152,6 +153,65 @@ export default function DocumentScanner({
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
+
+  // ── Resume orphaned session on mount ──
+  // If a previous attempt for this (paper, student) pair crashed
+  // mid-scan or mid-submit, IndexedDB still holds the cleaned page
+  // blobs. Restore them so the parent lands in the review stage with
+  // pages already staged instead of having to re-shoot every page.
+  // Compo mode (onComplete provided) skips this — those sessions
+  // aren't keyed on the exam-clone flow.
+  //
+  // resumeComplete gates the persistence effect below so it can't
+  // race the async load and clobber IDB with an empty array before
+  // the restored pages arrive.
+  const [resumeComplete, setResumeComplete] = useState(false);
+  useEffect(() => {
+    if (onComplete) { setResumeComplete(true); return; }
+    let cancelled = false;
+    (async () => {
+      const stored = await loadScanSession(masterPaperId, studentId);
+      if (cancelled) return;
+      if (stored && stored.pages.length > 0) {
+        const restored: Page[] = stored.pages
+          .slice()
+          .sort((a, b) => a.index - b.index)
+          .map((p) => ({
+            id: `restored-${p.index}-${Math.random().toString(36).slice(2, 8)}`,
+            blob: p.blob,
+            thumbUrl: URL.createObjectURL(p.blob),
+          }));
+        setPages(restored);
+        // Land in review so the parent immediately sees their pages
+        // and can Submit or resume capturing more.
+        setStage("review");
+      }
+      setResumeComplete(true);
+    })();
+    return () => { cancelled = true; };
+  }, [masterPaperId, studentId, onComplete]);
+
+  // ── Mirror `pages` to IndexedDB on every mutation ──
+  // Cheap async put keyed on (paperId, studentId). Covers capture,
+  // retake, and delete since all three go through setPages. If the
+  // tab crashes / user backgrounds / network dies, the pages survive
+  // and the mount-time resume effect above picks them back up next
+  // time the scanner opens for the same paper+student.
+  useEffect(() => {
+    if (onComplete) return;                     // compo path — no persistence
+    if (!resumeComplete) return;                // wait until resume attempt finishes
+    if (pages.length === 0) {
+      // User deleted all captured pages — drop the stored session so
+      // the next open doesn't resurrect them.
+      deleteScanSession(masterPaperId, studentId);
+      return;
+    }
+    saveScanSession(
+      masterPaperId,
+      studentId,
+      pages.map((p, i) => ({ blob: p.blob, index: i })),
+    );
+  }, [pages, masterPaperId, studentId, onComplete, resumeComplete]);
 
   // ── Spin up the CV worker, then start the camera ──
   useEffect(() => {
@@ -633,6 +693,13 @@ export default function DocumentScanner({
   }, [retakeIdx, capturing]);
 
   // ── Submit to backend ──
+  // Retry strategy: up to 3 attempts with exponential backoff
+  // (2s → 4s → 8s). Only retries on network / 5xx failures; 4xx
+  // responses are terminal (the server rejected the payload, retrying
+  // wouldn't change the outcome). On terminal failure, we DO NOT
+  // delete the IndexedDB session — the parent can close the tab and
+  // reopen the scanner later to resume from the captured pages
+  // without re-scanning, or hit Retry from the review stage.
   const handleSubmit = useCallback(async () => {
     if (pages.length === 0) return;
     setStage("submitting");
@@ -645,19 +712,56 @@ export default function DocumentScanner({
         // success-side navigation; we just clean up the camera + UI.
         await onComplete(pages.map((p, i) => ({ blob: p.blob, index: i })));
       } else {
-        const form = new FormData();
-        form.append("studentId", studentId);
-        pages.forEach((p, i) => {
-          form.append(`page_${i}`, p.blob, `page_${i}.jpg`);
-        });
-        const res = await fetch(`/api/exam/${masterPaperId}/scan-submit?userId=${parentId}`, {
-          method: "POST",
-          body: form,
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data?.cloneId) {
-          throw new Error(data?.error ?? `submit failed (${res.status})`);
+        const MAX_ATTEMPTS = 3;
+        const BACKOFF_MS = [2000, 4000, 8000];
+        let lastErr: Error | null = null;
+        let ok = false;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          // Rebuild the FormData every attempt — a spent stream can't
+          // be replayed. Blobs are reusable, so this is cheap.
+          const form = new FormData();
+          form.append("studentId", studentId);
+          pages.forEach((p, i) => {
+            form.append(`page_${i}`, p.blob, `page_${i}.jpg`);
+          });
+          setStatusMsg(
+            attempt === 1
+              ? "Sending to marker…"
+              : `Retrying (attempt ${attempt} of ${MAX_ATTEMPTS})…`,
+          );
+          let res: Response | null = null;
+          try {
+            res = await fetch(`/api/exam/${masterPaperId}/scan-submit?userId=${parentId}`, {
+              method: "POST",
+              body: form,
+            });
+          } catch (netErr) {
+            // Network-layer error (offline, DNS, TLS). Transient —
+            // fall through to backoff-then-retry.
+            lastErr = netErr instanceof Error ? netErr : new Error("network error");
+          }
+          if (res) {
+            if (res.ok) {
+              const data = await res.json().catch(() => ({}));
+              if (data?.cloneId) { ok = true; break; }
+              lastErr = new Error(data?.error ?? "submit succeeded but no clone id returned");
+              break;                             // terminal — don't retry
+            }
+            // 4xx is terminal, 5xx is transient.
+            const body = await res.json().catch(() => ({}));
+            const msg = body?.error ?? `submit failed (${res.status})`;
+            lastErr = new Error(msg);
+            if (res.status >= 400 && res.status < 500) break;
+          }
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise((r) => setTimeout(r, BACKOFF_MS[attempt - 1]));
+          }
         }
+        if (!ok) throw lastErr ?? new Error("submit failed");
+        // Success — clear the persisted session so the next scan on
+        // this paper+student starts fresh instead of resuming these
+        // (now-uploaded) pages.
+        await deleteScanSession(masterPaperId, studentId);
         router.refresh();
       }
       // Stop the camera, close the scanner overlay, and (for the
@@ -670,7 +774,9 @@ export default function DocumentScanner({
     } catch (err) {
       const msg = err instanceof Error ? err.message : "submit failed";
       setStage("review");
-      setErrorMsg(msg);
+      // Prefix so the parent understands their pages are safe locally
+      // and they can retry — the IDB session is intact.
+      setErrorMsg(`${msg} — your scanned pages are saved on this device. Tap Submit to retry.`);
     }
   }, [pages, studentId, masterPaperId, parentId, router, onClose, onComplete]);
 

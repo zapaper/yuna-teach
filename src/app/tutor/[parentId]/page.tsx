@@ -368,7 +368,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         </div>
       )}
       {data && data.kind === "ineligible" && (
-        <IneligibleView data={data} subject={subject} loading={loading} />
+        <IneligibleView data={data} subject={subject} loading={loading} studentId={studentId} />
       )}
       {data && data.kind === "ready" && (
         <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
@@ -474,10 +474,12 @@ function IneligibleView({
   data,
   subject,
   loading,
+  studentId,
 }: {
   data: Extract<TutorData, { kind: "ineligible" }>;
   subject: string;
   loading: boolean;
+  studentId: string;
 }) {
   const topline = data.topline;
   const childFirst = data.childFirst;
@@ -587,6 +589,17 @@ function IneligibleView({
           )}
         </p>
       </section>
+
+      {/* English Grammar + Synthesis sub-topic fluency table. Renders
+          from the very first paper — GrammarRadar no-ops on non-English
+          and gates its own loading state, so this is safe to mount
+          unconditionally. Wrapping in a white card keeps the visual
+          rhythm consistent with the other sections here. */}
+      {subject === "English" && (
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
+          <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst ?? "your child"} />
+        </section>
+      )}
     </div>
   );
 }
