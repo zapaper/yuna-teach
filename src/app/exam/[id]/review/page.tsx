@@ -560,20 +560,21 @@ function ExamReviewContent({ id }: { id: string }) {
           const cached: Record<string, string> = {};
           const cachedDiagrams: Record<string, DiagramStep[]> = {};
           const flagged = new Set<string>();
-          // Auto-expand any MCQ that was answered wrong AND has a
-          // cached elaboration — parent shouldn't need to click "Show
-          // explanation" for questions the kid got wrong. Right-answer
-          // MCQ and OEQ stay collapsed so the review page doesn't
-          // become a wall of prose.
+          // Auto-expand any question that was answered wrong AND has
+          // a cached elaboration — parent shouldn't need to click
+          // "Show explanation" for the questions the kid lost marks
+          // on. Applies to both MCQ and OEQ (previously MCQ-only, but
+          // OEQ elaborations are just as useful when a kid drops
+          // partial marks). Right-answer questions stay collapsed so
+          // the review page doesn't become a wall of prose.
           const autoExpand = new Set<string>();
           for (const q of markData.questions ?? []) {
             if (q.elaboration) {
               const { text, diagrams } = parseElabCache(q.elaboration);
               cached[q.id] = text;
               if (diagrams.length > 0) cachedDiagrams[q.id] = diagrams;
-              const isMcq = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length >= 2;
               const gotWrong = q.marksAwarded != null && q.marksAvailable != null && q.marksAwarded < q.marksAvailable;
-              if (isMcq && gotWrong) autoExpand.add(q.id);
+              if (gotWrong) autoExpand.add(q.id);
             }
             if (q.flagged) flagged.add(q.id);
           }
