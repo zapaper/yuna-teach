@@ -1832,17 +1832,68 @@ export async function POST(request: NextRequest) {
   let selectedMcq: Q[];
   let selectedOeq: MergedQ[];
 
+  // Onboarding-diagnostic (firstQuiz=true) picks stratified across
+  // the top-5 topics present in the available pool for this subject/
+  // level. Random draw scatters too thin — e.g. 6 Geometry + 1 each
+  // of 7 other topics falls below the Lumi chart's 3-attempt render
+  // threshold (progress/[studentId]/page.tsx#L728), so only one bar
+  // showed. Stratifying guarantees ≥3 attempts on ≥5 topics.
+  //
+  // We pick the 5 largest topic buckets in the pool (rather than a
+  // fixed top-5 list) because DB labels don't cleanly map to the
+  // PSLE-syllabus semantic groups — a fixed list silently falls
+  // through to backfill and defeats the point.
+  function pickStratifiedMcq(pool: Q[], perTopic: number, total: number): Q[] {
+    const byTopic = new Map<string, Q[]>();
+    for (const q of pool) {
+      const t = (q.syllabusTopic ?? "").trim() || "(untagged)";
+      if (!byTopic.has(t)) byTopic.set(t, []);
+      byTopic.get(t)!.push(q);
+    }
+    // Sort topic buckets by size descending, ignore "(untagged)" so
+    // the chart doesn't get a nameless slice.
+    const orderedTopics = [...byTopic.entries()]
+      .filter(([t]) => t !== "(untagged)")
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([t]) => t);
+    const nTopics = Math.min(orderedTopics.length, Math.ceil(total / perTopic));
+    const picked: Q[] = [];
+    const seenIds = new Set<string>();
+    for (const topic of orderedTopics.slice(0, nTopics)) {
+      const bucket = byTopic.get(topic) ?? [];
+      for (const q of bucket.slice(0, perTopic)) {
+        if (!seenIds.has(q.id) && picked.length < total) {
+          picked.push(q); seenIds.add(q.id);
+        }
+      }
+    }
+    // Backfill from the rest of the pool if any bucket was short.
+    if (picked.length < total) {
+      for (const q of pool) {
+        if (picked.length >= total) break;
+        if (!seenIds.has(q.id)) { picked.push(q); seenIds.add(q.id); }
+      }
+    }
+    return picked.slice(0, total);
+  }
+  const subjLc = (subject ?? "").toLowerCase();
+  const useStratified = firstQuiz && (subjLc.includes("math") || subjLc.includes("science"));
+
   if (quizType === "mcq") {
     if (mcqPool.length < 1) {
       return NextResponse.json({ error: "Not enough MCQ questions available" }, { status: 404 });
     }
-    selectedMcq = mcqPool.slice(0, 15);
+    selectedMcq = useStratified
+      ? pickStratifiedMcq(mcqPool, 3, 15)
+      : mcqPool.slice(0, 15);
     selectedOeq = [];
   } else {
     if (mcqPool.length < 1 && oeqPool.length < 1) {
       return NextResponse.json({ error: "Not enough questions available" }, { status: 404 });
     }
-    selectedMcq = mcqPool.slice(0, 10);
+    selectedMcq = useStratified
+      ? pickStratifiedMcq(mcqPool, 2, 10)
+      : mcqPool.slice(0, 10);
     // Targeted hydrate for selected OEQ groups. mergeOeqGroup reads
     // both `diagramImageData` (for refImageBase64 on sub-parts) and
     // `transcribedSubparts` (for the actual sub-part list) — neither
