@@ -28,7 +28,8 @@ export type EventType =
   | "signup_welcome"
   | "subject_3_quizzes_done"
   | "lumi_intro"
-  | "lumi_weekly";
+  | "lumi_weekly"
+  | "quiz_assigned";
 
 export type QueueArgs = {
   eventType: EventType;
