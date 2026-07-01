@@ -4947,7 +4947,7 @@ function OnboardingBanner({
       )}
       {ctx?.wasMcqOnly && (subjSlug === "math" || subjSlug === "science") && (
         <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-          In addition, Open-Ended Questions (OEQ) can be tricky for {ctx.subject}. To sharpen our analysis, <strong>Lumi</strong> recommends doing another quiz with OEQs.
+          In addition, <strong>Open-Ended Questions (OEQ)</strong> can be tricky for {ctx.subject}. To sharpen our analysis, <strong>Lumi</strong> recommends doing another quiz with OEQs.
         </p>
       )}
       <p className="text-sm text-[#1e293b] leading-relaxed">
