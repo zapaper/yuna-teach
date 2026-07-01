@@ -124,6 +124,10 @@ export default function EnglishTopTopics(): ReactNode {
           style={{ width: "100%", height: "auto", display: "block" }}
         />
       </div>
+
+      <p style={{ marginTop: 12, textAlign: "center", fontSize: "11pt", fontWeight: 700, color: "#001e40" }}>
+        Practise more Grammar and Synthesis at <a href="https://www.markforyou.com" style={{ color: "#7c3aed", textDecoration: "none" }}>markforyou.com</a>
+      </p>
     </A4Sheet>
   );
 }
