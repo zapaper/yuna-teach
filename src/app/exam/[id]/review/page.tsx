@@ -976,15 +976,25 @@ function ExamReviewContent({ id }: { id: string }) {
     if (s.includes("math")) return "Math";
     return null;
   })();
+  // Onboarding-diagnostic 'Go to Diagnostic' → land the parent on
+  // /home/{parentId} with view=lumi and the student pre-selected, so
+  // the OnboardingBanner + Lumi body render inside the same panel a
+  // parent lands on any other day (LumiViewBody in ParentDashboard
+  // already reads ?onboarding=1&fromPaper= and inlines the banner).
+  // Fall back to /progress/{studentId} only when the parentId param
+  // is missing (e.g. student session that finished a quiz without the
+  // parent handoff carrying through).
   const backPath = !userId
     ? "/login"
-    : isOnboardingDiagnostic
-      ? `/progress/${diagnosticStudentId}?onboarding=1&fromPaper=${id}${canonicalSubject ? `&subject=${canonicalSubject}` : ""}${diagnosticParentId ? `&parentId=${diagnosticParentId}` : ""}`
-      : assignedToId && !isStudent
-        ? `/home/${userId}?view=progress&student=${assignedToId}`
-        : canCelebrateBack
-          ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
-          : `/home/${userId}?view=progress`;
+    : isOnboardingDiagnostic && diagnosticParentId
+      ? `/home/${diagnosticParentId}?view=lumi&student=${diagnosticStudentId}&onboarding=1&fromPaper=${id}${canonicalSubject ? `&subject=${canonicalSubject}` : ""}`
+      : isOnboardingDiagnostic
+        ? `/progress/${diagnosticStudentId}?onboarding=1&fromPaper=${id}${canonicalSubject ? `&subject=${canonicalSubject}` : ""}`
+        : assignedToId && !isStudent
+          ? `/home/${userId}?view=progress&student=${assignedToId}`
+          : canCelebrateBack
+            ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
+            : `/home/${userId}?view=progress`;
 
   // Diagnostic-quiz gate: hold the review screen behind a friendly
   // 'Marking your quiz…' spinner until the paper actually has

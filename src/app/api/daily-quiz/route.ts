@@ -2006,11 +2006,13 @@ export async function POST(request: NextRequest) {
     { id: "Measurement",      matches: /volume|mass|length|weight|time|speed|measurement/i },
     { id: "Statistics",       matches: /statistic|average|graph|chart|table|data|mean/i },
   ];
+  // P4 uses 4 buckets × 3 questions = 12 total (not 5 × 3 = 15). P4 pool
+  // is thin — Measurement only has 2 Time MCQs — and forcing a 5th
+  // bucket produces backfill instead of on-topic coverage.
   const MATH_SEMANTIC_GROUPS_P4: Array<{ id: string; matches: RegExp }> = [
-    { id: "Whole Numbers",    matches: /whole numbers?|place value|addition|subtraction|multiplication|division|operations/i },
-    { id: "Fractions",        matches: /fraction/i },
-    { id: "Measurement",      matches: /volume|mass|length|weight|time|measurement/i },
-    { id: "Geometry",         matches: /geometry|angle|triangle|quadrilateral|shape|net|symmetry|coordinate/i },
+    { id: "Whole Numbers",     matches: /whole numbers?|place value|addition|subtraction|multiplication|division|operations/i },
+    { id: "Fractions",         matches: /fraction/i },
+    { id: "Geometry",          matches: /geometry|angle|triangle|quadrilateral|shape|net|symmetry|coordinate/i },
     { id: "Data & Statistics", matches: /statistic|average|graph|chart|table|data|mean|pictogram|bar graph/i },
   ];
   const SCIENCE_SEMANTIC_GROUPS_P56: Array<{ id: string; matches: RegExp }> = [
@@ -2020,13 +2022,15 @@ export async function POST(request: NextRequest) {
     { id: "Heat",              matches: /heat/i },
     { id: "Diversity",         matches: /diversity|living.*non-living|classification|non-living/i },
   ];
-  // P4 MOE syllabus organises around 5 themes: Diversity, Cycles, Systems, Interactions, Energy.
-  // Regexes tuned against the actual P4 master pool (Cycles in matter, Human digestive, Plant parts, etc.).
+  // P4 uses 4 buckets × 3 questions = 12 total (matches P4 Math config).
+  // Groups reflect the four healthiest P4 MOE themes given the actual
+  // master pool: Systems (50 MCQ), Cycles (35), Diversity (19),
+  // Energy (18). Interactions (Forces) drops here — only 9 MCQ,
+  // thin enough that stratifier backfill would kick in.
   const SCIENCE_SEMANTIC_GROUPS_P4: Array<{ id: string; matches: RegExp }> = [
     { id: "Diversity",     matches: /diversity/i },
     { id: "Cycles",        matches: /cycle/i },
     { id: "Systems",       matches: /plant part|plant.*function|photosynthesis|human digestive|human respiratory|circulatory|respiratory/i },
-    { id: "Interactions",  matches: /force|magnet|friction|gravity|spring/i },
     { id: "Energy",        matches: /heat|light energy|electric/i },
   ];
   function pickStratifiedMcq(
@@ -2079,8 +2083,9 @@ export async function POST(request: NextRequest) {
     if (mcqPool.length < 1) {
       return NextResponse.json({ error: "Not enough MCQ questions available" }, { status: 404 });
     }
+    const stratifiedTotal = semanticGroups.length * 3;
     selectedMcq = useStratified
-      ? pickStratifiedMcq(mcqPool, semanticGroups, 3, 15)
+      ? pickStratifiedMcq(mcqPool, semanticGroups, 3, stratifiedTotal)
       : mcqPool.slice(0, 15);
     selectedOeq = [];
   } else {
