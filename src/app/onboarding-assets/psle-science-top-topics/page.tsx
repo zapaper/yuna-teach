@@ -1,23 +1,46 @@
 import { A4Sheet, A4SectionTitle } from "../A4Sheet";
 
-// PSLE Science — top-5 chart + command words + common mistakes.
-// Chart is the existing bar-chart PNG (day02-psle-science-top5.png).
+// PSLE Science — top-4 SVG bar chart + command words + common
+// mistakes tables. Chart is drawn as inline SVG (was the 2022-2024
+// PNG showing 5 topics) so we can drop Diversity cleanly and use
+// the more rigorous 10-year 2016-2025 marks-per-paper data from
+// PSLE-Science-Topic-Marks-10yr-Average.docx.
+
+const TOP4 = [
+  { name: "Interaction of forces (friction / gravity / spring)", pct: 14.0, colour: "#0f5c66" },
+  { name: "Interactions within the environment",                 pct: 13.7, colour: "#3d848c" },
+  { name: "Electrical systems & circuits",                       pct:  8.2, colour: "#66a5ac" },
+  { name: "Heat energy & uses",                                  pct:  7.2, colour: "#8fbfc4" },
+];
 
 export default function ScienceTopTopics() {
+  const axisMax = 15;
+  const chartWidth = 560;
+  const barAreaLeft = 210;
+  const barAreaRight = chartWidth - 60;
+  const rowH = 30;
+  const gap = 10;
+  const chartH = TOP4.length * (rowH + gap) + 4;
+
   return (
     <A4Sheet
       title="PSLE Science Top Topics and Mistakes"
-      subtitle="Top 5 topics by share of total PSLE Science marks."
+      subtitle="Top 4 topics by mark share (10-year average, 2016-2025). Together they carry ~43% of the paper."
     >
-      {/* Squeeze the chart to ~65% width so the tables below have
-          room to breathe with a bigger font. Centred. */}
-      <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/onboarding-assets/science-top5.png"
-          alt="PSLE Science top 5 topics by share of marks"
-          style={{ width: "65%", height: "auto", display: "block" }}
-        />
+      <div style={{ backgroundColor: "#f8f4ea", padding: "12px 14px", borderRadius: 8, marginTop: 8 }}>
+        <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+          {TOP4.map((t, i) => {
+            const y = i * (rowH + gap);
+            const w = (t.pct / axisMax) * (barAreaRight - barAreaLeft);
+            return (
+              <g key={t.name}>
+                <text x={barAreaLeft - 8} y={y + rowH / 2 + 4} textAnchor="end" fontSize="11" fontWeight="700" fill="#0b1c30">{t.name}</text>
+                <rect x={barAreaLeft} y={y} width={w} height={rowH} fill={t.colour} rx={2} />
+                <text x={barAreaLeft + w + 6} y={y + rowH / 2 + 4} fontSize="12" fontWeight="800" fill="#0b1c30">{t.pct.toFixed(1)}%</text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
       <A4SectionTitle>Command words — how the marker reads the verb</A4SectionTitle>
