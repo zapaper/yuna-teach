@@ -11,7 +11,7 @@ export interface User {
   email: string | null;
   role: Role;
   level: number | null;
-  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; bonusPoints?: number; bonusCrystals?: number; spentCrystals?: number; purchasedPets?: string[]; purchasedHabitats?: string[]; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard" } | null;
+  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; bonusPoints?: number; bonusCrystals?: number; spentCrystals?: number; purchasedPets?: string[]; purchasedHabitats?: string[]; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard"; whatsNewSeenVersion?: string } | null;
   createdAt: string;
   emailVerified?: boolean;
   // "trialing" — within free trial window (trialEndsAt > now)

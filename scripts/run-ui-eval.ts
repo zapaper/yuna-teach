@@ -45,6 +45,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from "@playwri
 import { readFileSync } from "fs";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
+import { WHATS_NEW_VERSION } from "../src/lib/whats-new";
 
 const __dirname = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname.replace(/^\//, "")));
 
@@ -192,12 +193,16 @@ async function createFakeAccount(level: number): Promise<FakeAccount> {
     const parentEmail = `ui-eval-parent-${stamp}-${rand}@markforyou-eval.invalid`;
     const parentName  = `UI-Eval-Parent-${stamp}-${rand}`;
     const studentName = `UI-Eval-Student-P${level}-${stamp}-${rand}`;
+    // Pre-seed the current What's-New version so T4's chart-visibility
+    // assertions aren't blocked by the modal overlaying the Lumi panel.
+    const seenSettings = { whatsNewSeenVersion: WHATS_NEW_VERSION };
     const parent = await prisma.user.create({
       data: {
         name: parentName,
         email: parentEmail,
         role: "PARENT",
         emailVerified: true,
+        settings: seenSettings,
       },
       select: { id: true },
     });
@@ -206,6 +211,7 @@ async function createFakeAccount(level: number): Promise<FakeAccount> {
         name: studentName,
         role: "STUDENT",
         level,
+        settings: seenSettings,
       },
       select: { id: true },
     });
@@ -301,21 +307,11 @@ async function t2QuizComposition(browser: Browser, studentId: string, level: "P4
     const url = `${base}/quiz/${paperId}?userId=${studentId}`;
     const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
     assert(res && res.ok(), `HTTP ${res?.status()}`);
-    // Wait for the quiz to hydrate — the client renders question cards after the fetch.
-    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
-    // Two possible selectors: data-question-num on each card, or the Question N chip.
-    const cards = await page.$$eval('[data-question-num], [data-qnum], .question-card, [class*="questionCard" i]', els => els.length);
-    if (cards === 0) {
-      // Fallback: scan visible text for "Question 1 of {N}" or similar
-      const html = await page.content();
-      const m = html.match(/Question\s+\d+\s+of\s+(\d+)/i);
-      if (m) {
-        const shown = Number(m[1]);
-        assert(shown === expected, `quiz UI shows "Question N of ${shown}", expected ${expected}`);
-        return;
-      }
-      throw new Error(`no question cards found and no "Question N of X" text — DOM may have changed`);
-    }
+    // Quiz page renders each question as an article/section with data-question-id.
+    // Wait for at least one to hydrate before counting (client fetches /api/exam
+    // async, so DOM is empty for a beat).
+    await page.waitForSelector("[data-question-id]", { timeout: 20_000 });
+    const cards = await page.$$eval("[data-question-id]", els => els.length);
     assert(cards === expected, `expected ${expected} question cards in DOM, got ${cards}`);
   });
   await ctx.close();

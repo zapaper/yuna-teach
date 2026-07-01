@@ -9,6 +9,7 @@ import { canSeeMasterClass } from "@/lib/master-class-access";
 import TrialReminder from "@/components/TrialReminder";
 import DocumentScanner from "@/components/DocumentScanner";
 import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
+import WhatsNewPopup from "@/components/WhatsNewPopup";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
@@ -945,6 +946,7 @@ export default function StudentDashboard({
         subscriptionStatus={user.subscriptionStatus}
         trialEndsAtIso={user.trialEndsAt}
       />
+      <WhatsNewPopup userId={userId} seenVersion={user.settings?.whatsNewSeenVersion} />
       {/* Habitat unlock popup at 200 points */}
       {showHabitatUnlock && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4" onClick={() => setShowHabitatUnlock(false)}>

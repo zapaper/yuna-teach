@@ -14,6 +14,7 @@ import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
 import ReviseWorkModal from "@/components/ReviseWorkModal";
 import TrialReminder from "@/components/TrialReminder";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
+import WhatsNewPopup from "@/components/WhatsNewPopup";
 import { TutorBodyForStudent } from "../../tutor/[parentId]/page";
 import { isNative } from "@/lib/native";
 import { printPdf } from "@/lib/print-pdf";
@@ -2666,6 +2667,7 @@ export default function ParentDashboard({
         subscriptionStatus={user.subscriptionStatus}
         trialEndsAtIso={user.trialEndsAt}
       />
+      <WhatsNewPopup userId={userId} seenVersion={user.settings?.whatsNewSeenVersion} />
       <ChangePasswordModal
         open={showChangePassword}
         onClose={() => setShowChangePassword(false)}
