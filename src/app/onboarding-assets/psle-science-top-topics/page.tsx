@@ -1,57 +1,70 @@
 import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
 
 // PSLE Science — Top Topics, Tips and Common Mistakes.
-// Top-5 topic shares are PLACEHOLDERS — replace with the real numbers
-// from PSLE-Science-Topic-Marks-10yr-Average.docx once the user
-// pastes them.
+// Top-5 shares from 10-year 2016-2025 analysis
+// (see: PSLE-Science-Topic-Marks-10yr-Average.docx). Top 5 = 50% of
+// total PSLE Science marks.
 
 export default function ScienceTopTopics() {
   return (
     <A4Sheet
       title="Top Topics, Tips and Common Mistakes for PSLE Science"
-      subtitle="One-page cheat sheet — the topics that dominate the paper, and how to write for full marks."
+      subtitle="One-page cheat sheet — the 5 topics that carry HALF the PSLE mark load (10-year average, 2016-2025)."
     >
-      <A4SectionTitle>Top 5 PSLE Science topics (10-year mark share)</A4SectionTitle>
+      <A4SectionTitle>Top 5 PSLE Science topics — 10-year average (2016-2025)</A4SectionTitle>
       <A4Table
-        headers={["Topic", "Share", "Example question", "Marker looks for", "Common mistake"]}
+        headers={["#", "Topic", "Marks / paper", "OEQ share", "Example question", "Marker looks for", "Common mistake"]}
         rows={[
           [
-            <><strong>Cycles</strong> — water, life, matter</>,
-            "~18%",
-            <><em>&ldquo;State a change of state and give the cause.&rdquo;</em></>,
-            <><em>condensed</em>, <em>evaporated</em>, <em>heat gained/lost</em>, <em>change of state</em>.</>,
-            <>Mixing up condensation ↔ evaporation causes.</>,
+            "1",
+            <><strong>Interaction of forces</strong> — friction, gravity, magnets</>,
+            "14.0",
+            "46%",
+            <><em>&ldquo;Explain why the box slides faster on the smooth surface.&rdquo;</em></>,
+            <><em>friction is less/greater</em>, <em>gravity pulls&hellip; down</em>, <em>opposing force</em>.</>,
+            <>Forgetting arrow direction on the force diagram; not saying which force is bigger.</>,
           ],
           [
-            <><strong>Systems</strong> — human digestion, circulation, plant transport</>,
-            "~16%",
-            <><em>&ldquo;Explain how oxygen reaches the muscle cells.&rdquo;</em></>,
-            <><em>transports X from Y to Z</em>, <em>adapted for&hellip;</em></>,
-            <>Confusing digestion ↔ absorption; describing structure instead of function.</>,
-          ],
-          [
-            <><strong>Energy</strong> — forms + conversion</>,
-            "~14%",
-            <><em>&ldquo;Describe the energy change when the ball is dropped.&rdquo;</em></>,
-            <><em>kinetic energy converted to&hellip;</em>, <em>stored as&hellip;</em></>,
-            <>Not naming the type (chemical / kinetic / potential) — calling everything &ldquo;energy&rdquo;.</>,
-          ],
-          [
-            <><strong>Interactions of Forces</strong> — friction, gravity, elastic</>,
-            "~13%",
-            <><em>&ldquo;Explain why box A moves faster than box B.&rdquo;</em></>,
-            <><em>force acts in direction of&hellip;</em>, <em>greater than&hellip; so&hellip;</em></>,
-            <>Forgetting arrow direction on the diagram; ignoring the weight of the object.</>,
-          ],
-          [
-            <><strong>Diversity of Living Things</strong> — classification, adaptation, reproduction</>,
-            "~12%",
+            "2",
+            <><strong>Interactions within the environment</strong> — food chains, adaptations, ecosystems</>,
+            "13.7",
+            "58%",
             <><em>&ldquo;Suggest one adaptation and how it helps X survive.&rdquo;</em></>,
-            <><em>respiration takes in&hellip; gives out&hellip;</em>, <em>adapted to&hellip;</em></>,
-            <>Swapping stamen ↔ pistil; describing appearance instead of survival benefit.</>,
+            <><em>adapted to&hellip;</em>, <em>producer / consumer</em>, <em>arrow shows energy flow</em>.</>,
+            <>Describing appearance instead of survival mechanism; food-chain arrows drawn the wrong way.</>,
+          ],
+          [
+            "3",
+            <><strong>Electrical systems &amp; circuits</strong> — series, parallel, conductors</>,
+            "8.2",
+            "54%",
+            <><em>&ldquo;Explain what happens to the bulbs when switch S is opened.&rdquo;</em></>,
+            <><em>circuit is broken</em>, <em>current cannot flow through&hellip;</em>, <em>bulbs in series / parallel</em>.</>,
+            <>Confusing series ↔ parallel behaviour; not tracing the complete closed circuit.</>,
+          ],
+          [
+            "4",
+            <><strong>Heat energy &amp; uses</strong> — conduction, expansion, transfer</>,
+            "7.2",
+            "58%",
+            <><em>&ldquo;Explain why the metal spoon feels hot in hot soup.&rdquo;</em></>,
+            <><em>heat gained / lost</em>, <em>conductor / insulator</em>, <em>heat flows from hot to cold</em>.</>,
+            <>Mixing up heat with temperature; forgetting heat flows from hot → cold, not the reverse.</>,
+          ],
+          [
+            "5",
+            <><strong>Diversity of living &amp; non-living things</strong> — classification, materials</>,
+            "7.1",
+            "10%",
+            <><em>&ldquo;Classify X, Y, Z into two groups. Explain your grouping.&rdquo;</em></>,
+            <><em>possesses / does not possess&hellip;</em>, <em>flexible</em>, <em>waterproof</em>, <em>strong</em>.</>,
+            <>Grouping by visual difference (colour, size) instead of a scientific property.</>,
           ],
         ]}
       />
+      <p className="text-[9pt] text-slate-600 mt-2 italic">
+        These 5 topics together carry <strong>50% of PSLE Science marks</strong>. Drilling them well covers half the paper.
+      </p>
 
       <A4SectionTitle>Command words decoder — how the marker reads the verb</A4SectionTitle>
       <A4Table
@@ -84,6 +97,12 @@ export default function ScienceTopTopics() {
           ],
         ]}
       />
+
+      <A4SectionTitle>Two habits that save marks on OEQ</A4SectionTitle>
+      <ul className="list-disc pl-5 text-[9.5pt] space-y-1">
+        <li><strong>Answer in 3 parts:</strong> observation → mechanism → link back to the question. Missing the &ldquo;link back&rdquo; is the #1 reason a technically correct answer scores 1 out of 2.</li>
+        <li><strong>Use the marker&rsquo;s keywords.</strong> Every top-5 topic has a small vocabulary the marker scans for. If your answer avoids those words, you leak marks even if the science is right.</li>
+      </ul>
     </A4Sheet>
   );
 }

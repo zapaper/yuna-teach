@@ -1,58 +1,69 @@
 import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
 
 // PSLE Math — Top Topics, Tips and Common Mistakes.
-// Top-5 topic shares are PLACEHOLDERS pending the 10-year analysis.
-// Bar-model tips lifted from the existing bar-models Facebook post so
-// the family reads consistent with what parents may have seen.
+// Top-5 shares from 10-year 2016-2025 analysis (source: internal
+// chart). Top 5 = 59 marks out of 100 = 59% of the paper.
 
 export default function MathTopTopics() {
   return (
     <A4Sheet
       title="Top Topics, Tips and Common Mistakes for PSLE Math"
-      subtitle="One-page cheat sheet — the topics that dominate the paper, the models that unlock them."
+      subtitle="One-page cheat sheet — the 5 topics that carry 59 out of 100 marks (10-year average, 2016-2025)."
     >
-      <A4SectionTitle>Top 5 PSLE Math topics (10-year mark share — draft)</A4SectionTitle>
+      <A4SectionTitle>Top 5 PSLE Math topics — 10-year average (2016-2025)</A4SectionTitle>
       <A4Table
-        headers={["Topic", "Share", "Model / heuristic", "Common mistake"]}
+        headers={["#", "Topic", "Marks / paper", "Example question", "Model / heuristic", "Common mistake"]}
         rows={[
           [
+            "1",
+            <><strong>Geometry</strong> — angles, triangles, circles, symmetry, nets</>,
+            "17",
+            <><em>&ldquo;Find the value of angle x in the figure below.&rdquo;</em></>,
+            <>Mark every known angle on the diagram; extend lines to spot angles-on-a-straight-line and vertically-opposite pairs.</>,
+            <>Forgetting <em>angles on a straight line = 180&deg;</em>; missing the isosceles-triangle rule (two equal base angles).</>,
+          ],
+          [
+            "2",
             <><strong>Fractions</strong> — of, remainder, equivalent</>,
-            "~18%",
-            <>Bar model with equal units; label the &ldquo;total&rdquo; and the &ldquo;part&rdquo;.</>,
-            <>Taking a fraction of the WRONG whole (original vs remainder).</>,
+            "11",
+            <><em>&ldquo;2/5 of the money was spent; 1/3 of the remainder was saved. Find the amount left.&rdquo;</em></>,
+            <>Bar model with equal units; label the <em>total</em> and the <em>part</em>.</>,
+            <>Taking a fraction of the <strong>wrong whole</strong> (original vs remainder).</>,
           ],
           [
-            <><strong>Ratio</strong> — 2-quantity, 3-quantity, before/after</>,
-            "~15%",
-            <>Bar model where each unit is drawn to scale; align changes across before/after rows.</>,
-            <>Adding a fixed amount to ONE side without adjusting units.</>,
+            "3",
+            <><strong>Area &amp; Perimeter</strong> — composite shapes, circles, semicircles</>,
+            "11",
+            <><em>&ldquo;Find the perimeter of the shaded region (quarter-circle inside a square).&rdquo;</em></>,
+            <>Cut composite figures into rectangles + quarter-circles; label each region separately.</>,
+            <>Missing an internal side; using <em>&pi;r&sup2;</em> for perimeter instead of <em>2&pi;r</em>.</>,
           ],
           [
-            <><strong>Percentage</strong> — of, more/less than, discount</>,
-            "~14%",
-            <>Anchor on 100% = the base; convert between % and fraction (25% = 1/4).</>,
-            <>Percentage OF the new price vs percentage OF the original.</>,
+            "4",
+            <><strong>Measurement</strong> — length, mass, volume, time, conversions</>,
+            "10",
+            <><em>&ldquo;Convert 2.4 kg + 350 g to grams. Give your answer in kg.&rdquo;</em></>,
+            <>Convert ALL values to the same unit BEFORE adding; write the unit at every intermediate step.</>,
+            <>Slipping decimal places on kg ↔ g and m ↔ cm; adding hours + minutes without borrowing 60.</>,
           ],
           [
-            <><strong>Area &amp; Perimeter</strong> — composite shapes, circles</>,
-            "~13%",
-            <>Cut composite figures into rectangles + quarter-circles; label each region.</>,
-            <>Missing an internal side; using &pi;r&sup2; when perimeter is asked.</>,
-          ],
-          [
-            <><strong>Rate &amp; Speed</strong> — average, unit conversion</>,
-            "~12%",
-            <>Distance = Speed × Time; always check units (km vs m, hr vs min).</>,
-            <>Averaging two speeds instead of total-distance ÷ total-time.</>,
+            "5",
+            <><strong>Statistics</strong> — bar graph, pie chart, table, average</>,
+            "10",
+            <><em>&ldquo;Find the average number of books sold from the bar graph.&rdquo;</em></>,
+            <>Underline what&rsquo;s asked; then read the scale — check whether 1 unit = 1 or 1 unit = 5/10.</>,
+            <>Reading the wrong scale interval; forgetting to divide by the number of items for average.</>,
           ],
         ]}
       />
+      <p className="text-[9pt] text-slate-600 mt-2 italic">
+        These 5 topics together carry <strong>59 out of 100 PSLE Math marks</strong>. Drilling them well covers well over half the paper.
+      </p>
 
       <A4SectionTitle>Bar models — the one habit that wins Paper 2</A4SectionTitle>
       <ul className="list-disc pl-5 text-[9.5pt] space-y-1">
-        <li><strong>Read the question twice, draw once.</strong> Mark the &ldquo;total&rdquo;, the &ldquo;asked-for part&rdquo;, and any &ldquo;equal-units&rdquo; on the bar before computing.</li>
+        <li><strong>Read the question twice, draw once.</strong> Mark the <em>total</em>, the <em>asked-for part</em>, and any <em>equal-units</em> on the bar before computing.</li>
         <li><strong>Before / after problems get TWO stacked bars.</strong> Line them up so the change is visually obvious.</li>
-        <li><strong>3-quantity ratios: pull the constant quantity out.</strong> If one value is fixed, anchor on it and adjust the other two in units.</li>
         <li><strong>Label every arithmetic step.</strong> The marker awards method marks even when the final answer is wrong.</li>
       </ul>
 
@@ -62,8 +73,8 @@ export default function MathTopTopics() {
         rows={[
           [
             <strong>Find</strong>,
-            "The numerical answer — no working needed for method marks.",
-            <>Show units in the final line.</>,
+            "The numerical answer — with the correct unit.",
+            <>Always write the unit on the final line.</>,
           ],
           [
             <strong>Express</strong>,
@@ -73,12 +84,12 @@ export default function MathTopTopics() {
           [
             <strong>Show that&hellip;</strong>,
             "Every step leading to the given result.",
-            <>Don&rsquo;t skip lines &mdash; each line = 1 mark.</>,
+            <>Don&rsquo;t skip lines &mdash; each line = 1 method mark.</>,
           ],
           [
             <strong>Explain</strong>,
             "Reason + link to a mathematical rule.",
-            <>Cite the rule (e.g. &ldquo;alternate angles&rdquo;).</>,
+            <>Cite the rule by name (e.g. &ldquo;alternate angles&rdquo;).</>,
           ],
         ]}
       />
