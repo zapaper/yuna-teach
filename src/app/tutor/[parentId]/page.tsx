@@ -2548,16 +2548,8 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
 // English Grammar + Synthesis fluency radars. Gated to a small set
 // of kids with enough sub-topic-tagged attempts. Pulls combined
 // payload from /api/tutor/[id]/grammar-fluency.
-const GRAMMAR_RADAR_KIDS = new Set<string>([
-  "cmmbbyvs30004qa9yinn3drl6", // Mark Lim
-  "cmm5wf91d000ryrxwaddlo6xh", // David Lim
-  "cmnk7dkkj006z14p6yf06ohzm", // JeremiahSy
-  "cmojzr4fu004gd4vnx8wmz6zk", // Kaiyangnggg
-  "cmqg8upha0000l3ijfr3co6t8", // student67 (David clone for test cohort)
-  "cmq4xj0vm0029apq234jrmrh6", // Caleb (Felicia's kid)
-  "cmpuqemdt000112ltfrrcmpqg", // LohXY2014
-  "cmnsa6bww006bgmuwflevt143", // Student666 (onboarding-diagnostic test cohort)
-]);
+// Fluency Radar/Table opened to every student on 2026-07-02 — the
+// per-kid allowlist that used to live here is retired.
 type FluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
 type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null; totalAwarded: number; totalAvailable: number };
 
@@ -2741,9 +2733,11 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
     return qs.get("onboarding") === "1" ? "table" : "radar";
   })();
   const [view, setView] = useState<"radar" | "table">(initialView);
+  // Open to every student on English — the fluency-fetch endpoint
+  // handles the empty-data case gracefully (returns zeroed buckets)
+  // and the render below hides itself when `data` is still null.
   useEffect(() => {
     if (subject !== "English") return;
-    if (!GRAMMAR_RADAR_KIDS.has(studentId)) return;
     let cancelled = false;
     fetch(`/api/tutor/${studentId}/grammar-fluency`)
       .then(r => r.ok ? r.json() : null)
@@ -2751,7 +2745,7 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
       .catch(() => { /* silent */ });
     return () => { cancelled = true; };
   }, [studentId, subject]);
-  if (subject !== "English" || !GRAMMAR_RADAR_KIDS.has(studentId) || !data) return null;
+  if (subject !== "English" || !data) return null;
 
   const helpText = view === "radar"
     ? `${childFirst}'s accuracy on each rule family. Green zone ≥ 75%, yellow 50–75%, red < 50%.`
