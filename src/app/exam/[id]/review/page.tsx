@@ -952,22 +952,19 @@ function ExamReviewContent({ id }: { id: string }) {
   // `onboarding=1` flag so the progress page can render the first-time
   // congratulations copy + preliminary read + next-step CTAs. Everyone
   // else falls through to the standard home / progress route.
-  // Parent-branch home target: prefer paperOwnerId (fetched from the
-  // paper record via /api/exam), then diagnosticParentId (?parentId=
-  // in the review URL, planted by signup / onboarding), then finally
-  // the URL's userId param — which on the diagnostic flow is the
-  // KID's id (since the quiz URL is ?userId={kidId}). Falling all the
-  // way through to userId used to route /home/{kidId} for a
-  // parent-session tab, which the user fetch rejects and the review
-  // page rendered as 'Session expired' + 'Log in' — that's what the
-  // 'brings me to student log in page' report was.
-  const parentHomeId = paperOwnerId ?? diagnosticParentId ?? userId;
+  // Onboarding diagnostic 'Go to Diagnostic' handoff — everyone
+  // lands on the STUDENT's own /progress page with the Lumi/tutor
+  // body + OnboardingBanner. Parent sessions used to bounce over
+  // to /home/{parentId}?view=lumi, but that meant the review tab
+  // switched account context mid-flow (kid did the quiz → parent
+  // homepage) which read as confusing. /api/student-progress
+  // (requireAccessToStudent) allows the student, their linked
+  // parent, OR an admin — so both session types work.
+  const diagnosticStudentId = assignedToId ?? userId;
   const backPath = !userId
     ? "/login"
     : isOnboardingDiagnostic
-      ? (isStudent
-          ? `/progress/${assignedToId ?? userId}?onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
-          : `/home/${parentHomeId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`)
+      ? `/progress/${diagnosticStudentId}?onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}${diagnosticParentId ? `&parentId=${diagnosticParentId}` : ""}`
       : assignedToId && !isStudent
         ? `/home/${userId}?view=progress&student=${assignedToId}`
         : canCelebrateBack
