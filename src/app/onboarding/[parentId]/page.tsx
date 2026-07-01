@@ -78,7 +78,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   // (now AFTER the student form) can attach the daily-quiz to the
   // newly-created child.
   const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
-  const [pickerLoading, setPickerLoading] = useState(false);
+  // Per-action loading so the two picker buttons don't share a
+  // single "Starting quiz…" label. `start` = Start Quiz clicked,
+  // `assign` = Assign and Email Link clicked.
+  const [pickerAction, setPickerAction] = useState<null | "start" | "assign">(null);
+  const pickerLoading = pickerAction !== null;
   const studentNameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkStudentName = useCallback((n: string) => {
@@ -229,7 +233,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       console.error("[onboarding] no studentId — cannot create quiz");
       return;
     }
-    setPickerLoading(true);
+    setPickerAction("start");
     try {
       const res = await fetch("/api/daily-quiz", {
         method: "POST",
@@ -239,14 +243,14 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         alert(data.error || "Failed to create quiz");
-        setPickerLoading(false);
+        setPickerAction(null);
         return;
       }
       const quiz = await res.json();
       router.replace(`/quiz/${quiz.id}?userId=${sid}&diagnostic=1&parentId=${parentId}`);
     } catch (err) {
       console.warn("Diagnostic quiz creation failed:", err);
-      setPickerLoading(false);
+      setPickerAction(null);
     }
   }
 
@@ -262,7 +266,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       console.error("[onboarding] no studentId — cannot create quiz");
       return;
     }
-    setPickerLoading(true);
+    setPickerAction("assign");
     try {
       await fetch("/api/daily-quiz", {
         method: "POST",
@@ -280,7 +284,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     } catch (err) {
       console.warn("Diagnostic quiz creation failed:", err);
     }
-    setPickerLoading(false);
+    setPickerAction(null);
     setAssignedConfirmationSid(sid);
   }
 
@@ -600,10 +604,13 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               type="button"
               onClick={startQuizFromPicker}
               disabled={!pickerSubject || pickerLoading}
-              className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
             >
-              {pickerLoading ? "Starting quiz…" : "Start Quiz"}
+              {pickerAction === "start" && (
+                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              )}
+              {pickerAction === "start" ? "Starting quiz…" : "Start Quiz"}
             </button>
             <p className="text-xs text-[#43474f] mt-2.5 text-center leading-relaxed px-2">
               💡 If your child is not available, we can still assign the quiz — we&apos;ll email you a link for your child to access when ready.
@@ -612,9 +619,12 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               type="button"
               onClick={assignAndEmailLink}
               disabled={!pickerSubject || pickerLoading}
-              className="w-full mt-3 py-3.5 px-6 rounded-2xl font-bold text-[#001e40] bg-white border-2 border-[#dce9ff] hover:bg-[#f5f9ff] transition-all disabled:opacity-50"
+              className="w-full mt-3 py-3.5 px-6 rounded-2xl font-bold text-[#001e40] bg-white border-2 border-[#dce9ff] hover:bg-[#f5f9ff] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              Assign and Email Link
+              {pickerAction === "assign" && (
+                <span className="w-4 h-4 border-2 border-[#001e40]/30 border-t-[#001e40] rounded-full animate-spin" />
+              )}
+              {pickerAction === "assign" ? "Assigning & emailing…" : "Assign and Email Link"}
             </button>
             {/* Final reminder — short by design; the longer explanation
                 lives on the student-creation step. */}
