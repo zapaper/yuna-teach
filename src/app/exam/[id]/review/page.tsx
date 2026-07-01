@@ -952,17 +952,22 @@ function ExamReviewContent({ id }: { id: string }) {
   // `onboarding=1` flag so the progress page can render the first-time
   // congratulations copy + preliminary read + next-step CTAs. Everyone
   // else falls through to the standard home / progress route.
+  // Parent-branch home target: prefer paperOwnerId (fetched from the
+  // paper record via /api/exam), then diagnosticParentId (?parentId=
+  // in the review URL, planted by signup / onboarding), then finally
+  // the URL's userId param — which on the diagnostic flow is the
+  // KID's id (since the quiz URL is ?userId={kidId}). Falling all the
+  // way through to userId used to route /home/{kidId} for a
+  // parent-session tab, which the user fetch rejects and the review
+  // page rendered as 'Session expired' + 'Log in' — that's what the
+  // 'brings me to student log in page' report was.
+  const parentHomeId = paperOwnerId ?? diagnosticParentId ?? userId;
   const backPath = !userId
     ? "/login"
     : isOnboardingDiagnostic
-      // Onboarding diagnostic 'Go to Diagnostic' handoff. When the
-      // reviewer IS the student (kid session), send them to their own
-      // /progress page — /home/{studentId}?view=lumi silently no-ops
-      // because StudentDashboard doesn't render LumiViewBody. Parents
-      // (paperOwnerId available) still bounce to their Lumi dashboard.
       ? (isStudent
           ? `/progress/${assignedToId ?? userId}?onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
-          : `/home/${paperOwnerId ?? userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`)
+          : `/home/${parentHomeId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`)
       : assignedToId && !isStudent
         ? `/home/${userId}?view=progress&student=${assignedToId}`
         : canCelebrateBack
