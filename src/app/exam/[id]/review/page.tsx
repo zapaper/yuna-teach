@@ -4159,7 +4159,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                     {/* Marking notes for subpart questions */}
                                     {currentQ.markingNotes && (
                                       <div className="mt-2">
-                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                                        <p className="text-[15px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
                                         <p className="text-[21px] text-[#43474f] leading-relaxed">
                                           {renderMarkingNotes(currentQ.markingNotes)}
                                         </p>
@@ -4273,7 +4273,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         {/* Marking notes */}
                         {currentQ.markingNotes && (
                           <div>
-                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                            <p className="text-[15px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
                             <div className="text-[21px] text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
                             </div>
@@ -4374,7 +4374,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         {/* Marking notes */}
                         {currentQ.markingNotes && (
                           <div>
-                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                            <p className="text-[15px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
                             <div className="text-[21px] text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
                             </div>
