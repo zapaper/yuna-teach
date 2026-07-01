@@ -4901,8 +4901,20 @@ function OnboardingBanner({
   // that (subject, topic). The modal already handles this shape (see
   // ParentDashboard state around emailFocusedSubject/emailFocusedTopic).
   const subjSlug = subject.toLowerCase().includes("math") ? "math" : subject.toLowerCase().includes("science") ? "science" : "english";
-  const nextBroadHref = `/home/${parentId}?openQuiz=1&subject=${subjSlug}&student=${studentId}`;
-  const focusedHref = ctx?.weakest ? `/home/${parentId}?focused=1&subject=${subjSlug}&topic=${encodeURIComponent(ctx.weakest)}&student=${studentId}` : nextBroadHref;
+  // Route URLs must match the params ParentDashboard actually reads:
+  //   - Broad quiz  → ?openQuiz=1  (opens the quiz-assign modal; that
+  //                    modal reads student= from initialStudentId).
+  //   - Focused     → ?focused=1&studentId=…&subject=…&topic=…  (the
+  //                    email-focused effect. Note `studentId`, NOT
+  //                    `student` — the wrong param name earlier meant
+  //                    the CTA landed on home with no modal open.)
+  //   - Other subjs → ?openQuiz=1 with no subject preselect so the
+  //                    parent picks a fresh subject inside the modal.
+  const nextBroadHref = `/home/${parentId}?openQuiz=1&student=${studentId}&subject=${subjSlug}`;
+  const focusedHref = ctx?.weakest
+    ? `/home/${parentId}?focused=1&studentId=${studentId}&subject=${subjSlug}&topic=${encodeURIComponent(ctx.weakest)}`
+    : nextBroadHref;
+  const otherSubjectsHref = `/home/${parentId}?openQuiz=1&student=${studentId}`;
   const pdfHref = `/onboarding-assets/psle-${subjSlug}-top-topics.pdf`;
   return (
     <div className="mt-4 mb-8 rounded-2xl border border-[#ddd6fe] bg-gradient-to-br from-[#f5f3ff] to-[#faf5ff] p-6 shadow-sm">
@@ -4911,31 +4923,31 @@ function OnboardingBanner({
         <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Congratulations on finishing your first quiz!</h3>
       </div>
       <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-        With each quiz, Lumi builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can personalise the next practice. The diagnosis below is <em>preliminary</em>. It will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
+        With each quiz, <strong>Lumi</strong> builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can personalise the next practice. The diagnosis below is <em>preliminary</em>. It will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
       </p>
       <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-        For now, I would recommend a further broad quiz{" "}
+        For now, I would recommend a further daily quiz{" "}
         <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">assign one here →</a>
         {ctx && !ctx.allStrong && ctx.weakest && (
-          <>, or a focused practice on <strong>{ctx.weakest}</strong>{" "}
+          <>, or a focused practice on a weak subject like <strong>{ctx.weakest}</strong>{" "}
             <a href={focusedHref} className="text-[#7c3aed] font-semibold underline">assign focused →</a>
           </>
         )}
         {ctx && ctx.allStrong && (
-          <>. <strong>{firstName}</strong> is all-strong in this subject — a further broad quiz{" "}
+          <>. <strong>{firstName}</strong> is all-strong in this subject — a further daily quiz{" "}
             <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">here</a> would strengthen the analysis further.
           </>
         )}
-        . You can also do a quiz in <a href={`/home/${parentId}?view=lumi&student=${studentId}`} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
+        . You can also do a quiz in <a href={otherSubjectsHref} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
       </p>
       {subjSlug === "english" && (
         <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-          You could also assign a quiz on <a href={`/home/${parentId}?openQuiz=1&subject=english&student=${studentId}`} className="text-[#7c3aed] font-semibold underline">other sections of the English paper</a> — Vocabulary, Comprehension Cloze, Editing, or Visual Text.
+          You could also assign a quiz on <a href={`/home/${parentId}?openQuiz=1&student=${studentId}&subject=english`} className="text-[#7c3aed] font-semibold underline">other sections of the English paper</a> — Vocabulary, Comprehension Cloze, Editing, or Visual Text.
         </p>
       )}
       {ctx?.wasMcqOnly && (subjSlug === "math" || subjSlug === "science") && (
-        <p className="text-sm text-[#1e293b] leading-relaxed mb-3 italic">
-          In addition, Open-Ended Questions (OEQ) can be tricky for {ctx.subject}. To sharpen our analysis, Lumi recommends doing another quiz with OEQs.
+        <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
+          In addition, Open-Ended Questions (OEQ) can be tricky for {ctx.subject}. To sharpen our analysis, <strong>Lumi</strong> recommends doing another quiz with OEQs.
         </p>
       )}
       <p className="text-sm text-[#1e293b] leading-relaxed">
