@@ -709,8 +709,17 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
   // at the empty top of the Lumi greeting card above. The -4 px nudge
   // accounts for sub-pixel layout so the section's rounded corner
   // doesn't peek above the fold.
+  // Auto-scroll to keep the swipe stage flush with the top of the
+  // viewport when the parent flips between Common Mistakes /
+  // Conceptual Gaps — otherwise they'd land staring at the greeting
+  // card while the actual content sits below the fold. Skip the
+  // first mount so a fresh Lumi visit doesn't scroll past the
+  // banner / greeting — the parent always starts at the top of the
+  // page.
+  const firstStageMountRef = useRef(true);
   useEffect(() => {
     if (typeof window === "undefined" || !stageRef.current) return;
+    if (firstStageMountRef.current) { firstStageMountRef.current = false; return; }
     const top = stageRef.current.getBoundingClientRect().top + window.scrollY - 4;
     window.scrollTo({ top, behavior: "smooth" });
   }, [view]);

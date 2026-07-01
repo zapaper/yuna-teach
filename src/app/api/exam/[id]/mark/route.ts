@@ -145,6 +145,11 @@ export async function GET(
             xStartPct: true,
             xEndPct: true,
             syllabusTopic: true,
+            // Master's AI explanation — falls back to when the clone
+            // has no elaboration of its own (quiz/focused clones don't
+            // copy elaboration at creation time). Consumed at the
+            // response-shape step below.
+            elaboration: true,
             // Question CONTENT used by the review page renderer.
             // Without these the clone-as-source path (English Test
             // Quiz, Chinese Test Quiz, scan-back exams etc.) returned
@@ -187,7 +192,13 @@ export async function GET(
           marksAvailable: mq.marksAvailable,
           markingNotes: cq?.markingNotes ?? null,
           studentAnswer: cq?.studentAnswer ?? null,
-          elaboration: cq?.elaboration ?? null,
+          // Fall back to the master's elaboration when the clone has
+          // none — quiz/focused clones don't inherit elaboration at
+          // creation time, so pre-computed master elaborations would
+          // otherwise not show on review until the parent hits the
+          // "Explain" button. Keeping the clone's value when it's
+          // populated (admin edits, per-question re-generations).
+          elaboration: (cq?.elaboration && cq.elaboration.length > 0) ? cq.elaboration : (mq.elaboration ?? null),
           flagged: cq?.flagged ?? false,
           // Question content from master — see select-list comment above.
           transcribedStem: mq.transcribedStem ?? null,
