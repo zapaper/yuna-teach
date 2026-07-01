@@ -38,6 +38,10 @@ async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: 
   // eval paperType + revision-mode papers. Without these, revision
   // clones (curated past-mistake re-attempts) inflate the denominator
   // and pull the radar % below what the parent dashboard chart shows.
+  //
+  // subTopic filter dropped: clones created before 2026-07-02 didn't
+  // carry subTopic from the master, so gate below on the effective
+  // subTopic (clone or master via sourceQuestionId) instead.
   const rows = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
@@ -49,10 +53,28 @@ async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: 
       syllabusTopic: { in: syllabusTopics },
       marksAwarded: { not: null },
       marksAvailable: { not: null, gt: 0 },
-      subTopic: { not: null },
     },
-    select: { subTopic: true, marksAwarded: true, marksAvailable: true, examPaper: { select: { metadata: true } } },
+    select: {
+      subTopic: true,
+      sourceQuestionId: true,
+      marksAwarded: true,
+      marksAvailable: true,
+      examPaper: { select: { metadata: true } },
+    },
   });
+  // Batch-look up master subTopic for rows that have a null clone
+  // subTopic. Solves the 'fluency table empty for older clones' bug.
+  const masterIdsNeeded = [...new Set(
+    rows.filter(r => !r.subTopic && !!r.sourceQuestionId).map(r => r.sourceQuestionId as string)
+  )];
+  const masterSubMap = new Map<string, string | null>();
+  if (masterIdsNeeded.length > 0) {
+    const masters = await prisma.examQuestion.findMany({
+      where: { id: { in: masterIdsNeeded } },
+      select: { id: true, subTopic: true },
+    });
+    for (const m of masters) masterSubMap.set(m.id, m.subTopic ?? null);
+  }
   // `questions` is the row count (one row = one attempted question);
   // `available` is the sum of marks available (a 2-mark question
   // contributes 2). The table shows n=questions so parents read the
@@ -62,12 +84,13 @@ async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: 
   for (const r of rows) {
     const meta = (r.examPaper.metadata ?? {}) as { revisionMode?: string };
     if (meta.revisionMode) continue;
-    if (!r.subTopic) continue;
-    const cur = byId.get(r.subTopic) ?? { awarded: 0, available: 0, questions: 0 };
+    const effectiveSubTopic = r.subTopic ?? (r.sourceQuestionId ? masterSubMap.get(r.sourceQuestionId) ?? null : null);
+    if (!effectiveSubTopic) continue;
+    const cur = byId.get(effectiveSubTopic) ?? { awarded: 0, available: 0, questions: 0 };
     cur.awarded += r.marksAwarded ?? 0;
     cur.available += r.marksAvailable ?? 0;
     cur.questions += 1;
-    byId.set(r.subTopic, cur);
+    byId.set(effectiveSubTopic, cur);
   }
   const subTopics = buckets.map(s => {
     const cur = byId.get(s.id) ?? { awarded: 0, available: 0, questions: 0 };

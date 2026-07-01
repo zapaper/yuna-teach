@@ -356,7 +356,14 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
           </div>
         )}
 
-        {subjects.length === 0 ? (
+        {/* Suppress the legacy subject-tabs + topic chart when we're
+            in the onboarding-Lumi flow (?onboarding=1 or ?view=lumi).
+            TutorBodyForStudent above already renders its own topic
+            chart + fluency table; showing the /progress default
+            chart below meant the parent saw the same data twice. */}
+        {(searchParams.get("onboarding") === "1" || searchParams.get("view") === "lumi")
+          ? null
+          : subjects.length === 0 ? (
           <div className="text-center py-16 rounded-3xl bg-white border-2 border-dashed border-[#c3c6d1]">
             <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">analytics</span>
             <p className="font-bold text-[#001e40]">No marked exams yet</p>
