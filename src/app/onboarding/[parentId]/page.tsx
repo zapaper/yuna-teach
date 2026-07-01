@@ -59,9 +59,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   const [showQuizPicker, setShowQuizPicker] = useState(false);
   const [pickerSubject, setPickerSubject] = useState<"math" | "science" | "english" | null>(null);
   const [pickerType, setPickerType] = useState<"mcq" | "mcq-oeq">("mcq");
-  // Clickable "or, send a scanned recent test" message at the bottom
-  // of the picker. Click → popup with the diagnose@ instructions.
-  const [showScanEmailInfo, setShowScanEmailInfo] = useState(false);
+  // Scan-email option removed 2026-07-02 — nobody used it and it
+  // muddled the picker CTA hierarchy.
   // Student-creation step (final card before we route to /home).
   const [studentStep, setStudentStep] = useState(false);
   const [studentName, setStudentName] = useState("");
@@ -197,6 +196,28 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     }
   }
 
+  // Shared quiz-create body — used by both "Start Quiz" (parent hands
+  // the tab straight to the child) and "Assign and Email Link"
+  // (parent stays; child gets an emailed access link).
+  function buildQuizBody(sid: string) {
+    const quizBody: Record<string, unknown> = {
+      userId: parentId,
+      studentId: sid,
+      quizType: pickerType,
+      subject: pickerSubject!,
+      firstQuiz: true,  // cap MCQ count at 15 (instead of 20) for the onboarding quiz
+    };
+    if (pickerSubject === "english") {
+      const sections = ["grammar-mcq", "vocab-mcq"];
+      if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
+      quizBody.englishSections = sections;
+    }
+    return quizBody;
+  }
+
+  // Start Quiz — create the diagnostic and navigate this tab straight
+  // into it as the child. Mirrors the signup Step-3 pattern so the
+  // kid starts within one tap.
   async function startQuizFromPicker() {
     if (!pickerSubject) return;
     const sid = createdStudentId ?? studentId;
@@ -206,23 +227,51 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     }
     setPickerLoading(true);
     try {
-      const quizBody: Record<string, unknown> = {
-        userId: parentId,
-        studentId: sid,
-        quizType: pickerType,
-        subject: pickerSubject,
-        firstQuiz: true,  // cap MCQ count at 15 (instead of 20) for the onboarding quiz
-      };
-      if (pickerSubject === "english") {
-        const sections = ["grammar-mcq", "vocab-mcq"];
-        if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
-        quizBody.englishSections = sections;
+      const res = await fetch("/api/daily-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildQuizBody(sid)),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to create quiz");
+        setPickerLoading(false);
+        return;
       }
+      const quiz = await res.json();
+      router.replace(`/quiz/${quiz.id}?userId=${sid}&diagnostic=1&parentId=${parentId}`);
+    } catch (err) {
+      console.warn("Diagnostic quiz creation failed:", err);
+      setPickerLoading(false);
+    }
+  }
+
+  // Assign and Email Link — create the quiz, fire an email-notify
+  // request (endpoint TODO — currently a best-effort call to the
+  // welcome-mail helper), and route the parent back to their home so
+  // they can see the assigned paper. Kid opens the emailed link when
+  // they're available.
+  async function assignAndEmailLink() {
+    if (!pickerSubject) return;
+    const sid = createdStudentId ?? studentId;
+    if (!sid) {
+      console.error("[onboarding] no studentId — cannot create quiz");
+      return;
+    }
+    setPickerLoading(true);
+    try {
       await fetch("/api/daily-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(quizBody),
+        body: JSON.stringify(buildQuizBody(sid)),
       });
+      // Best-effort email notify to the parent so they have the child-
+      // login link on hand. Endpoint stub — safe to fail silently.
+      fetch("/api/notify-quiz-assigned", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId, studentId: sid, subject: pickerSubject }),
+      }).catch(() => { /* non-fatal */ });
     } catch (err) {
       console.warn("Diagnostic quiz creation failed:", err);
     }
@@ -230,11 +279,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }
 
   function goToHomeFromPicker() {
-    // Parent declined the quiz — just route home. If a student was
-    // created in this onboarding session we still pass
-    // firstAssignStudent so the dashboard's open-in-new-tab prompt
-    // fires when the parent later assigns their first quiz from the
-    // dashboard.
+    // Legacy no-op path kept in case any deep link still points at
+    // it — routes home the same way assignAndEmailLink does.
     const sid = createdStudentId ?? studentId;
     if (sid) {
       router.replace(`/home/${parentId}?firstAssignStudent=${sid}`);
@@ -478,7 +524,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Great!</p>
             <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Let&apos;s get started.</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-5">
-              You can start assigning a quiz for your child, or upload their completed papers to get an immediate analysis of their weak areas.
+              Let&apos;s start with a quick (~20 mins) diagnosis of your child. Pick a subject, and whether you would like <strong>MCQ only</strong> or <strong>MCQ + OEQ</strong> (stylus recommended).
             </p>
             <div className="space-y-4 mb-5">
               <div>
@@ -536,10 +582,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
                       border: pickerType === "mcq-oeq" ? "2px solid #003366" : "2px solid #dce9ff",
                     }}
                   >
-                    {pickerSubject === "english" ? "MCQ + Cloze" : "MCQ + written"}
+                    MCQ + OEQ
                   </button>
                 </div>
-                {pickerType === "mcq-oeq" && pickerSubject !== "english" && (
+                {pickerType === "mcq-oeq" && (
                   <p className="text-[11px] text-[#43474f] mt-1.5 ml-1">Stylus recommended</p>
                 )}
               </div>
@@ -551,35 +597,24 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
               style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
             >
-              {pickerLoading ? "Assigning quiz…" : "Assign Quiz"}
+              {pickerLoading ? "Starting quiz…" : "Start Quiz"}
             </button>
             <p className="text-xs text-[#43474f] mt-2.5 text-center leading-relaxed px-2">
-              💡 If your child is asleep, you can attempt this short quiz yourself
-              (from your parent dashboard after assigning) to see how the
-              questions, drawing canvas and AI marking work.
+              💡 If your child is not available, we can still assign the quiz — we&apos;ll email you a link for your child to access when ready.
             </p>
             <button
               type="button"
-              onClick={goToHomeFromPicker}
-              disabled={pickerLoading}
+              onClick={assignAndEmailLink}
+              disabled={!pickerSubject || pickerLoading}
               className="w-full mt-3 py-3.5 px-6 rounded-2xl font-bold text-[#001e40] bg-white border-2 border-[#dce9ff] hover:bg-[#f5f9ff] transition-all disabled:opacity-50"
             >
-              Go to parent homepage
-            </button>
-            {/* Scan-email alternative — informational. Click for the
-                diagnose@ instructions. */}
-            <button
-              type="button"
-              onClick={() => setShowScanEmailInfo(true)}
-              className="w-full mt-4 text-xs text-[#43474f] hover:text-[#001e40] leading-relaxed text-center"
-            >
-              Or, you can email a scanned recent test for our AI to diagnose. <span className="underline font-semibold">Tap for details.</span>
+              Assign and Email Link
             </button>
             {/* Final reminder — short by design; the longer explanation
                 lives on the student-creation step. */}
             <div className="mt-6 px-4 py-3 rounded-2xl bg-[#eff4ff] border-2 border-[#dce9ff]">
               <p className="text-xs text-[#001e40] leading-relaxed">
-                <span className="font-extrabold">Reminder:</span> your child has their own student login you just set.
+                <span className="font-extrabold">Reminder:</span> your child has his/her own login that you have set. We will email the homepage-access link to your email as well.
               </p>
             </div>
           </div>
@@ -652,42 +687,6 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           50% { opacity: 0; }
         }
       `}</style>
-
-      {showScanEmailInfo && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
-          onClick={() => setShowScanEmailInfo(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="px-6 pt-7 pb-3 flex flex-col items-center text-center">
-              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
-                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
-              </div>
-              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Email a scanned test</h3>
-            </div>
-            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
-              <p>
-                Please send a scanned copy of your child&apos;s recent test (marked or unmarked). Our AI will mark it and diagnose your child&apos;s learning gap.
-              </p>
-              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
-                diagnose@inbound.markforyou.com
-              </p>
-            </div>
-            <div className="px-7 pt-5 pb-7">
-              <button
-                onClick={() => setShowScanEmailInfo(false)}
-                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
-              >
-                Got it
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -111,7 +111,7 @@ export default function ScienceTopTopics() {
       </table>
 
       <A4SectionTitle>Common Mistakes</A4SectionTitle>
-      <p className="text-[11pt] font-bold text-[#7c3aed] mb-2">MarkForYou analysed <span className="text-[13pt]">900+</span> wrong answers to find the biggest trap in each topic.</p>
+      <p className="text-[11pt] font-bold text-[#7c3aed] mb-2">MarkForYou analysed <span className="text-[13pt]">900+</span> wrong answers to find the most common mistake in each topic.</p>
       <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
@@ -136,7 +136,7 @@ export default function ScienceTopTopics() {
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Interactions within the environment</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
               Describing what the organism <strong>looks like</strong> instead of <strong>how the feature helps it survive</strong>.
-              <div className="mt-1 text-slate-700"><em>E.g. A polar bear has thick white fur. How does this help it survive in the Arctic?</em> Students write &ldquo;so it looks nice on the snow.&rdquo; The marker wants: <strong>thick fur traps a layer of air</strong> which is a poor conductor of heat, so the polar bear <strong>loses less body heat</strong> to the cold surroundings AND <strong>white fur camouflages</strong> it against the snow so its <strong>prey does not notice it</strong>.</div>
+              <div className="mt-1 text-slate-700"><em>E.g. A polar bear has thick white fur. How does this help it survive in the Arctic?</em> Students write: &ldquo;so it is camouflaged.&rdquo; The marker wants: <strong>thick fur traps a layer of air</strong> which is a poor conductor of heat, so the polar bear <strong>loses less body heat</strong> to the cold surroundings AND <strong>white fur camouflages</strong> it against the snow so its <strong>prey does not notice it</strong>.</div>
             </td>
           </tr>
           <tr className="bg-white">
