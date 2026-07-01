@@ -4243,13 +4243,27 @@ function ExamReviewContent({ id }: { id: string }) {
                           // '(a) missing | (b) missing' where the marker
                           // tagged every sub-part as blank.
                           const sa = (currentQ.studentAnswer ?? "").trim().toLowerCase();
-                          const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
                           const isBlankAnswer = !currentQ.studentAnswer
                             || sa === "__skipped__"
                             || sa === "no answer detected"
                             || sa.startsWith("no answer")
                             || isAllPartsMissing(sa);
-                          if (isBlankAnswer && !hasDrawable) return null;
+                          // Hide the whole scan/canvas block when the
+                          // student submitted nothing — the previous
+                          // `!hasDrawable` exemption still rendered a
+                          // 450 px blank canvas for drawable questions
+                          // even after the marker confirmed 'No answer
+                          // provided', which is what the user hit.
+                          // Trust the marker's blank signal; the
+                          // Correct Answer section still renders below
+                          // so the reviewer sees what the answer was.
+                          if (isBlankAnswer) {
+                            return (
+                              <div className="rounded-2xl border border-dashed border-[#c3c6d1] bg-[#f8f9ff] px-4 py-3 text-center">
+                                <p className="text-xs font-semibold text-[#43474f]">No answer submitted for this question.</p>
+                              </div>
+                            );
+                          }
                           const overlayKey = `question:${currentQ.id}`;
                           // Wrapper height comes from the trimmed image's
                           // natural aspect (height: auto). Server-side
