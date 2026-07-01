@@ -154,10 +154,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }, []);
 
   async function finish(allAnswers: Answers) {
-    // questionDifficulty defaults to "adaptive" — the friendly start-
-    // easy-and-progress preset. We used to ask, but the Q1 friction
-    // wasn't worth the signal.
-    const questionDifficulty = allAnswers.questionDifficulty ?? "adaptive";
+    // questionDifficulty defaults to "standard" (top-school
+    // difficulty). We used to ask, but the Q1 friction wasn't worth
+    // the signal — parents can flip the toggle later on the student
+    // account if they want the adaptive start-easy variant.
+    const questionDifficulty = allAnswers.questionDifficulty ?? "standard";
     // Persist parent preferences. Best-effort — failures here shouldn't
     // block the flow.
     try {
@@ -273,8 +274,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       // every quiz/focused practice from here on. The student-side
       // toggle only knows "adaptive" | "standard"; map onboarding's
       // "hard" → "standard" (full top-school range). Default to
-      // "adaptive" now that Q1 is retired.
-      const rawDifficulty = answers.questionDifficulty ?? "adaptive";
+      // "standard" (top-school difficulty) now that Q1 is retired.
+      const rawDifficulty = answers.questionDifficulty ?? "standard";
       const studentDifficulty = rawDifficulty === "hard" ? "standard" : rawDifficulty;
       await fetch("/api/users", {
         method: "PATCH",
