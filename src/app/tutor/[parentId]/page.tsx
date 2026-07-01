@@ -2160,6 +2160,16 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
         )}
       </section>
 
+      {/* English fluency table — rule-family breakdown reads FIRST
+          for English parents, so we render it above the flat topic
+          bar chart. GrammarRadar no-ops on non-English + hides itself
+          until data loads, so a plain white card here is safe. */}
+      {data.subject === "English" && (
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
+          <GrammarRadar studentId={studentId} subject={data.subject} childFirst={data.childFirst} />
+        </section>
+      )}
+
       {/* Bar chart upfront — clickable bars surface a topic detail
           panel + Assign Focus Practice CTA without needing the user
           to swipe to a separate "Full Progress" view. */}
@@ -2542,24 +2552,17 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
       {progress && !subjectData && (
         <p className="text-sm text-slate-500 italic">No {subject} data yet for {childFirst}.</p>
       )}
-      {/* English fluency table renders ABOVE the Topic Accuracy chart —
-          rule-family breakdown is the primary read for English parents,
-          the flat MCQ-vs-Synthesis bars are secondary. GrammarRadar
-          no-ops on non-English so no guard needed. */}
-      <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst} />
       {progress && subjectKey && subjectData && (
-        <div className={subject === "English" ? "mt-8 pt-6 border-t border-slate-200" : ""}>
-          <AdminTopicChart
-            subject={subjectKey}
-            subjectData={subjectData}
-            timeline={Array.isArray(timeline) ? timeline : []}
-            studentName={progress.student?.name ?? childFirst}
-            selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
-            onAssignFocus={assignFocus}
-            creating={creating}
-          />
-        </div>
+        <AdminTopicChart
+          subject={subjectKey}
+          subjectData={subjectData}
+          timeline={Array.isArray(timeline) ? timeline : []}
+          studentName={progress.student?.name ?? childFirst}
+          selectedTopic={selectedTopic}
+          onSelectTopic={setSelectedTopic}
+          onAssignFocus={assignFocus}
+          creating={creating}
+        />
       )}
     </section>
   );
