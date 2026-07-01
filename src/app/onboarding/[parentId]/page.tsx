@@ -61,6 +61,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   const [pickerType, setPickerType] = useState<"mcq" | "mcq-oeq">("mcq");
   // Scan-email option removed 2026-07-02 — nobody used it and it
   // muddled the picker CTA hierarchy.
+  // "Assign and Email Link" confirmation popup — holds the studentId
+  // we just assigned to so we can pass it through firstAssignStudent
+  // when the parent picks "Go to homepage".
+  const [assignedConfirmationSid, setAssignedConfirmationSid] = useState<string | null>(null);
   // Student-creation step (final card before we route to /home).
   const [studentStep, setStudentStep] = useState(false);
   const [studentName, setStudentName] = useState("");
@@ -265,8 +269,9 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildQuizBody(sid)),
       });
-      // Best-effort email notify to the parent so they have the child-
-      // login link on hand. Endpoint stub — safe to fail silently.
+      // Best-effort email notify to the parent. Fire-and-forget —
+      // the confirmation popup fires whether or not this call succeeds
+      // so a transient SendGrid hiccup doesn't stall the UX.
       fetch("/api/notify-quiz-assigned", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -275,7 +280,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     } catch (err) {
       console.warn("Diagnostic quiz creation failed:", err);
     }
-    router.replace(`/home/${parentId}?firstAssignStudent=${sid}`);
+    setPickerLoading(false);
+    setAssignedConfirmationSid(sid);
   }
 
   function goToHomeFromPicker() {
@@ -687,6 +693,54 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           50% { opacity: 0; }
         }
       `}</style>
+
+      {/* Assign-and-email confirmation popup. Fires from
+          assignAndEmailLink after the /api/daily-quiz + notify calls
+          complete. Two-choice: parent goes home to explore, or stays
+          on this screen (rare — e.g. wanted to assign a second one). */}
+      {assignedConfirmationSid && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
+        >
+          <div className="w-full max-w-md rounded-3xl overflow-hidden bg-white shadow-2xl" style={{ animation: "popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
+            <div className="px-7 pt-8 pb-3 flex flex-col items-center text-center">
+              <div className="relative w-16 h-16 mb-4">
+                <div className="absolute inset-0 rounded-full" style={{ background: "rgba(108,248,187,0.4)", animation: "pulseRing 1.4s ease-out infinite" }} />
+                <div className="relative w-16 h-16 rounded-full bg-[#6cf8bb] flex items-center justify-center text-[#006c49] shadow-lg">
+                  <span className="material-symbols-outlined" style={{ fontSize: 34, fontVariationSettings: "'FILL' 1, 'wght' 700" }}>check</span>
+                </div>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30] mb-2">Quiz assigned!</h3>
+              <p className="text-sm text-[#43474f] leading-relaxed">
+                We&rsquo;ve created the {pickerSubject} diagnostic and emailed the sign-in link to your inbox. Your child can open it whenever they&rsquo;re ready.
+              </p>
+            </div>
+            <div className="px-6 pt-4 pb-6 space-y-3">
+              <p className="text-sm text-[#001e40] text-center leading-relaxed">
+                Want to explore the parent homepage while you wait?
+              </p>
+              <button
+                onClick={() => {
+                  const sid = assignedConfirmationSid;
+                  setAssignedConfirmationSid(null);
+                  router.replace(`/home/${parentId}?firstAssignStudent=${sid}`);
+                }}
+                className="w-full py-3.5 rounded-2xl font-bold text-white shadow-md hover:shadow-lg transition-all"
+                style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
+              >
+                Go to parent homepage
+              </button>
+              <button
+                onClick={() => setAssignedConfirmationSid(null)}
+                className="w-full py-3 rounded-2xl font-bold text-[#43474f] bg-white hover:bg-slate-50 border border-slate-200 transition-colors"
+              >
+                Stay here
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
