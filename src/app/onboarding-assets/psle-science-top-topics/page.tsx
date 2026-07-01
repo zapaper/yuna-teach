@@ -9,22 +9,24 @@ export default function ScienceTopTopics() {
       title="PSLE Science — Top Topics"
       subtitle="Top 5 topics by share of total PSLE Science marks."
     >
-      <div style={{ marginTop: 8 }}>
+      {/* Squeeze the chart to ~65% width so the tables below have
+          room to breathe with a bigger font. Centred. */}
+      <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/onboarding-assets/science-top5.png"
           alt="PSLE Science top 5 topics by share of marks"
-          style={{ width: "100%", height: "auto", display: "block" }}
+          style={{ width: "65%", height: "auto", display: "block" }}
         />
       </div>
 
       <A4SectionTitle>Command words — how the marker reads the verb</A4SectionTitle>
-      <table className="w-full border-collapse" style={{ fontSize: "9.5pt" }}>
+      <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[9pt] uppercase tracking-wide" style={{ width: "12%" }}>Word</th>
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[9pt] uppercase tracking-wide" style={{ width: "28%" }}>What the marker expects</th>
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[9pt] uppercase tracking-wide">Common mistakes</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide" style={{ width: "12%" }}>Word</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide" style={{ width: "28%" }}>What the marker expects</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Common mistakes</th>
           </tr>
         </thead>
         <tbody>
@@ -56,25 +58,25 @@ export default function ScienceTopTopics() {
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Suggest</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">Plausible reason with one supporting detail.</td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              Not a guess — a <strong>reasonable</strong> answer with a mechanism.
+              Not a guess — a <strong>reasonable</strong> answer, likely with <strong>data from the question</strong>.
             </td>
           </tr>
           <tr className="bg-white">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Compare</strong></td>
-            <td className="border border-slate-200 px-2 py-1.5 align-top">Similarity AND difference.</td>
+            <td className="border border-slate-200 px-2 py-1.5 align-top">Similarity AND/OR difference.</td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              Always both, even if the question sounds one-sided. Students sometimes cite evidence <strong>from outside the question</strong> — always use <strong>data presented in the question</strong>, do not infer unless the question asks for inference.
+              Remember to cite <strong>both</strong>. Students sometimes cite evidence <strong>from outside the question</strong> — always use <strong>data presented in the question</strong>, do not infer unless the question says so.
             </td>
           </tr>
         </tbody>
       </table>
 
       <A4SectionTitle>Common mistakes on the top 5</A4SectionTitle>
-      <table className="w-full border-collapse" style={{ fontSize: "9.5pt" }}>
+      <table className="w-full border-collapse" style={{ fontSize: "11pt" }}>
         <thead>
           <tr className="bg-[#eff4ff]">
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[9pt] uppercase tracking-wide">Topic</th>
-            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[9pt] uppercase tracking-wide">Common mistake</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Topic</th>
+            <th className="border border-slate-300 px-2 py-1.5 text-left font-bold text-[#001e40] text-[10pt] uppercase tracking-wide">Common mistake</th>
           </tr>
         </thead>
         <tbody>
