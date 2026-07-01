@@ -589,7 +589,20 @@ model EnglishSupplementaryPaper {
   paper4Text       String?  @db.Text
   paper1AnswerText String?  @db.Text
   paper3AnswerText String?  @db.Text
+  // paper4AnswerText is a mixed bag across years — the tutor-published
+  // PDFs each format their model-answer sections differently, so this
+  // raw OCR blob can hold Paper 4 SBC model responses (2024), Paper 3
+  // listening answers (2025, 2023), or a partial mix (most other
+  // years). paper4AnswerContentKind labels each row so consumers
+  // (oral-coach extraction, admin previews) know what to expect
+  // without re-classifying the blob every time.
   paper4AnswerText String?  @db.Text
+  // One of: 'sbc_model_answers', 'p3_listening_answers', 'partial_sbc',
+  // 'empty', 'unclassified'. Backfilled from paper4AnswerText content
+  // patterns in the 20260629_add_paper4_answer_kind migration; a
+  // follow-up extraction pass (Gemini) populates oralModelAnswers when
+  // kind='sbc_model_answers'.
+  paper4AnswerContentKind String?
 
   // Structured extraction.
   // Section A — Situational Writing
