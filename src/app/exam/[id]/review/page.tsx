@@ -243,6 +243,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const [paperSubject, setPaperSubject] = useState<string | null>(null);
   const [totalMarks, setTotalMarks] = useState<string | null>(null);
   const [assignedToId, setAssignedToId] = useState<string | null>(null);
+  // paper.userId — the parent who assigned this paper. Used to route
+  // the onboarding-diagnostic 'Next' button to the parent's home
+  // even when the reviewer is the student, so LumiViewBody actually
+  // renders (StudentDashboard doesn't know about Lumi).
+  const [paperOwnerId, setPaperOwnerId] = useState<string | null>(null);
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [skipPages, setSkipPages] = useState<number[]>([]);
   // Set the first time a parent (or student) hits a print endpoint. We
@@ -454,6 +459,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setPaperSubject(paper.subject ?? null);
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
+          setPaperOwnerId(paper.userId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
           paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "mastery";
           setIsQuiz(paperIsQuiz);
@@ -554,16 +560,26 @@ function ExamReviewContent({ id }: { id: string }) {
           const cached: Record<string, string> = {};
           const cachedDiagrams: Record<string, DiagramStep[]> = {};
           const flagged = new Set<string>();
+          // Auto-expand any MCQ that was answered wrong AND has a
+          // cached elaboration — parent shouldn't need to click "Show
+          // explanation" for questions the kid got wrong. Right-answer
+          // MCQ and OEQ stay collapsed so the review page doesn't
+          // become a wall of prose.
+          const autoExpand = new Set<string>();
           for (const q of markData.questions ?? []) {
             if (q.elaboration) {
               const { text, diagrams } = parseElabCache(q.elaboration);
               cached[q.id] = text;
               if (diagrams.length > 0) cachedDiagrams[q.id] = diagrams;
+              const isMcq = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length >= 2;
+              const gotWrong = q.marksAwarded != null && q.marksAvailable != null && q.marksAwarded < q.marksAvailable;
+              if (isMcq && gotWrong) autoExpand.add(q.id);
             }
             if (q.flagged) flagged.add(q.id);
           }
           if (Object.keys(cached).length > 0) setElaborations(cached);
           if (Object.keys(cachedDiagrams).length > 0) setElabDiagrams(cachedDiagrams);
+          if (autoExpand.size > 0) setExpandedElabs(autoExpand);
           if (flagged.size > 0) setFlaggedIds(flagged);
 
           // ── Auto-solve catch-all ─────────────────────────────────
@@ -938,7 +954,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const backPath = !userId
     ? "/login"
     : isOnboardingDiagnostic
-      ? `/home/${userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
+      // Always route to the parent's home for the Lumi banner — even
+      // when the reviewer is the student themselves. LumiViewBody
+      // lives in ParentDashboard; StudentDashboard doesn't render it,
+      // so /home/{studentId}?view=lumi silently no-ops today.
+      ? `/home/${paperOwnerId ?? userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
       : assignedToId && !isStudent
         ? `/home/${userId}?view=progress&student=${assignedToId}`
         : canCelebrateBack
