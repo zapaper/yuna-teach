@@ -6,37 +6,53 @@ import { A4Sheet, A4SectionTitle } from "../A4Sheet";
 // the more rigorous 10-year 2016-2025 marks-per-paper data from
 // PSLE-Science-Topic-Marks-10yr-Average.docx.
 
-const TOP4 = [
-  { name: "Interaction of forces (friction / gravity / spring)", pct: 14.0, colour: "#0f5c66" },
-  { name: "Interactions within the environment",                 pct: 13.7, colour: "#3d848c" },
-  { name: "Electrical systems & circuits",                       pct:  8.2, colour: "#66a5ac" },
-  { name: "Heat energy & uses",                                  pct:  7.2, colour: "#8fbfc4" },
+// Each name can be either a plain string (single-line label) or an
+// array of two strings for a 2-line label rendered via tspan. Kept
+// as data so the "Interaction of forces (friction/gravity/spring)"
+// wraps cleanly without getting truncated on the left.
+type ChartRow = { name: string | [string, string]; pct: number; colour: string };
+const TOP5: ChartRow[] = [
+  { name: ["Interaction of forces", "(friction / gravity / spring)"], pct: 14.0, colour: "#0f5c66" },
+  { name: "Interactions within the environment",                       pct: 13.7, colour: "#3d848c" },
+  { name: "Electrical systems & circuits",                             pct:  8.2, colour: "#66a5ac" },
+  { name: "Heat energy & uses",                                        pct:  7.2, colour: "#8fbfc4" },
+  { name: "Diversity of living & non-living things",                   pct:  7.1, colour: "#a9d1d5" },
 ];
 
 export default function ScienceTopTopics() {
   const axisMax = 15;
-  const chartWidth = 560;
-  const barAreaLeft = 210;
+  const chartWidth = 600;
+  const barAreaLeft = 240;
   const barAreaRight = chartWidth - 60;
-  const rowH = 30;
+  const rowH = 34;
   const gap = 10;
-  const chartH = TOP4.length * (rowH + gap) + 4;
+  const chartH = TOP5.length * (rowH + gap) + 4;
 
   return (
     <A4Sheet
       title="PSLE Science Top Topics and Mistakes"
-      subtitle="Top 4 topics by mark share (10-year average, 2016-2025). Together they carry ~43% of the paper."
+      subtitle="Top 5 topics by mark share (10-year average, 2016-2025). Together they carry more than 50% of the paper."
     >
       <div style={{ backgroundColor: "#f8f4ea", padding: "12px 14px", borderRadius: 8, marginTop: 8 }}>
         <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
-          {TOP4.map((t, i) => {
+          {TOP5.map((t, i) => {
             const y = i * (rowH + gap);
             const w = (t.pct / axisMax) * (barAreaRight - barAreaLeft);
+            const isTwoLine = Array.isArray(t.name);
+            const cy = y + rowH / 2;
+            const key = isTwoLine ? (t.name as [string, string]).join(" ") : (t.name as string);
             return (
-              <g key={t.name}>
-                <text x={barAreaLeft - 8} y={y + rowH / 2 + 4} textAnchor="end" fontSize="11" fontWeight="700" fill="#0b1c30">{t.name}</text>
+              <g key={key}>
+                {isTwoLine ? (
+                  <text x={barAreaLeft - 8} y={cy} textAnchor="end" fontSize="11" fontWeight="700" fill="#0b1c30">
+                    <tspan x={barAreaLeft - 8} dy="-0.2em">{(t.name as [string, string])[0]}</tspan>
+                    <tspan x={barAreaLeft - 8} dy="1.15em">{(t.name as [string, string])[1]}</tspan>
+                  </text>
+                ) : (
+                  <text x={barAreaLeft - 8} y={cy + 4} textAnchor="end" fontSize="11" fontWeight="700" fill="#0b1c30">{t.name as string}</text>
+                )}
                 <rect x={barAreaLeft} y={y} width={w} height={rowH} fill={t.colour} rx={2} />
-                <text x={barAreaLeft + w + 6} y={y + rowH / 2 + 4} fontSize="12" fontWeight="800" fill="#0b1c30">{t.pct.toFixed(1)}%</text>
+                <text x={barAreaLeft + w + 6} y={cy + 4} fontSize="12" fontWeight="800" fill="#0b1c30">{t.pct.toFixed(1)}%</text>
               </g>
             );
           })}
@@ -119,8 +135,8 @@ export default function ScienceTopTopics() {
           <tr className="bg-slate-50">
             <td className="border border-slate-200 px-2 py-1.5 align-top"><strong>Interactions within the environment</strong></td>
             <td className="border border-slate-200 px-2 py-1.5 align-top">
-              Describing what the organism / nest <strong>looks like</strong> instead of <strong>how the feature helps it survive</strong>.
-              <div className="mt-1 text-slate-700"><em>E.g. Insect P builds its nest underground and stores leaves for a fungus that its young feed on.</em> Students write &ldquo;the nest keeps the leaves hidden.&rdquo; The marker wants: &ldquo;<strong>underground is dark, moist and warm</strong> &mdash; ideal for the <strong>fungus to grow</strong> on the leaves, providing <strong>food for the young</strong>.&rdquo;</div>
+              Describing what the organism <strong>looks like</strong> instead of <strong>how the feature helps it survive</strong>.
+              <div className="mt-1 text-slate-700"><em>E.g. A polar bear has thick white fur. How does this help it survive in the Arctic?</em> Students write &ldquo;so it looks nice on the snow.&rdquo; The marker wants: <strong>thick fur traps a layer of air</strong> which is a poor conductor of heat, so the polar bear <strong>loses less body heat</strong> to the cold surroundings AND <strong>white fur camouflages</strong> it against the snow so its <strong>prey does not notice it</strong>.</div>
             </td>
           </tr>
           <tr className="bg-white">
@@ -139,7 +155,6 @@ export default function ScienceTopTopics() {
           </tr>
         </tbody>
       </table>
-      <p className="text-[9pt] text-slate-500 italic mt-2">Universal pattern: <strong>blank OEQ answers</strong> account for 15-25% of lost marks across every top topic. Always attempt every sub-part &mdash; a half-answer scores more than zero.</p>
     </A4Sheet>
   );
 }

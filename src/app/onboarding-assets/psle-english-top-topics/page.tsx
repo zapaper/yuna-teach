@@ -11,23 +11,26 @@ import type { CSSProperties, ReactNode } from "react";
 
 type Slice = { label: string; pct: number; colour: string };
 
+// Percentages rounded to nearest whole number per user request. Raw
+// values in the DOCX are 26.2 / 21.3 / 18.0 / 11.5 / 9.0 / 6.6 / 5.7
+// (MCQ) and 35.0 / 25.0 / 16.7 / 15.8 / 6.7 (Cloze).
 const MCQ: Slice[] = [
-  { label: "Connectors & tenses",       pct: 26.2, colour: "#2b6a5f" },
-  { label: "Verb-forms (gerund / infinitive / causative)", pct: 21.3, colour: "#d97a2f" },
-  { label: "Idiomatic prepositions",    pct: 18.0, colour: "#4a7fbf" },
-  { label: "Tag questions",             pct: 11.5, colour: "#e0a02b" },
-  { label: "Countable / uncountable",   pct:  9.0, colour: "#8f5aa8" },
-  { label: "Subject-verb agreement",    pct:  6.6, colour: "#c15b3f" },
-  { label: "Pronouns",                  pct:  5.7, colour: "#dfc744" },
+  { label: "Connectors & tenses",       pct: 26, colour: "#2b6a5f" },
+  { label: "Verb-forms (gerund / infinitive / causative)", pct: 21, colour: "#d97a2f" },
+  { label: "Idiomatic prepositions",    pct: 18, colour: "#4a7fbf" },
+  { label: "Tag questions",             pct: 12, colour: "#e0a02b" },
+  { label: "Countable / uncountable",   pct:  9, colour: "#8f5aa8" },
+  { label: "Subject-verb agreement",    pct:  7, colour: "#c15b3f" },
+  { label: "Pronouns",                  pct:  6, colour: "#dfc744" },
 ];
 // Cloze reuses the same colour per rule so the reader recognises
 // each rule across the two pies at a glance.
 const CLOZE: Slice[] = [
-  { label: "Connectors & tenses",     pct: 35.0, colour: "#2b6a5f" },
-  { label: "Idiomatic prepositions",  pct: 25.0, colour: "#4a7fbf" },
-  { label: "Pronouns",                pct: 16.7, colour: "#dfc744" },
-  { label: "Subject-verb agreement",  pct: 15.8, colour: "#c15b3f" },
-  { label: "Countable / uncountable", pct:  6.7, colour: "#8f5aa8" },
+  { label: "Connectors & tenses",     pct: 35, colour: "#2b6a5f" },
+  { label: "Idiomatic prepositions",  pct: 25, colour: "#4a7fbf" },
+  { label: "Pronouns",                pct: 17, colour: "#dfc744" },
+  { label: "Subject-verb agreement",  pct: 16, colour: "#c15b3f" },
+  { label: "Countable / uncountable", pct:  7, colour: "#8f5aa8" },
 ];
 
 // Donut geometry: outer radius R, inner radius r, from centre (cx,cy).
@@ -82,7 +85,7 @@ function Legend({ slices }: { slices: Slice[] }) {
         <div key={i} style={rowStyle}>
           <span style={dotStyle(s.colour)} />
           <span style={{ flex: 1, lineHeight: 1.25 }}>
-            <strong>{s.pct}%</strong> — {s.label}
+            <strong>{Math.round(s.pct)}%</strong> — {s.label}
           </span>
         </div>
       ))}

@@ -5091,16 +5091,21 @@ function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { s
           )}
         </div>
       </div>
-      <TutorBodyForStudent studentId={effectiveStudentId} parentId={parentId} subject={subject} currentChildName={effectiveStudentName} />
-      {onboardingCtx && (
-        <OnboardingBanner
-          parentId={parentId}
-          studentId={effectiveStudentId}
-          studentName={effectiveStudentName}
-          subject={subject}
-          fromPaperId={onboardingCtx.fromPaper}
-        />
-      )}
+      <TutorBodyForStudent
+        studentId={effectiveStudentId}
+        parentId={parentId}
+        subject={subject}
+        currentChildName={effectiveStudentName}
+        postGreetingSlot={onboardingCtx ? (
+          <OnboardingBanner
+            parentId={parentId}
+            studentId={effectiveStudentId}
+            studentName={effectiveStudentName}
+            subject={subject}
+            fromPaperId={onboardingCtx.fromPaper}
+          />
+        ) : null}
+      />
     </div>
   );
 }

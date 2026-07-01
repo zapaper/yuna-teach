@@ -213,11 +213,18 @@ export default function TutorPage({ params }: { params: Promise<{ parentId: stri
 // Fetches + caches the per-student tutor data and renders loading /
 // ineligible / ready states. Extracted so /progress/[studentId] (admin
 // branch) can reuse the same body without duplicating the data wiring.
-export function TutorBodyForStudent({ studentId, parentId, subject, currentChildName }: {
+export function TutorBodyForStudent({ studentId, parentId, subject, currentChildName, postGreetingSlot }: {
   studentId: string;
   parentId: string;
   subject: string;
   currentChildName?: string;
+  // Optional render slot for content that should sit BETWEEN the Lumi
+  // greeting card and the progress chart / fluency table. Used by the
+  // parent dashboard to inject the OnboardingBanner in that spot on a
+  // ?onboarding=1 first-quiz landing. Rendered inside both IneligibleView
+  // and ReadyView so the placement is identical whether the kid has
+  // crossed the 3-paper eligibility threshold or not.
+  postGreetingSlot?: React.ReactNode;
 }) {
   const [data, setData] = useState<TutorData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -368,7 +375,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
         </div>
       )}
       {data && data.kind === "ineligible" && (
-        <IneligibleView data={data} subject={subject} loading={loading} studentId={studentId} />
+        <IneligibleView data={data} subject={subject} loading={loading} studentId={studentId} postGreetingSlot={postGreetingSlot} />
       )}
       {data && data.kind === "ready" && (
         <div className={`transition-opacity ${loading ? "opacity-50" : ""}`}>
@@ -377,7 +384,7 @@ export function TutorBodyForStudent({ studentId, parentId, subject, currentChild
               Since this diagnosis, {firstName || "your child"} has done {paperDelta} more {subject.toLowerCase()} quiz{paperDelta === 1 ? "" : "zes"}. I&apos;ll update this when more data comes in.
             </div>
           )}
-          <ReadyView data={data} parentId={parentId} studentId={studentId} prefetchedProgress={progress} prefetchedProgressErr={progressErr} />
+          <ReadyView data={data} parentId={parentId} studentId={studentId} prefetchedProgress={progress} prefetchedProgressErr={progressErr} postGreetingSlot={postGreetingSlot} />
         </div>
       )}
       <p className="text-[11px] text-slate-400 mt-12 text-center">
@@ -475,11 +482,13 @@ function IneligibleView({
   subject,
   loading,
   studentId,
+  postGreetingSlot,
 }: {
   data: Extract<TutorData, { kind: "ineligible" }>;
   subject: string;
   loading: boolean;
   studentId: string;
+  postGreetingSlot?: React.ReactNode;
 }) {
   const topline = data.topline;
   const childFirst = data.childFirst;
@@ -517,6 +526,8 @@ function IneligibleView({
           )}
         </div>
       </section>
+
+      {postGreetingSlot}
 
       {/* English Grammar + Synthesis sub-topic fluency table. Rendered
           ABOVE the Topic Accuracy chart on English — parents care
@@ -612,7 +623,7 @@ type DetailView =
 type LazyImage = { diagramImageData: string | null; imageData: string | null; optionImages: string[] | null };
 type LazyImages = Record<string, LazyImage>;
 
-function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedProgressErr }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean }) {
+function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedProgressErr, postGreetingSlot }: { data: Extract<TutorData, { kind: "ready" }>; parentId: string; studentId: string; prefetchedProgress: ProgressData | null; prefetchedProgressErr: boolean; postGreetingSlot?: React.ReactNode }) {
   const [view, setView] = useState<DetailView | null>(null);
   const isOverview = view === null;
   // Lazy-load diagram + image-option blobs when the parent opens a
@@ -791,6 +802,7 @@ function ReadyView({ data, parentId, studentId, prefetchedProgress, prefetchedPr
         </div>
       </section>
 
+      {postGreetingSlot}
 
       {/* Swipe stage — flex row holds both panels side-by-side; we
           translate the whole row by -100% to slide overview off
