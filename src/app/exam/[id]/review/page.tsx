@@ -1523,7 +1523,7 @@ function ExamReviewContent({ id }: { id: string }) {
             </div>
             <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Congratulations on finishing your first quiz!</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-6">
-              With each quiz, the AI gets smarter in identifying weak areas. You can build <strong className="font-bold text-[#001e40]">focused practices</strong> for those. Click &ldquo;Open parent homepage&rdquo; when you are done reviewing this quiz with your student.
+              With each quiz, <strong className="font-bold text-[#001e40]">Lumi</strong> gets smarter in identifying weak areas and personalising the next practice. Click &ldquo;Go to diagnostic&rdquo; on the top left when you are done reviewing the mistakes here.
             </p>
             <button
               onClick={() => setShowFirstQuizPopup(false)}
@@ -1537,26 +1537,49 @@ function ExamReviewContent({ id }: { id: string }) {
 
       {/* ── Top bar ── */}
       <header className="fixed top-0 w-full z-50 bg-[#f8f9ff] backdrop-blur-xl shadow-sm">
-        {/* Mobile: centered title */}
+        {/* Mobile: centered title. On diagnostic first-quiz flow the
+            top-left is a labelled dark-blue pill instead of the plain
+            back icon so the parent can't miss the "Go to diagnostic"
+            handoff after reviewing. */}
         <div className="lg:hidden flex items-center justify-between px-4 h-16">
-          <button
-            onClick={() => { playClick(); router.replace(backPath); }}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors"
-          >
-            <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
-          </button>
+          {isDiagnostic && diagnosticParentId ? (
+            <button
+              onClick={() => { playClick(); router.replace(backPath); }}
+              className="flex items-center gap-1 px-3 h-10 rounded-full bg-[#003366] text-white text-xs font-bold hover:bg-[#001e40] transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-base">arrow_back</span>
+              Go to diagnostic
+            </button>
+          ) : (
+            <button
+              onClick={() => { playClick(); router.replace(backPath); }}
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors"
+            >
+              <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
+            </button>
+          )}
           <h1 className="font-headline font-bold text-lg text-[#001e40]">{isQuiz ? "Quiz Review" : "Exam Review"}</h1>
           <div className="w-10" />
         </div>
         {/* Desktop: left-aligned with title + download */}
         <div className="hidden lg:flex items-center justify-between px-8 py-3 max-w-5xl mx-auto">
           <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => { playClick(); router.replace(backPath); }}
-              className="p-2 rounded-xl text-[#43474f] hover:bg-[#eff4ff] transition-colors shrink-0"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
+            {isDiagnostic && diagnosticParentId ? (
+              <button
+                onClick={() => { playClick(); router.replace(backPath); }}
+                className="flex items-center gap-1.5 px-4 h-10 rounded-full bg-[#003366] text-white text-sm font-bold hover:bg-[#001e40] transition-colors shadow-sm shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">arrow_back</span>
+                Go to diagnostic
+              </button>
+            ) : (
+              <button
+                onClick={() => { playClick(); router.replace(backPath); }}
+                className="p-2 rounded-xl text-[#43474f] hover:bg-[#eff4ff] transition-colors shrink-0"
+              >
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            )}
             <p className="font-headline font-bold text-[#001e40] truncate">{paperTitle}</p>
           </div>
           <div className="flex items-center gap-3" />
@@ -1876,29 +1899,11 @@ function ExamReviewContent({ id }: { id: string }) {
                 <p className="font-headline text-xl font-bold text-[#ba1a1a]">{incorrectQuestions.length}</p>
               </div>
             </div>
-            {/* Diagnostic flow only — open parent homepage in a new tab */}
-            {isDiagnostic && diagnosticParentId && (
-              <button
-                onClick={() => window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank")}
-                className="bg-[#003366] text-white rounded-3xl p-5 flex items-center justify-center gap-3 shadow-md hover:bg-[#001e40] transition-colors font-bold text-sm"
-              >
-                <span className="material-symbols-outlined">open_in_new</span>
-                Open parent homepage
-              </button>
-            )}
+            {/* Diagnostic-flow "Open parent homepage" CTA removed — the
+                top-left back button is now a labelled 'Go to
+                diagnostic' pill that plays the same role. */}
           </div>
         </section>
-
-        {/* Mobile-only diagnostic CTA — same intent, sits below the score card */}
-        {isDiagnostic && diagnosticParentId && (
-          <button
-            onClick={() => window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank")}
-            className="lg:hidden w-full bg-[#003366] text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-md hover:bg-[#001e40] transition-colors font-bold text-sm mb-5"
-          >
-            <span className="material-symbols-outlined text-base">open_in_new</span>
-            Open parent homepage
-          </button>
-        )}
 
         {/* Advisory — parents only */}
         {!isStudent && !advisoryDismissed && (
