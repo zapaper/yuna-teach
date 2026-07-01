@@ -63,6 +63,13 @@ export async function GET(
           elaboration: true,
           flagged: true,
           syllabusTopic: true,
+          // Pulled so the sourceExamId=null fallthrough (quiz / focused
+          // clones) can hydrate elaboration from each question's source
+          // master when the clone hasn't been backfilled. Without this,
+          // fresh diagnostic quizzes show 'Show explanation' buttons for
+          // every wrong answer even though the elaboration is ready on
+          // the master.
+          sourceQuestionId: true,
         },
       },
     },
@@ -222,9 +229,35 @@ export async function GET(
 
   // Strip sourceExamId and metadata from response
   const { sourceExamId: _, metadata: paperMeta, ...response } = paper;
-  const bookletScores = computeBookletScores(paper.metadata, paper.questions);
+  // Master-elaboration hydration for quiz / focused clones. The main
+  // clone-with-sourceExamId path (above) already inherits master
+  // elaboration during the merge step; this fallthrough is what fires
+  // for aggregate-clone papers (paper.sourceExamId is null but each
+  // question has its own sourceQuestionId pointing at a master
+  // question). Batch the lookup so we do one findMany, not N per
+  // paper. Only fires when there's at least one row missing
+  // elaboration but with a sourceQuestionId.
+  const needsHydration = response.questions
+    .filter(q => (!q.elaboration || q.elaboration.length === 0) && q.sourceQuestionId)
+    .map(q => q.sourceQuestionId as string);
+  if (needsHydration.length > 0) {
+    const masters = await prisma.examQuestion.findMany({
+      where: { id: { in: [...new Set(needsHydration)] } },
+      select: { id: true, elaboration: true },
+    });
+    const masterElab = new Map(masters.map(m => [m.id, m.elaboration ?? null]));
+    for (const q of response.questions) {
+      if ((!q.elaboration || q.elaboration.length === 0) && q.sourceQuestionId) {
+        q.elaboration = masterElab.get(q.sourceQuestionId) ?? null;
+      }
+    }
+  }
+  // Drop sourceQuestionId from the response — it's an internal join key
+  // and shouldn't leak into the client payload.
+  const cleanedQuestions = response.questions.map(({ sourceQuestionId: _sqid, ...rest }) => rest);
+  const bookletScores = computeBookletScores(paper.metadata, cleanedQuestions);
   const isRevision = !!(paperMeta as { revisionMode?: string } | null)?.revisionMode;
-  return NextResponse.json({ ...response, isRevision, isPrintedAndScanned, ...(bookletScores ? { bookletScores } : {}) });
+  return NextResponse.json({ ...response, questions: cleanedQuestions, isRevision, isPrintedAndScanned, ...(bookletScores ? { bookletScores } : {}) });
 }
 
 // POST /api/exam/[id]/mark
