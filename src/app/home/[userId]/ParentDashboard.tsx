@@ -4951,7 +4951,7 @@ function OnboardingBanner({
         </p>
       )}
       <p className="text-sm text-[#1e293b] leading-relaxed">
-        Lastly, here is your downloadable Top topics and mistakes for PSLE {ctx?.subject ?? subject} — <a href={pdfHref} className="text-[#7c3aed] font-semibold underline">download PDF →</a>
+        Lastly, here is your downloadable Top topics and mistakes for PSLE {ctx?.subject ?? subject} — <a href={pdfHref} className="inline-flex items-center gap-1 text-[#7c3aed] font-semibold underline"><span className="material-symbols-outlined text-[16px] leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>picture_as_pdf</span>download PDF →</a>
       </p>
     </div>
   );

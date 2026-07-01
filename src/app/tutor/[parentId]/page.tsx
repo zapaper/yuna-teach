@@ -518,6 +518,17 @@ function IneligibleView({
         </div>
       </section>
 
+      {/* English Grammar + Synthesis sub-topic fluency table. Rendered
+          ABOVE the Topic Accuracy chart on English — parents care
+          about the rule-family breakdown more than the flat Grammar-MCQ
+          vs Synthesis section split. GrammarRadar no-ops on non-English
+          so the guard here is belt-and-braces. */}
+      {subject === "English" && (
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+          <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst ?? "your child"} />
+        </section>
+      )}
+
       {/* Topic chart — only when we have at least one tagged topic
           worth showing. Mirrors LumiShareable's column-chart layout
           but rendered with CSS so it's interactive on screen. */}
@@ -590,16 +601,6 @@ function IneligibleView({
         </p>
       </section>
 
-      {/* English Grammar + Synthesis sub-topic fluency table. Renders
-          from the very first paper — GrammarRadar no-ops on non-English
-          and gates its own loading state, so this is safe to mount
-          unconditionally. Wrapping in a white card keeps the visual
-          rhythm consistent with the other sections here. */}
-      {subject === "English" && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
-          <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst ?? "your child"} />
-        </section>
-      )}
     </div>
   );
 }
@@ -2541,19 +2542,25 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
       {progress && !subjectData && (
         <p className="text-sm text-slate-500 italic">No {subject} data yet for {childFirst}.</p>
       )}
-      {progress && subjectKey && subjectData && (
-        <AdminTopicChart
-          subject={subjectKey}
-          subjectData={subjectData}
-          timeline={Array.isArray(timeline) ? timeline : []}
-          studentName={progress.student?.name ?? childFirst}
-          selectedTopic={selectedTopic}
-          onSelectTopic={setSelectedTopic}
-          onAssignFocus={assignFocus}
-          creating={creating}
-        />
-      )}
+      {/* English fluency table renders ABOVE the Topic Accuracy chart —
+          rule-family breakdown is the primary read for English parents,
+          the flat MCQ-vs-Synthesis bars are secondary. GrammarRadar
+          no-ops on non-English so no guard needed. */}
       <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst} />
+      {progress && subjectKey && subjectData && (
+        <div className={subject === "English" ? "mt-8 pt-6 border-t border-slate-200" : ""}>
+          <AdminTopicChart
+            subject={subjectKey}
+            subjectData={subjectData}
+            timeline={Array.isArray(timeline) ? timeline : []}
+            studentName={progress.student?.name ?? childFirst}
+            selectedTopic={selectedTopic}
+            onSelectTopic={setSelectedTopic}
+            onAssignFocus={assignFocus}
+            creating={creating}
+          />
+        </div>
+      )}
     </section>
   );
 }
@@ -2563,7 +2570,7 @@ function FullProgressEmbed({ studentId, parentId, subject, childFirst, prefetche
 // payload from /api/tutor/[id]/grammar-fluency.
 // Fluency Radar/Table opened to every student on 2026-07-02 — the
 // per-kid allowlist that used to live here is retired.
-type FluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
+type FluencyRow = { id: string; label: string; awarded: number; available: number; questions?: number; pct: number | null };
 type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null; totalAwarded: number; totalAvailable: number };
 
 // Single radar SVG — accepts axes + per-axis percentages. Re-used
@@ -2703,7 +2710,7 @@ function FluencyTable({ title, bundle, weightageMap }: { title: string; bundle: 
             <th className="text-left px-2 py-1 font-bold">Sub-topic</th>
             <th className="text-right px-2 py-1 font-bold">Score</th>
             <th className="text-right px-2 py-1 font-bold">Attempts</th>
-            {weightageMap && <th className="text-right px-2 py-1 font-bold" title="Share of the PSLE section this rule typically covers">PSLE %</th>}
+            {weightageMap && <th className="text-right px-2 py-1 font-bold" title="Share of the PSLE section this rule typically covers">PSLE weight</th>}
           </tr>
         </thead>
         <tbody>
@@ -2719,7 +2726,7 @@ function FluencyTable({ title, bundle, weightageMap }: { title: string; bundle: 
                   {noData ? "—" : `${s.pct}%`}
                 </td>
                 <td className="px-2 py-1.5 text-right whitespace-nowrap text-slate-500 text-[11px]">
-                  {noData ? "no data" : `n=${s.available}`}
+                  {noData ? "no data" : `n=${s.questions ?? s.available}`}
                 </td>
                 {weightageMap && (
                   <td className="px-2 py-1.5 text-right whitespace-nowrap text-slate-600 text-[11px] font-semibold">

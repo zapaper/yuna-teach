@@ -53,20 +53,26 @@ async function fluencyFor(studentId: string, syllabusTopics: string[], buckets: 
     },
     select: { subTopic: true, marksAwarded: true, marksAvailable: true, examPaper: { select: { metadata: true } } },
   });
-  const byId = new Map<string, { awarded: number; available: number }>();
+  // `questions` is the row count (one row = one attempted question);
+  // `available` is the sum of marks available (a 2-mark question
+  // contributes 2). The table shows n=questions so parents read the
+  // familiar "how many questions attempted" number instead of the
+  // marks-denominator that inflates on 2-mark items.
+  const byId = new Map<string, { awarded: number; available: number; questions: number }>();
   for (const r of rows) {
     const meta = (r.examPaper.metadata ?? {}) as { revisionMode?: string };
     if (meta.revisionMode) continue;
     if (!r.subTopic) continue;
-    const cur = byId.get(r.subTopic) ?? { awarded: 0, available: 0 };
+    const cur = byId.get(r.subTopic) ?? { awarded: 0, available: 0, questions: 0 };
     cur.awarded += r.marksAwarded ?? 0;
     cur.available += r.marksAvailable ?? 0;
+    cur.questions += 1;
     byId.set(r.subTopic, cur);
   }
   const subTopics = buckets.map(s => {
-    const cur = byId.get(s.id) ?? { awarded: 0, available: 0 };
+    const cur = byId.get(s.id) ?? { awarded: 0, available: 0, questions: 0 };
     const pct = cur.available > 0 ? Math.round(cur.awarded / cur.available * 100) : null;
-    return { id: s.id, label: s.label, awarded: cur.awarded, available: cur.available, pct };
+    return { id: s.id, label: s.label, awarded: cur.awarded, available: cur.available, questions: cur.questions, pct };
   });
   const totalAwarded = subTopics.reduce((s, x) => s + x.awarded, 0);
   const totalAvailable = subTopics.reduce((s, x) => s + x.available, 0);
