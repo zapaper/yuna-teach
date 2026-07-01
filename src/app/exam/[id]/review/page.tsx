@@ -4049,7 +4049,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       return (
                                         <div key={sp.label} className="space-y-2">
                                           <p className="text-sm text-[#0b1c30]">
-                                            <span className="font-bold text-[#001e40]">{formatSubpartLabel(sp.label)}</span> {sp.text}
+                                            <span className="font-bold text-[#001e40]">{formatSubpartLabel(sp.label)}</span> <MathText text={sp.text ?? ""} />
                                           </p>
                                           {imgSrc && (
                                             // eslint-disable-next-line @next/next/no-img-element
@@ -4160,7 +4160,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                     {currentQ.markingNotes && (
                                       <div className="mt-2">
                                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
-                                        <p className="text-sm text-[#43474f] leading-relaxed">
+                                        <p className="text-[21px] text-[#43474f] leading-relaxed">
                                           {renderMarkingNotes(currentQ.markingNotes)}
                                         </p>
                                       </div>
@@ -4274,7 +4274,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         {currentQ.markingNotes && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
-                            <div className="text-sm text-[#43474f] leading-relaxed whitespace-pre-wrap">
+                            <div className="text-[21px] text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
                             </div>
                           </div>
@@ -4375,7 +4375,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         {currentQ.markingNotes && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
-                            <div className="text-sm text-[#43474f] leading-relaxed whitespace-pre-wrap">
+                            <div className="text-[21px] text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
                             </div>
                           </div>
