@@ -955,11 +955,14 @@ function ExamReviewContent({ id }: { id: string }) {
   const backPath = !userId
     ? "/login"
     : isOnboardingDiagnostic
-      // Always route to the parent's home for the Lumi banner — even
-      // when the reviewer is the student themselves. LumiViewBody
-      // lives in ParentDashboard; StudentDashboard doesn't render it,
-      // so /home/{studentId}?view=lumi silently no-ops today.
-      ? `/home/${paperOwnerId ?? userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
+      // Onboarding diagnostic 'Go to Diagnostic' handoff. When the
+      // reviewer IS the student (kid session), send them to their own
+      // /progress page — /home/{studentId}?view=lumi silently no-ops
+      // because StudentDashboard doesn't render LumiViewBody. Parents
+      // (paperOwnerId available) still bounce to their Lumi dashboard.
+      ? (isStudent
+          ? `/progress/${assignedToId ?? userId}?onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`
+          : `/home/${paperOwnerId ?? userId}?view=lumi&student=${assignedToId ?? ""}&onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}`)
       : assignedToId && !isStudent
         ? `/home/${userId}?view=progress&student=${assignedToId}`
         : canCelebrateBack

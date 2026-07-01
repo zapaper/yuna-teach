@@ -318,6 +318,25 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
           <p className="text-[#43474f] font-medium text-base">Learning Progress Report</p>
         </div>
 
+        {/* Lumi tutor body — shown to kids landing here from the
+            diagnostic-review 'Go to Diagnostic' handoff (?onboarding=1)
+            or when the URL explicitly requests the Lumi view. Renders
+            above the chart so parents/kids see the greeting +
+            fluency table first. parentId falls back to "" for kid
+            sessions with no parent context — the readonly render still
+            works; assign-focus buttons will 404 without a parent id.
+            2026-07-02 — enables kids to see their own Lumi progress. */}
+        {(searchParams.get("onboarding") === "1" || searchParams.get("view") === "lumi") && (
+          <div className="mb-10">
+            <TutorBodyForStudent
+              studentId={studentId}
+              parentId={parentId}
+              subject={searchParams.get("subject") ?? "Math"}
+              currentChildName={data?.student?.name ?? undefined}
+            />
+          </div>
+        )}
+
         {subjects.length === 0 ? (
           <div className="text-center py-16 rounded-3xl bg-white border-2 border-dashed border-[#c3c6d1]">
             <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">analytics</span>
