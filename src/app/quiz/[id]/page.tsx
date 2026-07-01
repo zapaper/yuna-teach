@@ -3593,24 +3593,28 @@ const ResizableCanvas = forwardRef<
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
 
   // Adapt the visible canvas height to the drawable image's natural
-  // aspect ratio: image is drawn at the top of an 800×1800 pixel grid
-  // (scale = min(800/w, 1800/h, 1.5)), and that grid is rendered at a
-  // FIXED 900 CSS px tall via BlankCanvas (line ~2949, height prop =
-  // maxCanvasHeight). So the image's CSS height is pixelImgH / 2 —
-  // not pixelImgH × visibleHeight / 1800 like the previous formula
-  // assumed. That earlier math kept clamping to 300, which left a
-  // huge white band of canvas below most diagrams. Set visible to
-  // "image CSS height + 180-px writing buffer" instead.
+  // aspect ratio. BlankCanvas measures its parent's CSS width on
+  // mount and sets the internal pixel grid to 2× that width × 1800
+  // tall, so the image render scale is:
+  //   pixelScale = min(gridW / imgW, 1800 / imgH, 1.5)
+  // and the image's CSS height is (imgH × pixelScale) / 2 (grid → CSS
+  // is 2:1 in both axes).
+  //
+  // We use the wrapperRef's width — same DOM node BlankCanvas mounts
+  // into — so the two calculations agree.
+  //
   // Skipped when the student has a savedHeight (they manually
   // resized — don't fight them).
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!backgroundImage) return;
     if (savedHeight) return;
     const img = new Image();
     img.onload = () => {
-      const PIXEL_W = 800;
+      const cssW = wrapperRef.current?.offsetWidth || 400;
+      const gridW = Math.max(400, Math.round(cssW * 2));
       const PIXEL_H_INTERNAL = maxCanvasHeight * 2; // 1800 — matches BlankCanvas's CANVAS_H
-      const pixelScale = Math.min(PIXEL_W / img.width, PIXEL_H_INTERNAL / img.height, 1.5);
+      const pixelScale = Math.min(gridW / img.width, PIXEL_H_INTERNAL / img.height, 1.5);
       const cssImgH = (img.height * pixelScale) / 2; // grid → CSS is 2:1
       const WRITING_BUFFER_CSS = 180;
       const next = Math.max(300, Math.min(maxCanvasHeight, Math.round(cssImgH + WRITING_BUFFER_CSS)));
@@ -3634,7 +3638,7 @@ const ResizableCanvas = forwardRef<
   }
 
   return (
-    <div className="relative select-none" style={{ WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}>
+    <div ref={wrapperRef} className="relative select-none" style={{ WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}>
       <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative select-none" style={{ height: visibleHeight, WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", touchAction: "none" }}>
         <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
         <BlankCanvas
@@ -3683,6 +3687,12 @@ const BlankCanvas = forwardRef<
   const pendingSnapshot = useRef<ImageData | null>(null);
   const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ready, setReady] = useState(false);
+  // Internal canvas dims default to a 400-CSS-px-wide reference at 2×.
+  // On mount we replace `.w` with the actual parent CSS width × 2 so
+  // the drawing surface's aspect ratio matches the visible box —
+  // without that, a 700-CSS-px-wide parent stretched the internal
+  // 800 × (height*2) grid horizontally, so images and ink read as
+  // squashed vertically.
   const canvasDims = useRef({ w: 800, h: height * 2 });
 
   // Fixed canvas resolution — no dynamic resize to avoid zoom breaking buttons
@@ -3717,13 +3727,21 @@ const BlankCanvas = forwardRef<
     }
   }
 
-  // Fixed canvas resolution — avoids ResizeObserver clearing ink after zoom
-  const CANVAS_W = 800;
-  const CANVAS_H = height * 2;
-
+  // Internal canvas dims are 2× the parent's CSS width/height so the
+  // aspect ratio matches — otherwise the browser scales the fixed
+  // 800×(height*2) internal grid non-uniformly to fit the CSS box,
+  // and the diagram + ink read as squashed vertically on any parent
+  // wider than 400 CSS px (i.e. everywhere except phone portrait).
+  // Set ONCE at mount so we don't chase later parent resizes (per
+  // the 'no dynamic resize' invariant that keeps the toolbar from
+  // breaking on zoom).
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const parent = canvas.parentElement;
+    const cssW = parent?.offsetWidth || 800;
+    const CANVAS_W = Math.max(400, Math.round(cssW * 2));
+    const CANVAS_H = height * 2;
     canvasDims.current = { w: CANVAS_W, h: CANVAS_H };
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
