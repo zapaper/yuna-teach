@@ -1559,7 +1559,7 @@ function ExamReviewContent({ id }: { id: string }) {
             </div>
             <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Congratulations on finishing your first quiz!</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-6">
-              With each quiz, <strong className="font-bold text-[#001e40]">Lumi</strong> gets smarter in identifying weak areas and personalising the next practice. Click <strong className="font-bold text-[#001e40]">&ldquo;Go to diagnostic&rdquo;</strong> on the top left when you are done reviewing the mistakes here.
+              With each quiz, our platform gets smarter in identifying weak areas and personalising the next practice. Click <strong className="font-bold text-[#001e40]">&ldquo;Go to diagnostic&rdquo;</strong> on the top left when you are done reviewing the mistakes here.
             </p>
             <button
               onClick={() => setShowFirstQuizPopup(false)}

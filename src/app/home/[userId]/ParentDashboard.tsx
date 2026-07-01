@@ -4929,7 +4929,7 @@ export function OnboardingBanner({
         <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Congratulations on finishing your first quiz!</h3>
       </div>
       <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-        With each quiz, <strong>Lumi</strong> builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can <strong>personalise</strong> the next practice. The <strong>diagnosis below</strong> is preliminary and will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
+        With each quiz, our platform builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can <strong>personalise</strong> the next practice. The <strong>diagnosis below</strong> is preliminary and will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
       </p>
       <p className="text-sm text-[#1e293b] leading-relaxed mb-2">
         For now, I would recommend:
