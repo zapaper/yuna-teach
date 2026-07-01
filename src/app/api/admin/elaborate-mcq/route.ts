@@ -112,8 +112,11 @@ const MASTER_SCOPE: Prisma.ExamPaperWhereInput = {
       AND: [{ OR: LEVEL_P3_P6 }],
     },
     {
+      // English scope widened 2026-07-01 from P5-PSLE to P3-PSLE
+      // (isInTopicScope still restricts to Grammar MCQ, so this only
+      // unlocks P3/P4 Grammar MCQ — Vocab/VTC/Cloze stay out).
       subject: { contains: "english", mode: "insensitive" },
-      AND: [{ OR: LEVEL_P5_P6 }],
+      AND: [{ OR: LEVEL_P3_P6 }],
     },
   ],
 };

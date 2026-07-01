@@ -2631,15 +2631,15 @@ export default function ParentDashboard({
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
-    // Essay Coach (Chinese composition helper). Currently a closed
-    // beta — admin + a small hand-picked allowlist of parents. The
-    // allowlist matches on User.name (the login handle) so it works
-    // regardless of displayName changes.
-    ...((isAdminUser || ESSAY_COACH_BETA_PARENTS.has(user.name)) ? [{
+    // Essay Coach (English + Chinese composition helper). Opened to
+    // all parents 2026-07-01. Kept the ESSAY_COACH_BETA_PARENTS
+    // constant defined above for now (used elsewhere at line 3645+
+    // as a soft feature flag if we ever need to gate a sub-feature).
+    {
       icon: "edit_document",
       label: "Essay Coach",
       href: `/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`,
-    }] : []),
+    },
     // The "Revise work" modal scans the selected student's last 100
     // papers, surfaces per-subject mistakes, and compiles a review
     // or practice paper out of them. Sits after Set Papers in the
@@ -3642,15 +3642,13 @@ export default function ParentDashboard({
                   </span>
                   <span>Revise</span>
                 </button>
-                {(isAdminUser || ESSAY_COACH_BETA_PARENTS.has(user.name)) && (
-                  <Link
-                    href={`/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff] transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-base">edit_document</span>
-                    <span>Essay</span>
-                  </Link>
-                )}
+                <Link
+                  href={`/essay-coach/${userId}${selectedStudentId ? `?student=${selectedStudentId}` : ""}`}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold bg-[#eff4ff] text-[#003366] hover:bg-[#dce9ff] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">edit_document</span>
+                  <span>Essay</span>
+                </Link>
               </section>
 
               <MetricsGrid />
