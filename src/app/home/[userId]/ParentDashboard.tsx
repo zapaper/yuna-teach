@@ -4850,7 +4850,13 @@ type LumiAdminCandidate = { id: string; name: string; level?: number | null; has
 // topic in the CTA and (b) decide whether to say "all-strong" vs
 // "focused practice on X".
 type OnboardingContext = { subject: string; weakest: string | null; allStrong: boolean; wasMcqOnly: boolean };
-function OnboardingBanner({
+// Exported so the kid-side progress page (`/progress/[studentId]?
+// onboarding=1&fromPaper=X`) can reuse the same banner between the
+// Lumi greeting and the topic chart. Kid sessions pass parentId="" —
+// the banner's CTAs assume parent context, so on the kid side the
+// bullet-button links land on the same URLs but the parent CTAs
+// won't do anything meaningful. That's fine for a v1 kid Lumi view.
+export function OnboardingBanner({
   parentId, studentId, studentName, subject, fromPaperId,
 }: { parentId: string; studentId: string; studentName: string; subject: string; fromPaperId: string }) {
   const [ctx, setCtx] = useState<OnboardingContext | null>(null);

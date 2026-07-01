@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, forwardRef } from "react";
 import Link from "next/link";
 import { TutorBodyForStudent } from "../../tutor/[parentId]/page";
+import { OnboardingBanner } from "../../home/[userId]/ParentDashboard";
 
 export default function ProgressPage({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = use(params);
@@ -320,12 +321,13 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
 
         {/* Lumi tutor body — shown to kids landing here from the
             diagnostic-review 'Go to Diagnostic' handoff (?onboarding=1)
-            or when the URL explicitly requests the Lumi view. Renders
-            above the chart so parents/kids see the greeting +
-            fluency table first. parentId falls back to "" for kid
-            sessions with no parent context — the readonly render still
-            works; assign-focus buttons will 404 without a parent id.
-            2026-07-02 — enables kids to see their own Lumi progress. */}
+            or when the URL explicitly requests the Lumi view. When
+            ?onboarding=1 AND ?fromPaper=X are both present, the
+            preliminary-diagnosis OnboardingBanner (congrats + CTAs +
+            PDF download) sits between the Lumi greeting and the topic
+            chart via the postGreetingSlot prop — same layout as the
+            parent-side flow. Follow-up visits (no ?onboarding=1)
+            skip the banner and render the plain updated Lumi body. */}
         {(searchParams.get("onboarding") === "1" || searchParams.get("view") === "lumi") && (
           <div className="mb-10">
             <TutorBodyForStudent
@@ -333,6 +335,15 @@ function ProgressContent({ studentId, skipAdminRedirect }: { studentId: string; 
               parentId={parentId}
               subject={searchParams.get("subject") ?? "Math"}
               currentChildName={data?.student?.name ?? undefined}
+              postGreetingSlot={searchParams.get("onboarding") === "1" && searchParams.get("fromPaper") ? (
+                <OnboardingBanner
+                  parentId={parentId}
+                  studentId={studentId}
+                  studentName={data?.student?.name ?? ""}
+                  subject={searchParams.get("subject") ?? "Math"}
+                  fromPaperId={searchParams.get("fromPaper") as string}
+                />
+              ) : null}
             />
           </div>
         )}
