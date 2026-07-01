@@ -3,12 +3,6 @@
 // max height to 297 mm so what the parent sees on screen matches
 // what prints via Ctrl+P. Print CSS strips the surrounding page
 // chrome so the sheet fills the paper edge-to-edge.
-//
-// Iteration workflow: change the copy in each subject's page.tsx,
-// hit refresh, Ctrl+P to preview the PDF, repeat. When the copy is
-// locked, "Save as PDF" from print dialog and drop into public/
-// onboarding-assets/ so the older /onboarding-assets/*.pdf URLs work
-// as static files too. For now the Lumi banner links to the route.
 
 import type { ReactNode } from "react";
 
@@ -19,8 +13,6 @@ export function A4Sheet({ title, subtitle, children }: {
 }) {
   return (
     <>
-      {/* Print CSS: A4 paper, 12mm margins, hide browser chrome + the
-          surrounding page background so the sheet fills the paper. */}
       <style>{`
         @page { size: A4; margin: 12mm; }
         @media print {
@@ -33,7 +25,7 @@ export function A4Sheet({ title, subtitle, children }: {
       `}</style>
       <div className="a4-outer min-h-screen py-6 flex flex-col items-center gap-4">
         <div className="no-print text-xs text-slate-500 max-w-[210mm] w-full px-4">
-          Preview of A4 sheet. Press <strong>Ctrl+P</strong> (or Cmd+P on Mac) → <strong>Save as PDF</strong> to export. Content iterates directly in the source file.
+          Preview of A4 sheet. Press <strong>Ctrl+P</strong> (or Cmd+P on Mac) → <strong>Save as PDF</strong> to export.
         </div>
         <article
           className="a4-sheet bg-white text-[#0b1c30] shadow-lg"
@@ -67,40 +59,64 @@ export function A4Sheet({ title, subtitle, children }: {
   );
 }
 
-// Small helper: table with tight A4-friendly styles. Every subject
-// sheet uses the same row/column look so the family reads consistent.
-export function A4Table({ headers, rows }: {
-  headers: string[];
-  rows: Array<Array<ReactNode>>;
-}) {
-  return (
-    <table className="w-full border-collapse" style={{ fontSize: "9.5pt" }}>
-      <thead>
-        <tr className="bg-[#eff4ff] text-left">
-          {headers.map((h, i) => (
-            <th key={i} className="border border-slate-300 px-2 py-1.5 font-bold text-[#001e40] text-[9pt] uppercase tracking-wide">{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r, i) => (
-          <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-            {r.map((cell, j) => (
-              <td key={j} className="border border-slate-200 px-2 py-1.5 align-top">
-                {cell}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
 export function A4SectionTitle({ children }: { children: ReactNode }) {
   return (
     <h2 className="font-headline font-extrabold text-[#001e40] mt-4 mb-2" style={{ fontSize: "12pt" }}>
       {children}
     </h2>
+  );
+}
+
+// Reusable horizontal-bar chart. Same look as the reference Math
+// chart (cream bg, teal bars with gradient darkening for top items).
+export function BarChart({ items, unit = "marks", labelWidth = 170 }: {
+  items: Array<{ name: string; value: number; colour?: string }>;
+  unit?: string;
+  labelWidth?: number;
+}) {
+  const maxVal = Math.max(...items.map(i => i.value));
+  const axisMax = Math.ceil(maxVal / 5) * 5 || 5;        // round up to nearest 5 for a clean axis
+  const chartWidth = 560;
+  const barAreaLeft = labelWidth;
+  const barAreaRight = chartWidth - 70;
+  const rowH = 26;
+  const gap = 8;
+  const chartH = items.length * (rowH + gap) + 4;
+  // Default palette: darkest teal for #1, fading to lighter teal.
+  const palette = ["#0f5c66", "#3d848c", "#66a5ac", "#8fbfc4", "#b3d3d6", "#c9dedf", "#d8e6e7"];
+  return (
+    <div style={{ backgroundColor: "#f8f4ea", padding: "10px 12px", borderRadius: 8 }}>
+      <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        {items.map((t, i) => {
+          const y = i * (rowH + gap);
+          const w = (t.value / axisMax) * (barAreaRight - barAreaLeft);
+          const fill = t.colour ?? palette[Math.min(i, palette.length - 1)];
+          return (
+            <g key={t.name}>
+              <text
+                x={barAreaLeft - 8}
+                y={y + rowH / 2 + 4}
+                textAnchor="end"
+                fontSize="11"
+                fontWeight="700"
+                fill="#0b1c30"
+              >
+                {t.name}
+              </text>
+              <rect x={barAreaLeft} y={y} width={w} height={rowH} fill={fill} rx={2} />
+              <text
+                x={barAreaLeft + w + 6}
+                y={y + rowH / 2 + 4}
+                fontSize="11"
+                fontWeight="800"
+                fill="#0b1c30"
+              >
+                {t.value} {unit}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }

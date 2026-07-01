@@ -1,9 +1,9 @@
-import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
+import { A4Sheet, A4SectionTitle } from "../A4Sheet";
 
-// PSLE Math — Top Topics & Common Mistakes.
-// Top-5 marks from 2016-2025 10-year chart:
-// Geometry 17, Fractions 11, Area & Perimeter 11, Measurement 10,
-// Statistics 10 (= 59 out of 100 marks).
+// PSLE Math — Top Topics chart + bar-models cheat-sheet image.
+// Top-5 shares from 2016-2025 10-year chart. Chart drawn as SVG (no
+// PNG asset on disk for the Math top-5). Bar-models poster reused
+// from OneDrive Facebook Post asset.
 
 const TOP5 = [
   { rank: 1, name: "Geometry",         marks: 17, colour: "#0f5c66" },
@@ -14,33 +14,31 @@ const TOP5 = [
 ];
 
 export default function MathTopTopics() {
-  const maxMarks = 20;                                   // chart max for axis
-  const chartWidth = 520;
-  const barAreaLeft = 150;
-  const barAreaRight = chartWidth - 60;
-  const barLen = (m: number) => ((m / maxMarks) * (barAreaRight - barAreaLeft));
+  const axisMax = 20;
+  const chartWidth = 560;
+  const barAreaLeft = 160;
+  const barAreaRight = chartWidth - 70;
   const rowH = 30;
-  const gap = 8;
-  const chartH = TOP5.length * (rowH + gap) + 8;
+  const gap = 10;
+  const chartH = TOP5.length * (rowH + gap) + 4;
 
   return (
     <A4Sheet
-      title="PSLE Math — Top Topics & Common Mistakes"
-      subtitle="10-year average (2016-2025). The 5 topics below carry 59 of 100 marks on the paper."
+      title="PSLE Math — Top Topics"
+      subtitle="Top 5 topics by marks (per 100-mark paper). 10-year average, 2016-2025."
     >
-      <A4SectionTitle>Top 5 topics by marks (per 100-mark paper)</A4SectionTitle>
-      <div className="mb-2" style={{ backgroundColor: "#f8f4ea", padding: "10px 12px", borderRadius: 8 }}>
+      <div style={{ backgroundColor: "#f8f4ea", padding: "12px 14px", borderRadius: 8, marginTop: 8 }}>
         <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
           {TOP5.map((t, i) => {
             const y = i * (rowH + gap);
-            const w = barLen(t.marks);
+            const w = (t.marks / axisMax) * (barAreaRight - barAreaLeft);
             return (
               <g key={t.rank}>
                 <text
                   x={barAreaLeft - 8}
                   y={y + rowH / 2 + 4}
                   textAnchor="end"
-                  fontSize="11"
+                  fontSize="12"
                   fontWeight="700"
                   fill="#0b1c30"
                 >
@@ -50,7 +48,7 @@ export default function MathTopTopics() {
                 <text
                   x={barAreaLeft + w + 6}
                   y={y + rowH / 2 + 4}
-                  fontSize="11"
+                  fontSize="12"
                   fontWeight="800"
                   fill="#0b1c30"
                 >
@@ -61,33 +59,6 @@ export default function MathTopTopics() {
           })}
         </svg>
       </div>
-
-      <A4SectionTitle>Common mistakes on the top 5</A4SectionTitle>
-      <A4Table
-        headers={["Topic", "Common mistake"]}
-        rows={[
-          [
-            <><strong>Geometry</strong> — angles, triangles, circles</>,
-            <>Missing <em>angles on a straight line = 180&deg;</em>; forgetting the isosceles-triangle rule (two equal base angles).</>,
-          ],
-          [
-            <><strong>Fractions</strong> — of, remainder, equivalent</>,
-            <>Taking a fraction of the <strong>wrong whole</strong> (original vs remainder). Use a bar model with the remainder drawn separately.</>,
-          ],
-          [
-            <><strong>Area &amp; Perimeter</strong> — composite shapes, circles</>,
-            <>Missing an internal side of a composite figure; using <em>&pi;r&sup2;</em> for perimeter instead of <em>2&pi;r</em>.</>,
-          ],
-          [
-            <><strong>Measurement</strong> — length, mass, volume, time</>,
-            <>Slipping decimal places on kg ↔ g and m ↔ cm; adding hours + minutes without borrowing 60.</>,
-          ],
-          [
-            <><strong>Statistics</strong> — bar graph, pie chart, average</>,
-            <>Reading the wrong scale interval; forgetting to divide by the number of items when calculating the average.</>,
-          ],
-        ]}
-      />
 
       <A4SectionTitle>Bar model cheat sheet</A4SectionTitle>
       <div style={{ backgroundColor: "#ffffff", padding: 8, border: "1px solid #e2e8f0", borderRadius: 6 }}>
