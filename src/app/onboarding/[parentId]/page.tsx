@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Answers = {
   questionDifficulty?: "adaptive" | "standard" | "hard";
-  childLevel?: 3 | 4 | 5 | 6;
+  childLevel?: 4 | 5 | 6;
 };
 
 type Question = {
@@ -22,23 +22,15 @@ type Question = {
   options: { value: string | number; label: string; sub?: string }[];
 };
 
+// Question 1 (questionDifficulty) removed — parents now inherit the
+// "adaptive" default so we skip the friction of asking. Primary 3
+// dropped from the level options since we don't have P3 content.
 const QUESTIONS: Question[] = [
   {
-    key: "questionDifficulty",
-    preamble: "Hi there! Help us tailor MarkForYou to your child.",
-    prompt: "What kind of question difficulty best suits your child at this point?",
-    options: [
-      { value: "adaptive", label: "Start easy and progress as they gain mastery" },
-      { value: "standard", label: "Top school standards" },
-      { value: "hard", label: "Only the hard questions from the top schools" },
-    ],
-  },
-  {
     key: "childLevel",
-    preamble: "Thank you.",
-    prompt: "Now, please tell us about your child's level.",
+    preamble: "Hi there! Help us tailor MarkForYou to your child.",
+    prompt: "Please tell us your child's level.",
     options: [
-      { value: 3, label: "Primary 3" },
       { value: 4, label: "Primary 4" },
       { value: 5, label: "Primary 5" },
       { value: 6, label: "Primary 6" },
@@ -162,6 +154,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }, []);
 
   async function finish(allAnswers: Answers) {
+    // questionDifficulty defaults to "adaptive" — the friendly start-
+    // easy-and-progress preset. We used to ask, but the Q1 friction
+    // wasn't worth the signal.
+    const questionDifficulty = allAnswers.questionDifficulty ?? "adaptive";
     // Persist parent preferences. Best-effort — failures here shouldn't
     // block the flow.
     try {
@@ -171,7 +167,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         body: JSON.stringify({
           userId: parentId,
           settings: {
-            questionDifficulty: allAnswers.questionDifficulty,
+            questionDifficulty,
             defaultChildLevel: allAnswers.childLevel,
             onboardingCompleted: true,
           },
@@ -183,7 +179,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: studentId,
-            settings: { questionDifficulty: allAnswers.questionDifficulty },
+            settings: { questionDifficulty },
           }),
         });
       }
@@ -276,15 +272,15 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       // Persist questionDifficulty on the student so it applies to
       // every quiz/focused practice from here on. The student-side
       // toggle only knows "adaptive" | "standard"; map onboarding's
-      // "hard" → "standard" (full top-school range).
-      if (answers.questionDifficulty) {
-        const studentDifficulty = answers.questionDifficulty === "hard" ? "standard" : answers.questionDifficulty;
-        await fetch("/api/users", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: student.id, settings: { questionDifficulty: studentDifficulty } }),
-        }).catch(() => { /* non-fatal */ });
-      }
+      // "hard" → "standard" (full top-school range). Default to
+      // "adaptive" now that Q1 is retired.
+      const rawDifficulty = answers.questionDifficulty ?? "adaptive";
+      const studentDifficulty = rawDifficulty === "hard" ? "standard" : rawDifficulty;
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: student.id, settings: { questionDifficulty: studentDifficulty } }),
+      }).catch(() => { /* non-fatal */ });
       // Save the new student ID and transition to the quiz picker.
       // Quiz creation now happens in startQuizFromPicker so the parent
       // can opt out via "Go to parent homepage".
@@ -401,7 +397,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             </p>
             <div className="mb-6 px-4 py-3 rounded-2xl bg-[#fff8e1] border-2 border-[#ffb952]/40">
               <p className="text-sm text-[#001e40] leading-relaxed">
-                <span className="font-extrabold">Your child gets their own account, separate from yours.</span> They&apos;ll log in with the username and password you set below — please don&apos;t share your parent login with them.
+                <span className="font-extrabold">Your child gets their own account, separate from yours.</span> They&apos;ll log in with the username and password you set below — please don&apos;t share your parent login with them as you will have additional functions.
               </p>
             </div>
             <form onSubmit={submitStudent} className="flex flex-col gap-4" autoComplete="off">
@@ -487,10 +483,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">Subject</p>
                 <div className="flex flex-wrap gap-2">
-                  {(answers.childLevel === 3
-                    ? (["math", "science"] as const)
-                    : (["math", "science", "english"] as const)
-                  ).map(subj => {
+                  {(["math", "science", "english"] as const).map(subj => {
                     const isSelected = pickerSubject === subj;
                     return (
                       <button
