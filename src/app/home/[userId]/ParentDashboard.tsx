@@ -4915,7 +4915,7 @@ function OnboardingBanner({
     ? `/home/${parentId}?focused=1&studentId=${studentId}&subject=${subjSlug}&topic=${encodeURIComponent(ctx.weakest)}`
     : nextBroadHref;
   const otherSubjectsHref = `/home/${parentId}?openQuiz=1&student=${studentId}`;
-  const pdfHref = `/onboarding-assets/psle-${subjSlug}-top-topics.pdf`;
+  const pdfHref = `/onboarding-assets/psle-${subjSlug}-top-topics`;
   return (
     <div className="mt-4 mb-8 rounded-2xl border border-[#ddd6fe] bg-gradient-to-br from-[#f5f3ff] to-[#faf5ff] p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
@@ -4971,7 +4971,7 @@ function OnboardingBanner({
         </p>
       )}
       <p className="text-sm text-[#1e293b] leading-relaxed">
-        Lastly, here is your downloadable <strong>Top Topics and Mistakes</strong> for PSLE {ctx?.subject ?? subject} — <a href={pdfHref} className="inline-flex items-center gap-1 text-[#7c3aed] font-semibold underline"><span className="material-symbols-outlined text-[16px] leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>picture_as_pdf</span>download PDF →</a>
+        Lastly, here is your downloadable <strong>Top Topics and Mistakes</strong> for PSLE {ctx?.subject ?? subject} — <a href={pdfHref} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-[#7c3aed] font-semibold underline"><span className="material-symbols-outlined text-[16px] leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>picture_as_pdf</span>download PDF →</a>
       </p>
     </div>
   );
