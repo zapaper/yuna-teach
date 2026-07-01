@@ -1616,8 +1616,15 @@ export async function POST(request: NextRequest) {
     const extraMarker = selectedSectionKeys.length > 1 ? "+" : "";
 
     // Focused English: title by the selected section, e.g. "P5 Focus: Grammar Cloze"
+    // Onboarding-diagnostic (firstQuiz=true) gets the friendlier
+    // 'English Diagnostic for {child}' so the parent dashboard reads
+    // as a diagnostic, not a plain daily quiz. Mirrors the
+    // math/science title branch at ~line 2040.
     let engTitle: string;
-    if (isFocusedEnglish && (englishSections?.length ?? 0) === 1) {
+    const englishChildFirst = (student?.displayName ?? student?.name ?? "").split(/\s+/)[0];
+    if (firstQuiz) {
+      engTitle = `English Diagnostic${englishChildFirst ? ` for ${englishChildFirst}` : ""}`;
+    } else if (isFocusedEnglish && (englishSections?.length ?? 0) === 1) {
       const secKey = englishSections![0];
       const secLabel = sectionLabels[secKey] ?? secKey;
       const kind = isRevision ? "Revision" : "Focus";
