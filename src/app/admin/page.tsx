@@ -225,6 +225,13 @@ function AdminContent() {
       color: "bg-rose-50 text-rose-600",
     },
     {
+      icon: "record_voice_over",
+      label: "Oral Coach (English)",
+      description: "Live AI oral practice for PSLE English Paper 4 — Reading Aloud + Stimulus-based Conversation. Uses the 10-year (2016–2025) corpus of past-year reading passages and conversation stimuli, applies the SEAB rubric (Reading Aloud 20 marks: pronunciation, fluency, expressiveness; Stimulus Conversation 30 marks: personal response, engagement, language use), and returns a per-component verdict at the end.",
+      href: `/admin/english-oral-coach?userId=${userId}`,
+      color: "bg-indigo-50 text-indigo-600",
+    },
+    {
       icon: "psychology",
       label: "Lumi Quiz (David)",
       description: "Generate a personalised Lumi-style Science quiz for David Lim using cross-cutting skill tags (evidence-then-conclusion, graph-trend-describe, etc.). Internal test only — not exposed to parents yet.",
