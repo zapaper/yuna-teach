@@ -173,20 +173,47 @@ async function waitForMarkComplete(paperId: string): Promise<void> {
   throw new Error(`marker did not finish within ${timeoutMs / 1000}s`);
 }
 
-async function resolveStudents(): Promise<{ p56?: string; p4?: string; parentId: string }> {
-  const parentId = cookie.split(".")[0];  // yuna_session format: `${userId}.${sig}`
-  const envP56 = process.env.UI_EVAL_P56_STUDENT_ID;
-  const envP4 = process.env.UI_EVAL_P4_STUDENT_ID;
-  if (envP56 || envP4) return { p56: envP56, p4: envP4, parentId };
-  // Ask the app for the caller's linked students (same route the smoke test
-  // uses). Schema-independent — we don't need to know the join-table name.
-  const meRes = await fetch(`${base}/api/users/me`, { headers: apiHeaders });
-  if (!meRes.ok) return { parentId };
-  const me = await meRes.json() as { user?: { linkedStudents?: Array<{ id: string; level?: number | null }> } };
-  const kids = me.user?.linkedStudents ?? [];
-  const p56 = kids.find(k => k.level === 5 || k.level === 6)?.id;
-  const p4 = kids.find(k => k.level === 4)?.id;
-  return { p56, p4, parentId };
+// ── Fake user creation ─────────────────────────────────────────────────────
+// T2-T4 spin up a throwaway parent + student per run so the eval is
+// completely isolated from real accounts. Names are prefixed "UI-Eval-"
+// and emails prefixed "ui-eval-" — makes them trivially greppable if a
+// cleanup pass ever misses something. The parent's admin session cookie
+// isn't used to run the flows (the fakes have no session); we use the
+// admin session only for /api/daily-quiz / /api/exam calls, which read
+// userId from the request body / query and honour it because the caller
+// is admin.
+type FakeAccount = { parentId: string; studentId: string; parentEmail: string; studentName: string; level: number };
+
+async function createFakeAccount(level: number): Promise<FakeAccount> {
+  const prisma = new PrismaClient();
+  try {
+    const stamp = Date.now();
+    const rand = Math.random().toString(36).slice(2, 8);
+    const parentEmail = `ui-eval-parent-${stamp}-${rand}@markforyou-eval.invalid`;
+    const parentName  = `UI-Eval-Parent-${stamp}-${rand}`;
+    const studentName = `UI-Eval-Student-P${level}-${stamp}-${rand}`;
+    const parent = await prisma.user.create({
+      data: {
+        name: parentName,
+        email: parentEmail,
+        role: "PARENT",
+        emailVerified: true,
+      },
+      select: { id: true },
+    });
+    const student = await prisma.user.create({
+      data: {
+        name: studentName,
+        role: "STUDENT",
+        level,
+      },
+      select: { id: true },
+    });
+    await prisma.parentStudent.create({ data: { parentId: parent.id, studentId: student.id } });
+    return { parentId: parent.id, studentId: student.id, parentEmail, studentName, level };
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 // ── Browser setup ──────────────────────────────────────────────────────────
@@ -384,64 +411,118 @@ async function t4DiagnosticLumi(browser: Browser, paperId: string, parentId: str
   await ctx.close();
 }
 
+// ── Interactive prompt (stdin) ─────────────────────────────────────────────
+function promptYesNo(question: string): Promise<boolean> {
+  return new Promise(resolve => {
+    process.stdout.write(question);
+    // Lazy-init readline so non-interactive runs (e.g. CI with --auto-delete
+    // or --no-delete) don't touch stdin at all.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const readline = require("readline") as typeof import("readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question("", (ans: string) => {
+      rl.close();
+      resolve(/^\s*y(es)?\s*$/i.test(ans.trim()));
+    });
+  });
+}
+
+// ── Cleanup ────────────────────────────────────────────────────────────────
+// Deletes the fake accounts + any exam papers they were assigned. Uses the
+// cuid safelist we captured during the run — never a name/email glob — so a
+// bug in the filter can't touch a real account. Guarded by an interactive
+// confirmation unless --auto-delete or --no-delete is passed. Papers cascade
+// on ParentStudent / ExamPaper (owner) but we explicitly delete papers first
+// to avoid orphan-question leaks on old schemas.
+async function deleteFakeAccounts(fakes: FakeAccount[], paperIds: string[]): Promise<void> {
+  const prisma = new PrismaClient();
+  try {
+    if (paperIds.length > 0) {
+      const del = await prisma.examPaper.deleteMany({ where: { id: { in: paperIds } } });
+      console.log(`  ✓ deleted ${del.count} exam paper(s)`);
+    }
+    const userIds = fakes.flatMap(f => [f.parentId, f.studentId]);
+    if (userIds.length > 0) {
+      // Belt-and-braces: only delete users whose name starts with UI-Eval- —
+      // a filter mismatch that touched a real cuid should still no-op because
+      // the name won't match. If it does no-op we surface it clearly.
+      const del = await prisma.user.deleteMany({
+        where: { id: { in: userIds }, name: { startsWith: "UI-Eval-" } },
+      });
+      console.log(`  ✓ deleted ${del.count} user(s) (parent+student)`);
+      if (del.count !== userIds.length) {
+        console.warn(`  ! wanted to delete ${userIds.length} users but only ${del.count} matched the "UI-Eval-" name guard`);
+      }
+    }
+  } finally { await prisma.$disconnect(); }
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main() {
   console.log(`UI eval → ${base}`);
   console.log(`Cookie: ${cookie.slice(0, 12)}…  headed=${headed}  cleanup=${cleanup}`);
 
-  const { p56, p4, parentId } = await resolveStudents();
-  console.log(`\nStudents resolved:`);
-  console.log(`  P5/P6: ${p56 ?? "(none linked)"}`);
-  console.log(`  P4:    ${p4 ?? "(none linked)"}`);
-  console.log(`  Parent id: ${parentId}`);
+  const adminParentId = cookie.split(".")[0];
 
   const browser = await chromium.launch({ headless: !headed });
   const createdPapers: string[] = [];
+  const fakes: FakeAccount[] = [];
 
   try {
     if (runT1) await t1Signup(browser);
 
-    if (runT2 && p56) {
-      const id = await t2QuizComposition(browser, p56, "P56", "math", "mcq");
-      if (id) createdPapers.push(id);
-      if (runT3 && id) {
-        await t3Review(browser, id, parentId);
-        if (runT4) await t4DiagnosticLumi(browser, id, parentId, p56, "P56", "math");
+    if (runT2) {
+      // Fresh P5 fake account for T2/T3/T4 (P5-P6 code path).
+      const p56 = await step("Create fake P5 parent+student", async () => createFakeAccount(5));
+      if (p56) {
+        fakes.push(p56);
+        const id = await t2QuizComposition(browser, p56.studentId, "P56", "math", "mcq");
+        if (id) createdPapers.push(id);
+        if (runT3 && id) {
+          await t3Review(browser, id, p56.parentId);
+          if (runT4) await t4DiagnosticLumi(browser, id, p56.parentId, p56.studentId, "P56", "math");
+        }
       }
-    } else if (runT2) {
-      console.log("\n[T2/T3/T4 P56] skipped — no P5/P6 student linked. Set UI_EVAL_P56_STUDENT_ID.");
-    }
 
-    if (runT2 && p4) {
-      const id = await t2QuizComposition(browser, p4, "P4", "math", "mcq");
-      if (id) createdPapers.push(id);
-      if (runT3 && id) {
-        await t3Review(browser, id, parentId);
-        if (runT4) await t4DiagnosticLumi(browser, id, parentId, p4, "P4", "math");
+      // Fresh P4 fake account for the P4-specific stratifier path.
+      const p4 = await step("Create fake P4 parent+student", async () => createFakeAccount(4));
+      if (p4) {
+        fakes.push(p4);
+        const id = await t2QuizComposition(browser, p4.studentId, "P4", "math", "mcq");
+        if (id) createdPapers.push(id);
+        if (runT3 && id) {
+          await t3Review(browser, id, p4.parentId);
+          if (runT4) await t4DiagnosticLumi(browser, id, p4.parentId, p4.studentId, "P4", "math");
+        }
       }
-    } else if (runT2 && !p4) {
-      console.log("\n[T2/T3/T4 P4] skipped — no P4 student linked. Set UI_EVAL_P4_STUDENT_ID.");
     }
   } finally {
     await browser.close();
   }
 
-  if (cleanup && createdPapers.length > 0) {
-    console.log(`\nCleanup: deleting ${createdPapers.length} test paper(s)…`);
-    const prisma = new PrismaClient();
-    try {
-      for (const id of createdPapers) {
-        try {
-          await prisma.examPaper.delete({ where: { id } });
-          console.log(`  ✓ deleted ${id}`);
-        } catch (err) {
-          console.warn(`  ✗ ${id}: ${err instanceof Error ? err.message : err}`);
-        }
-      }
-    } finally { await prisma.$disconnect(); }
-  } else if (createdPapers.length > 0) {
-    console.log(`\nCreated papers (pass --cleanup to delete):`);
-    for (const id of createdPapers) console.log(`  ${id}`);
+  // ── Cleanup: interactive by default, --cleanup or --no-cleanup to force ──
+  if (fakes.length > 0 || createdPapers.length > 0) {
+    console.log(`\nTest artifacts created (safelisted for delete):`);
+    for (const f of fakes) {
+      console.log(`  parent  ${f.parentId}  (P${f.level} pair) → ${f.parentEmail}`);
+      console.log(`  student ${f.studentId}  ${f.studentName}`);
+    }
+    for (const id of createdPapers) console.log(`  paper   ${id}`);
+
+    const noCleanup = args.has("--no-cleanup");
+    let doDelete: boolean;
+    if (noCleanup) {
+      doDelete = false;
+    } else if (cleanup) {
+      doDelete = true;
+    } else {
+      doDelete = await promptYesNo(`\nDelete the ${fakes.length * 2} fake user(s) and ${createdPapers.length} paper(s) listed above? [y/N] `);
+    }
+    if (doDelete) {
+      await deleteFakeAccounts(fakes, createdPapers);
+    } else {
+      console.log(`(kept — use "npx tsx scripts/run-ui-eval.ts --cleanup" next time to auto-delete, or delete manually now.)`);
+    }
   }
 
   const failed = steps.filter(s => !s.ok);
