@@ -5036,15 +5036,6 @@ function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { s
           tab-style buttons so the choice reads as a primary action,
           not a tucked-away select. */}
       <div className="pt-8 lg:pt-10 mb-6">
-        {onboardingCtx && (
-          <OnboardingBanner
-            parentId={parentId}
-            studentId={effectiveStudentId}
-            studentName={effectiveStudentName}
-            subject={subject}
-            fromPaperId={onboardingCtx.fromPaper}
-          />
-        )}
         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Progress · Lumi</p>
         <h2 className="text-2xl font-headline font-extrabold text-[#001e40] mb-4">
           {firstName ? `${firstName}'s ${subject}` : subject}
@@ -5101,6 +5092,15 @@ function LumiViewBody({ studentId, parentId, studentName, isAdmin = false }: { s
         </div>
       </div>
       <TutorBodyForStudent studentId={effectiveStudentId} parentId={parentId} subject={subject} currentChildName={effectiveStudentName} />
+      {onboardingCtx && (
+        <OnboardingBanner
+          parentId={parentId}
+          studentId={effectiveStudentId}
+          studentName={effectiveStudentName}
+          subject={subject}
+          fromPaperId={onboardingCtx.fromPaper}
+        />
+      )}
     </div>
   );
 }
