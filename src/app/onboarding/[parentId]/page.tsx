@@ -530,7 +530,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Great!</p>
             <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Let&apos;s get started.</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-5">
-              Let&apos;s start with a quick (~20 mins) diagnosis of your child. Pick a subject, and whether you would like <strong>MCQ only</strong> or <strong>MCQ + OEQ</strong> (stylus recommended).
+              Let&apos;s start with a quick (~20 mins) diagnosis of your child. Pick a subject, and whether you would like <strong>MCQ only</strong> or <strong>MCQ + Open-Ended Questions (OEQ)</strong> (stylus recommended).
             </p>
             <div className="space-y-4 mb-5">
               <div>
