@@ -962,11 +962,24 @@ function ExamReviewContent({ id }: { id: string }) {
   // homepage) which read as confusing. /api/student-progress
   // (requireAccessToStudent) allows the student, their linked
   // parent, OR an admin — so both session types work.
+  //
+  // Canonicalise the subject to English / Math / Science before we
+  // stuff it into ?subject= — the paper stores 'English Language' /
+  // 'Mathematics', but the Lumi surface's English-fluency-table
+  // check (tutor/[parentId]/page.tsx) is `subject === "English"`
+  // and silently no-ops on the long-form name.
   const diagnosticStudentId = assignedToId ?? userId;
+  const canonicalSubject = (() => {
+    const s = (paperSubject ?? "").toLowerCase();
+    if (s.includes("english") || s.includes("eng")) return "English";
+    if (s.includes("science") || s.includes("sci")) return "Science";
+    if (s.includes("math")) return "Math";
+    return null;
+  })();
   const backPath = !userId
     ? "/login"
     : isOnboardingDiagnostic
-      ? `/progress/${diagnosticStudentId}?onboarding=1&fromPaper=${id}${paperSubject ? `&subject=${encodeURIComponent(paperSubject)}` : ""}${diagnosticParentId ? `&parentId=${diagnosticParentId}` : ""}`
+      ? `/progress/${diagnosticStudentId}?onboarding=1&fromPaper=${id}${canonicalSubject ? `&subject=${canonicalSubject}` : ""}${diagnosticParentId ? `&parentId=${diagnosticParentId}` : ""}`
       : assignedToId && !isStudent
         ? `/home/${userId}?view=progress&student=${assignedToId}`
         : canCelebrateBack

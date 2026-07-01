@@ -533,8 +533,9 @@ function IneligibleView({
           ABOVE the Topic Accuracy chart on English — parents care
           about the rule-family breakdown more than the flat Grammar-MCQ
           vs Synthesis section split. GrammarRadar no-ops on non-English
-          so the guard here is belt-and-braces. */}
-      {subject === "English" && (
+          so the guard here is belt-and-braces. Use toLowerCase includes
+          so the check accepts 'English' AND 'English Language'. */}
+      {subject.toLowerCase().includes("english") && (
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
           <GrammarRadar studentId={studentId} subject={subject} childFirst={childFirst ?? "your child"} />
         </section>
@@ -2166,7 +2167,7 @@ function OverviewPanel({ data, parentId, studentId, onSelectMistake, onSelectCon
           for English parents, so we render it above the flat topic
           bar chart. GrammarRadar no-ops on non-English + hides itself
           until data loads, so a plain white card here is safe. */}
-      {data.subject === "English" && (
+      {data.subject.toLowerCase().includes("english") && (
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-6">
           <GrammarRadar studentId={studentId} subject={data.subject} childFirst={data.childFirst} />
         </section>
@@ -2761,16 +2762,21 @@ function GrammarRadar({ studentId, subject, childFirst }: { studentId: string; s
   // Open to every student on English — the fluency-fetch endpoint
   // handles the empty-data case gracefully (returns zeroed buckets)
   // and the render below hides itself when `data` is still null.
+  // Accept any English variant — 'English', 'English Language', or
+  // whatever the paper subject happened to be. The strict === "English"
+  // check was silently dropping the fluency table when the review-page
+  // handoff URL carried subject=English%20Language.
+  const isEnglish = subject.toLowerCase().includes("english");
   useEffect(() => {
-    if (subject !== "English") return;
+    if (!isEnglish) return;
     let cancelled = false;
     fetch(`/api/tutor/${studentId}/grammar-fluency`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (!cancelled && d) setData(d); })
       .catch(() => { /* silent */ });
     return () => { cancelled = true; };
-  }, [studentId, subject]);
-  if (subject !== "English" || !data) return null;
+  }, [studentId, isEnglish]);
+  if (!isEnglish || !data) return null;
 
   const helpText = view === "radar"
     ? `${childFirst}'s accuracy on each rule family. Green zone ≥ 75%, yellow 50–75%, red < 50%.`
