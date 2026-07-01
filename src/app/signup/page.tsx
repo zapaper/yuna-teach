@@ -261,18 +261,24 @@ function SignupFlow() {
         body: JSON.stringify({ userId: studentId, settings: { questionDifficulty: diagnosticDifficulty } }),
       }).catch(() => { /* non-fatal — quiz still launches on standard default */ });
 
+      // firstQuiz routes the daily-quiz endpoint into the diagnostic
+      // path agreed on 2026-07-02 morning:
+      //   Math / Science: 3 MCQ × 5 top semantic-topic buckets = 15
+      //   English P5/P6:  14 Grammar MCQ (2 × 7 rules)
+      //                   + 6 Synthesis OEQ (2 × 3 tricks)
+      //   English P4:     14 Grammar MCQ only.
       const body: Record<string, unknown> = {
         userId: parentId,
         studentId,
         quizType: diagnosticType,
         subject,
+        firstQuiz: true,
       };
       if (subject === "english") {
-        const sections = ["grammar-mcq", "vocab-mcq"];
-        if (diagnosticType === "mcq-oeq") {
-          sections.push("editing", "comprehension-cloze");
-        }
-        body.englishSections = sections;
+        body.englishSections = studentLevel <= 4
+          ? ["grammar-mcq"]
+          : ["grammar-mcq", "synthesis"];
+        body.quizType = "mcq-oeq";
       }
 
       const res = await fetch("/api/daily-quiz", {

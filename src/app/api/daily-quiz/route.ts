@@ -705,6 +705,11 @@ export async function POST(request: NextRequest) {
     answer: true,
     marksAvailable: true,
     syllabusTopic: true,
+    // subTopic is the fine-grained grammar-rule / synthesis-trick
+    // classification used by the English diagnostic stratifier
+    // (pickStratifiedBySubTopic). Cheap to include — one short
+    // string per row.
+    subTopic: true,
     pageIndex: true,
     transcribedStem: true,
     // transcribedSubparts INTENTIONALLY OMITTED — the `_passage`
@@ -1056,8 +1061,53 @@ export async function POST(request: NextRequest) {
       const vocabAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("vocab") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
       console.warn(`[English Quiz] empty pool — grammar candidates=${grammarAll.length} (MCQ=${grammarAll.filter(q => isMcq(q.answer)).length}), vocab candidates=${vocabAll.length} (MCQ=${vocabAll.filter(q => isMcq(q.answer)).length})`);
     }
+    // English diagnostic (firstQuiz=true) stratifies across the seven
+    // grammar sub-topics — 2 per rule × 7 = 14 questions — instead of
+    // the flat 5-question daily-quiz draw. Matches the diagnostic
+    // spec agreed on 2026-07-02.
+    const GRAMMAR_SUBTOPIC_IDS = [
+      "connectors-tenses",
+      "verb-forms",
+      "idiomatic-prepositions",
+      "tag-questions",
+      "countable/uncountable",
+      "subject-verb-agreement",
+      "pronouns",
+    ];
+    function pickStratifiedBySubTopic(pool: Q[], subTopics: string[], perTopic: number, total: number): Q[] {
+      const byTopic = new Map<string, Q[]>();
+      for (const st of subTopics) byTopic.set(st, []);
+      for (const q of pool) {
+        const st = (q.subTopic ?? "").trim();
+        if (!st) continue;
+        const key = subTopics.find(s => s.toLowerCase() === st.toLowerCase());
+        if (key) byTopic.get(key)!.push(q);
+      }
+      const picked: Q[] = [];
+      const seen = new Set<string>();
+      for (const st of subTopics) {
+        const bucket = byTopic.get(st) ?? [];
+        for (const q of bucket.slice(0, perTopic)) {
+          if (!seen.has(q.id) && picked.length < total) { picked.push(q); seen.add(q.id); }
+        }
+      }
+      // Backfill from any grammar pool question if a bucket was short.
+      if (picked.length < total) {
+        for (const q of pool) {
+          if (picked.length >= total) break;
+          if (!seen.has(q.id)) { picked.push(q); seen.add(q.id); }
+        }
+      }
+      console.log(`[daily-quiz] English stratified grammar — pool=${pool.length}, per-rule counts: ${subTopics.map(st => `${st}=${byTopic.get(st)?.length ?? 0}`).join(", ")}, picked=${picked.length}`);
+      return picked.slice(0, total);
+    }
+    const useFirstQuizGrammar = firstQuiz && selectedSections.has("grammar-mcq");
     const mcqTake = isFocusedEnglish ? 10 : 5;
-    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, mcqTake) : [];
+    const selectedGrammar = selectedSections.has("grammar-mcq")
+      ? (useFirstQuizGrammar
+          ? pickStratifiedBySubTopic(grammarMcqPool, GRAMMAR_SUBTOPIC_IDS, 2, 14)
+          : grammarMcqPool.slice(0, mcqTake))
+      : [];
     const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, mcqTake) : [];
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
@@ -1132,6 +1182,18 @@ export async function POST(request: NextRequest) {
             select: questionSelectLight,
           });
           synthAll = p6Synth;
+        }
+        // firstQuiz English diagnostic: 2 per trick × 3 tricks
+        // (reported-speech, correlative-preference, noun-phrase) = 6.
+        // Uses subTopic to bucket; falls back to broader synth pool
+        // if a bucket is thin. Matches the diagnostic spec agreed
+        // on 2026-07-02 (see /onboarding-assets/psle-english-top-topics).
+        if (firstQuiz) {
+          const SYNTHESIS_TRICKS = ["reported-speech", "correlative-preference", "noun-phrase"];
+          const picked = pickStratifiedBySubTopic(synthAll, SYNTHESIS_TRICKS, 2, 6);
+          console.log(`[daily-quiz] firstQuiz synthesis — picked ${picked.length} across ${SYNTHESIS_TRICKS.join("/")}`);
+          pushSectionGroup(section, picked, 1, 1);
+          continue;
         }
         const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
         const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));

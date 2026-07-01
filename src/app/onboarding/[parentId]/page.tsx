@@ -208,17 +208,29 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   // the tab straight to the child) and "Assign and Email Link"
   // (parent stays; child gets an emailed access link).
   function buildQuizBody(sid: string) {
+    // firstQuiz flag routes the daily-quiz endpoint into the diagnostic
+    // path we agreed on this morning:
+    //   Math:    3 MCQ × 5 top topics (semantic buckets) = 15
+    //   Science: 3 MCQ × 5 top topics (semantic buckets) = 15
+    //   English (P5/P6): 14 Grammar MCQ (2 × 7 rules) + 6 Synthesis OEQ (2 × 3 tricks)
+    //   English (P4):    14 Grammar MCQ only (synthesis pool too thin at P4)
+    // MCQ vs MCQ+OEQ toggle is greyed out for English — the picker
+    // sends both sections regardless.
     const quizBody: Record<string, unknown> = {
       userId: parentId,
       studentId: sid,
       quizType: pickerType,
       subject: pickerSubject!,
-      firstQuiz: true,  // cap MCQ count at 15 (instead of 20) for the onboarding quiz
+      firstQuiz: true,
     };
     if (pickerSubject === "english") {
-      const sections = ["grammar-mcq", "vocab-mcq"];
-      if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
-      quizBody.englishSections = sections;
+      const level = answers.childLevel ?? 5;
+      quizBody.englishSections = level <= 4
+        ? ["grammar-mcq"]
+        : ["grammar-mcq", "synthesis"];
+      // English diagnostic always uses the grammar+synthesis type
+      // regardless of the picker toggle (which is disabled for English).
+      quizBody.quizType = "mcq-oeq";
     }
     return quizBody;
   }
