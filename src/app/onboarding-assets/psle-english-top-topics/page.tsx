@@ -11,7 +11,7 @@ import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
 export default function EnglishTopTopics() {
   return (
     <A4Sheet
-      title="Top Topic, Tips and Common Mistakes for PSLE English"
+      title="PSLE English — Top Topics & Common Mistakes"
       subtitle="One-page cheat sheet — the grammar rules and synthesis tricks that decide the paper."
     >
       <A4SectionTitle>Grammar (~14 marks of Paper 2)</A4SectionTitle>

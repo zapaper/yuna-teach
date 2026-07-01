@@ -8,8 +8,8 @@ import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
 export default function ScienceTopTopics() {
   return (
     <A4Sheet
-      title="Top Topics, Tips and Common Mistakes for PSLE Science"
-      subtitle="One-page cheat sheet — the 5 topics that carry HALF the PSLE mark load (10-year average, 2016-2025)."
+      title="PSLE Science — Top Topics & Common Mistakes"
+      subtitle="10-year average (2016-2025). The 5 topics below carry HALF the PSLE mark load."
     >
       <A4SectionTitle>Top 5 PSLE Science topics — 10-year average (2016-2025)</A4SectionTitle>
       <A4Table

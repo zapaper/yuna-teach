@@ -1,98 +1,103 @@
 import { A4Sheet, A4Table, A4SectionTitle } from "../A4Sheet";
 
-// PSLE Math — Top Topics, Tips and Common Mistakes.
-// Top-5 shares from 10-year 2016-2025 analysis (source: internal
-// chart). Top 5 = 59 marks out of 100 = 59% of the paper.
+// PSLE Math — Top Topics & Common Mistakes.
+// Top-5 marks from 2016-2025 10-year chart:
+// Geometry 17, Fractions 11, Area & Perimeter 11, Measurement 10,
+// Statistics 10 (= 59 out of 100 marks).
+
+const TOP5 = [
+  { rank: 1, name: "Geometry",         marks: 17, colour: "#0f5c66" },
+  { rank: 2, name: "Fractions",        marks: 11, colour: "#4a9aa4" },
+  { rank: 3, name: "Area & Perimeter", marks: 11, colour: "#87c2c8" },
+  { rank: 4, name: "Measurement",      marks: 10, colour: "#a9d1d5" },
+  { rank: 5, name: "Statistics",       marks: 10, colour: "#a9d1d5" },
+];
 
 export default function MathTopTopics() {
+  const maxMarks = 20;                                   // chart max for axis
+  const chartWidth = 520;
+  const barAreaLeft = 150;
+  const barAreaRight = chartWidth - 60;
+  const barLen = (m: number) => ((m / maxMarks) * (barAreaRight - barAreaLeft));
+  const rowH = 30;
+  const gap = 8;
+  const chartH = TOP5.length * (rowH + gap) + 8;
+
   return (
     <A4Sheet
-      title="Top Topics, Tips and Common Mistakes for PSLE Math"
-      subtitle="One-page cheat sheet — the 5 topics that carry 59 out of 100 marks (10-year average, 2016-2025)."
+      title="PSLE Math — Top Topics & Common Mistakes"
+      subtitle="10-year average (2016-2025). The 5 topics below carry 59 of 100 marks on the paper."
     >
-      <A4SectionTitle>Top 5 PSLE Math topics — 10-year average (2016-2025)</A4SectionTitle>
+      <A4SectionTitle>Top 5 topics by marks (per 100-mark paper)</A4SectionTitle>
+      <div className="mb-2" style={{ backgroundColor: "#f8f4ea", padding: "10px 12px", borderRadius: 8 }}>
+        <svg viewBox={`0 0 ${chartWidth} ${chartH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+          {TOP5.map((t, i) => {
+            const y = i * (rowH + gap);
+            const w = barLen(t.marks);
+            return (
+              <g key={t.rank}>
+                <text
+                  x={barAreaLeft - 8}
+                  y={y + rowH / 2 + 4}
+                  textAnchor="end"
+                  fontSize="11"
+                  fontWeight="700"
+                  fill="#0b1c30"
+                >
+                  {t.name}
+                </text>
+                <rect x={barAreaLeft} y={y} width={w} height={rowH} fill={t.colour} rx={2} />
+                <text
+                  x={barAreaLeft + w + 6}
+                  y={y + rowH / 2 + 4}
+                  fontSize="11"
+                  fontWeight="800"
+                  fill="#0b1c30"
+                >
+                  {t.marks} marks
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <A4SectionTitle>Common mistakes on the top 5</A4SectionTitle>
       <A4Table
-        headers={["#", "Topic", "Marks / paper", "Example question", "Model / heuristic", "Common mistake"]}
+        headers={["Topic", "Common mistake"]}
         rows={[
           [
-            "1",
-            <><strong>Geometry</strong> — angles, triangles, circles, symmetry, nets</>,
-            "17",
-            <><em>&ldquo;Find the value of angle x in the figure below.&rdquo;</em></>,
-            <>Mark every known angle on the diagram; extend lines to spot angles-on-a-straight-line and vertically-opposite pairs.</>,
-            <>Forgetting <em>angles on a straight line = 180&deg;</em>; missing the isosceles-triangle rule (two equal base angles).</>,
+            <><strong>Geometry</strong> — angles, triangles, circles</>,
+            <>Missing <em>angles on a straight line = 180&deg;</em>; forgetting the isosceles-triangle rule (two equal base angles).</>,
           ],
           [
-            "2",
             <><strong>Fractions</strong> — of, remainder, equivalent</>,
-            "11",
-            <><em>&ldquo;2/5 of the money was spent; 1/3 of the remainder was saved. Find the amount left.&rdquo;</em></>,
-            <>Bar model with equal units; label the <em>total</em> and the <em>part</em>.</>,
-            <>Taking a fraction of the <strong>wrong whole</strong> (original vs remainder).</>,
+            <>Taking a fraction of the <strong>wrong whole</strong> (original vs remainder). Use a bar model with the remainder drawn separately.</>,
           ],
           [
-            "3",
-            <><strong>Area &amp; Perimeter</strong> — composite shapes, circles, semicircles</>,
-            "11",
-            <><em>&ldquo;Find the perimeter of the shaded region (quarter-circle inside a square).&rdquo;</em></>,
-            <>Cut composite figures into rectangles + quarter-circles; label each region separately.</>,
-            <>Missing an internal side; using <em>&pi;r&sup2;</em> for perimeter instead of <em>2&pi;r</em>.</>,
+            <><strong>Area &amp; Perimeter</strong> — composite shapes, circles</>,
+            <>Missing an internal side of a composite figure; using <em>&pi;r&sup2;</em> for perimeter instead of <em>2&pi;r</em>.</>,
           ],
           [
-            "4",
-            <><strong>Measurement</strong> — length, mass, volume, time, conversions</>,
-            "10",
-            <><em>&ldquo;Convert 2.4 kg + 350 g to grams. Give your answer in kg.&rdquo;</em></>,
-            <>Convert ALL values to the same unit BEFORE adding; write the unit at every intermediate step.</>,
+            <><strong>Measurement</strong> — length, mass, volume, time</>,
             <>Slipping decimal places on kg ↔ g and m ↔ cm; adding hours + minutes without borrowing 60.</>,
           ],
           [
-            "5",
-            <><strong>Statistics</strong> — bar graph, pie chart, table, average</>,
-            "10",
-            <><em>&ldquo;Find the average number of books sold from the bar graph.&rdquo;</em></>,
-            <>Underline what&rsquo;s asked; then read the scale — check whether 1 unit = 1 or 1 unit = 5/10.</>,
-            <>Reading the wrong scale interval; forgetting to divide by the number of items for average.</>,
+            <><strong>Statistics</strong> — bar graph, pie chart, average</>,
+            <>Reading the wrong scale interval; forgetting to divide by the number of items when calculating the average.</>,
           ],
         ]}
       />
-      <p className="text-[9pt] text-slate-600 mt-2 italic">
-        These 5 topics together carry <strong>59 out of 100 PSLE Math marks</strong>. Drilling them well covers well over half the paper.
-      </p>
 
-      <A4SectionTitle>Bar models — the one habit that wins Paper 2</A4SectionTitle>
-      <ul className="list-disc pl-5 text-[9.5pt] space-y-1">
-        <li><strong>Read the question twice, draw once.</strong> Mark the <em>total</em>, the <em>asked-for part</em>, and any <em>equal-units</em> on the bar before computing.</li>
-        <li><strong>Before / after problems get TWO stacked bars.</strong> Line them up so the change is visually obvious.</li>
-        <li><strong>Label every arithmetic step.</strong> The marker awards method marks even when the final answer is wrong.</li>
-      </ul>
-
-      <A4SectionTitle>Command words — how the marker reads the verb</A4SectionTitle>
-      <A4Table
-        headers={["Word", "What the marker expects", "One-line rule"]}
-        rows={[
-          [
-            <strong>Find</strong>,
-            "The numerical answer — with the correct unit.",
-            <>Always write the unit on the final line.</>,
-          ],
-          [
-            <strong>Express</strong>,
-            "The answer in a specific form (fraction, ratio, percentage).",
-            <>Simplify to lowest terms.</>,
-          ],
-          [
-            <strong>Show that&hellip;</strong>,
-            "Every step leading to the given result.",
-            <>Don&rsquo;t skip lines &mdash; each line = 1 method mark.</>,
-          ],
-          [
-            <strong>Explain</strong>,
-            "Reason + link to a mathematical rule.",
-            <>Cite the rule by name (e.g. &ldquo;alternate angles&rdquo;).</>,
-          ],
-        ]}
-      />
+      <A4SectionTitle>Bar model cheat sheet</A4SectionTitle>
+      <div style={{ backgroundColor: "#ffffff", padding: 8, border: "1px solid #e2e8f0", borderRadius: 6 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/onboarding-assets/math-bar-models.png"
+          alt="PSLE Math bar-models cheat sheet"
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
+      </div>
     </A4Sheet>
   );
 }
