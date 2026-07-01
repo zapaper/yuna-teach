@@ -15,6 +15,11 @@ export interface QuizAssignedEmailSubstitutions {
 export const QUIZ_ASSIGNED_EMAIL_SUBJECT =
   "Your {{subject}} Diagnostic for {{childName}} is ready";
 
+// When the child's display name and username are the same (parent
+// didn't set a separate display name) we skip the "as {{username}}"
+// clause so the sign-in sentence doesn't read
+// 'Have studentsixseven sign in as studentsixseven...'.
+
 // A single card-style CTA — reads as a modal panel in the email.
 // Uses tables + inline styles so Gmail / Outlook render correctly.
 export const QUIZ_ASSIGNED_EMAIL_HTML = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Calibri, sans-serif; color: #1F2A37; max-width: 560px; margin: 24px auto; padding: 0 16px; line-height: 1.55; font-size: 16px; background: #FFFFFF;">
@@ -27,7 +32,7 @@ export const QUIZ_ASSIGNED_EMAIL_HTML = `<div style="font-family: -apple-system,
         <p style="margin: 0 0 6px 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7c3aed;">Diagnostic ready</p>
         <p style="margin: 0 0 16px 0; font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #001e40; line-height: 1.25;">{{childName}}&rsquo;s {{subject}} diagnostic</p>
         <a href="{{childHomepageUrl}}" style="display: inline-block; padding: 14px 28px; background: #001e40; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 16px; border-radius: 999px;">Start the quiz &rarr;</a>
-        <p style="margin: 14px 0 0 0; font-size: 13px; color: #43474f;">Have <strong>{{childName}}</strong> sign in as <strong>{{childUsername}}</strong> and the quiz appears on their homepage.</p>
+        <p style="margin: 14px 0 0 0; font-size: 13px; color: #43474f;">{{signInSentence}}</p>
       </td>
     </tr>
   </table>
@@ -45,7 +50,7 @@ The {{subject}} diagnostic quiz for {{childName}} is ready. It takes about 20 mi
 
 Start the quiz: {{childHomepageUrl}}
 
-Have {{childName}} sign in as {{childUsername}} — the quiz appears on their homepage.
+{{signInSentence}}
 
 See you inside.
 
@@ -57,16 +62,26 @@ export function renderQuizAssignedEmail(subs: QuizAssignedEmailSubstitutions): {
   html: string;
   text: string;
 } {
-  const replace = (s: string) =>
+  // If displayName == username, drop the "as <username>" clause so
+  // we don't say "have studentsixseven sign in as studentsixseven".
+  const sameName = subs.childName.trim().toLowerCase() === subs.childUsername.trim().toLowerCase();
+  const signInSentence = sameName
+    ? `Have <strong>${subs.childName}</strong> sign in with the password you gave and the quiz appears on their homepage.`
+    : `Have <strong>${subs.childName}</strong> sign in as <strong>${subs.childUsername}</strong> with the password you gave and the quiz appears on their homepage.`;
+  const signInSentenceText = sameName
+    ? `Have ${subs.childName} sign in with the password you gave — the quiz appears on their homepage.`
+    : `Have ${subs.childName} sign in as ${subs.childUsername} with the password you gave — the quiz appears on their homepage.`;
+  const replace = (s: string, textVariant = false) =>
     s
       .replace(/\{\{\s*parentName\s*\}\}/g, subs.parentName)
       .replace(/\{\{\s*childName\s*\}\}/g, subs.childName)
       .replace(/\{\{\s*childUsername\s*\}\}/g, subs.childUsername)
       .replace(/\{\{\s*subject\s*\}\}/g, subs.subject)
-      .replace(/\{\{\s*childHomepageUrl\s*\}\}/g, subs.childHomepageUrl);
+      .replace(/\{\{\s*childHomepageUrl\s*\}\}/g, subs.childHomepageUrl)
+      .replace(/\{\{\s*signInSentence\s*\}\}/g, textVariant ? signInSentenceText : signInSentence);
   return {
     subject: replace(QUIZ_ASSIGNED_EMAIL_SUBJECT),
     html: replace(QUIZ_ASSIGNED_EMAIL_HTML),
-    text: replace(QUIZ_ASSIGNED_EMAIL_TEXT),
+    text: replace(QUIZ_ASSIGNED_EMAIL_TEXT, true),
   };
 }

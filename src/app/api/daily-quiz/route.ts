@@ -562,7 +562,9 @@ export async function POST(request: NextRequest) {
   // Get the student's level
   const student = await prisma.user.findUnique({
     where: { id: targetStudentId },
-    select: { level: true, settings: true },
+    // Include displayName + name so the firstQuiz paper title can
+    // read 'Math Diagnostic for Mark' instead of 'P6 Daily Quiz'.
+    select: { level: true, settings: true, displayName: true, name: true },
   });
   // P3 English isn't supported yet — refuse the request if a P3
   // student is targeted with subject=english. UI hides the option, so
@@ -1833,41 +1835,60 @@ export async function POST(request: NextRequest) {
   let selectedOeq: MergedQ[];
 
   // Onboarding-diagnostic (firstQuiz=true) picks stratified across
-  // the top-5 topics present in the available pool for this subject/
-  // level. Random draw scatters too thin — e.g. 6 Geometry + 1 each
-  // of 7 other topics falls below the Lumi chart's 3-attempt render
-  // threshold (progress/[studentId]/page.tsx#L728), so only one bar
-  // showed. Stratifying guarantees ≥3 attempts on ≥5 topics.
+  // the 5 PSLE semantic top-5 topics, not the raw DB labels — DB
+  // labels are finer-grained (e.g. Area & Perimeter lives across
+  // 'Area and circumference of circle', 'Area and perimeter of
+  // rectangle', etc.), so we group them by keyword matcher and draw
+  // 3 questions from each of the 5 semantic groups.
   //
-  // We pick the 5 largest topic buckets in the pool (rather than a
-  // fixed top-5 list) because DB labels don't cleanly map to the
-  // PSLE-syllabus semantic groups — a fixed list silently falls
-  // through to backfill and defeats the point.
-  function pickStratifiedMcq(pool: Q[], perTopic: number, total: number): Q[] {
-    const byTopic = new Map<string, Q[]>();
+  // Groups mirror the PSLE Top Topics cheat-sheet in
+  // /onboarding-assets/psle-{math,science}-top-topics. Order matters
+  // — matched by first hit, so more-specific keywords come first.
+  const MATH_SEMANTIC_GROUPS: Array<{ id: string; matches: RegExp }> = [
+    { id: "Geometry",         matches: /geometry|angle|triangle|quadrilateral|shape|net|symmetry|coordinate/i },
+    { id: "Fractions",        matches: /fraction/i },
+    { id: "Area & Perimeter", matches: /area|perimeter|circumference/i },
+    { id: "Measurement",      matches: /volume|mass|length|weight|time|speed|measurement/i },
+    { id: "Statistics",       matches: /statistic|average|graph|chart|table|data|mean/i },
+  ];
+  const SCIENCE_SEMANTIC_GROUPS: Array<{ id: string; matches: RegExp }> = [
+    { id: "Forces",            matches: /force|friction|gravity|spring|magnet/i },
+    { id: "Environment",       matches: /environment|adaptation|food chain|food web|ecosystem|habitat/i },
+    { id: "Electrical",        matches: /electric|circuit/i },
+    { id: "Heat",              matches: /heat/i },
+    { id: "Diversity",         matches: /diversity|living.*non-living|classification|non-living/i },
+  ];
+  function pickStratifiedMcq(
+    pool: Q[],
+    groups: Array<{ id: string; matches: RegExp }>,
+    perGroup: number,
+    total: number,
+  ): Q[] {
+    // Bucket pool questions into semantic groups by regex-matching
+    // the syllabusTopic string. First match wins so ordering in the
+    // groups array matters for overlap cases (e.g. a question tagged
+    // "Area and perimeter" hits Area & Perimeter before Measurement).
+    const byGroup = new Map<string, Q[]>();
+    for (const g of groups) byGroup.set(g.id, []);
     for (const q of pool) {
-      const t = (q.syllabusTopic ?? "").trim() || "(untagged)";
-      if (!byTopic.has(t)) byTopic.set(t, []);
-      byTopic.get(t)!.push(q);
+      const t = (q.syllabusTopic ?? "").trim();
+      if (!t) continue;
+      for (const g of groups) {
+        if (g.matches.test(t)) { byGroup.get(g.id)!.push(q); break; }
+      }
     }
-    // Sort topic buckets by size descending, ignore "(untagged)" so
-    // the chart doesn't get a nameless slice.
-    const orderedTopics = [...byTopic.entries()]
-      .filter(([t]) => t !== "(untagged)")
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([t]) => t);
-    const nTopics = Math.min(orderedTopics.length, Math.ceil(total / perTopic));
     const picked: Q[] = [];
     const seenIds = new Set<string>();
-    for (const topic of orderedTopics.slice(0, nTopics)) {
-      const bucket = byTopic.get(topic) ?? [];
-      for (const q of bucket.slice(0, perTopic)) {
+    for (const g of groups) {
+      const bucket = byGroup.get(g.id) ?? [];
+      for (const q of bucket.slice(0, perGroup)) {
         if (!seenIds.has(q.id) && picked.length < total) {
           picked.push(q); seenIds.add(q.id);
         }
       }
     }
-    // Backfill from the rest of the pool if any bucket was short.
+    console.log(`[daily-quiz] stratified diagnostic — pool=${pool.length}, per-group counts: ${groups.map(g => `${g.id}=${byGroup.get(g.id)?.length ?? 0}`).join(", ")}, picked=${picked.length}`);
+    // Backfill from the rest of the pool if any group was short.
     if (picked.length < total) {
       for (const q of pool) {
         if (picked.length >= total) break;
@@ -1878,13 +1899,14 @@ export async function POST(request: NextRequest) {
   }
   const subjLc = (subject ?? "").toLowerCase();
   const useStratified = firstQuiz && (subjLc.includes("math") || subjLc.includes("science"));
+  const semanticGroups = subjLc.includes("science") ? SCIENCE_SEMANTIC_GROUPS : MATH_SEMANTIC_GROUPS;
 
   if (quizType === "mcq") {
     if (mcqPool.length < 1) {
       return NextResponse.json({ error: "Not enough MCQ questions available" }, { status: 404 });
     }
     selectedMcq = useStratified
-      ? pickStratifiedMcq(mcqPool, 3, 15)
+      ? pickStratifiedMcq(mcqPool, semanticGroups, 3, 15)
       : mcqPool.slice(0, 15);
     selectedOeq = [];
   } else {
@@ -1892,7 +1914,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not enough questions available" }, { status: 404 });
     }
     selectedMcq = useStratified
-      ? pickStratifiedMcq(mcqPool, 2, 10)
+      ? pickStratifiedMcq(mcqPool, semanticGroups, 2, 10)
       : mcqPool.slice(0, 10);
     // Targeted hydrate for selected OEQ groups. mergeOeqGroup reads
     // both `diagramImageData` (for refImageBase64 on sub-parts) and
@@ -1951,10 +1973,18 @@ export async function POST(request: NextRequest) {
   const titleLevel = effectiveLevel ?? student?.level ?? null;
   const levelLabel = titleLevel ? `P${titleLevel} ` : "";
   const quizKindLabel = isRevision ? "Revision Quiz" : "Daily Quiz";
+  const subjectDisplay = subject === "science" ? "Science" : "Math";
+  // firstQuiz (onboarding) papers get a friendlier title so the
+  // parent's dashboard reads 'Math Diagnostic for Mark' instead of
+  // 'P6 Daily Quiz – Math (MCQ)'.
+  const childFirstForTitle = (student?.displayName ?? student?.name ?? "").split(/\s+/)[0];
+  const paperTitle = firstQuiz
+    ? `${subjectDisplay} Diagnostic${childFirstForTitle ? ` for ${childFirstForTitle}` : ""}`
+    : `${levelLabel}${quizKindLabel} – ${subjectDisplay} (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`;
 
   const paper = await prisma.examPaper.create({
     data: {
-      title: `${levelLabel}${quizKindLabel} – ${subject === "science" ? "Science" : "Math"} (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`,
+      title: paperTitle,
       subject: subject === "science" ? "Science" : "Mathematics",
       level: levelFilter || null,
       userId,
