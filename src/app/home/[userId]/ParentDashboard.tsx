@@ -4925,20 +4925,40 @@ function OnboardingBanner({
       <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
         With each quiz, <strong>Lumi</strong> builds a deeper understanding of <strong>{firstName}</strong>&rsquo;s strengths and weaknesses, and can personalise the next practice. The <strong>diagnosis below</strong> is preliminary. It will strengthen as we do more quizzes. You can always find this page in the homepage under <strong>Progress / Lumi</strong>.
       </p>
-      <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
-        For now, I would recommend a further daily quiz{" "}
-        <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">assign one here →</a>
+      <p className="text-sm text-[#1e293b] leading-relaxed mb-2">
+        For now, I would recommend:
+      </p>
+      <ul className="mb-3 ml-1 space-y-2 text-sm text-[#1e293b]">
+        <li className="flex items-start gap-2">
+          <span className="text-[#7c3aed] leading-6">•</span>
+          <a
+            href={nextBroadHref}
+            className="inline-flex items-center gap-1 rounded-lg bg-[#7c3aed] px-3 py-1.5 text-white font-semibold hover:bg-[#6d28d9] transition-colors"
+          >
+            a further daily quiz
+            <span className="material-symbols-outlined text-[16px] leading-none">arrow_forward</span>
+          </a>
+          {ctx && ctx.allStrong && (
+            <span className="text-[13px] text-slate-600 leading-6">
+              &mdash; <strong>{firstName}</strong> is all-strong in this subject, so another daily quiz strengthens the analysis further.
+            </span>
+          )}
+        </li>
         {ctx && !ctx.allStrong && ctx.weakest && (
-          <>, or a focused practice on a weak subject like <strong>{ctx.weakest}</strong>{" "}
-            <a href={focusedHref} className="text-[#7c3aed] font-semibold underline">assign focused →</a>
-          </>
+          <li className="flex items-start gap-2">
+            <span className="text-[#7c3aed] leading-6">•</span>
+            <a
+              href={focusedHref}
+              className="inline-flex items-center gap-1 rounded-lg bg-[#7c3aed] px-3 py-1.5 text-white font-semibold hover:bg-[#6d28d9] transition-colors"
+            >
+              or a focused practice on {ctx.weakest}
+              <span className="material-symbols-outlined text-[16px] leading-none">arrow_forward</span>
+            </a>
+          </li>
         )}
-        {ctx && ctx.allStrong && (
-          <>. <strong>{firstName}</strong> is all-strong in this subject — a further daily quiz{" "}
-            <a href={nextBroadHref} className="text-[#7c3aed] font-semibold underline">here</a> would strengthen the analysis further.
-          </>
-        )}
-        . You can also do a quiz in <a href={otherSubjectsHref} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
+      </ul>
+      <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
+        You can also do a quiz in <a href={otherSubjectsHref} className="text-[#7c3aed] font-semibold underline">other subjects</a>.
       </p>
       {subjSlug === "english" && (
         <p className="text-sm text-[#1e293b] leading-relaxed mb-3">
