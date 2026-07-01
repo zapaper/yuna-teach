@@ -701,8 +701,10 @@ function SignupFlow() {
                 </h1>
                 <p className="text-lg md:text-xl max-w-2xl lg:max-w-none mb-12 leading-relaxed" style={{ color: "#43474f" }}>
                   To get started, I suggest starting with a{" "}
-                  <span className="font-bold" style={{ color: "#006c49" }}>10-15mins quiz</span>{" "}
-                  for your child so that our AI can instantly diagnose strengths and weaknesses.
+                  <span className="font-bold" style={{ color: "#006c49" }}>20-min diagnostic quiz</span>{" "}
+                  for <span className="font-bold">{studentName.trim() || "your child"}</span> so that we can personalise their next practice.
+                  Choose one of the subjects below, and whether you would like MCQ or MCQ + OEQ (stylus recommended).
+                  Upon completion, we will also provide the <span className="font-bold">PSLE Top Topics and Mistakes</span> for the subject chosen.
                 </p>
 
                 {/* Actions */}
@@ -713,9 +715,8 @@ function SignupFlow() {
                     style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
                   >
                     <div className="relative z-10 w-full">
-                      <h3 className="text-2xl font-bold mb-2">Start Diagnostic Quiz</h3>
-                      <p className="text-white/70 text-sm mb-6">Choose a core subject to begin the discovery journey.</p>
-                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">1. Pick a subject</p>
+                      <h3 className="text-2xl font-bold mb-6">Start Diagnostic Quiz</h3>
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">Pick a subject</p>
                       <div className="flex flex-wrap gap-2 mb-5">
                         {(["math", "science", "english"] as const).map(subj => {
                           const isSelected = diagnosticSubject === subj;
@@ -742,36 +743,11 @@ function SignupFlow() {
                           );
                         })}
                       </div>
-                      {/* Difficulty toggle — persists on the student as
-                          settings.questionDifficulty. Progressive = adaptive,
-                          Top schools = standard (full range, current default). */}
-                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">2. Difficulty</p>
-                      <div className="flex gap-2 mb-1">
-                        <button
-                          onClick={() => setDiagnosticDifficulty("adaptive")}
-                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
-                          style={{
-                            background: diagnosticDifficulty === "adaptive" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
-                            border: diagnosticDifficulty === "adaptive" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
-                          }}
-                        >
-                          Progressive (start easier)
-                        </button>
-                        <button
-                          onClick={() => setDiagnosticDifficulty("standard")}
-                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
-                          style={{
-                            background: diagnosticDifficulty === "standard" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
-                            border: diagnosticDifficulty === "standard" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
-                          }}
-                        >
-                          Top schools difficulty
-                        </button>
-                      </div>
-                      <p className="text-white/40 text-[10px] mb-5">This setting can be changed later.</p>
-                      {/* Quiz type toggle */}
-                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">3. Pick question type</p>
-                      <div className="flex gap-2 mb-5">
+                      {/* Question-type toggle. Two flex-1 columns so the
+                          "Stylus recommended" hint sits directly under the
+                          MCQ + OEQ button in the same column width. */}
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">Question type</p>
+                      <div className="flex gap-2 mb-5 items-start">
                         <button
                           onClick={() => setDiagnosticType("mcq")}
                           className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
@@ -780,25 +756,25 @@ function SignupFlow() {
                             border: diagnosticType === "mcq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
                           }}
                         >
-                          MCQ Only
+                          MCQ
                         </button>
-                        <button
-                          onClick={() => setDiagnosticType("mcq-oeq")}
-                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
-                          style={{
-                            background: diagnosticType === "mcq-oeq" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
-                            border: diagnosticType === "mcq-oeq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
-                          }}
-                        >
-                          {diagnosticSubject === "english" ? "MCQ and Cloze" : "MCQ and written"}
-                        </button>
+                        <div className="flex-1 flex flex-col">
+                          <button
+                            onClick={() => setDiagnosticType("mcq-oeq")}
+                            className="w-full py-2 rounded-lg text-xs font-semibold transition-colors"
+                            style={{
+                              background: diagnosticType === "mcq-oeq" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+                              border: diagnosticType === "mcq-oeq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                            }}
+                          >
+                            MCQ + OEQ
+                          </button>
+                          <p className="text-white/40 text-[10px] mt-1 flex items-center gap-1 leading-tight">
+                            <span className="material-symbols-outlined text-xs">stylus_note</span>
+                            stylus recommended
+                          </p>
+                        </div>
                       </div>
-                      {diagnosticType === "mcq-oeq" && diagnosticSubject !== "english" && (
-                        <p className="text-white/40 text-[10px] mb-3 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">stylus_note</span>
-                          Stylus recommended for written questions
-                        </p>
-                      )}
                       <button
                         onClick={() => diagnosticSubject && handleStartQuiz(diagnosticSubject)}
                         disabled={!diagnosticSubject || !!quizLoading}
