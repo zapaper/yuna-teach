@@ -569,11 +569,15 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">Question type</p>
-                <div className="flex gap-2">
+                {/* English diagnostic is always Grammar MCQ + Synthesis
+                    OEQ (no toggle), so we grey the two buttons out
+                    with a short hint when the parent has picked English. */}
+                <div className={`flex gap-2 ${pickerSubject === "english" ? "opacity-50 pointer-events-none" : ""}`}>
                   <button
                     type="button"
                     onClick={() => setPickerType("mcq")}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                    disabled={pickerSubject === "english"}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:cursor-not-allowed"
                     style={{
                       background: pickerType === "mcq" ? "#003366" : "#ffffff",
                       color: pickerType === "mcq" ? "#ffffff" : "#003366",
@@ -585,7 +589,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
                   <button
                     type="button"
                     onClick={() => setPickerType("mcq-oeq")}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                    disabled={pickerSubject === "english"}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:cursor-not-allowed"
                     style={{
                       background: pickerType === "mcq-oeq" ? "#003366" : "#ffffff",
                       color: pickerType === "mcq-oeq" ? "#ffffff" : "#003366",
@@ -595,7 +600,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
                     MCQ + OEQ
                   </button>
                 </div>
-                {pickerType === "mcq-oeq" && (
+                {pickerSubject === "english" && (
+                  <p className="text-[11px] text-[#43474f] mt-1.5 ml-1">English diagnostic covers Grammar MCQ and Synthesis OEQ — no choice needed.</p>
+                )}
+                {pickerSubject !== "english" && pickerType === "mcq-oeq" && (
                   <p className="text-[11px] text-[#43474f] mt-1.5 ml-1">Stylus recommended</p>
                 )}
               </div>
