@@ -149,7 +149,7 @@ async function pickEnglish(): Promise<MasterRow[]> {
   return [...grammarPicks, ...synthPicks];
 }
 
-async function createQuizPaper(subject: string, subjectCol: string, picks: MasterRow[], englishSections?: string[]): Promise<string> {
+async function createQuizPaper(subject: string, subjectCol: string, picks: MasterRow[], englishSections?: Array<{ label: string; startIndex: number; endIndex: number }>): Promise<string> {
   const paper = await prisma.examPaper.create({
     data: {
       title: `Onboarding Diagnostic — ${subject}${englishSections ? " (Grammar + Synthesis)" : " (MCQ)"}`,
@@ -248,7 +248,17 @@ async function createQuizPaper(subject: string, subjectCol: string, picks: Maste
   console.log(`── Picking Science ──`);
   const sci = await pickScience();
 
-  const engId = await createQuizPaper("English", "English", eng, ["grammar-mcq", "synthesis"]);
+  // English: first 14 = Grammar MCQ, next 6 = Synthesis (typed OEQ).
+  // The quiz page reads englishSections[].label to detect typed
+  // sections — must be OBJECTS with { label, startIndex, endIndex },
+  // not string tags. Grammar label "Grammar MCQ", Synthesis label
+  // "Synthesis & Transformation" so `.toLowerCase().includes("synthesis")`
+  // matches (see src/app/quiz/[id]/page.tsx around line 935).
+  const engSections = [
+    { label: "Grammar MCQ", startIndex: 0, endIndex: 13 },
+    { label: "Synthesis & Transformation", startIndex: 14, endIndex: 19 },
+  ];
+  const engId = await createQuizPaper("English", "English", eng, engSections);
   const mathId = await createQuizPaper("Math", "Mathematics", math);
   const sciId = await createQuizPaper("Science", "Science", sci);
 
