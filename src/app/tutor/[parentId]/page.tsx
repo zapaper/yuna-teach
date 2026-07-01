@@ -2556,6 +2556,7 @@ const GRAMMAR_RADAR_KIDS = new Set<string>([
   "cmqg8upha0000l3ijfr3co6t8", // student67 (David clone for test cohort)
   "cmq4xj0vm0029apq234jrmrh6", // Caleb (Felicia's kid)
   "cmpuqemdt000112ltfrrcmpqg", // LohXY2014
+  "cmnsa6bww006bgmuwflevt143", // Student666 (onboarding-diagnostic test cohort)
 ]);
 type FluencyRow = { id: string; label: string; awarded: number; available: number; pct: number | null };
 type FluencyBundle = { subTopics: FluencyRow[]; overall: number | null; totalAwarded: number; totalAvailable: number };

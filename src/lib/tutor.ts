@@ -1041,8 +1041,9 @@ type DemoRedirect = DemoRedirectSource & {
 };
 
 export const DEMO_DATA_REDIRECT: Record<string, DemoRedirect> = {
-  // Student666 → David lim
-  "cmnsa6bww006bgmuwflevt143": { sourceStudentId: "cmm5wf91d000ryrxwaddlo6xh", sourceSafeName: "david-lim", sourceFirstName: "David" },
+  // Student666 no longer redirects — used for onboarding-diagnostic
+  // testing, must show its OWN data (empty until the parent runs the
+  // diagnostic). Removed 2026-07-02 during the onboarding flow work.
   // student67 → David lim by default; Science → Ruthie because her
   // v3 Science Lumi reads cleanly for demo recording.
   "cmqg8upha0000l3ijfr3co6t8": {
