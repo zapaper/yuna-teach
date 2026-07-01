@@ -1548,7 +1548,18 @@ function QuizContent({ id }: { id: string }) {
               </button>
             )}
             <button
-              onClick={() => router.push(`/home/${userId}`)}
+              onClick={() => {
+                // On a diagnostic flow the tab's session cookie is
+                // usually the parent's (they set the kid up in the
+                // same window). Routing to /home/{URL's userId} (the
+                // kid) bounces the parent's session into the 'Session
+                // expired' screen because /api/users?userId={kidId}
+                // fails requireSelfOrAdmin. Prefer the diagnostic
+                // parentId when we have it — that's the URL that
+                // actually matches the session and renders.
+                const target = diagnosticParentId && isDiagnostic ? diagnosticParentId : userId;
+                router.push(`/home/${target}`);
+              }}
               className="flex-1 px-4 py-3 rounded-2xl bg-[#eff4ff] text-[#001e40] font-bold text-sm hover:bg-[#dce9ff] transition-colors"
             >
               Home
@@ -1671,10 +1682,14 @@ function QuizContent({ id }: { id: string }) {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-1 bg-[#003366] text-white rounded-full px-3.5 py-2 font-headline font-bold text-xs hover:scale-105 transition-transform disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-[#003366] text-white rounded-full px-3.5 py-2 font-headline font-bold text-xs hover:scale-105 transition-transform disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            {submitting ? "…" : "Submit"}
+            {submitting ? (
+              <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            )}
+            {submitting ? "Submitting…" : "Submit"}
           </button>
         </div>
       </header>
@@ -1752,9 +1767,12 @@ function QuizContent({ id }: { id: string }) {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-[#001e40] text-white px-6 py-2 rounded-lg font-headline font-bold text-sm hover:scale-95 active:scale-90 transition-transform shadow-md disabled:opacity-50"
+            className="bg-[#001e40] text-white px-6 py-2 rounded-lg font-headline font-bold text-sm hover:scale-95 active:scale-90 transition-transform shadow-md disabled:opacity-50 inline-flex items-center gap-2"
           >
-            {submitting ? "…" : "Submit"}
+            {submitting && (
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            )}
+            {submitting ? "Submitting…" : "Submit"}
           </button>
           <button
             onClick={handleSaveProgress}
