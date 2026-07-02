@@ -65,6 +65,22 @@ function Inner() {
   const sessionRef = useRef<unknown>(null);
   const playbackCtxRef = useRef<AudioContext | null>(null);
   const playbackNextTimeRef = useRef<number>(0);
+  // Suppress Gemini's very first spoken turn. The Live API generates
+  // one turn on session open no matter what the system instruction
+  // says (it interprets the instruction as a cue to speak); that turn
+  // ends up being a repeat/paraphrase of the opening prompt we just
+  // spoke via TTS. Gate all Gemini audio + transcript on the student
+  // actually having spoken first. Flip to true when we see the first
+  // inputTranscription.
+  const studentHasSpokenRef = useRef<boolean>(false);
+  // Mic teardown refs — held so endAndScore / onclose / onerror can
+  // stop the audio processor and release the mic. Without this, the
+  // script processor keeps calling sendRealtimeInput on a closed
+  // WebSocket and floods the console with "already CLOSING or CLOSED".
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const micCtxRef = useRef<AudioContext | null>(null);
+  const micProcessorRef = useRef<ScriptProcessorNode | null>(null);
+  const sessionAliveRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -93,6 +109,7 @@ function Inner() {
     setError(null);
     setScore(null);
     setTranscript([]);
+    studentHasSpokenRef.current = false;
     setStatus("connecting");
     try {
       const tokenResp = await fetch("/api/oral-coach/gemini-live-token", {
@@ -154,10 +171,12 @@ function Inner() {
           outputAudioTranscription: {},
         },
         callbacks: {
-          onopen: () => { /* already showing live */ },
+          onopen: () => { sessionAliveRef.current = true; },
           onmessage: (msg: unknown) => handleLiveMessage(msg),
-          onerror: (e: unknown) => { setError(String(e)); setStatus("error"); },
+          onerror: (e: unknown) => { sessionAliveRef.current = false; teardownMic(); setError(String(e)); setStatus("error"); },
           onclose: () => {
+            sessionAliveRef.current = false;
+            teardownMic();
             if (status === "live") setStatus("ending");
           },
         },
@@ -174,8 +193,11 @@ function Inner() {
 
   function handleLiveMessage(msg: unknown) {
     // Gemini Live server messages arrive here — transcriptions, audio
-    // chunks, turnComplete signals. Transcripts flow into state;
-    // examiner audio bytes flow into the playback queue.
+    // chunks, turnComplete signals. Gate all examiner output on the
+    // student having spoken at least once: Gemini's first turn on
+    // session open is a hardcoded prompt-repeat regardless of what
+    // the system instruction says, and we don't want it to reach the
+    // student's ears or the transcript.
     const m = msg as {
       serverContent?: {
         inputTranscription?: { text?: string };
@@ -187,7 +209,15 @@ function Inner() {
     const inText = m.serverContent?.inputTranscription?.text;
     const outText = m.serverContent?.outputTranscription?.text;
     if (inText) {
+      studentHasSpokenRef.current = true;
       setTranscript((prev) => appendOrExtend(prev, "student", inText));
+    }
+    if (!studentHasSpokenRef.current) {
+      // Silently drop any examiner audio/transcript before the
+      // student's first utterance. This is Gemini's hardcoded
+      // opening turn — we already spoke the intended opener via TTS.
+      if (m.serverContent?.turnComplete) setExaminerSpeaking(false);
+      return;
     }
     if (outText) {
       setTranscript((prev) => appendOrExtend(prev, "examiner", outText));
@@ -310,23 +340,55 @@ function Inner() {
     const processor = audioContext.createScriptProcessor(4096, 1, 1);
     source.connect(processor);
     processor.connect(audioContext.destination);
+    micStreamRef.current = stream;
+    micCtxRef.current = audioContext;
+    micProcessorRef.current = processor;
     processor.onaudioprocess = (e) => {
+      // Guard against send-after-close: onclose fires before the
+      // processor tears down, so the last few audio slices would
+      // otherwise hit the WebSocket after it's already CLOSING.
+      if (!sessionAliveRef.current) return;
       const input = e.inputBuffer.getChannelData(0);
       const pcm = new Int16Array(input.length);
       for (let i = 0; i < input.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, input[i] * 32768));
       const s = session as { sendRealtimeInput: (arg: { media: { data: string; mimeType: string } }) => void };
-      s.sendRealtimeInput({
-        media: {
-          data: btoa(String.fromCharCode(...new Uint8Array(pcm.buffer))),
-          mimeType: "audio/pcm;rate=16000",
-        },
-      });
+      try {
+        s.sendRealtimeInput({
+          media: {
+            data: btoa(String.fromCharCode(...new Uint8Array(pcm.buffer))),
+            mimeType: "audio/pcm;rate=16000",
+          },
+        });
+      } catch {
+        // Session closed under us — flip the flag so we stop trying.
+        sessionAliveRef.current = false;
+      }
     };
+  }
+
+  function teardownMic() {
+    const p = micProcessorRef.current;
+    if (p) {
+      try { p.onaudioprocess = null; p.disconnect(); } catch { /* ignore */ }
+      micProcessorRef.current = null;
+    }
+    const ctx = micCtxRef.current;
+    if (ctx && ctx.state !== "closed") {
+      ctx.close().catch(() => { /* ignore */ });
+    }
+    micCtxRef.current = null;
+    const s = micStreamRef.current;
+    if (s) {
+      s.getTracks().forEach((t) => t.stop());
+    }
+    micStreamRef.current = null;
   }
 
   async function endAndScore() {
     if (!passage) return;
     setStatus("ending");
+    sessionAliveRef.current = false;
+    teardownMic();
     const s = sessionRef.current as { close?: () => void } | null;
     if (s?.close) s.close();
     // Bail early if the student never spoke — the scoring endpoint
@@ -374,7 +436,17 @@ function Inner() {
 
         <div className="max-w-4xl mx-auto px-4 py-3 space-y-2">
           {status === "loading" && <Card>Loading…</Card>}
-          {status === "error" && <Card><p className="text-rose-600 text-sm">{error}</p></Card>}
+          {status === "error" && (
+            <Card>
+              <p className="text-rose-600 text-sm mb-2">{error}</p>
+              <button
+                onClick={() => { setError(null); setStatus("ready"); setTranscript([]); setScore(null); }}
+                className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-900"
+              >
+                Try again
+              </button>
+            </Card>
+          )}
 
           {passage && (
             <>
