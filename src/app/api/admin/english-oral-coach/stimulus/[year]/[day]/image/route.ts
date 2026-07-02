@@ -9,10 +9,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import sharp from "sharp";
 import { isSessionAdmin } from "@/lib/session";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const STORAGE_DIR = path.join(VOLUME_PATH, "english-supplementary");
+
+// Years that were extracted with the OLD +90° (CW) rotation and are
+// now showing sideways. Rotate them on-the-fly by an additional -180°
+// no — an additional -90° to reach the correct upright orientation.
+// 2025 was extracted correctly with the current pipeline so leave it
+// alone.
+const YEARS_NEEDING_CCW_FIXUP = new Set([
+  "2015", "2016", "2017", "2018", "2019",
+  "2020", "2021", "2022", "2023", "2024",
+]);
 
 export async function GET(
   _request: NextRequest,
@@ -28,12 +39,23 @@ export async function GET(
 
   const filePath = path.join(STORAGE_DIR, `${year}_oral_day${dayN}_stimulus.jpg`);
   try {
-    const buf = await fs.readFile(filePath);
+    let buf = await fs.readFile(filePath);
+    if (YEARS_NEEDING_CCW_FIXUP.has(year)) {
+      // Rotate CCW 90° (sharp uses negative for CCW). This is the
+      // on-serve fixup for legacy files extracted with the old
+      // +90° CW rotation. Re-running extract-oral-stimuli.ts against
+      // the current code will produce upright files and this fixup
+      // can then be removed year by year.
+      buf = await sharp(buf).rotate(-90).jpeg({ quality: 90 }).toBuffer();
+    }
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": "image/jpeg",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        // Short cache (1 hour) instead of immutable so the fixup
+        // rollout propagates when we re-extract instead of being
+        // pinned to the wrong orientation for a year.
+        "Cache-Control": "public, max-age=3600",
       },
     });
   } catch {

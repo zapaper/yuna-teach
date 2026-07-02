@@ -17,14 +17,17 @@ import { GoogleGenAI, Modality, StartSensitivity, EndSensitivity, ActivityHandli
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 
-// Live-API-capable models on the v1alpha endpoint (which ephemeral
-// tokens require). Runtime probes on 2026-07-02 got 1008 CLOSE for
-// both "gemini-2.0-flash-live-001" and "gemini-live-2.5-flash-
-// preview" — reason: "is not found for API version v1main, or is
-// not supported for bidiGenerateContent". Trying the native-audio
-// preview next; if it also fails, fall back to the original
-// experimental model. Override via GEMINI_LIVE_MODEL env var.
-const MODEL = "gemini-2.5-flash-preview-native-audio-dialog";
+// Live-API-capable models. As of 2026-07-02, Google has retired
+// the older IDs I originally tried:
+//   - gemini-2.0-flash-live-001 (dead)
+//   - gemini-live-2.5-flash-preview (dead — retired 2026-03)
+//   - gemini-2.0-flash-exp (dead for authTokens)
+//   - gemini-2.5-flash-preview-native-audio-dialog (renamed)
+// The current working models on v1alpha ephemeral tokens are:
+//   - gemini-3.1-flash-live-preview (flagship, native audio, current)
+//   - gemini-live-2.5-flash-native-audio (stable fallback)
+// Override via GEMINI_LIVE_MODEL env var.
+const MODEL = "gemini-3.1-flash-live-preview";
 const MODEL_ENV = process.env.GEMINI_LIVE_MODEL;
 
 type PromptEntry = string | { label?: string; prompt?: string; text?: string };
@@ -62,10 +65,17 @@ export async function POST(request: NextRequest) {
   if (!/^\d{4}$/.test(year) || (day !== 1 && day !== 2)) {
     return NextResponse.json({ error: "year (YYYY) and day (1|2) required" }, { status: 400 });
   }
-  // Gemini Live prebuilt voice picks. Kore is warm female (default).
-  // For male avatars (Mr Ismail) use Puck — clean neutral British-
-  // adjacent male. Other male options: Charon, Fenrir, Orus.
-  const voiceName = gender === "male" ? "Puck" : "Kore";
+  // Voice: prefer the per-avatar Gemini voice sent by the client.
+  // Whitelist against known-good voice names to avoid Google rejecting
+  // the connection for an unknown voice.
+  const VALID_VOICES = new Set([
+    "Puck", "Charon", "Kore", "Fenrir", "Aoede",
+    "Leda", "Orus", "Zephyr", "Callirrhoe", "Autonoe",
+  ]);
+  const requestedVoice = typeof body.geminiVoice === "string" ? body.geminiVoice : "";
+  const voiceName = VALID_VOICES.has(requestedVoice)
+    ? requestedVoice
+    : gender === "male" ? "Puck" : "Zephyr";
 
   const paper = await prisma.englishSupplementaryPaper.findUnique({
     where: { year },
@@ -85,7 +95,7 @@ export async function POST(request: NextRequest) {
   // (with follow-ups) than as a 5-minute walkthrough of all three.
   const selectedIndex = Math.floor(Math.random() * prompts.length);
   const selectedPrompt = prompts[selectedIndex];
-  console.log("[gemini-live-token] mint request", { year, day, userId, selectedIndex, selectedPrompt: selectedPrompt.slice(0, 80) });
+  console.log("[gemini-live-token] mint request", { year, day, userId, selectedIndex, gender, voiceName, model: MODEL_ENV ?? MODEL, selectedPrompt: selectedPrompt.slice(0, 80) });
   const systemInstruction = buildSystemInstruction({
     stimulus: dayData.stimulusDescription ?? "",
     prompt: selectedPrompt,

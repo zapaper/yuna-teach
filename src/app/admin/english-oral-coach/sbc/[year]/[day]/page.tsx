@@ -121,11 +121,16 @@ function Inner() {
     studentHasSpokenRef.current = false;
     setStatus("connecting");
     try {
-      const chosenGender = getOralAvatar(getOralAvatarKey()).gender;
+      const chosenAvatar = getOralAvatar(getOralAvatarKey());
       const tokenResp = await fetch("/api/oral-coach/gemini-live-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ year, day: dayNum, gender: chosenGender }),
+        body: JSON.stringify({
+          year,
+          day: dayNum,
+          gender: chosenAvatar.gender,
+          geminiVoice: chosenAvatar.geminiVoice,
+        }),
       });
       if (!tokenResp.ok) {
         // Try to parse the JSON error we return; if it's an HTML Cloudflare
@@ -144,7 +149,6 @@ function Inner() {
         throw new Error(msg);
       }
       const { token, model, selectedPrompt } = await tokenResp.json();
-      const gender = chosenGender;
 
       // Playback pipeline for Gemini's audio replies. Gemini Live
       // returns 24kHz PCM (16-bit signed little-endian) — build a
@@ -162,11 +166,11 @@ function Inner() {
       // Gemini's very first input is real student audio, so it can
       // only respond as a follow-up.
       const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
-      console.log("[SBC opener] FIRING TTS #", ++openerFireCountRef.current, "gender:", gender, ":", opener);
+      console.log("[SBC opener] FIRING TTS #", ++openerFireCountRef.current, "avatar:", chosenAvatar.key, ":", opener);
       setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
       setExaminerSpeaking(true);
       setStatus("live");
-      await speakOpener(opener, gender);
+      await speakOpener(opener, chosenAvatar.gender, chosenAvatar.ttsHints);
       console.log("[SBC opener] TTS finished #", openerFireCountRef.current);
       setExaminerSpeaking(false);
 
@@ -330,7 +334,7 @@ function Inner() {
   // buttons in Reading Aloud: en-GB voice, slightly slowed. Resolves
   // when the utterance finishes so start() can then open the mic
   // without the opener bleeding back into Gemini's input.
-  function speakOpener(text: string, gender: "female" | "male" = "female"): Promise<void> {
+  function speakOpener(text: string, gender: "female" | "male" = "female", hints: string[] = []): Promise<void> {
     return new Promise((resolve) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
         resolve();
@@ -367,10 +371,12 @@ function Inner() {
         // browser vendors sometimes namespace SG voices oddly.
         const byName = (patterns: RegExp[]) =>
           patterns.map((p) => voices.find((v) => p.test(v.name) || p.test(v.voiceURI ?? ""))).find(Boolean);
-        // Split voice preferences by gender. The malay avatar is male
-        // (Mr Ismail); the other three are female. Google UK English
-        // Male / Microsoft George|Ryan / Apple Daniel|Oliver are the
-        // widely-shipped male en-GB voices.
+        // 1. Per-avatar TTS hints first — the sharpest match for the
+        //    chosen persona (e.g. Chinese avatars prefer younger US
+        //    voices like Aria/Jenny/Samantha, malay prefers UK male).
+        // 2. Then gender-broad picks as fallback.
+        // 3. Then any en-GB / en-* voice.
+        const hintPatterns = hints.map((h) => new RegExp(h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
         const genderPatterns = gender === "male"
           ? [
               /Google UK English Male/i,
@@ -378,11 +384,15 @@ function Inner() {
               /^(Daniel|Oliver|Arthur|Reed|Rocko)$/i,
             ]
           : [
+              /Microsoft (Aria|Jenny|Ana).*(United States|en-US)/i,
+              /Google US English/i,
+              /^Samantha$/i,
               /Google UK English Female/i,
               /Microsoft (Susan|Hazel|Sonia|Libby).*United Kingdom/i,
               /^(Kate|Serena|Martha|Fiona)$/i,
             ];
         const preferred =
+          byName(hintPatterns) ||
           voices.find((v) => v.lang === "en-SG") ||
           byName([
             /Singapore/i,
@@ -397,6 +407,7 @@ function Inner() {
           voices.find((v) => v.lang === "en-GB") ||
           voices.find((v) => v.lang.startsWith("en-GB")) ||
           voices.find((v) => v.lang.startsWith("en"));
+        console.log("[SBC opener] picked voice:", preferred?.name, "lang:", preferred?.lang);
         if (preferred) {
           utter.voice = preferred;
           utter.lang = preferred.lang;
