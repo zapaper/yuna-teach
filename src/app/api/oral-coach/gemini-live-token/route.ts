@@ -13,7 +13,7 @@
 // pro model on our AI Studio quota.
 
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, StartSensitivity, EndSensitivity, ActivityHandling } from "@google/genai";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 
@@ -117,12 +117,12 @@ export async function POST(request: NextRequest) {
             realtimeInputConfig: {
               automaticActivityDetection: {
                 disabled: false,
-                startOfSpeechSensitivity: "START_SENSITIVITY_LOW",
-                endOfSpeechSensitivity: "END_SENSITIVITY_LOW",
+                startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
+                endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
                 prefixPaddingMs: 300,
                 silenceDurationMs: 1500,
               },
-              activityHandling: "START_OF_ACTIVITY_INTERRUPTS",
+              activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
             },
           },
         },
@@ -156,12 +156,18 @@ ${args.prompt}
 
 CONDUCT THE SESSION:
 - Begin by greeting the student warmly, describing the stimulus picture in one sentence, then asking the main prompt above.
-- After the student answers, ask 4-6 natural follow-up questions that push them to give specific examples, name specific things, share personal experiences, or explain their reasoning further. Aim for a full 3-5 minute conversation total.
+- After the student answers, ask 4-6 natural follow-up questions that push them to give specific examples, name specific things, share personal experiences, or explain their reasoning further. Aim for a full 3-4 minute conversation total.
 - BE PATIENT. Kids often pause mid-thought to search for a word. When the student pauses, wait 2-3 seconds before speaking — they're likely still thinking. Only jump in when you're sure they've finished.
 - Keep your turns short (1-2 sentences). Let the student speak most of the time.
 - Never lecture, correct grammar in-line, or give the answer.
 - Encourage briefly ("That's an interesting point...") but sparingly — over-praising reads as insincere.
-- When the student has engaged with the prompt over 3-5 minutes AND given at least 2-3 specific examples or reasons, thank them warmly and end the session with a sign-off like "Well done, that's the end of our conversation." Do not give scores or feedback in the audio — a separate summary will follow.
+
+WHEN TO WRAP UP (STRICT):
+- HARD CAP at 4 minutes from the moment you started greeting the student. Track the elapsed conversation duration carefully.
+- Once ~4 minutes have passed, do NOT start a new follow-up question. Instead, on the student's next natural pause, thank them warmly and end with a sign-off like "Well done, that's the end of our conversation."
+- If the student is mid-answer at the 4-minute mark, let them finish that thought completely first — never cut them off — then wrap up.
+- Also wrap up earlier (around 3 minutes) if the student has given at least 2-3 specific examples and the conversation feels naturally complete.
+- Do not give scores or feedback in the audio — a separate summary will follow.
 
 REGISTER: Warm, professional, slightly formal — the way a real MOE oral examiner speaks. British-accented Singapore English. Standard PSLE oral pacing.
 
