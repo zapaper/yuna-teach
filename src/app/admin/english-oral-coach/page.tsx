@@ -7,6 +7,7 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { getOralAvatarKey, setOralAvatarKey, ORAL_AVATARS, type OralAvatarKey } from "@/lib/oral-avatar";
 import { ORAL_THEMES, CATEGORY_STYLES } from "@/lib/oral-themes";
+import { saveOralSession, clearOralSession } from "@/lib/oral-session";
 // Voice-tester import removed — the picker component still exists at
 // src/components/OralVoiceTester.tsx if you need to audition voices;
 // re-import it here to drop back onto the page.
@@ -239,12 +240,24 @@ function PageInner() {
                   </div>
                   <p className="text-xs text-slate-600 leading-snug mb-3">{selectedTheme.blurb}</p>
                   <div className="flex items-center gap-4 flex-wrap mt-1">
-                    <Link
-                      href={`/admin/english-oral-coach/read/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}&flow=1`}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Fresh session — clobber whatever's in
+                        // localStorage from a prior run.
+                        clearOralSession();
+                        saveOralSession({
+                          themeId: selectedTheme.id,
+                          themeLabel: selectedTheme.theme,
+                          avatarKey,
+                          startedAt: Date.now(),
+                        });
+                        window.location.href = `/admin/english-oral-coach/read/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}&flow=1`;
+                      }}
                       className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition"
                     >
                       Start Practice →
-                    </Link>
+                    </button>
                     <p className="text-xs text-slate-500 leading-snug flex-1 min-w-[200px]">
                       Reading Aloud (15 marks), then Stimulus Conversation (25 marks). One picture is picked for you at the SBC stage.
                     </p>

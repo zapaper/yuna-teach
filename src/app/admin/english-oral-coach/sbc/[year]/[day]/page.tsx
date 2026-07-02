@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { ExaminerAvatar } from "@/components/ExaminerAvatar";
 import { getOralAvatar, getOralAvatarKey } from "@/lib/oral-avatar";
+import { updateOralSession } from "@/lib/oral-session";
 
 // SBC live-voice module. The examiner is Gemini Live (audio in + audio
 // out, WebSocket). The student's audio is captured via the browser mic
@@ -56,6 +57,10 @@ function Inner() {
   const year = String(params.year);
   const dayNum = Number(params.day);
   const userId = searchParams.get("userId") ?? "";
+  // ?flow=1 = student came in from Reading Aloud's Continue button.
+  // On scoring completion we persist SBC results to the session and
+  // redirect to the aggregate results screen.
+  const isFlow = searchParams.get("flow") === "1";
 
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [passage, setPassage] = useState<PassageDay | null>(null);
@@ -611,6 +616,39 @@ function Inner() {
       const data: SbcScore = await resp.json();
       setScore(data);
       setStatus("done");
+      if (isFlow) {
+        // Persist SBC results into the shared session and jump to
+        // the aggregate results screen. Top tips = one clear
+        // shortcoming per segment; empty if the segment was 100%.
+        const topTips: string[] = [];
+        [
+          { label: "Picture", block: data.pictureResponse },
+          { label: "Personal", block: data.personalResponse },
+          { label: "Critical", block: data.criticalThinking },
+        ].forEach(({ label, block }) => {
+          if (block.scorePercent < 100 && block.tips?.length > 0) {
+            topTips.push(`${label}: ${block.tips[0].hint}`);
+          }
+        });
+        updateOralSession({
+          sbc: {
+            year,
+            day: dayNum,
+            overallSeabScore: data.overallSeabScore,
+            overallPercent: data.overallPercent,
+            overallVerdict: data.overallVerdict,
+            q1Percent: data.pictureResponse.scorePercent,
+            q2Percent: data.personalResponse.scorePercent,
+            q3Percent: data.criticalThinking.scorePercent,
+            topTips: topTips.slice(0, 3),
+          },
+        });
+        // Small delay so the student sees the score card flash by
+        // before we route them to the aggregate view.
+        setTimeout(() => {
+          window.location.href = `/admin/english-oral-coach/results?userId=${userId}`;
+        }, 600);
+      }
     } catch (e) {
       setError((e as Error).message);
       setStatus("error");

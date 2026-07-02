@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { ExaminerAvatar } from "@/components/ExaminerAvatar";
+import { loadOralSession, updateOralSession, pickRandomSbcDay } from "@/lib/oral-session";
 
 // Reading Aloud module — student reads the year's Day-N reading passage
 // aloud, Azure Speech SDK returns per-word pronunciation scores, we
@@ -83,6 +84,12 @@ function Inner() {
   const year = String(params.year);
   const dayNum = Number(params.day);
   const userId = searchParams.get("userId") ?? "";
+  // ?flow=1 = student came in via the homepage's "Start Practice"
+  // CTA; after they see their score we show a Continue-to-SBC button
+  // that picks a random day of the same year's stimuli. Without the
+  // flag, this is standalone Reading Aloud practice and we hide the
+  // continuation.
+  const isFlow = searchParams.get("flow") === "1";
 
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [passage, setPassage] = useState<PassageDay | null>(null);
@@ -394,12 +401,12 @@ function Inner() {
                         <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
                         <span className="text-3xl font-bold text-slate-800 leading-none">{Math.round(score.seab.total)}</span>
                         <span className="text-[10px] text-slate-400 pb-1">({score.seab.total.toFixed(1)})</span>
-                        <span className="text-sm text-slate-500 pb-0.5">/ 20</span>
+                        <span className="text-sm text-slate-500 pb-0.5">/ 15</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 mt-3">
-                        <SeabDim label="Pronunciation" value={score.seab.pronunciation} outOf={8} desc="articulation, sounds" tone="blue" />
-                        <SeabDim label="Fluency & rhythm" value={score.seab.fluencyRhythm} outOf={6} desc="pace, chunking" tone="purple" />
-                        <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={6} desc="pitch, stress" tone="brown" />
+                        <SeabDim label="Pronunciation" value={score.seab.pronunciation} outOf={6} desc="articulation, sounds" tone="blue" />
+                        <SeabDim label="Fluency & rhythm" value={score.seab.fluencyRhythm} outOf={5} desc="pace, chunking" tone="purple" />
+                        <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={4} desc="pitch, stress" tone="brown" />
                       </div>
                     </div>
                   </div>
@@ -412,6 +419,16 @@ function Inner() {
                     <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">Show recognised transcription</summary>
                     <p className="mt-2 text-xs text-slate-500 italic">{score.transcription}</p>
                   </details>
+
+                  {isFlow && (
+                    <ContinueToSbcButton
+                      year={year}
+                      readingDay={dayNum}
+                      userId={userId}
+                      score={score}
+                      recordingUrl={recordingUrl}
+                    />
+                  )}
                 </div>
               )}
             </>
@@ -515,29 +532,24 @@ function computeBreakdown(words: WordScore[], fluencyScore: number, prosodyScore
   void fluencyScore;
 }
 
-// SEAB Reading Aloud is scored /20 across three dimensions. Rough
-// conversion from the speech engine's 0-100 scales, weighted per the
-// SEAB rubric:
-//   Pronunciation / articulation: 8 marks  ← accuracy
-//   Fluency & rhythm:             6 marks  ← fluency
-//   Expressiveness:               6 marks  ← expression / prosody
-// Calibrations:
+// Reading Aloud is scored /15 across three dimensions (updated
+// 2026-07-02 — was /20, matches the PSLE 2026 rubric where Oral =
+// Reading Aloud (15) + SBC (25) = 40 total). Rough conversion from
+// the speech engine's 0-100 scales:
+//   Pronunciation / articulation: 6 marks  ← accuracy
+//   Fluency & rhythm:             5 marks  ← fluency
+//   Expressiveness:               4 marks  ← expression / prosody
+// Calibrations (rescaled from the earlier /20 curve):
 //   - Pronunciation capped by wrong-word count (mispronounced +
-//     omitted + inserted). A human examiner won't give 8/8 with 3+
-//     visible errors; the raw accuracy % washes over that. Cap curve:
-//     0 wrong → 8, 1 → 7.5, 2 → 7, 3 → 6.5, 4 → 6, 5 → 5.5, 6 → 5,
-//     each additional wrong drops another 0.5, floored at 3.
-//   - Fluency capped at 4.5/6 when WPM > 180 (too fast to score full
-//     marks under SEAB's "natural pace" criterion even if the audio
-//     otherwise sounds smooth).
-//   - Expressiveness gets a +1.5 calibration boost — the underlying
-//     signal reads very conservatively vs. a human examiner. If the
-//     student had few monotone stretches (verdict "good variation"),
-//     also floor the score at 5 so a genuinely expressive read never
-//     lands below 5/6.
-// If the expression signal isn't returned (older SDK / feature
-// disabled), the expressiveness dimension falls back to a fluency-
-// proxied estimate so the /20 total is still meaningful.
+//     omitted + inserted). Cap curve: 0 wrong → 6, then -0.4 per
+//     wrong word, floored at 2. Human examiners won't give 6/6 with
+//     3+ visible errors regardless of the phoneme accuracy %.
+//   - Fluency capped at 3.5/5 when WPM > 180 (too fast for SEAB's
+//     "natural pace" even if the audio sounds smooth).
+//   - Expressiveness gets a +1 calibration boost — the prosody
+//     signal reads conservatively vs. a human examiner.
+//     Verdict caps: flat → max 2 / 4, some variation → max 2.5 / 4,
+//     good variation → floor 3.3 / 4.
 function computeSeabScore(
   accuracy: number,
   fluency: number,
@@ -545,34 +557,23 @@ function computeSeabScore(
   bd: Breakdown,
 ): ScoreSummary["seab"] {
   const wrongCount = bd.pronunciation.mispronounced + bd.pronunciation.omitted + bd.pronunciation.inserted;
-  const pronunciationRaw = (accuracy / 100) * 8;
-  const pronunciationCap = Math.max(3, 8 - 0.5 * wrongCount);
+  const pronunciationRaw = (accuracy / 100) * 6;
+  const pronunciationCap = Math.max(2, 6 - 0.4 * wrongCount);
   const pronunciation = Math.min(pronunciationRaw, pronunciationCap);
 
-  let fluencyRhythm = (fluency / 100) * 6;
-  if (bd.fluency.wpm > 180) fluencyRhythm = Math.min(fluencyRhythm, 4.5);
+  let fluencyRhythm = (fluency / 100) * 5;
+  if (bd.fluency.wpm > 180) fluencyRhythm = Math.min(fluencyRhythm, 3.5);
 
-  const expressivenessRaw = ((prosody ?? fluency) / 100) * 6;
-  let expressiveness = expressivenessRaw + 1.5;
-  // Verdict-based cap. The +1.5 boost was calibrated for expressive
-  // reads but wrongly rescued monotone reads to 5/6. Cap by verdict:
-  //   - flat            -> cap 3.5 (must feel wrong to a human ear)
-  //   - some variation  -> cap 4.5
-  //   - good variation  -> floor 5 (protect expressive reads)
-  // 2026-07-02: user probe with deliberately monotone read scored
-  // 5/6 despite the "mostly flat" verdict — that's the bug this
-  // fixes.
+  const expressivenessRaw = ((prosody ?? fluency) / 100) * 4;
+  let expressiveness = expressivenessRaw + 1;
   if (bd.expressiveness.intonationVerdict === "flat") {
-    expressiveness = Math.min(expressiveness, 3);
+    expressiveness = Math.min(expressiveness, 2);
   } else if (bd.expressiveness.intonationVerdict === "some variation") {
-    // 2026-07-02 probe: "some variation" verdict was capped at 4.5
-    // but scored 5/6 due to rounding. Drop cap to 4 so a "some
-    // variation" read reliably lands at 4 or below.
-    expressiveness = Math.min(expressiveness, 4);
+    expressiveness = Math.min(expressiveness, 2.5);
   } else if (bd.expressiveness.intonationVerdict === "good variation") {
-    expressiveness = Math.max(expressiveness, 5);
+    expressiveness = Math.max(expressiveness, 3.3);
   }
-  expressiveness = Math.min(6, expressiveness);
+  expressiveness = Math.min(4, expressiveness);
 
   return {
     pronunciation: round1(pronunciation),
@@ -1011,7 +1012,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
       <div className="space-y-2">
         {/* Pronunciation — blue */}
         <div className={`rounded-lg border ${TONE_STYLES.blue.softBorder} ${TONE_STYLES.blue.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {Math.round(score.seab.pronunciation)} / 8</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {score.seab.pronunciation} / 6</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Of <strong>{b.pronunciation.total}</strong> words in the passage,
             you read <strong>{b.pronunciation.clear}</strong> clearly,
@@ -1028,7 +1029,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
 
         {/* Fluency & Rhythm — purple */}
         <div className={`rounded-lg border ${TONE_STYLES.purple.softBorder} ${TONE_STYLES.purple.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {Math.round(score.seab.fluencyRhythm)} / 6</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {score.seab.fluencyRhythm} / 5</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             You read at <strong>{b.fluency.wpm > 0 ? `${b.fluency.wpm} words/min` : "—"}</strong>
             {b.fluency.wpm > 0 && (
@@ -1048,7 +1049,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
 
         {/* Expressiveness — brown/amber */}
         <div className={`rounded-lg border ${TONE_STYLES.brown.softBorder} ${TONE_STYLES.brown.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {Math.round(score.seab.expressiveness)} / 6</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {score.seab.expressiveness} / 4</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Your intonation was <strong>{
               b.expressiveness.intonationVerdict === "good variation" ? "varied and natural — pitch moved with meaning" :
@@ -1139,6 +1140,68 @@ function TipsBlock({ words, breakdown, onPlayWord }: { words: WordScore[]; break
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ContinueToSbcButton({
+  year, readingDay, userId, score, recordingUrl,
+}: { year: string; readingDay: number; userId: string; score: ScoreSummary; recordingUrl: string | null }) {
+  // Fires when the student clicks Continue. Persists Reading Aloud
+  // results into the session, picks a random SBC day, then navigates.
+  const handleClick = () => {
+    // Distil 1-3 top tips from the breakdown for the aggregate view.
+    const tips: string[] = [];
+    const b = score.breakdown;
+    if (b.pronunciation.mispronounced > 0) tips.push(`Sharpen ${b.pronunciation.mispronounced} mispronounced word${b.pronunciation.mispronounced === 1 ? "" : "s"} — sound every consonant, don't drop endings.`);
+    if (b.pronunciation.omitted > 0) tips.push(`Watch for skipped words (${b.pronunciation.omitted}) — read every word in the passage, don't rush.`);
+    if (b.fluency.paceVerdict === "too fast") tips.push("Slow down — you were reading past 160 wpm. Aim for 120-140.");
+    if (b.fluency.paceVerdict === "too slow") tips.push("Pick up the pace — under 100 wpm reads as hesitant. Aim for 120-140.");
+    if (b.expressiveness.intonationVerdict === "flat") tips.push("Add expression — move the pitch up for questions, down for full stops. Stress the content words.");
+    if (b.expressiveness.intonationVerdict === "some variation") tips.push("Bring more colour — some passages sat flat. Look for lines that carry emotion or emphasis.");
+    if (tips.length === 0) tips.push("Solid read across the board — keep this energy going into the Stimulus Conversation.");
+
+    // Session should already exist (created on Start Practice from
+    // homepage). If not, seed a minimal one so the SBC flow doesn't
+    // break — treat this as a mid-flow entry point.
+    const existing = loadOralSession();
+    if (!existing) {
+      updateOralSession({}); // no-op if no session; keeps types happy
+    }
+    updateOralSession({
+      reading: {
+        year,
+        day: readingDay,
+        pronunciation: score.seab.pronunciation,
+        fluencyRhythm: score.seab.fluencyRhythm,
+        expressiveness: score.seab.expressiveness,
+        total: score.seab.total,
+        topTips: tips.slice(0, 3),
+      },
+    });
+
+    // Pick a random SBC day (1 or 2). Same year as the theme; picture
+    // is intentionally NOT tied to the Reading Aloud day so students
+    // don't over-prepare on a specific stimulus.
+    const sbcDay = pickRandomSbcDay();
+    window.location.href = `/admin/english-oral-coach/sbc/${year}/${sbcDay}?userId=${userId}&flow=1`;
+    // Silence unused-var lint for now — recordingUrl will be uploaded
+    // to R2 from the results page once we wire persistence.
+    void recordingUrl;
+  };
+  return (
+    <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 p-4 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <p className="text-sm font-semibold text-emerald-800">Ready for the Stimulus Conversation?</p>
+        <p className="text-xs text-emerald-700/80 mt-0.5">Three questions with the examiner about a random picture. Worth 25 marks — your combined score will follow.</p>
+      </div>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="text-base bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-700 hover:shadow-lg transition flex-shrink-0"
+      >
+        Continue to SBC →
+      </button>
     </div>
   );
 }
