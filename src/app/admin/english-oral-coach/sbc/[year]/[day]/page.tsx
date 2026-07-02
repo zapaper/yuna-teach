@@ -126,6 +126,24 @@ function Inner() {
       playbackCtxRef.current = new AudioContext({ sampleRate: 24000 });
       playbackNextTimeRef.current = 0;
 
+      // Speak the opener via browser TTS FIRST — BEFORE opening the
+      // Live session. If we open Live first, Gemini receives its
+      // system instruction and immediately generates an opening
+      // spoken turn (repeating the prompt) that plays over the TTS.
+      // Delaying the Live connection until after TTS ends means
+      // Gemini's very first input is real student audio, so it can
+      // only respond as a follow-up.
+      const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
+      setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
+      setExaminerSpeaking(true);
+      setStatus("live");
+      await speakOpener(opener);
+      setExaminerSpeaking(false);
+
+      // Now connect the Live session. The system instruction tells
+      // Gemini its first turn must be a reaction to what the student
+      // says next — which is what will actually arrive first through
+      // the mic stream we start immediately below.
       const mod = await import("@google/genai");
       const client = new mod.GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
       const session = await client.live.connect({
@@ -136,7 +154,7 @@ function Inner() {
           outputAudioTranscription: {},
         },
         callbacks: {
-          onopen: () => setStatus("live"),
+          onopen: () => { /* already showing live */ },
           onmessage: (msg: unknown) => handleLiveMessage(msg),
           onerror: (e: unknown) => { setError(String(e)); setStatus("error"); },
           onclose: () => {
@@ -145,19 +163,6 @@ function Inner() {
         },
       });
       sessionRef.current = session;
-
-      // Opener: use browser TTS (same voice pattern as Reading Aloud)
-      // to speak the greeting + selected prompt. Gemini Live sits
-      // silent on session open — we can't rely on it to speak first.
-      // Doing the opener as TTS is also deterministic: we know
-      // exactly what was said, so the student always hears the
-      // intended prompt. Await TTS end before opening the mic so the
-      // opener doesn't feed back into Gemini's ears.
-      const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
-      setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
-      setExaminerSpeaking(true);
-      await speakOpener(opener);
-      setExaminerSpeaking(false);
 
       // Start capturing mic and streaming into the session.
       await startMicStream(session);
@@ -238,16 +243,28 @@ function Inner() {
       synth.cancel();
       const speak = () => {
         const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "en-GB";
-        utter.rate = 0.95;
         const voices = synth.getVoices();
-        // Strict British-voice picker. On Windows, en-GB match alone
-        // can return a US-sounding fallback; force by voice NAME.
-        // Priority: Chrome UK voices -> Edge UK voices -> Apple UK
-        // voices -> any voice explicitly named "UK" -> plain en-GB.
+        // Voice picker priority:
+        //   1. en-SG (Singapore English) — rare but ideal for PSLE
+        //      context. Some Windows systems ship "Microsoft Wayan"
+        //      (id-ID) which is close-ish; also try en-SG lang code.
+        //   2. Named Singapore/SEA voices (Ivy, Wayan) as loose match.
+        //   3. Strict British voices (Google UK, MS Susan/Hazel/Sonia,
+        //      Apple Kate/Serena/Daniel) — closest widely-available
+        //      accent to Singapore English.
+        //   4. Any en-GB voice.
+        //   5. Any en-* voice.
+        // Also read voices explicitly with voiceURI markers since
+        // browser vendors sometimes namespace SG voices oddly.
         const byName = (patterns: RegExp[]) =>
-          patterns.map((p) => voices.find((v) => p.test(v.name))).find(Boolean);
+          patterns.map((p) => voices.find((v) => p.test(v.name) || p.test(v.voiceURI ?? ""))).find(Boolean);
         const preferred =
+          voices.find((v) => v.lang === "en-SG") ||
+          byName([
+            /Singapore/i,
+            /\ben-SG\b/i,
+            /Wayan/i,
+          ]) ||
           byName([
             /Google UK English Female/i,
             /Google UK English Male/i,
@@ -259,7 +276,13 @@ function Inner() {
           voices.find((v) => v.lang === "en-GB") ||
           voices.find((v) => v.lang.startsWith("en-GB")) ||
           voices.find((v) => v.lang.startsWith("en"));
-        if (preferred) utter.voice = preferred;
+        if (preferred) {
+          utter.voice = preferred;
+          utter.lang = preferred.lang;
+        } else {
+          utter.lang = "en-GB";
+        }
+        utter.rate = 0.95;
         utter.onend = () => resolve();
         utter.onerror = () => resolve();
         synth.speak(utter);
