@@ -47,14 +47,13 @@ type ScoreSummary = {
   words: AzureWord[];
   transcription: string;
   seab: {
-    // Percent per dimension, 0-100 in 5% increments.
+    // Same three buckets as English Reading Aloud — 0-100% each.
     pronunciationPercent: number;    // 发音与声调
     fluencyPercent: number;          // 流利度
     expressivenessPercent: number;   // 语调 / 表情达意
-    accuracyPercent: number;         // 准确度
-    // Overall = equal-weighted average of the 4 dimensions.
+    // Equal-weighted average, snapped to 5%. /10 = overall × 10/100.
     overallPercent: number;
-    total: number;                   // /20 = overallPercent × 20 / 100
+    total: number;                   // /10
   };
 };
 
@@ -141,8 +140,9 @@ function Inner() {
         transcription: "" as string,
       };
 
-      recognizer.recognized = (_s: unknown, e: { result: { text?: string; properties: { getProperty: (id: unknown) => string }; json?: string } }) => {
+      recognizer.recognized = (_s: unknown, evt: unknown) => {
         try {
+          const e = evt as { result: { text?: string; properties: { getProperty: (key: unknown, def?: unknown) => string } } };
           const jsonRaw = e.result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult);
           const parsed = JSON.parse(jsonRaw) as {
             NBest?: Array<{
@@ -275,13 +275,12 @@ function Inner() {
                   <div className="flex items-end gap-2">
                     <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">总分 · Total</p>
                     <span className="text-3xl font-bold text-slate-800 leading-none">{score.seab.total}</span>
-                    <span className="text-sm text-slate-500 pb-0.5">/ 20 · {score.seab.overallPercent}%</span>
+                    <span className="text-sm text-slate-500 pb-0.5">/ 10 · {score.seab.overallPercent}%</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                  <div className="grid grid-cols-3 gap-2 mt-3">
                     <SeabDim label="发音与声调" percent={score.seab.pronunciationPercent} tone="indigo" />
                     <SeabDim label="流利度" percent={score.seab.fluencyPercent} tone="purple" />
                     <SeabDim label="语调" percent={score.seab.expressivenessPercent} tone="amber" />
-                    <SeabDim label="准确度" percent={score.seab.accuracyPercent} tone="rose" />
                   </div>
                 </div>
               </div>
@@ -302,8 +301,13 @@ function Inner() {
   );
 }
 
-// Per-dimension percentage → equal-weighted average → /20.
-// Snap each dimension to the nearest 5% so it matches the SBC style.
+// Per-dimension percentage → equal-weighted average → /10.
+// Same three buckets as the English Reading Aloud (per user 2026-07-02
+// "we score in the same buckets, use %, just that the total marks is
+// slightly different, 10 and 30"). Accuracy of characters is folded
+// into pronunciation via the Azure completeness × accuracy penalty
+// rather than getting its own axis, so 3 dims (not 4). PSLE 华文
+// Paper 3 Oral: 朗读 = 10 marks.
 function computeSeabScoreZh(
   accuracy: number,
   fluency: number,
@@ -313,23 +317,24 @@ function computeSeabScoreZh(
   const snap5 = (n: number) => Math.round(n / 5) * 5;
   const clamp = (n: number) => Math.max(0, Math.min(100, snap5(n)));
 
-  const pronunciationPercent = clamp(accuracy);
+  // Missing / extra characters knock the pronunciation ceiling down —
+  // 100% completeness means no penalty, 50% completeness ≈ half the
+  // passage skipped so cap pronunciation at 50%.
+  const completenessFactor = Math.max(0.5, completeness / 100);
+  const pronunciationPercent = clamp(accuracy * completenessFactor);
   const fluencyPercent = clamp(fluency);
   // Prosody in Chinese reads conservatively; +15pp calibration.
-  // Fall back to fluency if the engine didn't return prosody.
   const expressivenessPercent = clamp((prosody ?? fluency) + 15);
-  const accuracyPercent = clamp(completeness);
 
   const overallPercent = snap5(
-    (pronunciationPercent + fluencyPercent + expressivenessPercent + accuracyPercent) / 4,
+    (pronunciationPercent + fluencyPercent + expressivenessPercent) / 3,
   );
-  const total = Math.round((overallPercent * 20 / 100) * 100) / 100;
+  const total = Math.round((overallPercent * 10 / 100) * 100) / 100;
 
   return {
     pronunciationPercent,
     fluencyPercent,
     expressivenessPercent,
-    accuracyPercent,
     overallPercent,
     total,
   };
@@ -361,7 +366,6 @@ function ContinueToSbcButton({ themeId, userId, score }: { themeId: string; user
     if (s.pronunciationPercent < 70) tips.push("发音与声调要更准确 —— 特别是二三声,以及「得/的/地」。");
     if (s.fluencyPercent < 70) tips.push("按词语分组来读,不要一字一字地念;停顿要落在标点上。");
     if (s.expressivenessPercent < 70) tips.push("多用语气表达感情:问号上扬,句号下降,重点词要加强。");
-    if (s.accuracyPercent < 70) tips.push("看清每一个字,不要漏字、加字或换字。");
     if (tips.length === 0) tips.push("朗读稳健 —— 保持这样的状态进入会话环节。");
 
     const existing = loadOralSession();
@@ -370,9 +374,9 @@ function ContinueToSbcButton({ themeId, userId, score }: { themeId: string; user
       reading: {
         year: themeId,
         day: 0,
-        pronunciation: s.pronunciationPercent * 6 / 100,
-        fluencyRhythm: s.fluencyPercent * 5 / 100,
-        expressiveness: s.expressivenessPercent * 5 / 100,
+        pronunciation: s.pronunciationPercent,
+        fluencyRhythm: s.fluencyPercent,
+        expressiveness: s.expressivenessPercent,
         total: s.total,
         topTips: tips.slice(0, 3),
       },

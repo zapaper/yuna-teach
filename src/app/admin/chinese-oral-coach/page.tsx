@@ -75,7 +75,7 @@ function PageInner() {
             <h1 className="text-lg font-bold text-slate-800">华文口试练习 · Oral Coach (Chinese) — v0</h1>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Chinese PSLE Paper 3 Oral: 朗读 (20 marks) + 会话 (30 marks) = 50 marks total.
+            Chinese PSLE Paper 3 Oral: 朗读 (10 marks) + 会话 (30 marks) = 40 marks total.
           </p>
         </div>
 
@@ -106,11 +106,11 @@ function PageInner() {
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">朗读 · Reading Aloud (20)</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">朗读 · Reading Aloud (10)</p>
               <ul className="text-xs text-slate-700 space-y-2">
                 <li>
                   <b className="text-indigo-700">发音与声调</b>
-                  <p className="text-[11px] text-slate-500 mt-0.5">读准每一个字,尤其是二三声和 得/的/地。不要把「是」读成一声。</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">读准每一个字,尤其是二三声和 得/的/地。不加字、不漏字、不换字。</p>
                 </li>
                 <li>
                   <b className="text-purple-700">流利度</b>
@@ -119,10 +119,6 @@ function PageInner() {
                 <li>
                   <b className="text-amber-700">语调 / 表情达意</b>
                   <p className="text-[11px] text-slate-500 mt-0.5">问号要上扬,句号要下降;重点词要加强。让声音带出感情。</p>
-                </li>
-                <li>
-                  <b className="text-rose-700">准确度</b>
-                  <p className="text-[11px] text-slate-500 mt-0.5">不加字、不漏字、不换字。仔细看清每一个字。</p>
                 </li>
               </ul>
             </div>
@@ -228,7 +224,7 @@ function PageInner() {
                   开始练习 · Start Practice →
                 </button>
                 <p className="text-xs text-slate-500 leading-snug flex-1 min-w-[200px]">
-                  先朗读(20分),再会话(30分)。图片会随机选择,让你练习临场应变。
+                  先朗读(10分),再会话(30分)。图片和你选择的主题相符。
                 </p>
               </div>
             </div>

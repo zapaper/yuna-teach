@@ -1,198 +1,323 @@
-// PSLE 华文 Paper 3 Oral practice catalogue.
+// Chinese Oral Coach — theme catalogue.
 //
-// Each theme carries a short 朗读 passage (~100-130 characters,
-// primary-school register) and three 会话 prompts in the 2026 order:
-//   Q1 描述 — describe the stimulus
-//   Q2 表达意见 — opinion / agreement
-//   Q3 分享经历 — personal experience
+// Mirrors the English 20-item catalogue (10 years × 2 days). Each
+// Chinese theme uses the same picture as its English counterpart
+// (same imageR2Path); the SBC prompts are Chinese translations of
+// the English 描述 / 意见 / 经历 questions.
 //
-// Stimuli reuse the R2 Singapore photos we generated for the English
-// module — the visuals are language-agnostic. imageR2Path is the
-// object path inside the R2 bucket.
+// Marks split (PSLE 华文 Paper 3 Oral, 2026):
+//   朗读 (Reading Aloud): 10 marks
+//   会话 (SBC):           30 marks
+//   Total:                40
 //
-// The scoring targets 50 marks: Reading Aloud /20 + SBC /30.
-
-export type OralThemeZhKey =
-  | "zh_neighbours"
-  | "zh_hawker"
-  | "zh_teacher"
-  | "zh_recycling"
-  | "zh_reading"
-  | "zh_screen_time"
-  | "zh_pets"
-  | "zh_outdoor"
-  | "zh_appreciation"
-  | "zh_cooking";
+// Same scoring "buckets" as the English module — pronunciation /
+// fluency / expressiveness for 朗读 (scored 0-100% each, average
+// mapped to /10); Q1/Q2/Q3 for 会话 (scored 0-100% each, average
+// mapped to /30).
+//
+// Passages: placeholders for now (marked with TODO); real PSLE
+// Chinese 朗读 passages will be swapped in from the yanzimandarin
+// sample-topics corpus (see the passages-research agent output).
 
 export type OralThemeZh = {
-  id: OralThemeZhKey;
-  theme: string;         // 3-6 character Chinese label shown in the picker
-  blurb: string;         // one sentence describing the scene / focus
-  category: string;      // used for the badge chip
-  /** R2 object path (relative to the bucket root) for the stimulus image. */
+  id: string;              // "YYYY_D" — same shape as the English catalogue
+  year: string;
+  day: 1 | 2;
+  theme: string;           // 3-6 char Chinese label shown in the picker
+  blurb: string;           // one-sentence Chinese description of the scene
+  category: string;        // used for the badge chip
+  /** R2 object path for the stimulus picture. Shared with the English module. */
   imageR2Path: string;
-  /** Reading Aloud passage — Simplified Chinese, ~100-130 characters. */
+  /** Reading Aloud passage — Simplified Chinese, ~100-140 characters. */
   passage: string;
+  /** Whether the passage is a real PSLE / sample passage vs a placeholder. */
+  passageAuthentic: boolean;
   prompts: {
-    describe: string;    // Q1 描述
-    opinion: string;     // Q2 表达意见
-    experience: string;  // Q3 分享经历
+    describe: string;    // Q1 描述 — comment on the picture
+    opinion: string;     // Q2 表达意见 — opinion / agreement
+    experience: string;  // Q3 分享经历 — personal experience
   };
+  isAuthentic: boolean;    // whether the *English* source was an authentic PSLE paper
 };
 
 export const ORAL_THEMES_ZH: OralThemeZh[] = [
   {
-    id: "zh_neighbours",
-    theme: "睦邻友好",
-    blurb: "邻居在组屋楼下一起吃饭 —— 谈邻里关系与守望相助。",
-    category: "社区",
-    imageR2Path: "oral-coach/pictures/2020_oral_day1_stimulus.jpg",
+    id: "2025_1", year: "2025", day: 1, theme: "排队与秩序", category: "社会",
+    blurb: "冰淇淋车前排着长长的队伍 —— 谈守秩序与新加坡人的排队文化。",
+    imageR2Path: "oral-coach/pictures/2025_oral_day1_stimulus.jpg",
     passage:
-      "我住在一座组屋里,楼下有一个宽敞的走廊。每逢周末,邻居们都会聚集在那里,一起吃饭、聊天。我的邻居陈阿姨热情又亲切,常常送来她亲手做的娘惹糕。我们互相帮忙,守望相助,让这里就像一个温暖的大家庭。",
+      "TODO: authentic PSLE passage on queuing / orderliness — sample from yanzimandarin corpus.",
+    passageAuthentic: false,
     prompts: {
-      describe: "请你描述一下图片里的情景。你看到了什么?",
-      opinion: "你觉得邻居之间应不应该经常来往?为什么?",
-      experience: "请你说一说自己和邻居之间发生过的一件事。",
+      describe: "这是不是一个适合卖冰淇淋的好地方?为什么?",
+      opinion: "你愿不愿意为了买东西排很长的队?为什么?",
+      experience: "你觉得新加坡人有秩序吗?请说明原因。",
     },
+    isAuthentic: true,
   },
   {
-    id: "zh_hawker",
-    theme: "小贩中心",
-    blurb: "小贩中心里人们排队买美食 —— 谈本地饮食文化。",
-    category: "文化",
+    id: "2025_2", year: "2025", day: 2, theme: "小贩中心", category: "文化",
+    blurb: "小贩中心里人们吃饭买食物 —— 谈本地饮食文化。",
     imageR2Path: "oral-coach/pictures/2025_oral_day2_stimulus.jpg",
     passage:
-      "小贩中心是新加坡人生活中不可缺少的一部分。这里售卖各种各样的美食,有鸡饭、叻沙、云吞面等等。到了中午,顾客们排着长长的队伍,等着买自己喜爱的食物。摊主们熟练地烹煮着食物,笑容满面地招待每一位客人。",
+      "TODO: authentic PSLE passage on hawker culture.",
+    passageAuthentic: false,
     prompts: {
-      describe: "图片里的小贩中心热不热闹?你看到了什么?",
-      opinion: "你觉得小贩中心的美食比家里煮的好吃吗?为什么?",
-      experience: "请你说说你最喜欢在小贩中心吃什么,为什么?",
+      describe: "你觉得图片里的人为什么选择在小贩中心吃饭?",
+      opinion: "你比较喜欢家里煮的饭菜,还是买外面的食物?为什么?",
+      experience: "你觉得小孩子应不应该学做饭?为什么?",
     },
+    isAuthentic: true,
   },
   {
-    id: "zh_teacher",
-    theme: "感谢老师",
-    blurb: "学生把亲手做的贺卡送给老师 —— 谈感恩与尊敬。",
-    category: "感恩",
-    imageR2Path: "oral-coach/pictures/2017_oral_day1_stimulus.jpg",
-    passage:
-      "每逢教师节,学生们都会用心地准备礼物送给老师。有的画贺卡,有的写感谢信,有的甚至折出精美的纸鹤。老师们看到这些礼物,总是笑得合不拢嘴。他们最欣慰的,不是礼物本身,而是学生那份感恩的心意。",
-    prompts: {
-      describe: "请描述图片里学生送贺卡的情景。",
-      opinion: "你觉得除了老师之外,我们还应该感谢哪些人?为什么?",
-      experience: "请你分享一次你向别人表达感谢的经历。",
-    },
-  },
-  {
-    id: "zh_recycling",
-    theme: "环保回收",
-    blurb: "组屋楼下有回收桶 —— 谈爱护环境的重要性。",
-    category: "环保",
-    imageR2Path: "oral-coach/pictures/2022_oral_day1_stimulus.jpg",
-    passage:
-      "地球是我们唯一的家园,保护环境是每个人的责任。为了减少垃圾,新加坡在许多地方设立了回收桶。我们可以把用过的纸张、塑料瓶和铁罐分类丢进不同的桶里。虽然这只是一个小小的举动,但如果人人都动手,就能为地球做出很大的贡献。",
-    prompts: {
-      describe: "图片里的人在做什么?他们为什么这么做?",
-      opinion: "你觉得回收对我们的生活有什么好处?为什么?",
-      experience: "请你说说你在家里或学校做过哪些环保的事情。",
-    },
-  },
-  {
-    id: "zh_reading",
-    theme: "热爱阅读",
-    blurb: "学生们在图书馆看书 —— 谈阅读的乐趣与好处。",
-    category: "学习",
-    imageR2Path: "oral-coach/pictures/2019_oral_day1_stimulus.jpg",
-    passage:
-      "图书馆是一个安静又充满知识的地方。每当我走进图书馆,总会被那一排排书架深深吸引。这里有神秘的科幻故事,有精彩的历史书,还有幽默的漫画。阅读不但能让我们学到新知识,还能让心情放松,让思想飞翔到更广阔的世界。",
-    prompts: {
-      describe: "图片里的学生们在做什么?他们看起来怎么样?",
-      opinion: "你认为阅读对小学生重要吗?为什么?",
-      experience: "请你介绍一本你最喜爱的书,并说说它吸引你的原因。",
-    },
-  },
-  {
-    id: "zh_screen_time",
-    theme: "使用电子产品",
-    blurb: "小孩玩平板忽略了书本 —— 谈平衡与自律。",
-    category: "健康",
-    imageR2Path: "oral-coach/pictures/2022_oral_day2_stimulus.jpg",
-    passage:
-      "电子产品在我们的生活中越来越普遍。它们能帮助我们学习、看新闻、和朋友聊天。可是,过度使用电子产品会让眼睛疲劳,也会影响我们的功课和睡眠。因此,我们必须懂得安排时间,做完功课后再适当地放松,让电子产品成为帮手,而不是负担。",
-    prompts: {
-      describe: "请你描述图片里的孩子在做什么。",
-      opinion: "你同意每天使用电子产品应该有时间限制吗?为什么?",
-      experience: "请你说说你自己是怎么安排使用电子产品的时间的。",
-    },
-  },
-  {
-    id: "zh_pets",
-    theme: "爱护小动物",
-    blurb: "小男孩在公园里照顾他的小狗 —— 谈责任与关爱。",
-    category: "价值观",
-    imageR2Path: "oral-coach/pictures/2021_oral_day2_stimulus.jpg",
-    passage:
-      "我家养了一只可爱的小狗,名叫小白。每天放学后,我都会带它到楼下的公园散步。它最喜欢在草地上追逐蝴蝶,快乐地跑来跑去。照顾小白虽然要花不少时间,但它带给我数不完的欢笑。因为有了它,我学会了要有耐心,也懂得了爱护小动物的重要。",
-    prompts: {
-      describe: "图片里的小男孩正在做什么?他为什么这么做?",
-      opinion: "你觉得养宠物对孩子来说有哪些好处?为什么?",
-      experience: "请你分享一次你和小动物相处的经历。",
-    },
-  },
-  {
-    id: "zh_outdoor",
-    theme: "户外活动",
-    blurb: "一家人在公园骑脚踏车 —— 谈健康的生活方式。",
-    category: "健康",
+    id: "2024_1", year: "2024", day: 1, theme: "户外活动", category: "健康",
+    blurb: "一家人在新加坡公园里骑脚踏车 —— 谈户外活动与公德心。",
     imageR2Path: "oral-coach/pictures/2024_oral_day1_stimulus.jpg",
-    passage:
-      "在阳光明媚的周末,我最喜欢和家人一起到公园活动。哥哥总是抢先骑上脚踏车,妹妹则拉着我的手,一起在小路上散步。空气清新,鸟儿在树上欢快地叫着。这样的时刻让我感到无比放松,也让我明白,健康的生活离不开运动和大自然的陪伴。",
+    passage: "TODO: passage on enjoying the outdoors.",
+    passageAuthentic: false,
     prompts: {
-      describe: "图片里的一家人在做什么?他们看起来怎么样?",
-      opinion: "你觉得多参与户外活动对小学生有什么帮助?为什么?",
-      experience: "请你说说你最喜欢的一项户外活动,以及它带给你的乐趣。",
+      describe: "你觉得这个公园适合家人一起度过周末吗?为什么?",
+      opinion: "你喜不喜欢在户外度过自由时间?为什么?",
+      experience: "你觉得新加坡人在公共空间使用公园的时候够不够体谅别人?为什么?",
     },
+    isAuthentic: false,
   },
   {
-    id: "zh_appreciation",
-    theme: "感谢劳动者",
-    blurb: "学生向食堂清洁员表达感谢 —— 谈欣赏与尊重。",
-    category: "价值观",
+    id: "2024_2", year: "2024", day: 2, theme: "感谢劳动者", category: "社区",
+    blurb: "学生向学校清洁员表达感谢 —— 谈欣赏与尊重。",
     imageR2Path: "oral-coach/pictures/2024_oral_day2_stimulus.jpg",
-    passage:
-      "在我们的校园里,有一群默默付出的人。清洁员每天清扫走廊,擦洗桌椅,让我们能在干净的环境里学习。食堂的叔叔阿姨则准备可口的饭菜,让我们吃得开心。虽然他们的工作看起来平凡,却是校园生活中不可或缺的一部分。让我们记得对他们说声“谢谢”,感谢他们默默的付出。",
+    passage: "TODO: passage on appreciating community helpers.",
+    passageAuthentic: false,
     prompts: {
-      describe: "请描述一下图片里的情景。学生们在做什么?",
-      opinion: "你觉得我们为什么应该感谢默默付出的人?",
-      experience: "请你说说你曾经如何向学校里的工作人员表达感谢。",
+      describe: "你觉得学生为什么要送贺卡给清洁员?",
+      opinion: "你愿不愿意花时间去帮助社区里的老人?为什么?",
+      experience: "你觉得感谢我们社区里做日常工作的人重要吗?为什么?",
     },
+    isAuthentic: false,
   },
   {
-    id: "zh_cooking",
-    theme: "学习做饭",
-    blurb: "小朋友和家人一起做饭 —— 谈健康饮食与生活技能。",
-    category: "家庭",
-    imageR2Path: "oral-coach/pictures/2016_oral_day2_stimulus.jpg",
-    passage:
-      "自己动手做饭,是一件既有趣又有意义的事情。妈妈教我认识各种食材,告诉我哪些青菜有丰富的维生素,哪些食物含有太多的糖。我学会了洗菜、切菜,还试着煮出简单的番茄鸡蛋面。虽然味道还不完美,但是自己做的饭菜,吃起来总觉得格外美味。",
+    id: "2023_1", year: "2023", day: 1, theme: "参观展览", category: "学习",
+    blurb: "小学生兴奋地看着展览中的互动机器人 —— 谈学习与探索。",
+    imageR2Path: "oral-coach/pictures/2023_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on visiting exhibitions.",
+    passageAuthentic: false,
     prompts: {
-      describe: "请你描述一下图片里的孩子在做什么?",
-      opinion: "你觉得小学生学会做饭是不是一件重要的事?为什么?",
-      experience: "请你分享一次你亲手做出食物的经历。",
+      describe: "你有没有兴趣参观图片里的这个展览?为什么?",
+      opinion: "请你介绍新加坡的一个你去过或想去的名胜景点。",
+      experience: "你觉得学校假期够不够长?为什么?",
     },
+    isAuthentic: false,
+  },
+  {
+    id: "2023_2", year: "2023", day: 2, theme: "珍贵的回忆", category: "价值观",
+    blurb: "祖父与孙女翻看旧照片 —— 谈回忆与珍藏。",
+    imageR2Path: "oral-coach/pictures/2023_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on memories and keepsakes.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得爷爷和小女孩为什么喜欢一起看相册?",
+      opinion: "请你说说一件你很珍惜的物品,以及你珍惜它的原因。",
+      experience: "你喜不喜欢用照片记录你的生活?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2022_1", year: "2022", day: 1, theme: "环保回收", category: "环保",
+    blurb: "组屋底层放着回收桶 —— 谈爱护环境与做好本分。",
+    imageR2Path: "oral-coach/pictures/2022_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on recycling and environment.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这个组屋底层适合放回收桶吗?为什么?",
+      opinion: "你比较喜欢把旧东西直接丢掉,还是回收?为什么?",
+      experience: "你觉得保护环境重不重要?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2022_2", year: "2022", day: 2, theme: "使用电子产品", category: "健康",
+    blurb: "小孩玩平板电脑忽略了课本 —— 谈自律与平衡。",
+    imageR2Path: "oral-coach/pictures/2022_oral_day2_stimulus.jpg",
+    // Authentic PSLE-adjacent passage (pslenotes.sg 第12篇, ~168 chars).
+    passage:
+      "网络已经成了生活的一部分。可是,许多孩子长时间使用手机,过于依赖电子产品。他们不仅视力受影响,有时还会接触到不良内容,甚至在玩游戏时遇到网络欺凌。为了解决这个问题,社会服务机构推出了特别的亲子工具盒。这能帮助家长和孩子控制使用手机的时间,并教导大家如何安全上网。只要培养良好的数码习惯,就能安全地在网络世界里学习。",
+    passageAuthentic: true,
+    prompts: {
+      describe: "你觉得图片里的孩子应不应该在这个时候玩平板?为什么?",
+      opinion: "你觉得功课时间到了却还想玩电子产品,是不是很难克制?为什么?",
+      experience: "你觉得小学生有没有必要有一份每日的时间表?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2021_1", year: "2021", day: 1, theme: "作息与睡眠", category: "健康",
+    blurb: "疲惫的学生走在上学路上 —— 谈休息与作息规律。",
+    imageR2Path: "oral-coach/pictures/2021_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on sleep and rest.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得图片里的学生睡得够不够?为什么?",
+      opinion: "你觉得早上起床上学困不困难?为什么?",
+      experience: "你觉得新加坡人是不是普遍休息得够?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2021_2", year: "2021", day: 2, theme: "爱护宠物", category: "价值观",
+    blurb: "小男孩在公园里照顾他的小狗 —— 谈责任与关爱。",
+    imageR2Path: "oral-coach/pictures/2021_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on caring for pets.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得图片里的小男孩是不是一个负责任的宠物主人?为什么?",
+      opinion: "你有没有宠物,或者你想不想要一只宠物?为什么?",
+      experience: "你觉得养宠物能不能培养孩子好的品德?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2020_1", year: "2020", day: 1, theme: "邻里情谊", category: "社区",
+    blurb: "邻居在组屋走廊分享一顿饭 —— 谈邻里关系。",
+    imageR2Path: "oral-coach/pictures/2020_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on neighbourhood ties.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这个组屋走廊适合举办邻里聚餐吗?为什么?",
+      opinion: "你和邻居来不来往?为什么?",
+      experience: "你觉得邻居之间应不应该互相认识?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2020_2", year: "2020", day: 2, theme: "学校表演", category: "学校",
+    blurb: "学生们在学校舞台上表演 —— 谈课外活动与展示自我。",
+    imageR2Path: "oral-coach/pictures/2020_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on school performances.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得观众看这个表演开不开心?为什么?",
+      opinion: "你比较想上台表演还是在后台帮忙?为什么?",
+      experience: "你觉得学校为学生举办音乐会和表演重不重要?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2019_1", year: "2019", day: 1, theme: "热爱阅读", category: "学习",
+    blurb: "学生们在学校图书馆坐在懒骨头上看书 —— 谈阅读的乐趣。",
+    imageR2Path: "oral-coach/pictures/2019_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on reading and libraries.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这个图书馆是学生看书的好地方吗?为什么?",
+      opinion: "你常不常去学校的图书馆?为什么?",
+      experience: "你觉得小孩子有没有必要经常看书?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2019_2", year: "2019", day: 2, theme: "负责任", category: "价值观",
+    blurb: "学生把东西留在组屋走廊 —— 谈自我责任与照顾自己的东西。",
+    imageR2Path: "oral-coach/pictures/2019_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on being responsible.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得那个学生为什么把东西留在桌子上?",
+      opinion: "你会不会常常把自己的东西弄丢?为什么?",
+      experience: "你觉得小孩子有没有必要学会照顾自己的东西?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2018_1", year: "2018", day: 1, theme: "选择课外活动", category: "学校",
+    blurb: "学生在体育馆里参与各种课外活动 —— 谈发展兴趣。",
+    imageR2Path: "oral-coach/pictures/2018_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on choosing activities.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "图片里的活动,你最想参加哪一样?为什么?",
+      opinion: "选择课外活动时你会考虑什么?为什么?",
+      experience: "你觉得学生参与课外活动重不重要?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2018_2", year: "2018", day: 2, theme: "公开演讲", category: "技能",
+    blurb: "学生对着麦克风演讲 —— 谈自信与表达能力。",
+    imageR2Path: "oral-coach/pictures/2018_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on public speaking.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这个学生对着这么多人说话容不容易?为什么?",
+      opinion: "你比较喜欢对着一大群人说话还是对着几个朋友说话?为什么?",
+      experience: "你觉得小孩子有没有必要学会在众人面前自信地表达自己?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2017_1", year: "2017", day: 1, theme: "感谢老师", category: "社区",
+    blurb: "学生们把亲手做的贺卡送给老师 —— 谈感恩与尊敬。",
+    imageR2Path: "oral-coach/pictures/2017_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on appreciating teachers.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这些学生为什么送贺卡给老师?",
+      opinion: "你比较喜欢送亲手做的礼物,还是买来的礼物?为什么?",
+      experience: "你觉得感谢那些帮助过我们的人重不重要?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2017_2", year: "2017", day: 2, theme: "干净的教室", category: "学校",
+    blurb: "学生们一起打扫教室 —— 谈爱护公物与合作。",
+    imageR2Path: "oral-coach/pictures/2017_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on classroom cleanliness.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这些学生为什么自己动手打扫教室?",
+      opinion: "你在家或者在学校常常帮忙打扫吗?为什么?",
+      experience: "你觉得新加坡的清洁员的工作轻不轻松?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2016_1", year: "2016", day: 1, theme: "热心的同学", category: "社区",
+    blurb: "学生帮同班同学捡起掉落的东西 —— 谈助人为乐。",
+    imageR2Path: "oral-coach/pictures/2016_oral_day1_stimulus.jpg",
+    passage: "TODO: passage on supportive friends.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得这个帮忙的学生是一个好朋友吗?为什么?",
+      opinion: "你愿不愿意帮一个你不太熟的同学?为什么?",
+      experience: "你觉得新加坡人普遍愿不愿意帮助别人?为什么?",
+    },
+    isAuthentic: false,
+  },
+  {
+    id: "2016_2", year: "2016", day: 2, theme: "健康饮食", category: "家庭",
+    blurb: "一家人一起做饭 —— 谈饮食习惯与家庭。",
+    imageR2Path: "oral-coach/pictures/2016_oral_day2_stimulus.jpg",
+    passage: "TODO: passage on cooking and eating well.",
+    passageAuthentic: false,
+    prompts: {
+      describe: "你觉得图片里的孩子做菜做得开不开心?为什么?",
+      opinion: "你自己有没有试过做食物或零食?为什么?",
+      experience: "你觉得小孩子培养健康的饮食习惯重不重要?为什么?",
+    },
+    isAuthentic: false,
   },
 ];
 
-// Same category → Tailwind palette map style as the English module.
 export const CATEGORY_STYLES_ZH: Record<string, { bg: string; text: string; ring: string }> = {
-  社区:  { bg: "bg-emerald-50",  text: "text-emerald-700",  ring: "ring-emerald-200"  },
-  文化:  { bg: "bg-amber-50",    text: "text-amber-700",    ring: "ring-amber-200"    },
-  感恩:  { bg: "bg-rose-50",     text: "text-rose-700",     ring: "ring-rose-200"     },
-  环保:  { bg: "bg-lime-50",     text: "text-lime-700",     ring: "ring-lime-200"     },
-  学习:  { bg: "bg-sky-50",      text: "text-sky-700",      ring: "ring-sky-200"      },
-  健康:  { bg: "bg-fuchsia-50",  text: "text-fuchsia-700",  ring: "ring-fuchsia-200"  },
-  价值观:{ bg: "bg-purple-50",   text: "text-purple-700",   ring: "ring-purple-200"   },
-  家庭:  { bg: "bg-orange-50",   text: "text-orange-700",   ring: "ring-orange-200"   },
+  社会:  { bg: "bg-indigo-50",  text: "text-indigo-700",  ring: "ring-indigo-200" },
+  文化:  { bg: "bg-amber-50",   text: "text-amber-700",   ring: "ring-amber-200"  },
+  健康:  { bg: "bg-rose-50",    text: "text-rose-700",    ring: "ring-rose-200"   },
+  社区:  { bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200"},
+  学习:  { bg: "bg-sky-50",     text: "text-sky-700",     ring: "ring-sky-200"    },
+  价值观:{ bg: "bg-purple-50",  text: "text-purple-700",  ring: "ring-purple-200" },
+  环保:  { bg: "bg-lime-50",    text: "text-lime-700",    ring: "ring-lime-200"   },
+  学校:  { bg: "bg-cyan-50",    text: "text-cyan-700",    ring: "ring-cyan-200"   },
+  技能:  { bg: "bg-fuchsia-50", text: "text-fuchsia-700", ring: "ring-fuchsia-200"},
+  家庭:  { bg: "bg-orange-50",  text: "text-orange-700",  ring: "ring-orange-200" },
 };
 
 export function getOralThemeZh(id: string): OralThemeZh | undefined {
