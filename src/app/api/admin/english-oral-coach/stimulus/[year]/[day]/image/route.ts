@@ -55,10 +55,12 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "image/jpeg",
-        // Short cache (1 hour) instead of immutable so the fixup
-        // rollout propagates when we re-extract instead of being
-        // pinned to the wrong orientation for a year.
-        "Cache-Control": "public, max-age=3600",
+        // Short cache (5 min) instead of immutable — previous
+        // response was pinned with max-age=31536000 immutable and
+        // browsers refuse to revalidate that even when the file
+        // changes. Query-param cache-buster (?v=2) added on the
+        // homepage + SBC page to force a fresh fetch this once.
+        "Cache-Control": "public, max-age=300",
       },
     });
   } catch {

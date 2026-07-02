@@ -807,7 +807,7 @@ function SbcTipsCategory({ title, tone, tips }: { title: string; tone: ToneKey; 
 
 function StimulusImage({ year, day, description }: { year: string; day: number; description: string }) {
   const [failed, setFailed] = useState(false);
-  const src = `/api/admin/english-oral-coach/stimulus/${year}/${day}/image`;
+  const src = `/api/admin/english-oral-coach/stimulus/${year}/${day}/image?v=2`;
   if (failed) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
