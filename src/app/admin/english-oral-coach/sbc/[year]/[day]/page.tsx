@@ -89,6 +89,14 @@ function Inner() {
   // will tick up while openerFireCount stays at 1.
   const openerFireCountRef = useRef<number>(0);
   const geminiAudioChunkCountRef = useRef<number>(0);
+  // Suppress mic-to-Gemini streaming while the examiner is speaking,
+  // otherwise the speakers -> mic loop makes Gemini hear its own
+  // voice and start responding to itself. Flip true when we receive
+  // any Gemini audio chunk, and back to false ~400ms after the last
+  // audio chunk / turnComplete (the tail of the speaker output can
+  // take a beat to fully drain).
+  const geminiSpeakingRef = useRef<boolean>(false);
+  const geminiSpeakingCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -148,7 +156,7 @@ function Inner() {
         }
         throw new Error(msg);
       }
-      const { token, model, selectedPrompt } = await tokenResp.json();
+      const { token, model, selectedPrompt, voiceName } = await tokenResp.json();
 
       // Playback pipeline for Gemini's audio replies. Gemini Live
       // returns 24kHz PCM (16-bit signed little-endian) — build a
@@ -196,6 +204,15 @@ function Inner() {
           responseModalities: [mod.Modality.AUDIO],
           inputAudioTranscription: {},
           outputAudioTranscription: {},
+          // Repeat the voice explicitly on the client too. When we
+          // only set it via the token's liveConnectConstraints, the
+          // SDK's live.connect() config-merge appears to drop it and
+          // Gemini falls back to its default voice after the opener
+          // — user reported "voice switches to base voice after
+          // initial prompt" on 2026-07-02.
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName ?? "Zephyr" } },
+          },
         },
         callbacks: {
           onopen: () => {
@@ -299,13 +316,19 @@ function Inner() {
       const b64 = part.inlineData?.data;
       if (b64) {
         geminiAudioChunkCountRef.current++;
-        // Log first chunk of every Gemini audio turn (chunks arrive
-        // in bursts of ~10-50; log #1, #10, #100... so we see when
-        // Gemini starts speaking without spamming).
         const n = geminiAudioChunkCountRef.current;
         if (n === 1 || n === 10 || n === 100 || n % 500 === 0) {
           console.log("[SBC gemini-audio] chunk #", n, "playing through speakers");
         }
+        // Mark examiner as speaking so the mic stops streaming its
+        // echo back into Gemini. Extend the cooldown timer on every
+        // chunk so it only expires ~400ms after the LAST chunk.
+        geminiSpeakingRef.current = true;
+        if (geminiSpeakingCooldownRef.current) clearTimeout(geminiSpeakingCooldownRef.current);
+        geminiSpeakingCooldownRef.current = setTimeout(() => {
+          geminiSpeakingRef.current = false;
+          geminiSpeakingCooldownRef.current = null;
+        }, 400);
         queueGeminiAudio(b64);
       }
     }
@@ -483,6 +506,14 @@ function Inner() {
       // processor tears down, so the last few audio slices would
       // otherwise hit the WebSocket after it's already CLOSING.
       if (!sessionAliveRef.current) return;
+      // Echo-suppression: while the examiner is speaking through the
+      // browser speakers, skip sending mic audio to Gemini — the
+      // speaker output leaks into the mic and Gemini otherwise hears
+      // its own voice, transcribes it as "student input", and starts
+      // responding to itself. This is what "hearing its own voice"
+      // was on 2026-07-02. The ref stays true until ~400ms after
+      // Gemini's last audio chunk.
+      if (geminiSpeakingRef.current) return;
       const input = e.inputBuffer.getChannelData(0);
       // Compute chunk peak — if it's ~0 across many chunks we know the
       // mic isn't picking anything up (permissions revoked, wrong

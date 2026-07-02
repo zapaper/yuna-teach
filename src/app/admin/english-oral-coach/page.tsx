@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { getOralAvatarKey, setOralAvatarKey, ORAL_AVATARS, type OralAvatarKey } from "@/lib/oral-avatar";
+import { OralVoiceTester } from "@/components/OralVoiceTester";
 
 export default function EnglishOralCoachPage() {
   return (
@@ -204,6 +205,11 @@ function PageInner() {
                     </>
                   )}
                 </div>
+
+                {/* Voice tester — tucked under the examiner picker so
+                    admins can audition prebuilt voices before assigning
+                    them to a persona in src/lib/oral-avatar.ts. */}
+                <OralVoiceTester />
 
                 {/* Reading Aloud — just the two practice buttons, no OCR preview */}
                 <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
