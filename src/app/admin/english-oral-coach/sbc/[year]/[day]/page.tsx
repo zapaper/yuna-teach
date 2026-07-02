@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { ExaminerAvatar } from "@/components/ExaminerAvatar";
+import { getOralAvatar, getOralAvatarKey } from "@/lib/oral-avatar";
 
 // SBC live-voice module. The examiner is Gemini Live (audio in + audio
 // out, WebSocket). The student's audio is captured via the browser mic
@@ -120,10 +121,11 @@ function Inner() {
     studentHasSpokenRef.current = false;
     setStatus("connecting");
     try {
+      const chosenGender = getOralAvatar(getOralAvatarKey()).gender;
       const tokenResp = await fetch("/api/oral-coach/gemini-live-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ year, day: dayNum }),
+        body: JSON.stringify({ year, day: dayNum, gender: chosenGender }),
       });
       if (!tokenResp.ok) {
         // Try to parse the JSON error we return; if it's an HTML Cloudflare
@@ -142,6 +144,7 @@ function Inner() {
         throw new Error(msg);
       }
       const { token, model, selectedPrompt } = await tokenResp.json();
+      const gender = chosenGender;
 
       // Playback pipeline for Gemini's audio replies. Gemini Live
       // returns 24kHz PCM (16-bit signed little-endian) — build a
@@ -159,11 +162,11 @@ function Inner() {
       // Gemini's very first input is real student audio, so it can
       // only respond as a follow-up.
       const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
-      console.log("[SBC opener] FIRING TTS #", ++openerFireCountRef.current, ":", opener);
+      console.log("[SBC opener] FIRING TTS #", ++openerFireCountRef.current, "gender:", gender, ":", opener);
       setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
       setExaminerSpeaking(true);
       setStatus("live");
-      await speakOpener(opener);
+      await speakOpener(opener, gender);
       console.log("[SBC opener] TTS finished #", openerFireCountRef.current);
       setExaminerSpeaking(false);
 
@@ -327,7 +330,7 @@ function Inner() {
   // buttons in Reading Aloud: en-GB voice, slightly slowed. Resolves
   // when the utterance finishes so start() can then open the mic
   // without the opener bleeding back into Gemini's input.
-  function speakOpener(text: string): Promise<void> {
+  function speakOpener(text: string, gender: "female" | "male" = "female"): Promise<void> {
     return new Promise((resolve) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
         resolve();
@@ -364,6 +367,21 @@ function Inner() {
         // browser vendors sometimes namespace SG voices oddly.
         const byName = (patterns: RegExp[]) =>
           patterns.map((p) => voices.find((v) => p.test(v.name) || p.test(v.voiceURI ?? ""))).find(Boolean);
+        // Split voice preferences by gender. The malay avatar is male
+        // (Mr Ismail); the other three are female. Google UK English
+        // Male / Microsoft George|Ryan / Apple Daniel|Oliver are the
+        // widely-shipped male en-GB voices.
+        const genderPatterns = gender === "male"
+          ? [
+              /Google UK English Male/i,
+              /Microsoft (George|Ryan).*United Kingdom/i,
+              /^(Daniel|Oliver|Arthur|Reed|Rocko)$/i,
+            ]
+          : [
+              /Google UK English Female/i,
+              /Microsoft (Susan|Hazel|Sonia|Libby).*United Kingdom/i,
+              /^(Kate|Serena|Martha|Fiona)$/i,
+            ];
         const preferred =
           voices.find((v) => v.lang === "en-SG") ||
           byName([
@@ -371,11 +389,8 @@ function Inner() {
             /\ben-SG\b/i,
             /Wayan/i,
           ]) ||
+          byName(genderPatterns) ||
           byName([
-            /Google UK English Female/i,
-            /Google UK English Male/i,
-            /Microsoft (Susan|Hazel|Sonia|Libby|George|Ryan).*United Kingdom/i,
-            /^(Kate|Serena|Daniel|Oliver|Martha)$/i,
             /\bUK\b.*English/i,
             /English.*\bUK\b/i,
           ]) ||
