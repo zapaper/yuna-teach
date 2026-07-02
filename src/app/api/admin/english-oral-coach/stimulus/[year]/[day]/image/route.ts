@@ -42,13 +42,27 @@ export async function GET(
   if (dayN !== 1 && dayN !== 2) return NextResponse.json({ error: "day must be 1 or 2" }, { status: 400 });
 
   if (R2_YEARS.has(year)) {
-    // 302 to the /oral-coach/pictures/ path — which next.config.ts
-    // 308-redirects again to R2. Two redirects but the browser
-    // caches both, so subsequent loads are one hop straight to R2.
-    return NextResponse.redirect(
-      new URL(`/oral-coach/pictures/${year}_oral_day${dayN}_stimulus.jpg`, _request.url),
-      302,
-    );
+    // Redirect straight to the R2 public URL. Do NOT bounce through
+    // `/oral-coach/pictures/...` first: NextResponse.redirect(new URL(
+    // path, _request.url)) resolves against the INTERNAL node bind
+    // address (http://0.0.0.0:8080 on Railway), so the Location:
+    // header ends up pointing at an address the browser can't reach.
+    // The client-side avatar loops work because they never go
+    // through a server-issued redirect — they hit /oral-coach/*
+    // directly, and next.config.ts's redirect rule fires with an
+    // already-absolute R2 destination. This endpoint has to do the
+    // same thing itself: construct the absolute R2 URL server-side
+    // and 302 there in one hop.
+    const avatarBase = process.env.NEXT_PUBLIC_AVATAR_BASE_URL;
+    if (avatarBase) {
+      return NextResponse.redirect(
+        `${avatarBase}/oral-coach/pictures/${year}_oral_day${dayN}_stimulus.jpg`,
+        302,
+      );
+    }
+    // Local dev fallback: no R2 base configured — try to serve the
+    // file from the local volume like 2025 does. If it isn't there,
+    // the outer try/catch below hands back a friendly 404.
   }
 
   const filePath = path.join(STORAGE_DIR, `${year}_oral_day${dayN}_stimulus.jpg`);
