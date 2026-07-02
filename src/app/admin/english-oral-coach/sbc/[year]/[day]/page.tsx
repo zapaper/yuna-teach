@@ -174,6 +174,16 @@ function Inner() {
       console.log("[SBC opener] TTS finished #", openerFireCountRef.current);
       setExaminerSpeaking(false);
 
+      // Extra thinking time on the first response. Gemini's VAD only
+      // knows "silence" or "not silence" from the moment the mic
+      // opens — it can't hold a longer budget just for turn #1.
+      // Trick: delay opening the mic by 1500ms after TTS ends. The
+      // server-side silenceDurationMs is 2500ms, so combined the
+      // student effectively gets ~4s of thinking time before the
+      // examiner interjects on the FIRST turn. Subsequent turns
+      // still use the tighter 2.5s.
+      await new Promise((r) => setTimeout(r, 1500));
+
       // Now connect the Live session. The system instruction tells
       // Gemini its first turn must be a reaction to what the student
       // says next — which is what will actually arrive first through

@@ -96,9 +96,14 @@ export async function POST(request: NextRequest) {
   const selectedIndex = Math.floor(Math.random() * prompts.length);
   const selectedPrompt = prompts[selectedIndex];
   console.log("[gemini-live-token] mint request", { year, day, userId, selectedIndex, gender, voiceName, model: MODEL_ENV ?? MODEL, selectedPrompt: selectedPrompt.slice(0, 80) });
+  // Suggested follow-ups: the OTHER prompts from the same day's
+  // set. Gemini can use these if they fit the flow, or invent its
+  // own. Both are fine — the goal is a natural extension of the
+  // opening prompt the student was asked, not a rigid checklist.
+  const suggestedFollowUps = prompts.filter((_, i) => i !== selectedIndex);
   const systemInstruction = buildSystemInstruction({
     stimulus: dayData.stimulusDescription ?? "",
-    prompt: selectedPrompt,
+    suggestedFollowUps,
   });
 
   // authTokens.create is only exposed on the v1alpha API surface —
@@ -193,19 +198,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSystemInstruction(args: { stimulus: string; prompt: string }): string {
+function buildSystemInstruction(args: { stimulus: string; suggestedFollowUps: string[] }): string {
   // NB: we deliberately do NOT include the verbatim opening prompt in
   // the system instruction. When we did, Gemini's very first spoken
   // turn was to repeat the prompt back to the student — even with
   // "do not repeat" wording. The prompt has already been read to the
   // student via browser TTS; Gemini only needs the topic (which it
   // will pick up from the student's answer + the stimulus).
-  void args.prompt; // intentionally unused, see above
+  const followUpBlock = args.suggestedFollowUps.length > 0
+    ? `\nSUGGESTED FOLLOW-UPS (use these if they fit the flow, or invent your own — either is fine):\n${args.suggestedFollowUps.map((p, i) => `  ${i + 1}. ${p}`).join("\n")}\n`
+    : "";
   return `You are a warm, patient PSLE English oral examiner conducting the Stimulus-Based Conversation component with a 12-year-old Singaporean student.
 
 STIMULUS PICTURE (for your context — do NOT describe it aloud):
 ${args.stimulus}
-
+${followUpBlock}
 CRITICAL — HOW THIS SESSION STARTS:
 - The student was ALREADY greeted and asked the opening question by a separate voice moments before your session began. You did NOT hear that opening.
 - Your first spoken turn MUST be a follow-up REACTION to whatever the student says. Never open by greeting, never open by asking any question, never describe the picture, and never re-ask or rephrase the opening question.
