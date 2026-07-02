@@ -140,56 +140,52 @@ function PageInner() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-3">
             {selected ? (
               <>
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-bold text-slate-800">Reading Passage — {selected.year}</h2>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Component 1</span>
+                {/* Reading Aloud — just the two practice buttons, no OCR preview */}
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold text-slate-800">Reading Aloud — {selected.year}</h2>
+                    <div className="flex gap-2">
+                      <Link href={`/admin/english-oral-coach/read/${selected.year}/1?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Start Reading 1 →</Link>
+                      <Link href={`/admin/english-oral-coach/read/${selected.year}/2?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Start Reading 2 →</Link>
                     </div>
-                  </div>
-                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed mb-3">
-                    {selected.readingPassagePreview || "(no reading passage extracted)"}
-                  </pre>
-                  <div className="flex gap-2">
-                    <Link href={`/admin/english-oral-coach/read/${selected.year}/1?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Practice Reading — Day 1 →</Link>
-                    <Link href={`/admin/english-oral-coach/read/${selected.year}/2?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Day 2 →</Link>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-bold text-slate-800">Stimulus-based Conversation — {selected.year}</h2>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-wide text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Component 2</span>
-                    </div>
+                {/* SBC Day 1 — picture + start button */}
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-bold text-slate-800">SBC Day 1 — {selected.year}</h2>
+                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/1?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Start SBC 1 →</Link>
                   </div>
-                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed mb-3">
-                    {selected.conversationPromptsPreview || "(no conversation prompts extracted)"}
-                  </pre>
-                  <div className="flex gap-2">
-                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/1?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Practice SBC — Day 1 →</Link>
-                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/2?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Day 2 →</Link>
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/1/image`}
+                    alt={`${selected.year} Day 1 stimulus`}
+                    className="w-full max-h-[280px] object-contain rounded-lg bg-slate-50"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
                 </div>
 
-                <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-5">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Next: live practice mode</p>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    v1 will use a real-time voice model (Google Live-voice / Gemini Live) with looping talking-head avatars
-                    to run the two components back-to-back:
-                  </p>
-                  <ol className="text-xs text-slate-600 mt-2 list-decimal ml-5 space-y-1">
-                    <li>Reading Aloud: student reads the passage; model scores pronunciation, fluency, expressiveness.</li>
-                    <li>Stimulus Conversation: model plays examiner, asks each prompt (a/b/c), follows up naturally.</li>
-                    <li>Verdict: per-component score + specific feedback (words mispronounced, prompt answers that were too short, etc.).</li>
-                  </ol>
+                {/* SBC Day 2 — picture + start button */}
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-bold text-slate-800">SBC Day 2 — {selected.year}</h2>
+                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/2?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Start SBC 2 →</Link>
+                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/2/image`}
+                    alt={`${selected.year} Day 2 stimulus`}
+                    className="w-full max-h-[280px] object-contain rounded-lg bg-slate-50"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
                 </div>
               </>
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center">
+              <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 text-center">
                 <p className="text-sm text-slate-400">Select a year to preview.</p>
               </div>
             )}
