@@ -73,17 +73,17 @@ function PageInner() {
           <div className="flex items-center gap-3">
             <Link href={`/admin?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← 管理页</Link>
             <h1 className="text-lg font-bold text-slate-800">口试练习 · Oral Coach</h1>
-            <div className="ml-auto inline-flex rounded-full bg-slate-100 p-0.5 ring-1 ring-slate-200">
-              <Link
-                href={`/admin/english-oral-coach?userId=${userId}`}
-                className="px-3 py-1 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800"
-              >
-                English
-              </Link>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white text-indigo-700 shadow-sm">华文</span>
-            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <div className="mt-2 inline-flex rounded-xl bg-slate-100 p-1 ring-1 ring-slate-200">
+            <Link
+              href={`/admin/english-oral-coach?userId=${userId}`}
+              className="px-5 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-800 hover:bg-white transition"
+            >
+              English
+            </Link>
+            <span className="px-5 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white shadow-sm">华文</span>
+          </div>
+          <p className="text-xs text-slate-400 mt-2">
             华文 PSLE Paper 3 Oral: 朗读 (10) + 会话 (30) = 40 marks total.
           </p>
         </div>
