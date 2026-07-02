@@ -83,14 +83,15 @@ export async function POST(request: NextRequest) {
   });
 
   const ai = new GoogleGenAI({ apiKey });
-  // Fail fast if the Gemini API doesn't respond within 15s — the
-  // Cloudflare edge cuts the request at ~30-100s and returns raw HTML,
-  // which is a terrible client experience. Better to return a real
-  // JSON error the client can display.
+  // Fail fast if the Gemini API doesn't respond within 30s. The
+  // Cloudflare edge cuts at ~30-100s and returns raw HTML, but we
+  // want a real JSON error. 30s (vs the earlier 15s) is a bit more
+  // generous — some regions have latency to Google's token service.
   const withTimeout = <T>(p: Promise<T>, ms: number): Promise<T> => Promise.race([
     p,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms}ms — Gemini Live ephemeral token API may not be enabled on this project`)), ms)),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms)),
   ]);
+  const started = Date.now();
   try {
     const token = await withTimeout(ai.authTokens.create({
       config: {
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
           },
         },
       },
-    }), 15000);
+    }), 30000);
     return NextResponse.json({
       token: token.name,
       model: MODEL_ENV ?? MODEL,
@@ -137,11 +138,24 @@ export async function POST(request: NextRequest) {
       allPrompts: prompts,
     });
   } catch (e) {
-    const err = e as Error;
-    console.error("[gemini-live-token] authTokens.create failed:", err);
-    return NextResponse.json({
+    const elapsed = Date.now() - started;
+    const err = e as (Error & { status?: number; code?: string; details?: unknown });
+    // Include as much diagnostic info as possible so we don't need to
+    // dig through Railway logs to figure out why Google refused.
+    const diagnostic = {
       error: err.message,
-      hint: "Ephemeral tokens for Gemini Live are a paid AI Studio / Vertex AI feature. If your project is on the free tier, you'll need to enable Live API access (Google Cloud Console → APIs & Services → Enable 'Gemini Live API') OR switch to a paid tier. The GEMINI_API_KEY on Railway must belong to a project with Live access.",
+      elapsedMs: elapsed,
+      errorName: err.name,
+      errorStatus: err.status,
+      errorCode: err.code,
+      errorDetails: err.details,
+      model: MODEL_ENV ?? MODEL,
+      apiKeySuffix: `...${apiKey.slice(-6)}`,  // last 6 chars only, for identity confirmation
+    };
+    console.error("[gemini-live-token] authTokens.create failed:", diagnostic, err);
+    return NextResponse.json({
+      ...diagnostic,
+      hint: "Check the diagnostic fields above. Common causes: (1) 'gemini-2.0-flash-exp' isn't available in your region — set GEMINI_LIVE_MODEL=gemini-2.5-flash-preview-native-audio-dialog on Railway. (2) Ephemeral tokens (authTokens.create) require Google Cloud Console → your project → 'Gemini API' or 'Generative Language API' enabled AND billing linked. (3) The Live API preview allowlist may not include your project yet.",
     }, { status: 502 });
   }
 }
