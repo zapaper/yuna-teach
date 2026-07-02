@@ -2099,15 +2099,40 @@ Return ONLY valid JSON (no markdown fences):
   ]
 }`;
 
-// Extract JSON from a Gemini response that may have markdown fences or extra text
+// Extract JSON from a Gemini response that may have markdown fences or extra
+// text. The old implementation sliced from the first `{` to the LAST `}` —
+// which explodes when the model emits two consecutive JSON objects (a valid
+// first response followed by a stray second one), because the slice then
+// contains both and JSON.parse fails at the seam. Observed in real logs:
+// "Unexpected non-whitespace character after JSON at position 110" on MCQ
+// re-detects for Q10. Fix: track brace depth (respecting strings) and stop
+// at the first BALANCED `{...}` — trailing garbage after that is ignored.
 function extractJson(text: string): unknown {
-  // Strip markdown code fences
+  // Strip markdown code fences first if present.
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   const raw = fenced ? fenced[1].trim() : text.trim();
-  // Find the first { ... } block
   const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("No JSON object found in response");
+  if (start === -1) throw new Error("No JSON object found in response");
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  let end = -1;
+  for (let i = start; i < raw.length; i++) {
+    const ch = raw[i];
+    if (escape) { escape = false; continue; }
+    if (inString) {
+      if (ch === "\\") escape = true;
+      else if (ch === "\"") inString = false;
+      continue;
+    }
+    if (ch === "\"") { inString = true; continue; }
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  if (end === -1) throw new Error("Unterminated JSON object in response");
   return JSON.parse(raw.slice(start, end + 1));
 }
 
