@@ -111,6 +111,17 @@ function Inner() {
 
       const speechConfig = sdk.SpeechConfig.fromAuthorizationToken(token, region);
       speechConfig.speechRecognitionLanguage = "en-GB";
+      // Continuous recognition — recognizeOnceAsync cuts off after
+      // ~15s of silence (or ~60s max), which chopped kids off mid-read
+      // on longer 2024/2018 passages. Continuous keeps the mic open
+      // until we explicitly stop; we aggregate per-utterance results
+      // on the fly and produce one combined score card when the
+      // student clicks "Stop".
+      speechConfig.setProperty(
+        sdk.PropertyId.Speech_SegmentationSilenceTimeoutMs,
+        "5000", // don't fire a segmentation until 5s of silence — kids pause between paragraphs
+      );
+
       const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
@@ -124,36 +135,66 @@ function Inner() {
       paConfig.applyTo(recognizer);
       recognizerRef.current = recognizer;
 
-      recognizer.recognizeOnceAsync(
-        (result) => {
-          try {
-            if (result.reason !== sdk.ResultReason.RecognizedSpeech) {
-              throw new Error(`Recognition returned reason ${result.reason} — try again.`);
-            }
-            const pa = sdk.PronunciationAssessmentResult.fromResult(result);
-            const detail: unknown = JSON.parse(
-              result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult) ?? "{}",
-            );
-            const words = extractWords(detail);
-            const prosody = (pa as { prosodyScore?: number }).prosodyScore ?? null;
-            setScore({
-              overall: pa.pronunciationScore,
-              accuracy: pa.accuracyScore,
-              fluency: pa.fluencyScore,
-              completeness: pa.completenessScore,
-              prosody,
-              words,
-              transcription: result.text,
-              seab: computeSeabScore(pa.accuracyScore, pa.fluencyScore, prosody),
-            });
-            setStatus("done");
-          } catch (e) {
-            setError((e as Error).message);
-            setStatus("error");
-          } finally {
-            recognizer.close();
-          }
-        },
+      // Per-utterance aggregates
+      const collected: {
+        words: WordScore[];
+        transcription: string;
+        accuracy: number[];
+        fluency: number[];
+        completeness: number[];
+        prosody: number[];
+        pronunciation: number[];
+      } = { words: [], transcription: "", accuracy: [], fluency: [], completeness: [], prosody: [], pronunciation: [] };
+
+      recognizer.recognized = (_s, e) => {
+        if (e.result.reason !== sdk.ResultReason.RecognizedSpeech) return;
+        try {
+          const pa = sdk.PronunciationAssessmentResult.fromResult(e.result);
+          const detail: unknown = JSON.parse(
+            e.result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult) ?? "{}",
+          );
+          collected.words.push(...extractWords(detail));
+          collected.transcription = (collected.transcription + " " + e.result.text).trim();
+          if (Number.isFinite(pa.accuracyScore)) collected.accuracy.push(pa.accuracyScore);
+          if (Number.isFinite(pa.fluencyScore)) collected.fluency.push(pa.fluencyScore);
+          if (Number.isFinite(pa.completenessScore)) collected.completeness.push(pa.completenessScore);
+          if (Number.isFinite(pa.pronunciationScore)) collected.pronunciation.push(pa.pronunciationScore);
+          const prosodyScore = (pa as { prosodyScore?: number }).prosodyScore;
+          if (typeof prosodyScore === "number" && Number.isFinite(prosodyScore)) collected.prosody.push(prosodyScore);
+        } catch (parseErr) {
+          console.warn("PA parse error", parseErr);
+        }
+      };
+
+      recognizer.canceled = (_s, e) => {
+        setError(`Recognition canceled: ${e.errorDetails ?? e.reason}`);
+        setStatus("error");
+        recognizer.close();
+      };
+
+      recognizer.sessionStopped = () => {
+        const avg = (arr: number[]) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+        const acc = avg(collected.accuracy);
+        const flu = avg(collected.fluency);
+        const comp = avg(collected.completeness);
+        const overall = avg(collected.pronunciation);
+        const prosody = collected.prosody.length ? avg(collected.prosody) : null;
+        setScore({
+          overall,
+          accuracy: acc,
+          fluency: flu,
+          completeness: comp,
+          prosody,
+          words: collected.words,
+          transcription: collected.transcription,
+          seab: computeSeabScore(acc, flu, prosody),
+        });
+        setStatus("done");
+        recognizer.close();
+      };
+
+      recognizer.startContinuousRecognitionAsync(
+        () => { /* started */ },
         (err) => {
           setError(String(err));
           setStatus("error");
@@ -219,7 +260,7 @@ function Inner() {
                 {score ? (
                   <ColouredPassage passage={passage.readingPassage} words={score.words} />
                 ) : (
-                  <p className="text-slate-800 text-4xl leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
+                  <p className="text-slate-800 text-lg leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
                 )}
               </div>
 
@@ -413,7 +454,7 @@ function ColouredPassage({ passage, words }: { passage: string; words: WordScore
   // punctuation. Only problem words get colour + a score badge; good
   // words render as plain black type identical to the pre-scoring view.
   return (
-    <p className="text-slate-800 text-4xl leading-loose">
+    <p className="text-slate-800 text-lg leading-loose">
       {words.map((w, i) => {
         const s = styleFor(w.accuracyScore, w.errorType);
         return (

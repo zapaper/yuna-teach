@@ -224,6 +224,16 @@ function Inner() {
 
           {passage && (
             <>
+              {/* Stimulus picture — served from
+                  /api/admin/english-oral-coach/stimulus/<year>/<day>/image
+                  (cropped by autoCropPictures during ingestion, or via
+                  scripts/extract-oral-stimuli.ts as a backfill). Falls
+                  back to just the description text if the image 404s. */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Stimulus Picture</p>
+                <StimulusImage year={year} day={dayNum} description={passage.stimulusDescription} />
+              </div>
+
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5">
                 <ExaminerAvatar
                   speaking={examinerSpeaking}
@@ -302,6 +312,34 @@ function Inner() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StimulusImage({ year, day, description }: { year: string; day: number; description: string }) {
+  const [failed, setFailed] = useState(false);
+  const src = `/api/admin/english-oral-coach/stimulus/${year}/${day}/image`;
+  if (failed) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
+        <p className="text-xs font-semibold text-amber-700 mb-2">Stimulus image not extracted yet</p>
+        <p className="text-sm text-slate-700 leading-relaxed">{description}</p>
+        <p className="text-xs text-slate-400 mt-3">
+          Run <code className="bg-slate-100 px-1.5 py-0.5 rounded">npx tsx scripts/extract-oral-stimuli.ts</code> on Railway to backfill the cropped images.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={description}
+        onError={() => setFailed(true)}
+        className="w-full max-h-[520px] object-contain rounded-xl bg-slate-50 border border-slate-200"
+      />
+      <p className="text-xs text-slate-500 italic mt-2">{description}</p>
     </div>
   );
 }

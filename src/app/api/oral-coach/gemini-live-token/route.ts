@@ -83,9 +83,16 @@ export async function POST(request: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction: { parts: [{ text: systemInstruction }] },
-            // A warm friendly voice — Gemini offers several prebuilt.
+            // Kore — female + professional, closest match to the female
+            // voice used in the Chinese spelling read-back (Google TTS
+            // Standard-A). Alternatives if we want to change tone:
+            //   Aoede  — warm / breezy
+            //   Leda   — youthful
+            //   Zephyr — bright
+            //   Puck   — male / upbeat
+            //   Charon — male / informative
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } },
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
             },
           },
         },
