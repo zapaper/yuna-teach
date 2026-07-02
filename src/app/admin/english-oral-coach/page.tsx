@@ -146,21 +146,33 @@ function PageInner() {
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-bold text-slate-800">Reading Passage — {selected.year}</h2>
-                    <span className="text-[10px] uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Component 1</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Component 1</span>
+                    </div>
                   </div>
-                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
+                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed mb-3">
                     {selected.readingPassagePreview || "(no reading passage extracted)"}
                   </pre>
+                  <div className="flex gap-2">
+                    <Link href={`/admin/english-oral-coach/read/${selected.year}/1?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Practice Reading — Day 1 →</Link>
+                    <Link href={`/admin/english-oral-coach/read/${selected.year}/2?userId=${userId}`} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">Day 2 →</Link>
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-bold text-slate-800">Stimulus-based Conversation — {selected.year}</h2>
-                    <span className="text-[10px] uppercase tracking-wide text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Component 2</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-wide text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Component 2</span>
+                    </div>
                   </div>
-                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
+                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed mb-3">
                     {selected.conversationPromptsPreview || "(no conversation prompts extracted)"}
                   </pre>
+                  <div className="flex gap-2">
+                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/1?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Practice SBC — Day 1 →</Link>
+                    <Link href={`/admin/english-oral-coach/sbc/${selected.year}/2?userId=${userId}`} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700">Day 2 →</Link>
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-5">
