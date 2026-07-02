@@ -97,33 +97,37 @@ function Inner() {
   const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Play a specific word's audio segment. Azure gives per-word Offset
-  // (start) and Duration in 100ns ticks. We pad ~5% before + 10% after
-  // so the student catches the sound cleanly. Falls back to a rough
-  // position estimate when Azure didn't return timing.
+  // (start) and Duration in 100ns ticks. We play a 3-second lead-in
+  // and 3-second tail so the student hears the word in context — the
+  // surrounding phrase makes it much easier to hear WHAT they said
+  // wrong than the isolated word does. Falls back to a rough position
+  // estimate when Azure didn't return timing.
+  const LEAD_SEC = 3;
+  const TAIL_SEC = 3;
   const playWord = useCallback((w: WordScore) => {
     const audio = audioRef.current;
     if (!audio) return;
-    let startSec = 0;
-    let durationSec = 0.6;
+    let wordStart = 0;
+    let wordDuration = 0.6;
     if (typeof w.offset === "number" && typeof w.duration === "number" && w.duration > 0) {
-      startSec = w.offset / 10_000_000;
-      durationSec = w.duration / 10_000_000;
+      wordStart = w.offset / 10_000_000;
+      wordDuration = w.duration / 10_000_000;
     } else {
       // Fallback — if we have overall words with timing, estimate position by index.
       const words = (score?.words ?? []).filter((x) => x.errorType !== "Omission");
       const idx = words.findIndex((x) => x.word === w.word);
       const total = audio.duration || 0;
       if (idx >= 0 && words.length > 0 && total > 0) {
-        startSec = (idx / words.length) * total;
-        durationSec = total / words.length;
+        wordStart = (idx / words.length) * total;
+        wordDuration = total / words.length;
       }
     }
-    // 5% pad before + 10% after for a natural bite of the word.
-    const pad = Math.max(0.05, durationSec * 0.05);
-    startSec = Math.max(0, startSec - pad);
-    const playFor = durationSec + pad * 3;
+    const totalDuration = audio.duration || wordStart + wordDuration + TAIL_SEC;
+    const playStart = Math.max(0, wordStart - LEAD_SEC);
+    const playEnd = Math.min(totalDuration, wordStart + wordDuration + TAIL_SEC);
+    const playFor = playEnd - playStart;
     if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current);
-    audio.currentTime = startSec;
+    audio.currentTime = playStart;
     void audio.play();
     stopTimeoutRef.current = setTimeout(() => {
       audio.pause();
