@@ -425,7 +425,7 @@ function StimulusImage({ year, day, description }: { year: string; day: number; 
       src={src}
       alt={description}
       onError={() => setFailed(true)}
-      className="w-full max-h-[320px] object-contain rounded-lg bg-slate-50"
+      className="w-full max-h-[400px] object-contain rounded-lg bg-slate-50"
     />
   );
 }
