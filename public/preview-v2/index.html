@@ -301,6 +301,14 @@
   .foot-col a:hover{color:#fff}
   .foot-bottom{border-top:1px solid rgba(255,255,255,.10);margin-top:40px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.84rem}
 
+  /* Desktop-only content — richer copy, extra bullets' sub-text,
+     parent pull-quotes, and second screenshots per feature. Hidden
+     on phones so the mobile view stays lean; restored on ≥768px. */
+  .desktop-only{display:none}
+  @media(min-width:768px){
+    .desktop-only{display:revert}
+  }
+
   /* Responsive */
   @media(max-width:960px){
     .hero-grid{grid-template-columns:1fr;gap:48px}
@@ -484,18 +492,19 @@
     <div class="copy">
       <span class="eyebrow">Marking</span>
       <h2>Built to mark like a PSLE examiner</h2>
+      <p class="desktop-only">Our proprietary high-accuracy marker reads handwriting, understands working steps, and scores against MOE-aligned rubrics. It awards partial credit where due, and explains exactly how to earn full marks using the concepts taught in school.</p>
       <ul class="mini">
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <div><b>MCQ and open-ended in English, Math, Science and Chinese</b></div>
+          <div><b>MCQ and open-ended in English, Math, Science and Chinese</b><span class="desktop-only">Including handwritten 作文 — marked instantly.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <div><b>Partial credit, the way a teacher would</b></div>
+          <div><b>Partial credit, the way a teacher would</b><span class="desktop-only">Flags missing keywords and explains step-by-step.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <div><b>Benchmarked for accuracy</b></div>
+          <div><b>Benchmarked for accuracy</b><span class="desktop-only">MOE rubric-aligned and tested against the top AI models.</span></div>
         </li>
       </ul>
       <div class="chart-card" style="margin-top:26px">
@@ -522,9 +531,11 @@
           <div class="val">76%</div>
         </div>
       </div>
+      <div class="pull desktop-only">“I like that I can choose what my kid practises on, and on his weak areas. I can see where he needs to use specific Science keywords to score.”<b>— Parent, P5</b></div>
     </div>
     <div class="shot-col">
       <div class="shot-frame"><img src="assets/markinga.png" alt="Handwritten Science answer marked with partial credit and explanation" loading="lazy" /></div>
+      <div class="shot-frame desktop-only"><img src="assets/marking2.png" alt="Handwritten Chinese composition marked against the rubric" loading="lazy" /></div>
     </div>
   </div>
 </section>
@@ -535,23 +546,27 @@
     <div class="copy">
       <span class="eyebrow">Diagnosis</span>
       <h2>A view of your child's learning that's simply unparalleled</h2>
+      <p class="desktop-only">Lumi reads every working step to explain <em>why</em> marks are being lost — the recurring mistake, the misconception underneath it, and the exact sub-topics bleeding marks. Then it crafts the next practice to close them. Nothing for you to plan; the next quiz is ready and waiting.</p>
       <ul class="mini">
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
-          <div><b>Spots conceptual errors &amp; common mistakes</b></div>
+          <div><b>Spots conceptual errors &amp; common mistakes</b><span class="desktop-only">Analysed across papers and topics, with real examples from your child's own work.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6Z"/></svg></span>
-          <div><b>Tracks topic &amp; sub-topic fluency by subject</b></div>
+          <div><b>Tracks topic &amp; sub-topic fluency by subject</b><span class="desktop-only">Monitors the gaps and creates targeted quizzes to close them.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l3-4 4 3 5-7"/></svg></span>
-          <div><b>Weekly progress, summarised — with next steps</b></div>
+          <div><b>Weekly progress, summarised — with next steps</b><span class="desktop-only">Lumi works 24/7 for you and your child: marking, diagnosing, tracking, and teeing up the next practice.</span></div>
         </li>
       </ul>
+      <div class="pull desktop-only">“I didn't even realise my kid was making the same mistakes in Area and Circumference across papers.”<b>— Parent, P5</b></div>
+      <div class="pull desktop-only" style="margin-top:14px">“The biggest star for MarkForYou is the personalised quizzes and identification of my child's weaknesses — it targets those spots and tracks progress.”<b>— Parent, P6</b></div>
     </div>
     <div>
       <div class="shot-frame"><img src="assets/progress.png" alt="Per-topic accuracy chart with weak topics highlighted and progress over time" loading="lazy" /></div>
+      <div class="shot-frame desktop-only"><img src="assets/lumi.png" alt="Lumi diagnosis: conceptual gaps, common mistakes and personalised next quizzes" loading="lazy" /></div>
     </div>
   </div>
 </section>
@@ -562,27 +577,31 @@
     <div class="copy">
       <span class="eyebrow">Practice</span>
       <h2>A practice backed by fun — and neuroscience</h2>
+      <p class="desktop-only">Kids genuinely love our platform, even though they're attempting PSLE-level questions. Instant feedback and small rewards keep them going — and the way we schedule that practice is built on how memory actually works.</p>
       <ul class="mini">
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.4 5 5.6.8-4 4 .9 5.5L12 21l-4.9 2.3.9-5.5-4-4 5.6-.8Z"/></svg></span>
-          <div><b>Instant feedback &amp; rewards</b></div>
+          <div><b>Instant feedback &amp; rewards</b><span class="desktop-only">Instant feedback, avatar, stickers and habitats keep kids coming back — even on hard questions.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-          <div><b>~25-min Pomodoro quizzes</b></div>
+          <div><b>~25-min Pomodoro quizzes</b><span class="desktop-only">Each quiz is sized to a focused work block — long enough to learn, short enough to finish.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v4h4"/></svg></span>
-          <div><b>Spaced repetition</b></div>
+          <div><b>Spaced repetition</b><span class="desktop-only">Our Revise function brings mistakes back with one touch — a neuroscience trick to retain memory.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M5 8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/></svg></span>
-          <div><b>On-the-go convenience</b></div>
+          <div><b>On-the-go convenience</b><span class="desktop-only">From a 15-min quiz on mobile to a full printed paper, our platform flexes to your needs.</span></div>
         </li>
       </ul>
+      <div class="pull desktop-only">“My kids complete the quizzes without complaining. The instant feedback and explanation is helpful when I'm not around — kids can go through themselves to know what went wrong.”<b>— Parent, P5</b></div>
+      <div class="pull desktop-only" style="margin-top:14px">“The Revise function is super helpful to go through all their mistakes with one touch. I used to dog-ear a pile of assessment books.”<b>— Parent, P6</b></div>
     </div>
     <div style="max-width:340px;margin:0 auto;width:100%">
       <div class="shot-frame"><img src="assets/revise.png" alt="One-touch Revise — pull every mistake in a subject into one quick review" loading="lazy" /></div>
+      <div class="shot-frame desktop-only"><img src="assets/avatar.png" alt="Choose your avatar — kids pick a character to play as" loading="lazy" /></div>
     </div>
   </div>
 </section>
@@ -593,22 +612,23 @@
     <div class="copy">
       <span class="eyebrow">Essay coach</span>
       <h2>Coaches your child to upgrade their own essay — not memorise a model one</h2>
+      <p class="desktop-only">Instead of cramming yet another model essay, Lumi takes the essay your child already wrote and shows the surgical edits that lift its structure, flow, content and language toward model standard. Far more natural — and far easier for a child to actually learn from.</p>
       <ul class="mini">
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2M3 12h18"/></svg></span>
-          <div><b>Scan your child's English or Chinese essay</b></div>
+          <div><b>Scan your child's English or Chinese essay</b><span class="desktop-only">Get specific tips on how to improve, in both languages.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
-          <div><b>Surgical edits, shown in green</b></div>
+          <div><b>Surgical edits, shown in green</b><span class="desktop-only">Targeted upgrades to structure, flow, content and language.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
-          <div><b>Export to Word or PDF</b></div>
+          <div><b>Export to Word or PDF</b><span class="desktop-only">Customise and export the annotated essay.</span></div>
         </li>
         <li>
           <span class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber-dk)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v4h4"/></svg></span>
-          <div><b>Practise and score again</b></div>
+          <div><b>Practise and score again</b><span class="desktop-only">Practise again, resubmit, and get an objective read on improvements.</span></div>
         </li>
       </ul>
     </div>
@@ -718,4 +738,3 @@
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
