@@ -43,9 +43,9 @@ type DimBlock = {
 type SbcScore = {
   overallSeabScore: number;
   overallVerdict: string;
-  personalResponse: DimBlock;
-  languageUse: DimBlock;
-  speakingStyle: DimBlock;
+  pictureResponse: DimBlock;   // /10 — Q1 answer
+  personalResponse: DimBlock;  // /10 — Q2 answer
+  criticalThinking: DimBlock;  // /5  — Q3 answer
   modelUpgradeExample: string;
 };
 
@@ -721,13 +721,13 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
           <div className="flex items-end gap-2">
             <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
             <span className="text-3xl font-bold text-slate-800 leading-none">{score.overallSeabScore}</span>
-            <span className="text-sm text-slate-500 pb-0.5">/ 30</span>
+            <span className="text-sm text-slate-500 pb-0.5">/ 25</span>
           </div>
           <p className="text-xs text-slate-600 mt-1.5 leading-snug">{score.overallVerdict}</p>
           <div className="grid grid-cols-3 gap-2 mt-2">
-            <SbcSeabDim label="Personal Response" value={score.personalResponse.scoreOutOf} outOf={12} tone="blue"   desc="stance, reasoning, examples" />
-            <SbcSeabDim label="Language Use"      value={score.languageUse.scoreOutOf}      outOf={12} tone="purple" desc="grammar, vocab, connectives" />
-            <SbcSeabDim label="Speaking Style"    value={score.speakingStyle.scoreOutOf}    outOf={6}  tone="brown"  desc="fluency, engagement" />
+            <SbcSeabDim label="Picture Response (Q1)"  value={score.pictureResponse.scoreOutOf}  outOf={10} tone="blue"   desc="what's in the picture" />
+            <SbcSeabDim label="Personal Response (Q2)" value={score.personalResponse.scoreOutOf} outOf={10} tone="purple" desc="personal experience" />
+            <SbcSeabDim label="Critical Thinking (Q3)" value={score.criticalThinking.scoreOutOf} outOf={5}  tone="brown"  desc="broader opinion" />
           </div>
         </div>
       </div>
@@ -736,19 +736,19 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
       <div>
         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Detailed Scoring</h3>
         <div className="space-y-1.5">
-          <SbcDimCard title="Personal Response" outOf={12} block={score.personalResponse} tone="blue" />
-          <SbcDimCard title="Language Use"      outOf={12} block={score.languageUse}      tone="purple" />
-          <SbcDimCard title="Speaking Style"    outOf={6}  block={score.speakingStyle}    tone="brown" />
+          <SbcDimCard title="Picture Response (Q1)"  outOf={10} block={score.pictureResponse}  tone="blue" />
+          <SbcDimCard title="Personal Response (Q2)" outOf={10} block={score.personalResponse} tone="purple" />
+          <SbcDimCard title="Critical Thinking (Q3)" outOf={5}  block={score.criticalThinking} tone="brown" />
         </div>
       </div>
 
       {/* Tips per dimension */}
       <div>
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Tips to improve — by SEAB dimension</h3>
+        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Tips to improve — by question</h3>
         <div className="space-y-1.5">
-          <SbcTipsCategory title="Personal Response" tone="blue"   tips={score.personalResponse.tips} />
-          <SbcTipsCategory title="Language Use"      tone="purple" tips={score.languageUse.tips} />
-          <SbcTipsCategory title="Speaking Style"    tone="brown"  tips={score.speakingStyle.tips} />
+          <SbcTipsCategory title="Picture Response (Q1)"  tone="blue"   tips={score.pictureResponse.tips} />
+          <SbcTipsCategory title="Personal Response (Q2)" tone="purple" tips={score.personalResponse.tips} />
+          <SbcTipsCategory title="Critical Thinking (Q3)" tone="brown"  tips={score.criticalThinking.tips} />
         </div>
       </div>
 

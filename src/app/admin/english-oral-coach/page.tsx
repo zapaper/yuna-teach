@@ -140,13 +140,15 @@ function PageInner() {
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">SEAB rubric — Stimulus Conversation (30)</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">SEAB rubric — Stimulus Conversation (25)</p>
               <ul className="text-xs text-slate-600 space-y-1 list-disc ml-4">
-                <li>Personal response with clear reasoning</li>
-                <li>Engagement — extends beyond yes/no</li>
-                <li>Language use — vocabulary, grammar</li>
-                <li>Ability to build on examiner prompts</li>
+                <li><b>Q1 · Picture Response</b> (10) — engage with what&apos;s in the picture</li>
+                <li><b>Q2 · Personal Response</b> (10) — specific personal experience</li>
+                <li><b>Q3 · Critical Thinking</b> (5) — broader opinion / reasoning</li>
               </ul>
+              <p className="text-[10px] text-slate-400 mt-2">
+                2026 format: exactly three questions in order — no invented follow-ups.
+              </p>
               <p className="text-[10px] text-slate-400 mt-2">
                 Model answers do NOT exist for Paper 4 by design — assessment is on delivery + reasoning, not correctness.
               </p>

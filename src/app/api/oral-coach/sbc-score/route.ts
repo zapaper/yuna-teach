@@ -18,13 +18,14 @@ const MODEL = "gemini-3.1-pro-preview";
 
 type TranscriptTurn = { speaker: "examiner" | "student"; text: string; ts?: number };
 
-// SEAB PSLE Paper 4 SBC — 30 marks split across 3 dimensions:
-//   Personal Response         12
-//   Language Use              12
-//   Speaking Style             6
-// Rubric is distilled from the SBC analysis Word doc (7 structural
-// moves) into three student-facing categories that match the Reading
-// Aloud presentation.
+// SEAB PSLE Paper 4 SBC — 25 marks (updated 2026-07-02 per new
+// examiner rubric on psleprep.sg) split across 3 dimensions that
+// mirror the 3 mandatory question types:
+//   Picture Response          10   (Q1: what do you see / interpret)
+//   Personal Response         10   (Q2: personal experience linked)
+//   Critical Thinking          5   (Q3: broader opinion / reasoning)
+// One dimension per question type — score reflects how the student
+// engaged with THAT question, not just overall performance.
 const DIM_TIP_ITEM = {
   type: Type.OBJECT,
   properties: {
@@ -53,47 +54,54 @@ const DIM_BLOCK = {
 const SCORING_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    overallSeabScore: { type: Type.INTEGER, description: "SEAB /30 total: sum of personalResponse + languageUse + speakingStyle" },
+    overallSeabScore: { type: Type.INTEGER, description: "SEAB /25 total: sum of pictureResponse + personalResponse + criticalThinking" },
     overallVerdict: { type: Type.STRING, description: "Two-sentence overall summary of the student's SBC performance" },
-    personalResponse: DIM_BLOCK,  // /12
-    languageUse: DIM_BLOCK,       // /12
-    speakingStyle: DIM_BLOCK,     // /6
+    pictureResponse: DIM_BLOCK,   // /10 — Q1 answer quality
+    personalResponse: DIM_BLOCK,  // /10 — Q2 answer quality
+    criticalThinking: DIM_BLOCK,  // /5  — Q3 answer quality
     modelUpgradeExample: {
       type: Type.STRING,
       description: "Rewrite of the student's weakest single answer in one paragraph, applying the moves that were missing. Realistic 12-year-old voice.",
     },
   },
-  required: ["overallSeabScore", "overallVerdict", "personalResponse", "languageUse", "speakingStyle", "modelUpgradeExample"],
+  required: ["overallSeabScore", "overallVerdict", "pictureResponse", "personalResponse", "criticalThinking", "modelUpgradeExample"],
 } as const;
 
 const SCORING_PROMPT = `You are marking a PSLE English Paper 4 Stimulus-Based Conversation (SBC).
 
-SEAB SBC RUBRIC (30 marks total):
+SEAB SBC RUBRIC (25 marks total, updated 2026):
 
-1. PERSONAL RESPONSE (12 marks)
-   What SEAB looks for: A clear stance stated up-front, backed by specific reasoning and a concrete personal example (named place, named person, named object, named number). The student should engage genuinely with the prompt rather than giving textbook answers.
+The SBC consists of exactly THREE examiner questions, in order:
+  Q1 — Picture Response:   the student comments on the stimulus picture
+  Q2 — Personal Response:  the student shares personal experience related to the picture's theme
+  Q3 — Critical Thinking:  the student gives a broader opinion / reasoning on the theme
+
+Score each of the student's Q1/Q2/Q3 answers independently against these dimensions:
+
+1. PICTURE RESPONSE (10 marks — Q1)
+   What SEAB looks for: Does the student engage specifically with what's in the picture? Do they identify concrete details (named objects, actions, scenes) and offer a reasoned interpretation, not just a generic "yes it's nice"?
    Rubric moves:
-   - Stance clarity (0-5): direct one-sentence position stated before elaboration
-   - Reason head (0-2): "because"/"as" clause in first two sentences
-   - Personal anecdote (0-5): a specific micro-story from the student's life — named place / person / number / physical action
+   - Concrete picture detail cited (0-3): names something visible (a person, object, activity)
+   - Clear stance stated (0-3): direct position with "I think..." or equivalent
+   - Reasoning grounded in the picture (0-4): "because" clause that ties back to what's in the picture
 
-2. LANGUAGE USE (12 marks)
-   What SEAB looks for: Accurate grammar, precise vocabulary (specifics over generics), explicit discourse markers connecting ideas, and appropriate register.
+2. PERSONAL RESPONSE (10 marks — Q2)
+   What SEAB looks for: A specific personal experience with named place / person / number / physical action, told at 12-year-old-authentic level. NOT a textbook answer.
    Rubric moves:
-   - Grammar accuracy (0-3): tenses, agreements, articles, prepositions
-   - Vocabulary specificity (0-4): named things over categories ("Orchard Road" not "a mall"); values vocabulary sprinkled in (considerate, appreciate, widen my horizons)
-   - Discourse markers (0-3): 4-6 explicit connectives (Furthermore, However, For example, Therefore, Firstly)
-   - Picture engagement (0-2): specific reference to a detail from the stimulus picture with interpretation
+   - Personal anecdote (0-5): a specific micro-story — named place, named person, or specific time
+   - Reason head (0-2): "because" / "as" clause in first two sentences
+   - Language use in the answer (0-3): accurate grammar + at least one specific vocabulary choice (Orchard Road not "a mall"; considerate / appreciate / etc.)
 
-3. SPEAKING STYLE (6 marks)
-   What SEAB looks for: Natural fluency, appropriate pace, and clear articulation. In transcript-only scoring, judge from evidence of chunking (comma placement, sentence length variety, filler-word density).
+3. CRITICAL THINKING (5 marks — Q3)
+   What SEAB looks for: An opinion that goes BEYOND personal experience — the student weighs broader implications, mentions society / community / values, and defends the view.
    Rubric moves:
-   - Fluency (0-3): sentence flow, minimal filler words ("um", "like", "you know")
-   - Engagement (0-3): did the student build on the examiner's follow-ups? Give varied sentence structures?
+   - Broader-than-self perspective (0-2): mentions "people" / "society" / "others" / a group
+   - Defended opinion (0-2): a clear stance backed by at least one reason
+   - Discourse markers (0-1): a connective like "However", "Furthermore", "Therefore"
 
-Score each dimension. Populate details with 3-5 SPECIFIC observations quoting the transcript. Populate tips with 1-3 concrete next-attempt actions per dimension, each with 0-4 short quoted examples from the transcript that illustrate the issue.
+Score each dimension. Populate details with 3-5 SPECIFIC observations quoting the student's Q1 (for pictureResponse) / Q2 (for personalResponse) / Q3 (for criticalThinking) answer. Populate tips with 1-3 concrete next-attempt actions per dimension, each with 0-4 short quoted examples.
 
-MODEL UPGRADE: Pick the student's single weakest answer. Rewrite it in one paragraph applying the moves that were missing. Keep the 12-year-old voice — same energy, just tightened.`;
+MODEL UPGRADE: Pick the student's single weakest Q-answer (Q1 / Q2 / Q3). Rewrite it in one paragraph applying the moves that were missing. Keep the 12-year-old voice — same energy, just tightened.`;
 
 export async function POST(request: NextRequest) {
   const userId = await getSessionUserId();
