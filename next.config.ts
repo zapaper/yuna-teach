@@ -69,6 +69,15 @@ const nextConfig: NextConfig = {
         destination: `${avatarBase}/avatars/:path*`,
         permanent: true,
       },
+      // Oral Coach examiner face loops (still1/2 + talk1/2 uploaded to
+      // the same R2 bucket under an `oral-coach/` prefix). Same 308
+      // pattern as /avatars — browser caches the redirect after first
+      // hit so subsequent visits go straight to R2.
+      {
+        source: "/oral-coach/:path*",
+        destination: `${avatarBase}/oral-coach/:path*`,
+        permanent: true,
+      },
     ];
   },
   // Long-lived immutable caching for static assets (pet clips, landscape

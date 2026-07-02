@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
+import { ExaminerAvatar } from "@/components/ExaminerAvatar";
 
 // Reading Aloud module — student reads the year's Day-N reading passage
 // aloud, Azure Speech SDK returns per-word pronunciation scores, we
@@ -179,11 +180,13 @@ function Inner() {
 
           {passage && (
             <>
-              {/* Avatar row (placeholder — waiting on user's face loop uploads) */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
-                <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 text-xs">
-                  Avatar loop<br/>(upload)
-                </div>
+                {/* Read Aloud has no "examiner speaking" mode — the
+                    student does all the talking. Still loops throughout. */}
+                <ExaminerAvatar
+                  speaking={false}
+                  className="w-24 h-24 rounded-full bg-slate-100 flex-shrink-0"
+                />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Examiner</p>
                   <p className="text-sm text-slate-700">Read the passage aloud when you're ready. Speak at a natural pace — I'll score your pronunciation, fluency and expressiveness.</p>

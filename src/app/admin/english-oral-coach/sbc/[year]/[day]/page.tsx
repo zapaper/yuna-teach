@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
+import { ExaminerAvatar } from "@/components/ExaminerAvatar";
 
 // SBC live-voice module. The examiner is Gemini Live (audio in + audio
 // out, WebSocket). The student's audio is captured via the browser mic
@@ -224,9 +225,10 @@ function Inner() {
           {passage && (
             <>
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
-                <div className={`w-28 h-28 rounded-full flex items-center justify-center text-xs ${examinerSpeaking ? "bg-emerald-100 text-emerald-600 animate-pulse" : "bg-slate-100 text-slate-300"}`}>
-                  {examinerSpeaking ? "Examiner\nspeaking" : "Examiner\n(listening)"}
-                </div>
+                <ExaminerAvatar
+                  speaking={examinerSpeaking}
+                  className="w-28 h-28 rounded-full bg-slate-100 flex-shrink-0"
+                />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Stimulus</p>
                   <p className="text-sm text-slate-700">{passage.stimulusDescription}</p>
