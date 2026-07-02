@@ -111,6 +111,13 @@ export async function POST(request: NextRequest) {
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
             },
+            // Let the model stay silent if the user hasn't yet made a
+            // request. Without this, Gemini's default on session open
+            // is to generate an opening spoken turn from the system
+            // instruction alone (repeating the prompt) even though no
+            // student audio has arrived. proactiveAudio flips that so
+            // it only responds when it hears actual user speech.
+            proactivity: { proactiveAudio: true },
             // Voice-activity-detection tuning. Kids often pause
             // mid-thought — we want the examiner to be patient rather
             // than jumping in on every 0.5s silence.

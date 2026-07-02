@@ -204,8 +204,27 @@ function Inner() {
         outputTranscription?: { text?: string };
         modelTurn?: { parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }> };
         turnComplete?: boolean;
+        interrupted?: boolean;
+        waitingForInput?: boolean;
       };
+      setupComplete?: unknown;
     };
+    // High-signal debug logging — filter out per-chunk audio noise
+    // (dozens per second) but log everything else so we can trace
+    // why the student's speech isn't being transcribed.
+    const hasAudio = !!(m.serverContent?.modelTurn?.parts?.some((p) => p.inlineData?.data));
+    const shape = {
+      setupComplete: !!m.setupComplete,
+      inText: m.serverContent?.inputTranscription?.text,
+      outText: m.serverContent?.outputTranscription?.text,
+      hasAudio,
+      turnComplete: m.serverContent?.turnComplete,
+      interrupted: m.serverContent?.interrupted,
+      waitingForInput: m.serverContent?.waitingForInput,
+    };
+    if (shape.setupComplete || shape.inText || shape.outText || shape.turnComplete || shape.interrupted || shape.waitingForInput) {
+      console.log("[SBC live]", shape);
+    }
     const inText = m.serverContent?.inputTranscription?.text;
     const outText = m.serverContent?.outputTranscription?.text;
     if (inText) {
@@ -216,6 +235,7 @@ function Inner() {
       // Silently drop any examiner audio/transcript before the
       // student's first utterance. This is Gemini's hardcoded
       // opening turn — we already spoke the intended opener via TTS.
+      if (hasAudio) console.log("[SBC live] dropping pre-student examiner audio");
       if (m.serverContent?.turnComplete) setExaminerSpeaking(false);
       return;
     }
@@ -334,8 +354,24 @@ function Inner() {
     // Access mic, wire audio chunks into session.sendRealtimeInput.
     // The @google/genai live session accepts 16kHz PCM chunks; we run a
     // Web Audio API worklet to downsample the mic stream.
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        // Turn OFF the browser's built-in AGC/noise-suppression/echo-
+        // cancellation processing. These aggressively gate near-
+        // silence and can zero out soft speech from a child before it
+        // reaches our script processor. Gemini's server-side VAD does
+        // its own noise handling.
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
     const audioContext = new AudioContext({ sampleRate: 16000 });
+    // Some browsers suspend a freshly-created AudioContext until the
+    // next user gesture — resume it explicitly so onaudioprocess fires.
+    if (audioContext.state === "suspended") {
+      await audioContext.resume().catch(() => { /* ignore */ });
+    }
     const source = audioContext.createMediaStreamSource(stream);
     const processor = audioContext.createScriptProcessor(4096, 1, 1);
     source.connect(processor);
@@ -343,12 +379,32 @@ function Inner() {
     micStreamRef.current = stream;
     micCtxRef.current = audioContext;
     micProcessorRef.current = processor;
+    console.log("[SBC mic] started", {
+      sampleRate: audioContext.sampleRate,
+      state: audioContext.state,
+      tracks: stream.getAudioTracks().map((t) => ({ label: t.label, enabled: t.enabled, muted: t.muted })),
+    });
+    let chunkCounter = 0;
+    let loudChunkCounter = 0;
     processor.onaudioprocess = (e) => {
       // Guard against send-after-close: onclose fires before the
       // processor tears down, so the last few audio slices would
       // otherwise hit the WebSocket after it's already CLOSING.
       if (!sessionAliveRef.current) return;
       const input = e.inputBuffer.getChannelData(0);
+      // Compute chunk peak — if it's ~0 across many chunks we know the
+      // mic isn't picking anything up (permissions revoked, wrong
+      // device, muted at OS level, etc.). Log every ~2s of audio.
+      let peak = 0;
+      for (let i = 0; i < input.length; i++) {
+        const v = Math.abs(input[i]);
+        if (v > peak) peak = v;
+      }
+      if (peak > 0.02) loudChunkCounter++;
+      chunkCounter++;
+      if (chunkCounter % 8 === 0) {
+        console.log("[SBC mic] chunk", chunkCounter, "peak", peak.toFixed(3), "loud", loudChunkCounter);
+      }
       const pcm = new Int16Array(input.length);
       for (let i = 0; i < input.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, input[i] * 32768));
       const s = session as { sendRealtimeInput: (arg: { media: { data: string; mimeType: string } }) => void };
@@ -462,7 +518,10 @@ function Inner() {
                   className="w-32 h-32 rounded-xl bg-slate-100 flex-shrink-0 ring-2 ring-white shadow"
                 />
                 <div className="flex-1">
-                  <p className="text-xs text-slate-700 leading-relaxed">Speak naturally — the examiner asks one random prompt from the day&apos;s three plus follow-ups. Aim for a 3-4 minute conversation. Take your time thinking; the examiner will wait.</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">Speak naturally — no need to pause or stop recording. The examiner listens continuously and will respond when you finish a thought. Aim for a 3-4 minute conversation. When you&apos;re done, click End &amp; Score.</p>
+                  {status === "live" && !transcript.some((t) => t.speaker === "student") && (
+                    <p className="text-[10px] text-emerald-600 font-semibold mt-1">🎤 Listening — start speaking whenever you&apos;re ready.</p>
+                  )}
                 </div>
                 {status === "ready" && (
                   <button onClick={start} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700">Start Session</button>
