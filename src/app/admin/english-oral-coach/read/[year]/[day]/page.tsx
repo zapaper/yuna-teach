@@ -32,6 +32,8 @@ type WordScore = {
   word: string;
   accuracyScore: number;
   errorType: string;   // "None" | "Mispronunciation" | "Omission" | "Insertion" | ...
+  breakErrors: string[];      // e.g. ["MissingBreak"] or ["UnexpectedBreak"]
+  intonationErrors: string[]; // e.g. ["Monotone"]
 };
 
 type ScoreSummary = {
@@ -42,6 +44,12 @@ type ScoreSummary = {
   prosody: number | null;
   words: WordScore[];
   transcription: string;
+  seab: {
+    total: number;          // /20 — Reading Aloud
+    pronunciation: number;  // /8  — articulation & pronunciation
+    fluencyRhythm: number;  // /6  — pace, chunking, natural pauses
+    expressiveness: number; // /6  — pitch variation, stress, rhythm
+  };
 };
 
 function Inner() {
@@ -127,14 +135,16 @@ function Inner() {
               result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult) ?? "{}",
             );
             const words = extractWords(detail);
+            const prosody = (pa as { prosodyScore?: number }).prosodyScore ?? null;
             setScore({
               overall: pa.pronunciationScore,
               accuracy: pa.accuracyScore,
               fluency: pa.fluencyScore,
               completeness: pa.completenessScore,
-              prosody: (pa as { prosodyScore?: number }).prosodyScore ?? null,
+              prosody,
               words,
               transcription: result.text,
+              seab: computeSeabScore(pa.accuracyScore, pa.fluencyScore, prosody),
             });
             setStatus("done");
           } catch (e) {
@@ -213,19 +223,44 @@ function Inner() {
                 )}
               </div>
 
-              {/* Score card */}
+              {/* Score card — SEAB rubric on top, Azure raw as backup */}
               {score && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-                    <Metric label="Overall" value={score.overall} highlight />
-                    <Metric label="Accuracy" value={score.accuracy} />
-                    <Metric label="Fluency" value={score.fluency} />
-                    <Metric label="Completeness" value={score.completeness} />
-                    {score.prosody !== null && <Metric label="Prosody" value={score.prosody} />}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+                  <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-5">
+                    <p className="text-[10px] uppercase tracking-wide text-indigo-500 font-semibold">SEAB Reading Aloud (predicted)</p>
+                    <div className="flex items-end gap-2 mt-1">
+                      <span className="text-5xl font-bold text-indigo-700">{score.seab.total}</span>
+                      <span className="text-lg text-indigo-500 pb-1">/ 20</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 mt-4">
+                      <SeabDim label="Pronunciation" value={score.seab.pronunciation} outOf={8} desc="articulation, sounds" />
+                      <SeabDim label="Fluency & rhythm" value={score.seab.fluencyRhythm} outOf={6} desc="pace, chunking" />
+                      <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={6} desc="pitch, stress" />
+                    </div>
                   </div>
-                  <SlipCard words={score.words} />
-                  <details className="mt-4">
-                    <summary className="text-xs text-slate-400 cursor-pointer">Show recognised transcription</summary>
+
+                  {/* Azure raw — collapsed by default to keep the SEAB focus */}
+                  <details>
+                    <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">Underlying Azure Speech scores (0-100)</summary>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+                      <Metric label="Overall" value={score.overall} />
+                      <Metric label="Accuracy" value={score.accuracy} />
+                      <Metric label="Fluency" value={score.fluency} />
+                      <Metric label="Completeness" value={score.completeness} />
+                      {score.prosody !== null && <Metric label="Prosody" value={score.prosody} />}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                      SEAB Pronunciation ≈ Azure Accuracy · 0.08 · &nbsp;
+                      SEAB Fluency ≈ Azure Fluency · 0.06 · &nbsp;
+                      SEAB Expressiveness ≈ Azure Prosody · 0.06 (falls back to Fluency when prosody isn&apos;t returned).
+                    </p>
+                  </details>
+
+                  {/* Specific tips — actionable per-word feedback */}
+                  <TipsBlock words={score.words} />
+
+                  <details>
+                    <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">Show recognised transcription</summary>
                     <p className="mt-2 text-xs text-slate-500 italic">{score.transcription}</p>
                   </details>
                 </div>
@@ -241,14 +276,124 @@ function Inner() {
 // -- helpers --------------------------------------------------------------
 
 function extractWords(detail: unknown): WordScore[] {
-  // Azure's raw JSON: NBest[0].Words[].{ Word, PronunciationAssessment: { AccuracyScore, ErrorType } }
-  const d = detail as { NBest?: Array<{ Words?: Array<{ Word: string; PronunciationAssessment?: { AccuracyScore?: number; ErrorType?: string } }> }> };
+  // Azure's raw JSON: NBest[0].Words[].{ Word, PronunciationAssessment: { AccuracyScore, ErrorType, Feedback: { Prosody: { Break: { ErrorTypes }, Intonation: { ErrorTypes } } } } }
+  type RawWord = {
+    Word: string;
+    PronunciationAssessment?: {
+      AccuracyScore?: number;
+      ErrorType?: string;
+      Feedback?: {
+        Prosody?: {
+          Break?: { ErrorTypes?: string[] };
+          Intonation?: { ErrorTypes?: string[] };
+        };
+      };
+    };
+  };
+  const d = detail as { NBest?: Array<{ Words?: RawWord[] }> };
   const rawWords = d.NBest?.[0]?.Words ?? [];
-  return rawWords.map(w => ({
+  return rawWords.map((w) => ({
     word: w.Word,
     accuracyScore: w.PronunciationAssessment?.AccuracyScore ?? 0,
     errorType: w.PronunciationAssessment?.ErrorType ?? "None",
+    breakErrors: w.PronunciationAssessment?.Feedback?.Prosody?.Break?.ErrorTypes ?? [],
+    intonationErrors: w.PronunciationAssessment?.Feedback?.Prosody?.Intonation?.ErrorTypes ?? [],
   }));
+}
+
+// SEAB Reading Aloud is scored /20 across three dimensions. Rough
+// conversion from Azure's 0-100 scales, weighted per the SEAB rubric:
+//   Pronunciation / articulation: 8 marks  ← AccuracyScore
+//   Fluency & rhythm:             6 marks  ← FluencyScore
+//   Expressiveness:               6 marks  ← ProsodyScore
+// If prosody isn't returned (older SDK / feature disabled), the
+// expressiveness dimension falls back to a fluency-proxied estimate
+// so the /20 total is still meaningful.
+function computeSeabScore(
+  accuracy: number,
+  fluency: number,
+  prosody: number | null,
+): ScoreSummary["seab"] {
+  const pronunciation = (accuracy / 100) * 8;
+  const fluencyRhythm = (fluency / 100) * 6;
+  const expressiveness = ((prosody ?? fluency) / 100) * 6;
+  return {
+    pronunciation: round1(pronunciation),
+    fluencyRhythm: round1(fluencyRhythm),
+    expressiveness: round1(expressiveness),
+    total: round1(pronunciation + fluencyRhythm + expressiveness),
+  };
+}
+function round1(n: number): number { return Math.round(n * 10) / 10; }
+
+// Collapse per-word prosody + accuracy issues into a small number of
+// actionable tips. Each tip names 2-3 example words so the student
+// knows where to try again without reading a wall of feedback.
+type TipGroup = { label: string; hint: string; examples: string[]; count: number; tone: "amber" | "rose" };
+function buildTips(words: WordScore[]): TipGroup[] {
+  const monotone = words.filter((w) => w.intonationErrors.includes("Monotone"));
+  const missingBreak = words.filter((w) => w.breakErrors.includes("MissingBreak"));
+  const unexpectedBreak = words.filter((w) => w.breakErrors.includes("UnexpectedBreak"));
+  const mispronounced = words.filter((w) => w.errorType === "Mispronunciation" || (w.errorType === "None" && w.accuracyScore < 60));
+  const wobble = words.filter((w) => w.errorType === "None" && w.accuracyScore >= 60 && w.accuracyScore < 85);
+  const omissions = words.filter((w) => w.errorType === "Omission");
+
+  const groups: TipGroup[] = [];
+  if (mispronounced.length > 0) {
+    groups.push({
+      label: "Mispronounced words",
+      hint: "Say each syllable slowly, then blend. Record yourself and compare with a dictionary audio.",
+      examples: mispronounced.slice(0, 6).map((w) => w.word),
+      count: mispronounced.length,
+      tone: "rose",
+    });
+  }
+  if (wobble.length > 0) {
+    groups.push({
+      label: "Slight wobbles — worth another pass",
+      hint: "Not wrong, just not quite crisp. Slow down on these and land the vowel cleanly.",
+      examples: wobble.slice(0, 6).map((w) => w.word),
+      count: wobble.length,
+      tone: "amber",
+    });
+  }
+  if (omissions.length > 0) {
+    groups.push({
+      label: "Skipped words",
+      hint: "You missed these entirely. Read at a pace where you can look ahead one word — that stops the eye rushing past.",
+      examples: omissions.slice(0, 6).map((w) => w.word),
+      count: omissions.length,
+      tone: "rose",
+    });
+  }
+  if (monotone.length > 0) {
+    groups.push({
+      label: "Monotone stretches — add pitch",
+      hint: "Your voice stayed flat here. Try lifting on content words (nouns, verbs, adjectives) and dropping on the little ones (a, the, of).",
+      examples: monotone.slice(0, 6).map((w) => w.word),
+      count: monotone.length,
+      tone: "amber",
+    });
+  }
+  if (missingBreak.length > 0) {
+    groups.push({
+      label: "Missing pauses",
+      hint: "A small pause here helps meaning land. Aim for a soft breath after commas and clause boundaries.",
+      examples: missingBreak.slice(0, 6).map((w) => w.word),
+      count: missingBreak.length,
+      tone: "amber",
+    });
+  }
+  if (unexpectedBreak.length > 0) {
+    groups.push({
+      label: "Unexpected pauses",
+      hint: "You paused mid-phrase — the meaning breaks. Read a whole clause in one breath and pause only at commas / full stops.",
+      examples: unexpectedBreak.slice(0, 6).map((w) => w.word),
+      count: unexpectedBreak.length,
+      tone: "amber",
+    });
+  }
+  return groups;
 }
 
 function styleFor(score: number, error: string): { className: string; showScore: boolean } {
@@ -302,19 +447,45 @@ function Metric({ label, value, highlight }: { label: string; value: number; hig
   );
 }
 
-function SlipCard({ words }: { words: WordScore[] }) {
-  const worst = [...words].filter(w => w.accuracyScore < 60 || w.errorType !== "None").slice(0, 8);
-  if (worst.length === 0) return <p className="text-sm text-emerald-700">No obvious slips — smooth read.</p>;
+function SeabDim({ label, value, outOf, desc }: { label: string; value: number; outOf: number; desc: string }) {
+  const pct = outOf > 0 ? value / outOf : 0;
+  const colour = pct >= 0.85 ? "text-emerald-600" : pct >= 0.65 ? "text-amber-600" : "text-rose-600";
+  return (
+    <div className="rounded-xl bg-white border border-indigo-100 p-3">
+      <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`text-xl font-bold ${colour}`}>{value.toFixed(1)}<span className="text-xs text-slate-400 ml-1">/ {outOf}</span></p>
+      <p className="text-[10px] text-slate-400 mt-0.5">{desc}</p>
+    </div>
+  );
+}
+
+function TipsBlock({ words }: { words: WordScore[] }) {
+  const tips = buildTips(words);
+  if (tips.length === 0) {
+    return (
+      <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+        <p className="text-sm text-emerald-700 font-semibold">Clean read — no specific tips to give.</p>
+        <p className="text-xs text-emerald-600 mt-1">Try a harder passage or record from further away to challenge yourself.</p>
+      </div>
+    );
+  }
   return (
     <div>
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Words to work on</p>
-      <div className="flex flex-wrap gap-2">
-        {worst.map((w, i) => (
-          <span key={i} className="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-700">
-            <strong>{w.word}</strong>
-            <span className="text-slate-400 ml-2 text-xs">{Math.round(w.accuracyScore)}</span>
-            {w.errorType !== "None" && <span className="ml-2 text-xs text-rose-600">{w.errorType}</span>}
-          </span>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Specific tips</p>
+      <div className="space-y-2">
+        {tips.map((t, i) => (
+          <div key={i} className={`rounded-xl border p-3 ${t.tone === "rose" ? "bg-rose-50 border-rose-200" : "bg-amber-50 border-amber-200"}`}>
+            <div className="flex items-baseline gap-2 mb-1">
+              <p className={`text-sm font-semibold ${t.tone === "rose" ? "text-rose-700" : "text-amber-700"}`}>{t.label}</p>
+              <span className="text-xs text-slate-500">({t.count} {t.count === 1 ? "word" : "words"})</span>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed mb-2">{t.hint}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {t.examples.map((w, j) => (
+                <span key={j} className={`text-xs px-2 py-0.5 rounded-lg ${t.tone === "rose" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{w}</span>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

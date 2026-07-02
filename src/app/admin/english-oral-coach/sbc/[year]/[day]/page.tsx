@@ -224,10 +224,10 @@ function Inner() {
 
           {passage && (
             <>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5">
                 <ExaminerAvatar
                   speaking={examinerSpeaking}
-                  className="w-28 h-28 rounded-full bg-slate-100 flex-shrink-0"
+                  className="w-56 h-56 rounded-2xl bg-slate-100 flex-shrink-0 ring-4 ring-white shadow-lg"
                 />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Stimulus</p>
