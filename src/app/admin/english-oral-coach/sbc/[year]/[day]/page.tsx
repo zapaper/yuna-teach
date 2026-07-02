@@ -31,22 +31,20 @@ type PassageDay = {
 
 type TranscriptTurn = { speaker: "examiner" | "student"; text: string; ts: number };
 
+type DimTip = { label: string; hint: string; examples: string[] };
+type DimBlock = {
+  scoreOutOf: number;
+  verdict: string;
+  seabLooksFor: string;
+  details: string[];
+  tips: DimTip[];
+};
 type SbcScore = {
-  perPromptScores: Array<{
-    promptLabel: string;
-    stanceClarity: number;
-    reasonHead: number;
-    pictureAnchor: number;
-    anecdoteQuality: number;
-    loopBack: number;
-    valuesVocab: number;
-    discourseMarkers: number;
-    totalOutOf26: number;
-    feedback: string;
-  }>;
   overallSeabScore: number;
-  strengths: string[];
-  areasToImprove: string[];
+  overallVerdict: string;
+  personalResponse: DimBlock;
+  languageUse: DimBlock;
+  speakingStyle: DimBlock;
   modelUpgradeExample: string;
 };
 
@@ -224,25 +222,19 @@ function Inner() {
 
           {passage && (
             <>
-              {/* Stimulus picture — served from
-                  /api/admin/english-oral-coach/stimulus/<year>/<day>/image
-                  (cropped by autoCropPictures during ingestion, or via
-                  scripts/extract-oral-stimuli.ts as a backfill). Falls
-                  back to just the description text if the image 404s. */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Stimulus Picture</p>
-                <StimulusImage year={year} day={dayNum} description={passage.stimulusDescription} />
-              </div>
-
+              {/* Avatar row first — examiner is the primary presence.
+                  The stimulus description text has been dropped per
+                  UX request; the picture below carries all the visual
+                  context needed. */}
+              {/* Avatar row — examiner presence + action buttons. No
+                  description text; the picture below carries context. */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5">
                 <ExaminerAvatar
                   speaking={examinerSpeaking}
                   className="w-56 h-56 rounded-2xl bg-slate-100 flex-shrink-0 ring-4 ring-white shadow-lg"
                 />
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Stimulus</p>
-                  <p className="text-sm text-slate-700">{passage.stimulusDescription}</p>
-                  <p className="text-[11px] text-slate-400 mt-1">3 prompts will be asked in order. Speak naturally — the examiner will follow up.</p>
+                  <p className="text-sm text-slate-700">Speak naturally — the examiner asks one prompt (chosen at random from the day&apos;s three) plus follow-ups. Aim for a 2-3 minute conversation.</p>
                 </div>
                 {status === "ready" && (
                   <button onClick={start} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700">Start Session</button>
@@ -254,6 +246,11 @@ function Inner() {
                 {status === "done" && (
                   <button onClick={() => { setScore(null); setTranscript([]); setStatus("ready"); }} className="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold">Try again</button>
                 )}
+              </div>
+
+              {/* Stimulus picture — below the avatar, no caption, 10% smaller. */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <StimulusImage year={year} day={dayNum} description={passage.stimulusDescription} />
               </div>
 
               {/* Live transcript */}
@@ -273,44 +270,123 @@ function Inner() {
                 </div>
               )}
 
-              {/* Score card */}
-              {score && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
-                  <div className="flex items-center gap-4">
-                    <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500">SEAB SBC score</p>
-                      <p className="text-3xl font-bold text-indigo-700">{score.overallSeabScore}<span className="text-sm text-slate-400 ml-1">/30</span></p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Strengths</p>
-                      <ul className="text-sm text-slate-700 list-disc ml-4">{score.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-1">Areas to improve</p>
-                    <ul className="text-sm text-slate-700 list-disc ml-4">{score.areasToImprove.map((s, i) => <li key={i}>{s}</li>)}</ul>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Per-prompt scores (out of 26)</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {score.perPromptScores.map((p, i) => (
-                        <div key={i} className="rounded-xl border border-slate-200 p-3">
-                          <p className="text-xs font-bold text-slate-700">Prompt {p.promptLabel}</p>
-                          <p className="text-xl font-bold text-slate-900">{p.totalOutOf26}<span className="text-xs text-slate-400">/26</span></p>
-                          <p className="text-[11px] text-slate-500 mt-1">{p.feedback}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Model upgrade example</p>
-                    <p className="text-sm text-slate-800 leading-relaxed">{score.modelUpgradeExample}</p>
-                  </div>
-                </div>
-              )}
+              {score && <SbcScoreCard score={score} />}
             </>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+type ToneKey = "blue" | "purple" | "brown";
+const TONE: Record<ToneKey, { bg: string; border: string; text: string; label: string; softBg: string; softBorder: string }> = {
+  blue:   { bg: "bg-blue-50",   border: "border-blue-200",   text: "text-blue-700",   label: "text-blue-600",   softBg: "bg-blue-50/60",   softBorder: "border-blue-200" },
+  purple: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", label: "text-purple-600", softBg: "bg-purple-50/60", softBorder: "border-purple-200" },
+  brown:  { bg: "bg-amber-50",  border: "border-amber-300",  text: "text-amber-800",  label: "text-amber-700",  softBg: "bg-amber-50/60",  softBorder: "border-amber-300" },
+};
+
+function SbcScoreCard({ score }: { score: SbcScore }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+      {/* Matrix — total + 3 SEAB dimensions */}
+      <div>
+        <h2 className="text-sm font-bold text-slate-800 mb-3">SEAB Stimulus-Based Conversation Scoring Matrix</h2>
+        <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-5">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">Predicted total</p>
+          <div className="flex items-end gap-2 mt-1">
+            <span className="text-5xl font-bold text-slate-800">{score.overallSeabScore}</span>
+            <span className="text-lg text-slate-500 pb-1">/ 30</span>
+          </div>
+          <p className="text-xs text-slate-600 mt-2">{score.overallVerdict}</p>
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            <SbcSeabDim label="Personal Response" value={score.personalResponse.scoreOutOf} outOf={12} tone="blue"   desc="stance, reasoning, examples" />
+            <SbcSeabDim label="Language Use"      value={score.languageUse.scoreOutOf}      outOf={12} tone="purple" desc="grammar, vocab, connectives" />
+            <SbcSeabDim label="Speaking Style"    value={score.speakingStyle.scoreOutOf}    outOf={6}  tone="brown"  desc="fluency, engagement" />
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Scoring — per dimension */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-800 mb-3">Detailed Scoring</h3>
+        <div className="space-y-3">
+          <SbcDimCard title="Personal Response" outOf={12} block={score.personalResponse} tone="blue" />
+          <SbcDimCard title="Language Use"      outOf={12} block={score.languageUse}      tone="purple" />
+          <SbcDimCard title="Speaking Style"    outOf={6}  block={score.speakingStyle}    tone="brown" />
+        </div>
+      </div>
+
+      {/* Tips per dimension */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-800 mb-3">Tips to improve — by SEAB dimension</h3>
+        <div className="space-y-4">
+          <SbcTipsCategory title="Personal Response" tone="blue"   tips={score.personalResponse.tips} />
+          <SbcTipsCategory title="Language Use"      tone="purple" tips={score.languageUse.tips} />
+          <SbcTipsCategory title="Speaking Style"    tone="brown"  tips={score.speakingStyle.tips} />
+        </div>
+      </div>
+
+      {/* Model upgrade */}
+      <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Model upgrade — how your weakest answer could have sounded</p>
+        <p className="text-sm text-slate-800 leading-relaxed">{score.modelUpgradeExample}</p>
+      </div>
+    </div>
+  );
+}
+
+function SbcSeabDim({ label, value, outOf, desc, tone }: { label: string; value: number; outOf: number; desc: string; tone: ToneKey }) {
+  const s = TONE[tone];
+  return (
+    <div className={`rounded-xl ${s.bg} border ${s.border} p-3`}>
+      <p className={`text-[10px] uppercase tracking-wide ${s.label} font-semibold`}>{label}</p>
+      <p className={`text-xl font-bold ${s.text}`}>
+        {value}<span className="text-xs text-slate-500 ml-1">/ {outOf}</span>
+      </p>
+      <p className={`text-[10px] mt-0.5 ${s.label}`}>{desc}</p>
+    </div>
+  );
+}
+
+function SbcDimCard({ title, outOf, block, tone }: { title: string; outOf: number; block: DimBlock; tone: ToneKey }) {
+  const s = TONE[tone];
+  return (
+    <div className={`rounded-xl border ${s.softBorder} ${s.softBg} p-4`}>
+      <div className="flex items-baseline justify-between mb-2">
+        <p className={`text-xs font-bold uppercase tracking-wide ${s.text}`}>{title} — {block.scoreOutOf} / {outOf}</p>
+      </div>
+      <p className="text-xs text-slate-700 leading-relaxed mb-2 font-semibold">{block.verdict}</p>
+      <p className="text-[11px] text-slate-500 italic leading-relaxed mb-2">What SEAB looks for: {block.seabLooksFor}</p>
+      {block.details.length > 0 && (
+        <ul className="text-xs text-slate-700 leading-relaxed list-disc ml-4 space-y-1">
+          {block.details.map((d, i) => <li key={i}>{d}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SbcTipsCategory({ title, tone, tips }: { title: string; tone: ToneKey; tips: DimTip[] }) {
+  const s = TONE[tone];
+  if (tips.length === 0) return null;
+  return (
+    <div className={`rounded-xl border ${s.softBorder} ${s.softBg} p-4`}>
+      <p className={`text-xs font-bold uppercase tracking-wide ${s.text} mb-3`}>{title}</p>
+      <div className="space-y-3">
+        {tips.map((t, i) => (
+          <div key={i} className="rounded-lg bg-white/70 border border-white/50 p-3">
+            <p className={`text-sm font-semibold ${s.text} mb-1`}>{t.label}</p>
+            <p className="text-xs text-slate-700 leading-relaxed mb-2">{t.hint}</p>
+            {t.examples.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {t.examples.map((ex, j) => (
+                  <span key={j} className={`text-xs px-2 py-1 rounded-lg ${s.bg} ${s.text} border ${s.border} italic`}>&ldquo;{ex}&rdquo;</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -331,16 +407,13 @@ function StimulusImage({ year, day, description }: { year: string; day: number; 
     );
   }
   return (
-    <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={description}
-        onError={() => setFailed(true)}
-        className="w-full max-h-[520px] object-contain rounded-xl bg-slate-50 border border-slate-200"
-      />
-      <p className="text-xs text-slate-500 italic mt-2">{description}</p>
-    </div>
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={src}
+      alt={description}
+      onError={() => setFailed(true)}
+      className="w-full max-h-[468px] object-contain rounded-xl bg-slate-50 border border-slate-200"
+    />
   );
 }
 

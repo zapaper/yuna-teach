@@ -17,9 +17,11 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 
-const MODEL = "gemini-2.5-flash-native-audio-preview-09-2025";
-// Fallback if the above 2.5 preview is not yet enabled on the project;
-// swap by env override without a code change.
+// Live-API-capable models on AI Studio (as of 2026). The 2.5 preview
+// variants are not enabled on every project by default — pick the
+// broadly-available 2.0 flash-exp as primary and let env override to
+// the 2.5 variants when ready.
+const MODEL = "gemini-2.0-flash-exp";
 const MODEL_ENV = process.env.GEMINI_LIVE_MODEL;
 
 type PromptEntry = string | { label?: string; prompt?: string; text?: string };
@@ -67,9 +69,17 @@ export async function POST(request: NextRequest) {
   if (!dayData) return NextResponse.json({ error: "no day" }, { status: 404 });
 
   const prompts = normalisePrompts(dayData.conversationPrompts);
+  if (prompts.length === 0) {
+    return NextResponse.json({ error: "no conversation prompts for this day" }, { status: 500 });
+  }
+  // Pick ONE prompt at random for this session — PSLE oral practice
+  // works better as a focused 2-3 minute session on a single prompt
+  // (with follow-ups) than as a 5-minute walkthrough of all three.
+  const selectedIndex = Math.floor(Math.random() * prompts.length);
+  const selectedPrompt = prompts[selectedIndex];
   const systemInstruction = buildSystemInstruction({
     stimulus: dayData.stimulusDescription ?? "",
-    prompts,
+    prompt: selectedPrompt,
   });
 
   const ai = new GoogleGenAI({ apiKey });
@@ -102,6 +112,12 @@ export async function POST(request: NextRequest) {
       token: token.name,
       model: MODEL_ENV ?? MODEL,
       expiresInSeconds: 30 * 60,
+      // Echo back the selected prompt so the client can pass it to
+      // the scoring endpoint at end-of-session (it needs to know which
+      // one was actually asked, since the token endpoint chose randomly).
+      selectedPrompt,
+      selectedIndex,
+      allPrompts: prompts,
     });
   } catch (e) {
     const err = e as Error;
@@ -109,21 +125,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSystemInstruction(args: { stimulus: string; prompts: string[] }): string {
+function buildSystemInstruction(args: { stimulus: string; prompt: string }): string {
   return `You are a warm, patient PSLE English oral examiner conducting the Stimulus-Based Conversation component with a 12-year-old Singaporean student.
 
 STIMULUS PICTURE: ${args.stimulus}
 
-Your three main prompts, in order:
-${args.prompts.map((p, i) => `${i + 1}. ${p}`).join("\n")}
+Your single main prompt for this session:
+${args.prompt}
 
 CONDUCT THE SESSION:
-- Begin by greeting the student warmly and describing the stimulus picture in one sentence, then asking prompt (a).
-- After the student answers each prompt, ask ONE natural follow-up question that pushes them to give a specific example, name a specific thing, or explain their reasoning further. Then move to the next prompt.
+- Begin by greeting the student warmly, describing the stimulus picture in one sentence, then asking the main prompt above.
+- After the student answers, ask 2-3 natural follow-up questions that push them to give a specific example, name a specific thing, or explain their reasoning further. Aim for a total conversation of about 2-3 minutes.
 - Keep your turns short (1-2 sentences). Let the student speak most of the time.
 - Never lecture, correct grammar in-line, or give the answer.
 - Encourage briefly ("That's an interesting point...") but sparingly — over-praising reads as insincere.
-- After all three prompts are covered, thank the student and end the session with a warm sign-off like "Well done, that's the end of our conversation." Do not give scores or feedback in the audio — a separate summary will follow.
+- When the student has engaged with the prompt and given at least one specific example / reason, thank them warmly and end the session with a sign-off like "Well done, that's the end of our conversation." Do not give scores or feedback in the audio — a separate summary will follow.
 
 REGISTER: Warm, professional, slightly formal — the way a real MOE oral examiner speaks. British-accented Singapore English. Standard PSLE oral pacing.
 

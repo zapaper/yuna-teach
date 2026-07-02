@@ -18,58 +18,82 @@ const MODEL = "gemini-3.1-pro-preview";
 
 type TranscriptTurn = { speaker: "examiner" | "student"; text: string; ts?: number };
 
+// SEAB PSLE Paper 4 SBC — 30 marks split across 3 dimensions:
+//   Personal Response         12
+//   Language Use              12
+//   Speaking Style             6
+// Rubric is distilled from the SBC analysis Word doc (7 structural
+// moves) into three student-facing categories that match the Reading
+// Aloud presentation.
+const DIM_TIP_ITEM = {
+  type: Type.OBJECT,
+  properties: {
+    label: { type: Type.STRING, description: "Short specific issue label, e.g. 'Weak stance'" },
+    hint: { type: Type.STRING, description: "1-2 sentences of concrete advice a student can act on next attempt" },
+    examples: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "0-4 direct quotes from the student's transcript that show this issue",
+    },
+  },
+  required: ["label", "hint", "examples"],
+} as const;
+const DIM_BLOCK = {
+  type: Type.OBJECT,
+  properties: {
+    scoreOutOf: { type: Type.INTEGER, description: "The student's mark for this SEAB dimension" },
+    verdict: { type: Type.STRING, description: "One sentence overall verdict for this dimension" },
+    seabLooksFor: { type: Type.STRING, description: "One sentence: what a PSLE marker rewards under this dimension" },
+    details: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 bullet-point observations: what the student did well OR poorly, quoting the transcript" },
+    tips: { type: Type.ARRAY, items: DIM_TIP_ITEM, description: "1-3 actionable tips for this dimension" },
+  },
+  required: ["scoreOutOf", "verdict", "seabLooksFor", "details", "tips"],
+} as const;
+
 const SCORING_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    perPromptScores: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          promptLabel: { type: Type.STRING },
-          stanceClarity: { type: Type.INTEGER },
-          reasonHead: { type: Type.INTEGER },
-          pictureAnchor: { type: Type.INTEGER },
-          anecdoteQuality: { type: Type.INTEGER },
-          loopBack: { type: Type.INTEGER },
-          valuesVocab: { type: Type.INTEGER },
-          discourseMarkers: { type: Type.INTEGER },
-          totalOutOf26: { type: Type.INTEGER },
-          feedback: { type: Type.STRING },
-        },
-        required: ["promptLabel", "stanceClarity", "reasonHead", "pictureAnchor",
-                   "anecdoteQuality", "loopBack", "valuesVocab", "discourseMarkers",
-                   "totalOutOf26", "feedback"],
-      },
-    },
-    overallSeabScore: {
-      type: Type.INTEGER,
-      description: "Weighted total mapped to the SEAB 30-mark SBC scale.",
-    },
-    strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-    areasToImprove: { type: Type.ARRAY, items: { type: Type.STRING } },
+    overallSeabScore: { type: Type.INTEGER, description: "SEAB /30 total: sum of personalResponse + languageUse + speakingStyle" },
+    overallVerdict: { type: Type.STRING, description: "Two-sentence overall summary of the student's SBC performance" },
+    personalResponse: DIM_BLOCK,  // /12
+    languageUse: DIM_BLOCK,       // /12
+    speakingStyle: DIM_BLOCK,     // /6
     modelUpgradeExample: {
       type: Type.STRING,
-      description: "Pick the student's weakest answer, rewrite it applying the missing structural moves. Concrete, one paragraph.",
+      description: "Rewrite of the student's weakest single answer in one paragraph, applying the moves that were missing. Realistic 12-year-old voice.",
     },
   },
-  required: ["perPromptScores", "overallSeabScore", "strengths", "areasToImprove", "modelUpgradeExample"],
+  required: ["overallSeabScore", "overallVerdict", "personalResponse", "languageUse", "speakingStyle", "modelUpgradeExample"],
 } as const;
 
-const SCORING_PROMPT = `You are marking a PSLE English Paper 4 Stimulus-Based Conversation.
+const SCORING_PROMPT = `You are marking a PSLE English Paper 4 Stimulus-Based Conversation (SBC).
 
-RUBRIC (26 points, mapped to SEAB's 30-mark scale via x1.15 weighting):
-- Stance clarity (0-5): direct one-sentence position stated before elaboration
-- Reason head (0-2): "because"/"as" clause in first two sentences
-- Picture anchor (0-5): 0=ignored the picture; 3=vague mention; 5=named a specific sub-detail with interpretation
-- Anecdote quality (0-5): 5 requires a named place, named person, named number, or specific physical action
-- Loop-back closing (0-3): "Therefore"/"For all these reasons" restating the stance
-- Values vocabulary (0-3): 2-3 values words per answer (considerate, appreciate, widen my horizons, bond as a family, etc.)
-- Discourse markers (0-3): 4-6 explicit connectives (Furthermore, However, For example, Therefore, Firstly)
+SEAB SBC RUBRIC (30 marks total):
 
-Score EACH student prompt response (usually three: a, b, c) individually.
+1. PERSONAL RESPONSE (12 marks)
+   What SEAB looks for: A clear stance stated up-front, backed by specific reasoning and a concrete personal example (named place, named person, named object, named number). The student should engage genuinely with the prompt rather than giving textbook answers.
+   Rubric moves:
+   - Stance clarity (0-5): direct one-sentence position stated before elaboration
+   - Reason head (0-2): "because"/"as" clause in first two sentences
+   - Personal anecdote (0-5): a specific micro-story from the student's life — named place / person / number / physical action
 
-MODEL UPGRADE: Pick the student's weakest answer and rewrite it in one paragraph applying the moves that were missing. Make the rewrite realistic for a 12-year-old — same voice, just tightened.`;
+2. LANGUAGE USE (12 marks)
+   What SEAB looks for: Accurate grammar, precise vocabulary (specifics over generics), explicit discourse markers connecting ideas, and appropriate register.
+   Rubric moves:
+   - Grammar accuracy (0-3): tenses, agreements, articles, prepositions
+   - Vocabulary specificity (0-4): named things over categories ("Orchard Road" not "a mall"); values vocabulary sprinkled in (considerate, appreciate, widen my horizons)
+   - Discourse markers (0-3): 4-6 explicit connectives (Furthermore, However, For example, Therefore, Firstly)
+   - Picture engagement (0-2): specific reference to a detail from the stimulus picture with interpretation
+
+3. SPEAKING STYLE (6 marks)
+   What SEAB looks for: Natural fluency, appropriate pace, and clear articulation. In transcript-only scoring, judge from evidence of chunking (comma placement, sentence length variety, filler-word density).
+   Rubric moves:
+   - Fluency (0-3): sentence flow, minimal filler words ("um", "like", "you know")
+   - Engagement (0-3): did the student build on the examiner's follow-ups? Give varied sentence structures?
+
+Score each dimension. Populate details with 3-5 SPECIFIC observations quoting the transcript. Populate tips with 1-3 concrete next-attempt actions per dimension, each with 0-4 short quoted examples from the transcript that illustrate the issue.
+
+MODEL UPGRADE: Pick the student's single weakest answer. Rewrite it in one paragraph applying the moves that were missing. Keep the 12-year-old voice — same energy, just tightened.`;
 
 export async function POST(request: NextRequest) {
   const userId = await getSessionUserId();
