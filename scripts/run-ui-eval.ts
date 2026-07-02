@@ -45,7 +45,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from "@playwri
 import { readFileSync } from "fs";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, WHATS_NEW_ADMIN_ONLY } from "../src/lib/whats-new";
+import { WHATS_NEW_POPUPS } from "../src/lib/whats-new";
 
 const __dirname = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname.replace(/^\//, "")));
 
@@ -195,14 +195,14 @@ async function createFakeAccount(level: number, preseedWhatsNew = true, adminFla
     const parentEmail = `ui-eval-parent-${stamp}-${rand}@markforyou-eval.invalid`;
     const parentName  = `UI-Eval-Parent-${stamp}-${rand}`;
     const studentName = `UI-Eval-Student-P${level}-${stamp}-${rand}`;
-    // Preseed the current What's-New version so downstream chart-visibility
-    // assertions aren't blocked by the modal overlaying the Lumi panel.
-    // T5 sets preseedWhatsNew=false so the popup DOES fire and can be
-    // asserted directly. T5 also sets adminFlag=true when
-    // WHATS_NEW_ADMIN_ONLY is on, so the popup can pass the admin gate
-    // and the assertion still exercises the real code path.
+    // Preseed the fake with every popup id already "seen" so downstream
+    // chart-visibility assertions aren't blocked by a modal overlaying
+    // the Lumi panel. T5 sets preseedWhatsNew=false so the popup DOES
+    // fire and can be asserted directly. adminFlag flips settings.admin
+    // for popups gated by adminOnly.
+    const allSeen = WHATS_NEW_POPUPS.map(p => p.id);
     const settingsObj: Record<string, unknown> = {};
-    if (preseedWhatsNew) settingsObj.whatsNewSeenVersion = WHATS_NEW_VERSION;
+    if (preseedWhatsNew) settingsObj.whatsNewSeenIds = allSeen;
     if (adminFlag) settingsObj.admin = true;
     const settingsArg = Object.keys(settingsObj).length > 0 ? { settings: settingsObj } : {};
     const parent = await prisma.user.create({
@@ -220,7 +220,7 @@ async function createFakeAccount(level: number, preseedWhatsNew = true, adminFla
         name: studentName,
         role: "STUDENT",
         level,
-        ...(preseedWhatsNew ? { settings: { whatsNewSeenVersion: WHATS_NEW_VERSION } } : {}),
+        ...(preseedWhatsNew ? { settings: { whatsNewSeenIds: allSeen } } : {}),
       },
       select: { id: true },
     });
@@ -417,33 +417,38 @@ async function t4DiagnosticLumi(browser: Browser, paperId: string, parentId: str
 }
 
 // ── T5. What's New popup ──────────────────────────────────────────────────
-// Creates a fake parent WITHOUT the seenVersion preseed, opens their home
-// page, and asserts the modal renders with the first slide's title. Also
-// exercises the audience gate: WHATS_NEW_AUDIENCE === "parent" means the
-// popup MUST NOT fire on a student home page — the negative assertion
-// prevents kids from seeing a parent-facing modal.
+// Creates a fake parent WITHOUT any seenIds so a popup fires, opens their
+// home page, and asserts the oldest-first popup renders with the correct
+// title. Also exercises the audience gate: a parent-only popup MUST NOT
+// fire on a student home page.
 async function t5WhatsNew(browser: Browser): Promise<FakeAccount | undefined> {
-  console.log(`\n[T5] What's New popup (version=${WHATS_NEW_VERSION}, audience=${WHATS_NEW_AUDIENCE}, adminOnly=${WHATS_NEW_ADMIN_ONLY})`);
-  if (WHATS_NEW_SLIDES.length === 0) {
-    console.log("  (skipped — no slides configured)");
+  console.log(`\n[T5] What's New popup queue (${WHATS_NEW_POPUPS.length} configured)`);
+  if (WHATS_NEW_POPUPS.length === 0) {
+    console.log("  (skipped — no popups configured)");
     return undefined;
   }
-  // {{childName}} in the slides file is substituted at render time using
-  // the parent's selected student's first name. Strip it here so the DOM
-  // assertion still matches when a title contains the placeholder.
-  const firstTitle = WHATS_NEW_SLIDES[0].title.replace(/\{\{childName\}\}/g, "").trim();
+  // Pick the popup the fake parent should see first: oldest ship date
+  // among the parent-audience entries. Doubles as a design-time check —
+  // if none match, we skip cleanly rather than assert-fail.
+  const parentQueue = WHATS_NEW_POPUPS
+    .filter(p => p.audience === "all" || p.audience === "parent")
+    .slice()
+    .sort((a, b) => a.shipDate.localeCompare(b.shipDate));
+  if (parentQueue.length === 0) {
+    console.log("  (skipped — no parent-facing popups in the queue)");
+    return undefined;
+  }
+  const expected = parentQueue[0];
+  // Any parent-facing popup with adminOnly=true forces the fake to be
+  // admin, otherwise the admin gate blocks the assertion.
+  const needsAdmin = parentQueue.some(p => p.adminOnly);
+  const expectedTitle = expected.slides[0].title.replace(/\{\{childName\}\}/g, "").trim();
 
-  // When admin-only gate is on, the fake parent MUST be admin so the
-  // popup actually renders — otherwise T5.2 will always fail and mask
-  // real regressions.
-  const fake = await step("Create fake parent WITHOUT seenVersion preseed", async () => createFakeAccount(5, false, WHATS_NEW_ADMIN_ONLY));
+  const fake = await step("Create fake parent WITHOUT seenIds preseed", async () => createFakeAccount(5, false, needsAdmin));
   if (!fake) return undefined;
 
   const ctx = await makeContext(browser);
   const page = await ctx.newPage();
-
-  const expectPopupOnParent = WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === "parent";
-  const expectPopupOnStudent = WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === "student";
 
   await step(`T5.1 parent /home/{id} loads`, async () => {
     const res = await page.goto(`${base}/home/${fake.parentId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
@@ -451,17 +456,10 @@ async function t5WhatsNew(browser: Browser): Promise<FakeAccount | undefined> {
     await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
   });
 
-  await step(`T5.2 parent view: popup ${expectPopupOnParent ? "visible" : "hidden"} with title "${firstTitle}"`, async () => {
-    if (expectPopupOnParent) {
-      await page.waitForSelector('[role="dialog"][aria-modal="true"]', { timeout: 5000 });
-      const dialogText = await page.textContent('[role="dialog"][aria-modal="true"]');
-      assert(dialogText && dialogText.includes(firstTitle), `popup dialog didn't contain "${firstTitle}" — got: ${dialogText?.slice(0, 200)}`);
-    } else {
-      // Give the dashboard a beat to hydrate; then assert nothing appeared.
-      await page.waitForTimeout(1500);
-      const modal = await page.$('[role="dialog"][aria-modal="true"]');
-      assert(!modal, "popup unexpectedly visible on parent view when audience=student");
-    }
+  await step(`T5.2 parent view: popup visible showing oldest queued (id=${expected.id})`, async () => {
+    await page.waitForSelector('[role="dialog"][aria-modal="true"]', { timeout: 5000 });
+    const dialogText = await page.textContent('[role="dialog"][aria-modal="true"]');
+    assert(dialogText && dialogText.includes(expectedTitle), `popup dialog didn't contain "${expectedTitle}" — got: ${dialogText?.slice(0, 200)}`);
   });
 
   await step(`T5.3 student /home/{id} loads`, async () => {
@@ -470,13 +468,17 @@ async function t5WhatsNew(browser: Browser): Promise<FakeAccount | undefined> {
     await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
   });
 
-  await step(`T5.4 student view: popup ${expectPopupOnStudent ? "visible" : "hidden"}`, async () => {
-    if (expectPopupOnStudent) {
+  const studentQueue = WHATS_NEW_POPUPS
+    .filter(p => p.audience === "all" || p.audience === "student")
+    .filter(p => !p.adminOnly);
+  const expectStudentPopup = studentQueue.length > 0;
+  await step(`T5.4 student view: popup ${expectStudentPopup ? "visible" : "hidden"}`, async () => {
+    if (expectStudentPopup) {
       await page.waitForSelector('[role="dialog"][aria-modal="true"]', { timeout: 5000 });
     } else {
       await page.waitForTimeout(1500);
       const modal = await page.$('[role="dialog"][aria-modal="true"]');
-      assert(!modal, "popup unexpectedly visible on student view when audience=parent");
+      assert(!modal, "popup unexpectedly visible on student view when no student-audience popups configured");
     }
   });
 

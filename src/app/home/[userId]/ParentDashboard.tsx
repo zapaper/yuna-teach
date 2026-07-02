@@ -2669,7 +2669,8 @@ export default function ParentDashboard({
       />
       <WhatsNewPopup
         userId={userId}
-        seenVersion={user.settings?.whatsNewSeenVersion}
+        seenIds={user.settings?.whatsNewSeenIds}
+        lastShownAt={user.settings?.whatsNewLastShownAt}
         viewer="parent"
         viewerIsAdmin={isAdminUser}
         childName={(selectedStudent?.displayName ?? selectedStudent?.name ?? user.linkedStudents[0]?.displayName ?? user.linkedStudents[0]?.name ?? "").split(/\s+/)[0] ?? ""}

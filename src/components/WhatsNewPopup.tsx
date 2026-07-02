@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, WHATS_NEW_ADMIN_ONLY, type WhatsNewSlide, type WhatsNewAudience } from "@/lib/whats-new";
+import { useEffect, useMemo, useState } from "react";
+import {
+  WHATS_NEW_POPUPS,
+  WHATS_NEW_PREVIEW_QUERY_KEY,
+  WHATS_NEW_PREVIEW_QUERY_VALUE,
+  pickNextWhatsNewPopup,
+  type WhatsNewAudience,
+  type WhatsNewSlide,
+} from "@/lib/whats-new";
 
-// Shows the What's New carousel exactly once per user, per WHATS_NEW_VERSION.
-// State lives in `user.settings.whatsNewSeenVersion` server-side — deliberately
-// NOT localStorage, so switching device / clearing cookies doesn't resurface it.
-//
-// Trigger flow:
-//   1. Dashboard mounts and renders <WhatsNewPopup userId=... seenVersion={...} />
-//   2. If seenVersion !== WHATS_NEW_VERSION, the modal fades in on next tick.
-//   3. User steps through Next / Skip → PATCH /api/users writes the new
-//      seen-version. Modal unmounts; component stays inert until a future
-//      version bump.
+// Shows the oldest unseen What's New popup for the current user, at most
+// one per 24 h. State lives server-side in `user.settings`:
+//   • whatsNewSeenIds:      string[]  — every popup id the user has dismissed
+//   • whatsNewLastShownAt:  ISO string — 24 h throttle anchor
+// Persisted through the existing PATCH /api/users endpoint, so switching
+// device / clearing cookies doesn't resurface popups they already saw.
 
-// {{childName}} template substitution in title/body/eyebrow. Kept tiny —
-// the slides file only uses this one placeholder and a full templating
-// engine would be overkill.
 function fillTemplate(text: string | undefined, childName: string): string {
   if (!text) return "";
   return text.split("{{childName}}").join(childName);
@@ -24,75 +24,97 @@ function fillTemplate(text: string | undefined, childName: string): string {
 
 export default function WhatsNewPopup({
   userId,
-  seenVersion,
+  seenIds,
+  lastShownAt,
   viewer,
   childName,
   viewerIsAdmin,
 }: {
   userId: string;
-  seenVersion: string | null | undefined;
-  // Which dashboard is mounting this. Compared against WHATS_NEW_AUDIENCE
-  // so a parent-only popup doesn't show up on the student home page.
+  seenIds?: string[] | null;
+  lastShownAt?: string | null;
+  // Which dashboard is mounting this. Compared against each popup's
+  // `audience` (parent / student / all) so a parent-only popup doesn't
+  // fire on the student home page.
   viewer: WhatsNewAudience;
   // Substituted in for {{childName}}. Parent dashboards pass the first
   // linked kid's display name; student dashboard passes the student's
   // own first name. Falls back to "your child" so the copy still reads
   // when a parent hasn't linked anyone yet.
   childName?: string | null;
-  // Whether the current session user is an admin. When
-  // WHATS_NEW_ADMIN_ONLY is true, the popup only fires for admins so
-  // the copy / images can be dogfooded on prod before going wide.
+  // Whether the current session user is admin. Popups with
+  // adminOnly=true only fire when this is true.
   viewerIsAdmin?: boolean;
 }) {
   const filledChildName = (childName ?? "").trim() || "your child";
-  const audienceMatch =
-    WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === viewer;
-  const adminGate = !WHATS_NEW_ADMIN_ONLY || viewerIsAdmin === true;
-  // Preview override: admins can force-show the popup via
-  // ?whatsnew=preview on any home URL, ignoring the seen-version
-  // check. Handy for testing look-and-feel without touching DB. Kept
-  // admin-gated even when the popup goes wide, so parents can't
-  // accidentally trigger a re-show by tweaking a URL.
-  const previewOverride =
-    viewerIsAdmin === true &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("whatsnew") === "preview";
-  const shouldShow =
-    audienceMatch &&
-    adminGate &&
-    (previewOverride || seenVersion !== WHATS_NEW_VERSION) &&
-    WHATS_NEW_SLIDES.length > 0;
+
+  // Preview override: admin can add ?whatsnew=preview to any home URL to
+  // force-render the FIRST matching popup, ignoring seenIds + throttle.
+  // Handy for iterating on copy / images without touching DB. Kept
+  // admin-gated so parents can't accidentally trigger a re-show.
+  const preview = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    if (viewerIsAdmin !== true) return false;
+    return new URLSearchParams(window.location.search).get(WHATS_NEW_PREVIEW_QUERY_KEY) === WHATS_NEW_PREVIEW_QUERY_VALUE;
+  }, [viewerIsAdmin]);
+
+  // Resolve the popup to show ONCE at mount so seenIds updating (after
+  // dismissal) doesn't yank the modal mid-render. Everything after this
+  // point either uses `popup` or is a no-op.
+  const popup = useMemo(() => {
+    const lastShownAtMs = lastShownAt ? Date.parse(lastShownAt) || 0 : 0;
+    return pickNextWhatsNewPopup({
+      viewer,
+      viewerIsAdmin: viewerIsAdmin === true,
+      seenIds: seenIds ?? [],
+      lastShownAtMs,
+      now: Date.now(),
+      preview,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
   const [dismissing, setDismissing] = useState(false);
 
   useEffect(() => {
-    if (!shouldShow) return;
+    if (!popup) return;
     // Small delay so the modal doesn't fight for paint on first load —
     // dashboards do a lot in the first ~200 ms.
     const t = setTimeout(() => setOpen(true), 350);
     return () => clearTimeout(t);
-  }, [shouldShow]);
+  }, [popup]);
 
-  if (!shouldShow || !open) return null;
+  if (!popup || !open) return null;
 
-  const slide: WhatsNewSlide = WHATS_NEW_SLIDES[idx];
-  const isLast = idx === WHATS_NEW_SLIDES.length - 1;
+  const slide: WhatsNewSlide = popup.slides[idx];
+  const isLast = idx === popup.slides.length - 1;
 
   async function markSeen() {
-    // Fire-and-forget — even if the PATCH fails, we still close the modal
-    // for the current session so the user isn't blocked. The next login
-    // will re-check and re-show if the write really failed.
+    if (!popup) return;
+    // In preview mode we DO NOT persist — the whole point is to iterate
+    // without touching the seen list.
+    if (preview) return;
+    // Merge new id + timestamp into the existing seenIds array so we
+    // don't clobber older popups the user has already dismissed. The
+    // PATCH endpoint deep-merges settings for us, but the array itself
+    // is replaced (JSON merge is shallow), so we compute the full new
+    // array client-side.
+    const merged = Array.from(new Set([...(seenIds ?? []), popup.id]));
     try {
       await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          settings: { whatsNewSeenVersion: WHATS_NEW_VERSION },
+          settings: {
+            whatsNewSeenIds: merged,
+            whatsNewLastShownAt: new Date().toISOString(),
+          },
         }),
       });
-    } catch { /* ignore */ }
+    } catch { /* ignore — next login will re-check */ }
   }
 
   function close() {
@@ -146,9 +168,9 @@ export default function WhatsNewPopup({
           </p>
 
           {/* Progress dots */}
-          {WHATS_NEW_SLIDES.length > 1 ? (
+          {popup.slides.length > 1 ? (
             <div className="flex items-center justify-center gap-1.5 mt-6">
-              {WHATS_NEW_SLIDES.map((_, i) => (
+              {popup.slides.map((_, i) => (
                 <span
                   key={i}
                   className={`h-1.5 rounded-full transition-all ${

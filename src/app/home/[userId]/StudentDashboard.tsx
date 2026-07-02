@@ -948,7 +948,8 @@ export default function StudentDashboard({
       />
       <WhatsNewPopup
         userId={userId}
-        seenVersion={user.settings?.whatsNewSeenVersion}
+        seenIds={user.settings?.whatsNewSeenIds}
+        lastShownAt={user.settings?.whatsNewLastShownAt}
         viewer="student"
         viewerIsAdmin={isAdminViewer}
         childName={(user.displayName ?? user.name ?? "").split(/\s+/)[0] ?? ""}
