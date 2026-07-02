@@ -28,6 +28,10 @@ function PageInner() {
   const [session, setSession] = useState<OralSession | null>(null);
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Which tile is expanded to show its detailed breakdown. null =
+  // both collapsed; "reading" or "sbc" reveals per-dimension detail
+  // + all tips + (SBC) model upgrades for the picked component.
+  const [expanded, setExpanded] = useState<"reading" | "sbc" | null>(null);
 
   useEffect(() => {
     setSession(loadOralSession());
@@ -99,8 +103,24 @@ function PageInner() {
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className={`rounded-xl border p-3 ${readingSkipped ? "bg-slate-50 border-slate-200" : "bg-indigo-50 border-indigo-100"}`}>
-                <p className={`text-[10px] uppercase tracking-wide font-semibold ${readingSkipped ? "text-slate-400" : "text-indigo-600"}`}>Reading Aloud</p>
+              <button
+                type="button"
+                disabled={readingSkipped}
+                onClick={() => setExpanded(expanded === "reading" ? null : "reading")}
+                className={`text-left rounded-xl border p-3 transition ${
+                  readingSkipped
+                    ? "bg-slate-50 border-slate-200 cursor-not-allowed"
+                    : expanded === "reading"
+                    ? "bg-indigo-100 border-indigo-300 ring-2 ring-indigo-300"
+                    : "bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className={`text-[10px] uppercase tracking-wide font-semibold ${readingSkipped ? "text-slate-400" : "text-indigo-600"}`}>Reading Aloud</p>
+                  {!readingSkipped && (
+                    <span className="text-[10px] text-indigo-500">{expanded === "reading" ? "▲ hide" : "▼ details"}</span>
+                  )}
+                </div>
                 {readingSkipped ? (
                   <p className="text-sm text-slate-400 mt-1 italic">Skipped — not scored.</p>
                 ) : (
@@ -113,9 +133,25 @@ function PageInner() {
                     </div>
                   </>
                 )}
-              </div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">Stimulus Conversation</p>
+              </button>
+              <button
+                type="button"
+                disabled={!sbc}
+                onClick={() => setExpanded(expanded === "sbc" ? null : "sbc")}
+                className={`text-left rounded-xl border p-3 transition ${
+                  !sbc
+                    ? "bg-slate-50 border-slate-200 cursor-not-allowed"
+                    : expanded === "sbc"
+                    ? "bg-emerald-100 border-emerald-300 ring-2 ring-emerald-300"
+                    : "bg-emerald-50 border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 cursor-pointer"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">Stimulus Conversation</p>
+                  {sbc && (
+                    <span className="text-[10px] text-emerald-600">{expanded === "sbc" ? "▲ hide" : "▼ details"}</span>
+                  )}
+                </div>
                 <p className="text-2xl font-bold text-emerald-800">{sbcTotal} <span className="text-xs text-emerald-500">/ 25</span></p>
                 {sbc && (
                   <div className="flex gap-3 mt-1 text-[11px] text-emerald-700/80">
@@ -124,10 +160,81 @@ function PageInner() {
                     <span>Q3 {sbc.q3Percent}%</span>
                   </div>
                 )}
-              </div>
+              </button>
             </div>
             {sbc?.overallVerdict && (
               <p className="text-xs text-slate-600 mt-3 leading-snug italic">&ldquo;{sbc.overallVerdict}&rdquo;</p>
+            )}
+
+            {/* Expanded detail — reading. Shown when the Reading tile
+                is clicked. Reveals the per-dimension percentages +
+                all top-tips distilled during the Reading Aloud pass. */}
+            {expanded === "reading" && reading && (
+              <div className="mt-3 rounded-xl border border-indigo-200 bg-white p-3">
+                <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-2">Reading Aloud — detail</p>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-2 text-center">
+                    <p className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">Pronunciation</p>
+                    <p className="text-lg font-bold text-indigo-800">{reading.pronunciation.toFixed(1)}<span className="text-[10px] text-indigo-500 ml-0.5">/6</span></p>
+                  </div>
+                  <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-2 text-center">
+                    <p className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">Fluency</p>
+                    <p className="text-lg font-bold text-indigo-800">{reading.fluencyRhythm.toFixed(1)}<span className="text-[10px] text-indigo-500 ml-0.5">/5</span></p>
+                  </div>
+                  <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-2 text-center">
+                    <p className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">Expression</p>
+                    <p className="text-lg font-bold text-indigo-800">{reading.expressiveness.toFixed(1)}<span className="text-[10px] text-indigo-500 ml-0.5">/4</span></p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold mb-1">Tips</p>
+                <ul className="space-y-1">
+                  {reading.topTips.map((t, i) => (
+                    <li key={i} className="text-xs text-slate-700 leading-snug">• {t}</li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/admin/english-oral-coach/read/${reading.year}/${reading.day}?userId=${userId}`}
+                  className="mt-3 inline-block text-[11px] text-indigo-600 hover:underline"
+                >
+                  Redo Reading Aloud →
+                </Link>
+              </div>
+            )}
+
+            {/* Expanded detail — SBC. Shown when the SBC tile is
+                clicked. Reveals per-segment percentages + all top
+                tips. Model upgrades (per-segment rewrites) sit on
+                the SBC page itself; this is the summary drill-in. */}
+            {expanded === "sbc" && sbc && (
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-white p-3">
+                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Stimulus Conversation — detail</p>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-2 text-center">
+                    <p className="text-[10px] text-emerald-600 uppercase tracking-wide font-semibold">Q1 · Picture</p>
+                    <p className="text-lg font-bold text-emerald-800">{sbc.q1Percent}<span className="text-[10px] text-emerald-500 ml-0.5">%</span></p>
+                  </div>
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-2 text-center">
+                    <p className="text-[10px] text-emerald-600 uppercase tracking-wide font-semibold">Q2 · Personal</p>
+                    <p className="text-lg font-bold text-emerald-800">{sbc.q2Percent}<span className="text-[10px] text-emerald-500 ml-0.5">%</span></p>
+                  </div>
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-2 text-center">
+                    <p className="text-[10px] text-emerald-600 uppercase tracking-wide font-semibold">Q3 · Critical</p>
+                    <p className="text-lg font-bold text-emerald-800">{sbc.q3Percent}<span className="text-[10px] text-emerald-500 ml-0.5">%</span></p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold mb-1">Tips</p>
+                <ul className="space-y-1">
+                  {sbc.topTips.map((t, i) => (
+                    <li key={i} className="text-xs text-slate-700 leading-snug">• {t}</li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/admin/english-oral-coach/sbc/${sbc.year}/${sbc.day}?userId=${userId}`}
+                  className="mt-3 inline-block text-[11px] text-emerald-700 hover:underline"
+                >
+                  Redo Stimulus Conversation →
+                </Link>
+              </div>
             )}
           </div>
 

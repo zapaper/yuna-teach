@@ -643,11 +643,10 @@ function Inner() {
             topTips: topTips.slice(0, 3),
           },
         });
-        // Small delay so the student sees the score card flash by
-        // before we route them to the aggregate view.
-        setTimeout(() => {
-          window.location.href = `/admin/english-oral-coach/results?userId=${userId}`;
-        }, 600);
+        // NOTE: no auto-redirect — the student needs time to read
+        // the SBC score card + per-segment tips + model upgrades.
+        // A "See Combined Results" button appears below the card
+        // when isFlow is true so they navigate on their own.
       }
     } catch (e) {
       setError((e as Error).message);
@@ -735,6 +734,21 @@ function Inner() {
               )}
 
               {score && <SbcScoreCard score={score} />}
+
+              {score && isFlow && (
+                <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-4 flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="text-sm font-semibold text-indigo-800">Ready to see your combined score?</p>
+                    <p className="text-xs text-indigo-700/80 mt-0.5">Reading Aloud + Stimulus Conversation totalled — plus the top tips from both.</p>
+                  </div>
+                  <a
+                    href={`/admin/english-oral-coach/results?userId=${userId}`}
+                    className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition flex-shrink-0"
+                  >
+                    See Combined Results →
+                  </a>
+                </div>
+              )}
             </>
           )}
         </div>

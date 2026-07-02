@@ -318,9 +318,9 @@ function Inner() {
             topTips: topTips.slice(0, 3),
           },
         });
-        setTimeout(() => {
-          window.location.href = `/admin/chinese-oral-coach/results?userId=${userId}`;
-        }, 600);
+        // No auto-redirect — let the student read the SBC score card
+        // and per-segment tips. A "查看总分" button below shows on
+        // isFlow=true so they can navigate on their own.
       }
     } catch (e) {
       setError((e as Error).message);
@@ -416,7 +416,7 @@ function Inner() {
             </div>
           )}
 
-          {score && !isFlow && (
+          {score && (
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
               <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">会话评分</p>
               <div className="flex items-end gap-2 mt-1">
@@ -429,6 +429,21 @@ function Inner() {
                 <ScoreCell label="意见 Q2" percent={score.opinion.scorePercent} tone="purple" />
                 <ScoreCell label="经历 Q3" percent={score.experience.scorePercent} tone="amber" />
               </div>
+            </div>
+          )}
+
+          {score && isFlow && (
+            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-4 flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-semibold text-indigo-800">看完后再进入总分页?</p>
+                <p className="text-xs text-indigo-700/80 mt-0.5">总分页会显示朗读 + 会话的合计,以及重要的改进建议。</p>
+              </div>
+              <a
+                href={`/admin/chinese-oral-coach/results?userId=${userId}`}
+                className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition flex-shrink-0"
+              >
+                查看总分 →
+              </a>
             </div>
           )}
         </div>
