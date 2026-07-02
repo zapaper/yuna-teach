@@ -45,7 +45,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from "@playwri
 import { readFileSync } from "fs";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { WHATS_NEW_VERSION } from "../src/lib/whats-new";
+import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE } from "../src/lib/whats-new";
 
 const __dirname = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname.replace(/^\//, "")));
 
@@ -82,11 +82,13 @@ const onlyT1 = args.has("t1");
 const onlyT2 = args.has("t2");
 const onlyT3 = args.has("t3");
 const onlyT4 = args.has("t4");
-const runAll = !onlyT1 && !onlyT2 && !onlyT3 && !onlyT4;
+const onlyT5 = args.has("t5");
+const runAll = !onlyT1 && !onlyT2 && !onlyT3 && !onlyT4 && !onlyT5;
 const runT1 = runAll || onlyT1;
 const runT2 = runAll || onlyT2 || onlyT3 || onlyT4;  // T3/T4 need T2 to create the paper
 const runT3 = runAll || onlyT3 || onlyT4;
 const runT4 = runAll || onlyT4;
+const runT5 = runAll || onlyT5;
 
 const apiHeaders = { cookie: `yuna_session=${cookie}` } as const;
 const apiJsonHeaders = { ...apiHeaders, "Content-Type": "application/json" } as const;
@@ -185,7 +187,7 @@ async function waitForMarkComplete(paperId: string): Promise<void> {
 // is admin.
 type FakeAccount = { parentId: string; studentId: string; parentEmail: string; studentName: string; level: number };
 
-async function createFakeAccount(level: number): Promise<FakeAccount> {
+async function createFakeAccount(level: number, preseedWhatsNew = true): Promise<FakeAccount> {
   const prisma = new PrismaClient();
   try {
     const stamp = Date.now();
@@ -193,16 +195,18 @@ async function createFakeAccount(level: number): Promise<FakeAccount> {
     const parentEmail = `ui-eval-parent-${stamp}-${rand}@markforyou-eval.invalid`;
     const parentName  = `UI-Eval-Parent-${stamp}-${rand}`;
     const studentName = `UI-Eval-Student-P${level}-${stamp}-${rand}`;
-    // Pre-seed the current What's-New version so T4's chart-visibility
+    // Preseed the current What's-New version so downstream chart-visibility
     // assertions aren't blocked by the modal overlaying the Lumi panel.
-    const seenSettings = { whatsNewSeenVersion: WHATS_NEW_VERSION };
+    // T5 sets preseedWhatsNew=false so the popup DOES fire and can be
+    // asserted directly.
+    const seenSettings = preseedWhatsNew ? { whatsNewSeenVersion: WHATS_NEW_VERSION } : undefined;
     const parent = await prisma.user.create({
       data: {
         name: parentName,
         email: parentEmail,
         role: "PARENT",
         emailVerified: true,
-        settings: seenSettings,
+        ...(seenSettings ? { settings: seenSettings } : {}),
       },
       select: { id: true },
     });
@@ -211,7 +215,7 @@ async function createFakeAccount(level: number): Promise<FakeAccount> {
         name: studentName,
         role: "STUDENT",
         level,
-        settings: seenSettings,
+        ...(seenSettings ? { settings: seenSettings } : {}),
       },
       select: { id: true },
     });
@@ -407,6 +411,68 @@ async function t4DiagnosticLumi(browser: Browser, paperId: string, parentId: str
   await ctx.close();
 }
 
+// ── T5. What's New popup ──────────────────────────────────────────────────
+// Creates a fake parent WITHOUT the seenVersion preseed, opens their home
+// page, and asserts the modal renders with the first slide's title. Also
+// exercises the audience gate: WHATS_NEW_AUDIENCE === "parent" means the
+// popup MUST NOT fire on a student home page — the negative assertion
+// prevents kids from seeing a parent-facing modal.
+async function t5WhatsNew(browser: Browser): Promise<FakeAccount | undefined> {
+  console.log(`\n[T5] What's New popup (version=${WHATS_NEW_VERSION}, audience=${WHATS_NEW_AUDIENCE})`);
+  if (WHATS_NEW_SLIDES.length === 0) {
+    console.log("  (skipped — no slides configured)");
+    return undefined;
+  }
+  const firstTitle = WHATS_NEW_SLIDES[0].title;
+
+  const fake = await step("Create fake parent WITHOUT seenVersion preseed", async () => createFakeAccount(5, false));
+  if (!fake) return undefined;
+
+  const ctx = await makeContext(browser);
+  const page = await ctx.newPage();
+
+  const expectPopupOnParent = WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === "parent";
+  const expectPopupOnStudent = WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === "student";
+
+  await step(`T5.1 parent /home/{id} loads`, async () => {
+    const res = await page.goto(`${base}/home/${fake.parentId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    assert(res && res.ok(), `HTTP ${res?.status()}`);
+    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+  });
+
+  await step(`T5.2 parent view: popup ${expectPopupOnParent ? "visible" : "hidden"} with title "${firstTitle}"`, async () => {
+    if (expectPopupOnParent) {
+      await page.waitForSelector('[role="dialog"][aria-modal="true"]', { timeout: 5000 });
+      const dialogText = await page.textContent('[role="dialog"][aria-modal="true"]');
+      assert(dialogText && dialogText.includes(firstTitle), `popup dialog didn't contain "${firstTitle}" — got: ${dialogText?.slice(0, 200)}`);
+    } else {
+      // Give the dashboard a beat to hydrate; then assert nothing appeared.
+      await page.waitForTimeout(1500);
+      const modal = await page.$('[role="dialog"][aria-modal="true"]');
+      assert(!modal, "popup unexpectedly visible on parent view when audience=student");
+    }
+  });
+
+  await step(`T5.3 student /home/{id} loads`, async () => {
+    const res = await page.goto(`${base}/home/${fake.studentId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    assert(res && res.ok(), `HTTP ${res?.status()}`);
+    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+  });
+
+  await step(`T5.4 student view: popup ${expectPopupOnStudent ? "visible" : "hidden"}`, async () => {
+    if (expectPopupOnStudent) {
+      await page.waitForSelector('[role="dialog"][aria-modal="true"]', { timeout: 5000 });
+    } else {
+      await page.waitForTimeout(1500);
+      const modal = await page.$('[role="dialog"][aria-modal="true"]');
+      assert(!modal, "popup unexpectedly visible on student view when audience=parent");
+    }
+  });
+
+  await ctx.close();
+  return fake;
+}
+
 // ── Interactive prompt (stdin) ─────────────────────────────────────────────
 function promptYesNo(question: string): Promise<boolean> {
   return new Promise(resolve => {
@@ -491,6 +557,11 @@ async function main() {
           if (runT4) await t4DiagnosticLumi(browser, id, p4.parentId, p4.studentId, "P4", "math");
         }
       }
+    }
+
+    if (runT5) {
+      const wn = await t5WhatsNew(browser);
+      if (wn) fakes.push(wn);
     }
   } finally {
     await browser.close();

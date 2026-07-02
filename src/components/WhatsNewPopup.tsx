@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, type WhatsNewSlide } from "@/lib/whats-new";
+import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, type WhatsNewSlide, type WhatsNewAudience } from "@/lib/whats-new";
 
 // Shows the What's New carousel exactly once per user, per WHATS_NEW_VERSION.
 // State lives in `user.settings.whatsNewSeenVersion` server-side — deliberately
@@ -17,11 +17,20 @@ import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, type WhatsNewSlide } from "@/lib/w
 export default function WhatsNewPopup({
   userId,
   seenVersion,
+  viewer,
 }: {
   userId: string;
   seenVersion: string | null | undefined;
+  // Which dashboard is mounting this. Compared against WHATS_NEW_AUDIENCE
+  // so a parent-only popup doesn't show up on the student home page.
+  viewer: WhatsNewAudience;
 }) {
-  const shouldShow = seenVersion !== WHATS_NEW_VERSION && WHATS_NEW_SLIDES.length > 0;
+  const audienceMatch =
+    WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === viewer;
+  const shouldShow =
+    audienceMatch &&
+    seenVersion !== WHATS_NEW_VERSION &&
+    WHATS_NEW_SLIDES.length > 0;
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
   const [dismissing, setDismissing] = useState(false);

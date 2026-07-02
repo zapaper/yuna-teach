@@ -946,7 +946,7 @@ export default function StudentDashboard({
         subscriptionStatus={user.subscriptionStatus}
         trialEndsAtIso={user.trialEndsAt}
       />
-      <WhatsNewPopup userId={userId} seenVersion={user.settings?.whatsNewSeenVersion} />
+      <WhatsNewPopup userId={userId} seenVersion={user.settings?.whatsNewSeenVersion} viewer="student" />
       {/* Habitat unlock popup at 200 points */}
       {showHabitatUnlock && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4" onClick={() => setShowHabitatUnlock(false)}>
