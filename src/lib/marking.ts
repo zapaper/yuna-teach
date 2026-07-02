@@ -686,6 +686,27 @@ function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
   return syllabusTopic === "Grammar Cloze" || syllabusTopic === "Comprehension Cloze";
 }
 
+/** Math geometry questions that ask the student to draw on a grid (e.g.
+ *  "draw a triangle WYZ on this dot grid so that…"). We identify them by
+ *  the "_drawable" subpart label emitted by the extractor. Gemini-2.5-flash
+ *  mis-reads the grid: it recognises shapes and vertex labels but does not
+ *  verify whether the student REUSED the original diagram's labelled
+ *  points, so a triangle labelled WYZ drawn with brand-new W and Y points
+ *  gets marked correct. Bumping these to 3.1-Pro fixes that. Scope kept
+ *  narrow (Math + Geometry topic + _drawable subpart) to limit the ~5×
+ *  cost bump to the questions that actually need it. */
+function isMathGeometryDrawable(
+  subject: string | null | undefined,
+  question: { syllabusTopic?: string | null; transcribedSubparts?: unknown },
+): boolean {
+  const s = (subject ?? "").toLowerCase();
+  if (!s.includes("math")) return false;
+  const t = (question.syllabusTopic ?? "").toLowerCase();
+  if (!t.includes("geometry")) return false;
+  const subs = question.transcribedSubparts as Array<{ label?: string | null }> | null | undefined;
+  return Array.isArray(subs) && subs.some(sp => sp?.label === "_drawable");
+}
+
 /** Format a table-cell student answer ({"r1c1":"False","r1c2":"…"}) into a
  *  marker-friendly labelled block by parsing the markdown table in the
  *  question stem to extract row labels (a/b/c) and column headers
@@ -2300,8 +2321,14 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
-  // Drawable Science electrical-circuit questions: gpt-5.4 has been
-  // consistently more accurate (and faster) than gemini-3.1-pro on
+  // Math geometry drawables (e.g. "draw a triangle WYZ on this dot grid"):
+  // gemini-2.5-flash hallucinates grid coordinates — it recognises a shape
+  // labelled WYZ and assumes the labels match the original diagram, even
+  // when the student drew brand-new W/Y points elsewhere on the grid. 3.1
+  // Pro reasons about the actual grid layout and label placement well
+  // enough to catch that. Same reasoning as the Science pro-tier decision
+  // below — pattern recognition needs an instruction-following model here.
+  const isMathGeoDrawableRemark = isMathGeometryDrawable(paper.subject, question);
   // these — both on topology (series vs parallel) and on the fiddly
   // details (terminal connections, '+' labels). Route directly to
   // gpt-5.4 and skip Gemini entirely. Falls back to Gemini if the
@@ -2314,7 +2341,9 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const useGpt54PrimaryRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns) && isOpenAIFallbackEnabled();
   const remarkModel = isEditing ? "gemini-2.5-pro"
     : isCloze ? "gemini-3.1-flash-lite-preview"
+    : isMathGeoDrawableRemark ? "gemini-3.1-pro-preview"
     : "gemini-2.5-flash";
+  if (isMathGeoDrawableRemark) console.log(`[marking] Q${question.questionNum} is a math geometry drawable — routing remark to gemini-3.1-pro-preview`);
   if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-2.5-pro)`);
 
   let text: string;
@@ -2848,8 +2877,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       // Worth it for phrase-level accuracy parity with a human
       // marker.
       const isScience = (paper?.subject ?? "").toLowerCase().includes("science");
-      const defaultModel = isScience ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+      // Math geometry drawables (see isMathGeometryDrawable comment) need
+      // Pro-tier vision reasoning about grid coordinates — bump the whole
+      // batch to 3.1-pro if ANY question in it qualifies. Batches are
+      // per-page + small, so this rarely widens the model beyond one Q.
+      const batchHasMathGeoDrawable = questions.some(q => isMathGeometryDrawable(paper?.subject, q));
+      const defaultModel = isScience || batchHasMathGeoDrawable ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
       const model = modelOverride ?? defaultModel;
+      if (batchHasMathGeoDrawable && !isScience) console.log(`[marking] ${label}: math geometry drawable in batch — routing to gemini-3.1-pro-preview`);
       try {
         // OpenAI cross-check branch — same prompt + image, gpt-5.4
         // instead of Gemini. Returns [] gracefully if the key isn't
