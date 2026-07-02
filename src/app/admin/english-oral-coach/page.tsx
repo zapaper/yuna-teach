@@ -97,16 +97,28 @@ function PageInner() {
         <div className="bg-white border-b border-slate-200 px-4 py-3">
           <div className="flex items-center gap-3">
             <Link href={`/admin?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← Admin</Link>
-            <h1 className="text-lg font-bold text-slate-800">Oral Coach (English) — v0</h1>
+            <h1 className="text-lg font-bold text-slate-800">Oral Coach</h1>
+            {/* Language toggle — segmented pill so students can flip
+                between English and Chinese modules. Active side is
+                highlighted; inactive is a link to the other module
+                carrying the userId. */}
+            <div className="ml-auto inline-flex rounded-full bg-slate-100 p-0.5 ring-1 ring-slate-200">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white text-indigo-700 shadow-sm">English</span>
+              <Link
+                href={`/admin/chinese-oral-coach?userId=${userId}`}
+                className="px-3 py-1 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800"
+              >
+                华文
+              </Link>
+            </div>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Live AI Paper-4 oral practice. This page is the design/dev harness — inspect the 10-year corpus and the
-            PSLE grading rubric before we wire the student-facing live-voice module.
+            PSLE Paper 4 Oral: Reading Aloud (15) + Stimulus Conversation (25) = 40 marks total.
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div className="lg:col-span-1 space-y-3">
+        <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Themes</p>
               {data.loading && <p className="text-xs text-slate-400">Loading…</p>}
@@ -173,7 +185,7 @@ function PageInner() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 space-y-3">
+          <div className="space-y-3">
             {selectedTheme ? (
               <>
                 {/* Examiner picker */}

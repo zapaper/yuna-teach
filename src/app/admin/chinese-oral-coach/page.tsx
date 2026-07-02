@@ -71,16 +71,25 @@ function PageInner() {
       <div className="lg:ml-56 pb-24 lg:pb-0">
         <div className="bg-white border-b border-slate-200 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link href={`/admin?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← Admin</Link>
-            <h1 className="text-lg font-bold text-slate-800">华文口试练习 · Oral Coach (Chinese) — v0</h1>
+            <Link href={`/admin?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← 管理页</Link>
+            <h1 className="text-lg font-bold text-slate-800">口试练习 · Oral Coach</h1>
+            <div className="ml-auto inline-flex rounded-full bg-slate-100 p-0.5 ring-1 ring-slate-200">
+              <Link
+                href={`/admin/english-oral-coach?userId=${userId}`}
+                className="px-3 py-1 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800"
+              >
+                English
+              </Link>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white text-indigo-700 shadow-sm">华文</span>
+            </div>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Chinese PSLE Paper 3 Oral: 朗读 (10 marks) + 会话 (30 marks) = 40 marks total.
+            华文 PSLE Paper 3 Oral: 朗读 (10) + 会话 (30) = 40 marks total.
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div className="lg:col-span-1 space-y-3">
+        <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">主题 · Themes</p>
               <ul className="space-y-1.5">
@@ -145,7 +154,7 @@ function PageInner() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 space-y-3">
+          <div className="space-y-3">
             {/* Examiner picker */}
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 relative">
               <div className="flex items-center gap-3">
