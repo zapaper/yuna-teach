@@ -1,17 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getOralAvatarKey, type OralAvatarKey } from "@/lib/oral-avatar";
 
-// Chinese examiner face loops uploaded to Cloudflare R2 under
-// oral-coach/ prefix. All four are 5-second silent MP4s.
-// still1/still2 = examiner listening; talk1/talk2 = examiner speaking.
-// The face is Chinese-oral-examiner footage — used here for the
-// English SBC as well because the visual matters (a face + head sway)
-// more than perfect language matching. Swap files or rename here when
-// dedicated English examiner loops land.
-const STILL_LOOPS = ["chinese_still1.mp4", "chinese_still2.mp4"];
-const TALK_LOOPS = ["chinese_talk1.mp4", "chinese_talk2.mp4"];
-const ALL_LOOPS = [...STILL_LOOPS, ...TALK_LOOPS];
+// Examiner face loops uploaded to Cloudflare R2 under oral-coach/
+// prefix. Each variant ships four 5-second silent MP4s:
+//   <variant>_still1.mp4 / <variant>_still2.mp4 = examiner listening
+//   <variant>_talk1.mp4  / <variant>_talk2.mp4  = examiner speaking
+// Variants: "chinese" (default), "rchinese", "indian".
 
 // Base path — served via next.config.ts redirect to R2. Same origin
 // hostname on the browser, no CORS gymnastics needed.
@@ -27,6 +23,11 @@ type Props = {
   speaking: boolean;
   /** Tailwind-ish class for the wrapper size + shape */
   className?: string;
+  /**
+   * Which examiner face to render. If omitted, falls back to the
+   * user's saved preference in localStorage (see @/lib/oral-avatar).
+   */
+  avatarKey?: OralAvatarKey;
 };
 
 /**
@@ -41,10 +42,32 @@ type Props = {
  * inactive ones sit muted with opacity 0 — Chrome/Safari efficiently
  * throttle offscreen video decoding so CPU cost is negligible.
  */
-export function ExaminerAvatar({ speaking, className }: Props) {
+export function ExaminerAvatar({ speaking, className, avatarKey }: Props) {
+  // Resolve variant: explicit prop overrides localStorage. Do the
+  // localStorage read in an effect so SSR + first paint use the
+  // default without a hydration mismatch.
+  const [resolvedKey, setResolvedKey] = useState<OralAvatarKey>(avatarKey ?? "chinese");
+  useEffect(() => {
+    if (avatarKey) { setResolvedKey(avatarKey); return; }
+    setResolvedKey(getOralAvatarKey());
+  }, [avatarKey]);
+
+  const { stillLoops, talkLoops, allLoops } = useMemo(() => {
+    const stillLoops = [`${resolvedKey}_still1.mp4`, `${resolvedKey}_still2.mp4`];
+    const talkLoops = [`${resolvedKey}_talk1.mp4`, `${resolvedKey}_talk2.mp4`];
+    return { stillLoops, talkLoops, allLoops: [...stillLoops, ...talkLoops] };
+  }, [resolvedKey]);
+
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const [activeSrc, setActiveSrc] = useState<string>(STILL_LOOPS[0]);
+  const [activeSrc, setActiveSrc] = useState<string>(stillLoops[0]);
   const speakingRef = useRef(speaking);
+
+  // When variant changes, reset to the still1 loop of the new variant
+  // and drop refs so stale entries don't fire onEnded across variants.
+  useEffect(() => {
+    videoRefs.current = {};
+    setActiveSrc(stillLoops[0]);
+  }, [resolvedKey, stillLoops]);
 
   // Kick off playback on mount so the browser caches all four videos.
   // Some browsers (Safari mobile especially) refuse autoplay before a
@@ -52,18 +75,18 @@ export function ExaminerAvatar({ speaking, className }: Props) {
   // page has any user interaction, which happens immediately when the
   // student clicks "Start Session" / "Start Reading".
   useEffect(() => {
-    ALL_LOOPS.forEach((file) => {
+    allLoops.forEach((file) => {
       const v = videoRefs.current[file];
       if (v) {
         v.play().catch(() => { /* autoplay blocked — will resume on interaction */ });
       }
     });
-  }, []);
+  }, [allLoops]);
 
   // When speaking flips, swap to the appropriate pool immediately.
   useEffect(() => {
     speakingRef.current = speaking;
-    const pool = speaking ? TALK_LOOPS : STILL_LOOPS;
+    const pool = speaking ? talkLoops : stillLoops;
     if (!pool.includes(activeSrc)) {
       const next = pool[0];
       const v = videoRefs.current[next];
@@ -73,16 +96,16 @@ export function ExaminerAvatar({ speaking, className }: Props) {
       }
       setActiveSrc(next);
     }
-  }, [speaking, activeSrc]);
+  }, [speaking, activeSrc, stillLoops, talkLoops]);
 
   // Sequential alternation within the current pool. When the visible
   // loop ends, cross-fade to the other loop in the same pool. When a
   // background (invisible) loop ends, ignore — it just sits at t=0
   // ready to be swapped in later.
   const handleEnded = useCallback((currentFile: string) => {
-    const pool = speakingRef.current ? TALK_LOOPS : STILL_LOOPS;
+    const pool = speakingRef.current ? talkLoops : stillLoops;
     const idx = pool.indexOf(currentFile);
-    if (idx < 0) return; // ended video is not from the current pool — leave alone
+    if (idx < 0) return;
     const next = pool[(idx + 1) % pool.length];
     const nextVideo = videoRefs.current[next];
     if (nextVideo) {
@@ -90,15 +113,13 @@ export function ExaminerAvatar({ speaking, className }: Props) {
       nextVideo.play().catch(() => {});
     }
     setActiveSrc(next);
-    // Reset the just-ended video so it's ready to play from t=0 when
-    // it's picked again on the next rotation.
     const endedVideo = videoRefs.current[currentFile];
     if (endedVideo) endedVideo.currentTime = 0;
-  }, []);
+  }, [stillLoops, talkLoops]);
 
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
-      {ALL_LOOPS.map((file) => (
+      {allLoops.map((file) => (
         <video
           key={file}
           ref={(el) => {

@@ -2,8 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
+import { getOralAvatarKey, setOralAvatarKey, ORAL_AVATARS, type OralAvatarKey } from "@/lib/oral-avatar";
 
 export default function EnglishOralCoachPage() {
   return (
@@ -30,6 +32,16 @@ function PageInner() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [data, setData] = useState<LoadState>({ rows: [], loading: false, error: null });
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [avatarKey, setAvatarKey] = useState<OralAvatarKey>("chinese");
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+
+  useEffect(() => { setAvatarKey(getOralAvatarKey()); }, []);
+  const chooseAvatar = (k: OralAvatarKey) => {
+    setAvatarKey(k);
+    setOralAvatarKey(k);
+    setAvatarPickerOpen(false);
+  };
+  const currentAvatar = ORAL_AVATARS.find((a) => a.key === avatarKey) ?? ORAL_AVATARS[0];
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -79,6 +91,50 @@ function PageInner() {
           <div className="flex items-center gap-3">
             <Link href={`/admin?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← Admin</Link>
             <h1 className="text-lg font-bold text-slate-800">Oral Coach (English) — v0</h1>
+            <div className="ml-auto relative">
+              {/* Avatar picker — click thumbnail to open chooser.
+                  Selection persists in localStorage; Reading + SBC
+                  pages read it via getOralAvatarKey(). */}
+              <button
+                type="button"
+                onClick={() => setAvatarPickerOpen((v) => !v)}
+                className="flex items-center gap-2 group"
+                title="Choose your examiner"
+              >
+                <span className="hidden sm:inline text-[10px] text-slate-500 group-hover:text-slate-700">Examiner:</span>
+                <div className="relative">
+                  <Image
+                    src={currentAvatar.thumb}
+                    alt={currentAvatar.label}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-200 group-hover:ring-indigo-400 transition"
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[9px] text-slate-500 shadow ring-1 ring-slate-200">▾</span>
+                </div>
+              </button>
+              {avatarPickerOpen && (
+                <>
+                  {/* Click-outside backdrop */}
+                  <div className="fixed inset-0 z-10" onClick={() => setAvatarPickerOpen(false)} />
+                  <div className="absolute right-0 top-12 z-20 bg-white rounded-xl shadow-lg ring-1 ring-slate-200 p-2 flex gap-2">
+                    {ORAL_AVATARS.map((a) => (
+                      <button
+                        key={a.key}
+                        type="button"
+                        onClick={() => chooseAvatar(a.key)}
+                        className={`flex flex-col items-center gap-1 p-1.5 rounded-lg transition ${
+                          a.key === avatarKey ? "bg-indigo-50 ring-2 ring-indigo-400" : "hover:bg-slate-50 ring-2 ring-transparent"
+                        }`}
+                      >
+                        <Image src={a.thumb} alt={a.label} width={64} height={64} className="w-16 h-16 rounded-full object-cover" />
+                        <span className="text-[10px] font-semibold text-slate-700">{a.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             Live AI Paper-4 oral practice. This page is the design/dev harness — inspect the 10-year corpus and the
