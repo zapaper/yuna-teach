@@ -563,9 +563,12 @@ function computeSeabScore(
   // 5/6 despite the "mostly flat" verdict — that's the bug this
   // fixes.
   if (bd.expressiveness.intonationVerdict === "flat") {
-    expressiveness = Math.min(expressiveness, 3.5);
+    expressiveness = Math.min(expressiveness, 3);
   } else if (bd.expressiveness.intonationVerdict === "some variation") {
-    expressiveness = Math.min(expressiveness, 4.5);
+    // 2026-07-02 probe: "some variation" verdict was capped at 4.5
+    // but scored 5/6 due to rounding. Drop cap to 4 so a "some
+    // variation" read reliably lands at 4 or below.
+    expressiveness = Math.min(expressiveness, 4);
   } else if (bd.expressiveness.intonationVerdict === "good variation") {
     expressiveness = Math.max(expressiveness, 5);
   }
@@ -861,12 +864,18 @@ function alignPassageWithWords(passage: string, words: WordScore[]): Array<
     }
 
     if (queueAhead > 0) {
-      // Emit intervening queue entries using their own errorType (so a
-      // real Insertion looks purple, a stray mispronunciation looks
-      // amber/rose, etc). Then consume the matched entry for this tok.
+      // Emit intervening queue entries. If the engine labelled them
+      // "None" (thinking they were normal words) we override to
+      // Insertion — user probe 2026-07-02: passage "sorry", student
+      // said "so sorry", transcribed "show sorry" with both words
+      // errorType=None. Without this override the extra "show" was
+      // rendered unstyled instead of purple.
+      // We keep any explicit Mispronunciation / Insertion marker
+      // Azure already assigned.
       for (let i = 0; i < queueAhead; i++) {
         const w = azureWords[qIdx + i];
-        chunks.push({ kind: "word", text: w.word, style: w });
+        const style = w.errorType === "None" ? { ...w, errorType: "Insertion" } : w;
+        chunks.push({ kind: "word", text: w.word, style });
         chunks.push({ kind: "gap", text: " " });
       }
       chunks.push({ kind: "word", text: tok, style: azureWords[qIdx + queueAhead] });
