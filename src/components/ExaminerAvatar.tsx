@@ -101,12 +101,25 @@ export function ExaminerAvatar({ speaking, className }: Props) {
       {ALL_LOOPS.map((file) => (
         <video
           key={file}
-          ref={(el) => { videoRefs.current[file] = el; }}
+          ref={(el) => {
+            videoRefs.current[file] = el;
+            // Belt-and-braces: some browsers honour the `muted` attribute
+            // for autoplay but still emit the audio track unless we set
+            // muted + volume=0 imperatively. The uploaded R2 loops carry
+            // an audio track that would otherwise talk over the Gemini
+            // Live examiner voice — force silent.
+            if (el) {
+              el.muted = true;
+              el.volume = 0;
+            }
+          }}
           src={`${AVATAR_BASE}/${file}`}
           muted
+          defaultMuted
           playsInline
           preload="auto"
           onEnded={() => handleEnded(file)}
+          disableRemotePlayback
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           style={{
             opacity: file === activeSrc ? 1 : 0,
