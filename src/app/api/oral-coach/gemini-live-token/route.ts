@@ -68,9 +68,21 @@ export async function POST(request: NextRequest) {
   // Voice: prefer the per-avatar Gemini voice sent by the client.
   // Whitelist against known-good voice names to avoid Google rejecting
   // the connection for an unknown voice.
+  // Voice whitelist. First 10 are the widely-documented safe set;
+  // the rest are newer/preview names that may be model-version
+  // dependent (some 1008-close if unsupported). Kept opt-in via the
+  // per-avatar geminiVoice — if a chosen voice isn't accepted by
+  // the current model, the session close reason will explain and
+  // we can drop it from the list.
   const VALID_VOICES = new Set([
     "Puck", "Charon", "Kore", "Fenrir", "Aoede",
     "Leda", "Orus", "Zephyr", "Callirrhoe", "Autonoe",
+    // Newer / preview additions
+    "Achernar", "Achird", "Algenib", "Algieba", "Alnilam",
+    "Despina", "Enceladus", "Erinome", "Gacrux", "Iapetus",
+    "Laomedeia", "Pulcherrima", "Rasalgethi", "Sadachbia",
+    "Sadaltager", "Schedar", "Sulafat", "Umbriel",
+    "Vindemiatrix", "Zubenelgenubi",
   ]);
   const requestedVoice = typeof body.geminiVoice === "string" ? body.geminiVoice : "";
   const voiceName = VALID_VOICES.has(requestedVoice)

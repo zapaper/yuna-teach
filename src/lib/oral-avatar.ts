@@ -50,7 +50,7 @@ export const ORAL_AVATARS: OralAvatar[] = [
     label: "Ms Tan",
     thumb: "/oral-thumbs/chinese.png",
     gender: "female",
-    geminiVoice: "Zephyr",
+    geminiVoice: "Callirrhoe",
     ttsHints: [
       "Microsoft Aria",
       "Microsoft Jenny",
@@ -64,7 +64,7 @@ export const ORAL_AVATARS: OralAvatar[] = [
     label: "Ms Lim",
     thumb: "/oral-thumbs/rchinese.png",
     gender: "female",
-    geminiVoice: "Aoede",
+    geminiVoice: "Laomedeia",
     ttsHints: [
       "Microsoft Aria",
       "Microsoft Jenny",
