@@ -181,10 +181,26 @@ function Inner() {
           outputAudioTranscription: {},
         },
         callbacks: {
-          onopen: () => { sessionAliveRef.current = true; },
+          onopen: () => {
+            sessionAliveRef.current = true;
+            console.log("[SBC live] session OPEN");
+          },
           onmessage: (msg: unknown) => handleLiveMessage(msg),
-          onerror: (e: unknown) => { sessionAliveRef.current = false; teardownMic(); setError(String(e)); setStatus("error"); },
-          onclose: () => {
+          onerror: (e: unknown) => {
+            console.error("[SBC live] session ERROR", e);
+            sessionAliveRef.current = false;
+            teardownMic();
+            const errObj = e as { message?: string; reason?: string; code?: number; error?: unknown };
+            const errText = errObj?.message || errObj?.reason || JSON.stringify(errObj) || String(e);
+            setError(`Live session error: ${errText}`);
+            setStatus("error");
+          },
+          onclose: (ev: unknown) => {
+            // Close events carry the useful info (code + reason) on
+            // the CloseEvent. Log everything so we can see whether
+            // the server rejected us for auth / config / model.
+            const c = ev as { code?: number; reason?: string; wasClean?: boolean };
+            console.log("[SBC live] session CLOSE", { code: c?.code, reason: c?.reason, wasClean: c?.wasClean, raw: ev });
             sessionAliveRef.current = false;
             teardownMic();
             if (status === "live") setStatus("ending");
@@ -311,7 +327,19 @@ function Inner() {
       }
       const synth = window.speechSynthesis;
       synth.cancel();
+      let spoken = false;
       const speak = () => {
+        // Race guard: both voiceschanged AND the 250ms fallback timer
+        // can arrive within a browser's typical voice-load window,
+        // and both call speak(). Without this flag we'd queue the
+        // utterance twice, so the student hears the prompt read
+        // out twice — which is EXACTLY the bug the SBC log surfaced
+        // ("FIRING TTS #1" logged once but audio played twice).
+        if (spoken) {
+          console.log("[SBC opener] speak() re-entry blocked");
+          return;
+        }
+        spoken = true;
         const utter = new SpeechSynthesisUtterance(text);
         const voices = synth.getVoices();
         // Voice picker priority:

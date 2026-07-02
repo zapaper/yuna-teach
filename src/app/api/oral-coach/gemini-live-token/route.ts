@@ -112,13 +112,13 @@ export async function POST(request: NextRequest) {
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
             },
-            // Let the model stay silent if the user hasn't yet made a
-            // request. Without this, Gemini's default on session open
-            // is to generate an opening spoken turn from the system
-            // instruction alone (repeating the prompt) even though no
-            // student audio has arrived. proactiveAudio flips that so
-            // it only responds when it hears actual user speech.
-            proactivity: { proactiveAudio: true },
+            // proactivity.proactiveAudio would let the model stay
+            // silent when the user hasn't spoken yet, but it appears
+            // to be supported only on gemini-2.5-flash-preview-native-
+            // audio-dialog — enabling it on 2.0-flash-live-001 causes
+            // the WebSocket to close immediately after handshake with
+            // no error text. Client-side gating (studentHasSpokenRef)
+            // handles the same problem for now.
             // Voice-activity-detection tuning. Kids often pause
             // mid-thought — we want the examiner to be patient rather
             // than jumping in on every 0.5s silence.
