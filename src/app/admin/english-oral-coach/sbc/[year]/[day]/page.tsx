@@ -81,6 +81,13 @@ function Inner() {
   const micCtxRef = useRef<AudioContext | null>(null);
   const micProcessorRef = useRef<ScriptProcessorNode | null>(null);
   const sessionAliveRef = useRef<boolean>(false);
+  // Counters to detect double-fires. If start() runs twice (React
+  // strict mode re-render, double-click, or a state-transition bug)
+  // both counters will show it. If Gemini's audio playback plays a
+  // repeat of the prompt AFTER the TTS finishes, geminiAudioCount
+  // will tick up while openerFireCount stays at 1.
+  const openerFireCountRef = useRef<number>(0);
+  const geminiAudioChunkCountRef = useRef<number>(0);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -106,6 +113,7 @@ function Inner() {
 
   async function start() {
     if (!passage) return;
+    console.log("[SBC opener] start() called at", new Date().toISOString(), "current status:", status);
     setError(null);
     setScore(null);
     setTranscript([]);
@@ -151,10 +159,12 @@ function Inner() {
       // Gemini's very first input is real student audio, so it can
       // only respond as a follow-up.
       const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
+      console.log("[SBC opener] FIRING TTS #", ++openerFireCountRef.current, ":", opener);
       setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
       setExaminerSpeaking(true);
       setStatus("live");
       await speakOpener(opener);
+      console.log("[SBC opener] TTS finished #", openerFireCountRef.current);
       setExaminerSpeaking(false);
 
       // Now connect the Live session. The system instruction tells
@@ -246,7 +256,17 @@ function Inner() {
     const parts = m.serverContent?.modelTurn?.parts ?? [];
     for (const part of parts) {
       const b64 = part.inlineData?.data;
-      if (b64) queueGeminiAudio(b64);
+      if (b64) {
+        geminiAudioChunkCountRef.current++;
+        // Log first chunk of every Gemini audio turn (chunks arrive
+        // in bursts of ~10-50; log #1, #10, #100... so we see when
+        // Gemini starts speaking without spamming).
+        const n = geminiAudioChunkCountRef.current;
+        if (n === 1 || n === 10 || n === 100 || n % 500 === 0) {
+          console.log("[SBC gemini-audio] chunk #", n, "playing through speakers");
+        }
+        queueGeminiAudio(b64);
+      }
     }
     if (m.serverContent?.turnComplete) setExaminerSpeaking(false);
   }

@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
   // (with follow-ups) than as a 5-minute walkthrough of all three.
   const selectedIndex = Math.floor(Math.random() * prompts.length);
   const selectedPrompt = prompts[selectedIndex];
+  console.log("[gemini-live-token] mint request", { year, day, userId, selectedIndex, selectedPrompt: selectedPrompt.slice(0, 80) });
   const systemInstruction = buildSystemInstruction({
     stimulus: dayData.stimulusDescription ?? "",
     prompt: selectedPrompt,
