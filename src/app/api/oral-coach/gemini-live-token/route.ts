@@ -17,13 +17,16 @@ import { GoogleGenAI, Modality, StartSensitivity, EndSensitivity, ActivityHandli
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 
-// Live-API-capable models on AI Studio (as of 2026). `gemini-2.0-
-// flash-exp` is the OLD experimental model — it does NOT support
-// authTokens.create (returns 404). The GA-track Live model that
-// works with ephemeral tokens is `gemini-2.0-flash-live-001`; the
-// newer preview with native-audio dialog is
-// `gemini-live-2.5-flash-preview`. Override via GEMINI_LIVE_MODEL.
-const MODEL = "gemini-2.0-flash-live-001";
+// Live-API-capable models on the v1alpha endpoint (which ephemeral
+// tokens require). Runtime probe of "gemini-2.0-flash-live-001" on
+// 2026-07-02 got:
+//   1008 CLOSE — "is not found for API version v1main, or is not
+//   supported for bidiGenerateContent"
+// The currently working models on v1alpha for bidiGenerateContent
+// are `gemini-live-2.5-flash-preview` (half-cascade, recommended)
+// and `gemini-2.5-flash-preview-native-audio-dialog` (native audio,
+// higher latency). Override via GEMINI_LIVE_MODEL env var.
+const MODEL = "gemini-live-2.5-flash-preview";
 const MODEL_ENV = process.env.GEMINI_LIVE_MODEL;
 
 type PromptEntry = string | { label?: string; prompt?: string; text?: string };
