@@ -251,32 +251,41 @@ function extractWords(detail: unknown): WordScore[] {
   }));
 }
 
-function colourFor(score: number, error: string): string {
-  if (error === "Omission") return "bg-slate-300 text-slate-500 line-through";
-  if (error === "Insertion") return "bg-amber-100 text-amber-700 underline";
-  if (score >= 85) return "bg-emerald-100 text-emerald-800";
-  if (score >= 60) return "bg-amber-100 text-amber-800";
-  return "bg-rose-100 text-rose-800";
+function styleFor(score: number, error: string): { className: string; showScore: boolean } {
+  // Strong reads stay in plain black type so the visual noise stays
+  // low — only actual problems get colour treatment. Kids reading the
+  // scored passage back should see at a glance which few words need
+  // work, not a rainbow.
+  if (error === "Omission")   return { className: "text-slate-400 line-through", showScore: false };
+  if (error === "Insertion")  return { className: "text-amber-600 underline decoration-dotted", showScore: false };
+  if (score >= 85)            return { className: "text-slate-800", showScore: false };
+  if (score >= 60)            return { className: "text-amber-600 font-semibold", showScore: true };
+  return { className: "text-rose-600 font-semibold", showScore: true };
 }
 
 function ColouredPassage({ passage, words }: { passage: string; words: WordScore[] }) {
   // Naive word alignment — Azure returns words in read order and skips
-  // punctuation. We render the recognised words with their colour plus
-  // preserve leading/trailing punctuation for readability.
+  // punctuation. Only problem words get colour + a score badge; good
+  // words render as plain black type identical to the pre-scoring view.
   return (
     <p className="text-slate-800 text-4xl leading-loose">
-      {words.map((w, i) => (
-        <span key={i} className={`inline-block px-1 mx-[1px] rounded ${colourFor(w.accuracyScore, w.errorType)}`}>
-          {w.word}
-          <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(w.accuracyScore)}</span>
-        </span>
-      ))}
-      <span className="block text-xs text-slate-400 mt-3 not-italic">
+      {words.map((w, i) => {
+        const s = styleFor(w.accuracyScore, w.errorType);
+        return (
+          <span key={i} className={`inline-block mr-[6px] ${s.className}`}>
+            {w.word}
+            {s.showScore && (
+              <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(w.accuracyScore)}</span>
+            )}
+          </span>
+        );
+      })}
+      <span className="block text-xs text-slate-400 mt-4 not-italic">
         Legend:
-        <span className="inline-block ml-2 px-1 rounded bg-emerald-100 text-emerald-800">≥85 strong</span>
-        <span className="inline-block ml-1 px-1 rounded bg-amber-100 text-amber-800">60–84 wobble</span>
-        <span className="inline-block ml-1 px-1 rounded bg-rose-100 text-rose-800">&lt;60 mispronounced</span>
-        <span className="inline-block ml-1 px-1 rounded bg-slate-300 text-slate-500 line-through">skipped</span>
+        <span className="inline-block ml-2 text-amber-600 font-semibold">amber = wobble</span>
+        <span className="inline-block ml-3 text-rose-600 font-semibold">red = mispronounced</span>
+        <span className="inline-block ml-3 text-slate-400 line-through">skipped</span>
+        <span className="inline-block ml-3 text-amber-600 underline decoration-dotted">extra word</span>
       </span>
     </p>
   );
