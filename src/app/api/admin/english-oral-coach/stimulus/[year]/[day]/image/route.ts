@@ -39,7 +39,10 @@ export async function GET(
 
   const filePath = path.join(STORAGE_DIR, `${year}_oral_day${dayN}_stimulus.jpg`);
   try {
-    let buf = await fs.readFile(filePath);
+    // Explicit Buffer type: fs.readFile infers Buffer<NonSharedBuffer>
+    // and sharp().toBuffer() returns Buffer<ArrayBufferLike>, which
+    // TS refuses to unify on the reassignment below.
+    let buf: Buffer = await fs.readFile(filePath);
     if (YEARS_NEEDING_CCW_FIXUP.has(year)) {
       // Rotate CCW 90° (sharp uses negative for CCW). This is the
       // on-serve fixup for legacy files extracted with the old
