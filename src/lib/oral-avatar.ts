@@ -3,15 +3,18 @@
 //   chinese_still1.mp4 / chinese_still2.mp4 / chinese_talk1.mp4 / ...
 //   rchinese_*.mp4 (chinese variant 2)
 //   indian_*.mp4
-// Thumbnails live in /public/avatars/oral/{key}.png. Selection is
-// stored in localStorage so Reading + SBC pages both pick it up.
+// Thumbnails live in /public/oral-thumbs/{key}.png — served locally.
+// NB: we intentionally do NOT put them under /public/avatars/ because
+// next.config.ts 308-redirects /avatars/:path* to Cloudflare R2, and
+// the thumbnails haven't been uploaded there. Selection is stored in
+// localStorage so Reading + SBC pages both pick it up.
 
 export type OralAvatarKey = "chinese" | "rchinese" | "indian";
 
 export const ORAL_AVATARS: { key: OralAvatarKey; label: string; thumb: string }[] = [
-  { key: "chinese", label: "Ms Tan", thumb: "/avatars/oral/chinese.png" },
-  { key: "rchinese", label: "Ms Lim", thumb: "/avatars/oral/rchinese.png" },
-  { key: "indian", label: "Mrs Kumar", thumb: "/avatars/oral/indian.png" },
+  { key: "chinese", label: "Ms Tan", thumb: "/oral-thumbs/chinese.png" },
+  { key: "rchinese", label: "Ms Lim", thumb: "/oral-thumbs/rchinese.png" },
+  { key: "indian", label: "Mrs Kumar", thumb: "/oral-thumbs/indian.png" },
 ];
 
 const STORAGE_KEY = "oral-coach-avatar";
