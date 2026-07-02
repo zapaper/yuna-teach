@@ -209,7 +209,7 @@ function Inner() {
                 {score ? (
                   <ColouredPassage passage={passage.readingPassage} words={score.words} />
                 ) : (
-                  <p className="text-slate-800 text-lg leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
+                  <p className="text-slate-800 text-4xl leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
                 )}
               </div>
 
@@ -264,11 +264,11 @@ function ColouredPassage({ passage, words }: { passage: string; words: WordScore
   // punctuation. We render the recognised words with their colour plus
   // preserve leading/trailing punctuation for readability.
   return (
-    <p className="text-slate-800 text-lg leading-loose">
+    <p className="text-slate-800 text-4xl leading-loose">
       {words.map((w, i) => (
         <span key={i} className={`inline-block px-1 mx-[1px] rounded ${colourFor(w.accuracyScore, w.errorType)}`}>
           {w.word}
-          <span className="text-[10px] align-super ml-0.5 opacity-70">{Math.round(w.accuracyScore)}</span>
+          <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(w.accuracyScore)}</span>
         </span>
       ))}
       <span className="block text-xs text-slate-400 mt-3 not-italic">

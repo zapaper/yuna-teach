@@ -57,9 +57,43 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     day: {
       day: match.day,
-      readingPassage: match.readingPassage ?? "",
+      readingPassage: cleanReadingPassage(match.readingPassage ?? ""),
       stimulusDescription: match.stimulusDescription ?? "",
       conversationPrompts: prompts,
     },
   });
+}
+
+// Some ingested rows still carry the SEAB PDF boilerplate at the tail
+// (or head) of the reading passage — page markers, form numbers, and
+// the "PSLE ENGLISH LANGUAGE / READING PASSAGE" heading block. Strip
+// them before serving so (a) students see just the story, and (b)
+// Azure Speech doesn't score the student down for not reading
+// "PSLE ENGLISH LANGUAGE" aloud (it treats the reference text as the
+// exact expected utterance).
+function cleanReadingPassage(text: string): string {
+  const noiseLinePatterns: RegExp[] = [
+    /^\s*0001\/\d\s*$/,                                    // 0001/4 form number
+    /^\s*---\s*Page\s*\d+\s*---\s*$/i,                     // --- Page 35 ---
+    /^\s*\*\*\s*\d+\s*\*\*\s*$/,                           // **1**
+    /^\s*\*\*\s*PSLE ENGLISH LANGUAGE\s*\*\*\s*$/i,
+    /^\s*\*\*\s*ENGLISH LANGUAGE\s*\*\*\s*$/i,
+    /^\s*\*\*\s*MINISTRY OF EDUCATION[^*]*\*\*\s*$/i,
+    /^\s*\*\*\s*PRIMARY SCHOOL LEAVING EXAMINATION\s*\*\*\s*$/i,
+    /^\s*\*\*\s*READING PASSAGE\s*\*\*\s*$/i,
+  ];
+  const italicInstructionPattern = /^\s*\*[^*]*you will (?:read|present)[^*]*\*\s*$/i;
+  const lines = text.split(/\r?\n/);
+  const kept = lines.filter((ln) => {
+    if (noiseLinePatterns.some((rx) => rx.test(ln))) return false;
+    if (italicInstructionPattern.test(ln)) return false;
+    return true;
+  });
+  // Collapse 3+ consecutive blank lines to exactly 2 (paragraph gap).
+  return kept
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    // Strip stray **bold** markers still hanging around inside prose.
+    .replace(/\*\*/g, "")
+    .trim();
 }
