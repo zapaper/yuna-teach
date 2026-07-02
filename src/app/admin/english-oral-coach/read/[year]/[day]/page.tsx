@@ -697,6 +697,27 @@ function buildTips(words: WordScore[], breakdown: Breakdown): TipCategory[] {
   ];
 }
 
+// Browser TTS to demo the correct pronunciation. Free, offline, no
+// API call. Uses en-GB (closest to Singapore English) and drops the
+// rate slightly for clarity.
+function speakWordCorrectly(word: string) {
+  if (typeof window === "undefined") return;
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = "en-GB";
+  utter.rate = 0.85;
+  utter.pitch = 1;
+  const voices = synth.getVoices();
+  const preferred =
+    voices.find((v) => v.lang === "en-GB" && /female|serena|kate|karen/i.test(v.name)) ||
+    voices.find((v) => v.lang === "en-GB") ||
+    voices.find((v) => v.lang.startsWith("en"));
+  if (preferred) utter.voice = preferred;
+  synth.speak(utter);
+}
+
 function styleFor(score: number, error: string): { className: string; showScore: boolean } {
   // Strong reads stay in plain black type so the visual noise stays
   // low — only actual problems get colour treatment.
@@ -853,21 +874,43 @@ function ColouredPassage({ passage, words, onPlayWord }: { passage: string; word
         if (c.kind === "gap") return <span key={i}>{c.text}</span>;
         const s = styleFor(c.style.accuracyScore, c.style.errorType);
         const isProblem = c.style.errorType !== "None" || c.style.accuracyScore < 85;
-        const canPlay = !!onPlayWord && isProblem && c.style.errorType !== "Omission";
-        if (canPlay) {
+        const canPlayRecording = !!onPlayWord && isProblem && c.style.errorType !== "Omission";
+        const showTts = isProblem && c.style.errorType !== "Omission";
+        if (canPlayRecording || showTts) {
           return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onPlayWord?.(c.style)}
-              className={`${s.className} hover:bg-slate-100 rounded px-0.5 cursor-pointer`}
-              title="Click to hear your reading of this word"
-            >
-              {c.text}
-              {s.showScore && (
-                <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(c.style.accuracyScore)}</span>
+            <span key={i} className="inline-flex items-center whitespace-nowrap">
+              {canPlayRecording ? (
+                <button
+                  type="button"
+                  onClick={() => onPlayWord?.(c.style)}
+                  className={`${s.className} hover:bg-slate-100 rounded px-0.5 cursor-pointer`}
+                  title="Click to hear your reading of this word"
+                >
+                  {c.text}
+                  {s.showScore && (
+                    <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(c.style.accuracyScore)}</span>
+                  )}
+                </button>
+              ) : (
+                <span className={s.className}>
+                  {c.text}
+                  {s.showScore && (
+                    <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(c.style.accuracyScore)}</span>
+                  )}
+                </span>
               )}
-            </button>
+              {showTts && (
+                <button
+                  type="button"
+                  onClick={() => speakWordCorrectly(c.text)}
+                  className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] leading-none"
+                  title="Hear the correct pronunciation"
+                  aria-label={`Hear correct pronunciation of ${c.text}`}
+                >
+                  ▶
+                </button>
+              )}
+            </span>
           );
         }
         return (
@@ -1012,18 +1055,31 @@ function TipsBlock({ words, breakdown, onPlayWord }: { words: WordScore[]; break
                       <div className="flex flex-wrap gap-1.5">
                         {item.examples.map((w, j) => {
                           const canPlay = onPlayWord && w.errorType !== "Omission";
+                          const showTts = w.errorType !== "Omission";
                           return (
-                            <button
-                              key={j}
-                              type="button"
-                              disabled={!canPlay}
-                              onClick={() => canPlay && onPlayWord?.(w)}
-                              className={`text-xs px-2 py-1 rounded-lg inline-flex items-center gap-1 ${s.bg} ${s.text} ${canPlay ? "hover:opacity-80 cursor-pointer" : "opacity-70 cursor-not-allowed"} border ${s.border}`}
-                              title={canPlay ? "Click to hear your reading of this word" : "Skipped word — no audio to play"}
-                            >
-                              {canPlay && <span className="text-[10px]">▶</span>}
-                              <span>{w.word}</span>
-                            </button>
+                            <span key={j} className={`inline-flex items-center rounded-lg border ${s.border} overflow-hidden`}>
+                              <button
+                                type="button"
+                                disabled={!canPlay}
+                                onClick={() => canPlay && onPlayWord?.(w)}
+                                className={`text-xs px-2 py-1 inline-flex items-center gap-1 ${s.bg} ${s.text} ${canPlay ? "hover:opacity-80 cursor-pointer" : "opacity-70 cursor-not-allowed"}`}
+                                title={canPlay ? "Click to hear your reading of this word" : "Skipped word — no audio to play"}
+                              >
+                                {canPlay && <span className="text-[10px]">▶</span>}
+                                <span>{w.word}</span>
+                              </button>
+                              {showTts && (
+                                <button
+                                  type="button"
+                                  onClick={() => speakWordCorrectly(w.word)}
+                                  className="inline-flex items-center justify-center px-1.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px]"
+                                  title="Hear the correct pronunciation"
+                                  aria-label={`Hear correct pronunciation of ${w.word}`}
+                                >
+                                  ▶
+                                </button>
+                              )}
+                            </span>
                           );
                         })}
                       </div>
