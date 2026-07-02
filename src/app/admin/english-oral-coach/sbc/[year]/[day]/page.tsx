@@ -182,16 +182,6 @@ function Inner() {
       console.log("[SBC opener] TTS finished #", openerFireCountRef.current);
       setExaminerSpeaking(false);
 
-      // Extra thinking time on the first response. Gemini's VAD only
-      // knows "silence" or "not silence" from the moment the mic
-      // opens — it can't hold a longer budget just for turn #1.
-      // Trick: delay opening the mic by 1500ms after TTS ends. The
-      // server-side silenceDurationMs is 2500ms, so combined the
-      // student effectively gets ~4s of thinking time before the
-      // examiner interjects on the FIRST turn. Subsequent turns
-      // still use the tighter 2.5s.
-      await new Promise((r) => setTimeout(r, 1500));
-
       // Now connect the Live session. The system instruction tells
       // Gemini its first turn must be a reaction to what the student
       // says next — which is what will actually arrive first through
@@ -471,12 +461,13 @@ function Inner() {
     // Web Audio API worklet to downsample the mic stream.
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        // Turn OFF the browser's built-in AGC/noise-suppression/echo-
-        // cancellation processing. These aggressively gate near-
-        // silence and can zero out soft speech from a child before it
-        // reaches our script processor. Gemini's server-side VAD does
-        // its own noise handling.
-        echoCancellation: false,
+        // Echo cancellation ON — it's designed EXACTLY for the
+        // speaker->mic loop that was making Gemini respond to its
+        // own voice. It uses adaptive filtering on known output,
+        // not a naive gate, so it doesn't zero out soft speech the
+        // way noise-suppression + AGC do. Those two stay OFF so a
+        // quiet child still registers.
+        echoCancellation: true,
         noiseSuppression: false,
         autoGainControl: false,
       },
@@ -507,12 +498,18 @@ function Inner() {
       // otherwise hit the WebSocket after it's already CLOSING.
       if (!sessionAliveRef.current) return;
       // Echo-suppression: while the examiner is speaking through the
-      // browser speakers, skip sending mic audio to Gemini — the
-      // speaker output leaks into the mic and Gemini otherwise hears
-      // its own voice, transcribes it as "student input", and starts
-      // responding to itself. This is what "hearing its own voice"
-      // was on 2026-07-02. The ref stays true until ~400ms after
-      // Gemini's last audio chunk.
+      // browser speakers, skip sending mic audio to Gemini. Two
+      // layers now:
+      //   1. Browser echoCancellation (getUserMedia constraint) —
+      //      does adaptive filtering.
+      //   2. Hard gate below — key off the playback AudioContext's
+      //      actual END time, NOT chunk-arrival time. Gemini streams
+      //      audio faster than realtime; the last chunk can arrive
+      //      seconds before playback actually finishes. Compare
+      //      ctx.currentTime with playbackNextTimeRef (the scheduled
+      //      end of the buffered audio) + 400ms cushion.
+      const pctx = playbackCtxRef.current;
+      if (pctx && pctx.currentTime < playbackNextTimeRef.current + 0.4) return;
       if (geminiSpeakingRef.current) return;
       const input = e.inputBuffer.getChannelData(0);
       // Compute chunk peak — if it's ~0 across many chunks we know the

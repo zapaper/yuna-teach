@@ -168,10 +168,12 @@ export async function POST(request: NextRequest) {
                 startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
                 endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
                 prefixPaddingMs: 300,
-                // 2500ms silence before examiner interjects. Kids
-                // routinely pause mid-thought for 1.5-2s to search
-                // for the next word; 1500ms was cutting them off.
-                silenceDurationMs: 2500,
+                // 4000ms silence budget before the examiner interjects.
+                // Was 2500 but user reported "it didn't wait 4 seconds
+                // before jumping in" — 4s applied uniformly across all
+                // turns is simpler than a first-turn-only widen and
+                // matches how a real MOE oral examiner listens.
+                silenceDurationMs: 4000,
               },
               activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
             },
@@ -219,7 +221,11 @@ function buildSystemInstruction(args: { stimulus: string; suggestedFollowUps: st
   // student via browser TTS; Gemini only needs the topic (which it
   // will pick up from the student's answer + the stimulus).
   const followUpBlock = args.suggestedFollowUps.length > 0
-    ? `\nSUGGESTED FOLLOW-UPS (use these if they fit the flow, or invent your own — either is fine):\n${args.suggestedFollowUps.map((p, i) => `  ${i + 1}. ${p}`).join("\n")}\n`
+    ? `\nSUGGESTED FOLLOW-UPS — USE THESE WHENEVER POSSIBLE:
+These are the PSLE examiner's actual follow-up questions for this stimulus. STRONGLY PREFER them over inventing your own. Only invent a new follow-up when NONE of these fit what the student just said.
+${args.suggestedFollowUps.map((p, i) => `  ${i + 1}. ${p}`).join("\n")}
+Order-of-preference: (a) pick whichever of the above best builds on the student's last answer, (b) if truly none fit, invent a natural open-ended follow-up.
+`
     : "";
   return `You are a warm, patient PSLE English oral examiner conducting the Stimulus-Based Conversation component with a 12-year-old Singaporean student.
 
