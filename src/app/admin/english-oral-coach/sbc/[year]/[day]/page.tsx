@@ -489,10 +489,15 @@ function Inner() {
       }
       const pcm = new Int16Array(input.length);
       for (let i = 0; i < input.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, input[i] * 32768));
-      const s = session as { sendRealtimeInput: (arg: { media: { data: string; mimeType: string } }) => void };
+      // Use the `audio` field, not `media` — Gemini deprecated the
+      // media_chunks path and now rejects the connection with
+      // "realtime_input.media_chunks is deprecated. Use audio, video,
+      // or text instead." Confirmed 2026-07-02 with the current
+      // gemini-3.1-flash-live-preview model.
+      const s = session as { sendRealtimeInput: (arg: { audio: { data: string; mimeType: string } }) => void };
       try {
         s.sendRealtimeInput({
-          media: {
+          audio: {
             data: btoa(String.fromCharCode(...new Uint8Array(pcm.buffer))),
             mimeType: "audio/pcm;rate=16000",
           },
