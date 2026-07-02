@@ -730,7 +730,14 @@ export async function autoCropPictures(
       tasks.push({
         kind: `oral_day${day.day}_stimulus`,
         pageNum: day.stimulusPicturePageNum,
-        rotate: 90,
+        // PSLE oral stimuli are printed sideways so the student
+        // reads with the paper rotated 90° CCW (top of the picture
+        // points to the RIGHT edge of the portrait page). To display
+        // the picture upright, we rotate CCW (-90). Earlier code
+        // used +90 (CW) which flipped the pictorial versions the
+        // wrong way — 2026-07-02 user reported "all rotated to the
+        // right".
+        rotate: -90,
         hint: "the stimulus-based conversation picture (often printed landscape — sideways on the page)",
       });
     }
