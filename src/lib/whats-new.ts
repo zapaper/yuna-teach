@@ -64,8 +64,8 @@ export const WHATS_NEW_POPUPS: WhatsNewPopupConfig[] = [
   {
     id: "essay-coach-v1",
     shipDate: "2026-07-02",
-    audience: "parent",
-    adminOnly: true,
+    audience: "all",
+    adminOnly: false,
     featureName: "Essay Coach",
     featureIcon: "edit_document",
     slides: [
