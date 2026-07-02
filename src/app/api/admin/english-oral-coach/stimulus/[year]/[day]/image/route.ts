@@ -1,27 +1,31 @@
 // GET /api/admin/english-oral-coach/stimulus/<year>/<day>/image
 //
-// Streams the cropped SBC stimulus picture for a given (year, day).
-// Files are produced by autoCropPictures() during PDF ingestion at
-// `${VOLUME_PATH}/english-supplementary/<year>_oral_day<N>_stimulus.jpg`
-// (see src/lib/english-supplementary.ts and
-// scripts/extract-oral-stimuli.ts for the batch backfill runner).
+// Serves the SBC stimulus picture for a given (year, day).
+//
+// 2016-2024: regenerated Singapore-photo stimuli live in R2 under
+//   oral-coach/pictures/<year>_oral_day<N>_stimulus.jpg
+// The endpoint 302-redirects there so the file stays behind the
+// admin-auth check on the first hit but subsequent loads go
+// straight to R2 (browser caches the redirect).
+//
+// 2025: original photo extracted from the 2025 paper via
+// autoCropPictures(). Still served from the local volume because
+// it's the only "authentic" paper stimulus we have.
 
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import sharp from "sharp";
 import { isSessionAdmin } from "@/lib/session";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const STORAGE_DIR = path.join(VOLUME_PATH, "english-supplementary");
 
-// Years that were extracted with the OLD +90° (CW) rotation and are
-// now showing sideways. Rotate them on-the-fly by an additional -180°
-// no — an additional -90° to reach the correct upright orientation.
-// 2025 was extracted correctly with the current pipeline so leave it
-// alone.
-const YEARS_NEEDING_CCW_FIXUP = new Set([
-  "2015", "2016", "2017", "2018", "2019",
+// Years whose Singapore-photo stimuli were regenerated via Imagen and
+// uploaded to R2 under oral-coach/pictures/. Adding a year here means
+// requests for that year get 302'd to R2 instead of served from the
+// local volume.
+const R2_YEARS = new Set([
+  "2016", "2017", "2018", "2019",
   "2020", "2021", "2022", "2023", "2024",
 ]);
 
@@ -37,35 +41,29 @@ export async function GET(
   const dayN = parseInt(day, 10);
   if (dayN !== 1 && dayN !== 2) return NextResponse.json({ error: "day must be 1 or 2" }, { status: 400 });
 
+  if (R2_YEARS.has(year)) {
+    // 302 to the /oral-coach/pictures/ path — which next.config.ts
+    // 308-redirects again to R2. Two redirects but the browser
+    // caches both, so subsequent loads are one hop straight to R2.
+    return NextResponse.redirect(
+      new URL(`/oral-coach/pictures/${year}_oral_day${dayN}_stimulus.jpg`, _request.url),
+      302,
+    );
+  }
+
   const filePath = path.join(STORAGE_DIR, `${year}_oral_day${dayN}_stimulus.jpg`);
   try {
-    // Explicit Buffer type: fs.readFile infers Buffer<NonSharedBuffer>
-    // and sharp().toBuffer() returns Buffer<ArrayBufferLike>, which
-    // TS refuses to unify on the reassignment below.
-    let buf: Buffer = await fs.readFile(filePath);
-    if (YEARS_NEEDING_CCW_FIXUP.has(year)) {
-      // Rotate CCW 90° (sharp uses negative for CCW). This is the
-      // on-serve fixup for legacy files extracted with the old
-      // +90° CW rotation. Re-running extract-oral-stimuli.ts against
-      // the current code will produce upright files and this fixup
-      // can then be removed year by year.
-      buf = await sharp(buf).rotate(-90).jpeg({ quality: 90 }).toBuffer();
-    }
+    const buf = await fs.readFile(filePath);
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": "image/jpeg",
-        // Short cache (5 min) instead of immutable — previous
-        // response was pinned with max-age=31536000 immutable and
-        // browsers refuse to revalidate that even when the file
-        // changes. Query-param cache-buster (?v=2) added on the
-        // homepage + SBC page to force a fresh fetch this once.
         "Cache-Control": "public, max-age=300",
       },
     });
   } catch {
     return NextResponse.json(
-      { error: `stimulus picture not found — run scripts/extract-oral-stimuli.ts to backfill` },
+      { error: `stimulus picture not found — check R2 or re-run scripts/regen-oral-stimuli-2026.ts` },
       { status: 404 },
     );
   }

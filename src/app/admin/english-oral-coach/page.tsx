@@ -232,7 +232,7 @@ function PageInner() {
                   </div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/1/image?v=2`}
+                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/1/image?v=3`}
                     alt={`${selected.year} Day 1 stimulus`}
                     className="w-full max-h-[280px] object-contain rounded-lg bg-slate-50"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
@@ -247,7 +247,7 @@ function PageInner() {
                   </div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/2/image?v=2`}
+                    src={`/api/admin/english-oral-coach/stimulus/${selected.year}/2/image?v=3`}
                     alt={`${selected.year} Day 2 stimulus`}
                     className="w-full max-h-[280px] object-contain rounded-lg bg-slate-50"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
