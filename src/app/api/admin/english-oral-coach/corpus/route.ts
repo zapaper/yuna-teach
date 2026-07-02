@@ -67,7 +67,10 @@ function splitPaper4(text: string): { reading: string; conversation: string } {
   // Strip the "READING PASSAGE" header block from the top of the
   // reading section so the preview starts at the actual passage.
   const readingCleaned = readingRaw.replace(
-    /^.*?READING PASSAGE.*?(\r?\n){1,2}/is,
+    // `[\s\S]*?` = same as `.*?` under the /s dotall flag, but works
+    // on ES2017 targets. Keeping the flag would fail the Railway
+    // build (tsconfig target=ES2017).
+    /^[\s\S]*?READING PASSAGE[\s\S]*?(\r?\n){1,2}/i,
     "",
   ).trim();
   return { reading: readingCleaned, conversation: conversationRaw.trim() };
