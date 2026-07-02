@@ -196,14 +196,22 @@ function Inner() {
             setStatus("error");
           },
           onclose: (ev: unknown) => {
-            // Close events carry the useful info (code + reason) on
-            // the CloseEvent. Log everything so we can see whether
-            // the server rejected us for auth / config / model.
+            // Log inline so DevTools shows the reason without needing
+            // to expand a collapsed Object. The reason string is the
+            // most useful diagnostic — it carries the model / auth /
+            // config rejection message from the server.
             const c = ev as { code?: number; reason?: string; wasClean?: boolean };
-            console.log("[SBC live] session CLOSE", { code: c?.code, reason: c?.reason, wasClean: c?.wasClean, raw: ev });
+            const msg = `code=${c?.code ?? "?"} clean=${c?.wasClean ?? "?"} reason="${c?.reason ?? "(none)"}"`;
+            console.log("[SBC live] session CLOSE", msg);
+            if (c?.reason) {
+              // Also surface to the UI so the user sees why it failed
+              // without having to open DevTools.
+              setError(`Live session closed: ${c.reason}`);
+              setStatus("error");
+            }
             sessionAliveRef.current = false;
             teardownMic();
-            if (status === "live") setStatus("ending");
+            if (status === "live" && !c?.reason) setStatus("ending");
           },
         },
       });
