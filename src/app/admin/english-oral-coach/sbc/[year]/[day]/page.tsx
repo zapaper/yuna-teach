@@ -231,7 +231,7 @@ function Inner() {
           <h1 className="text-lg font-bold text-slate-800">Stimulus-Based Conversation — {year} · Day {dayNum}</h1>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        <div className="max-w-4xl mx-auto px-4 py-3 space-y-2">
           {status === "loading" && <Card>Loading…</Card>}
           {status === "error" && <Card><p className="text-rose-600 text-sm">{error}</p></Card>}
 
@@ -243,13 +243,13 @@ function Inner() {
                   context needed. */}
               {/* Avatar row — examiner presence + action buttons. No
                   description text; the picture below carries context. */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-5">
+              <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 flex items-center gap-3">
                 <ExaminerAvatar
                   speaking={examinerSpeaking}
-                  className="w-56 h-56 rounded-2xl bg-slate-100 flex-shrink-0 ring-4 ring-white shadow-lg"
+                  className="w-32 h-32 rounded-xl bg-slate-100 flex-shrink-0 ring-2 ring-white shadow"
                 />
                 <div className="flex-1">
-                  <p className="text-sm text-slate-700">Speak naturally — the examiner asks one prompt (chosen at random from the day&apos;s three) plus follow-ups. Aim for a 3-5 minute conversation. Take your time when thinking; the examiner will wait.</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">Speak naturally — the examiner asks one random prompt from the day&apos;s three plus follow-ups. Aim for a 3-4 minute conversation. Take your time thinking; the examiner will wait.</p>
                 </div>
                 {status === "ready" && (
                   <button onClick={start} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700">Start Session</button>
@@ -263,20 +263,20 @@ function Inner() {
                 )}
               </div>
 
-              {/* Stimulus picture — below the avatar, no caption, 10% smaller. */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              {/* Stimulus picture — below the avatar, no caption. */}
+              <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-2">
                 <StimulusImage year={year} day={dayNum} description={passage.stimulusDescription} />
               </div>
 
               {/* Live transcript */}
               {transcript.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Live Transcript</p>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Live Transcript</p>
+                  <div className="space-y-2 max-h-72 overflow-y-auto">
                     {transcript.map((t, i) => (
                       <div key={i} className={`flex ${t.speaker === "student" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${t.speaker === "student" ? "bg-indigo-50 text-indigo-900" : "bg-emerald-50 text-emerald-900"}`}>
-                          <p className="text-[10px] uppercase tracking-wide opacity-60 mb-0.5">{t.speaker}</p>
+                        <div className={`max-w-[80%] rounded-xl px-2.5 py-1.5 text-xs ${t.speaker === "student" ? "bg-indigo-50 text-indigo-900" : "bg-emerald-50 text-emerald-900"}`}>
+                          <p className="text-[9px] uppercase tracking-wide opacity-60 mb-0.5">{t.speaker}</p>
                           <p>{t.text}</p>
                         </div>
                       </div>
@@ -303,18 +303,18 @@ const TONE: Record<ToneKey, { bg: string; border: string; text: string; label: s
 
 function SbcScoreCard({ score }: { score: SbcScore }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+    <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 space-y-2">
       {/* Matrix — total + 3 SEAB dimensions */}
       <div>
-        <h2 className="text-sm font-bold text-slate-800 mb-3">SEAB Stimulus-Based Conversation Scoring Matrix</h2>
-        <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-5">
-          <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">Predicted total</p>
-          <div className="flex items-end gap-2 mt-1">
-            <span className="text-5xl font-bold text-slate-800">{score.overallSeabScore}</span>
-            <span className="text-lg text-slate-500 pb-1">/ 30</span>
+        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">SEAB SBC Scoring Matrix</h2>
+        <div className="rounded-lg bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-2.5">
+          <div className="flex items-end gap-2">
+            <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
+            <span className="text-3xl font-bold text-slate-800 leading-none">{score.overallSeabScore}</span>
+            <span className="text-sm text-slate-500 pb-0.5">/ 30</span>
           </div>
-          <p className="text-xs text-slate-600 mt-2">{score.overallVerdict}</p>
-          <div className="grid grid-cols-3 gap-3 mt-4">
+          <p className="text-xs text-slate-600 mt-1.5 leading-snug">{score.overallVerdict}</p>
+          <div className="grid grid-cols-3 gap-2 mt-2">
             <SbcSeabDim label="Personal Response" value={score.personalResponse.scoreOutOf} outOf={12} tone="blue"   desc="stance, reasoning, examples" />
             <SbcSeabDim label="Language Use"      value={score.languageUse.scoreOutOf}      outOf={12} tone="purple" desc="grammar, vocab, connectives" />
             <SbcSeabDim label="Speaking Style"    value={score.speakingStyle.scoreOutOf}    outOf={6}  tone="brown"  desc="fluency, engagement" />
@@ -324,8 +324,8 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
 
       {/* Detailed Scoring — per dimension */}
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">Detailed Scoring</h3>
-        <div className="space-y-3">
+        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Detailed Scoring</h3>
+        <div className="space-y-1.5">
           <SbcDimCard title="Personal Response" outOf={12} block={score.personalResponse} tone="blue" />
           <SbcDimCard title="Language Use"      outOf={12} block={score.languageUse}      tone="purple" />
           <SbcDimCard title="Speaking Style"    outOf={6}  block={score.speakingStyle}    tone="brown" />
@@ -334,8 +334,8 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
 
       {/* Tips per dimension */}
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">Tips to improve — by SEAB dimension</h3>
-        <div className="space-y-4">
+        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Tips to improve — by SEAB dimension</h3>
+        <div className="space-y-1.5">
           <SbcTipsCategory title="Personal Response" tone="blue"   tips={score.personalResponse.tips} />
           <SbcTipsCategory title="Language Use"      tone="purple" tips={score.languageUse.tips} />
           <SbcTipsCategory title="Speaking Style"    tone="brown"  tips={score.speakingStyle.tips} />
@@ -343,9 +343,9 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
       </div>
 
       {/* Model upgrade */}
-      <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
-        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Model upgrade — how your weakest answer could have sounded</p>
-        <p className="text-sm text-slate-800 leading-relaxed">{score.modelUpgradeExample}</p>
+      <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5">
+        <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide mb-1">Model upgrade — how your weakest answer could have sounded</p>
+        <p className="text-xs text-slate-800 leading-relaxed">{score.modelUpgradeExample}</p>
       </div>
     </div>
   );
@@ -354,10 +354,10 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
 function SbcSeabDim({ label, value, outOf, desc, tone }: { label: string; value: number; outOf: number; desc: string; tone: ToneKey }) {
   const s = TONE[tone];
   return (
-    <div className={`rounded-xl ${s.bg} border ${s.border} p-3`}>
+    <div className={`rounded-lg ${s.bg} border ${s.border} px-2 py-1.5`}>
       <p className={`text-[10px] uppercase tracking-wide ${s.label} font-semibold`}>{label}</p>
-      <p className={`text-xl font-bold ${s.text}`}>
-        {value}<span className="text-xs text-slate-500 ml-1">/ {outOf}</span>
+      <p className={`text-lg font-bold leading-none ${s.text}`}>
+        {value}<span className="text-[10px] text-slate-500 ml-1">/ {outOf}</span>
       </p>
       <p className={`text-[10px] mt-0.5 ${s.label}`}>{desc}</p>
     </div>
@@ -367,14 +367,12 @@ function SbcSeabDim({ label, value, outOf, desc, tone }: { label: string; value:
 function SbcDimCard({ title, outOf, block, tone }: { title: string; outOf: number; block: DimBlock; tone: ToneKey }) {
   const s = TONE[tone];
   return (
-    <div className={`rounded-xl border ${s.softBorder} ${s.softBg} p-4`}>
-      <div className="flex items-baseline justify-between mb-2">
-        <p className={`text-xs font-bold uppercase tracking-wide ${s.text}`}>{title} — {block.scoreOutOf} / {outOf}</p>
-      </div>
-      <p className="text-xs text-slate-700 leading-relaxed mb-2 font-semibold">{block.verdict}</p>
-      <p className="text-[11px] text-slate-500 italic leading-relaxed mb-2">What SEAB looks for: {block.seabLooksFor}</p>
+    <div className={`rounded-lg border ${s.softBorder} ${s.softBg} p-2.5`}>
+      <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1`}>{title} — {block.scoreOutOf} / {outOf}</p>
+      <p className="text-xs text-slate-700 leading-snug mb-1 font-semibold">{block.verdict}</p>
+      <p className="text-[10px] text-slate-500 italic leading-snug mb-1">What SEAB looks for: {block.seabLooksFor}</p>
       {block.details.length > 0 && (
-        <ul className="text-xs text-slate-700 leading-relaxed list-disc ml-4 space-y-1">
+        <ul className="text-[11px] text-slate-700 leading-snug list-disc ml-3.5 space-y-0.5">
           {block.details.map((d, i) => <li key={i}>{d}</li>)}
         </ul>
       )}
@@ -386,17 +384,17 @@ function SbcTipsCategory({ title, tone, tips }: { title: string; tone: ToneKey; 
   const s = TONE[tone];
   if (tips.length === 0) return null;
   return (
-    <div className={`rounded-xl border ${s.softBorder} ${s.softBg} p-4`}>
-      <p className={`text-xs font-bold uppercase tracking-wide ${s.text} mb-3`}>{title}</p>
-      <div className="space-y-3">
+    <div className={`rounded-lg border ${s.softBorder} ${s.softBg} p-2.5`}>
+      <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1.5`}>{title}</p>
+      <div className="space-y-1.5">
         {tips.map((t, i) => (
-          <div key={i} className="rounded-lg bg-white/70 border border-white/50 p-3">
-            <p className={`text-sm font-semibold ${s.text} mb-1`}>{t.label}</p>
-            <p className="text-xs text-slate-700 leading-relaxed mb-2">{t.hint}</p>
+          <div key={i} className="rounded-md bg-white/70 border border-white/50 p-2">
+            <p className={`text-xs font-semibold ${s.text} mb-0.5`}>{t.label}</p>
+            <p className="text-[11px] text-slate-700 leading-snug mb-1">{t.hint}</p>
             {t.examples.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {t.examples.map((ex, j) => (
-                  <span key={j} className={`text-xs px-2 py-1 rounded-lg ${s.bg} ${s.text} border ${s.border} italic`}>&ldquo;{ex}&rdquo;</span>
+                  <span key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${s.bg} ${s.text} border ${s.border} italic`}>&ldquo;{ex}&rdquo;</span>
                 ))}
               </div>
             )}
@@ -427,7 +425,7 @@ function StimulusImage({ year, day, description }: { year: string; day: number; 
       src={src}
       alt={description}
       onError={() => setFailed(true)}
-      className="w-full max-h-[468px] object-contain rounded-xl bg-slate-50 border border-slate-200"
+      className="w-full max-h-[320px] object-contain rounded-lg bg-slate-50"
     />
   );
 }
