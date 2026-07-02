@@ -139,6 +139,21 @@ export default function WhatsNewPopup({
       aria-labelledby="whats-new-title"
     >
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        {/* "What's New" wordmark — only on the first slide, so it reads
+            like a magazine cover rather than repeating on every step. */}
+        {idx === 0 ? (
+          <div className="px-7 pt-5 pb-2 flex items-center gap-2 border-b border-slate-100">
+            <span
+              className="material-symbols-outlined text-[18px] text-[#0EA371]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              auto_awesome
+            </span>
+            <span className="text-[13px] font-extrabold uppercase tracking-widest text-[#001e40]">
+              What&apos;s New
+            </span>
+          </div>
+        ) : null}
         {/* Optional image band */}
         {slide.imageSrc ? (
           <div className="w-full aspect-[16/9] bg-slate-100">
