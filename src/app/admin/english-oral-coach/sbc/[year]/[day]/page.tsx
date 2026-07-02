@@ -241,8 +241,22 @@ function Inner() {
         utter.lang = "en-GB";
         utter.rate = 0.95;
         const voices = synth.getVoices();
+        // Strict British-voice picker. On Windows, en-GB match alone
+        // can return a US-sounding fallback; force by voice NAME.
+        // Priority: Chrome UK voices -> Edge UK voices -> Apple UK
+        // voices -> any voice explicitly named "UK" -> plain en-GB.
+        const byName = (patterns: RegExp[]) =>
+          patterns.map((p) => voices.find((v) => p.test(v.name))).find(Boolean);
         const preferred =
-          voices.find((v) => v.lang.startsWith("en-GB") && /female|woman|kate|serena|susan/i.test(v.name)) ||
+          byName([
+            /Google UK English Female/i,
+            /Google UK English Male/i,
+            /Microsoft (Susan|Hazel|Sonia|Libby|George|Ryan).*United Kingdom/i,
+            /^(Kate|Serena|Daniel|Oliver|Martha)$/i,
+            /\bUK\b.*English/i,
+            /English.*\bUK\b/i,
+          ]) ||
+          voices.find((v) => v.lang === "en-GB") ||
           voices.find((v) => v.lang.startsWith("en-GB")) ||
           voices.find((v) => v.lang.startsWith("en"));
         if (preferred) utter.voice = preferred;
