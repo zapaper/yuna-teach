@@ -34,19 +34,20 @@ type TranscriptTurn = { speaker: "examiner" | "student"; text: string; ts: numbe
 
 type DimTip = { label: string; hint: string; examples: string[] };
 type DimBlock = {
-  scoreOutOf: number;
+  scorePercent: number;   // 0-100, snapped to nearest 5
   verdict: string;
   seabLooksFor: string;
   details: string[];
   tips: DimTip[];
+  modelUpgrade: string;   // empty when scorePercent === 100
 };
 type SbcScore = {
-  overallSeabScore: number;
+  overallSeabScore: number;   // /25, e.g. 21.25
+  overallPercent: number;     // 0-100, snapped to nearest 5
   overallVerdict: string;
-  pictureResponse: DimBlock;   // /10 — Q1 answer
-  personalResponse: DimBlock;  // /10 — Q2 answer
-  criticalThinking: DimBlock;  // /5  — Q3 answer
-  modelUpgradeExample: string;
+  pictureResponse: DimBlock;   // Q1
+  personalResponse: DimBlock;  // Q2
+  criticalThinking: DimBlock;  // Q3
 };
 
 function Inner() {
@@ -721,13 +722,13 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
           <div className="flex items-end gap-2">
             <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
             <span className="text-3xl font-bold text-slate-800 leading-none">{score.overallSeabScore}</span>
-            <span className="text-sm text-slate-500 pb-0.5">/ 25</span>
+            <span className="text-sm text-slate-500 pb-0.5">/ 25 · {score.overallPercent}%</span>
           </div>
           <p className="text-xs text-slate-600 mt-1.5 leading-snug">{score.overallVerdict}</p>
           <div className="grid grid-cols-3 gap-2 mt-2">
-            <SbcSeabDim label="Picture Response (Q1)"  value={score.pictureResponse.scoreOutOf}  outOf={10} tone="blue"   desc="what's in the picture" />
-            <SbcSeabDim label="Personal Response (Q2)" value={score.personalResponse.scoreOutOf} outOf={10} tone="purple" desc="personal experience" />
-            <SbcSeabDim label="Critical Thinking (Q3)" value={score.criticalThinking.scoreOutOf} outOf={5}  tone="brown"  desc="broader opinion" />
+            <SbcSeabDim label="Picture Response (Q1)"  percent={score.pictureResponse.scorePercent}  tone="blue"   desc="what's in the picture" />
+            <SbcSeabDim label="Personal Response (Q2)" percent={score.personalResponse.scorePercent} tone="purple" desc="personal experience" />
+            <SbcSeabDim label="Critical Thinking (Q3)" percent={score.criticalThinking.scorePercent} tone="brown"  desc="broader opinion" />
           </div>
         </div>
       </div>
@@ -736,9 +737,9 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
       <div>
         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Detailed Scoring</h3>
         <div className="space-y-1.5">
-          <SbcDimCard title="Picture Response (Q1)"  outOf={10} block={score.pictureResponse}  tone="blue" />
-          <SbcDimCard title="Personal Response (Q2)" outOf={10} block={score.personalResponse} tone="purple" />
-          <SbcDimCard title="Critical Thinking (Q3)" outOf={5}  block={score.criticalThinking} tone="brown" />
+          <SbcDimCard title="Picture Response (Q1)"  block={score.pictureResponse}  tone="blue" />
+          <SbcDimCard title="Personal Response (Q2)" block={score.personalResponse} tone="purple" />
+          <SbcDimCard title="Critical Thinking (Q3)" block={score.criticalThinking} tone="brown" />
         </div>
       </div>
 
@@ -752,33 +753,45 @@ function SbcScoreCard({ score }: { score: SbcScore }) {
         </div>
       </div>
 
-      {/* Model upgrade */}
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5">
-        <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide mb-1">Model upgrade — how your weakest answer could have sounded</p>
-        <p className="text-xs text-slate-800 leading-relaxed">{score.modelUpgradeExample}</p>
-      </div>
+      {/* Model upgrade per segment (only if scorePercent < 100) */}
+      {(score.pictureResponse.modelUpgrade || score.personalResponse.modelUpgrade || score.criticalThinking.modelUpgrade) && (
+        <div>
+          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Model upgrade — how a top student would have answered</h3>
+          <div className="space-y-1.5">
+            {score.pictureResponse.modelUpgrade && (
+              <SbcModelUpgrade title="Picture Response (Q1)"  tone="blue"   text={score.pictureResponse.modelUpgrade} />
+            )}
+            {score.personalResponse.modelUpgrade && (
+              <SbcModelUpgrade title="Personal Response (Q2)" tone="purple" text={score.personalResponse.modelUpgrade} />
+            )}
+            {score.criticalThinking.modelUpgrade && (
+              <SbcModelUpgrade title="Critical Thinking (Q3)" tone="brown"  text={score.criticalThinking.modelUpgrade} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function SbcSeabDim({ label, value, outOf, desc, tone }: { label: string; value: number; outOf: number; desc: string; tone: ToneKey }) {
+function SbcSeabDim({ label, percent, desc, tone }: { label: string; percent: number; desc: string; tone: ToneKey }) {
   const s = TONE[tone];
   return (
     <div className={`rounded-lg ${s.bg} border ${s.border} px-2 py-1.5`}>
       <p className={`text-[10px] uppercase tracking-wide ${s.label} font-semibold`}>{label}</p>
       <p className={`text-lg font-bold leading-none ${s.text}`}>
-        {value}<span className="text-[10px] text-slate-500 ml-1">/ {outOf}</span>
+        {percent}<span className="text-[10px] text-slate-500 ml-0.5">%</span>
       </p>
       <p className={`text-[10px] mt-0.5 ${s.label}`}>{desc}</p>
     </div>
   );
 }
 
-function SbcDimCard({ title, outOf, block, tone }: { title: string; outOf: number; block: DimBlock; tone: ToneKey }) {
+function SbcDimCard({ title, block, tone }: { title: string; block: DimBlock; tone: ToneKey }) {
   const s = TONE[tone];
   return (
     <div className={`rounded-lg border ${s.softBorder} ${s.softBg} p-2.5`}>
-      <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1`}>{title} — {block.scoreOutOf} / {outOf}</p>
+      <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1`}>{title} — {block.scorePercent}%</p>
       <p className="text-xs text-slate-700 leading-snug mb-1 font-semibold">{block.verdict}</p>
       <p className="text-[10px] text-slate-500 italic leading-snug mb-1">What examiners look for: {block.seabLooksFor}</p>
       {block.details.length > 0 && (
@@ -786,6 +799,16 @@ function SbcDimCard({ title, outOf, block, tone }: { title: string; outOf: numbe
           {block.details.map((d, i) => <li key={i}>{d}</li>)}
         </ul>
       )}
+    </div>
+  );
+}
+
+function SbcModelUpgrade({ title, tone, text }: { title: string; tone: ToneKey; text: string }) {
+  const s = TONE[tone];
+  return (
+    <div className={`rounded-lg border ${s.softBorder} ${s.softBg} p-2.5`}>
+      <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1`}>{title}</p>
+      <p className="text-xs text-slate-800 leading-relaxed">{text}</p>
     </div>
   );
 }

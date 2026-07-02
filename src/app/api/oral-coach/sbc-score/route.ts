@@ -42,66 +42,55 @@ const DIM_TIP_ITEM = {
 const DIM_BLOCK = {
   type: Type.OBJECT,
   properties: {
-    scoreOutOf: { type: Type.INTEGER, description: "The student's mark for this SEAB dimension" },
-    verdict: { type: Type.STRING, description: "One sentence overall verdict for this dimension" },
+    scorePercent: { type: Type.INTEGER, description: "Score for this segment as a percentage 0-100, snapped to the nearest multiple of 5 (0, 5, 10, ..., 95, 100). 100 = examiner-level answer with no room to improve; 0 = no meaningful answer given." },
+    verdict: { type: Type.STRING, description: "One sentence overall verdict for this segment" },
     seabLooksFor: { type: Type.STRING, description: "One sentence: what a PSLE marker rewards under this dimension" },
     details: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 bullet-point observations: what the student did well OR poorly, quoting the transcript" },
     tips: { type: Type.ARRAY, items: DIM_TIP_ITEM, description: "1-3 actionable tips for this dimension" },
+    modelUpgrade: { type: Type.STRING, description: "IF scorePercent < 100: a rewritten model answer for THIS segment (Q1 or Q2 or Q3) in a realistic 12-year-old Singaporean voice, applying the moves that were missing. Should be what a top-scoring student would say. IF scorePercent === 100: return an empty string." },
   },
-  required: ["scoreOutOf", "verdict", "seabLooksFor", "details", "tips"],
+  required: ["scorePercent", "verdict", "seabLooksFor", "details", "tips", "modelUpgrade"],
 } as const;
 
 const SCORING_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    overallSeabScore: { type: Type.INTEGER, description: "SEAB /25 total: sum of pictureResponse + personalResponse + criticalThinking" },
     overallVerdict: { type: Type.STRING, description: "Two-sentence overall summary of the student's SBC performance" },
-    pictureResponse: DIM_BLOCK,   // /10 — Q1 answer quality
-    personalResponse: DIM_BLOCK,  // /10 — Q2 answer quality
-    criticalThinking: DIM_BLOCK,  // /5  — Q3 answer quality
-    modelUpgradeExample: {
-      type: Type.STRING,
-      description: "Rewrite of the student's weakest single answer in one paragraph, applying the moves that were missing. Realistic 12-year-old voice.",
-    },
+    pictureResponse: DIM_BLOCK,   // Q1 answer quality
+    personalResponse: DIM_BLOCK,  // Q2 answer quality
+    criticalThinking: DIM_BLOCK,  // Q3 answer quality
   },
-  required: ["overallSeabScore", "overallVerdict", "pictureResponse", "personalResponse", "criticalThinking", "modelUpgradeExample"],
+  required: ["overallVerdict", "pictureResponse", "personalResponse", "criticalThinking"],
 } as const;
 
 const SCORING_PROMPT = `You are marking a PSLE English Paper 4 Stimulus-Based Conversation (SBC).
 
-SEAB SBC RUBRIC (25 marks total, updated 2026):
+SBC RUBRIC — 2026 format:
 
 The SBC consists of exactly THREE examiner questions, in order:
   Q1 — Picture Response:   the student comments on the stimulus picture
   Q2 — Personal Response:  the student shares personal experience related to the picture's theme
   Q3 — Critical Thinking:  the student gives a broader opinion / reasoning on the theme
 
-Score each of the student's Q1/Q2/Q3 answers independently against these dimensions:
+Score each of the student's Q1/Q2/Q3 answers INDEPENDENTLY on a 0–100 percentage scale, snapped to the nearest 5% (0, 5, 10, ..., 95, 100). 100% means an examiner-level answer with essentially nothing to improve. 0% means the student didn't answer or was completely off-topic. 80% is a strong, competent PSLE-band answer with one clear weakness; 60% is passable but missing multiple rubric moves; 40% or below is weak.
 
-1. PICTURE RESPONSE (10 marks — Q1)
-   What SEAB looks for: Does the student engage specifically with what's in the picture? Do they identify concrete details (named objects, actions, scenes) and offer a reasoned interpretation, not just a generic "yes it's nice"?
-   Rubric moves:
-   - Concrete picture detail cited (0-3): names something visible (a person, object, activity)
-   - Clear stance stated (0-3): direct position with "I think..." or equivalent
-   - Reasoning grounded in the picture (0-4): "because" clause that ties back to what's in the picture
+WHAT EACH SEGMENT REWARDS:
 
-2. PERSONAL RESPONSE (10 marks — Q2)
-   What SEAB looks for: A specific personal experience with named place / person / number / physical action, told at 12-year-old-authentic level. NOT a textbook answer.
-   Rubric moves:
-   - Personal anecdote (0-5): a specific micro-story — named place, named person, or specific time
-   - Reason head (0-2): "because" / "as" clause in first two sentences
-   - Language use in the answer (0-3): accurate grammar + at least one specific vocabulary choice (Orchard Road not "a mall"; considerate / appreciate / etc.)
+1. PICTURE RESPONSE (Q1)
+   Look for: a concrete detail cited from the picture; a clear stance ("I think…"); a "because" clause that ties the reasoning to what's visible.
+   Deduct for: generic "yes it's nice" answers, no reference to the picture, no stated position.
 
-3. CRITICAL THINKING (5 marks — Q3)
-   What SEAB looks for: An opinion that goes BEYOND personal experience — the student weighs broader implications, mentions society / community / values, and defends the view.
-   Rubric moves:
-   - Broader-than-self perspective (0-2): mentions "people" / "society" / "others" / a group
-   - Defended opinion (0-2): a clear stance backed by at least one reason
-   - Discourse markers (0-1): a connective like "However", "Furthermore", "Therefore"
+2. PERSONAL RESPONSE (Q2)
+   Look for: a specific personal micro-story — named place, named person, or a specific time; a "because" / "as" head; accurate grammar and at least one specific vocabulary choice (say "Orchard Road" not "a mall"; use values vocabulary like "considerate", "appreciate").
+   Deduct for: textbook / generic answers, no personal anchor, tense or agreement errors.
 
-Score each dimension. Populate details with 3-5 SPECIFIC observations quoting the student's Q1 (for pictureResponse) / Q2 (for personalResponse) / Q3 (for criticalThinking) answer. Populate tips with 1-3 concrete next-attempt actions per dimension, each with 0-4 short quoted examples.
+3. CRITICAL THINKING (Q3)
+   Look for: perspective that goes BEYOND self — mentions "people" / "society" / "others" / a group; a defended opinion; at least one connective ("However", "Furthermore", "Therefore").
+   Deduct for: staying purely personal, no stance, or one-word / repetitive answers.
 
-MODEL UPGRADE: Pick the student's single weakest Q-answer (Q1 / Q2 / Q3). Rewrite it in one paragraph applying the moves that were missing. Keep the 12-year-old voice — same energy, just tightened.`;
+Populate details with 3-5 SPECIFIC observations quoting the student's actual Q1 / Q2 / Q3 answer. Populate tips with 1-3 concrete next-attempt actions per segment (each with 0-4 short quoted examples).
+
+MODEL UPGRADE per segment: If a segment scores below 100%, write a modelUpgrade — what a TOP-scoring PSLE student would have said for THAT specific question given the same stimulus. Realistic 12-year-old Singaporean voice, one short paragraph, includes the moves the student was missing. If scorePercent is 100, return an empty string for modelUpgrade.`;
 
 export async function POST(request: NextRequest) {
   const userId = await getSessionUserId();
@@ -143,7 +132,31 @@ export async function POST(request: NextRequest) {
     });
     const text = response.text;
     if (!text) throw new Error("empty response");
-    return NextResponse.json(JSON.parse(text));
+    const parsed = JSON.parse(text) as {
+      overallVerdict: string;
+      pictureResponse: { scorePercent: number };
+      personalResponse: { scorePercent: number };
+      criticalThinking: { scorePercent: number };
+    };
+    // Compute the /25 total from the three segment percentages.
+    //   avg = (q1 + q2 + q3) / 3
+    //   round to nearest 5% (matches per-segment granularity)
+    //   /25 = avg * 25 / 100 = avg / 4
+    const snap5 = (n: number) => Math.round(n / 5) * 5;
+    const clamp = (n: number) => Math.max(0, Math.min(100, snap5(n)));
+    const q1 = clamp(parsed.pictureResponse.scorePercent);
+    const q2 = clamp(parsed.personalResponse.scorePercent);
+    const q3 = clamp(parsed.criticalThinking.scorePercent);
+    const avgPercent = snap5((q1 + q2 + q3) / 3);
+    const overallSeabScore = Math.round((avgPercent / 4) * 100) / 100; // /25 to 2dp
+    return NextResponse.json({
+      ...parsed,
+      pictureResponse: { ...parsed.pictureResponse, scorePercent: q1 },
+      personalResponse: { ...parsed.personalResponse, scorePercent: q2 },
+      criticalThinking: { ...parsed.criticalThinking, scorePercent: q3 },
+      overallPercent: avgPercent,
+      overallSeabScore,
+    });
   } catch (e) {
     const err = e as Error;
     return NextResponse.json({ error: err.message }, { status: 502 });
