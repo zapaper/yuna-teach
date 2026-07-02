@@ -79,7 +79,7 @@ export default function HomePage() {
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary-container text-on-secondary-container font-semibold text-xs mb-6 uppercase tracking-wider">
                 <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
-                Built for Parents, By Parents
+                Built by parents, for parents
               </div>
               <h1 className="font-headline text-3xl md:text-6xl font-extrabold text-primary leading-tight mb-5 text-balance">
                 Stop marking. <span className="text-secondary">Start coaching.</span>
