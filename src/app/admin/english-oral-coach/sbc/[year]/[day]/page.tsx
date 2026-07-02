@@ -818,14 +818,22 @@ function SbcTipsCategory({ title, tone, tips }: { title: string; tone: ToneKey; 
 function StimulusImage({ year, day, description }: { year: string; day: number; description: string }) {
   const [failed, setFailed] = useState(false);
   const src = `/api/admin/english-oral-coach/stimulus/${year}/${day}/image?v=3`;
+  const expectedR2Path = `oral-coach/pictures/${year}_oral_day${day}_stimulus.jpg`;
+  const isPre2025 = year !== "2025";
   if (failed) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-        <p className="text-xs font-semibold text-amber-700 mb-2">Stimulus image not extracted yet</p>
+        <p className="text-xs font-semibold text-amber-700 mb-2">Stimulus image not found</p>
         <p className="text-sm text-slate-700 leading-relaxed">{description}</p>
-        <p className="text-xs text-slate-400 mt-3">
-          Run <code className="bg-slate-100 px-1.5 py-0.5 rounded">npx tsx scripts/extract-oral-stimuli.ts</code> on Railway to backfill the cropped images.
-        </p>
+        {isPre2025 ? (
+          <p className="text-xs text-slate-500 mt-3">
+            Expected in R2 at <code className="bg-slate-100 px-1.5 py-0.5 rounded">{expectedR2Path}</code>. Check the file exists at that exact path and name in your R2 bucket.
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400 mt-3">
+            Expected at <code className="bg-slate-100 px-1.5 py-0.5 rounded">$VOLUME_PATH/english-supplementary/{year}_oral_day{day}_stimulus.jpg</code> on Railway.
+          </p>
+        )}
       </div>
     );
   }
