@@ -151,7 +151,10 @@ export async function POST(request: NextRequest) {
                 startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
                 endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
                 prefixPaddingMs: 300,
-                silenceDurationMs: 1500,
+                // 2500ms silence before examiner interjects. Kids
+                // routinely pause mid-thought for 1.5-2s to search
+                // for the next word; 1500ms was cutting them off.
+                silenceDurationMs: 2500,
               },
               activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
             },
