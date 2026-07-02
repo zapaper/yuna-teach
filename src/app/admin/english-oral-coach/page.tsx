@@ -110,7 +110,7 @@ function PageInner() {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Themes</p>
               {data.loading && <p className="text-xs text-slate-400">Loading…</p>}
               {data.error && <p className="text-xs text-rose-600">{data.error}</p>}
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {ORAL_THEMES.map((t) => {
                   const cat = CATEGORY_STYLES[t.category] ?? CATEGORY_STYLES.Community;
                   const active = selectedThemeId === t.id;
@@ -119,12 +119,12 @@ function PageInner() {
                       <button
                         type="button"
                         onClick={() => setSelectedThemeId(t.id)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between gap-1.5 ${
-                          active ? "bg-indigo-50 ring-1 ring-indigo-300" : "hover:bg-slate-50"
+                        className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 ${
+                          active ? "bg-indigo-50 ring-2 ring-indigo-400" : "hover:bg-slate-50 ring-1 ring-transparent hover:ring-slate-200"
                         }`}
                       >
-                        <span className={`font-semibold truncate ${active ? "text-indigo-700" : "text-slate-800"}`}>{t.theme}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${cat.bg} ${cat.text} ring-1 ${cat.ring} flex-shrink-0`}>{t.category}</span>
+                        <span className={`font-semibold ${active ? "text-indigo-700" : "text-slate-800"}`}>{t.theme}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${cat.bg} ${cat.text} ring-1 ${cat.ring} flex-shrink-0 font-medium`}>{t.category}</span>
                       </button>
                     </li>
                   );
@@ -222,8 +222,11 @@ function PageInner() {
                   )}
                 </div>
 
-                {/* Theme header */}
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                {/* Theme header + Start Practice CTA. Practice runs:
+                    Reading Aloud (15) -> Continue -> SBC (25, day
+                    randomised) -> Aggregate (/40). No manual pick of
+                    Reading vs SBC — everything flows from "Start". */}
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <h2 className="text-base font-bold text-slate-800">{selectedTheme.theme}</h2>
                     {(() => {
@@ -234,51 +237,23 @@ function PageInner() {
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-white">PSLE {selectedTheme.year}</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 leading-snug">{selectedTheme.blurb}</p>
-                </div>
-
-                {/* Reading Aloud practice for this theme */}
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800">Reading Aloud</h3>
-                      <p className="text-[10px] text-slate-500">Read the passage aloud to be scored on pronunciation, fluency &amp; expressiveness.</p>
-                    </div>
+                  <p className="text-xs text-slate-600 leading-snug mb-3">{selectedTheme.blurb}</p>
+                  <div className="flex items-center gap-4 flex-wrap mt-1">
                     <Link
-                      href={`/admin/english-oral-coach/read/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}`}
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 flex-shrink-0"
+                      href={`/admin/english-oral-coach/read/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}&flow=1`}
+                      className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition"
                     >
-                      Start Reading →
+                      Start Practice →
                     </Link>
+                    <p className="text-xs text-slate-500 leading-snug flex-1 min-w-[200px]">
+                      Reading Aloud (15 marks), then Stimulus Conversation (25 marks). One picture is picked for you at the SBC stage.
+                    </p>
                   </div>
-                </div>
-
-                {/* SBC practice for this theme */}
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800">Stimulus-Based Conversation</h3>
-                      <p className="text-[10px] text-slate-500">Three questions with the examiner about the picture below.</p>
-                    </div>
-                    <Link
-                      href={`/admin/english-oral-coach/sbc/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}`}
-                      className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald-700 flex-shrink-0"
-                    >
-                      Start SBC →
-                    </Link>
-                  </div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/admin/english-oral-coach/stimulus/${selectedTheme.year}/${selectedTheme.day}/image?v=3`}
-                    alt={`${selectedTheme.theme} stimulus`}
-                    className="w-full max-h-[280px] object-contain rounded-lg bg-slate-50"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
                 </div>
               </>
             ) : (
               <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 text-center">
-                <p className="text-sm text-slate-400">Pick a theme on the left to preview.</p>
+                <p className="text-sm text-slate-400">Pick a theme on the left to start.</p>
               </div>
             )}
           </div>
