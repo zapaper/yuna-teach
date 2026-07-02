@@ -249,7 +249,7 @@ function Inner() {
                   className="w-56 h-56 rounded-2xl bg-slate-100 flex-shrink-0 ring-4 ring-white shadow-lg"
                 />
                 <div className="flex-1">
-                  <p className="text-sm text-slate-700">Speak naturally — the examiner asks one prompt (chosen at random from the day&apos;s three) plus follow-ups. Aim for a 2-3 minute conversation.</p>
+                  <p className="text-sm text-slate-700">Speak naturally — the examiner asks one prompt (chosen at random from the day&apos;s three) plus follow-ups. Aim for a 3-5 minute conversation. Take your time when thinking; the examiner will wait.</p>
                 </div>
                 {status === "ready" && (
                   <button onClick={start} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700">Start Session</button>
