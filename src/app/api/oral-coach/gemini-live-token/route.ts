@@ -84,7 +84,11 @@ export async function POST(request: NextRequest) {
     prompt: selectedPrompt,
   });
 
-  const ai = new GoogleGenAI({ apiKey });
+  // authTokens.create is only exposed on the v1alpha API surface —
+  // the SDK defaults to v1beta, which returns 404 on /authTokens.
+  // Confirmed via console warning in @google/genai source and 404
+  // diagnostics from Railway on 2026-07-02.
+  const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: "v1alpha" } });
   // Fail fast if the Gemini API doesn't respond within 30s. The
   // Cloudflare edge cuts at ~30-100s and returns raw HTML, but we
   // want a real JSON error. 30s (vs the earlier 15s) is a bit more

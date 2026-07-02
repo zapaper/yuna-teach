@@ -117,7 +117,7 @@ function Inner() {
       const { token, model } = await tokenResp.json();
 
       const mod = await import("@google/genai");
-      const client = new mod.GoogleGenAI({ apiKey: token, apiVersion: "v1alpha" });
+      const client = new mod.GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
       const session = await client.live.connect({
         model,
         config: {
