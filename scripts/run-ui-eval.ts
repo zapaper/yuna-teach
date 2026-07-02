@@ -45,7 +45,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from "@playwri
 import { readFileSync } from "fs";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE } from "../src/lib/whats-new";
+import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, WHATS_NEW_ADMIN_ONLY } from "../src/lib/whats-new";
 
 const __dirname = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname.replace(/^\//, "")));
 
@@ -187,7 +187,7 @@ async function waitForMarkComplete(paperId: string): Promise<void> {
 // is admin.
 type FakeAccount = { parentId: string; studentId: string; parentEmail: string; studentName: string; level: number };
 
-async function createFakeAccount(level: number, preseedWhatsNew = true): Promise<FakeAccount> {
+async function createFakeAccount(level: number, preseedWhatsNew = true, adminFlag = false): Promise<FakeAccount> {
   const prisma = new PrismaClient();
   try {
     const stamp = Date.now();
@@ -198,15 +198,20 @@ async function createFakeAccount(level: number, preseedWhatsNew = true): Promise
     // Preseed the current What's-New version so downstream chart-visibility
     // assertions aren't blocked by the modal overlaying the Lumi panel.
     // T5 sets preseedWhatsNew=false so the popup DOES fire and can be
-    // asserted directly.
-    const seenSettings = preseedWhatsNew ? { whatsNewSeenVersion: WHATS_NEW_VERSION } : undefined;
+    // asserted directly. T5 also sets adminFlag=true when
+    // WHATS_NEW_ADMIN_ONLY is on, so the popup can pass the admin gate
+    // and the assertion still exercises the real code path.
+    const settingsObj: Record<string, unknown> = {};
+    if (preseedWhatsNew) settingsObj.whatsNewSeenVersion = WHATS_NEW_VERSION;
+    if (adminFlag) settingsObj.admin = true;
+    const settingsArg = Object.keys(settingsObj).length > 0 ? { settings: settingsObj } : {};
     const parent = await prisma.user.create({
       data: {
         name: parentName,
         email: parentEmail,
         role: "PARENT",
         emailVerified: true,
-        ...(seenSettings ? { settings: seenSettings } : {}),
+        ...settingsArg,
       },
       select: { id: true },
     });
@@ -215,7 +220,7 @@ async function createFakeAccount(level: number, preseedWhatsNew = true): Promise
         name: studentName,
         role: "STUDENT",
         level,
-        ...(seenSettings ? { settings: seenSettings } : {}),
+        ...(preseedWhatsNew ? { settings: { whatsNewSeenVersion: WHATS_NEW_VERSION } } : {}),
       },
       select: { id: true },
     });
@@ -418,14 +423,20 @@ async function t4DiagnosticLumi(browser: Browser, paperId: string, parentId: str
 // popup MUST NOT fire on a student home page — the negative assertion
 // prevents kids from seeing a parent-facing modal.
 async function t5WhatsNew(browser: Browser): Promise<FakeAccount | undefined> {
-  console.log(`\n[T5] What's New popup (version=${WHATS_NEW_VERSION}, audience=${WHATS_NEW_AUDIENCE})`);
+  console.log(`\n[T5] What's New popup (version=${WHATS_NEW_VERSION}, audience=${WHATS_NEW_AUDIENCE}, adminOnly=${WHATS_NEW_ADMIN_ONLY})`);
   if (WHATS_NEW_SLIDES.length === 0) {
     console.log("  (skipped — no slides configured)");
     return undefined;
   }
-  const firstTitle = WHATS_NEW_SLIDES[0].title;
+  // {{childName}} in the slides file is substituted at render time using
+  // the parent's selected student's first name. Strip it here so the DOM
+  // assertion still matches when a title contains the placeholder.
+  const firstTitle = WHATS_NEW_SLIDES[0].title.replace(/\{\{childName\}\}/g, "").trim();
 
-  const fake = await step("Create fake parent WITHOUT seenVersion preseed", async () => createFakeAccount(5, false));
+  // When admin-only gate is on, the fake parent MUST be admin so the
+  // popup actually renders — otherwise T5.2 will always fail and mask
+  // real regressions.
+  const fake = await step("Create fake parent WITHOUT seenVersion preseed", async () => createFakeAccount(5, false, WHATS_NEW_ADMIN_ONLY));
   if (!fake) return undefined;
 
   const ctx = await makeContext(browser);

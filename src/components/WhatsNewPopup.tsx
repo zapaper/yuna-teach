@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, type WhatsNewSlide, type WhatsNewAudience } from "@/lib/whats-new";
+import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, WHATS_NEW_ADMIN_ONLY, type WhatsNewSlide, type WhatsNewAudience } from "@/lib/whats-new";
 
 // Shows the What's New carousel exactly once per user, per WHATS_NEW_VERSION.
 // State lives in `user.settings.whatsNewSeenVersion` server-side — deliberately
@@ -27,6 +27,7 @@ export default function WhatsNewPopup({
   seenVersion,
   viewer,
   childName,
+  viewerIsAdmin,
 }: {
   userId: string;
   seenVersion: string | null | undefined;
@@ -38,13 +39,28 @@ export default function WhatsNewPopup({
   // own first name. Falls back to "your child" so the copy still reads
   // when a parent hasn't linked anyone yet.
   childName?: string | null;
+  // Whether the current session user is an admin. When
+  // WHATS_NEW_ADMIN_ONLY is true, the popup only fires for admins so
+  // the copy / images can be dogfooded on prod before going wide.
+  viewerIsAdmin?: boolean;
 }) {
   const filledChildName = (childName ?? "").trim() || "your child";
   const audienceMatch =
     WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === viewer;
+  const adminGate = !WHATS_NEW_ADMIN_ONLY || viewerIsAdmin === true;
+  // Preview override: admins can force-show the popup via
+  // ?whatsnew=preview on any home URL, ignoring the seen-version
+  // check. Handy for testing look-and-feel without touching DB. Kept
+  // admin-gated even when the popup goes wide, so parents can't
+  // accidentally trigger a re-show by tweaking a URL.
+  const previewOverride =
+    viewerIsAdmin === true &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("whatsnew") === "preview";
   const shouldShow =
     audienceMatch &&
-    seenVersion !== WHATS_NEW_VERSION &&
+    adminGate &&
+    (previewOverride || seenVersion !== WHATS_NEW_VERSION) &&
     WHATS_NEW_SLIDES.length > 0;
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);

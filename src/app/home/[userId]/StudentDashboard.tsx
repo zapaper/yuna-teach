@@ -950,6 +950,7 @@ export default function StudentDashboard({
         userId={userId}
         seenVersion={user.settings?.whatsNewSeenVersion}
         viewer="student"
+        viewerIsAdmin={isAdminViewer}
         childName={(user.displayName ?? user.name ?? "").split(/\s+/)[0] ?? ""}
       />
       {/* Habitat unlock popup at 200 points */}

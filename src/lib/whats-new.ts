@@ -19,6 +19,11 @@ export const WHATS_NEW_VERSION = "essay-coach-v1";
 export type WhatsNewAudience = "all" | "parent" | "student";
 export const WHATS_NEW_AUDIENCE: WhatsNewAudience = "parent";
 
+// Staged rollout: when true, the popup ONLY fires for admin users, even
+// if the audience matches. Flip to false to release to all matching users.
+// Keeps a new popup safely dogfoodable on prod before it goes wide.
+export const WHATS_NEW_ADMIN_ONLY = true;
+
 export type WhatsNewSlide = {
   eyebrow?: string;
   title: string;

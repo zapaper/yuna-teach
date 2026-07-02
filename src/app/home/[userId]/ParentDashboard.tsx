@@ -2671,6 +2671,7 @@ export default function ParentDashboard({
         userId={userId}
         seenVersion={user.settings?.whatsNewSeenVersion}
         viewer="parent"
+        viewerIsAdmin={isAdminUser}
         childName={(selectedStudent?.displayName ?? selectedStudent?.name ?? user.linkedStudents[0]?.displayName ?? user.linkedStudents[0]?.name ?? "").split(/\s+/)[0] ?? ""}
       />
       <ChangePasswordModal
