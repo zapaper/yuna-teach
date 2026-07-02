@@ -64,7 +64,17 @@ function Inner() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "recording" | "scoring" | "done" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
   const [score, setScore] = useState<ScoreSummary | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const recognizerRef = useRef<unknown>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+
+  // Clean up any previous recording blob URL when a new one lands or
+  // when the component unmounts — otherwise we leak memory across
+  // "Try again" cycles.
+  useEffect(() => () => {
+    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  }, [recordingUrl]);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -102,8 +112,27 @@ function Inner() {
     if (!passage) return;
     setError(null);
     setScore(null);
+    setRecordingUrl(null);
     setStatus("recording");
     try {
+      // Capture the mic ourselves so we can (a) hand it to Azure for
+      // scoring AND (b) hand it to a MediaRecorder that saves a copy
+      // of the read for playback. Same stream feeds both.
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      const chunks: Blob[] = [];
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        setRecordingUrl(URL.createObjectURL(blob));
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+
       const sdk = await import("microsoft-cognitiveservices-speech-sdk");
       const tokenResp = await fetch("/api/oral-coach/azure-token", { method: "POST" });
       if (!tokenResp.ok) throw new Error(`Token fetch failed: ${await tokenResp.text()}`);
@@ -191,6 +220,15 @@ function Inner() {
         });
         setStatus("done");
         recognizer.close();
+        // Finalise the MediaRecorder so the recorded blob URL is set.
+        // Then release the mic — otherwise the browser shows the
+        // "in-use" indicator forever.
+        const mr = mediaRecorderRef.current;
+        if (mr && mr.state !== "inactive") mr.stop();
+        const s = micStreamRef.current;
+        if (s) s.getTracks().forEach((t) => t.stop());
+        mediaRecorderRef.current = null;
+        micStreamRef.current = null;
       };
 
       recognizer.startContinuousRecognitionAsync(
@@ -270,7 +308,8 @@ function Inner() {
                   <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-5">
                     <p className="text-[10px] uppercase tracking-wide text-indigo-500 font-semibold">SEAB Reading Aloud (predicted)</p>
                     <div className="flex items-end gap-2 mt-1">
-                      <span className="text-5xl font-bold text-indigo-700">{score.seab.total}</span>
+                      <span className="text-5xl font-bold text-indigo-700">{Math.round(score.seab.total)}</span>
+                      <span className="text-xs text-indigo-400 pb-2">({score.seab.total.toFixed(1)})</span>
                       <span className="text-lg text-indigo-500 pb-1">/ 20</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3 mt-4">
@@ -279,6 +318,17 @@ function Inner() {
                       <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={6} desc="pitch, stress" />
                     </div>
                   </div>
+
+                  {/* Playback of the recorded read — private to this
+                      browser tab, blob URL, no upload. Nice-to-have for
+                      the student to hear exactly what they said. */}
+                  {recordingUrl && (
+                    <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Listen to your read</p>
+                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      <audio controls src={recordingUrl} className="w-full" />
+                    </div>
+                  )}
 
                   {/* Azure raw — collapsed by default to keep the SEAB focus */}
                   <details>
@@ -391,7 +441,7 @@ function buildTips(words: WordScore[]): TipGroup[] {
   }
   if (wobble.length > 0) {
     groups.push({
-      label: "Slight wobbles — worth another pass",
+      label: "Not clear pronunciation",
       hint: "Not wrong, just not quite crisp. Slow down on these and land the vowel cleanly.",
       examples: wobble.slice(0, 6).map((w) => w.word),
       count: wobble.length,
@@ -439,39 +489,89 @@ function buildTips(words: WordScore[]): TipGroup[] {
 
 function styleFor(score: number, error: string): { className: string; showScore: boolean } {
   // Strong reads stay in plain black type so the visual noise stays
-  // low — only actual problems get colour treatment. Kids reading the
-  // scored passage back should see at a glance which few words need
-  // work, not a rainbow.
+  // low — only actual problems get colour treatment.
   if (error === "Omission")   return { className: "text-slate-400 line-through", showScore: false };
-  if (error === "Insertion")  return { className: "text-amber-600 underline decoration-dotted", showScore: false };
+  if (error === "Insertion")  return { className: "text-purple-600 underline decoration-dotted", showScore: false };
   if (score >= 85)            return { className: "text-slate-800", showScore: false };
   if (score >= 60)            return { className: "text-amber-600 font-semibold", showScore: true };
   return { className: "text-rose-600 font-semibold", showScore: true };
 }
 
+// Rebuild the passage as a list of "chunks" — each chunk is either a
+// word (matched to an Azure WordScore) or a punctuation/whitespace run
+// (rendered as-is in default styling). This preserves quotes, commas,
+// full stops, etc. in the coloured view — students see the passage
+// the way it was written, not a bag of stripped words.
+//
+// Insertions (Azure words not in the original) get appended at the
+// point where the walker gave up finding a match.
+function alignPassageWithWords(passage: string, words: WordScore[]): Array<
+  | { kind: "word"; text: string; style: WordScore }
+  | { kind: "gap"; text: string }
+> {
+  const chunks: Array<{ kind: "word"; text: string; style: WordScore } | { kind: "gap"; text: string }> = [];
+  // Tokenise the original into (word | non-word) runs.
+  const tokens = passage.match(/[A-Za-z0-9''’]+|[^A-Za-z0-9''’]+/g) ?? [];
+  const wordQueue = words.slice();
+  const isWordToken = (t: string) => /^[A-Za-z0-9''’]+$/.test(t);
+
+  for (const tok of tokens) {
+    if (!isWordToken(tok)) {
+      chunks.push({ kind: "gap", text: tok });
+      continue;
+    }
+    // Find the next queued word that (case-insensitive) matches this token.
+    // Words in-between are insertions inserted BEFORE this token.
+    let matchedIdx = -1;
+    for (let i = 0; i < wordQueue.length; i++) {
+      if (wordQueue[i].word.toLowerCase() === tok.toLowerCase()) {
+        matchedIdx = i;
+        break;
+      }
+    }
+    if (matchedIdx >= 0) {
+      // Emit any earlier queued words as insertions before this token.
+      for (let i = 0; i < matchedIdx; i++) {
+        chunks.push({ kind: "word", text: wordQueue[i].word, style: { ...wordQueue[i], errorType: "Insertion" } });
+        chunks.push({ kind: "gap", text: " " });
+      }
+      chunks.push({ kind: "word", text: tok, style: wordQueue[matchedIdx] });
+      wordQueue.splice(0, matchedIdx + 1);
+    } else {
+      // No match — treat as an Omission (student skipped it).
+      chunks.push({ kind: "word", text: tok, style: { word: tok, accuracyScore: 0, errorType: "Omission", breakErrors: [], intonationErrors: [] } });
+    }
+  }
+  // Any remaining queued words are trailing insertions.
+  for (const w of wordQueue) {
+    chunks.push({ kind: "gap", text: " " });
+    chunks.push({ kind: "word", text: w.word, style: { ...w, errorType: "Insertion" } });
+  }
+  return chunks;
+}
+
 function ColouredPassage({ passage, words }: { passage: string; words: WordScore[] }) {
-  // Naive word alignment — Azure returns words in read order and skips
-  // punctuation. Only problem words get colour + a score badge; good
-  // words render as plain black type identical to the pre-scoring view.
+  const chunks = alignPassageWithWords(passage, words);
   return (
-    <p className="text-slate-800 text-lg leading-loose">
-      {words.map((w, i) => {
-        const s = styleFor(w.accuracyScore, w.errorType);
+    <p className="text-slate-800 text-lg leading-loose whitespace-pre-wrap">
+      {chunks.map((c, i) => {
+        if (c.kind === "gap") return <span key={i}>{c.text}</span>;
+        const s = styleFor(c.style.accuracyScore, c.style.errorType);
         return (
-          <span key={i} className={`inline-block mr-[6px] ${s.className}`}>
-            {w.word}
+          <span key={i} className={s.className}>
+            {c.text}
             {s.showScore && (
-              <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(w.accuracyScore)}</span>
+              <span className="text-xs align-super ml-0.5 opacity-70">{Math.round(c.style.accuracyScore)}</span>
             )}
           </span>
         );
       })}
       <span className="block text-xs text-slate-400 mt-4 not-italic">
         Legend:
-        <span className="inline-block ml-2 text-amber-600 font-semibold">amber = wobble</span>
+        <span className="inline-block ml-2 text-amber-600 font-semibold">amber = not clear pronunciation</span>
         <span className="inline-block ml-3 text-rose-600 font-semibold">red = mispronounced</span>
         <span className="inline-block ml-3 text-slate-400 line-through">skipped</span>
-        <span className="inline-block ml-3 text-amber-600 underline decoration-dotted">extra word</span>
+        <span className="inline-block ml-3 text-purple-600 underline decoration-dotted">extra word</span>
       </span>
     </p>
   );
@@ -494,7 +594,11 @@ function SeabDim({ label, value, outOf, desc }: { label: string; value: number; 
   return (
     <div className="rounded-xl bg-white border border-indigo-100 p-3">
       <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`text-xl font-bold ${colour}`}>{value.toFixed(1)}<span className="text-xs text-slate-400 ml-1">/ {outOf}</span></p>
+      <p className={`text-xl font-bold ${colour}`}>
+        {Math.round(value)}
+        <span className="text-[10px] text-slate-400 ml-1">({value.toFixed(1)})</span>
+        <span className="text-xs text-slate-400 ml-1">/ {outOf}</span>
+      </p>
       <p className="text-[10px] text-slate-400 mt-0.5">{desc}</p>
     </div>
   );
