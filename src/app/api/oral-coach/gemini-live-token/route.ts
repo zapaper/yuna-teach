@@ -83,8 +83,16 @@ export async function POST(request: NextRequest) {
   });
 
   const ai = new GoogleGenAI({ apiKey });
+  // Fail fast if the Gemini API doesn't respond within 15s — the
+  // Cloudflare edge cuts the request at ~30-100s and returns raw HTML,
+  // which is a terrible client experience. Better to return a real
+  // JSON error the client can display.
+  const withTimeout = <T>(p: Promise<T>, ms: number): Promise<T> => Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms}ms — Gemini Live ephemeral token API may not be enabled on this project`)), ms)),
+  ]);
   try {
-    const token = await ai.authTokens.create({
+    const token = await withTimeout(ai.authTokens.create({
       config: {
         uses: 1,
         expireTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
@@ -93,35 +101,28 @@ export async function POST(request: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction: { parts: [{ text: systemInstruction }] },
-            // Kore — female + professional, closest match to the female
-            // voice used in the Chinese spelling read-back (Google TTS
-            // Standard-A). Alternatives if we want to change tone:
-            //   Aoede  — warm / breezy
-            //   Leda   — youthful
-            //   Zephyr — bright
-            //   Puck   — male / upbeat
-            //   Charon — male / informative
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
             },
           },
         },
       },
-    });
+    }), 15000);
     return NextResponse.json({
       token: token.name,
       model: MODEL_ENV ?? MODEL,
       expiresInSeconds: 30 * 60,
-      // Echo back the selected prompt so the client can pass it to
-      // the scoring endpoint at end-of-session (it needs to know which
-      // one was actually asked, since the token endpoint chose randomly).
       selectedPrompt,
       selectedIndex,
       allPrompts: prompts,
     });
   } catch (e) {
     const err = e as Error;
-    return NextResponse.json({ error: `authTokens.create failed: ${err.message}` }, { status: 502 });
+    console.error("[gemini-live-token] authTokens.create failed:", err);
+    return NextResponse.json({
+      error: err.message,
+      hint: "Ephemeral tokens for Gemini Live are a paid AI Studio / Vertex AI feature. If your project is on the free tier, you'll need to enable Live API access (Google Cloud Console → APIs & Services → Enable 'Gemini Live API') OR switch to a paid tier. The GEMINI_API_KEY on Railway must belong to a project with Live access.",
+    }, { status: 502 });
   }
 }
 

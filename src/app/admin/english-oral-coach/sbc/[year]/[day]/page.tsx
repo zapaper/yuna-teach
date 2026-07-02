@@ -98,7 +98,22 @@ function Inner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ year, day: dayNum }),
       });
-      if (!tokenResp.ok) throw new Error(await tokenResp.text());
+      if (!tokenResp.ok) {
+        // Try to parse the JSON error we return; if it's an HTML Cloudflare
+        // 502 page instead, fall back to a generic message.
+        const raw = await tokenResp.text();
+        let msg = `Session start failed (${tokenResp.status})`;
+        try {
+          const parsed = JSON.parse(raw);
+          msg = parsed.error || msg;
+          if (parsed.hint) msg = `${msg}\n\n${parsed.hint}`;
+        } catch {
+          if (tokenResp.status === 502 || raw.trim().startsWith("<")) {
+            msg = "Session start timed out — Gemini Live may not be enabled on the AI Studio project this API key belongs to. Ask the admin to enable Live API access, or upgrade the project to a paid tier.";
+          }
+        }
+        throw new Error(msg);
+      }
       const { token, model } = await tokenResp.json();
 
       const mod = await import("@google/genai");
