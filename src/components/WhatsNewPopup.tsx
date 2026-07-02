@@ -151,16 +151,16 @@ export default function WhatsNewPopup({
           const iconName = isFirst ? "auto_awesome" : (popup.featureIcon ?? "");
           if (!label) return null;
           return (
-            <div className="px-7 pt-5 pb-3 flex items-center gap-2 border-b border-slate-100">
+            <div className="px-7 pt-5 pb-3 flex items-center gap-2.5 border-b border-slate-100">
               {iconName ? (
                 <span
-                  className="material-symbols-outlined text-[18px] text-[#0EA371]"
+                  className="material-symbols-outlined text-[24px] text-[#0EA371]"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
                   {iconName}
                 </span>
               ) : null}
-              <span className="text-[13px] font-extrabold uppercase tracking-widest text-[#001e40]">
+              <span className="text-lg font-black uppercase tracking-wide text-[#001e40] font-headline">
                 {label}
               </span>
             </div>
