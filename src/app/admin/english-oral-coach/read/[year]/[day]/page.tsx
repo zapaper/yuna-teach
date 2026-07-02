@@ -370,37 +370,38 @@ function Inner() {
                     onPlayWord={recordingUrl ? playWord : undefined}
                   />
                 ) : (
-                  <p className="text-slate-800 text-lg leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
+                  <p className="text-slate-800 text-base leading-relaxed whitespace-pre-wrap">{passage.readingPassage}</p>
                 )}
               </div>
 
               {/* Score card — SEAB Scoring Matrix + Detailed Scoring + Tips */}
               {score && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3">
                   <div>
-                    <h2 className="text-sm font-bold text-slate-800 mb-3">SEAB Reading Aloud Scoring Matrix</h2>
-                    <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-5">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">Predicted total</p>
-                      <div className="flex items-end gap-2 mt-1">
-                        <span className="text-5xl font-bold text-slate-800">{Math.round(score.seab.total)}</span>
-                        <span className="text-xs text-slate-400 pb-2">({score.seab.total.toFixed(1)})</span>
-                        <span className="text-lg text-slate-500 pb-1">/ 20</span>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h2 className="text-sm font-bold text-slate-800">SEAB Reading Aloud Scoring Matrix</h2>
+                      {recordingUrl && (
+                        <div className="flex items-center gap-2">
+                          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                          <audio ref={audioRef} controls src={recordingUrl} preload="auto" className="h-8" style={{ minWidth: 220 }} />
+                          <span className="text-[10px] text-slate-400 hidden sm:inline">click a highlighted word for that word only</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-3">
+                      <div className="flex items-end gap-2">
+                        <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
+                        <span className="text-3xl font-bold text-slate-800 leading-none">{Math.round(score.seab.total)}</span>
+                        <span className="text-[10px] text-slate-400 pb-1">({score.seab.total.toFixed(1)})</span>
+                        <span className="text-sm text-slate-500 pb-0.5">/ 20</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-3 mt-4">
+                      <div className="grid grid-cols-3 gap-2 mt-3">
                         <SeabDim label="Pronunciation" value={score.seab.pronunciation} outOf={8} desc="articulation, sounds" tone="blue" />
                         <SeabDim label="Fluency & rhythm" value={score.seab.fluencyRhythm} outOf={6} desc="pace, chunking" tone="purple" />
                         <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={6} desc="pitch, stress" tone="brown" />
                       </div>
                     </div>
                   </div>
-
-                  {recordingUrl && (
-                    <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Listen to your read (click a highlighted word or tip below to hear just that word)</p>
-                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                      <audio ref={audioRef} controls src={recordingUrl} className="w-full" preload="auto" />
-                    </div>
-                  )}
 
                   <DetailedScoring score={score} />
 
@@ -476,11 +477,14 @@ function computeBreakdown(words: WordScore[], fluencyScore: number, prosodyScore
     const durationSec = (endTicks - startTicks) / 10_000_000;
     if (durationSec > 0) wpm = Math.round((timed.length / durationSec) * 60);
   }
+  // Ideal PSLE Reading Aloud pace: ~120-140 words per minute. Tuition
+  // guidance in Singapore consistently cites this range; anything
+  // slower reads as hesitant, anything much faster loses articulation.
   const paceVerdict: Breakdown["fluency"]["paceVerdict"] =
     wpm === 0 ? "unknown" :
     wpm < 100 ? "too slow" :
-    wpm <= 150 ? "on target" :
-    wpm <= 170 ? "brisk" : "too fast";
+    wpm <= 140 ? "on target" :
+    wpm <= 160 ? "brisk" : "too fast";
 
   const unexpectedPauses = words.filter((w) => w.breakErrors.includes("UnexpectedBreak")).length;
   const missingPauses = words.filter((w) => w.breakErrors.includes("MissingBreak")).length;
@@ -591,19 +595,19 @@ function buildTips(words: WordScore[], breakdown: Breakdown): TipCategory[] {
   if (breakdown.fluency.paceVerdict === "too fast") {
     fluencyItems.push({
       label: "Slow down",
-      hint: `You read at ${breakdown.fluency.wpm} words/min. PSLE examiners want 130–150 — enough time for each word to land, not a race. Imagine you're telling the story to a five-year-old.`,
+      hint: `You read at ${breakdown.fluency.wpm} words/min. PSLE examiners want 120–140 — enough time for each word to land, not a race. Imagine you're telling the story to a five-year-old.`,
       examples: [], count: 0,
     });
   } else if (breakdown.fluency.paceVerdict === "brisk") {
     fluencyItems.push({
       label: "Pace is a bit fast",
-      hint: `${breakdown.fluency.wpm} words/min — the target is 130–150. Ease off slightly at commas so the marker can follow the meaning.`,
+      hint: `${breakdown.fluency.wpm} words/min — the target is 120–140. Ease off slightly at commas so the marker can follow the meaning.`,
       examples: [], count: 0,
     });
   } else if (breakdown.fluency.paceVerdict === "too slow") {
     fluencyItems.push({
       label: "Build up speed",
-      hint: `You read at ${breakdown.fluency.wpm} words/min — slower than the 130–150 target. Practise reading the passage aloud twice before recording so the words feel familiar.`,
+      hint: `You read at ${breakdown.fluency.wpm} words/min — slower than the 120–140 target. Practise reading the passage aloud twice before recording so the words feel familiar.`,
       examples: [], count: 0,
     });
   } else if (breakdown.fluency.paceVerdict === "on target") {
@@ -717,89 +721,112 @@ function alignPassageWithWords(passage: string, words: WordScore[]): Array<
   | { kind: "gap"; text: string }
 > {
   const chunks: Array<{ kind: "word"; text: string; style: WordScore } | { kind: "gap"; text: string }> = [];
-  // A "word" = a run of letters/digits, optionally followed by
-  // ('|’|‘|-|—) + more letters/digits — so contractions and hyphens
-  // stay together. Everything else is a "gap".
   const wordRegex = /[A-Za-z0-9]+(?:[''’‘\-—][A-Za-z0-9]+)*|[^A-Za-z0-9]+/g;
   const tokens = passage.match(wordRegex) ?? [];
   const isWordToken = (t: string) => /^[A-Za-z0-9]/.test(t);
   const normalise = (t: string) => t.toLowerCase().replace(/[''’‘\-—]/g, "");
+  const makeOmission = (t: string): WordScore => ({
+    word: t, accuracyScore: 0, errorType: "Omission",
+    breakErrors: [], intonationErrors: [],
+  });
 
-  const wordQueue = words.slice();
-  const LOOKAHEAD = 3;
+  // Build the ordered passage-word list up front so we can peek ahead
+  // BOTH directions during alignment — critical for the "missed a few
+  // words at the start" case where the student's opening didn't get
+  // recognised and every subsequent word would otherwise desync.
+  const passageWords: string[] = [];
+  const passageWordIdxForToken: number[] = [];
+  for (const t of tokens) {
+    passageWordIdxForToken.push(isWordToken(t) ? passageWords.length : -1);
+    if (isWordToken(t)) passageWords.push(t);
+  }
+  const azureWords = words.slice();
+  const PASSAGE_LOOKAHEAD = 6;
+  const QUEUE_LOOKAHEAD = 6;
 
-  for (const tok of tokens) {
-    if (!isWordToken(tok)) {
-      chunks.push({ kind: "gap", text: tok });
-      continue;
-    }
+  let qIdx = 0;
+  for (let tokIdx = 0; tokIdx < tokens.length; tokIdx++) {
+    const tok = tokens[tokIdx];
+    if (!isWordToken(tok)) { chunks.push({ kind: "gap", text: tok }); continue; }
 
-    // 1. Emit any leading Insertions from the queue as insertions
-    //    BEFORE this passage token — those are extras the student
-    //    added, and Azure has marked them as such.
-    while (wordQueue.length > 0 && wordQueue[0].errorType === "Insertion") {
-      const ins = wordQueue.shift()!;
+    // Drain any leading Insertion entries from the queue — those are
+    // extras the student added, not tied to any passage word.
+    while (qIdx < azureWords.length && azureWords[qIdx].errorType === "Insertion") {
+      const ins = azureWords[qIdx++];
       chunks.push({ kind: "word", text: ins.word, style: ins });
       chunks.push({ kind: "gap", text: " " });
     }
 
-    if (wordQueue.length === 0) {
-      // Passage has more words than Azure returned — treat as skipped.
-      chunks.push({ kind: "word", text: tok, style: {
-        word: tok, accuracyScore: 0, errorType: "Omission",
-        breakErrors: [], intonationErrors: [],
-      }});
+    const pIdx = passageWordIdxForToken[tokIdx];
+    if (qIdx >= azureWords.length) {
+      chunks.push({ kind: "word", text: tok, style: makeOmission(tok) });
       continue;
     }
 
     const nTok = normalise(tok);
-    // 2. Immediate next Azure word matches? (Fast path — the common
-    //    case for a clean read.)
-    if (normalise(wordQueue[0].word) === nTok) {
-      const az = wordQueue.shift()!;
-      chunks.push({ kind: "word", text: tok, style: az });
+
+    // Fast path — immediate match.
+    if (normalise(azureWords[qIdx].word) === nTok) {
+      chunks.push({ kind: "word", text: tok, style: azureWords[qIdx++] });
       continue;
     }
 
-    // 3. Short look-ahead for a match — handles the occasional stray
-    //    Azure ordering hiccup. Anything before the match is treated
-    //    as its actual Azure errorType (Insertion / Mispronunciation).
-    let matchedIdx = -1;
-    for (let i = 1; i < Math.min(wordQueue.length, LOOKAHEAD + 1); i++) {
-      if (normalise(wordQueue[i].word) === nTok) {
-        matchedIdx = i;
-        break;
-      }
+    // Look for the current queue head in upcoming passage words. If
+    // found nearby, queue[qIdx] belongs to a LATER passage word — the
+    // current passage word must have been skipped by the student. Do
+    // NOT consume the queue; mark this passage word as Omission and
+    // keep going. This is the fix for the "first few passage words
+    // weren't recognised" cascade.
+    let passageAhead = -1;
+    const nQueueHead = normalise(azureWords[qIdx].word);
+    for (let i = 1; i <= PASSAGE_LOOKAHEAD && pIdx + i < passageWords.length; i++) {
+      if (normalise(passageWords[pIdx + i]) === nQueueHead) { passageAhead = i; break; }
     }
-    if (matchedIdx > 0) {
-      for (let i = 0; i < matchedIdx; i++) {
-        const w = wordQueue[i];
+
+    // Look for the current passage word in the upcoming queue. If
+    // found nearby, the intervening queue entries are extras (or
+    // early mismatches Azure struggled with).
+    let queueAhead = -1;
+    for (let i = 1; i <= QUEUE_LOOKAHEAD && qIdx + i < azureWords.length; i++) {
+      if (normalise(azureWords[qIdx + i].word) === nTok) { queueAhead = i; break; }
+    }
+
+    if (passageAhead > 0 && (queueAhead < 0 || passageAhead < queueAhead)) {
+      // Queue head lines up with a later passage word — current is
+      // an omission, don't touch the queue.
+      chunks.push({ kind: "word", text: tok, style: makeOmission(tok) });
+      continue;
+    }
+
+    if (queueAhead > 0) {
+      // Emit intervening queue entries using their own errorType (so a
+      // real Insertion looks purple, a stray mispronunciation looks
+      // amber/rose, etc). Then consume the matched entry for this tok.
+      for (let i = 0; i < queueAhead; i++) {
+        const w = azureWords[qIdx + i];
         chunks.push({ kind: "word", text: w.word, style: w });
         chunks.push({ kind: "gap", text: " " });
       }
-      const az = wordQueue[matchedIdx];
-      wordQueue.splice(0, matchedIdx + 1);
-      chunks.push({ kind: "word", text: tok, style: az });
+      chunks.push({ kind: "word", text: tok, style: azureWords[qIdx + queueAhead] });
+      qIdx += queueAhead + 1;
       continue;
     }
 
-    // 4. No match nearby. Rather than desync the rest of the passage,
-    //    just render this passage word using the next Azure entry's
-    //    style (preserves its score + errorType) and move on. Small
-    //    number of visual mismatches beats cascading grey/purple.
-    const az = wordQueue.shift()!;
-    chunks.push({ kind: "word", text: tok, style: { ...az, word: tok } });
+    // Neither direction found a match nearby — full desync. Fall
+    // through as Omission for this passage word, don't consume queue.
+    chunks.push({ kind: "word", text: tok, style: makeOmission(tok) });
   }
 
-  // Any leftover Azure words are trailing extras — mark as Insertion
-  // ONLY if Azure didn't already give them a specific errorType.
-  for (const w of wordQueue) {
+  // Trailing queue = words the student said after the passage ran
+  // out (real insertions).
+  for (let i = qIdx; i < azureWords.length; i++) {
+    const w = azureWords[i];
     chunks.push({ kind: "gap", text: " " });
-    const isReallyInsertion = w.errorType === "Insertion" || w.errorType === "None";
+    const isInsertion = w.errorType === "Insertion" || w.errorType === "None";
     chunks.push({
       kind: "word",
       text: w.word,
-      style: isReallyInsertion ? { ...w, errorType: "Insertion" } : w,
+      style: isInsertion ? { ...w, errorType: "Insertion" } : w,
     });
   }
   return chunks;
@@ -808,7 +835,7 @@ function alignPassageWithWords(passage: string, words: WordScore[]): Array<
 function ColouredPassage({ passage, words, onPlayWord }: { passage: string; words: WordScore[]; onPlayWord?: (w: WordScore) => void }) {
   const chunks = alignPassageWithWords(passage, words);
   return (
-    <p className="text-slate-800 text-lg leading-loose whitespace-pre-wrap">
+    <p className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap">
       {chunks.map((c, i) => {
         if (c.kind === "gap") return <span key={i}>{c.text}</span>;
         const s = styleFor(c.style.accuracyScore, c.style.errorType);
@@ -871,12 +898,12 @@ const TONE_STYLES: Record<ToneKey, { border: string; bg: string; text: string; l
 function SeabDim({ label, value, outOf, desc, tone }: { label: string; value: number; outOf: number; desc: string; tone: ToneKey }) {
   const s = TONE_STYLES[tone];
   return (
-    <div className={`rounded-xl ${s.bg} border ${s.border} p-3`}>
+    <div className={`rounded-lg ${s.bg} border ${s.border} px-2.5 py-2`}>
       <p className={`text-[10px] uppercase tracking-wide ${s.label} font-semibold`}>{label}</p>
-      <p className={`text-xl font-bold ${s.text}`}>
+      <p className={`text-lg font-bold leading-none ${s.text}`}>
         {Math.round(value)}
         <span className="text-[10px] text-slate-500 ml-1">({value.toFixed(1)})</span>
-        <span className="text-xs text-slate-500 ml-1">/ {outOf}</span>
+        <span className="text-[10px] text-slate-500 ml-1">/ {outOf}</span>
       </p>
       <p className={`text-[10px] mt-0.5 ${s.label}`}>{desc}</p>
     </div>
@@ -887,10 +914,10 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
   const b = score.breakdown;
   return (
     <div>
-      <h3 className="text-sm font-bold text-slate-800 mb-3">Detailed Scoring</h3>
-      <div className="space-y-3">
+      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Detailed Scoring</h3>
+      <div className="space-y-2">
         {/* Pronunciation — blue */}
-        <div className={`rounded-xl border ${TONE_STYLES.blue.softBorder} ${TONE_STYLES.blue.softBg} p-4`}>
+        <div className={`rounded-lg border ${TONE_STYLES.blue.softBorder} ${TONE_STYLES.blue.softBg} p-3`}>
           <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {Math.round(score.seab.pronunciation)} / 8</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Of <strong>{b.pronunciation.total}</strong> words in the passage,
@@ -907,15 +934,15 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
         </div>
 
         {/* Fluency & Rhythm — purple */}
-        <div className={`rounded-xl border ${TONE_STYLES.purple.softBorder} ${TONE_STYLES.purple.softBg} p-4`}>
+        <div className={`rounded-lg border ${TONE_STYLES.purple.softBorder} ${TONE_STYLES.purple.softBg} p-3`}>
           <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {Math.round(score.seab.fluencyRhythm)} / 6</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             You read at <strong>{b.fluency.wpm > 0 ? `${b.fluency.wpm} words/min` : "—"}</strong>
             {b.fluency.wpm > 0 && (
               <> — that&apos;s <strong>{
-                b.fluency.paceVerdict === "on target" ? "on-target for PSLE oral (130–150)" :
-                b.fluency.paceVerdict === "brisk" ? "a bit brisk (150–170)" :
-                b.fluency.paceVerdict === "too fast" ? "too fast (> 170)" :
+                b.fluency.paceVerdict === "on target" ? "on target for PSLE oral (120–140)" :
+                b.fluency.paceVerdict === "brisk" ? "a bit brisk (140–160)" :
+                b.fluency.paceVerdict === "too fast" ? "too fast (> 160)" :
                 b.fluency.paceVerdict === "too slow" ? "too slow (< 100)" : "hard to judge"
               }</strong></>
             )}. You made <strong>{b.fluency.unexpectedPauses}</strong> unexpected {b.fluency.unexpectedPauses === 1 ? "pause" : "pauses"} (mid-clause hesitation)
@@ -927,7 +954,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
         </div>
 
         {/* Expressiveness — brown/amber */}
-        <div className={`rounded-xl border ${TONE_STYLES.brown.softBorder} ${TONE_STYLES.brown.softBg} p-4`}>
+        <div className={`rounded-lg border ${TONE_STYLES.brown.softBorder} ${TONE_STYLES.brown.softBg} p-3`}>
           <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {Math.round(score.seab.expressiveness)} / 6</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Your intonation was <strong>{
@@ -951,16 +978,16 @@ function TipsBlock({ words, breakdown, onPlayWord }: { words: WordScore[]; break
   const categories = buildTips(words, breakdown);
   return (
     <div>
-      <h3 className="text-sm font-bold text-slate-800 mb-3">Tips to improve — by SEAB dimension</h3>
-      <div className="space-y-4">
+      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tips to improve — by SEAB dimension</h3>
+      <div className="space-y-2">
         {categories.map((cat) => {
           const s = TONE_STYLES[cat.tone];
           return (
-            <div key={cat.key} className={`rounded-xl border ${s.softBorder} ${s.softBg} p-4`}>
-              <p className={`text-xs font-bold uppercase tracking-wide ${s.text} mb-3`}>{cat.title}</p>
-              <div className="space-y-3">
+            <div key={cat.key} className={`rounded-lg border ${s.softBorder} ${s.softBg} p-3`}>
+              <p className={`text-xs font-bold uppercase tracking-wide ${s.text} mb-2`}>{cat.title}</p>
+              <div className="space-y-2">
                 {cat.items.map((item, i) => (
-                  <div key={i} className="rounded-lg bg-white/70 border border-white/50 p-3">
+                  <div key={i} className="rounded-md bg-white/70 border border-white/50 p-2">
                     <div className="flex items-baseline justify-between mb-1">
                       <p className={`text-sm font-semibold ${s.text}`}>{item.label}</p>
                       {item.count > 0 && (

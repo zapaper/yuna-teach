@@ -115,7 +115,6 @@ export function ExaminerAvatar({ speaking, className }: Props) {
           }}
           src={`${AVATAR_BASE}/${file}`}
           muted
-          defaultMuted
           playsInline
           preload="auto"
           onEnded={() => handleEnded(file)}
