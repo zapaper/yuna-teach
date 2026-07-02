@@ -202,14 +202,10 @@ function PageInner() {
                 })()}
               </div>
               <p className="text-xs text-slate-600 leading-snug mb-3">{selectedTheme.blurb}</p>
-              <div className="flex items-center gap-4 flex-wrap mt-1">
+              <div className="flex items-center gap-3 flex-wrap mt-1">
                 <button
                   type="button"
                   onClick={() => {
-                    // Reuse the same session store as the English flow —
-                    // the shape doesn't care what language it is; the
-                    // downstream Reading/SBC pages tell each other
-                    // through the URL that this is the Chinese module.
                     clearOralSession();
                     saveOralSession({
                       themeId: selectedTheme.id,
@@ -222,6 +218,24 @@ function PageInner() {
                   className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition"
                 >
                   开始练习 · Start Practice →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // 跳过朗读,直接进入会话。会话结束后成绩只显示会话
+                    // 的 /30 分,朗读部分不计分。
+                    clearOralSession();
+                    saveOralSession({
+                      themeId: selectedTheme.id,
+                      themeLabel: selectedTheme.theme,
+                      avatarKey,
+                      startedAt: Date.now(),
+                    });
+                    window.location.href = `/admin/chinese-oral-coach/sbc/${selectedTheme.id}?userId=${userId}&flow=1`;
+                  }}
+                  className="text-sm bg-slate-100 text-slate-700 px-4 py-3 rounded-xl font-semibold hover:bg-slate-200 transition"
+                >
+                  跳过朗读,直接进入会话
                 </button>
                 <p className="text-xs text-slate-500 leading-snug flex-1 min-w-[200px]">
                   先朗读(10分),再会话(30分)。图片和你选择的主题相符。

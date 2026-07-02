@@ -6,15 +6,14 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import { loadOralSession, clearOralSession, type OralSession } from "@/lib/oral-session";
 
-// GET /admin/english-oral-coach/results
+// 华文口试练习成绩单.
 //
-// End of a practice session: shows Reading Aloud (/15) + SBC (/25) =
-// Total (/40), the top actionable tip from each segment, and a Save
-// button. Session data is pulled from localStorage (populated by the
-// Reading Aloud and SBC pages during the flow); nothing loads from
-// the server on this screen — save is opt-in.
+// Mirrors the English results page. Combined score is 朗读 (/10) +
+// 会话 (/30) = /40. If Reading Aloud was skipped, the summary shows
+// just the 会话 /30 without pretending the student got 0 on the
+// skipped section.
 
-export default function OralResultsPage() {
+export default function ChineseOralResultsPage() {
   return (
     <Suspense>
       <PageInner />
@@ -29,9 +28,7 @@ function PageInner() {
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSession(loadOralSession());
-  }, []);
+  useEffect(() => { setSession(loadOralSession()); }, []);
 
   if (!session) {
     return (
@@ -39,8 +36,8 @@ function PageInner() {
         <AdminNav userId={userId} />
         <div className="lg:ml-56 pb-24 lg:pb-0">
           <div className="max-w-3xl mx-auto px-4 py-10 text-center">
-            <p className="text-sm text-slate-500">No practice session in progress. Start one from the Oral Coach homepage.</p>
-            <Link href={`/admin/english-oral-coach?userId=${userId}`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">← Oral Coach</Link>
+            <p className="text-sm text-slate-500">没有进行中的练习。请从主页开始新的一次。</p>
+            <Link href={`/admin/chinese-oral-coach?userId=${userId}`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">← 返回主页</Link>
           </div>
         </div>
       </div>
@@ -49,14 +46,13 @@ function PageInner() {
 
   const reading = session.reading;
   const sbc = session.sbc;
+  // Chinese Reading Aloud stores percent scores in the session's
+  // pronunciation / fluencyRhythm / expressiveness fields (see the
+  // Chinese Read page's ContinueToSbcButton). Total is /10 here.
   const readingTotal = reading?.total ?? 0;
   const sbcTotal = sbc?.overallSeabScore ?? 0;
   const readingSkipped = !reading;
-  // If Reading Aloud was skipped, the combined total is just the SBC
-  // score against its own /25 ceiling — not a fake /40 that would
-  // punish the student for opting out. If done, the aggregate stays
-  // /40 (15 + 25).
-  const grandOutOf = readingSkipped ? 25 : 40;
+  const grandOutOf = readingSkipped ? 30 : 40;
   const grandTotal = Math.round((readingTotal + sbcTotal) * 10) / 10;
 
   async function handleSave() {
@@ -82,46 +78,47 @@ function PageInner() {
       <AdminNav userId={userId} />
       <div className="lg:ml-56 pb-24 lg:pb-0">
         <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
-          <Link href={`/admin/english-oral-coach?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← Oral Coach</Link>
-          <h1 className="text-lg font-bold text-slate-800">Practice Results</h1>
-          <span className="text-xs text-slate-500 hidden sm:inline">Theme · {session.themeLabel}</span>
+          <Link href={`/admin/chinese-oral-coach?userId=${userId}`} className="text-slate-400 hover:text-slate-600 text-xs">← 主页</Link>
+          <h1 className="text-lg font-bold text-slate-800">口试成绩单 · Practice Results</h1>
+          <span className="text-xs text-slate-500 hidden sm:inline">主题:{session.themeLabel}</span>
         </div>
 
         <div className="max-w-3xl mx-auto px-4 py-4 space-y-3">
-          {/* Aggregate total */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">{readingSkipped ? "Conversation-only Score" : "Combined Oral Score"}</p>
+            <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">
+              {readingSkipped ? "会话得分" : "口试总分"}
+            </p>
             <div className="flex items-end gap-2 mt-1">
               <span className="text-5xl font-bold text-slate-800 leading-none">{grandTotal}</span>
               <span className="text-lg text-slate-500 pb-1">/ {grandOutOf}</span>
               {readingSkipped && (
-                <span className="text-[10px] uppercase tracking-wide bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full pb-1">Reading skipped</span>
+                <span className="text-[10px] uppercase tracking-wide bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full pb-1">跳过朗读</span>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className={`rounded-xl border p-3 ${readingSkipped ? "bg-slate-50 border-slate-200" : "bg-indigo-50 border-indigo-100"}`}>
-                <p className={`text-[10px] uppercase tracking-wide font-semibold ${readingSkipped ? "text-slate-400" : "text-indigo-600"}`}>Reading Aloud</p>
+                <p className={`text-[10px] uppercase tracking-wide font-semibold ${readingSkipped ? "text-slate-400" : "text-indigo-600"}`}>朗读 · Reading Aloud</p>
                 {readingSkipped ? (
-                  <p className="text-sm text-slate-400 mt-1 italic">Skipped — not scored.</p>
+                  <p className="text-sm text-slate-400 mt-1 italic">已跳过 —— 未评分。</p>
                 ) : (
                   <>
-                    <p className="text-2xl font-bold text-indigo-800">{readingTotal.toFixed(1)} <span className="text-xs text-indigo-500">/ 15</span></p>
+                    <p className="text-2xl font-bold text-indigo-800">{readingTotal.toFixed(1)} <span className="text-xs text-indigo-500">/ 10</span></p>
                     <div className="flex gap-3 mt-1 text-[11px] text-indigo-700/80">
-                      <span>Pron {reading!.pronunciation.toFixed(1)}</span>
-                      <span>Flu {reading!.fluencyRhythm.toFixed(1)}</span>
-                      <span>Expr {reading!.expressiveness.toFixed(1)}</span>
+                      <span>发音 {Math.round(reading!.pronunciation)}%</span>
+                      <span>流利 {Math.round(reading!.fluencyRhythm)}%</span>
+                      <span>语调 {Math.round(reading!.expressiveness)}%</span>
                     </div>
                   </>
                 )}
               </div>
               <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">Stimulus Conversation</p>
-                <p className="text-2xl font-bold text-emerald-800">{sbcTotal} <span className="text-xs text-emerald-500">/ 25</span></p>
+                <p className="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">会话 · Conversation</p>
+                <p className="text-2xl font-bold text-emerald-800">{sbcTotal} <span className="text-xs text-emerald-500">/ 30</span></p>
                 {sbc && (
                   <div className="flex gap-3 mt-1 text-[11px] text-emerald-700/80">
-                    <span>Q1 {sbc.q1Percent}%</span>
-                    <span>Q2 {sbc.q2Percent}%</span>
-                    <span>Q3 {sbc.q3Percent}%</span>
+                    <span>描述 {sbc.q1Percent}%</span>
+                    <span>意见 {sbc.q2Percent}%</span>
+                    <span>经历 {sbc.q3Percent}%</span>
                   </div>
                 )}
               </div>
@@ -131,23 +128,21 @@ function PageInner() {
             )}
           </div>
 
-          {/* Top tips — one line per non-perfect segment */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-            <h2 className="text-sm font-bold text-slate-800 mb-2">Top things to work on next</h2>
+            <h2 className="text-sm font-bold text-slate-800 mb-2">下次可以改进的地方</h2>
             <div className="space-y-2">
               {(reading?.topTips ?? []).map((t, i) => (
-                <TipRow key={`r${i}`} tone="indigo" segment="Reading" text={t} />
+                <TipRow key={`r${i}`} tone="indigo" segment="朗读" text={t} />
               ))}
               {(sbc?.topTips ?? []).map((t, i) => (
-                <TipRow key={`s${i}`} tone="emerald" segment="Conversation" text={t} />
+                <TipRow key={`s${i}`} tone="emerald" segment="会话" text={t} />
               ))}
               {(reading?.topTips ?? []).length === 0 && (sbc?.topTips ?? []).length === 0 && (
-                <p className="text-xs text-slate-500 italic">No tips — top marks across the board. Try another theme.</p>
+                <p className="text-xs text-slate-500 italic">全线满分 —— 换一个主题继续挑战。</p>
               )}
             </div>
           </div>
 
-          {/* Save / retry actions */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 flex-wrap">
             <button
               type="button"
@@ -161,16 +156,16 @@ function PageInner() {
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
-              {savingState === "saving" ? "Saving…" : savingState === "saved" ? "✓ Saved" : "Save this session"}
+              {savingState === "saving" ? "保存中…" : savingState === "saved" ? "✓ 已保存" : "保存这次练习"}
             </button>
             <Link
-              href={`/admin/english-oral-coach?userId=${userId}`}
+              href={`/admin/chinese-oral-coach?userId=${userId}`}
               onClick={() => clearOralSession()}
               className="text-sm px-4 py-2 rounded-lg font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
             >
-              Try another theme
+              再练一次
             </Link>
-            {saveError && <span className="text-xs text-rose-600 truncate">Save failed: {saveError}</span>}
+            {saveError && <span className="text-xs text-rose-600 truncate">保存失败:{saveError}</span>}
           </div>
         </div>
       </div>

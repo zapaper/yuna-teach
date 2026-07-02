@@ -239,12 +239,10 @@ function PageInner() {
                     )}
                   </div>
                   <p className="text-xs text-slate-600 leading-snug mb-3">{selectedTheme.blurb}</p>
-                  <div className="flex items-center gap-4 flex-wrap mt-1">
+                  <div className="flex items-center gap-3 flex-wrap mt-1">
                     <button
                       type="button"
                       onClick={() => {
-                        // Fresh session — clobber whatever's in
-                        // localStorage from a prior run.
                         clearOralSession();
                         saveOralSession({
                           themeId: selectedTheme.id,
@@ -257,6 +255,29 @@ function PageInner() {
                       className="text-base bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition"
                     >
                       Start Practice →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Skip Reading Aloud — seed the session with
+                        // no reading{} and jump straight to SBC. The
+                        // results screen will just show the /25 SBC
+                        // score without a Reading /15 block.
+                        clearOralSession();
+                        saveOralSession({
+                          themeId: selectedTheme.id,
+                          themeLabel: selectedTheme.theme,
+                          avatarKey,
+                          startedAt: Date.now(),
+                        });
+                        // Random SBC day (matches what the Read page's
+                        // Continue button would do).
+                        const sbcDay = Math.random() < 0.5 ? 1 : 2;
+                        window.location.href = `/admin/english-oral-coach/sbc/${selectedTheme.year}/${sbcDay}?userId=${userId}&flow=1`;
+                      }}
+                      className="text-sm bg-slate-100 text-slate-700 px-4 py-3 rounded-xl font-semibold hover:bg-slate-200 transition"
+                    >
+                      Skip to SBC only
                     </button>
                     <p className="text-xs text-slate-500 leading-snug flex-1 min-w-[200px]">
                       Reading Aloud (15 marks), then Stimulus Conversation (25 marks). One picture is picked for you at the SBC stage.
