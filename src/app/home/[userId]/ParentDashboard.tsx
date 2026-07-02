@@ -83,18 +83,6 @@ async function switchToStudentPath(studentId: string, childPath: string) {
   window.open(childPath, "_blank", "noopener");
 }
 
-// Closed-beta allowlist for the Essay Coach sidebar entry. Names are
-// User.name values (the login handle, exact case). Expand here as we
-// invite more parents into the beta; remove the gate entirely once
-// the paywall + onboarding ship.
-const ESSAY_COACH_BETA_PARENTS = new Set<string>([
-  "jessicabwt18", // Jessica
-  "Pychua",       // Kaiyang's parent (Chua Pei Yee)
-  "nilohoo",      // Loh
-  "YLTan",        // Yi-Lin Tan
-  "Sachia",       // Sharon Chia
-]);
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SubjectGap = { subject: string; topics: string[] };
@@ -2632,10 +2620,8 @@ export default function ParentDashboard({
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
-    // Essay Coach (English + Chinese composition helper). Opened to
-    // all parents 2026-07-01. Kept the ESSAY_COACH_BETA_PARENTS
-    // constant defined above for now (used elsewhere at line 3645+
-    // as a soft feature flag if we ever need to gate a sub-feature).
+    // Essay Coach — English + Chinese composition helper. Open to all
+    // parents (was gated to a closed-beta allowlist until 2026-07-01).
     {
       icon: "edit_document",
       label: "Essay Coach",
