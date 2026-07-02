@@ -91,7 +91,7 @@ export const ORAL_AVATARS: OralAvatar[] = [
     label: "Mr Ismail",
     thumb: "/oral-thumbs/malay.png",
     gender: "male",
-    geminiVoice: "Puck",
+    geminiVoice: "Charon",
     ttsHints: [
       "Google UK English Male",
       "Microsoft George",

@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   const requestedVoice = typeof body.geminiVoice === "string" ? body.geminiVoice : "";
   const voiceName = VALID_VOICES.has(requestedVoice)
     ? requestedVoice
-    : gender === "male" ? "Puck" : "Zephyr";
+    : gender === "male" ? "Charon" : "Callirrhoe";
 
   const paper = await prisma.englishSupplementaryPaper.findUnique({
     where: { year },

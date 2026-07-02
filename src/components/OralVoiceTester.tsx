@@ -24,10 +24,10 @@ const DEFAULT_SAMPLE = "Hello! Let's have a chat about this picture. Would you b
 // Voices we've already picked for personas — flag them in the UI so
 // the admin can see the current assignment without leaving the page.
 const IN_USE: Record<string, string> = {
-  Zephyr: "Ms Tan",
-  Aoede: "Ms Lim",
+  Callirrhoe: "Ms Tan",
+  Laomedeia: "Ms Lim",
   Leda: "Mrs Kumar",
-  Puck: "Mr Ismail",
+  Charon: "Mr Ismail",
 };
 
 type PlayState = "idle" | "connecting" | "playing" | "done" | "error";
