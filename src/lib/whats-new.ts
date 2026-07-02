@@ -36,6 +36,13 @@ export type WhatsNewPopupConfig = {
   shipDate: string;
   audience: WhatsNewAudience;
   adminOnly: boolean;
+  // Short branding shown as the header on slides 2+ (e.g. "Essay
+  // Coach"). Slide 1 always shows "What's New". Falls back to
+  // nothing on slides 2+ if unset.
+  featureName?: string;
+  // Optional Google Material Symbol name for the header on slides
+  // 2+. Uses the same colour tokens as the "What's New" wordmark.
+  featureIcon?: string;
   slides: WhatsNewSlide[];
 };
 
@@ -59,6 +66,8 @@ export const WHATS_NEW_POPUPS: WhatsNewPopupConfig[] = [
     shipDate: "2026-07-02",
     audience: "parent",
     adminOnly: true,
+    featureName: "Essay Coach",
+    featureIcon: "edit_document",
     slides: [
       {
         eyebrow: "New",

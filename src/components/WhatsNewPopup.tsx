@@ -139,21 +139,33 @@ export default function WhatsNewPopup({
       aria-labelledby="whats-new-title"
     >
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-        {/* "What's New" wordmark — only on the first slide, so it reads
-            like a magazine cover rather than repeating on every step. */}
-        {idx === 0 ? (
-          <div className="px-7 pt-5 pb-2 flex items-center gap-2 border-b border-slate-100">
-            <span
-              className="material-symbols-outlined text-[18px] text-[#0EA371]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              auto_awesome
-            </span>
-            <span className="text-[13px] font-extrabold uppercase tracking-widest text-[#001e40]">
-              What&apos;s New
-            </span>
-          </div>
-        ) : null}
+        {/* Header band. Slide 1 shows "What's New" with a sparkle so the
+            popup reads like a magazine cover. Slides 2+ swap to the
+            feature name (e.g. "Essay Coach") so the whole popup stays
+            branded to the feature we're pushing. Always rendered when
+            we have a label — that also gives the card top-spacing so
+            the image never sits flush against the rounded corner. */}
+        {(() => {
+          const isFirst = idx === 0;
+          const label = isFirst ? "What's New" : (popup.featureName ?? "");
+          const iconName = isFirst ? "auto_awesome" : (popup.featureIcon ?? "");
+          if (!label) return null;
+          return (
+            <div className="px-7 pt-5 pb-3 flex items-center gap-2 border-b border-slate-100">
+              {iconName ? (
+                <span
+                  className="material-symbols-outlined text-[18px] text-[#0EA371]"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {iconName}
+                </span>
+              ) : null}
+              <span className="text-[13px] font-extrabold uppercase tracking-widest text-[#001e40]">
+                {label}
+              </span>
+            </div>
+          );
+        })()}
         {/* Optional image band */}
         {slide.imageSrc ? (
           <div className="w-full aspect-[16/9] bg-slate-100">
