@@ -2392,22 +2392,29 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   // details (terminal connections, '+' labels). Route directly to
   // gpt-5.4 and skip Gemini entirely. Falls back to Gemini if the
   // OpenAI key isn't set so the path is never broken in test/dev.
+  //
+  // Math geometry drawables get the same treatment: Gemini 3.1 Pro
+  // still hallucinates grid coordinates on hand-drawn diagrams
+  // (Q30 on the P6 Math Prelim Raffles 2025 paper stayed 2/2 even
+  // with the vertex-reuse prompt rule). Try gpt-5.4 as primary.
   const subjLcRemark = (paper.subject ?? "").toLowerCase();
   const isScienceRemark = subjLcRemark.includes("science");
   const isDrawableRemark = !!question.answer && /\bsee\s+answer\s+(image|diagram|drawing)\b/i.test(question.answer);
   const circuitKeywordReRemark = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
   const stemTopicAns = `${question.transcribedStem ?? ""} ${question.syllabusTopic ?? ""} ${question.answer ?? ""}`;
-  const useGpt54PrimaryRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns) && isOpenAIFallbackEnabled();
+  const isScienceCircuitRemark = isScienceRemark && isDrawableRemark && circuitKeywordReRemark.test(stemTopicAns);
+  const useGpt54PrimaryRemark = (isScienceCircuitRemark || isMathGeoDrawableRemark) && isOpenAIFallbackEnabled();
   const remarkModel = isEditing ? "gemini-2.5-pro"
     : isCloze ? "gemini-3.1-flash-lite-preview"
     : isMathGeoDrawableRemark ? "gemini-3.1-pro-preview"
     : "gemini-2.5-flash";
-  if (isMathGeoDrawableRemark) console.log(`[marking] Q${question.questionNum} is a math geometry drawable — routing remark to gemini-3.1-pro-preview`);
+  if (isMathGeoDrawableRemark) console.log(`[marking] Q${question.questionNum} is a math geometry drawable — routing remark to ${useGpt54PrimaryRemark ? "gpt-5.4 (primary)" : "gemini-3.1-pro-preview"}`);
   if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-2.5-pro)`);
 
   let text: string;
   if (useGpt54PrimaryRemark) {
-    console.log(`[marking] Q${question.questionNum} is Science drawable electrical circuit — routing to gpt-5.4 as primary (skipping Gemini)`);
+    const gpt54Reason = isScienceCircuitRemark ? "Science drawable electrical circuit" : "Math geometry drawable";
+    console.log(`[marking] Q${question.questionNum} is ${gpt54Reason} — routing to gpt-5.4 as primary (skipping Gemini)`);
     try {
       const r = await runOpenAIFallback(
         { model: "gemini-3.1-pro-preview", contents: [{ role: "user", parts }], config: { responseMimeType: "application/json", temperature: 0.1 } },
@@ -3234,12 +3241,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                 const isDrawableExamQ = !!q.answer && /\bsee\s+answer\s+(image|diagram|drawing)\b/i.test(q.answer);
                 const circuitKeywordReExam = /(circuit|bulb|battery|switch(?!ing)|series|parallel|electric(?:al|ity)?|light\s*bulb|cell\b|conductor|insulator|brighter|dimmer|filament)/i;
                 const stemTopicAnsExam = `${q.transcribedStem ?? ""} ${q.syllabusTopic ?? ""} ${q.answer ?? ""}`;
-                const useGpt54PrimaryExam = isSciExam
+                const isSciCircuitExam = isSciExam
                   && isDrawableExamQ
-                  && circuitKeywordReExam.test(stemTopicAnsExam)
-                  && isOpenAIFallbackEnabled();
+                  && circuitKeywordReExam.test(stemTopicAnsExam);
+                const isMathGeoDrawableExam = isMathGeometryDrawable(paper.subject, q);
+                const useGpt54PrimaryExam = (isSciCircuitExam || isMathGeoDrawableExam) && isOpenAIFallbackEnabled();
                 if (useGpt54PrimaryExam) {
-                  console.log(`[marking] Q${q.questionNum} is Science drawable electrical circuit — routing to gpt-5.4 as primary (skipping Gemini)`);
+                  const reason = isSciCircuitExam ? "Science drawable electrical circuit" : "Math geometry drawable";
+                  console.log(`[marking] Q${q.questionNum} is ${reason} — routing to gpt-5.4 as primary (skipping Gemini)`);
                 }
                 const initial = await markBatch(
                   croppedBase64, [q],
