@@ -375,12 +375,12 @@ function Inner() {
                 )}
               </div>
 
-              {/* Score card — SEAB Scoring Matrix + Detailed Scoring + Tips */}
+              {/* Score card — Scoring Matrix + Detailed Scoring + Tips */}
               {score && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3">
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h2 className="text-sm font-bold text-slate-800">SEAB Reading Aloud Scoring Matrix</h2>
+                      <h2 className="text-sm font-bold text-slate-800">Reading Aloud Scoring Matrix</h2>
                       {recordingUrl && (
                         <div className="flex items-center gap-2">
                           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -1073,7 +1073,7 @@ function TipsBlock({ words, breakdown, onPlayWord }: { words: WordScore[]; break
   const categories = buildTips(words, breakdown);
   return (
     <div>
-      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tips to improve — by SEAB dimension</h3>
+      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tips to improve — by dimension</h3>
       <div className="space-y-2">
         {categories.map((cat) => {
           const s = TONE_STYLES[cat.tone];

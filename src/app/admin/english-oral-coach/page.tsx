@@ -95,7 +95,7 @@ function PageInner() {
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             Live AI Paper-4 oral practice. This page is the design/dev harness — inspect the 10-year corpus and the
-            SEAB grading rubric before we wire the student-facing live-voice module.
+            PSLE grading rubric before we wire the student-facing live-voice module.
           </p>
         </div>
 
@@ -131,7 +131,7 @@ function PageInner() {
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">SEAB rubric — Reading Aloud (20)</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Reading Aloud rubric (20)</p>
               <ul className="text-xs text-slate-600 space-y-1 list-disc ml-4">
                 <li>Pronunciation &amp; articulation</li>
                 <li>Fluency &amp; rhythm</li>
@@ -140,7 +140,7 @@ function PageInner() {
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">SEAB rubric — Stimulus Conversation (25)</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Stimulus Conversation rubric (25)</p>
               <ul className="text-xs text-slate-600 space-y-1 list-disc ml-4">
                 <li><b>Q1 · Picture Response</b> (10) — engage with what&apos;s in the picture</li>
                 <li><b>Q2 · Personal Response</b> (10) — specific personal experience</li>

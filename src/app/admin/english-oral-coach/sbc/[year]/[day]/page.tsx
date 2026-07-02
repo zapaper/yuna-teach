@@ -714,9 +714,9 @@ const TONE: Record<ToneKey, { bg: string; border: string; text: string; label: s
 function SbcScoreCard({ score }: { score: SbcScore }) {
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 space-y-2">
-      {/* Matrix — total + 3 SEAB dimensions */}
+      {/* Matrix — total + 3 dimensions */}
       <div>
-        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">SEAB SBC Scoring Matrix</h2>
+        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">SBC Scoring Matrix</h2>
         <div className="rounded-lg bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-2.5">
           <div className="flex items-end gap-2">
             <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
@@ -780,7 +780,7 @@ function SbcDimCard({ title, outOf, block, tone }: { title: string; outOf: numbe
     <div className={`rounded-lg border ${s.softBorder} ${s.softBg} p-2.5`}>
       <p className={`text-[10px] font-bold uppercase tracking-wide ${s.text} mb-1`}>{title} — {block.scoreOutOf} / {outOf}</p>
       <p className="text-xs text-slate-700 leading-snug mb-1 font-semibold">{block.verdict}</p>
-      <p className="text-[10px] text-slate-500 italic leading-snug mb-1">What SEAB looks for: {block.seabLooksFor}</p>
+      <p className="text-[10px] text-slate-500 italic leading-snug mb-1">What examiners look for: {block.seabLooksFor}</p>
       {block.details.length > 0 && (
         <ul className="text-[11px] text-slate-700 leading-snug list-disc ml-3.5 space-y-0.5">
           {block.details.map((d, i) => <li key={i}>{d}</li>)}
