@@ -14,17 +14,32 @@ import { WHATS_NEW_VERSION, WHATS_NEW_SLIDES, WHATS_NEW_AUDIENCE, type WhatsNewS
 //      seen-version. Modal unmounts; component stays inert until a future
 //      version bump.
 
+// {{childName}} template substitution in title/body/eyebrow. Kept tiny —
+// the slides file only uses this one placeholder and a full templating
+// engine would be overkill.
+function fillTemplate(text: string | undefined, childName: string): string {
+  if (!text) return "";
+  return text.split("{{childName}}").join(childName);
+}
+
 export default function WhatsNewPopup({
   userId,
   seenVersion,
   viewer,
+  childName,
 }: {
   userId: string;
   seenVersion: string | null | undefined;
   // Which dashboard is mounting this. Compared against WHATS_NEW_AUDIENCE
   // so a parent-only popup doesn't show up on the student home page.
   viewer: WhatsNewAudience;
+  // Substituted in for {{childName}}. Parent dashboards pass the first
+  // linked kid's display name; student dashboard passes the student's
+  // own first name. Falls back to "your child" so the copy still reads
+  // when a parent hasn't linked anyone yet.
+  childName?: string | null;
 }) {
+  const filledChildName = (childName ?? "").trim() || "your child";
   const audienceMatch =
     WHATS_NEW_AUDIENCE === "all" || WHATS_NEW_AUDIENCE === viewer;
   const shouldShow =
@@ -101,17 +116,17 @@ export default function WhatsNewPopup({
         <div className="p-7">
           {slide.eyebrow ? (
             <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#0EA371] mb-2">
-              {slide.eyebrow}
+              {fillTemplate(slide.eyebrow, filledChildName)}
             </p>
           ) : null}
           <h2
             id="whats-new-title"
             className="text-2xl font-headline font-extrabold text-[#001e40] mb-3 leading-tight"
           >
-            {slide.title}
+            {fillTemplate(slide.title, filledChildName)}
           </h2>
           <p className="text-[15px] text-[#43474f] leading-relaxed">
-            {slide.body}
+            {fillTemplate(slide.body, filledChildName)}
           </p>
 
           {/* Progress dots */}

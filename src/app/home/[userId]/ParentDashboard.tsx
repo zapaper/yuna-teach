@@ -2667,7 +2667,12 @@ export default function ParentDashboard({
         subscriptionStatus={user.subscriptionStatus}
         trialEndsAtIso={user.trialEndsAt}
       />
-      <WhatsNewPopup userId={userId} seenVersion={user.settings?.whatsNewSeenVersion} viewer="parent" />
+      <WhatsNewPopup
+        userId={userId}
+        seenVersion={user.settings?.whatsNewSeenVersion}
+        viewer="parent"
+        childName={(selectedStudent?.displayName ?? selectedStudent?.name ?? user.linkedStudents[0]?.displayName ?? user.linkedStudents[0]?.name ?? "").split(/\s+/)[0] ?? ""}
+      />
       <ChangePasswordModal
         open={showChangePassword}
         onClose={() => setShowChangePassword(false)}

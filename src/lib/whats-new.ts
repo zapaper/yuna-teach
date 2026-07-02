@@ -27,44 +27,46 @@ export type WhatsNewSlide = {
   imageAlt?: string;
 };
 
-// Essay Coach launch popup. Structure: what → 3 features → where.
-// Screenshots live under /public/whats-new/essay-coach/. Filenames match
-// the imageSrc paths below — drop new PNGs at those paths to update.
-// Recommended: 800x450 PNG, ≤80 KB.
+// Essay Coach launch popup. 4 slides: hook → three feature panels.
+// {{childName}} in title/body is substituted by the popup component at
+// render time using the parent's selected student. If no child is
+// linked yet, it falls back to "your child" so the copy still reads.
+// Screenshots live under /public/whats-new/essay-coach/. Recommended:
+// 800x450 PNG, ≤80 KB each.
 export const WHATS_NEW_SLIDES: WhatsNewSlide[] = [
   {
     eyebrow: "New",
-    title: "27 marks. Then 38.",
-    body: "Same story, same voice — but stronger vocabulary, tighter sentences, deeper emotional detail. That's Essay Coach.",
+    title: "Essay / 作文 Coach",
+    body: "Upgrade {{childName}}'s essays to model-essay level. Same story, same voice — with the vocabulary, structure, and detail that PSLE markers are looking for.",
     imageSrc: "/whats-new/essay-coach/1-what.png",
-    imageAlt: "Essay Coach: 27 to 38 marks side-by-side",
+    imageAlt: "Essay Coach welcome — 27 to 38 marks",
   },
   {
-    eyebrow: "Instant score",
-    title: "MOE rubric marks in 3 minutes",
-    body: "Upload handwritten or typed. Three minutes later your child gets a full rubric-aligned score — content, language, organisation.",
-    imageSrc: "/whats-new/essay-coach/2-rubric.png",
-    imageAlt: "Rubric-aligned score breakdown",
+    eyebrow: "Upload / scan",
+    title: "Rubric score in 3 minutes",
+    body: "Upload or scan an existing essay. Within three minutes Lumi gives a full rubric-aligned score AND two versions: tracked mistakes and an enhanced version.",
+    imageSrc: "/whats-new/essay-coach/2-upload.png",
+    imageAlt: "Rubric score + tracked + enhanced versions side-by-side",
   },
   {
-    eyebrow: "Clean rewrite",
-    title: "Errors fixed. Voice kept.",
-    body: "A clean version of the essay with typos corrected and awkward phrasing tightened. Still their essay, still their voice — just without the marks they were quietly losing.",
-    imageSrc: "/whats-new/essay-coach/3-rewrite.png",
-    imageAlt: "Clean rewrite alongside the original",
+    eyebrow: "In-line suggestions",
+    title: "Surgical edits, not a rewrite",
+    body: "Lumi suggests targeted edits to structure, vocabulary, sentence variety, connectors, opening and closing — the things PSLE markers are looking for.",
+    imageSrc: "/whats-new/essay-coach/3-inline.png",
+    imageAlt: "In-line coloured suggestions on the enhanced draft",
   },
   {
-    eyebrow: "Enhanced draft",
-    title: "See a top-scoring version",
-    body: "The additions are in green — a richer opening, varied sentences, deeper detail. If a suggestion doesn't feel natural, tap for an alternative phrase that fits.",
-    imageSrc: "/whats-new/essay-coach/4-enhanced.png",
-    imageAlt: "Enhanced draft with green additions",
+    eyebrow: "Choose your own enhancement",
+    title: "Keep it sounding like {{childName}}",
+    body: "Don't like a suggestion? Tap to pick an alternative that fits {{childName}}'s voice. Print or export the final version to practise on.",
+    imageSrc: "/whats-new/essay-coach/4-choose.png",
+    imageAlt: "Alternative phrasing picker with print / export controls",
   },
   {
     eyebrow: "Where to find it",
     title: "In your sidebar",
-    body: "Look for the Essay Coach entry in the parent dashboard sidebar. English and Chinese, continuous and situational. Free during beta.",
+    body: "Look for the Essay Coach — a model essay in {{childName}}'s voice.",
     imageSrc: "/whats-new/essay-coach/5-where.png",
-    imageAlt: "Essay Coach sidebar entry",
+    imageAlt: "Essay Coach sidebar entry highlighted",
   },
 ];
