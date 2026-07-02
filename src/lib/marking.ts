@@ -1953,7 +1953,41 @@ function mathMarkingRules(subject: string | null | undefined): string {
         getting it wrong is a substantive error, not a slip.
       · Right unit, wrong magnitude → wrong-answer cap applies.
     In the notes, flag the explicit-unit case (e.g. "Student wrote
-    **8.4 kg** but the expected unit is **litres**.").`;
+    **8.4 kg** but the expected unit is **litres**.").
+
+  GEOMETRY DRAWABLES ON A GRID (applies when the printed question
+  shows a labelled shape — e.g. rhombus VWXY on a square grid — and
+  asks the student to DRAW a new shape whose LABEL reuses letters
+  from the original, e.g. "draw triangle WYZ" where W and Y are
+  vertices of the original rhombus):
+
+  1. Before scoring, identify the ORIGINAL diagram's key vertices
+     (V, W, X, Y in the example) by their approximate GRID POSITION
+     (which row/column of dots each label sits on). The original
+     diagram is printed on the same page as the student's work.
+
+  2. For every label that appears in BOTH the original diagram AND
+     the student's new drawing, the student's new shape MUST place
+     that label at the SAME grid position as the original. Merely
+     labelling a new corner "W" or "Y" somewhere else on the grid
+     does NOT reuse the vertex — it invents a new one.
+
+  3. If the student drew a shape with a matching LABEL but at a
+     NEW grid position (e.g. "triangle WYZ" where W and Y are
+     drawn as brand-new points to the right of the original
+     rhombus, not on the original W and Y), that is a MAJOR
+     ERROR. Do NOT be misled by the letters — verify the pixel
+     position of each labelled vertex against the original.
+     Penalty: at least half the sub-part's marks, and cite the
+     specific mislabelled vertex in the notes (e.g. "Student's
+     'W' is drawn at a new point on column 5, but the original
+     W is on column 2 — vertex not reused.").
+
+  4. Also verify any GEOMETRIC CONSTRAINT stated in the question
+     (e.g. "such that Z is on the same row as V", "perimeter must
+     be longer than…"). "Same row as V" means the same horizontal
+     line of dots — check row-index equality, don't trust the
+     model's own claim that positions match.`;
 }
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise. Use British English throughout (e.g. "colour", "centre", "recognised").
