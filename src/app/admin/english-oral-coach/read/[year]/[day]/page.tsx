@@ -284,7 +284,7 @@ function Inner() {
           prosody,
           words: collected.words,
           transcription: collected.transcription,
-          seab: computeSeabScore(acc, flu, prosody, bd.fluency.wpm),
+          seab: computeSeabScore(acc, flu, prosody, bd),
           breakdown: bd,
         });
         setStatus("done");
@@ -522,13 +522,19 @@ function computeBreakdown(words: WordScore[], fluencyScore: number, prosodyScore
 //   Fluency & rhythm:             6 marks  ← fluency
 //   Expressiveness:               6 marks  ← expression / prosody
 // Calibrations:
+//   - Pronunciation capped by wrong-word count (mispronounced +
+//     omitted + inserted). A human examiner won't give 8/8 with 3+
+//     visible errors; the raw accuracy % washes over that. Cap curve:
+//     0 wrong → 8, 1 → 7.5, 2 → 7, 3 → 6.5, 4 → 6, 5 → 5.5, 6 → 5,
+//     each additional wrong drops another 0.5, floored at 3.
 //   - Fluency capped at 4.5/6 when WPM > 180 (too fast to score full
 //     marks under SEAB's "natural pace" criterion even if the audio
 //     otherwise sounds smooth).
-//   - Expressiveness gets a +0.5 calibration boost — the underlying
-//     signal reads conservatively vs. a human examiner, and testing
-//     against real reads showed it consistently under-scored
-//     expressive reads by roughly half a mark.
+//   - Expressiveness gets a +1.5 calibration boost — the underlying
+//     signal reads very conservatively vs. a human examiner. If the
+//     student had few monotone stretches (verdict "good variation"),
+//     also floor the score at 5 so a genuinely expressive read never
+//     lands below 5/6.
 // If the expression signal isn't returned (older SDK / feature
 // disabled), the expressiveness dimension falls back to a fluency-
 // proxied estimate so the /20 total is still meaningful.
@@ -536,13 +542,23 @@ function computeSeabScore(
   accuracy: number,
   fluency: number,
   prosody: number | null,
-  wpm: number,
+  bd: Breakdown,
 ): ScoreSummary["seab"] {
-  const pronunciation = (accuracy / 100) * 8;
+  const wrongCount = bd.pronunciation.mispronounced + bd.pronunciation.omitted + bd.pronunciation.inserted;
+  const pronunciationRaw = (accuracy / 100) * 8;
+  const pronunciationCap = Math.max(3, 8 - 0.5 * wrongCount);
+  const pronunciation = Math.min(pronunciationRaw, pronunciationCap);
+
   let fluencyRhythm = (fluency / 100) * 6;
-  if (wpm > 180) fluencyRhythm = Math.min(fluencyRhythm, 4.5);
+  if (bd.fluency.wpm > 180) fluencyRhythm = Math.min(fluencyRhythm, 4.5);
+
   const expressivenessRaw = ((prosody ?? fluency) / 100) * 6;
-  const expressiveness = Math.min(6, expressivenessRaw + 0.5);
+  let expressiveness = expressivenessRaw + 1.5;
+  if (bd.expressiveness.intonationVerdict === "good variation") {
+    expressiveness = Math.max(expressiveness, 5);
+  }
+  expressiveness = Math.min(6, expressiveness);
+
   return {
     pronunciation: round1(pronunciation),
     fluencyRhythm: round1(fluencyRhythm),

@@ -17,11 +17,13 @@ import { GoogleGenAI, Modality, StartSensitivity, EndSensitivity, ActivityHandli
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 
-// Live-API-capable models on AI Studio (as of 2026). The 2.5 preview
-// variants are not enabled on every project by default — pick the
-// broadly-available 2.0 flash-exp as primary and let env override to
-// the 2.5 variants when ready.
-const MODEL = "gemini-2.0-flash-exp";
+// Live-API-capable models on AI Studio (as of 2026). `gemini-2.0-
+// flash-exp` is the OLD experimental model — it does NOT support
+// authTokens.create (returns 404). The GA-track Live model that
+// works with ephemeral tokens is `gemini-2.0-flash-live-001`; the
+// newer preview with native-audio dialog is
+// `gemini-live-2.5-flash-preview`. Override via GEMINI_LIVE_MODEL.
+const MODEL = "gemini-2.0-flash-live-001";
 const MODEL_ENV = process.env.GEMINI_LIVE_MODEL;
 
 type PromptEntry = string | { label?: string; prompt?: string; text?: string };
