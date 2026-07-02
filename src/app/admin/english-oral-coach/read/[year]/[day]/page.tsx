@@ -410,22 +410,6 @@ function Inner() {
                     <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">Show recognised transcription</summary>
                     <p className="mt-2 text-xs text-slate-500 italic">{score.transcription}</p>
                   </details>
-
-                  <details>
-                    <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">Underlying Azure Speech scores (0-100)</summary>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
-                      <Metric label="Overall" value={score.overall} />
-                      <Metric label="Accuracy" value={score.accuracy} />
-                      <Metric label="Fluency" value={score.fluency} />
-                      <Metric label="Completeness" value={score.completeness} />
-                      {score.prosody !== null && <Metric label="Prosody" value={score.prosody} />}
-                    </div>
-                    <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-                      SEAB Pronunciation ≈ Azure Accuracy · 0.08 · &nbsp;
-                      SEAB Fluency ≈ Azure Fluency · 0.06 · &nbsp;
-                      SEAB Expressiveness ≈ Azure Prosody · 0.06 (falls back to Fluency when prosody isn&apos;t returned).
-                    </p>
-                  </details>
                 </div>
               )}
             </>
@@ -676,7 +660,7 @@ function buildTips(words: WordScore[], breakdown: Breakdown): TipCategory[] {
   if (monotone.length > 0) {
     expressivenessItems.push({
       label: "Monotone stretches — inflect here",
-      hint: "Azure flagged these words as sung on one note. Read them again lifting the pitch on the important syllable, or dropping it if it's a full-stop word.",
+      hint: "The examiner flagged these words as sung on one note. Read them again lifting the pitch on the important syllable, or dropping it if it's a full-stop word.",
       examples: monotone.slice(0, 8),
       count: monotone.length,
     });
@@ -708,53 +692,115 @@ function styleFor(score: number, error: string): { className: string; showScore:
 
 // Rebuild the passage as a list of "chunks" — each chunk is either a
 // word (matched to an Azure WordScore) or a punctuation/whitespace run
-// (rendered as-is in default styling). This preserves quotes, commas,
-// full stops, etc. in the coloured view — students see the passage
-// the way it was written, not a bag of stripped words.
+// (rendered as-is in default styling).
 //
-// Insertions (Azure words not in the original) get appended at the
-// point where the walker gave up finding a match.
+// Key robustness tweaks over the naive walker:
+//
+// 1. Contractions and hyphens stay together in one token
+//    ("Hakim's" / "well-known" / "isn't" → single word tokens).
+//    Azure returns these as one word too, so alignment stays 1:1.
+//
+// 2. Comparison ignores case AND apostrophes/hyphens
+//    (normalize("Hakim's") === normalize("Hakims")). This survives
+//    curly-vs-straight-quote OCR variance in the source passage.
+//
+// 3. Strict parallel walk. Each passage word tries to match the NEXT
+//    queued Azure word first. Only if the immediate next mismatches do
+//    we look ahead up to 3 positions for the true match (rare — mostly
+//    just handles a stray Azure Insertion inline).
+//
+// 4. Azure's own Omission / Insertion errorType is authoritative — we
+//    don't overwrite it. When Azure returns 0 insertions + 0 omissions
+//    (clean read), the passage renders with 0 grey + 0 purple chunks.
 function alignPassageWithWords(passage: string, words: WordScore[]): Array<
   | { kind: "word"; text: string; style: WordScore }
   | { kind: "gap"; text: string }
 > {
   const chunks: Array<{ kind: "word"; text: string; style: WordScore } | { kind: "gap"; text: string }> = [];
-  // Tokenise the original into (word | non-word) runs.
-  const tokens = passage.match(/[A-Za-z0-9''’]+|[^A-Za-z0-9''’]+/g) ?? [];
+  // A "word" = a run of letters/digits, optionally followed by
+  // ('|’|‘|-|—) + more letters/digits — so contractions and hyphens
+  // stay together. Everything else is a "gap".
+  const wordRegex = /[A-Za-z0-9]+(?:[''’‘\-—][A-Za-z0-9]+)*|[^A-Za-z0-9]+/g;
+  const tokens = passage.match(wordRegex) ?? [];
+  const isWordToken = (t: string) => /^[A-Za-z0-9]/.test(t);
+  const normalise = (t: string) => t.toLowerCase().replace(/[''’‘\-—]/g, "");
+
   const wordQueue = words.slice();
-  const isWordToken = (t: string) => /^[A-Za-z0-9''’]+$/.test(t);
+  const LOOKAHEAD = 3;
 
   for (const tok of tokens) {
     if (!isWordToken(tok)) {
       chunks.push({ kind: "gap", text: tok });
       continue;
     }
-    // Find the next queued word that (case-insensitive) matches this token.
-    // Words in-between are insertions inserted BEFORE this token.
+
+    // 1. Emit any leading Insertions from the queue as insertions
+    //    BEFORE this passage token — those are extras the student
+    //    added, and Azure has marked them as such.
+    while (wordQueue.length > 0 && wordQueue[0].errorType === "Insertion") {
+      const ins = wordQueue.shift()!;
+      chunks.push({ kind: "word", text: ins.word, style: ins });
+      chunks.push({ kind: "gap", text: " " });
+    }
+
+    if (wordQueue.length === 0) {
+      // Passage has more words than Azure returned — treat as skipped.
+      chunks.push({ kind: "word", text: tok, style: {
+        word: tok, accuracyScore: 0, errorType: "Omission",
+        breakErrors: [], intonationErrors: [],
+      }});
+      continue;
+    }
+
+    const nTok = normalise(tok);
+    // 2. Immediate next Azure word matches? (Fast path — the common
+    //    case for a clean read.)
+    if (normalise(wordQueue[0].word) === nTok) {
+      const az = wordQueue.shift()!;
+      chunks.push({ kind: "word", text: tok, style: az });
+      continue;
+    }
+
+    // 3. Short look-ahead for a match — handles the occasional stray
+    //    Azure ordering hiccup. Anything before the match is treated
+    //    as its actual Azure errorType (Insertion / Mispronunciation).
     let matchedIdx = -1;
-    for (let i = 0; i < wordQueue.length; i++) {
-      if (wordQueue[i].word.toLowerCase() === tok.toLowerCase()) {
+    for (let i = 1; i < Math.min(wordQueue.length, LOOKAHEAD + 1); i++) {
+      if (normalise(wordQueue[i].word) === nTok) {
         matchedIdx = i;
         break;
       }
     }
-    if (matchedIdx >= 0) {
-      // Emit any earlier queued words as insertions before this token.
+    if (matchedIdx > 0) {
       for (let i = 0; i < matchedIdx; i++) {
-        chunks.push({ kind: "word", text: wordQueue[i].word, style: { ...wordQueue[i], errorType: "Insertion" } });
+        const w = wordQueue[i];
+        chunks.push({ kind: "word", text: w.word, style: w });
         chunks.push({ kind: "gap", text: " " });
       }
-      chunks.push({ kind: "word", text: tok, style: wordQueue[matchedIdx] });
+      const az = wordQueue[matchedIdx];
       wordQueue.splice(0, matchedIdx + 1);
-    } else {
-      // No match — treat as an Omission (student skipped it).
-      chunks.push({ kind: "word", text: tok, style: { word: tok, accuracyScore: 0, errorType: "Omission", breakErrors: [], intonationErrors: [] } });
+      chunks.push({ kind: "word", text: tok, style: az });
+      continue;
     }
+
+    // 4. No match nearby. Rather than desync the rest of the passage,
+    //    just render this passage word using the next Azure entry's
+    //    style (preserves its score + errorType) and move on. Small
+    //    number of visual mismatches beats cascading grey/purple.
+    const az = wordQueue.shift()!;
+    chunks.push({ kind: "word", text: tok, style: { ...az, word: tok } });
   }
-  // Any remaining queued words are trailing insertions.
+
+  // Any leftover Azure words are trailing extras — mark as Insertion
+  // ONLY if Azure didn't already give them a specific errorType.
   for (const w of wordQueue) {
     chunks.push({ kind: "gap", text: " " });
-    chunks.push({ kind: "word", text: w.word, style: { ...w, errorType: "Insertion" } });
+    const isReallyInsertion = w.errorType === "Insertion" || w.errorType === "None";
+    chunks.push({
+      kind: "word",
+      text: w.word,
+      style: isReallyInsertion ? { ...w, errorType: "Insertion" } : w,
+    });
   }
   return chunks;
 }
@@ -845,30 +891,24 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
       <div className="space-y-3">
         {/* Pronunciation — blue */}
         <div className={`rounded-xl border ${TONE_STYLES.blue.softBorder} ${TONE_STYLES.blue.softBg} p-4`}>
-          <div className="flex items-baseline justify-between mb-2">
-            <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text}`}>Pronunciation — {Math.round(score.seab.pronunciation)} / 8</p>
-            <span className="text-[10px] text-slate-500">Azure Accuracy {Math.round(score.accuracy)}/100</span>
-          </div>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {Math.round(score.seab.pronunciation)} / 8</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Of <strong>{b.pronunciation.total}</strong> words in the passage,
-            you read <strong>{b.pronunciation.clear}</strong> clearly ≥ 85 accuracy,
-            <strong> {b.pronunciation.notClear}</strong> not clearly (60–84),
-            <strong> {b.pronunciation.mispronounced}</strong> mispronounced (&lt; 60),
+            you read <strong>{b.pronunciation.clear}</strong> clearly,
+            <strong> {b.pronunciation.notClear}</strong> not clearly,
+            <strong> {b.pronunciation.mispronounced}</strong> mispronounced,
             <strong> {b.pronunciation.omitted}</strong> skipped,
             and added <strong>{b.pronunciation.inserted}</strong> extra {b.pronunciation.inserted === 1 ? "word" : "words"}.
           </p>
           <p className="text-[10px] text-slate-500 mt-2">
-            Azure scores each phoneme (single sound like &quot;th&quot; or &quot;str&quot;) against the expected phoneme,
-            then averages phonemes into a word score. A word &lt; 60 usually means at least one phoneme was wrong or missing.
+            The examiner scores each phoneme (single sound like &quot;th&quot; or &quot;str&quot;) against the expected phoneme,
+            then averages phonemes into a word score. A poorly-scored word usually means at least one phoneme was wrong or missing.
           </p>
         </div>
 
         {/* Fluency & Rhythm — purple */}
         <div className={`rounded-xl border ${TONE_STYLES.purple.softBorder} ${TONE_STYLES.purple.softBg} p-4`}>
-          <div className="flex items-baseline justify-between mb-2">
-            <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text}`}>Fluency &amp; Rhythm — {Math.round(score.seab.fluencyRhythm)} / 6</p>
-            <span className="text-[10px] text-slate-500">Azure Fluency {Math.round(score.fluency)}/100</span>
-          </div>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {Math.round(score.seab.fluencyRhythm)} / 6</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             You read at <strong>{b.fluency.wpm > 0 ? `${b.fluency.wpm} words/min` : "—"}</strong>
             {b.fluency.wpm > 0 && (
@@ -882,26 +922,23 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
             and missed <strong>{b.fluency.missingPauses}</strong> {b.fluency.missingPauses === 1 ? "pause" : "pauses"} at natural breaks.
           </p>
           <p className="text-[10px] text-slate-500 mt-2">
-            Azure measures pace consistency + pause placement + filler words. PSLE examiners want natural chunking — a soft breath at commas, no rushing through phrases.
+            The examiner measures pace consistency + pause placement + filler words. PSLE examiners want natural chunking — a soft breath at commas, no rushing through phrases.
           </p>
         </div>
 
         {/* Expressiveness — brown/amber */}
         <div className={`rounded-xl border ${TONE_STYLES.brown.softBorder} ${TONE_STYLES.brown.softBg} p-4`}>
-          <div className="flex items-baseline justify-between mb-2">
-            <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text}`}>Expressiveness — {Math.round(score.seab.expressiveness)} / 6</p>
-            <span className="text-[10px] text-slate-500">Azure Prosody {score.prosody !== null ? `${Math.round(score.prosody)}/100` : "n/a"}</span>
-          </div>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {Math.round(score.seab.expressiveness)} / 6</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Your intonation was <strong>{
               b.expressiveness.intonationVerdict === "good variation" ? "varied and natural — pitch moved with meaning" :
               b.expressiveness.intonationVerdict === "some variation" ? "adequate — some pitch change, but flat in places" :
               b.expressiveness.intonationVerdict === "flat" ? "mostly flat — voice stayed at one pitch too much" :
               "not detected"
-            }</strong>. Azure flagged <strong>{b.expressiveness.monotoneWords}</strong> {b.expressiveness.monotoneWords === 1 ? "word" : "words"} as monotone stretches.
+            }</strong>. The examiner flagged <strong>{b.expressiveness.monotoneWords}</strong> {b.expressiveness.monotoneWords === 1 ? "word" : "words"} as monotone stretches.
           </p>
           <p className="text-[10px] text-slate-500 mt-2">
-            Prosody scoring looks at four things: pitch pattern (rising for questions, falling for full stops), word-level stress (content words louder than function words),
+            Expression scoring looks at four things: pitch pattern (rising for questions, falling for full stops), word-level stress (content words louder than function words),
             pace variation (slow at commas, faster in enumeration), and pause placement. A monotone-flagged word means the pitch didn&apos;t move where a natural reader would inflect.
           </p>
         </div>
