@@ -8,6 +8,7 @@ import AdminNav from "@/components/AdminNav";
 import { getOralAvatarKey, setOralAvatarKey, ORAL_AVATARS, type OralAvatarKey } from "@/lib/oral-avatar";
 import { ORAL_THEMES_ZH, CATEGORY_STYLES_ZH, type OralThemeZh } from "@/lib/oral-themes-zh";
 import { saveOralSession, clearOralSession } from "@/lib/oral-session";
+import { OralSessionHistory } from "@/components/OralSessionHistory";
 
 // Chinese Oral Coach — sibling of /admin/english-oral-coach. Same
 // flow (theme -> Reading Aloud -> Continue -> SBC -> Aggregate) but
@@ -220,6 +221,7 @@ function PageInner() {
                       themeId: selectedTheme.id,
                       themeLabel: selectedTheme.theme,
                       avatarKey,
+                      module: "chinese",
                       startedAt: Date.now(),
                     });
                     window.location.href = `/admin/chinese-oral-coach/read/${selectedTheme.id}?userId=${userId}&flow=1`;
@@ -238,6 +240,7 @@ function PageInner() {
                       themeId: selectedTheme.id,
                       themeLabel: selectedTheme.theme,
                       avatarKey,
+                      module: "chinese",
                       startedAt: Date.now(),
                     });
                     window.location.href = `/admin/chinese-oral-coach/sbc/${selectedTheme.id}?userId=${userId}&flow=1`;
@@ -251,6 +254,19 @@ function PageInner() {
                 </p>
               </div>
             </div>
+
+            <OralSessionHistory
+              module="chinese"
+              labels={{
+                heading: "过去练习 · Previous sessions",
+                emptyState: "还没有保存的练习。完成一次练习后点击「保存」就会显示在这里。",
+                readingLabel: "朗读",
+                sbcLabel: "会话",
+                skippedLabel: "跳过",
+                totalOutOfIfSkipped: 30,
+                totalOutOfIfFull: 40,
+              }}
+            />
           </div>
         </div>
       </div>

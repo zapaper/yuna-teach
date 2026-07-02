@@ -44,6 +44,11 @@ export type OralSession = {
   themeId: string;
   themeLabel: string;
   avatarKey: string;
+  /** "english" or "chinese" — set by the homepage's Start Practice
+   * button. Chinese and English themes both use YYYY_D IDs so we
+   * can't distinguish from themeId alone; the flag is what routes
+   * the results page + the saved-session list into the right module. */
+  module: "english" | "chinese";
   startedAt: number;
   reading?: OralSessionReading;
   sbc?: OralSessionSbc;

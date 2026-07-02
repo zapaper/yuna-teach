@@ -8,6 +8,7 @@ import AdminNav from "@/components/AdminNav";
 import { getOralAvatarKey, setOralAvatarKey, ORAL_AVATARS, type OralAvatarKey } from "@/lib/oral-avatar";
 import { ORAL_THEMES, CATEGORY_STYLES } from "@/lib/oral-themes";
 import { saveOralSession, clearOralSession } from "@/lib/oral-session";
+import { OralSessionHistory } from "@/components/OralSessionHistory";
 // Voice-tester import removed — the picker component still exists at
 // src/components/OralVoiceTester.tsx if you need to audition voices;
 // re-import it here to drop back onto the page.
@@ -259,6 +260,7 @@ function PageInner() {
                           themeId: selectedTheme.id,
                           themeLabel: selectedTheme.theme,
                           avatarKey,
+                          module: "english",
                           startedAt: Date.now(),
                         });
                         window.location.href = `/admin/english-oral-coach/read/${selectedTheme.year}/${selectedTheme.day}?userId=${userId}&flow=1`;
@@ -279,6 +281,7 @@ function PageInner() {
                           themeId: selectedTheme.id,
                           themeLabel: selectedTheme.theme,
                           avatarKey,
+                          module: "english",
                           startedAt: Date.now(),
                         });
                         // Random SBC day (matches what the Read page's
@@ -295,6 +298,11 @@ function PageInner() {
                     </p>
                   </div>
                 </div>
+
+                {/* Prior-session history sits below Start Practice
+                    so students can see their trajectory + quickly
+                    revisit a theme they've already tried. */}
+                <OralSessionHistory module="english" />
               </>
             ) : (
               <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 text-center">
