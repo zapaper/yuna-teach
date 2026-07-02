@@ -554,7 +554,19 @@ function computeSeabScore(
 
   const expressivenessRaw = ((prosody ?? fluency) / 100) * 6;
   let expressiveness = expressivenessRaw + 1.5;
-  if (bd.expressiveness.intonationVerdict === "good variation") {
+  // Verdict-based cap. The +1.5 boost was calibrated for expressive
+  // reads but wrongly rescued monotone reads to 5/6. Cap by verdict:
+  //   - flat            -> cap 3.5 (must feel wrong to a human ear)
+  //   - some variation  -> cap 4.5
+  //   - good variation  -> floor 5 (protect expressive reads)
+  // 2026-07-02: user probe with deliberately monotone read scored
+  // 5/6 despite the "mostly flat" verdict — that's the bug this
+  // fixes.
+  if (bd.expressiveness.intonationVerdict === "flat") {
+    expressiveness = Math.min(expressiveness, 3.5);
+  } else if (bd.expressiveness.intonationVerdict === "some variation") {
+    expressiveness = Math.min(expressiveness, 4.5);
+  } else if (bd.expressiveness.intonationVerdict === "good variation") {
     expressiveness = Math.max(expressiveness, 5);
   }
   expressiveness = Math.min(6, expressiveness);
@@ -1034,7 +1046,18 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
               b.expressiveness.intonationVerdict === "some variation" ? "adequate — some pitch change, but flat in places" :
               b.expressiveness.intonationVerdict === "flat" ? "mostly flat — voice stayed at one pitch too much" :
               "not detected"
-            }</strong>. The examiner flagged <strong>{b.expressiveness.monotoneWords}</strong> {b.expressiveness.monotoneWords === 1 ? "word" : "words"} as monotone stretches.
+            }</strong>.{
+              // Only report the per-word monotone count when it AGREES with
+              // the overall verdict. Otherwise it contradicts the sentence
+              // above ("mostly flat... 0 monotone words" was confusing).
+              // The two signals come from different Azure fields — verdict
+              // = overall prosody 0–100, count = per-word Monotone flag —
+              // and can disagree when the whole read is uniformly flat
+              // without any word crossing the flag threshold.
+              b.expressiveness.monotoneWords > 0
+                ? <> The examiner flagged <strong>{b.expressiveness.monotoneWords}</strong> {b.expressiveness.monotoneWords === 1 ? "word" : "words"} as monotone stretches.</>
+                : null
+            }
           </p>
           <p className="text-[10px] text-slate-500 mt-2">
             Expression scoring looks at four things: pitch pattern (rising for questions, falling for full stops), word-level stress (content words louder than function words),
