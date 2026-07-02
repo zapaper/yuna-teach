@@ -63,6 +63,8 @@ function Inner() {
   const [examinerSpeaking, setExaminerSpeaking] = useState(false);
   const [score, setScore] = useState<SbcScore | null>(null);
   const sessionRef = useRef<unknown>(null);
+  const playbackCtxRef = useRef<AudioContext | null>(null);
+  const playbackNextTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -114,7 +116,15 @@ function Inner() {
         }
         throw new Error(msg);
       }
-      const { token, model } = await tokenResp.json();
+      const { token, model, selectedPrompt } = await tokenResp.json();
+
+      // Playback pipeline for Gemini's audio replies. Gemini Live
+      // returns 24kHz PCM (16-bit signed little-endian) — build a
+      // dedicated AudioContext at that rate and stitch incoming
+      // buffers back-to-back so playback stays gap-free even when
+      // the server splits a single utterance across many chunks.
+      playbackCtxRef.current = new AudioContext({ sampleRate: 24000 });
+      playbackNextTimeRef.current = 0;
 
       const mod = await import("@google/genai");
       const client = new mod.GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
@@ -136,6 +146,19 @@ function Inner() {
       });
       sessionRef.current = session;
 
+      // Opener: use browser TTS (same voice pattern as Reading Aloud)
+      // to speak the greeting + selected prompt. Gemini Live sits
+      // silent on session open — we can't rely on it to speak first.
+      // Doing the opener as TTS is also deterministic: we know
+      // exactly what was said, so the student always hears the
+      // intended prompt. Await TTS end before opening the mic so the
+      // opener doesn't feed back into Gemini's ears.
+      const opener = `Hello! Let's have a chat about this picture. ${selectedPrompt}`;
+      setTranscript([{ speaker: "examiner", text: opener, ts: Date.now() }]);
+      setExaminerSpeaking(true);
+      await speakOpener(opener);
+      setExaminerSpeaking(false);
+
       // Start capturing mic and streaming into the session.
       await startMicStream(session);
     } catch (e) {
@@ -146,14 +169,13 @@ function Inner() {
 
   function handleLiveMessage(msg: unknown) {
     // Gemini Live server messages arrive here — transcriptions, audio
-    // chunks, turnComplete signals. We wire the transcripts into the
-    // transcript state; audio playback + mic streaming are handled by
-    // startMicStream() and the session's built-in audio pipeline.
+    // chunks, turnComplete signals. Transcripts flow into state;
+    // examiner audio bytes flow into the playback queue.
     const m = msg as {
       serverContent?: {
         inputTranscription?: { text?: string };
         outputTranscription?: { text?: string };
-        modelTurn?: unknown;
+        modelTurn?: { parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }> };
         turnComplete?: boolean;
       };
     };
@@ -166,7 +188,79 @@ function Inner() {
       setTranscript((prev) => appendOrExtend(prev, "examiner", outText));
       setExaminerSpeaking(true);
     }
+    const parts = m.serverContent?.modelTurn?.parts ?? [];
+    for (const part of parts) {
+      const b64 = part.inlineData?.data;
+      if (b64) queueGeminiAudio(b64);
+    }
     if (m.serverContent?.turnComplete) setExaminerSpeaking(false);
+  }
+
+  // Decode Gemini Live's base64 PCM audio and schedule it on the
+  // playback context. Uses a monotonic nextTime marker so successive
+  // chunks stitch seamlessly — critical because Gemini splits a single
+  // spoken turn across dozens of ~50ms chunks and any drift audibly
+  // stutters. Reset nextTime forward if we've fallen behind (e.g. the
+  // context was suspended on tab-blur).
+  function queueGeminiAudio(base64Data: string) {
+    const ctx = playbackCtxRef.current;
+    if (!ctx) return;
+    const binary = atob(base64Data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    // Interpret as signed 16-bit little-endian PCM.
+    const int16 = new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+    const float32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+    if (float32.length === 0) return;
+    const buffer = ctx.createBuffer(1, float32.length, 24000);
+    buffer.getChannelData(0).set(float32);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    const now = ctx.currentTime;
+    const startAt = Math.max(now, playbackNextTimeRef.current);
+    src.start(startAt);
+    playbackNextTimeRef.current = startAt + buffer.duration;
+  }
+
+  // Browser TTS for the opening prompt. Same pattern as the green TTS
+  // buttons in Reading Aloud: en-GB voice, slightly slowed. Resolves
+  // when the utterance finishes so start() can then open the mic
+  // without the opener bleeding back into Gemini's input.
+  function speakOpener(text: string): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        resolve();
+        return;
+      }
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const speak = () => {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "en-GB";
+        utter.rate = 0.95;
+        const voices = synth.getVoices();
+        const preferred =
+          voices.find((v) => v.lang.startsWith("en-GB") && /female|woman|kate|serena|susan/i.test(v.name)) ||
+          voices.find((v) => v.lang.startsWith("en-GB")) ||
+          voices.find((v) => v.lang.startsWith("en"));
+        if (preferred) utter.voice = preferred;
+        utter.onend = () => resolve();
+        utter.onerror = () => resolve();
+        synth.speak(utter);
+      };
+      // Voices are loaded async in some browsers. If empty, wait for
+      // the voiceschanged event once, then speak.
+      if (synth.getVoices().length === 0) {
+        const onVoices = () => { synth.removeEventListener("voiceschanged", onVoices); speak(); };
+        synth.addEventListener("voiceschanged", onVoices);
+        // Belt-and-braces: some browsers fire the event late — kick after 250ms.
+        setTimeout(speak, 250);
+      } else {
+        speak();
+      }
+    });
   }
 
   async function startMicStream(session: unknown) {
@@ -198,6 +292,16 @@ function Inner() {
     setStatus("ending");
     const s = sessionRef.current as { close?: () => void } | null;
     if (s?.close) s.close();
+    // Bail early if the student never spoke — the scoring endpoint
+    // needs at least 2 turns. Show a friendly message instead of
+    // leaking the raw "transcript array with at least 2 turns required"
+    // response.
+    const studentTurns = transcript.filter((t) => t.speaker === "student").length;
+    if (studentTurns === 0) {
+      setError("No student answer captured — did the mic pick up your voice? Click Try again and speak clearly after the examiner finishes the opening prompt.");
+      setStatus("error");
+      return;
+    }
     setStatus("scoring");
     try {
       const resp = await fetch("/api/oral-coach/sbc-score", {
