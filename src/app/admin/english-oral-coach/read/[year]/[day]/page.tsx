@@ -70,10 +70,16 @@ type ScoreSummary = {
   words: WordScore[];
   transcription: string;
   seab: {
-    total: number;          // /20 — Reading Aloud
-    pronunciation: number;  // /8  — articulation & pronunciation
-    fluencyRhythm: number;  // /6  — pace, chunking, natural pauses
-    expressiveness: number; // /6  — pitch variation, stress, rhythm
+    total: number;          // /15 — Reading Aloud
+    // Legacy /X marks — kept internal, no longer displayed.
+    pronunciation: number;
+    fluencyRhythm: number;
+    expressiveness: number;
+    // Percent view — this is what the UI shows.
+    pronunciationPercent: number;    // 0-100, snap5
+    fluencyPercent: number;          // 0-100, snap5
+    expressivenessPercent: number;   // 0-100, snap5
+    overallPercent: number;          // 0-100, snap5
   };
   breakdown: Breakdown;
 };
@@ -399,14 +405,13 @@ function Inner() {
                     <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-3">
                       <div className="flex items-end gap-2">
                         <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold pb-1">Predicted total</p>
-                        <span className="text-3xl font-bold text-slate-800 leading-none">{Math.round(score.seab.total)}</span>
-                        <span className="text-[10px] text-slate-400 pb-1">({score.seab.total.toFixed(1)})</span>
-                        <span className="text-sm text-slate-500 pb-0.5">/ 15</span>
+                        <span className="text-3xl font-bold text-slate-800 leading-none">{score.seab.total}</span>
+                        <span className="text-sm text-slate-500 pb-0.5">/ 15 · {score.seab.overallPercent}%</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 mt-3">
-                        <SeabDim label="Pronunciation" value={score.seab.pronunciation} outOf={6} desc="articulation, sounds" tone="blue" />
-                        <SeabDim label="Fluency & rhythm" value={score.seab.fluencyRhythm} outOf={5} desc="pace, chunking" tone="purple" />
-                        <SeabDim label="Expressiveness" value={score.seab.expressiveness} outOf={4} desc="pitch, stress" tone="brown" />
+                        <SeabDim label="Pronunciation" percent={score.seab.pronunciationPercent} desc="articulation, sounds" tone="blue" />
+                        <SeabDim label="Fluency & rhythm" percent={score.seab.fluencyPercent} desc="pace, chunking" tone="purple" />
+                        <SeabDim label="Expressiveness" percent={score.seab.expressivenessPercent} desc="pitch, stress" tone="brown" />
                       </div>
                     </div>
                   </div>
@@ -532,54 +537,70 @@ function computeBreakdown(words: WordScore[], fluencyScore: number, prosodyScore
   void fluencyScore;
 }
 
-// Reading Aloud is scored /15 across three dimensions (updated
-// 2026-07-02 — was /20, matches the PSLE 2026 rubric where Oral =
-// Reading Aloud (15) + SBC (25) = 40 total). Rough conversion from
-// the speech engine's 0-100 scales:
-//   Pronunciation / articulation: 6 marks  ← accuracy
-//   Fluency & rhythm:             5 marks  ← fluency
-//   Expressiveness:               4 marks  ← expression / prosody
-// Calibrations (rescaled from the earlier /20 curve):
-//   - Pronunciation capped by wrong-word count (mispronounced +
-//     omitted + inserted). Cap curve: 0 wrong → 6, then -0.4 per
-//     wrong word, floored at 2. Human examiners won't give 6/6 with
-//     3+ visible errors regardless of the phoneme accuracy %.
-//   - Fluency capped at 3.5/5 when WPM > 180 (too fast for SEAB's
-//     "natural pace" even if the audio sounds smooth).
-//   - Expressiveness gets a +1 calibration boost — the prosody
-//     signal reads conservatively vs. a human examiner.
-//     Verdict caps: flat → max 2 / 4, some variation → max 2.5 / 4,
-//     good variation → floor 3.3 / 4.
+// Reading Aloud — per-dimension percentages (0-100 in 5% increments),
+// equal-weighted average, then mapped to /15. Matches the SBC scoring
+// shape the user pushed for on 2026-07-02:
+//   pronunciationPercent (0-100, snap5)
+//   fluencyPercent       (0-100, snap5)
+//   expressivenessPercent(0-100, snap5)
+//   overallPercent = snap5(avg of 3)
+//   total = overallPercent * 15 / 100
+//
+// Calibrations happen in PERCENT space now:
+//   - Pronunciation capped by wrong-word count. Each wrong word
+//     (mispronounced + omitted + inserted) knocks the ceiling down
+//     by 5 percentage points from 100, floored at 30.
+//   - Fluency capped at 65% when WPM > 180 (too fast for a natural
+//     PSLE read).
+//   - Expressiveness gets a +15pp calibration boost — the prosody
+//     signal reads conservatively vs. a human examiner. Then
+//     verdict caps:
+//       flat            -> max 40%
+//       some variation  -> max 60%
+//       good variation  -> floor 80%
 function computeSeabScore(
   accuracy: number,
   fluency: number,
   prosody: number | null,
   bd: Breakdown,
 ): ScoreSummary["seab"] {
+  const snap5 = (n: number) => Math.round(n / 5) * 5;
+  const clamp = (n: number) => Math.max(0, Math.min(100, snap5(n)));
+
   const wrongCount = bd.pronunciation.mispronounced + bd.pronunciation.omitted + bd.pronunciation.inserted;
-  const pronunciationRaw = (accuracy / 100) * 6;
-  const pronunciationCap = Math.max(2, 6 - 0.4 * wrongCount);
-  const pronunciation = Math.min(pronunciationRaw, pronunciationCap);
+  const pronCeiling = Math.max(30, 100 - 5 * wrongCount);
+  const pronunciationPercent = clamp(Math.min(accuracy, pronCeiling));
 
-  let fluencyRhythm = (fluency / 100) * 5;
-  if (bd.fluency.wpm > 180) fluencyRhythm = Math.min(fluencyRhythm, 3.5);
+  let fluencyPct = fluency;
+  if (bd.fluency.wpm > 180) fluencyPct = Math.min(fluencyPct, 65);
+  const fluencyPercent = clamp(fluencyPct);
 
-  const expressivenessRaw = ((prosody ?? fluency) / 100) * 4;
-  let expressiveness = expressivenessRaw + 1;
+  let exprPct = (prosody ?? fluency) + 15;
   if (bd.expressiveness.intonationVerdict === "flat") {
-    expressiveness = Math.min(expressiveness, 2);
+    exprPct = Math.min(exprPct, 40);
   } else if (bd.expressiveness.intonationVerdict === "some variation") {
-    expressiveness = Math.min(expressiveness, 2.5);
+    exprPct = Math.min(exprPct, 60);
   } else if (bd.expressiveness.intonationVerdict === "good variation") {
-    expressiveness = Math.max(expressiveness, 3.3);
+    exprPct = Math.max(exprPct, 80);
   }
-  expressiveness = Math.min(4, expressiveness);
+  const expressivenessPercent = clamp(exprPct);
+
+  const overallPercent = snap5((pronunciationPercent + fluencyPercent + expressivenessPercent) / 3);
+  const total = Math.round((overallPercent * 15 / 100) * 100) / 100; // /15, 2dp
 
   return {
-    pronunciation: round1(pronunciation),
-    fluencyRhythm: round1(fluencyRhythm),
-    expressiveness: round1(expressiveness),
-    total: round1(pronunciation + fluencyRhythm + expressiveness),
+    // Legacy /X marks (kept for the display components until they
+    // switch to percent). Derive by scaling the percentage: pron
+    // 100% -> 6, flu 100% -> 5, expr 100% -> 4.
+    pronunciation: round1(pronunciationPercent * 6 / 100),
+    fluencyRhythm: round1(fluencyPercent * 5 / 100),
+    expressiveness: round1(expressivenessPercent * 4 / 100),
+    // Percent view (matches the SBC card style).
+    pronunciationPercent,
+    fluencyPercent,
+    expressivenessPercent,
+    overallPercent,
+    total: round1(total),
   };
 }
 function round1(n: number): number { return Math.round(n * 10) / 10; }
@@ -989,15 +1010,13 @@ const TONE_STYLES: Record<ToneKey, { border: string; bg: string; text: string; l
   brown:  { border: "border-amber-300",  bg: "bg-amber-50",  text: "text-amber-800",  label: "text-amber-700",  softBg: "bg-amber-50/60",  softBorder: "border-amber-300" },
 };
 
-function SeabDim({ label, value, outOf, desc, tone }: { label: string; value: number; outOf: number; desc: string; tone: ToneKey }) {
+function SeabDim({ label, percent, desc, tone }: { label: string; percent: number; desc: string; tone: ToneKey }) {
   const s = TONE_STYLES[tone];
   return (
     <div className={`rounded-lg ${s.bg} border ${s.border} px-2.5 py-2`}>
       <p className={`text-[10px] uppercase tracking-wide ${s.label} font-semibold`}>{label}</p>
       <p className={`text-lg font-bold leading-none ${s.text}`}>
-        {Math.round(value)}
-        <span className="text-[10px] text-slate-500 ml-1">({value.toFixed(1)})</span>
-        <span className="text-[10px] text-slate-500 ml-1">/ {outOf}</span>
+        {percent}<span className="text-[10px] text-slate-500 ml-0.5">%</span>
       </p>
       <p className={`text-[10px] mt-0.5 ${s.label}`}>{desc}</p>
     </div>
@@ -1012,7 +1031,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
       <div className="space-y-2">
         {/* Pronunciation — blue */}
         <div className={`rounded-lg border ${TONE_STYLES.blue.softBorder} ${TONE_STYLES.blue.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {score.seab.pronunciation} / 6</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.blue.text} mb-2`}>Pronunciation — {score.seab.pronunciationPercent}%</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Of <strong>{b.pronunciation.total}</strong> words in the passage,
             you read <strong>{b.pronunciation.clear}</strong> clearly,
@@ -1029,7 +1048,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
 
         {/* Fluency & Rhythm — purple */}
         <div className={`rounded-lg border ${TONE_STYLES.purple.softBorder} ${TONE_STYLES.purple.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {score.seab.fluencyRhythm} / 5</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.purple.text} mb-2`}>Fluency &amp; Rhythm — {score.seab.fluencyPercent}%</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             You read at <strong>{b.fluency.wpm > 0 ? `${b.fluency.wpm} words/min` : "—"}</strong>
             {b.fluency.wpm > 0 && (
@@ -1049,7 +1068,7 @@ function DetailedScoring({ score }: { score: ScoreSummary }) {
 
         {/* Expressiveness — brown/amber */}
         <div className={`rounded-lg border ${TONE_STYLES.brown.softBorder} ${TONE_STYLES.brown.softBg} p-3`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {score.seab.expressiveness} / 4</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${TONE_STYLES.brown.text} mb-2`}>Expressiveness — {score.seab.expressivenessPercent}%</p>
           <p className="text-xs text-slate-700 leading-relaxed">
             Your intonation was <strong>{
               b.expressiveness.intonationVerdict === "good variation" ? "varied and natural — pitch moved with meaning" :
