@@ -89,6 +89,12 @@ function Inner() {
   // will tick up while openerFireCount stays at 1.
   const openerFireCountRef = useRef<number>(0);
   const geminiAudioChunkCountRef = useRef<number>(0);
+  // Track the last time the student appeared to stop speaking (last
+  // non-zero mic chunk) so we can measure how long Gemini actually
+  // waited before generating its first-audio-chunk of the next turn.
+  // If the gap is < the configured silenceDurationMs, we know the
+  // server config is being ignored.
+  const lastStudentVoiceAtRef = useRef<number>(0);
   // Suppress mic-to-Gemini streaming while the examiner is speaking,
   // otherwise the speakers -> mic loop makes Gemini hear its own
   // voice and start responding to itself. Flip true when we receive
@@ -310,6 +316,13 @@ function Inner() {
         if (n === 1 || n === 10 || n === 100 || n % 500 === 0) {
           console.log("[SBC gemini-audio] chunk #", n, "playing through speakers");
         }
+        // On the FIRST audio chunk of a new examiner turn, measure the
+        // gap since the student's last detected voice. This tells us
+        // whether Gemini actually honoured silenceDurationMs.
+        if (!geminiSpeakingRef.current && lastStudentVoiceAtRef.current > 0) {
+          const gap = Date.now() - lastStudentVoiceAtRef.current;
+          console.log("[SBC turn-gap] examiner started", gap, "ms after student's last voice — VAD configured for 5000ms");
+        }
         // Mark examiner as speaking so the mic stops streaming its
         // echo back into Gemini. Extend the cooldown timer on every
         // chunk so it only expires ~400ms after the LAST chunk.
@@ -520,7 +533,7 @@ function Inner() {
         const v = Math.abs(input[i]);
         if (v > peak) peak = v;
       }
-      if (peak > 0.02) loudChunkCounter++;
+      if (peak > 0.02) { loudChunkCounter++; lastStudentVoiceAtRef.current = Date.now(); }
       chunkCounter++;
       if (chunkCounter % 8 === 0) {
         console.log("[SBC mic] chunk", chunkCounter, "peak", peak.toFixed(3), "loud", loudChunkCounter);

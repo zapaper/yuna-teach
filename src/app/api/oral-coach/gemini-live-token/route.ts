@@ -168,12 +168,17 @@ export async function POST(request: NextRequest) {
                 startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
                 endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
                 prefixPaddingMs: 300,
-                // 4000ms silence budget before the examiner interjects.
-                // Was 2500 but user reported "it didn't wait 4 seconds
-                // before jumping in" — 4s applied uniformly across all
-                // turns is simpler than a first-turn-only widen and
-                // matches how a real MOE oral examiner listens.
-                silenceDurationMs: 4000,
+                // Silence budget before the examiner interjects.
+                // User probes on 2026-07-02:
+                //   1500 -> "cutting me off"
+                //   2500 -> "still cutting me off"
+                //   4000 -> "still 2s before jumping in"
+                // Bumping to 5000. If Gemini caps silenceDurationMs
+                // internally on gemini-3.1-flash-live-preview, we may
+                // need to switch to explicit VAD (disable automatic,
+                // client-side detects end-of-speech and sends
+                // activityEnd) — try that if 5000 still cuts in early.
+                silenceDurationMs: 5000,
               },
               activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
             },
