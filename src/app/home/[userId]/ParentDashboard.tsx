@@ -3471,7 +3471,7 @@ export default function ParentDashboard({
                                 paperTitle: paper.title,
                               });
                             }}
-                            className="2xl:hidden w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#006c49] hover:bg-[#e8fff3] transition-colors"
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#006c49] hover:bg-[#e8fff3] transition-colors"
                             title="Scan completed paper"
                           >
                             <span className="material-symbols-outlined text-lg">photo_camera</span>
@@ -4376,7 +4376,7 @@ export default function ParentDashboard({
                         paperTitle: popup.title,
                       });
                     }}
-                    className="2xl:hidden flex-1 py-2.5 rounded-xl border-2 border-[#006c49]/30 text-[#006c49] text-sm font-bold hover:bg-[#e8fff3] transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl border-2 border-[#006c49]/30 text-[#006c49] text-sm font-bold hover:bg-[#e8fff3] transition-colors flex items-center justify-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-base">photo_camera</span>
                     Scan
